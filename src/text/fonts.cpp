@@ -8,6 +8,7 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+#include <icu.h>
 
 namespace text {
 
@@ -552,66 +553,206 @@ void stored_text::set_text(sys::state& state, font_selection type, std::string&&
 	}
 }
 
+bool requires_surrogate_pair(uint32_t codepoint) {
+	return codepoint >= 0x10000;
+}
+
+struct surrogate_pair {
+	uint16_t high = 0; // aka leading
+	uint16_t low = 0; // aka trailing
+};
+
+surrogate_pair make_surrogate_pair(uint32_t val) noexcept {
+	uint32_t v = val - 0x10000;
+	uint32_t h = ((v >> 10) & 0x03FF) | 0xD800;
+	uint32_t l = (v & 0x03FF) | 0xDC00;
+	return surrogate_pair{ uint16_t(h), uint16_t(l) };
+}
+
 void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& s) {
-	hb_buffer_clear_contents(hb_buf);
-	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
+	txt.glyph_info.clear();
+	txt.glyph_pos.clear();
+	txt.glyph_count = 0;
+	if(s.length() == 0)
+		return;
 
 	auto locale = state.font_collection.get_current_locale();
-	hb_buffer_set_direction(hb_buf, state.world.locale_get_native_rtl(locale) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
-	hb_buffer_set_script(hb_buf, (hb_script_t)state.world.locale_get_hb_script(locale));
-	hb_buffer_set_language(hb_buf, state.world.locale_get_resolved_language(locale));
+	if(state.world.locale_get_native_rtl(locale) == false) {
+		hb_buffer_clear_contents(hb_buf);
+		hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
 
-	hb_feature_t feature_buffer[10];
-	switch(type) {
-	case font_selection::body_font:
-	{
-		auto features = state.world.locale_get_body_font_features(locale);
-		for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
-			feature_buffer[i].tag = features[i];
-			feature_buffer[i].start = 0;
-			feature_buffer[i].end = (unsigned int)-1;
-			feature_buffer[i].value = 1;
-		}
-		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
-	}
-		break;
-	case font_selection::header_font:
-	{
-		auto features = state.world.locale_get_header_font_features(locale);
-		for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
-			feature_buffer[i].tag = features[i];
-			feature_buffer[i].start = 0;
-			feature_buffer[i].end = (unsigned int)-1;
-			feature_buffer[i].value = 1;
-		}
-		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
-	}
-		break;
-	case font_selection::map_font:
-	{
-		auto features = state.world.locale_get_map_font_features(locale);
-		for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
-			feature_buffer[i].tag = features[i];
-			feature_buffer[i].start = 0;
-			feature_buffer[i].end = (unsigned int)-1;
-			feature_buffer[i].value = 1;
-		}
-		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
-	}
-		break;
-	}
+		hb_buffer_set_direction(hb_buf, HB_DIRECTION_LTR);
+		hb_buffer_set_script(hb_buf, (hb_script_t)state.world.locale_get_hb_script(locale));
+		hb_buffer_set_language(hb_buf, state.world.locale_get_resolved_language(locale));
 
-	
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
-	for(unsigned int i = 0; i < txt.glyph_count; i++) { // Preload glyphs
-		make_glyph(glyph_info[i].codepoint);
-	}
-	txt.glyph_info.resize(size_t(txt.glyph_count));
-	std::memcpy(txt.glyph_info.data(), glyph_info, txt.glyph_count * sizeof(glyph_info[0]));
-	txt.glyph_pos.resize(size_t(txt.glyph_count));
-	std::memcpy(txt.glyph_pos.data(), glyph_pos, txt.glyph_count * sizeof(glyph_pos[0]));
+		hb_feature_t feature_buffer[10];
+		switch(type) {
+		case font_selection::body_font:
+		{
+			auto features = state.world.locale_get_body_font_features(locale);
+			for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+				feature_buffer[i].tag = features[i];
+				feature_buffer[i].start = 0;
+				feature_buffer[i].end = (unsigned int)-1;
+				feature_buffer[i].value = 1;
+			}
+			hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
+		}
+		break;
+		case font_selection::header_font:
+		{
+			auto features = state.world.locale_get_header_font_features(locale);
+			for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+				feature_buffer[i].tag = features[i];
+				feature_buffer[i].start = 0;
+				feature_buffer[i].end = (unsigned int)-1;
+				feature_buffer[i].value = 1;
+			}
+			hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
+		}
+		break;
+		case font_selection::map_font:
+		{
+			auto features = state.world.locale_get_map_font_features(locale);
+			for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+				feature_buffer[i].tag = features[i];
+				feature_buffer[i].start = 0;
+				feature_buffer[i].end = (unsigned int)-1;
+				feature_buffer[i].value = 1;
+			}
+			hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
+		}
+		break;
+		}
 
+
+		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
+		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
+		for(unsigned int i = 0; i < txt.glyph_count; i++) { // Preload glyphs
+			make_glyph(glyph_info[i].codepoint);
+		}
+		txt.glyph_info.resize(size_t(txt.glyph_count));
+		std::memcpy(txt.glyph_info.data(), glyph_info, txt.glyph_count * sizeof(glyph_info[0]));
+		txt.glyph_pos.resize(size_t(txt.glyph_count));
+		std::memcpy(txt.glyph_pos.data(), glyph_pos, txt.glyph_count * sizeof(glyph_pos[0]));
+	} else {
+		std::vector<uint16_t> temp_text;
+		std::vector<uint16_t> to_base_char;
+
+		auto start = s.c_str();
+		auto end = start + s.length();
+		int32_t base_index = 0;
+
+		while(start + base_index < end) {
+			auto c = codepoint_from_utf8(start + base_index, end);
+
+			if(!requires_surrogate_pair(c)) {
+				temp_text.push_back(char16_t(c));
+				to_base_char.push_back(uint16_t(base_index));
+			} else {
+				auto p = make_surrogate_pair(c);
+				temp_text.push_back(char16_t(p.high));
+				temp_text.push_back(char16_t(p.low));
+				to_base_char.push_back(uint16_t(base_index));
+				to_base_char.push_back(uint16_t(base_index));
+			}
+
+			base_index += int32_t(size_from_utf8(start + base_index, end));
+		}
+
+		UBiDi* para;
+		UErrorCode errorCode = U_ZERO_ERROR;
+
+		para = ubidi_open();
+		//para = ubidi_openSized(int32_t(temp_text.size()), 64, pErrorCode);
+		if(!para)
+			std::abort();
+
+
+		hb_feature_t feature_buffer[10];
+		uint32_t hb_feature_count = 0;
+		switch(type) {
+		case font_selection::body_font:
+		{
+			auto features = state.world.locale_get_body_font_features(locale);
+			for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+				feature_buffer[i].tag = features[i];
+				feature_buffer[i].start = 0;
+				feature_buffer[i].end = (unsigned int)-1;
+				feature_buffer[i].value = 1;
+			}
+			hb_feature_count = std::min(features.size(), uint32_t(10));
+		}
+		break;
+		case font_selection::header_font:
+		{
+			auto features = state.world.locale_get_header_font_features(locale);
+			for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+				feature_buffer[i].tag = features[i];
+				feature_buffer[i].start = 0;
+				feature_buffer[i].end = (unsigned int)-1;
+				feature_buffer[i].value = 1;
+			}
+			hb_feature_count = std::min(features.size(), uint32_t(10));
+		}
+		break;
+		case font_selection::map_font:
+		{
+			auto features = state.world.locale_get_map_font_features(locale);
+			for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+				feature_buffer[i].tag = features[i];
+				feature_buffer[i].start = 0;
+				feature_buffer[i].end = (unsigned int)-1;
+				feature_buffer[i].value = 1;
+			}
+			hb_feature_count = std::min(features.size(), uint32_t(10));
+		}
+		break;
+		}
+
+		ubidi_setPara(para, (UChar const*)(temp_text.data()), int32_t(temp_text.size()), UBIDI_DEFAULT_RTL, nullptr, &errorCode);
+
+		if(U_SUCCESS(errorCode)) {
+			auto runcount = ubidi_countRuns(para, &errorCode);
+			if(U_SUCCESS(errorCode)) {
+				for(int32_t i = 0; i < runcount; ++i) {
+					int32_t logical_start = 0;
+					int32_t length = 0;
+					auto direction = ubidi_getVisualRun(para, i, &logical_start, &length);
+
+					// shape run with harfbuzz
+					hb_buffer_clear_contents(hb_buf);
+					hb_buffer_add_utf16(hb_buf, temp_text.data(), int32_t(temp_text.size()), logical_start, length);
+
+					hb_buffer_set_direction(hb_buf, direction == UBIDI_RTL ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+					hb_buffer_set_script(hb_buf, (hb_script_t)state.world.locale_get_hb_script(locale));
+					hb_buffer_set_language(hb_buf, state.world.locale_get_resolved_language(locale));
+
+					hb_shape(hb_font_face, hb_buf, feature_buffer, hb_feature_count);
+
+					uint32_t gcount = 0;
+					hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &gcount);
+					hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &gcount);
+
+					txt.glyph_count += gcount;
+					for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
+						make_glyph(glyph_info[j].codepoint);
+						txt.glyph_info.push_back(glyph_info[j]);
+						txt.glyph_info.back().cluster = to_base_char[glyph_info[j].cluster];
+						txt.glyph_pos.push_back(glyph_pos[j]);
+					}
+				}
+			} else {
+				// failure to get number of runs
+				std::abort();
+			}
+		} else {
+			// failure to add text
+			std::abort();
+		}
+
+		ubidi_close(para);
+	}
 }
 
 float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {

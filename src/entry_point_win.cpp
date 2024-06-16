@@ -14,6 +14,7 @@
 
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
+#pragma comment(lib, "icu.lib")
 
 static sys::state game_state; // too big for the stack
 static CRITICAL_SECTION guard_abort_handler;

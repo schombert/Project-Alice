@@ -72,8 +72,8 @@ uint32_t codepoint_from_utf8(char const* start, char const* end) {
 	}
 	return 0;
 }
-size_t size_from_utf8(char const* start, char const* end) {
-	uint8_t b = uint8_t(start + 0 < end ? start[0] : 0);
+size_t size_from_utf8(char const* start, char const*) {
+	uint8_t b = uint8_t(start[0]);
 	return ((b & 0x80) == 0) ? 1 : ((b & 0xE0) == 0xC0) ? 2
 		: ((b & 0xF0) == 0xE0) ? 3 : ((b & 0xF8) == 0xF0) ? 4
 		: 1;
