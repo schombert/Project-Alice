@@ -100,21 +100,35 @@ int16_t child_relative_location_y_component(element_base const& parent, element_
 	auto orientation = child.base_data.get_orientation();
 	switch(orientation) {
 	case orientation::upper_left:
-		return int16_t(child.base_data.position.y);
 	case orientation::upper_right:
+	default:
 		return int16_t(child.base_data.position.y);
 	case orientation::lower_left:
-		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::lower_right:
 		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::upper_center:
-		return int16_t(child.base_data.position.y);
 	case orientation::lower_center:
 		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::center:
 		return int16_t(parent.base_data.size.y / 2 + child.base_data.position.y);
+	}
+}
+
+xy_pair child_relative_non_mirror_location(sys::state& state, element_base const& parent, element_base const& child) {
+	auto orientation = child.base_data.get_orientation();
+	int16_t y = child_relative_location_y_component(parent, child);
+	switch(orientation) {
+	case orientation::upper_left:
+	case orientation::lower_left:
 	default:
-		return int16_t(child.base_data.position.y);
+		return xy_pair{ int16_t(child.base_data.position.x), y };
+	case orientation::upper_right:
+	case orientation::lower_right:
+		return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), y };
+	case orientation::upper_center:
+	case orientation::lower_center:
+	case orientation::center:
+		return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), y };
 	}
 }
 
@@ -125,6 +139,7 @@ xy_pair child_relative_location(sys::state& state, element_base const& parent, e
 		switch(orientation) {
 		case orientation::upper_left:
 		case orientation::lower_left:
+		default:
 			return xy_pair{ int16_t(parent.base_data.size.x - child.base_data.position.x - child.base_data.size.x), y };
 		case orientation::lower_right:
 		case orientation::upper_right:
@@ -132,25 +147,10 @@ xy_pair child_relative_location(sys::state& state, element_base const& parent, e
 		case orientation::upper_center:
 		case orientation::lower_center:
 		case orientation::center:
-			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), y };
-		default:
-			return xy_pair{ int16_t(child.base_data.position.x), y };
+			return xy_pair{ int16_t(parent.base_data.size.x / 2 - child.base_data.position.x - child.base_data.size.x), y };
 		}
 	} else {
-		switch(orientation) {
-		case orientation::upper_left:
-		case orientation::lower_left:
-			return xy_pair{ int16_t(child.base_data.position.x), y };
-		case orientation::upper_right:
-		case orientation::lower_right:
-			return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), y };
-		case orientation::upper_center:
-		case orientation::lower_center:
-		case orientation::center:
-			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), y };
-		default:
-			return xy_pair{ int16_t(child.base_data.position.x), y };
-		}
+		return child_relative_non_mirror_location(state, parent, child);
 	}
 }
 
@@ -278,6 +278,21 @@ xy_pair get_absolute_location(sys::state& state, element_base const& node) {
 		auto parent_loc = get_absolute_location(state, *node.parent);
 		auto rel_loc = child_relative_location(state, *node.parent, node);
 		return xy_pair{int16_t(parent_loc.x + rel_loc.x), int16_t(parent_loc.y + rel_loc.y)};
+	} else {
+		if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+			auto pos = node.base_data.position;
+			pos.x = int16_t(state.x_size) - node.base_data.position.x - node.base_data.size.x;
+			return pos;
+		}
+		return node.base_data.position;
+	}
+}
+
+xy_pair get_absolute_non_mirror_location(sys::state& state, element_base const& node) {
+	if(node.parent) {
+		auto parent_loc = get_absolute_non_mirror_location(state, *node.parent);
+		auto rel_loc = child_relative_non_mirror_location(state, *node.parent, node);
+		return xy_pair{ int16_t(parent_loc.x + rel_loc.x), int16_t(parent_loc.y + rel_loc.y) };
 	} else {
 		return node.base_data.position;
 	}

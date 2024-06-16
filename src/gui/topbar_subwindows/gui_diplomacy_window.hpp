@@ -2011,11 +2011,6 @@ public:
 		}
 		return window_element_base::get(state, payload);
 	}
-
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = nations::get_nth_great_power(state, rank);
-		impl_set(state, payload);
-	}
 };
 
 class diplomacy_sort_nation_gp_flag : public nation_gp_flag {

@@ -332,6 +332,9 @@ class element_base;
 xy_pair child_relative_location(sys::state& state, element_base const& parent, element_base const& child);
 xy_pair get_absolute_location(sys::state& state, element_base const& node);
 
+xy_pair child_relative_non_mirror_location(sys::state& state, element_base const& parent, element_base const& child);
+xy_pair get_absolute_non_mirror_location(sys::state& state, element_base const& node);
+
 using ui_hook_fn = std::unique_ptr<element_base> (*)(sys::state&, dcon::gui_def_id);
 
 struct element_target {

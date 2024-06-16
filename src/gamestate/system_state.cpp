@@ -569,8 +569,8 @@ void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called w
 	is_dragging = true;
 	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
-				int32_t(y / user_settings.ui_scale), mod);
+			int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
+			int32_t(y / user_settings.ui_scale), mod);
 	}
 }
 void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events

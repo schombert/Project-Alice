@@ -878,7 +878,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		nations::get_active_political_parties(state, n).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, n, row_contents);
 		update(state);
 	}
 };
@@ -931,7 +932,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		nations::get_active_political_parties(state, n).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, n, row_contents);
 		update(state);
 	}
 };
@@ -953,7 +955,8 @@ public:
 		distribution.clear();
 		auto total = state.world.nation_get_demographics(n, demographics::total);
 		if(total > 0.f) {
-			auto parties = nations::get_active_political_parties(state, n);
+			std::vector<dcon::political_party_id> parties;
+			nations::get_active_political_parties(state, n, parties);
 			for(auto ppid : state.world.in_political_party) {
 				distribution.emplace_back(ppid.id, 0.0f);
 			}

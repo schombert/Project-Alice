@@ -1066,6 +1066,16 @@ endless_layout create_endless_layout(layout& dest, layout_parameters const& para
 namespace impl {
 
 void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, bool rtl) {
+	if(box.rtl_kludge) {
+		float dead_space = 0.f;
+		for(auto i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+			dead_space = std::min(dead_space, dest.base_layout.contents[i].x);
+		}
+		for(auto i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+			dest.base_layout.contents[i].x -= dead_space;
+		}
+	}
+
 	if(dest.fixed_parameters.align == alignment::center) {
 		auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
 		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
@@ -1138,28 +1148,7 @@ ui::alignment localized_alignment(sys::state& state, ui::alignment in) {
 	return in;
 }
 
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view text, text_color color, substitution source) {
-	std::string txt = std::string(text);
-	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
-		for(uint32_t i = 0; i < uint32_t(txt.size()); ) {
-			uint32_t c = text::codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
-			uint32_t sz = uint32_t(text::size_from_utf8(txt.data() + i, txt.data() + txt.size()));
-			if(c == U'@' && int32_t(i) <= int32_t(txt.size()) - 4) {
-				uint32_t nc = text::codepoint_from_utf8(txt.data() + sz, txt.data() + txt.size());
-				if(nc == U'(') {
-					//@(T)
-					std::swap(txt[i + 0], txt[i + 3]); //)(T@
-					std::swap(txt[i + 1], txt[i + 2]); //)T(@
-					std::swap(txt[i + 0], txt[i + 2]); //(T)@
-				} else {
-					std::swap(txt[i + 0], txt[i + 3]);
-					std::swap(txt[i + 1], txt[i + 2]);
-				}
-			}
-			i += uint32_t(sz);
-		}
-	}
-
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color, substitution source) {
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
 	auto text_height = int32_t(std::ceil(font.line_height(text::size_from_font_id(dest.fixed_parameters.font_id))));
 	auto line_height = text_height + dest.fixed_parameters.leading;
