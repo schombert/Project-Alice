@@ -88,14 +88,23 @@ bool codepoint_is_line_break(uint32_t c) noexcept {
 
 void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, int32_t target_column, bool as_unicode) {
 	auto cpos = file_content;
-	while(cpos < file_content + file_size) {
-		if(as_unicode) {
+
+	if(as_unicode) {
+		if(file_size >= 3) {
+			// skip utf8 BOM if present
+			// 0xEF, 0xBB, 0xBF)
+			if(file_content[0] == 0xEF && file_content[1] == 0xBB && file_content[2] == 0xBF)
+				cpos += 3;
+		}
+		while(cpos < file_content + file_size) {
 			cpos = parsers::parse_fixed_amount_csv_values<14>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
 				auto key = state.add_key_utf8(values[0]);
 				auto entry = state.add_locale_data_utf8(values[target_column]);
 				state.locale_key_to_text_sequence.insert_or_assign(key, entry);
 			});
-		} else {
+		}
+	} else {
+		while(cpos < file_content + file_size) {
 			cpos = parsers::parse_fixed_amount_csv_values<14>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
 				auto key = state.add_key_win1252(values[0]);
 				auto entry = state.add_locale_data_win1252(values[target_column]);
