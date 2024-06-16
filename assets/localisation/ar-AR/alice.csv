@@ -1187,7 +1187,7 @@ alice_pnt_pops;?Yالسكان:?! $x$
 alice_pnt_rpops;?Yالطبقات الغنية:?! $x$ ($y$)
 alice_pnt_mpops;?Yالطبقات الوسطى:?! $x$ ($y$)
 alice_pnt_ppops;?Yالطبقات الفقيرة:?! $x$ ($y$)
-alice_pnt_culture;?الثقافة:?! $x$
+alice_pnt_culture;?Yالثقافة:?! $x$
 alice_pnt_religion;?Yالدين:?! $x$
 alice_pnt_dominant_religion;?Yالدين المهيمن:?! $x$
 alice_pnt_dominant_ideology;?Yالأيديولوجية المهيمنة:?! $x$
