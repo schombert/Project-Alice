@@ -606,7 +606,7 @@ public:
 	}
 };
 
-class tr_strength : public multiline_text_element_base {
+class tr_strength : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
@@ -615,12 +615,7 @@ public:
 			strength *= state.defines.pop_size_per_regiment;
 			strength = floor(strength);
 		}
-		auto layout = text::create_endless_layout(internal_layout,
-		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
-		auto box = text::open_layout_box(layout, 0);
-		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(strength)}, text::text_color::white);
-		text::close_layout_box(layout, box);
-
+		set_text(state, text::prettify(int32_t(strength)));
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::unseen;
