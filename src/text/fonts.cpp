@@ -555,23 +555,34 @@ void stored_text::set_text(sys::state& state, font_selection type, std::string&&
 	}
 }
 
-void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& str) {
-	hb_buffer_clear_contents(hb_buf);
-
-	auto visual_str = std::unique_ptr<FriBidiChar>(new FriBidiChar[str.size() + 1]);
-	auto pos_l_to_v = std::unique_ptr<FriBidiStrIndex>(new FriBidiStrIndex[str.size() + 1]);
-	auto pos_v_to_l = std::unique_ptr<FriBidiStrIndex>(new FriBidiStrIndex[str.size() + 1]);
-	auto emb_level_list = std::unique_ptr<FriBidiLevel>(new FriBidiLevel[str.size() + 1]);
+void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const&) {
+	std::string str = ": 20 لس20ي Awadh بيس29بي";
+	auto u32_str = std::unique_ptr<FriBidiChar>(new FriBidiChar[str.size() + 1]);
+	auto len = fribidi_charset_to_unicode(FRIBIDI_CHAR_SET_UTF8, str.c_str(), FriBidiStrIndex(str.size()), u32_str.get());
+	auto visual_str = std::unique_ptr<FriBidiChar>(new FriBidiChar[len + 1]);
+	auto pos_l_to_v = std::unique_ptr<FriBidiStrIndex>(new FriBidiStrIndex[len + 1]);
+	auto pos_v_to_l = std::unique_ptr<FriBidiStrIndex>(new FriBidiStrIndex[len + 1]);
+	auto emb_level_list = std::unique_ptr<FriBidiLevel>(new FriBidiLevel[len + 1]);
 	FriBidiCharType pbase_dir = FRIBIDI_TYPE_ON;
-	fribidi_log2vis((const FriBidiChar*)str.c_str(), FriBidiStrIndex(str.size()), &pbase_dir, visual_str.get(), pos_l_to_v.get(), pos_v_to_l.get(), emb_level_list.get());
+	fribidi_log2vis(u32_str.get(), len, &pbase_dir, visual_str.get(), pos_l_to_v.get(), pos_v_to_l.get(), emb_level_list.get());
 
+	uint32_t current_ci = 0;
 	txt.glyph_count = 0;
-	{
-		auto s = std::string((const char*)visual_str.get());
-		hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
+	while(current_ci < uint32_t(len)) {
+		auto start_ci = current_ci;
+		auto current_level = emb_level_list.get()[current_ci];
+		while(FRIBIDI_LEVEL_IS_RTL(emb_level_list.get()[current_ci]) == FRIBIDI_LEVEL_IS_RTL(current_level))
+			++current_ci;
+
+		if(current_ci >= uint32_t(len))
+			break;
+
+		hb_buffer_clear_contents(hb_buf);
+		hb_buffer_add_utf32(hb_buf, visual_str.get() + start_ci, int(current_ci - start_ci), 0, int(current_ci - start_ci));
 
 		auto locale = state.font_collection.get_current_locale();
-		hb_buffer_set_direction(hb_buf, FRIBIDI_IS_RTL(pbase_dir) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+		//hb_buffer_set_direction(hb_buf, state.world.locale_get_native_rtl(locale) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+		hb_buffer_set_direction(hb_buf, FRIBIDI_LEVEL_IS_RTL(current_level) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
 		hb_buffer_set_script(hb_buf, (hb_script_t)state.world.locale_get_hb_script(locale));
 		hb_buffer_set_language(hb_buf, state.world.locale_get_resolved_language(locale));
 
@@ -591,12 +602,18 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
 		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
-		auto glyph_offset = txt.glyph_count;
 		txt.glyph_count += glyph_count;
 		txt.glyph_info.resize(size_t(txt.glyph_count));
-		std::memcpy(txt.glyph_info.data() + glyph_offset, glyph_info, glyph_count * sizeof(glyph_info[0]));
 		txt.glyph_pos.resize(size_t(txt.glyph_count));
-		std::memcpy(txt.glyph_pos.data() + glyph_offset, glyph_pos, glyph_count * sizeof(glyph_pos[0]));
+		//if(state.world.locale_get_native_rtl(locale)) {
+		//	std::copy(txt.glyph_info.data(), txt.glyph_info.data() + (txt.glyph_count - glyph_count), txt.glyph_info.data() + glyph_count);
+		//	std::copy(txt.glyph_pos.data(), txt.glyph_pos.data() + (txt.glyph_count - glyph_count), txt.glyph_pos.data() + glyph_count);
+		//	std::memcpy(txt.glyph_info.data(), glyph_info, glyph_count * sizeof(glyph_info[0]));
+		//	std::memcpy(txt.glyph_pos.data(), glyph_pos, glyph_count * sizeof(glyph_pos[0]));
+		//} else {
+			std::memcpy(txt.glyph_info.data() + glyph_count, glyph_info, glyph_count * sizeof(glyph_info[0]));
+			std::memcpy(txt.glyph_pos.data() + glyph_count, glyph_pos, glyph_count * sizeof(glyph_pos[0]));
+		//}
 	}
 
 	// Preload all glyphs

@@ -1161,7 +1161,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		}
 	}
 #endif
-	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+	/*if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
 		for(uint32_t i = 0; i < uint32_t(txt.size()); ) {
 			uint32_t c = text::codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
 			uint32_t sz = uint32_t(text::size_from_utf8(txt.data() + i, txt.data() + txt.size()));
@@ -1172,7 +1172,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			}
 			i += uint32_t(sz);
 		}
-	}
+	}*/
 
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
 	auto text_height = int32_t(std::ceil(font.line_height(text::size_from_font_id(dest.fixed_parameters.font_id))));
