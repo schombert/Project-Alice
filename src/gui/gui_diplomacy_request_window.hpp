@@ -259,7 +259,7 @@ public:
 			gid = base_data.data.button.button_image;
 		}
 		if(gid && flag_texture_handle > 0) {
-			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto const& gfx_def = state.ui_defs.gfx[gid];
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),

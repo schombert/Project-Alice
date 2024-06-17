@@ -839,7 +839,6 @@ std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id st
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
 			auto adj_id = text::get_adjective(state, fat_id.get_nation_from_state_ownership());
-			auto adj = text::produce_simple_string(state, adj_id);
 			if(!state.key_is_localized(fat_id.get_definition().get_name())) {
 				if(!state.key_is_localized(adj_id)) {
 					return get_name_as_string(state, fat_id.get_capital());
@@ -873,7 +872,6 @@ std::string get_province_state_name(sys::state& state, dcon::province_id prov_id
 			auto lprovs = sdef.get_abstract_state_membership();
 			if(lprovs.begin() != lprovs.end())
 				return get_name_as_string(state, (*lprovs.begin()).get_province());
-			return "NO_TEXT_KEY";
 		}
 		return get_name_as_string(state, sdef);
 	}

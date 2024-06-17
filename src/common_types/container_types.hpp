@@ -174,9 +174,11 @@ public:
 		return *this;
 	}
 	value_type const& operator[](tag_type t) const {
+		assert(size_t(t.index()) < storage.size());
 		return *(storage.data() + t.index());
 	}
 	value_type& operator[](tag_type t) {
+		assert(size_t(t.index()) < storage.size());
 		return *(storage.data() + t.index());
 	}
 	template<typename... T>

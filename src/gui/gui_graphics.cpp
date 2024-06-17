@@ -169,30 +169,32 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 	if(0 <= x && x < base_data.size.x && 0 <= y && y < base_data.size.y && test_mouse(state, x, y, type) == message_result::consumed) {
 		auto elem_type = base_data.get_element_type();
 		if(elem_type == element_type::button || elem_type == element_type::image || elem_type == element_type::listbox) {
-			dcon::gfx_object_id gfx_id;
+			dcon::gfx_object_id gid;
 			if(elem_type == element_type::button) {
-				gfx_id = base_data.data.button.button_image;
+				gid = base_data.data.button.button_image;
 			} else if(elem_type == element_type::image) {
-				gfx_id = base_data.data.image.gfx_object;
+				gid = base_data.data.image.gfx_object;
 			} else if(elem_type == element_type::listbox) {
-				gfx_id = base_data.data.list_box.background_image;
+				gid = base_data.data.list_box.background_image;
 			}
-			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto mask_handle = gfx_def.type_dependent;
-			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle && get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) > uint8_t(64)) {
-				probe_result.under_mouse = this;
-			} else if(gfx_def.get_object_type() == ui::object_type::flag_mask && mask_handle && gfx_def.primary_texture_handle) {
-				ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
+			if(gid) {
+				auto& gfx_def = state.ui_defs.gfx[gid];
+				auto mask_handle = gfx_def.type_dependent;
+				if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle && get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) > uint8_t(64)) {
+					probe_result.under_mouse = this;
+				} else if(gfx_def.get_object_type() == ui::object_type::flag_mask && mask_handle && gfx_def.primary_texture_handle) {
+					ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
 
-				auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
-				auto x_off = float(base_data.size.x - mask_tex.size_x) * 0.5f;
-				auto y_off = float(base_data.size.y - mask_tex.size_y) * 0.5f;
-		
-				if(get_pixel_opacity(state, int32_t(x - x_off), int32_t(y - y_off), dcon::texture_id(mask_handle - 1)) > uint8_t(64) || get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) > uint8_t(64)) {
+					auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+					auto x_off = float(base_data.size.x - mask_tex.size_x) * 0.5f;
+					auto y_off = float(base_data.size.y - mask_tex.size_y) * 0.5f;
+
+					if(get_pixel_opacity(state, int32_t(x - x_off), int32_t(y - y_off), dcon::texture_id(mask_handle - 1)) > uint8_t(64) || get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) > uint8_t(64)) {
+						probe_result.under_mouse = this;
+					}
+				} else {
 					probe_result.under_mouse = this;
 				}
-			} else {
-				probe_result.under_mouse = this;
 			}
 		} else {
 			probe_result.under_mouse = this;
