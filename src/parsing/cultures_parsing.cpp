@@ -358,7 +358,7 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 			auto index = context.state.ui_defs.textures.size();
 			context.state.ui_defs.textures.emplace_back(context.state.add_key_win1252(file_name));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, new_obj.primary_texture_handle);
 		}
 		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
 
