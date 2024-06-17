@@ -768,28 +768,25 @@ void font::remake_cache(stored_glyphs& txt, std::string const& s) {
 	if(s.length() == 0)
 		return;
 
-	
-		hb_buffer_clear_contents(hb_buf);
-		hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
+	hb_buffer_clear_contents(hb_buf);
+	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
 
-		hb_buffer_set_direction(hb_buf, HB_DIRECTION_LTR);
-		hb_buffer_set_script(hb_buf, HB_SCRIPT_LATIN);
-		hb_buffer_set_language(hb_buf, hb_language_from_string("en", -1));
+	hb_buffer_set_direction(hb_buf, HB_DIRECTION_LTR);
+	hb_buffer_set_script(hb_buf, HB_SCRIPT_LATIN);
+	hb_buffer_set_language(hb_buf, hb_language_from_string("en", -1));
 
-		hb_feature_t feature_buffer[10];
-		hb_shape(hb_font_face, hb_buf, feature_buffer, 0);
+	hb_feature_t feature_buffer[10];
+	hb_shape(hb_font_face, hb_buf, feature_buffer, 0);
 
-		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
-		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
-		for(unsigned int i = 0; i < txt.glyph_count; i++) { // Preload glyphs
-			make_glyph(glyph_info[i].codepoint);
-		}
-		txt.glyph_info.resize(size_t(txt.glyph_count));
-		std::memcpy(txt.glyph_info.data(), glyph_info, txt.glyph_count * sizeof(glyph_info[0]));
-		txt.glyph_pos.resize(size_t(txt.glyph_count));
-		std::memcpy(txt.glyph_pos.data(), glyph_pos, txt.glyph_count * sizeof(glyph_pos[0]));
-	
-
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
+	for(unsigned int i = 0; i < txt.glyph_count; i++) { // Preload glyphs
+		make_glyph(glyph_info[i].codepoint);
+	}
+	txt.glyph_info.resize(size_t(txt.glyph_count));
+	std::memcpy(txt.glyph_info.data(), glyph_info, txt.glyph_count * sizeof(glyph_info[0]));
+	txt.glyph_pos.resize(size_t(txt.glyph_count));
+	std::memcpy(txt.glyph_pos.data(), glyph_pos, txt.glyph_count * sizeof(glyph_pos[0]));
 }
 
 void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& s) {
