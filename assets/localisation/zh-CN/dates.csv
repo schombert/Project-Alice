@@ -1,6 +1,6 @@
 ﻿#Powered_by_ParaTranz;;;;;;;;;;;;;x
 #CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
-date_string_ymd;$year$年$month$月$day$日;;;;;;;;;;;;x
+date_string_ymd;$year$年$month$$day$日;;;;;;;;;;;;x
 date_is_leap;?Y闰年?!年份;;;;;;;;;;;;x
 date_is_not_leap;?Y正常?!年份;;;;;;;;;;;;x
 topbar_date_season_nh;北半球季节：?Y$x$?!;;;;;;;;;;;;x

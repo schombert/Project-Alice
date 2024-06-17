@@ -6,6 +6,7 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include <type_traits>
+#include <icu.h>
 
 namespace text {
 text_color char_to_color(char in) {
@@ -88,14 +89,23 @@ bool codepoint_is_line_break(uint32_t c) noexcept {
 
 void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, int32_t target_column, bool as_unicode) {
 	auto cpos = file_content;
-	while(cpos < file_content + file_size) {
-		if(as_unicode) {
+
+	if(as_unicode) {
+		if(file_size >= 3) {
+			// skip utf8 BOM if present
+			// 0xEF, 0xBB, 0xBF)
+			if(file_content[0] == 0xEF && file_content[1] == 0xBB && file_content[2] == 0xBF)
+				cpos += 3;
+		}
+		while(cpos < file_content + file_size) {
 			cpos = parsers::parse_fixed_amount_csv_values<14>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
 				auto key = state.add_key_utf8(values[0]);
 				auto entry = state.add_locale_data_utf8(values[target_column]);
 				state.locale_key_to_text_sequence.insert_or_assign(key, entry);
 			});
-		} else {
+		}
+	} else {
+		while(cpos < file_content + file_size) {
 			cpos = parsers::parse_fixed_amount_csv_values<14>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
 				auto key = state.add_key_win1252(values[0]);
 				auto entry = state.add_locale_data_win1252(values[target_column]);
@@ -1156,7 +1166,10 @@ ui::alignment localized_alignment(sys::state& state, ui::alignment in) {
 	return in;
 }
 
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color, substitution source) {
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view text, text_color color, substitution source) {
+	if(text.size() == 0)
+		return;
+
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
 	auto text_height = int32_t(std::ceil(font.line_height(text::size_from_font_id(dest.fixed_parameters.font_id))));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1183,188 +1196,180 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		}
 	}
 
-	uint32_t start_position = 0;
-	uint32_t end_position = 0;
 	bool first_in_line = true;
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 
-	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::string(txt));
+	std::vector<uint16_t> temp_text;
 
-	auto find_non_ws = [&](uint32_t start) {
-		for(uint32_t i = start; i < all_glyphs.glyph_count; ++i) {
-			uint32_t c = text::codepoint_from_utf8(txt.data() + all_glyphs.glyph_info[i].cluster, txt.data() + txt.size());
-			if(!codepoint_is_space(c) && !codepoint_is_line_break(c))
-				return i;
+	{
+		auto start = text.data();
+		auto end = start + text.length();
+		int32_t base_index = 0;
+
+		while(start + base_index < end) {
+			auto c = codepoint_from_utf8(start + base_index, end);
+
+			if(!requires_surrogate_pair(c)) {
+				temp_text.push_back(char16_t(c));
+			} else {
+				auto p = make_surrogate_pair(c);
+				temp_text.push_back(char16_t(p.high));
+				temp_text.push_back(char16_t(p.low));
+			}
+
+			base_index += int32_t(size_from_utf8(start + base_index, end));
 		}
-		return all_glyphs.glyph_count;
-	};
+	}
+
+	auto locale_rules = state.world.locale_get_line_break_rules(state.font_collection.get_current_locale());
+	UErrorCode errorCode = U_ZERO_ERROR;
+	UBreakIterator* lb_it = ubrk_openBinaryRules(locale_rules.begin(), int32_t(locale_rules.size()), (UChar const*)temp_text.data(), int32_t(temp_text.size()), &errorCode);
+
+	if(!lb_it || !U_SUCCESS(errorCode)) {
+		std::abort(); // couldn't create iterator
+	}
+
+	ubrk_first(lb_it);
+
+	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data(), temp_text.size()), text::stored_glyphs::no_bidi{});
 
 	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		int32_t glyph_position = 0;
+		int32_t glyph_start_position = 0;
+		int32_t cluster_position = 0;
+		int32_t cluster_start_position = 0;
+
 		if(!box.rtl_kludge) {
 			box.x_position = float(dest.fixed_parameters.right - box.x_offset);
 			box.rtl_kludge = true;
 		}
-		while(end_position < all_glyphs.glyph_count) {
-			uint32_t next_wb = all_glyphs.glyph_count;
-			uint32_t next_word = all_glyphs.glyph_count;
-			bool force_end_of_line = false;
-			for(uint32_t i = end_position; i < all_glyphs.glyph_count; ++i) {
-				uint32_t c = text::codepoint_from_utf8(txt.data() + all_glyphs.glyph_info[i].cluster, txt.data() + txt.size());
-				if(c == 0) {
-					next_wb = i;
-					next_word = find_non_ws(i);
-					break;
-				} else if(codepoint_is_line_break(c)) {
-					next_wb = i;
-					next_word = find_non_ws(i);
-					force_end_of_line = true;
-					break;
-				} else if(codepoint_is_space(c)) {
-					next_wb = i;
-					next_word = find_non_ws(i);
-					break;
+
+		while(cluster_start_position < int32_t(temp_text.size())) {
+			auto next_cluster_position = ubrk_next(lb_it);
+			int32_t next_glyph_position = 0;
+
+			if(next_cluster_position == UBRK_DONE) {
+				next_glyph_position = int32_t(all_glyphs.glyph_count);
+				next_cluster_position = int32_t(temp_text.size());
+			} else {
+				for(next_glyph_position = glyph_position; next_glyph_position < int32_t(all_glyphs.glyph_count); ++next_glyph_position) {
+					if(all_glyphs.glyph_info[next_glyph_position].cluster >= uint32_t(next_cluster_position)) {
+						break;
+					}
 				}
 			}
-			float extent = font.text_extent(state, all_glyphs, start_position, next_wb - start_position, font_size);
-			if(first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left) {
-				// the current word is too long for the text box, break it internally
-				auto sub_end_pos = start_position + 1;
-				auto sub_prev_end_pos = sub_end_pos;
-				while(sub_end_pos < next_wb) {
-					extent = font.text_extent(state, all_glyphs, start_position, sub_end_pos - start_position, font_size);
-					if(box.x_position - extent <= dest.fixed_parameters.left)
-						break;
-					sub_prev_end_pos = sub_end_pos;
-					++sub_end_pos;
-				}
-				extent = font.text_extent(state, all_glyphs, start_position, sub_prev_end_pos - start_position, font_size);
+			
+			float extent = font.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, font_size);
+
+			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left)
+				|| next_cluster_position >= int32_t(temp_text.size())) {
+				// too long, but no line breaking opportunities earlier in the line
+				// OR no remaining text
+
 				box.x_position -= extent;
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
-				dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(all_glyphs, start_position, sub_prev_end_pos - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-				start_position = sub_prev_end_pos;
-				end_position = sub_prev_end_pos;
-			} else if(force_end_of_line || box.x_position - extent <= dest.fixed_parameters.left) {
-				if(box.x_position - extent <= dest.fixed_parameters.left) {
-					next_wb = end_position;
-					next_word = find_non_ws(end_position);
-					extent = font.text_extent(state, all_glyphs, start_position, next_wb - start_position, font_size);
-				}
-				if(next_wb != start_position) {
-					box.x_position -= extent;
-					box.y_size = std::max(box.y_size, box.y_position + line_height);
-					box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
-					dest.base_layout.contents.push_back(
-						text_chunk{ text::stored_glyphs(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-						int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				}
-				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-				end_position = next_word;
-				start_position = next_word;
-				first_in_line = true;
-			} else if(next_word >= all_glyphs.glyph_count) {
-				// we've reached the end of the text
-				extent = font.text_extent(state, all_glyphs, start_position, next_word - start_position, font_size);
+
+				dest.base_layout.contents.push_back(text_chunk{
+					text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, next_cluster_position - cluster_start_position)),
+					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+				if(box.x_position - extent <= dest.fixed_parameters.left)
+					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+				glyph_start_position = next_glyph_position;
+				glyph_position = next_glyph_position;
+				cluster_position = next_cluster_position;
+				cluster_start_position = next_cluster_position;
+			} else if(box.x_position - extent <= dest.fixed_parameters.left) {
+				extent = font.text_extent(state, all_glyphs, cluster_start_position, cluster_position - cluster_start_position, font_size);
+				
 				box.x_position -= extent;
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
 				dest.base_layout.contents.push_back(
-					text_chunk{ text::stored_glyphs(all_glyphs, start_position, next_word - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-					int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				break;
+					text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, cluster_position - cluster_start_position)),
+					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+				
+				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+				glyph_start_position = glyph_position;
+				cluster_start_position = cluster_position;
+
+				ubrk_previous(lb_it);
+				first_in_line = true;
 			} else {
-				end_position = next_word;
+				glyph_position = next_glyph_position;
+				cluster_position = next_cluster_position;
 				first_in_line = false;
 			}
 		}
-		return;
-	}
-	while(end_position < all_glyphs.glyph_count) {
-		uint32_t next_wb = all_glyphs.glyph_count;
-		uint32_t next_word = all_glyphs.glyph_count;
-		bool force_end_of_line = false;
 
-		for(uint32_t i = end_position; i < all_glyphs.glyph_count; ++i) {
-			uint32_t c = text::codepoint_from_utf8(txt.data() + all_glyphs.glyph_info[i].cluster, txt.data() + txt.size());
+	} else {
+		int32_t glyph_position = 0;
+		int32_t glyph_start_position = 0;
+		int32_t cluster_position = 0;
+		int32_t cluster_start_position = 0;
 
-			if(c == 0) {
-				next_wb = i;
-				next_word = find_non_ws(i);
-				break;
-			} else if(codepoint_is_line_break(c)) {
-				next_wb = i;
-				next_word = find_non_ws(i);
-				force_end_of_line = true;
-				break;
-			} else if(codepoint_is_space(c)) {
-				next_wb = i;
-				next_word = find_non_ws(i);
-				break;
-			}
-		}
+		while(cluster_start_position < int32_t(temp_text.size())) {
+			auto next_cluster_position = ubrk_next(lb_it);
+			int32_t next_glyph_position = 0;
 
-		float extent = font.text_extent(state, all_glyphs, start_position, next_wb - start_position, font_size);
-
-		if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) {
-			// the current word is too long for the text box, break it internally
-
-			auto sub_end_pos = start_position + 1;
-			auto sub_prev_end_pos = sub_end_pos;
-			while(sub_end_pos < next_wb) {
-				extent = font.text_extent(state, all_glyphs, start_position, sub_end_pos - start_position, font_size);
-				if(box.x_position + extent >= dest.fixed_parameters.right)
-					break;
-
-				sub_prev_end_pos = sub_end_pos;
-				++sub_end_pos;
-			}
-			
-			extent = font.text_extent(state, all_glyphs, start_position, sub_prev_end_pos - start_position, font_size);
-
-			dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(all_glyphs, start_position, sub_prev_end_pos - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-			box.x_position += extent;
-			box.y_size = std::max(box.y_size, box.y_position + line_height);
-			box.x_size = std::max(box.x_size, int32_t(box.x_position));
-			impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-
-			start_position = sub_prev_end_pos;
-			end_position = sub_prev_end_pos;
-		} else if(force_end_of_line || box.x_position + extent >= dest.fixed_parameters.right) {
-			if(box.x_position + extent >= dest.fixed_parameters.right) {
-				next_wb = end_position;
-				next_word = find_non_ws(end_position);
-				extent = font.text_extent(state, all_glyphs, start_position, next_wb - start_position, font_size);
+			if(next_cluster_position == UBRK_DONE) {
+				next_glyph_position = int32_t(all_glyphs.glyph_count);
+				next_cluster_position = int32_t(temp_text.size());
+			} else {
+				for(next_glyph_position = glyph_position; next_glyph_position < int32_t(all_glyphs.glyph_count); ++next_glyph_position) {
+					if(all_glyphs.glyph_info[next_glyph_position].cluster >= uint32_t(next_cluster_position)) {
+						break;
+					}
+				}
 			}
 
-			if(next_wb != start_position) {
-				dest.base_layout.contents.push_back(
-					text_chunk{ text::stored_glyphs(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-					int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
+			float extent = font.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, font_size);
+
+			if((first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) || next_cluster_position >= int32_t(temp_text.size())) {
+				// too long, but no line breaking opportunities earlier in the line
+				// OR no remaining text
+
+				dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, next_cluster_position - cluster_start_position)), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
 				box.x_position += extent;
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(box.x_position));
-			}
-			impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 
-			end_position = next_word;
-			start_position = next_word;
-			first_in_line = true;
-		} else if(next_word >= all_glyphs.glyph_count) {
-			// we've reached the end of the text
-			extent = font.text_extent(state, all_glyphs, start_position, next_word - start_position, font_size);
-			dest.base_layout.contents.push_back(
-				text_chunk{ text::stored_glyphs(all_glyphs, start_position, next_word - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-				int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
-			box.x_position += extent;
-			box.y_size = std::max(box.y_size, box.y_position + line_height);
-			box.x_size = std::max(box.x_size, int32_t(box.x_position));
-			break;
-		} else {
-			end_position = next_word;
-			first_in_line = false;
+				if(box.x_position + extent >= dest.fixed_parameters.right)
+					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+				glyph_start_position = next_glyph_position;
+				glyph_position = next_glyph_position;
+				cluster_position = next_cluster_position;
+				cluster_start_position = next_cluster_position;
+			} else if(box.x_position + extent >= dest.fixed_parameters.right) {
+
+					dest.base_layout.contents.push_back(
+						text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, cluster_position - cluster_start_position)),
+						box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+					box.x_position += extent;
+					box.y_size = std::max(box.y_size, box.y_position + line_height);
+					box.x_size = std::max(box.x_size, int32_t(box.x_position));
+				
+				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+				glyph_start_position = glyph_position;
+				cluster_start_position = cluster_position;
+
+				ubrk_previous(lb_it);
+				first_in_line = true;
+			} else {
+				glyph_position = next_glyph_position;
+				cluster_position = next_cluster_position;
+				first_in_line = false;
+			}
 		}
 	}
+
+	ubrk_close(lb_it);
 }
 
 namespace impl {
