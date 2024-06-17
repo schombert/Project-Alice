@@ -1730,7 +1730,8 @@ void render_new_text(std::string_view sv, color_modification enabled, float x, f
 
 } // launcher::ogl
 
-static ::text::font fonts[4];
+static ::text::font_manager font_collection; //keep static because it uninits FT lib on destructor
+static ::text::font fonts[2];
 
 static ::ogl::texture bg_tex;
 static ::ogl::texture left_tex;
@@ -2207,7 +2208,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		default:
 			break;
 		}
-		text::font_manager font_collection;
 		if(font_set_load == 0) {
 			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
 			if(font_a) {
