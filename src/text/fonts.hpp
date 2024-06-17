@@ -69,6 +69,7 @@ struct stored_glyphs {
 	stored_glyphs(stored_glyphs const& other) noexcept = default;
 	stored_glyphs(stored_glyphs&& other) noexcept = default;
 	stored_glyphs(sys::state& state, font_selection type, std::string const& s);
+	stored_glyphs(std::string const& s, font& f);
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s);
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
@@ -132,6 +133,7 @@ public:
 	float top_adjustment(int32_t size) const;
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& source);
+	void remake_cache(stored_glyphs& txt, std::string const& source);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
 	void remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
 

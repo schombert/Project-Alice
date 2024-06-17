@@ -1710,10 +1710,9 @@ void internal_text_render(std::string_view str, float baseline_x, float baseline
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 			glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
 			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		x += x_advance * size / 64.f;
