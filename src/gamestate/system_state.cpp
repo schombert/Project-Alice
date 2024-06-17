@@ -1952,7 +1952,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_is_globe);
 	US_SAVE(autosaves);
 	US_SAVE(bind_tooltip_mouse);
-	US_SAVE(UNUSED_BOOL);
+	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
 	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
@@ -2016,7 +2016,7 @@ void state::load_user_settings() {
 			US_LOAD(map_is_globe);
 			US_LOAD(autosaves);
 			US_LOAD(bind_tooltip_mouse);
-			US_LOAD(UNUSED_BOOL);
+			US_LOAD(use_classic_fonts);
 			US_LOAD(outliner_views);
 			constexpr size_t lower_half_count = 98;
 

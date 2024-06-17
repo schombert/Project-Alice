@@ -772,7 +772,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
-
 		auto prepared_name = text::stored_glyphs(state, text::font_selection::map_font, name);
 		float name_extent = f.text_extent(state, prepared_name, 0, prepared_name.glyph_count, 1);
 

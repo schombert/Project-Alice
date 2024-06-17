@@ -1125,31 +1125,18 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, boo
 } // namespace impl
 
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
-	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-
-	auto& font = state.font_collection.get_font(state, font_index );
-	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
-
 	impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 }
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
-	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	
-	auto& font = state.font_collection.get_font(state, font_index);
-	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 	dest.base_layout.number_of_lines += 1;
 	dest.y_cursor += line_height;
 }
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
-	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-
-	auto& font = state.font_collection.get_font(state, font_index);
-	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 	dest.base_layout.number_of_lines += 1;
 	dest.y_cursor += line_height;
@@ -1177,7 +1164,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		return;
 
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
-	auto text_height = int32_t(std::ceil(font.line_height(text::size_from_font_id(dest.fixed_parameters.font_id))));
+	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
 	auto tmp_color = color;
@@ -1265,7 +1252,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				}
 			}
 			
-			float extent = font.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, font_size);
+			float extent = state.font_collection.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, dest.fixed_parameters.font_id);
 
 			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left) || next_cluster_position >= int32_t(temp_text.size())) {
 				// too long, but no line breaking opportunities earlier in the line
@@ -1287,7 +1274,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				cluster_position = next_cluster_position;
 				cluster_start_position = next_cluster_position;
 			} else if(box.x_position - extent <= dest.fixed_parameters.left) {
-				extent = font.text_extent(state, all_glyphs, cluster_start_position, cluster_position - cluster_start_position, font_size);
+				extent = state.font_collection.text_extent(state, all_glyphs, cluster_start_position, cluster_position - cluster_start_position, dest.fixed_parameters.font_id);
 				
 				box.x_position -= extent;
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -1331,7 +1318,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				}
 			}
 
-			float extent = font.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, font_size);
+			float extent = state.font_collection.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, dest.fixed_parameters.font_id);
 
 			if((first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) || next_cluster_position >= int32_t(temp_text.size())) {
 				// too long, but no line breaking opportunities earlier in the line
@@ -1440,11 +1427,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 		return;
 
 	auto current_color = dest.fixed_parameters.color;
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
-	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 
-	auto& font = state.font_collection.get_font(state, font_index);
-	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
 	std::string_view sv;
