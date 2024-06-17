@@ -196,4 +196,6 @@ public:
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint16_t font_id);
 };
 
+std::string_view classic_unligate_utf8(text::font& font, char32_t c);
+
 } // namespace text

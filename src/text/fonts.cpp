@@ -129,14 +129,76 @@ font_selection font_index_from_font_id(sys::state& state, uint16_t id) {
 		return font_selection::header_font;
 }
 
+std::string_view classic_unligate_utf8(text::font& font, char32_t c) {
+	auto ci = FT_Get_Char_Index(font.font_face, 0x0132);
+	if(ci && c == ci) {
+		return "IJ";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0x0133);
+	if(ci && c == ci) {
+		return "ij";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0x0152);
+	if(ci && c == ci) {
+		return "OE";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0x0153);
+	if(ci && c == ci) {
+		return "oe";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0x24A1);
+	if(ci && c == ci) {
+		return "(f)";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0x3399);
+	if(ci && c == ci) {
+		return "fm";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB00);
+	if(ci && c == ci) {
+		return "ff";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB01);
+	if(ci && c == ci) {
+		return "fi";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB02);
+	if(ci && c == ci) {
+		return "fl";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB03);
+	if(ci && c == ci) {
+		return "ffi";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB04);
+	if(ci && c == ci) {
+		return "ffl";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB05);
+	if(ci && c == ci) {
+		return "ft";
+	}
+	ci = FT_Get_Char_Index(font.font_face, 0xFB06);
+	if(ci && c == ci) {
+		return "st";
+	}
+	return "";
+}
+
 float font_manager::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint16_t font_id) {
 	auto& font = get_font(state, text::font_index_from_font_id(state, font_id));
 	if(state.user_settings.use_classic_fonts) {
 		std::string codepoints = "";
-		for(uint32_t i = uint32_t(starting_offset); i < uint32_t(txt.glyph_count); i++) {
-			codepoints += font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
+		for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
+			auto cdp = txt.glyph_info[i].codepoint;
+			auto sv = classic_unligate_utf8(font, cdp);
+			if(sv.empty()) { //no ligature
+				codepoints += font.codepoint_to_alnum(cdp);
+			} else { //unligated
+				codepoints += sv;
+			}
 		}
-		return text::get_bm_font(state, font_id).get_string_width(state, codepoints.c_str(), count);
+		return text::get_bm_font(state, font_id).get_string_width(state, codepoints.c_str(), uint32_t(codepoints.size()));
 	}
 	return float(font.text_extent(state, txt, starting_offset, count, text::size_from_font_id(font_id)));
 }

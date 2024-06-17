@@ -863,7 +863,13 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 void render_classic_text(sys::state& state, text::stored_glyphs const& txt, float x, float y, float size, color_modification enabled, color3f const& c, text::bm_font const& font, text::font& base_font) {
 	std::string codepoints = "";
 	for(uint32_t i = 0; i < uint32_t(txt.glyph_count); i++) {
-		codepoints += base_font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
+		auto cdp = txt.glyph_info[i].codepoint;
+		auto sv = classic_unligate_utf8(base_font, cdp);
+		if(sv.empty()) { //no ligature
+			codepoints += base_font.codepoint_to_alnum(cdp);
+		} else { //unligated
+			codepoints += sv;
+		}
 	}
 	uint32_t count = uint32_t(codepoints.length());
 
@@ -887,7 +893,7 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, font.ftexid);
 
-	for(uint32_t i = 0; i < txt.glyph_count; ++i) {
+	for(uint32_t i = 0; i < count; ++i) {
 		if(uint8_t(codepoints[i]) == '@') {
 			auto const& f = font.chars[0x4D];
 			float scaling = 1.f;
@@ -895,9 +901,9 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 			float CurX = x + f.x_offset - (float(f.width) * offset);
 			float CurY = y + f.y_offset - (float(f.height) * offset);
 			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < txt.glyph_count) ? char(codepoints[i + 1]) : 0;
-			tag[1] = (i + 2 < txt.glyph_count) ? char(codepoints[i + 2]) : 0;
-			tag[2] = (i + 3 < txt.glyph_count) ? char(codepoints[i + 3]) : 0;
+			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
+			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
+			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
 			if(uint8_t(tag[0]) == '(' || uint8_t(codepoints[2]) == ')') {
 				GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
@@ -947,7 +953,7 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 			}
 		}
 		uint8_t ch = uint8_t(codepoints[i]);
-		if(i != 0 && i < txt.glyph_count - 1 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
+		if(i != 0 && i < count - 1 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
 			ch = 0xA3;
 			i++;
 		} else if(ch == 0xA4) {
