@@ -1451,7 +1451,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
-		auto& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
+		auto const& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
 				ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
@@ -1622,7 +1622,7 @@ void state::on_create() {
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
-
+	assert(size_t(tag.index()) < key_data.size());
 	auto start_position = key_data.data() + tag.index();
 	auto data_size = key_data.size();
 	auto end_position = start_position;
@@ -1634,6 +1634,7 @@ std::string_view state::to_string_view(dcon::text_key tag) const {
 }
 
 std::string_view state::locale_string_view(uint32_t tag) const {
+	assert(size_t(tag) < locale_text_data.size());
 	auto start_position = locale_text_data.data() + tag;
 	auto data_size = locale_text_data.size();
 	auto end_position = start_position;
@@ -1708,6 +1709,7 @@ void state::load_locale_strings(std::string_view locale_name) {
 }
 
 bool state::key_is_localized(dcon::text_key tag) const {
+	assert(size_t(tag.index()) < key_data.size());
 	return locale_key_to_text_sequence.find(tag) != locale_key_to_text_sequence.end();
 }
 bool state::key_is_localized(std::string_view key) const {
@@ -1725,12 +1727,10 @@ dcon::text_key state::add_key_win1252(std::string const& text) {
 }
 dcon::text_key state::add_key_win1252(std::string_view text) {
 	std::string temp;
-
 	for(auto c : text) {
 		auto unicode = text::win1250toUTF16(c);
 		if(unicode == 0x00A7)
 			unicode = uint16_t('?'); // convert section symbol to ?
-
 		if(unicode <= 0x007F) {
 			temp.push_back(char(unicode));
 		} else if(unicode <= 0x7FF) {
@@ -1742,25 +1742,11 @@ dcon::text_key state::add_key_win1252(std::string_view text) {
 			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
 		}
 	}
-
+	assert(temp[temp.size()] == '\0');
 	return add_key_utf8(temp);
 }
 dcon::text_key state::add_key_utf8(std::string const& new_text) {
-	auto ekey = lookup_key(new_text);
-	if(ekey)
-		return ekey;
-
-	auto start = key_data.size();
-	auto length = new_text.length();
-	if(length == 0)
-		return dcon::text_key();
-	key_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, key_data.data() + start);
-	key_data.back() = 0;
-
-	auto ret = dcon::text_key(uint32_t(start));
-	untrans_key_to_text_sequence.insert(ret);
-	return ret;
+	return add_key_utf8(std::string_view(new_text.data()));
 }
 dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	auto ekey = lookup_key(new_text);
@@ -1775,7 +1761,7 @@ dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	std::copy_n(new_text.data(), length, key_data.data() + start);
 	key_data.back() = 0;
 
-	auto ret = dcon::text_key(uint32_t(start));
+	auto ret = dcon::text_key{ dcon::text_key::value_base_t(start) };
 	untrans_key_to_text_sequence.insert(ret);
 	return ret;
 }
@@ -1804,14 +1790,7 @@ uint32_t state::add_locale_data_win1252(std::string_view text) {
 	return uint32_t(start);
 }
 uint32_t state::add_locale_data_utf8(std::string const& new_text) {
-	auto start = locale_text_data.size();
-	auto length = new_text.length();
-	if(length == 0)
-		return 0;
-	locale_text_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, locale_text_data.data() + start);
-	locale_text_data.back() = 0;
-	return uint32_t(start);
+	return add_locale_data_utf8(std::string_view(new_text));
 }
 uint32_t state::add_locale_data_utf8(std::string_view new_text) {
 	auto start = locale_text_data.size();
@@ -1823,23 +1802,6 @@ uint32_t state::add_locale_data_utf8(std::string_view new_text) {
 	locale_text_data.back() = 0;
 	return uint32_t(start);
 }
-
-
-/*
-dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
-	if(new_text.length() > 0) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
-				std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
-		} else {
-			return add_to_pool(new_text);
-		}
-	} else {
-		return dcon::text_key();
-	}
-}
-*/
 
 dcon::unit_name_id state::add_unit_name(std::string_view text) {
 	auto start = unit_names.size();
@@ -1856,6 +1818,7 @@ dcon::unit_name_id state::add_unit_name(std::string_view text) {
 std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 	if(!tag)
 		return std::string_view();
+	assert(size_t(tag.index()) < unit_names_indices.size());
 	auto start_position = unit_names.data() + unit_names_indices[tag.index()];
 	auto data_size = unit_names.size();
 	auto end_position = start_position;
@@ -2204,7 +2167,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	parsers::scenario_building_context context(*this);
 
-	text::name_into_font_id(*this, "garamond_14");
+	//text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
 	auto map = open_directory(root, NATIVE("map"));

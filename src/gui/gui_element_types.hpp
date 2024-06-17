@@ -150,8 +150,9 @@ public:
 		} else if(base_data.get_element_type() == element_type::button) {
 			gid = base_data.data.button.button_image;
 		}
-		assert(gid);
-		texture_id = state.ui_defs.gfx[gid].primary_texture_handle;
+		if(gid) {
+			texture_id = state.ui_defs.gfx[gid].primary_texture_handle;
+		}
 	}
 
 	// MAYBE this function has to be changed when make_element_by_type() is changed
@@ -166,11 +167,10 @@ public:
 		} else if(res->base_data.get_element_type() == ui::element_type::button) {
 			gfx_handle = res->base_data.data.button.button_image;
 		}
-
 		if(gfx_handle) {
 			auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
 			if(tex_handle) {
-				state.ui_defs.gfx[gfx_handle].flags |= ui::gfx_object::do_transparency_check;;
+				state.ui_defs.gfx[gfx_handle].flags |= ui::gfx_object::do_transparency_check;
 			}
 		}
 

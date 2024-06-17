@@ -3364,38 +3364,47 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 
 	{
 		auto f = new_locale_obj.get_body_font();
+		f.resize(uint32_t(new_locale.body_font.length()));
 		f.load_range((uint8_t const*)new_locale.body_font.c_str(), (uint8_t const*)new_locale.body_font.c_str() + new_locale.body_font.length());
 	}
 	{
 		auto f = new_locale_obj.get_header_font();
+		f.resize(uint32_t(new_locale.header_font.length()));
 		f.load_range((uint8_t const*)new_locale.header_font.c_str(), (uint8_t const*)new_locale.header_font.c_str() + new_locale.header_font.length());
 	}
 	{
 		auto f = new_locale_obj.get_map_font();
+		f.resize(uint32_t(new_locale.map_font.length()));
 		f.load_range((uint8_t const*)new_locale.map_font.c_str(), (uint8_t const*)new_locale.map_font.c_str() + new_locale.map_font.length());
 	}
 	{
 		auto f = new_locale_obj.get_body_font_features();
+		f.resize(uint32_t(new_locale.body_features.size()));
 		f.load_range(new_locale.body_features.data(), new_locale.body_features.data() + new_locale.body_features.size());
 	}
 	{
 		auto f = new_locale_obj.get_header_font_features();
+		f.resize(uint32_t(new_locale.header_features.size()));
 		f.load_range(new_locale.header_features.data(), new_locale.header_features.data() + new_locale.header_features.size());
 	}
 	{
 		auto f = new_locale_obj.get_map_font_features();
+		f.resize(uint32_t(new_locale.map_features.size()));
 		f.load_range(new_locale.map_features.data(), new_locale.map_features.data() + new_locale.map_features.size());
 	}
 	{
 		auto f = new_locale_obj.get_locale_name();
+		f.resize(uint32_t(locale_name.length()));
 		f.load_range((uint8_t const*)locale_name.data(), (uint8_t const*)locale_name.data() + locale_name.length());
 	}
 	{
 		auto f = new_locale_obj.get_fallback();
+		f.resize(uint32_t(new_locale.fallback.length()));
 		f.load_range((uint8_t const*)new_locale.fallback.data(), (uint8_t const*)new_locale.fallback.data() + new_locale.fallback.length());
 	}
 	{
 		auto f = new_locale_obj.get_display_name();
+		f.resize(uint32_t(new_locale.display_name.length()));
 		f.load_range((uint8_t const*)new_locale.display_name.data(), (uint8_t const*)new_locale.display_name.data() + new_locale.display_name.length());
 	}
 }
