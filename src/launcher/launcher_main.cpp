@@ -1697,15 +1697,14 @@ void internal_text_render(text::stored_text const& txt, float x, float baseline_
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(f.glyph_advances[glyphid]);
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
 		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 			glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
 			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		x += x_advance * size / 64.f;
@@ -1742,17 +1741,10 @@ static ::ogl::texture warning_tex;
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& f) {
 	hb_feature_t hb_features[1];
 	unsigned int num_features = 0;
-	if(f.features == text::font_feature::small_caps) {
-		hb_features[0].tag = hb_tag_from_string("smcp", 4);
-		hb_features[0].start = 0; /* Start point in text */
-		hb_features[0].end = (unsigned int)-1; /* End point in text */
-		hb_features[0].value = 1;
-		num_features = 1;
-	}
 	hb_buffer_t* buf = hb_buffer_create();
 	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
 	hb_buffer_guess_segment_properties(buf);
-	hb_shape(f.hb_font_face, buf, hb_features, num_features);
+	hb_shape(f.hb_font_face, buf, hb_features, 0);
 	unsigned int glyph_count = 0;
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
@@ -1763,7 +1755,7 @@ float base_text_extent(char const* codepoints, uint32_t count, int32_t size, tex
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(f.glyph_advances[glyphid]);
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		total += x_advance * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
