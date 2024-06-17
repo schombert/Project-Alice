@@ -6,7 +6,13 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include <type_traits>
+#ifdef _WIN32
 #include <icu.h>
+#else
+#include <unicode/ubrk.h>
+#include <unicode/utypes.h>
+#include <unicode/ubidi.h>
+#endif
 
 namespace text {
 text_color char_to_color(char in) {
@@ -94,7 +100,7 @@ void consume_csv_file(sys::state& state, char const* file_content, uint32_t file
 		if(file_size >= 3) {
 			// skip utf8 BOM if present
 			// 0xEF, 0xBB, 0xBF)
-			if(file_content[0] == 0xEF && file_content[1] == 0xBB && file_content[2] == 0xBF)
+			if(int(file_content[0]) == 0xEF && int(file_content[1]) == 0xBB && int(file_content[2]) == 0xBF)
 				cpos += 3;
 		}
 		while(cpos < file_content + file_size) {
