@@ -198,7 +198,7 @@ void tinted_image_element_base::render(sys::state& state, int32_t x, int32_t y) 
 		gid = base_data.data.button.button_image;
 	}
 	if(gid) {
-		auto& gfx_def = state.ui_defs.gfx[gid];
+		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.number_of_frames > 1) {
 				ogl::render_tinted_subsprite(state, frame,
@@ -222,7 +222,7 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::image) {
 		dcon::gfx_object_id gid = base_data.data.image.gfx_object;
 		if(gid) {
-			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto const& gfx_def = state.ui_defs.gfx[gid];
 			auto secondary_texture_handle = dcon::texture_id(gfx_def.type_dependent - 1);
 			if(gfx_def.primary_texture_handle) {
 				ogl::render_progress_bar(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
@@ -260,7 +260,7 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 			gid = base_data.data.button.button_image;
 		}
 		if(gid) {
-			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto const& gfx_def = state.ui_defs.gfx[gid];
 			if(gfx_def.primary_texture_handle) {
 				float r = 1.f;
 				float g = 1.f;
@@ -300,7 +300,7 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 		image_element_base::render(state, x, y);
 	}
 	if(stored_text.glyph_count > 0) {
-		auto linesz = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 		if (linesz == 0.f)
 			return;
 		auto ycentered = (base_data.size.y - linesz) / 2;
@@ -319,7 +319,7 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 		gid = base_data.data.button.button_image;
 	}
 	if(gid) {
-		auto& gfx_def = state.ui_defs.gfx[gid];
+		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			auto tcolor = color;
 			float r = sys::red_from_int(color);
@@ -351,7 +351,7 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 		}
 	}
 	if(stored_text.glyph_count > 0) {
-		auto linesz = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 		if(linesz == 0)
 			return;
 		auto ycentered = (base_data.size.y - linesz) / 2;
@@ -446,7 +446,7 @@ void button_element_base::set_button_text(sys::state& state, std::string const& 
 void button_element_base::format_text(sys::state& state) {
 	if(stored_text.glyph_count > 0) {
 		auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle));
-		text_offset = (base_data.size.x - font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(base_data.data.button.font_handle))) / 2.0f;
+		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, base_data.data.button.font_handle)) / 2.0f;
 	}
 }
 
@@ -684,7 +684,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 
 
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
-	extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
+	extent = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
 
 	if(/*stored_text.glyph_info[stored_text.glyph_count - 1].codepoint != 0x2026 && */ int16_t(extent) > base_data.size.x) {
 		// …
@@ -704,7 +704,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 		while(m < stored_text.glyph_count) {
 			m += uint32_t(text::size_from_utf8(stored_text.base_text.c_str() + m, stored_text.base_text.c_str() + stored_text.base_text.length()));
 
-			if(font.text_extent(state, stored_text, 0, m, text::size_from_font_id(font_handle)) + width_of_ellipsis > base_data.size.x)
+			if(state.font_collection.text_extent(state, stored_text, 0, m, font_handle) + width_of_ellipsis > base_data.size.x)
 				break;
 		}
 
@@ -714,7 +714,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 			stored_text.set_text(state, text::font_index_from_font_id(state, font_handle), stored_text.base_text.substr(0, last_cluster) + "…");
 		else
 			stored_text.set_text(state, text::font_index_from_font_id(state, font_handle), stored_text.base_text.substr(0, last_cluster) + "...");
-		extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
+		extent = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
 	}
 
 	if(base_data.get_element_type() == element_type::button) {
@@ -764,15 +764,11 @@ void simple_text_element_base::on_create(sys::state& state) noexcept {
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(stored_text.glyph_count > 0) {
 		if(base_data.get_element_type() == element_type::text) {
-			// auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
-			// auto ycentered = (base_data.size.y - base_data.data.text.border_size.y - linesz) / 2;
-			// ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size),
-			// float(base_data.data.text.border_size.y));
 			ogl::render_text(state, stored_text, ogl::color_modification::none,
 					float(x + int32_t(text_offset)), float(y + base_data.data.text.border_size.y),
 					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.button.font_handle);
 		} else {
-			auto linesz = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
+			auto linesz = state.font_collection.line_height(state, base_data.data.text.font_handle);
 			if(linesz == 0)
 				return;
 			auto ycentered = (base_data.size.y - linesz) / 2;
@@ -830,7 +826,7 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 			ogl::render_text(state, stored_text, ogl::color_modification::none,
 				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(state, color), base_data.data.button.font_handle);
 		} else {
-			auto linesz = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
+			auto linesz = state.font_collection.line_height(state, base_data.data.text.font_handle);
 			if(linesz == 0)
 				return;
 			auto ycentered = (base_data.size.y - linesz) / 2;
@@ -844,7 +840,7 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-		line_height = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)).line_height(text::size_from_font_id(base_data.data.text.font_handle));
+		line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
 		visible_lines = base_data.size.y / std::max<int32_t>(int32_t(line_height), 1);
 	}
 }
@@ -971,7 +967,7 @@ void multiline_button_element_base::on_reset_text(sys::state& state) noexcept {
 	button_element_base::on_reset_text(state);
 	if(base_data.get_element_type() == element_type::button) {
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-		line_height = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
+		line_height = state.font_collection.line_height(state, base_data.data.button.font_handle);
 		if(line_height == 0.f)
 			return;
 		visible_lines = base_data.size.y / int32_t(line_height);
@@ -1008,14 +1004,15 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 			gfx_handle = dat.data.button.button_image;
 		}
 		if(gfx_handle) {
-			if(state.ui_defs.gfx[gfx_handle].size.x != 0) {
-				dat.size = state.ui_defs.gfx[gfx_handle].size;
+			auto const& gfx_def = state.ui_defs.gfx[gfx_handle];
+			if(gfx_def.size.x != 0) {
+				dat.size = gfx_def.size;
 			} else {
-				auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
+				auto tex_handle = gfx_def.primary_texture_handle;
 				if(tex_handle) {
-					ogl::get_texture_handle(state, tex_handle, state.ui_defs.gfx[gfx_handle].is_partially_transparent());
+					ogl::get_texture_handle(state, tex_handle, gfx_def.is_partially_transparent());
 					dat.size.y = int16_t(state.open_gl.asset_textures[tex_handle].size_y);
-					dat.size.x = int16_t(state.open_gl.asset_textures[tex_handle].size_x / state.ui_defs.gfx[gfx_handle].number_of_frames);
+					dat.size.x = int16_t(state.open_gl.asset_textures[tex_handle].size_x / gfx_def.number_of_frames);
 				}
 			}
 			if(scale != 1.0f) {
@@ -1546,7 +1543,7 @@ template<typename contents_type>
 void listbox2_base<contents_type>::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
 	if(gid) {
-		auto& gfx_def = state.ui_defs.gfx[gid];
+		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
 				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
@@ -1591,7 +1588,7 @@ template<class RowWinT, class RowConT>
 void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
 	if(gid) {
-		auto& gfx_def = state.ui_defs.gfx[gid];
+		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
 				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
@@ -1862,7 +1859,7 @@ void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		gid = base_data.data.button.button_image;
 	}
 	if(gid && flag_texture_handle > 0) {
-		auto& gfx_def = state.ui_defs.gfx[gid];
+		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.type_dependent) {
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
@@ -1914,7 +1911,7 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		gid = base_data.data.button.button_image;
 	}
 	if(gid && flag_texture_handle > 0) {
-		auto& gfx_def = state.ui_defs.gfx[gid];
+		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.type_dependent) {
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];

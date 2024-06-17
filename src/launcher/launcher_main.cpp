@@ -19,7 +19,7 @@
 #include "effects.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
-//#include "bmfont.cpp"
+#include "bmfont.cpp"
 #include "rebels.cpp"
 #include "politics.cpp"
 #include "events.cpp"
@@ -832,7 +832,7 @@ void create_opengl_context() {
 	} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
 		wglSwapIntervalEXT(1);
 	} else {
-		MessageBoxW(m_hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
+		window::emit_error_message("WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", true);
 	}
 }
 

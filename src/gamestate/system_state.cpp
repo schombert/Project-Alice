@@ -1451,7 +1451,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
-		auto& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
+		auto const& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
 				ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
@@ -1551,50 +1551,56 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 void state::on_create() {
 	// Clear "center" property so they don't look messed up!
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("state_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("production_goods_name"))->second.definition].flags &=
-		~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("factory_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("new_factory_option"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ledger_legend_entry"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("project_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	// Allow mobility of those windows who can be moved, and shall be moved
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("pop_details_win"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("trade_flow"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("event_election_window"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("invest_project_window"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these
-	// windows are moveable
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ledger"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("province_view"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("releaseconfirm"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("build_factory"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("defaultdiplomacydialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("gpselectdiplomacydialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("makecbdialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("declarewardialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("setuppeacedialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("setupcrisisbackdowndialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("endofnavalcombatpopup"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("endoflandcombatpopup"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ingame_lobby_window"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
+	{
+		static const std::string_view elem_names[] = {
+			"state_info",
+			"production_goods_name",
+			"factory_info",
+			"new_factory_option",
+			"ledger_legend_entry",
+			"project_info",
+		};
+		for(const auto& elem_name : elem_names) {
+			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
+			if(it != ui_state.defs_by_name.end()) {
+				auto& gfx_def = ui_defs.gui[it->second.definition];
+				gfx_def.flags &= ~ui::element_data::orientation_mask;
+			}
+		}
+	}
+	// Allow user to drag some windows, and only the ones that make sense
+	{
+		static const std::string_view elem_names[] = {
+			"pop_details_win",
+			"trade_flow",
+			"event_election_window",
+			"invest_project_window",
+			"ledger",
+			"province_view",
+			"releaseconfirm",
+			"build_factory",
+			"defaultdiplomacydialog",
+			"gpselectdiplomacydialog",
+			"makecbdialog",
+			"declarewardialog",
+			"setuppeacedialog",
+			"setupcrisisbackdowndialog",
+			"endofnavalcombatpopup",
+			"endoflandcombatpopup",
+			"ingame_lobby_window",
+		};
+		for(const auto& elem_name : elem_names) {
+			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
+			if(it != ui_state.defs_by_name.end()) {
+				auto& gfx_def = ui_defs.gui[it->second.definition];
+				if(gfx_def.get_element_type() == ui::element_type::window) {
+					gfx_def.data.window.flags |= ui::window_data::is_moveable_mask;
+				}
+			}
+		}
+	}
 	// Nudge, overriden by V2 to be 0 always
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position.x = 0;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position.y = 0;
-	//}
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
 
@@ -1622,7 +1628,7 @@ void state::on_create() {
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
-
+	assert(size_t(tag.index()) < key_data.size());
 	auto start_position = key_data.data() + tag.index();
 	auto data_size = key_data.size();
 	auto end_position = start_position;
@@ -1634,6 +1640,7 @@ std::string_view state::to_string_view(dcon::text_key tag) const {
 }
 
 std::string_view state::locale_string_view(uint32_t tag) const {
+	assert(size_t(tag) < locale_text_data.size());
 	auto start_position = locale_text_data.data() + tag;
 	auto data_size = locale_text_data.size();
 	auto end_position = start_position;
@@ -1708,6 +1715,9 @@ void state::load_locale_strings(std::string_view locale_name) {
 }
 
 bool state::key_is_localized(dcon::text_key tag) const {
+	if(!tag)
+		return false;
+	assert(size_t(tag.index()) < key_data.size());
 	return locale_key_to_text_sequence.find(tag) != locale_key_to_text_sequence.end();
 }
 bool state::key_is_localized(std::string_view key) const {
@@ -1725,12 +1735,10 @@ dcon::text_key state::add_key_win1252(std::string const& text) {
 }
 dcon::text_key state::add_key_win1252(std::string_view text) {
 	std::string temp;
-
 	for(auto c : text) {
 		auto unicode = text::win1250toUTF16(c);
 		if(unicode == 0x00A7)
 			unicode = uint16_t('?'); // convert section symbol to ?
-
 		if(unicode <= 0x007F) {
 			temp.push_back(char(unicode));
 		} else if(unicode <= 0x7FF) {
@@ -1742,25 +1750,11 @@ dcon::text_key state::add_key_win1252(std::string_view text) {
 			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
 		}
 	}
-
+	assert(temp[temp.size()] == '\0');
 	return add_key_utf8(temp);
 }
 dcon::text_key state::add_key_utf8(std::string const& new_text) {
-	auto ekey = lookup_key(new_text);
-	if(ekey)
-		return ekey;
-
-	auto start = key_data.size();
-	auto length = new_text.length();
-	if(length == 0)
-		return dcon::text_key();
-	key_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, key_data.data() + start);
-	key_data.back() = 0;
-
-	auto ret = dcon::text_key(uint32_t(start));
-	untrans_key_to_text_sequence.insert(ret);
-	return ret;
+	return add_key_utf8(std::string_view(new_text.data()));
 }
 dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	auto ekey = lookup_key(new_text);
@@ -1775,7 +1769,7 @@ dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	std::copy_n(new_text.data(), length, key_data.data() + start);
 	key_data.back() = 0;
 
-	auto ret = dcon::text_key(uint32_t(start));
+	auto ret = dcon::text_key(dcon::text_key::value_base_t(start));
 	untrans_key_to_text_sequence.insert(ret);
 	return ret;
 }
@@ -1788,7 +1782,6 @@ uint32_t state::add_locale_data_win1252(std::string_view text) {
 		auto unicode = text::win1250toUTF16(c);
 		if(unicode == 0x00A7)
 			unicode = uint16_t('?'); // convert section symbol to ?
-
 		if(unicode <= 0x007F) {
 			locale_text_data.push_back(char(unicode));
 		} else if(unicode <= 0x7FF) {
@@ -1804,14 +1797,7 @@ uint32_t state::add_locale_data_win1252(std::string_view text) {
 	return uint32_t(start);
 }
 uint32_t state::add_locale_data_utf8(std::string const& new_text) {
-	auto start = locale_text_data.size();
-	auto length = new_text.length();
-	if(length == 0)
-		return 0;
-	locale_text_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, locale_text_data.data() + start);
-	locale_text_data.back() = 0;
-	return uint32_t(start);
+	return add_locale_data_utf8(std::string_view(new_text));
 }
 uint32_t state::add_locale_data_utf8(std::string_view new_text) {
 	auto start = locale_text_data.size();
@@ -1824,31 +1810,31 @@ uint32_t state::add_locale_data_utf8(std::string_view new_text) {
 	return uint32_t(start);
 }
 
-
-/*
-dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
-	if(new_text.length() > 0) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
-				std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
-		} else {
-			return add_to_pool(new_text);
-		}
-	} else {
-		return dcon::text_key();
-	}
-}
-*/
-
 dcon::unit_name_id state::add_unit_name(std::string_view text) {
-	auto start = unit_names.size();
-	auto length = text.length();
-	if(length == 0)
+	if(text.empty())
 		return dcon::unit_name_id();
 
-	unit_names.resize(start + length + 1, char(0));
-	std::copy_n(text.data(), length, unit_names.data() + start);
+	std::string temp;
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+		if(unicode <= 0x007F) {
+			temp.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		}
+	}
+	assert(temp.size() > 0);
+	assert(temp[temp.size()] == '\0');
+	auto start = unit_names.size();
+	unit_names.resize(start + temp.length() + 1, char(0));
+	std::copy_n(temp.data(), temp.length(), unit_names.data() + start);
 	unit_names.back() = 0;
 	unit_names_indices.push_back(int32_t(start));
 	return dcon::unit_name_id(dcon::unit_name_id::value_base_t(unit_names_indices.size() - 1));
@@ -1856,6 +1842,7 @@ dcon::unit_name_id state::add_unit_name(std::string_view text) {
 std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 	if(!tag)
 		return std::string_view();
+	assert(size_t(tag.index()) < unit_names_indices.size());
 	auto start_position = unit_names.data() + unit_names_indices[tag.index()];
 	auto data_size = unit_names.size();
 	auto end_position = start_position;
@@ -1952,7 +1939,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_is_globe);
 	US_SAVE(autosaves);
 	US_SAVE(bind_tooltip_mouse);
-	US_SAVE(UNUSED_BOOL);
+	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
 	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
@@ -2016,7 +2003,7 @@ void state::load_user_settings() {
 			US_LOAD(map_is_globe);
 			US_LOAD(autosaves);
 			US_LOAD(bind_tooltip_mouse);
-			US_LOAD(UNUSED_BOOL);
+			US_LOAD(use_classic_fonts);
 			US_LOAD(outliner_views);
 			constexpr size_t lower_half_count = 98;
 
@@ -2204,7 +2191,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	parsers::scenario_building_context context(*this);
 
-	text::name_into_font_id(*this, "garamond_14");
+	//text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
 	auto map = open_directory(root, NATIVE("map"));
