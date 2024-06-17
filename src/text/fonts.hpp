@@ -4,6 +4,7 @@
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
 #include "hb.h"
+#include "bmfont.hpp"
 #include <span>
 
 namespace sys {
@@ -117,6 +118,7 @@ public:
 	float internal_top_adj = 0.0f;
 	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
 	ankerl::unordered_dense::map<uint16_t, uint32_t> texture_slots;
+	std::array<FT_ULong, 256> win1252_codepoints;
 
 	std::unique_ptr<FT_Byte[]> file_data;
 
@@ -139,7 +141,7 @@ public:
 
 	friend class font_manager;
 
-	font(font&& o) noexcept : file_name(std::move(o.file_name)), texture_slots(std::move(o.texture_slots)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)) {
+	font(font&& o) noexcept : file_name(std::move(o.file_name)), texture_slots(std::move(o.texture_slots)), win1252_codepoints(std::move(o.win1252_codepoints)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)) {
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
@@ -156,6 +158,7 @@ public:
 		file_data = std::move(o.file_data);
 		glyph_positions = std::move(o.glyph_positions);
 		texture_slots = std::move(o.texture_slots);
+		win1252_codepoints = std::move(o.win1252_codepoints);
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
@@ -175,6 +178,7 @@ public:
 	~font_manager();
 
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
+	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
 private:
 	std::vector<font> font_array;
@@ -188,6 +192,8 @@ public:
 	void change_locale(sys::state& state, dcon::locale_id l);
 	font& get_font(sys::state& state, font_selection s = font_selection::body_font);
 	void load_font(font& fnt, char const* file_data, uint32_t file_size);
+	float line_height(sys::state& state, uint16_t font_id);
+	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint16_t font_id);
 };
 
 } // namespace text
