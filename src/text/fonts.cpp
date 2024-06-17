@@ -10,7 +10,7 @@
 #include "system_state.hpp"
 #ifdef _WIN32
 #include <icu.h>
-#elif
+#else
 #include <unicode/ubrk.h>
 #include <unicode/utypes.h>
 #include <unicode/ubidi.h>
