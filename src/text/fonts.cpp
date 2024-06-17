@@ -193,7 +193,8 @@ float font_manager::text_extent(sys::state& state, stored_glyphs const& txt, uin
 			auto cdp = txt.glyph_info[i].codepoint;
 			auto sv = classic_unligate_utf8(font, cdp);
 			if(sv.empty()) { //no ligature
-				codepoints += font.codepoint_to_alnum(cdp);
+				auto cl = font.codepoint_to_alnum(cdp);
+				codepoints += cl ? cl : '?';
 			} else { //unligated
 				codepoints += sv;
 			}

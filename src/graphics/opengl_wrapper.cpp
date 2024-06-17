@@ -866,7 +866,8 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 		auto cdp = txt.glyph_info[i].codepoint;
 		auto sv = classic_unligate_utf8(base_font, cdp);
 		if(sv.empty()) { //no ligature
-			codepoints += base_font.codepoint_to_alnum(cdp);
+			auto cl = base_font.codepoint_to_alnum(cdp);
+			codepoints += cl ? cl : '?';
 		} else { //unligated
 			codepoints += sv;
 		}
