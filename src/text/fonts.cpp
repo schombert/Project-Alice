@@ -8,7 +8,12 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+
+#ifdef _WIN32
 #include <icu.h>
+#elif
+#include <unicode/ubidi.h>
+#endif
 
 namespace text {
 
