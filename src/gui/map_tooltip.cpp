@@ -487,7 +487,7 @@ void party_loyalty_map_tt_box(sys::state& state, text::columnar_layout& contents
 		auto box = text::open_layout_box(contents);
 		text::localised_single_sub_box(state, contents, box, std::string_view("party_loyalty_desc_header"), text::variable_type::prov, prov);
 		std::vector<dcon::political_party_id> active_parties;
-		nations::get_active_political_parties(state, fat.get_nation_from_province_ownership().id).swap(active_parties);
+		nations::get_active_political_parties(state, fat.get_nation_from_province_ownership(), active_parties);
 		for(auto party : active_parties) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			auto loyalty = state.world.province_get_party_loyalty(prov, dcon::fatten(state.world, party).get_ideology().id);

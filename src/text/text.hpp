@@ -973,5 +973,7 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
 std::string resolve_string_substitution(sys::state& state, dcon::text_key key, substitution_map const& mp);
 
+uint32_t codepoint_from_utf8(char const* start, char const* end);
+size_t size_from_utf8(char const* start, char const*);
 
 } // namespace text

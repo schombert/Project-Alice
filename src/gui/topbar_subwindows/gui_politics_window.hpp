@@ -296,7 +296,8 @@ protected:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		nations::get_active_political_parties(state, state.local_player_nation).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, state.local_player_nation, row_contents);
 		update(state);
 	}
 };
@@ -337,8 +338,9 @@ public:
 		} else {
 			all_party_window->set_visible(state, !all_party_window->is_visible());
 		}
-		if(all_party_window && all_party_window->is_visible())
+		if(all_party_window && all_party_window->is_visible()) {
 			all_party_window->impl_on_update(state);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

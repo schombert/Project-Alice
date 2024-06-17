@@ -35,29 +35,18 @@ namespace network {
 // platform specific
 //
 
-#ifdef _WIN64
-std::string get_wsa_error_text(int err) {
-	LPTSTR err_buf = nullptr;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
-	native_string err_text = err_buf;
-	LocalFree(err_buf);
-	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
-}
 std::string get_last_error_msg() {
+#ifdef _WIN64
 	auto err = WSAGetLastError();
 	LPTSTR err_buf = nullptr;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
 	native_string err_text = err_buf;
 	LocalFree(err_buf);
 	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
-}
 #else
-std::string get_last_error_msg() {
 	return std::string("Dummy");
-}
 #endif
+}
 
 static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 #ifdef _WIN64

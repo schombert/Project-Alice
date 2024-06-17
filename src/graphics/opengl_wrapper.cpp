@@ -321,37 +321,37 @@ void initialize_opengl(sys::state& state) {
 	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
 
-static GLfloat global_square_data[] = {
+static const GLfloat global_square_data[] = {
 	0.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 1.0f,
 	1.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 0.0f, 1.0f, 0.0f
 };
-static GLfloat global_square_right_data[] = {
+static const GLfloat global_square_right_data[] = {
 	0.0f, 0.0f, 0.0f, 1.0f,
 	0.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 1.0f, 1.0f, 0.0f,
 	1.0f, 0.0f, 0.0f, 0.0f
 };
-static GLfloat global_square_left_data[] = {
+static const GLfloat global_square_left_data[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
 	1.0f, 1.0f, 0.0f, 1.0f,
 	1.0f, 0.0f, 1.0f, 1.0f
 };
-static GLfloat global_square_flipped_data[] = {
+static const GLfloat global_square_flipped_data[] = {
 	0.0f, 0.0f, 0.0f, 1.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
 	1.0f, 1.0f, 1.0f, 0.0f,
 	1.0f, 0.0f, 1.0f, 1.0f
 };
-static GLfloat global_square_right_flipped_data[] = {
+static const GLfloat global_square_right_flipped_data[] = {
 	0.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 1.0f, 0.0f,
 	1.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 0.0f, 0.0f, 1.0f
 };
-static GLfloat global_square_left_flipped_data[] = {
+static const GLfloat global_square_left_flipped_data[] = {
 	0.0f, 0.0f, 1.0f, 1.0f,
 	0.0f, 1.0f, 0.0f, 1.0f,
 	1.0f, 1.0f, 0.0f, 0.0f,
@@ -359,37 +359,37 @@ static GLfloat global_square_left_flipped_data[] = {
 };
 
 //RTL squares
-static GLfloat global_rtl_square_data[] = {
+static const GLfloat global_rtl_square_data[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 1.0f, 0.0f, 1.0f,
 	1.0f, 0.0f, 0.0f, 0.0f
 };
-static GLfloat global_rtl_square_right_data[] = {
-	0.0f, 0.0f, 1.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 1.0f, 0.0f
+static const GLfloat global_rtl_square_right_data[] = {
+	0.0f, 1.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 1.0f
 };
-static GLfloat global_rtl_square_left_data[] = {
+static const GLfloat global_rtl_square_left_data[] = {
 	0.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 1.0f, 0.0f,
 	1.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 0.0f, 0.0f, 1.0f
 };
-static GLfloat global_rtl_square_flipped_data[] = {
+static const GLfloat global_rtl_square_flipped_data[] = {
 	0.0f, 0.0f, 1.0f, 1.0f,
 	0.0f, 1.0f, 1.0f, 0.0f,
 	1.0f, 1.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f, 1.0f
 };
-static GLfloat global_rtl_square_right_flipped_data[] = {
+static const GLfloat global_rtl_square_right_flipped_data[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
 	1.0f, 1.0f, 0.0f, 1.0f,
 	1.0f, 0.0f, 1.0f, 1.0f
 };
-static GLfloat global_rtl_square_left_flipped_data[] = {
+static const GLfloat global_rtl_square_left_flipped_data[] = {
 	0.0f, 0.0f, 0.0f, 1.0f,
 	0.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 1.0f, 1.0f, 0.0f,

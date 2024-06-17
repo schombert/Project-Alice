@@ -322,7 +322,7 @@ bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index);
 military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index);
 int32_t num_crisis_wargoals(sys::state& state);
 
-std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
+void get_active_political_parties(sys::state& state, dcon::nation_id n, std::vector<dcon::political_party_id>& parties);
 
 void update_monthly_points(sys::state& state);
 
