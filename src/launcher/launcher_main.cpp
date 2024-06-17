@@ -2090,10 +2090,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		LANGID lang = GetUserDefaultUILanguage();
 		//lang = 0x0004;
 		switch(lang & 0xff) {
-		case 0x0001:
-			localised_strings = &ar_localised_strings[0];
-			font_set_load = 2;
-			break;
+		//case 0x0001:
+		//	localised_strings = &ar_localised_strings[0];
+		//	font_set_load = 2;
+		//	break;
 		case 0x0002:
 			localised_strings = &bg_localised_strings[0];
 			font_set_load = 3;
@@ -2129,9 +2129,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case 0x000C:
 			localised_strings = &fr_localised_strings[0];
 			break;
-		case 0x000D:
-			localised_strings = &he_localised_strings[0];
-			break;
+		//case 0x000D:
+		//	localised_strings = &he_localised_strings[0];
+		//	break;
 		case 0x000E:
 			localised_strings = &hu_localised_strings[0];
 			break;
