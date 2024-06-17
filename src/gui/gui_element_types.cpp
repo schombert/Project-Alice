@@ -1085,7 +1085,11 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 		if(ui_height(state) > base_data.size.y)
 			new_abs_pos.y = int16_t(std::clamp(int32_t(new_abs_pos.y), 0, ui_height(state) - base_data.size.y));
 
-		base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
+		if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+			base_data.position.x -= int16_t(new_abs_pos.x - location_abs.x);
+		} else {
+			base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
+		}
 		base_data.position.y += int16_t(new_abs_pos.y - location_abs.y);
 	}
 }
@@ -2031,6 +2035,10 @@ message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, in
 	int32_t pos_in_track = parent_state.vertical ? y : x;
 	int32_t clamped_pos = std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
 	float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
+	if(!parent_state.vertical && state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		fp_pos = 1.f - fp_pos;
+		assert(fp_pos >= 0.f && fp_pos <= 1.f);
+	}
 	send(state, parent, value_change{ int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)), true, false });
 	return message_result::consumed;
 }
@@ -2051,12 +2059,10 @@ message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, i
 	return message_result::consumed;
 }
 void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-
 	if(!parent)
 		return;
 
 	auto location_abs = get_absolute_location(state, *this);
-
 	scrollbar_settings parent_settings = retrieve<scrollbar_settings>(state, parent);
 	if(parent_settings.vertical) {
 		if(!(location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y)) {
@@ -2073,29 +2079,27 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 	// TODO: take care of case where there are partial range limits
 
 	float min_percentage = float(parent_settings.lower_limit - parent_settings.lower_value) / float(parent_settings.upper_value - parent_settings.lower_value);
-	auto min_offest =
-			parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * min_percentage);
+	auto min_offest = parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * min_percentage);
 
 	float max_percentage = float(parent_settings.upper_limit - parent_settings.lower_value) /  float(parent_settings.upper_value - parent_settings.lower_value);
-	auto max_offest =
-			parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * max_percentage);
+	auto max_offest = parent_settings.buttons_size + int32_t((parent_settings.track_size - parent_settings.buttons_size) * max_percentage);
 
 	if(parent_settings.vertical) {
 		base_data.position.y += int16_t(y - oldy);
-		base_data.position.y = int16_t(
-				std::clamp(int32_t(base_data.position.y), parent_settings.using_limits ? min_offest : parent_settings.buttons_size, parent_settings.using_limits ? max_offest : parent_settings.track_size));
+		base_data.position.y = int16_t(std::clamp(int32_t(base_data.position.y), parent_settings.using_limits ? min_offest : parent_settings.buttons_size, parent_settings.using_limits ? max_offest : parent_settings.track_size));
 		pos_in_track = base_data.position.y - parent_settings.buttons_size / 2;
 	} else {
-		base_data.position.x += int16_t(x - oldx);
-		base_data.position.x = int16_t(
-				std::clamp(int32_t(base_data.position.x), parent_settings.using_limits ? min_offest : parent_settings.buttons_size, parent_settings.using_limits ? max_offest : parent_settings.track_size));
+		if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+			base_data.position.x += int16_t(oldx - x);
+		} else {
+			base_data.position.x += int16_t(x - oldx);
+		}
+		base_data.position.x = int16_t(std::clamp(int32_t(base_data.position.x), parent_settings.using_limits ? min_offest : parent_settings.buttons_size, parent_settings.using_limits ? max_offest : parent_settings.track_size));
 		pos_in_track = base_data.position.x - parent_settings.buttons_size / 2;
 	}
-	float fp_pos =
-			float(pos_in_track - parent_settings.buttons_size / 2) / float(parent_settings.track_size - parent_settings.buttons_size);
+	float fp_pos = float(pos_in_track - parent_settings.buttons_size / 2) / float(parent_settings.track_size - parent_settings.buttons_size);
 
-	Cyto::Any adjustment_payload = value_change{
-			int32_t(parent_settings.lower_value + fp_pos * (parent_settings.upper_value - parent_settings.lower_value)), true, false};
+	Cyto::Any adjustment_payload = value_change{ int32_t(parent_settings.lower_value + fp_pos * (parent_settings.upper_value - parent_settings.lower_value)), true, false};
 	parent->impl_get(state, adjustment_payload);
 }
 

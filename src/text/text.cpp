@@ -1076,10 +1076,28 @@ endless_layout create_endless_layout(layout& dest, layout_parameters const& para
 namespace impl {
 
 void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, bool rtl) {
+	if(box.rtl_kludge) {
+		float dead_space = 0.f;
+		for(auto i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+			dead_space = std::min(dead_space, dest.base_layout.contents[i].x);
+		}
+		for(auto i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+			dest.base_layout.contents[i].x -= dead_space;
+		}
+		box.x_position -= dead_space;
+	}
+
 	if(dest.fixed_parameters.align == alignment::center) {
-		auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
-		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents[i].x += gap;
+		if(box.rtl_kludge) {
+			auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
+			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].x -= gap;
+			}
+		} else {
+			auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
+			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].x += gap;
+			}
 		}
 	} else if(dest.fixed_parameters.align == alignment::right) {
 		auto gap = float(dest.fixed_parameters.right) - box.x_position;
@@ -1243,8 +1261,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			
 			float extent = font.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, font_size);
 
-			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left)
-				|| next_cluster_position >= int32_t(temp_text.size())) {
+			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left) || next_cluster_position >= int32_t(temp_text.size())) {
 				// too long, but no line breaking opportunities earlier in the line
 				// OR no remaining text
 

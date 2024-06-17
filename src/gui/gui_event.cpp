@@ -692,7 +692,7 @@ public:
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
 				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
 				gfx_def.is_vertically_flipped(),
-				false);
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -724,14 +724,14 @@ public:
 			auto& gfx_def = state.ui_defs.gfx[gid];
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			//auto rotation = 0.f;
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
 				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle,
-				ui::rotation::r90_right, false, false);
-
+				ui::rotation::r90_right, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 			ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-				ui::rotation::r90_right, false, false);
+				ui::rotation::r90_right, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 		}
 	}
 	void on_create(sys::state& state) noexcept override {
@@ -878,7 +878,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		nations::get_active_political_parties(state, n).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, n, row_contents);
 		update(state);
 	}
 };
@@ -931,7 +932,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		nations::get_active_political_parties(state, n).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, n, row_contents);
 		update(state);
 	}
 };
@@ -953,7 +955,8 @@ public:
 		distribution.clear();
 		auto total = state.world.nation_get_demographics(n, demographics::total);
 		if(total > 0.f) {
-			auto parties = nations::get_active_political_parties(state, n);
+			std::vector<dcon::political_party_id> parties;
+			nations::get_active_political_parties(state, n, parties);
 			for(auto ppid : state.world.in_political_party) {
 				distribution.emplace_back(ppid.id, 0.0f);
 			}
