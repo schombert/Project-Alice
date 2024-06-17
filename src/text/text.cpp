@@ -6,7 +6,11 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include <type_traits>
+#ifdef _WIN32
 #include <icu.h>
+#elif
+#include <unicode/ubidi.h>
+#endif
 
 namespace text {
 text_color char_to_color(char in) {
