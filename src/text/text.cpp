@@ -1252,9 +1252,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			
 			float extent = state.font_collection.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, dest.fixed_parameters.font_id);
 
-			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left) || next_cluster_position >= int32_t(temp_text.size())) {
+			if(first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left) {
 				// too long, but no line breaking opportunities earlier in the line
-				// OR no remaining text
 
 				box.x_position -= extent;
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -1288,6 +1287,24 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 				ubrk_previous(lb_it);
 				first_in_line = true;
+			} else if(next_cluster_position >= int32_t(temp_text.size())) {
+				// no remaining text
+
+				box.x_position -= extent;
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
+
+				dest.base_layout.contents.push_back(text_chunk{
+					text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, next_cluster_position - cluster_start_position)),
+					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+				if(box.x_position - extent <= dest.fixed_parameters.left)
+					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+				glyph_start_position = next_glyph_position;
+				glyph_position = next_glyph_position;
+				cluster_position = next_cluster_position;
+				cluster_start_position = next_cluster_position;
 			} else {
 				glyph_position = next_glyph_position;
 				cluster_position = next_cluster_position;
@@ -1318,9 +1335,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 			float extent = state.font_collection.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, dest.fixed_parameters.font_id);
 
-			if((first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) || next_cluster_position >= int32_t(temp_text.size())) {
+			if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) {
 				// too long, but no line breaking opportunities earlier in the line
-				// OR no remaining text
 
 				dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, next_cluster_position - cluster_start_position)), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
@@ -1337,13 +1353,13 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				cluster_start_position = next_cluster_position;
 			} else if(box.x_position + extent >= dest.fixed_parameters.right) {
 
-					dest.base_layout.contents.push_back(
-						text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, cluster_position - cluster_start_position)),
-						box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-					box.x_position += extent;
-					box.y_size = std::max(box.y_size, box.y_position + line_height);
-					box.x_size = std::max(box.x_size, int32_t(box.x_position));
-				
+				dest.base_layout.contents.push_back(
+					text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, cluster_position - cluster_start_position)),
+					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+				box.x_position += extent;
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(box.x_position));
+
 				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 
 				glyph_start_position = glyph_position;
@@ -1351,6 +1367,22 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 				ubrk_previous(lb_it);
 				first_in_line = true;
+			} else if(next_cluster_position >= int32_t(temp_text.size())) {
+				// no remaining text
+
+				dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, next_cluster_position - cluster_start_position)), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+				box.x_position += extent;
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(box.x_position));
+
+				if(box.x_position + extent >= dest.fixed_parameters.right)
+					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+				glyph_start_position = next_glyph_position;
+				glyph_position = next_glyph_position;
+				cluster_position = next_cluster_position;
+				cluster_start_position = next_cluster_position;
 			} else {
 				glyph_position = next_glyph_position;
 				cluster_position = next_cluster_position;
