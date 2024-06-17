@@ -805,7 +805,6 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
 		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-
 		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 

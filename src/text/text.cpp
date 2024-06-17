@@ -1261,8 +1261,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			
 			float extent = font.text_extent(state, all_glyphs, glyph_start_position, next_glyph_position - glyph_start_position, font_size);
 
-			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left)
-				|| next_cluster_position >= int32_t(temp_text.size())) {
+			if((first_in_line && int32_t(dest.fixed_parameters.right - box.x_offset) == box.x_position && box.x_position - extent <= dest.fixed_parameters.left) || next_cluster_position >= int32_t(temp_text.size())) {
 				// too long, but no line breaking opportunities earlier in the line
 				// OR no remaining text
 
