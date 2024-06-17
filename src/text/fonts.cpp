@@ -8,7 +8,13 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+#ifdef _WIN32
 #include <icu.h>
+#else
+#include <unicode/ubrk.h>
+#include <unicode/utypes.h>
+#include <unicode/ubidi.h>
+#endif
 
 namespace text {
 
@@ -793,7 +799,7 @@ void font::remake_cache(stored_glyphs& txt, std::string const& s) {
 	txt.glyph_count = 0;
 	if(s.length() == 0)
 		return;
-	
+  
 	hb_buffer_clear_contents(hb_buf);
 	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
 

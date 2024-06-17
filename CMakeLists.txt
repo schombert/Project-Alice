@@ -191,6 +191,7 @@ else()
 	target_link_libraries(AliceCommon INTERFACE dependency_tbb)
 	target_link_libraries(AliceCommon INTERFACE glfw)
 	target_link_libraries(AliceCommon INTERFACE miniaudio)
+	target_link_libraries(AliceCommon INTERFACE dependency_icu)
 endif()
 target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src
