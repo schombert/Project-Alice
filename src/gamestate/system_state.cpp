@@ -1782,7 +1782,6 @@ uint32_t state::add_locale_data_win1252(std::string_view text) {
 		auto unicode = text::win1250toUTF16(c);
 		if(unicode == 0x00A7)
 			unicode = uint16_t('?'); // convert section symbol to ?
-
 		if(unicode <= 0x007F) {
 			locale_text_data.push_back(char(unicode));
 		} else if(unicode <= 0x7FF) {
@@ -1812,13 +1811,30 @@ uint32_t state::add_locale_data_utf8(std::string_view new_text) {
 }
 
 dcon::unit_name_id state::add_unit_name(std::string_view text) {
-	auto start = unit_names.size();
-	auto length = text.length();
-	if(length == 0)
+	if(text.empty())
 		return dcon::unit_name_id();
 
-	unit_names.resize(start + length + 1, char(0));
-	std::copy_n(text.data(), length, unit_names.data() + start);
+	std::string temp;
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+		if(unicode <= 0x007F) {
+			temp.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		}
+	}
+	assert(temp.size() > 0);
+	assert(temp[temp.size()] == '\0');
+	auto start = unit_names.size();
+	unit_names.resize(start + temp.length() + 1, char(0));
+	std::copy_n(temp.data(), temp.length(), unit_names.data() + start);
 	unit_names.back() = 0;
 	unit_names_indices.push_back(int32_t(start));
 	return dcon::unit_name_id(dcon::unit_name_id::value_base_t(unit_names_indices.size() - 1));

@@ -3127,7 +3127,7 @@ void make_leader_images(scenario_building_context& outer_context) {
 			auto index = outer_context.state.ui_defs.textures.size();
 			outer_context.state.ui_defs.textures.emplace_back(outer_context.state.add_key_win1252(file_name));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-			outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+			outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, new_obj.primary_texture_handle);
 		}
 		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
 
