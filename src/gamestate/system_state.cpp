@@ -1551,50 +1551,56 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 void state::on_create() {
 	// Clear "center" property so they don't look messed up!
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("state_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("production_goods_name"))->second.definition].flags &=
-		~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("factory_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("new_factory_option"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ledger_legend_entry"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("project_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
-	// Allow mobility of those windows who can be moved, and shall be moved
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("pop_details_win"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("trade_flow"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("event_election_window"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("invest_project_window"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these
-	// windows are moveable
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ledger"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("province_view"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("releaseconfirm"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("build_factory"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("defaultdiplomacydialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("gpselectdiplomacydialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("makecbdialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("declarewardialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("setuppeacedialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("setupcrisisbackdowndialog"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("endofnavalcombatpopup"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("endoflandcombatpopup"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ingame_lobby_window"))->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
+	{
+		static const std::string_view elem_names[] = {
+			"state_info",
+			"production_goods_name",
+			"factory_info",
+			"new_factory_option",
+			"ledger_legend_entry",
+			"project_info",
+		};
+		for(const auto& elem_name : elem_names) {
+			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
+			if(it != ui_state.defs_by_name.end()) {
+				auto& gfx_def = ui_defs.gui[it->second.definition];
+				gfx_def.flags &= ~ui::element_data::orientation_mask;
+			}
+		}
+	}
+	// Allow user to drag some windows, and only the ones that make sense
+	{
+		static const std::string_view elem_names[] = {
+			"pop_details_win",
+			"trade_flow",
+			"event_election_window",
+			"invest_project_window",
+			"ledger",
+			"province_view",
+			"releaseconfirm",
+			"build_factory",
+			"defaultdiplomacydialog",
+			"gpselectdiplomacydialog",
+			"makecbdialog",
+			"declarewardialog",
+			"setuppeacedialog",
+			"setupcrisisbackdowndialog",
+			"endofnavalcombatpopup",
+			"endoflandcombatpopup",
+			"ingame_lobby_window",
+		};
+		for(const auto& elem_name : elem_names) {
+			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
+			if(it != ui_state.defs_by_name.end()) {
+				auto& gfx_def = ui_defs.gui[it->second.definition];
+				if(gfx_def.get_element_type() == ui::element_type::window) {
+					gfx_def.data.window.flags |= ui::window_data::is_moveable_mask;
+				}
+			}
+		}
+	}
 	// Nudge, overriden by V2 to be 0 always
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position.x = 0;
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position.y = 0;
-	//}
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
 	// Find the object id for the main_bg displayed (so we display it before the map)
 	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
 
@@ -1709,6 +1715,8 @@ void state::load_locale_strings(std::string_view locale_name) {
 }
 
 bool state::key_is_localized(dcon::text_key tag) const {
+	if(!tag)
+		return false;
 	assert(size_t(tag.index()) < key_data.size());
 	return locale_key_to_text_sequence.find(tag) != locale_key_to_text_sequence.end();
 }
