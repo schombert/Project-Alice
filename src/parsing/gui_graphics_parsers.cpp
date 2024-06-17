@@ -46,8 +46,8 @@ obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_c
 		} else {
 			auto index = context.ui_defs.textures.size();
 			context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped));
-			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-			context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
+			new_obj.primary_texture_handle = dcon::texture_id(dcon::texture_id::value_base_t(index));
+			context.map_of_texture_names.insert_or_assign(stripped, new_obj.primary_texture_handle);
 		}
 	}
 	if(obj_in.secondary_texture.length() > 0) {
@@ -58,7 +58,7 @@ obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_c
 			auto index = context.ui_defs.textures.size();
 			context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped));
 			new_obj.type_dependent = uint16_t(index + 1);
-			context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
+			context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(dcon::texture_id::value_base_t(index)));
 		}
 	}
 

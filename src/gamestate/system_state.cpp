@@ -1761,7 +1761,7 @@ dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	std::copy_n(new_text.data(), length, key_data.data() + start);
 	key_data.back() = 0;
 
-	auto ret = dcon::text_key{ dcon::text_key::value_base_t(start) };
+	auto ret = dcon::text_key(dcon::text_key::value_base_t(start));
 	untrans_key_to_text_sequence.insert(ret);
 	return ret;
 }
