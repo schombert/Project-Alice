@@ -119,8 +119,9 @@ void language_left::button_action(sys::state& state) noexcept {
 		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 	}
 
-	memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15)));
-	state.user_settings.locale[std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15))] = 0;
+	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
+	std::memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), length);
+	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
 	//
@@ -160,8 +161,9 @@ void language_right::button_action(sys::state& state) noexcept {
 		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 	}
 
-	memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15)));
-	state.user_settings.locale[std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15))] = 0;
+	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
+	std::memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), length);
+	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
 	//
