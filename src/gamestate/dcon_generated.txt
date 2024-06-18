@@ -4918,10 +4918,6 @@ object {
 		name{ map_font_features }
 		type{vector_pool{1000}{uint32_t}}
 	}
-	property{
-		name{ line_break_rules }
-		type{vector_pool{2000}{uint8_t}}
-	}
 }
 
 load_save{

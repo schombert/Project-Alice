@@ -1212,9 +1212,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		}
 	}
 
-	auto locale_rules = state.world.locale_get_line_break_rules(state.font_collection.get_current_locale());
 	UErrorCode errorCode = U_ZERO_ERROR;
-	UBreakIterator* lb_it = ubrk_openBinaryRules(locale_rules.begin(), int32_t(locale_rules.size()), (UChar const*)temp_text.data(), int32_t(temp_text.size()), &errorCode);
+	UBreakIterator* lb_it = ubrk_openBinaryRules(state.font_collection.compiled_ubrk_rules.data(), int32_t(state.font_collection.compiled_ubrk_rules.size()), (UChar const*)temp_text.data(), int32_t(temp_text.size()), &errorCode);
 
 	if(!lb_it || !U_SUCCESS(errorCode)) {
 		std::abort(); // couldn't create iterator

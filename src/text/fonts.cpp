@@ -470,10 +470,9 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 	if(rule_size == 0 || !U_SUCCESS(errorCode)) {
 		std::abort(); // couldn't get_rules
 	}
-
-	auto rule_buf = state.world.locale_get_line_break_rules(l);
-	rule_buf.resize(uint32_t(rule_size));
-	ubrk_getBinaryRules(lb_it, rule_buf.begin(), rule_size, &errorCode);
+	
+	state.font_collection.compiled_ubrk_rules.resize(uint32_t(rule_size));
+	ubrk_getBinaryRules(lb_it, state.font_collection.compiled_ubrk_rules.data(), rule_size, &errorCode);
 
 	ubrk_close(lb_it);
 

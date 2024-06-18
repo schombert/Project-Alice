@@ -184,6 +184,7 @@ private:
 	std::vector<font> font_array;
 	dcon::locale_id current_locale;
 public:
+	std::vector<uint8_t> compiled_ubrk_rules;
 	bool map_font_is_black = false;
 
 	dcon::locale_id get_current_locale() const {
