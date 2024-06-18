@@ -1,4 +1,4 @@
-message(STATUS "Fetching glm...")
+message(STATUS "Fetching icu...")
 
 find_package(ICU 70.1 COMPONENTS uc i18n REQUIRED)
 
