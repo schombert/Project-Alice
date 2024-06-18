@@ -7,7 +7,5 @@ header_font = NotoSerifSC-Regular.ttf
 
 map_font = NotoSerifSC-Regular.ttf
 
-fallback = en-US
-
 prevent_map_letterspacing = yes
 rtl = no
