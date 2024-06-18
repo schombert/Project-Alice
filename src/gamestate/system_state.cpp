@@ -886,7 +886,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
-			if(ui_state.unit_details_box->is_visible()) {
+			if(ui_state.unit_details_box && ui_state.unit_details_box->is_visible()) {
 				mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 					int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
 					int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
@@ -2112,10 +2112,10 @@ void state::load_user_settings() {
 	for(auto l : world.in_locale) {
 		auto ln = l.get_locale_name();
 		auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
-
 		if(ln_sv == lname) {
 			font_collection.change_locale(*this, l);
 			locale_loaded = true;
+			break;
 		}
 	}
 
@@ -2123,10 +2123,10 @@ void state::load_user_settings() {
 		for(auto l : world.in_locale) {
 			auto ln = l.get_locale_name();
 			auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
-
 			if(ln_sv == "en-US") {
 				font_collection.change_locale(*this, l);
 				locale_loaded = true;
+				break;
 			}
 		}
 	}
