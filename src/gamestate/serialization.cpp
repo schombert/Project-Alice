@@ -107,7 +107,7 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 	uint32_t decompressed_length = uncompressed_size;
 
 	uint32_t section_length = uint32_t(ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size), ptr_in,
-			uncompressed_size, 0)); // write compressed data
+		uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
