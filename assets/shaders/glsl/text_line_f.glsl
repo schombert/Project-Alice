@@ -12,7 +12,7 @@ vec4 gamma_correct(vec4 colour) {
 void main() {
 	float border_size = 0.022f;
 	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
-	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
+	vec3 outer_color = vec3(0.27 * is_black, 0.27 * is_black, 0.27 * is_black);
     
     outer_color = mix(inner_color, outer_color, text_size * 40.f);
 	
