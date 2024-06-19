@@ -130,7 +130,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, text::get_adjective(state, state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
-	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(target_nation), state.world.nation_get_government_type(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, text::get_ruler_title(state, target_nation));
 	// TODO: Is this correct? I remember in vanilla it could vary
 	auto pc = state.world.nation_get_primary_culture(target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(pc));
@@ -185,7 +185,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::resource, state.world.province_get_rgo(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::terrain, state.world.province_get_terrain(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::numfactories, text::pretty_integer{ economy::state_factory_count(state, target_state, target_nation) });
-	text::add_to_substitution_map(sub, text::variable_type::fromruler, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(from_nation), state.world.nation_get_government_type(from_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::fromruler, text::get_ruler_title(state, from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::focus, state.world.state_instance_get_owner_focus(target_state).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::nf, state.world.state_instance_get_owner_focus(target_state).get_name());
 	auto names_pair = rng::get_random_pair(state, uint32_t(target_nation.index()) << 6, uint32_t(event_date.value));

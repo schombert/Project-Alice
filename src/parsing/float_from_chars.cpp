@@ -2,7 +2,7 @@
 
 namespace parsers {
 // this was copied from RapidJson (thanks RapidJson)
-inline double Pow10(int n) {
+inline double pow_10(int n) {
 	static double const e[] = {// 1e-0...1e308: 309 * 8 bytes = 2472 bytes
 			1e+0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5, 1e+6, 1e+7, 1e+8, 1e+9, 1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15, 1e+16, 1e+17, 1e+18,
 			1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26, 1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35,
@@ -60,12 +60,12 @@ bool float_from_chars(char const* start, char const* end, float& float_out) { //
 	}
 	if(!is_negative) {
 		if(magnitude > 0)
-			float_out = float(double(accumulated) / Pow10(magnitude));
+			float_out = float(double(accumulated) / pow_10(magnitude));
 		else
 			float_out = float(accumulated);
 	} else {
 		if(magnitude > 0)
-			float_out = -float(double(accumulated) / Pow10(magnitude));
+			float_out = -float(double(accumulated) / pow_10(magnitude));
 		else
 			float_out = -float(accumulated);
 	}
@@ -101,12 +101,12 @@ bool double_from_chars(char const* start, char const* end, double& dbl_out) { //
 	}
 	if(!is_negative) {
 		if(magnitude > 0)
-			dbl_out = double(accumulated) / Pow10(magnitude);
+			dbl_out = double(accumulated) / pow_10(magnitude);
 		else
 			dbl_out = double(accumulated);
 	} else {
 		if(magnitude > 0)
-			dbl_out = -double(accumulated) / Pow10(magnitude);
+			dbl_out = -double(accumulated) / pow_10(magnitude);
 		else
 			dbl_out = -double(accumulated);
 	}

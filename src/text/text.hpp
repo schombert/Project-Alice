@@ -922,6 +922,7 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 std::string get_influence_level_name(sys::state const& state, uint8_t v);
 dcon::text_key get_name(sys::state& state, dcon::nation_id n);
 dcon::text_key get_adjective(sys::state& state, dcon::nation_id n);
+dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n);
 inline std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
 	return text::produce_simple_string(state, get_name(state, n));
 }
