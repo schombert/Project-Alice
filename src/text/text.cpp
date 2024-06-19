@@ -540,7 +540,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(fromcountry_adj)
 		CT_STRING_ENUM(provinceculture)
 	} else if(v.length() == 16) {
-		if(false) { }ge
+		if(false) { }
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
