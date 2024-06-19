@@ -2220,7 +2220,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				font_collection.load_font(fonts[1], file_content.data, file_content.file_size);
 			}
 		} else if(font_set_load == 1) { //chinese
-			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifSC--Regular.ttf"));
+			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifSC-Regular.ttf"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
 				font_collection.load_font(fonts[0], file_content.data, file_content.file_size);
