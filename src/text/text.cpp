@@ -896,6 +896,16 @@ dcon::text_key get_adjective(sys::state& state, dcon::nation_id id) {
 	return state.world.national_identity_get_adjective(ident);
 }
 
+dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n) {
+	auto ident = state.world.nation_get_identity_from_identity_holder(id);
+	auto gov = state.world.nation_get_government_type(id);
+	//government specific adjective
+	if(auto k = state.world.national_identity_get_government_ruler(ident, gov); state.key_is_localized(k)) {
+		return k;
+	}
+	return state.world.government_type_get_ruler(gov);
+}
+
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
 	switch(category) {
 	case nations::focus_type::rail_focus:
