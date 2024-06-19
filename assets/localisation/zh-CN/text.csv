@@ -104,7 +104,7 @@ BUDGET_ADMIN_EFFICIENCY;行政效率：?Y$PERC$%?W;;;;;;;;;;;;x
 BUDGET_ADMIN_EFFICIENCY_DESC;我们国民中有?Y$PERC$%?W的人是?Y官僚?W\n为了达到最高的行政效率，我们需要至少?Y$MAX$%?W的官僚?W\n;;;;;;;;;;;;x
 ADM_EXPLAIN_DESC;这一所需百分比基于以下各项\n;;;;;;;;;;;;x
 SHADOWY_INVESTOR;私人投资者;;;;;;;;;;;;x
-GUNBOAT_ALERT;$COUNTRY$用他们的海军力量迫使我们每天偿还债务$VALUE$ぁ?!;;;;;;;;;;;x
+GUNBOAT_ALERT;$COUNTRY$用他们的海军力量迫使我们每天偿还债务$VALUE$ぁ?!;;;;;;;;;;x
 BUDGET_COUNTRY;国家;;;;;;;;;;;;x
 BUDGET_AMOUNT;总额;;;;;;;;;;;;x
 BUDGET_LOANS_TAKEN;借款;;;;;;;;;;;;x
@@ -1839,7 +1839,7 @@ TRADE_AUTOMATE;自动;;;;;;;;;;;;x
 TRADE_BUY_INTERNAL;国内购买;;;;;;;;;;;;x
 TRADE_BUY_FROM_STOCKPILE;使库存向共同市场开放;;;;;;;;;;;;x
 TRADE_SELL;出售;;;;;;;;;;;;x
-TRADE_PRICE_TREND;昨日价格变动：$VALUE$?!;;;;;;;;;;;x
+TRADE_PRICE_TREND;昨日价格变动：$VALUE$?!;;;;;;;;;;x
 TRADE_PRICE_TREND_UNCHANGED;昨日价格没有变化;;;;;;;;;;;;x
 TRADE_SELLING;出售库存;;;;;;;;;;;;x
 TRADE_BUYING;补充库存;;;;;;;;;;;;x
@@ -3032,7 +3032,7 @@ GUNBOAT_WE_ACCEPT_1;炮舰外交！;;;;;;;;;;;;x
 GUNBOAT_WE_ACCEPT_2;$ACTOR$;;;;;;;;;;;;x
 GUNBOAT_WE_ACCEPT_3;用炮舰围住了我国的港口;;;;;;;;;;;;x
 GUNBOAT_WE_ACCEPT_4;并要求我国偿还债务：;;;;;;;;;;;;x
-GUNBOAT_WE_ACCEPT_5;我国每天将支付?Y$VALUE$?Wぁ?!;;;;;;;;;;;x
+GUNBOAT_WE_ACCEPT_5;我国每天将支付?Y$VALUE$?W;;;;;;;;;;;x
 GUNBOAT_WE_ACCEPT_6;*;;;;;;;;;;;;x
 REMOVE_GUNBOAT_WE_ACCEPT_LOG;我国接受了$ACTOR$提出的和平协仪。;;;;;;;;;;;;x
 GUNBOAT_WE_ACCEPT_BTN1;世上没有免费的午餐！;;;;;;;;;;;;x
@@ -3043,7 +3043,7 @@ GUNBOAT_THEY_ACCEPT_1;炮舰外交！;;;;;;;;;;;;x
 GUNBOAT_THEY_ACCEPT_2;我国用炮舰围住了下列国家的港口;;;;;;;;;;;;x
 GUNBOAT_THEY_ACCEPT_3;$RECIPIENT$;;;;;;;;;;;;x
 GUNBOAT_THEY_ACCEPT_4;强迫他们偿还债务：;;;;;;;;;;;;x
-GUNBOAT_THEY_ACCEPT_5;他们每天将支付?Y$VALUE$?Wぁ?!;;;;;;;;;;;x
+GUNBOAT_THEY_ACCEPT_5;他们每天将支付?Y$VALUE$?W;;;;;;;;;;;x
 GUNBOAT_THEY_ACCEPT_6;*;;;;;;;;;;;;x
 REMOVE_GUNBOAT_THEY_ACCEPT_LOG;;;;;;;;;;;;;x
 GUNBOAT_THEY_ACCEPT_BTN1;总算受到钱了！;;;;;;;;;;;;x
@@ -3054,7 +3054,7 @@ GUNBOAT_OTHER_ACCEPT_2;$ACTOR$;;;;;;;;;;;;x
 GUNBOAT_OTHER_ACCEPT_3;用炮舰围住了下列国家的港口;;;;;;;;;;;;x
 GUNBOAT_OTHER_ACCEPT_4;$RECIPIENT$;;;;;;;;;;;;x
 GUNBOAT_OTHER_ACCEPT_5;强迫他们偿还债务：;;;;;;;;;;;;x
-GUNBOAT_OTHER_ACCEPT_6;他们每天将支付?Y$VALUE$?Wぁ?!;;;;;;;;;;;x
+GUNBOAT_OTHER_ACCEPT_6;他们每天将支付?Y$VALUE$?W;;;;;;;;;;;x
 REMOVE_GUNBOAT_OTHER_ACCEPT_LOG;;;;;;;;;;;;;x
 GUNBOAT_OTHER_ACCEPT_BTN1;好的;;;;;;;;;;;;x
 GUNBOAT_OTHER_ACCEPT_BTN3;查看;;;;;;;;;;;;x
@@ -6800,7 +6800,7 @@ TRADE_DAY;$VAL$/天;;;;;;;;;;;;x
 TRADE_NOTHING;无;;;;;;;;;;;;x
 NO_TRADE_RULE;只有两党都推行$RULE$时才能以物易物。;;;;;;;;;;;;x
 SENDEXPEDTITLE;远征军;;;;;;;;;;;;x
-SENDEXPEDNEWDESC;Do you wish to send an expeditionary force to $RECIPIENT$ to use as they see fit?!;;;;;;;;;;;;x
+SENDEXPEDNEWDESC;Do you wish to send an expeditionary force to $RECIPIENT$ to use as they see fit?!;;;;;;;;;;;x
 SENDEXPEDDESC;Send a formation as an expeditionary force。;;;;;;;;;;;;x
 RETRIEVEEXPEDTITLE;Retrieve Expeditionary Force;;;;;;;;;;;;x
 RESENDEXPEDTITLE;Return Expeditionary Force;;;;;;;;;;;;x
@@ -6829,7 +6829,7 @@ ALLOWDEBTDESC_BAD;Allow the nation to accumulate debt during wartime when tradin
 REVOKEDEBTDESC;No longer allow the nation to go into debt when trading with you during wartime。;;;;;;;;;;;;x
 ALLOWDEBTNEWDESC;Do you wish to request permission to accumulate debt when trading with ?Y$NAME$?W?!\n This will allow us to trade at a deficit during wartime, a debt that will be repaid over ?Y$YEAR$?W years when peace resumes.\nThis action will cost us ?Y$COST$?W influence points.;;;;;;;;;;;;x
 REVOKEDEBTNEWDESC;Do you wish revoke ?Y$NAME$?W's permission to accumulated debt in their dealings with us?!nThis action will cost us ?Y$COST$?W influence points。;;;;;;;;;;;;x
-ASKDEBTREQDESC;?Y$ACTOR$?W is requesting to be allowed to run a debt when trading with us。 \nThis means that when they trade with us during wartime，we do not get paid in cash but instead they will owe us。 The debt will be paid over time after the war。 \nShould we allow them this?!;;;;;;;;;;;;x
+ASKDEBTREQDESC;?Y$ACTOR$?W is requesting to be allowed to run a debt when trading with us。 \nThis means that when they trade with us during wartime，we do not get paid in cash but instead they will owe us。 The debt will be paid over time after the war。 \nShould we allow them this?!;;;;;;;;;;;x
 REMOVE_PEACEDESC;以最小的领土来换取和平。;;;;;;;;;;;;x
 PEACETITLE;和平;;;;;;;;;;;;x
 PEACENEWDESC;你是不是确定想与$COUNTRY$停战。$SELF$?!n如果他们接受，战争将会停止。$RESULT$;;;;;;;;;;;;x
@@ -6888,8 +6888,8 @@ SAVED_GAMES;保存游戏;;;;;;;;;;;;x
 FE_PAUSED_TEXT;暂停;;;;;;;;;;;;x
 PV_OCEAN;海洋;;;;;;;;;;;;x
 PV_OCEAN_DESC;只有船只才能进入这个省份;;;;;;;;;;;;x
-CONFIRM_CANCEL_CONSTRUCTION_TITLE;取消建造吗?!;;;;;;;;;;;;x
-CONFIRM_CANCEL_CONSTRUCTION_DESC;你确认要取消这个建造吗?!;;;;;;;;;;;;x
+CONFIRM_CANCEL_CONSTRUCTION_TITLE;取消建造吗?!;;;;;;;;;;;x
+CONFIRM_CANCEL_CONSTRUCTION_DESC;你确认要取消这个建造吗?!;;;;;;;;;;;x
 DIP_THEY_PUPPET;他们是$OVERLORD$的傀儡国?W;;;;;;;;;;;;x
 UV_UNDER_ATTACK;该部队正在受到攻击;;;;;;;;;;;;x
 UV_ATTACKING;该部队正在攻击;;;;;;;;;;;;x
@@ -7110,7 +7110,7 @@ CD_GIVESACCESS;给予下列国家军事通行权：$LIST$;;;;;;;;;;;;x
 CD_HASACCESS;有在下列国家的军事通行权：$LIST$;;;;;;;;;;;;x
 PW_RESET;重置;;;;;;;;;;;;x
 OURWARALLY;战争中的盟国;;;;;;;;;;;;x
-CONFIRMMISSIONTEXT;你确定想派遣传教士到$PROV$?!;;;;;;;;;;;;x
+CONFIRMMISSIONTEXT;你确定想派遣传教士到$PROV$?!;;;;;;;;;;;x
 COST_TIME;Cost：?Y$AMOUNT$?W金钱\n时间：?Y$TIME$?W天;;;;;;;;;;;;x
 ADD_SUB_UNIT_EFFECT;获得$UNIT$于?Y$WHERE$?W;;;;;;;;;;;;x
 CHANGE_CONTROLLER_EFFECT;?Y$WHO$?W占领了?Y$WHERE$?W\n;;;;;;;;;;;;x
@@ -9839,16 +9839,16 @@ POP_EXPAND_STATE_FACTORY;投资扩建工厂;;;;;;;;;;;;x
 POP_NO_PROJECT;无项目;;;;;;;;;;;;x
 POP_STATE;地区：?Y$VALUE$?W\n;;;;;;;;;;;;x
 POP_PROVINCE;省份：?Y$VALUE$?W\n;;;;;;;;;;;;x
-POP_DAILY_MONEY;日收入：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_NEEDS;需求：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_WELFARE;福利：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_SALARY;薪水：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_EXPENSES;支出：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_EVENTS;事件：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_PROJECT;计划：?Y$VAL$?W?!;;;;;;;;;;;x
-POP_DAILY_BANK;银行账户：?Y$VAL$?W?!;;;;;;;;;;;x
-UNIT_PRICE;单价：?Y$VAL$?W?!;;;;;;;;;;;x
-AVAILABLE_IN_BANK;银行储蓄：?Y$VAL$?W?!;;;;;;;;;;;x
+POP_DAILY_MONEY;日收入：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_NEEDS;需求：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_WELFARE;福利：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_SALARY;薪水：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_EXPENSES;支出：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_EVENTS;事件：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_PROJECT;计划：?Y$VAL$?W?!;;;;;;;;;;x
+POP_DAILY_BANK;银行账户：?Y$VAL$?W?!;;;;;;;;;;x
+UNIT_PRICE;单价：?Y$VAL$?W?!;;;;;;;;;;x
+AVAILABLE_IN_BANK;银行储蓄：?Y$VAL$?W?!;;;;;;;;;;x
 PV_PROMOTIONS;升级：;;;;;;;;;;;;x
 POP_NO_POPS_OF_TYPE;没有这种人群类型;;;;;;;;;;;;x
 europe;欧洲;;;;;;;;;;;;x
@@ -13106,7 +13106,7 @@ PROV3246;扬马延;;;;;;;;;;;;x
 PROVINCEVIEW_RGOOWNER;地区原料产地业主：?Y$VALUE$%个$TYPE$?W;;;;;;;;;;;;x
 PROVINCEVIEW_ADMIN;地区行政效率：?Y$VALUE$%?W;;;;;;;;;;;;x
 PROVINCEVIEW_LIFERATING;省份生活条件：?Y$VALUE$?W;;;;;;;;;;;;x
-PROVINCEVIEW_GOODSINCOME;昨日卖出价值?Y$VALUE$?W的?Y$GOODS$?W?!;;;;;;;;;;;x
+PROVINCEVIEW_GOODSINCOME;昨日卖出价值?Y$VALUE$?W的?Y$GOODS$?W?!;;;;;;;;;;x
 PROVINCEVIEW_EMPLOYMENT;当前原料产地雇佣人数：?Y$VALUE$?W;;;;;;;;;;;;x
 PROVINCEVIEW_CRIMEFIGHT;省份治安指数：?Y$VALUE$%?W;;;;;;;;;;;;x
 PROVINCEVIEW_REVOLTRISK;省份叛乱风险：$VALUE$;;;;;;;;;;;;x

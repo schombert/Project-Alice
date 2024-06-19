@@ -27,7 +27,7 @@ WAR_GAIN_GW_STATUS_6;*;;;;;;;;;;;;x
 WAR_GAIN_GW_STATUS_BTN1;好的;;;;;;;;;;;;x
 WAR_GAIN_GW_STATUS_BTN2;好的;;;;;;;;;;;;x
 WAR_GAIN_GW_STATUS_BTN3;转到;;;;;;;;;;;;x
-WAR_GAIN_GW_STATUS_LOG;$WAR$成为了?Y世界大战?!;;;;;;;;;;;;x
+WAR_GAIN_GW_STATUS_LOG;$WAR$成为了?Y世界大战?!;;;;;;;;;;;x
 WAR_LOST_GW_STATUS_SETUP;当我们的战争不再是世界大战;;;;;;;;;;;;x
 WAR_LOST_GW_STATUS_HEADER;不再是世界大战！;;;;;;;;;;;;x
 WAR_LOST_GW_STATUS_1;$WAR$;;;;;;;;;;;;x
@@ -39,9 +39,9 @@ WAR_LOST_GW_STATUS_6;*;;;;;;;;;;;;x
 WAR_LOST_GW_STATUS_BTN1;好的;;;;;;;;;;;;x
 WAR_LOST_GW_STATUS_BTN2;好的;;;;;;;;;;;;x
 WAR_LOST_GW_STATUS_BTN3;转到;;;;;;;;;;;;x
-WAR_LOST_GW_STATUS_LOG;$WAR$不再是?Y世界大战?!;;;;;;;;;;;;x
-GW_INTERVENE_MIN_RELATIONS;我们与?Y$TARGET$?!关系必须至少达到?G$MIN$?!现在是?Y$VAL$?!;;;;;;;;;;;;x
-GW_INTERVENE_MAX_EXHAUSTION;我们的厌战程度不能超过?G$MAX$?!在是?Y$VAL$?!;;;;;;;;;;;;x
+WAR_LOST_GW_STATUS_LOG;$WAR$不再是?Y世界大战?!;;;;;;;;;;;x
+GW_INTERVENE_MIN_RELATIONS;我们与?Y$TARGET$?!关系必须至少达到?G$MIN$?!现在是?Y$VAL$?!;;;;;;;;;;;x
+GW_INTERVENE_MAX_EXHAUSTION;我们的厌战程度不能超过?G$MAX$?!在是?Y$VAL$?!;;;;;;;;;;;x
 great_war_penalty_cb;退出世界大战;;;;;;;;;;;;x
 great_war_penalty_cb_desc;迫使另一个?Y国家?!除武装并向我们支付赔款;;;;;;;;;;;;x
 great_war_penalty_cb_setup;解除$RECIPIENT$的武装并让他们支付赔款;;;;;;;;;;;;x
@@ -82,10 +82,10 @@ INVESTED_IN_US_BTN1;好的;;;;;;;;;;;;x
 INVESTED_IN_US_BTN2;好的;;;;;;;;;;;;x
 INVESTED_IN_US_BTN3;转到;;;;;;;;;;;;x
 INVESTED_IN_US_LOG;?Y$ICOUNTRY$?!资我国：$INVESTED_IN_US_MESSAGE$;;;;;;;;;;;;x
-INVESTED_IN_US_BUILD;在$ILOCATION$投资$IAMOUNT$そ?!NAME$;;;;;;;;;;;;x
-INVESTED_IN_US_OPEN;在$ILOCATION$投资$IAMOUNT$た?!NAME$;;;;;;;;;;;;x
-INVESTED_IN_US_UPGRADE;在$ILOCATION$投资$IAMOUNT$ど?!NAME$;;;;;;;;;;;;x
-INVESTED_IN_US_UNKNOWN;对我国投资$IAMOUNT$ぁ?!;;;;;;;;;;;x
+INVESTED_IN_US_BUILD;在$ILOCATION$投资$IAMOUNT$建设$INAME$;;;;;;;;;;;;x
+INVESTED_IN_US_OPEN;在$ILOCATION$投资$IAMOUNT$重开$INAME$;;;;;;;;;;;;x
+INVESTED_IN_US_UPGRADE;在$ILOCATION$投资$IAMOUNT$升级$INAME$;;;;;;;;;;;;x
+INVESTED_IN_US_UNKNOWN;对我国投资$IAMOUNT$;;;;;;;;;;;x
 MODIFY_RELATION_EFFECT;?Y$SOURCE$?!?Y$TARGET$?!关系改变了$VALUE$;;;;;;;;;;;;x
 PRODUCTION_EXPAND_FACTORY_SHORTCUT_TOOLTIP;?GCtrl点击?!以升级所有同类工厂\n?GShift点击?!级所有工厂;;;;;;;;;;;;x
 EVTNAME19355;世界大战;;;;;;;;;;;;x

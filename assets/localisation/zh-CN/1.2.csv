@@ -314,7 +314,7 @@ SM_COUNTERDISTANCE;地图部件显示最大距离;;;;;;;;;;;;x
 OL_GP_INFLUENCE;影响力;;;;;;;;;;;;x
 OL_VIEW_GP_INFLUENCE;锁定?Y影响力?W界面;;;;;;;;;;;;x
 CB_EXPIRE_DATE;到期时间：?Y$DATE$?W;;;;;;;;;;;;x
-BUDGET_CANT_LOAN_DESC;银行只有在你正常支付利息和不是敌国时才会贷款给你。外国银行出于安全原因通常不会贷给你超出它们所有流动资金的$MAXLOAN$?!;;;;;;;;;;;x
+BUDGET_CANT_LOAN_DESC;银行只有在你正常支付利息和不是敌国时才会贷款给你。外国银行出于安全原因通常不会贷给你超出它们所有流动资金的$MAXLOAN$?!;;;;;;;;;;x
 MUST_NEGOTIATE_WITH_WAR_LEADER_STATUS_QUO_OUR_SIDE;我们无法与敌方?Y战争领袖?W谈判，除非我们是战争目标的对象或我们的战争领袖提出了?Y维持现状?W的战争目标;;;;;;;;;;;;x
 witwatersrand_gold_rush;威特沃特斯兰德淘金热;;;;;;;;;;;;x
 desc_witwatersrand_gold_rush;威特沃特斯兰德的一场淘金热使我们举世闻名。;;;;;;;;;;;;x

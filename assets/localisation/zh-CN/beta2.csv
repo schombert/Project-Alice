@@ -146,7 +146,7 @@ annex_hawaii_title;纽兰兹决议;;;;;;;;;;;;x
 annex_hawaii_desc;纽兰兹决议是美国国会于1898年通过的一项共同决议案，由国会议员弗兰西斯·G·纽兰兹命名，它将夏威夷共和国并入了美国，获得了夏威夷的领土。;;;;;;;;;;;;x
 ionian_islands_question_title;伦敦条约（1864）;;;;;;;;;;;;x
 ionian_islands_question_desc;拿破仑战争结束后英国就获得了爱奥尼亚诸岛的宗主权。在1862年，相对其价值来说维系宗主权的花费被认为过于高昂，经过两年的协商后它们被割让给希腊。;;;;;;;;;;;;x
-WARSUBSIDIES_DESC;每天提供?Y$MONEY$?Wだ窗镏飧龉?!;;;;;;;;;;;x
+WARSUBSIDIES_DESC;每天提供?Y$MONEY$?W以帮助该国;;;;;;;;;;;x
 release_puppet;释放傀儡国;;;;;;;;;;;;x
 release_puppet_short;使$THIRD$独立;;;;;;;;;;;;x
 release_puppet_setup;使$RECIPIENT$释放$THIRD$;;;;;;;;;;;;x

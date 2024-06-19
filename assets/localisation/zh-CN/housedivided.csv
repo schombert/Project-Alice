@@ -13,7 +13,7 @@ DIPLOMACY_INFLUENCE_NOT_WORTH;我们的影响力已达最大值，也没有其�
 COLONY_ABORT_HEADER;当殖民地被废弃;;;;;;;;;;;;x
 COLONY_ABORT_1;殖民地被废弃！;;;;;;;;;;;;x
 COLONY_ABORT_2;$MONARCHTITLE$，我们的殖民地;;;;;;;;;;;;x
-COLONY_ABORT_3;?Y$TARGET$?!;;;;;;;;;;;;x
+COLONY_ABORT_3;?Y$TARGET$?!;;;;;;;;;;;x
 COLONY_ABORT_4;被废弃了！;;;;;;;;;;;;x
 COLONY_ABORT_5;我们不能再继续殖民这里了;;;;;;;;;;;;x
 COLONY_ABORT_6;*;;;;;;;;;;;;x
@@ -24,8 +24,8 @@ COLONY_ABORT_MAP;殖民地被废弃！;;;;;;;;;;;;x
 COLONY_ABORT_SETUP;当殖民地被废弃;;;;;;;;;;;;x
 COLONY_ABORT_LOG;$TARGET$的殖民地被废弃;;;;;;;;;;;;x
 DIPRELCH_VALID_CB;可用的战争借口;;;;;;;;;;;;x
-BRIGADES_COMPARE_GREATER;两国的军队数量之比至少$VAL$?!;;;;;;;;;;;;x
-BRIGADES_COMPARE_SMALLER;两国的军队数量之比少于$VAL$?!;;;;;;;;;;;;x
+BRIGADES_COMPARE_GREATER;两国的军队数量之比至少$VAL$?!;;;;;;;;;;;x
+BRIGADES_COMPARE_SMALLER;两国的军队数量之比少于$VAL$?!;;;;;;;;;;;x
 CONFIRM_CREATE_STATE_DESC2;（所有本地修正将被移除）;;;;;;;;;;;;x
 UNIT_ENABLE_REBEL_HUNT;猎杀叛军;;;;;;;;;;;;x
 UNIT_DISABLE_REBEL_HUNT;（正在猎杀叛军）;;;;;;;;;;;;x
@@ -74,8 +74,8 @@ UNSUBSIDIZE_ALL_TOOLTIP;取消资助列表里的所有工厂;;;;;;;;;;;;x
 OPEN_ALL_TOOLTIP;重开列表里的所有工厂;;;;;;;;;;;;x
 CLOSE_ALL_TOOLTIP;关闭列表里的所有工厂;;;;;;;;;;;;x
 ON_ENACT_UNCIV_REFORM;通过改革时:;;;;;;;;;;;;x
-EFFECT_BUILD_IN_CAPITAL_DESC;?Y$BLD$?!设将会发生在：?Y$PROVS$?!;;;;;;;;;;;;x
-TRIGGER_BUILD_IN_CAPITAL_DESC;?R基础建设现在不能实现?!;;;;;;;;;;;;x
+EFFECT_BUILD_IN_CAPITAL_DESC;?Y$BLD$?!设将会发生在：?Y$PROVS$?!;;;;;;;;;;;x
+TRIGGER_BUILD_IN_CAPITAL_DESC;?R基础建设现在不能实现?!;;;;;;;;;;;x
 DIPLOMACY_CB_INFO;战争合理化;;;;;;;;;;;;x
 COLONIZE_MAX_SLOTS;不超过?Y$NUM$?!国家可以在此开展殖民竞争;;;;;;;;;;;;x
 RIGHT_CLICK_TO_REMOVE_NF;?Y右键点击?!移除现在的焦点;;;;;;;;;;;;x
@@ -94,20 +94,20 @@ uninstall_communist_gov_cb_desc;推翻共产主义政府;;;;;;;;;;;;x
 uninstall_communist_gov_cb_setup;推翻共产主义政府;;;;;;;;;;;;x
 uninstall_communist_gov_cb_short;推翻共产主义;;;;;;;;;;;;x
 NF_OVERWRITE_HEADER;要设置新的国家焦点?Y$NF$?!必须先移除另一个;;;;;;;;;;;;x
-NF_OVERWRITE_ENTRY;?Y$NF$?!n在?G$STATE$?!;;;;;;;;;;;;x
-PRESTIGE_MORALE_BONUS;士气加成：?Y$VAL$?!;;;;;;;;;;;;x
-PRESTIGE_MAX_ORG_BONUS;组织度加成：?Y$VAL$?!;;;;;;;;;;;;x
+NF_OVERWRITE_ENTRY;?Y$NF$?!n在?G$STATE$?!;;;;;;;;;;;x
+PRESTIGE_MORALE_BONUS;士气加成：?Y$VAL$?!;;;;;;;;;;;x
+PRESTIGE_MAX_ORG_BONUS;组织度加成：?Y$VAL$?!;;;;;;;;;;;x
 PRESTIGE_PENALTY_ON_LEADER_TRANSFER_TITLE;威望惩罚;;;;;;;;;;;;x
 PRESTIGE_PENALTY_ON_LEADER_TRANSFER_DESC;如果我们在战时撤销指挥官?Y$NAME$?!职务，我国将会损失?R$VAL$?!望。\n你确定要这样做吗？;;;;;;;;;;;;x
 REORG_PANEL_BALANCE_UNITS;平均分配;;;;;;;;;;;;x
-INVEST_PROJECT_NOT_ENOUGH_MONEY;?R我们没有足够资金?!;;;;;;;;;;;;x
+INVEST_PROJECT_NOT_ENOUGH_MONEY;?R我们没有足够资金?!;;;;;;;;;;;x
 INVEST_PROJECT_SHORTCUT_MAX;?R Ctrl + 鼠标左键?!该计划投资最大数额（?Y$AMOUNT$?!;;;;;;;;;;;;x
-INVEST_PROJECT_SHORTCUT_MAX_ALL;?RShift + 鼠标左键?!所有计划投资最大数额（?Y$AMOUNT$?!?!;;;;;;;;;;;x
+INVEST_PROJECT_SHORTCUT_MAX_ALL;?RShift + 鼠标左键?!所有计划投资最大数额（?Y$AMOUNT$?!?!;;;;;;;;;;x
 INVEST_PROJECT_CONFIRM;投资;;;;;;;;;;;;x
 INVEST_PROJECT_MAX;最大;;;;;;;;;;;;x
 INVEST_PROJECT_TITLE;投资计划：?Y$LOC$?!"?Y$PROJ$?!;;;;;;;;;;;;x
 INVEST_PROJECT_TOOLTIP_YOUR_BUDGET;你的预算;;;;;;;;;;;;x
-INVEST_PROJECT_TOOLTIP_PROJECT_BUDGET;计划现预算是?Y$BUD$?!要的总量是?Y$TOT$?!n你决定投资?Y$INV$?!;;;;;;;;;;;;x
+INVEST_PROJECT_TOOLTIP_PROJECT_BUDGET;计划现预算是?Y$BUD$?!要的总量是?Y$TOT$?!n你决定投资?Y$INV$?!;;;;;;;;;;;x
 INVEST_PROJECT_TOOLTIP_APPLY;投资;;;;;;;;;;;;x
 MIL_MULTI_CONSTRUCTION_TOOLTIP;?Y鼠标左键 + SHIFT?!建造全部;;;;;;;;;;;;x
 MIL_CONSTRUCTION_CANCEL_ALL_SHORT;取消全部;;;;;;;;;;;;x
@@ -204,20 +204,20 @@ TRADE_FLOW_CURRENT_PRICE;现价:;;;;;;;;;;;;x
 TRADE_FLOW_DETAILS;细节;;;;;;;;;;;;x
 TRADE_FLOW_PART_OF_WORLD_PROD;世界产量的?Y$PERC$%;;;;;;;;;;;;x
 EMIGRATION_AT_PROVINCE_TOOLTIP;?Y移民到：?!n$EMILIST$\n?Y移民来自：?!n$IMMLIST$;;;;;;;;;;;;x
-NO_MIGRATIONS_FOUND1_TOOLTIP;省份属于：?Y$COUNTRY$?!;;;;;;;;;;;;x
+NO_MIGRATIONS_FOUND1_TOOLTIP;省份属于：?Y$COUNTRY$?!;;;;;;;;;;;x
 NO_MIGRATIONS_FOUND2_TOOLTIP;没有记录在案的跨国移民;;;;;;;;;;;;x
 NO_MIGRATIONS_FOUND3_TOOLTIP;（选择省份查看详情）;;;;;;;;;;;;x
 PROVINCE_VIEW_BUILD_ALL_TOOLTIP;（点击 + CTRL 在州内所有省份一起建设）;;;;;;;;;;;;x
-EMIGRATION_ENTRY_TOOLTIP;?R$NUM$?!去?Y$PROV$?!;;;;;;;;;;;;x
-IMMIGRATION_ENTRY_TOOLTIP;?G$NUM$?!来自?Y$PROV$?!;;;;;;;;;;;;x
-CB_GENERATION_SPEED_BONUS_ON_COLONY_COMPETITION;与?Y$COUNTRY$?!争殖民?Y$REGION$?!速度奖励?Y$BONUS$?!;;;;;;;;;;;;x
-CB_GENERATION_BONUS_TOOLTIP;与竞争国家：?Y$COUNTRIES$?!战争借口制造速度奖励：?Y$BONUS$?!;;;;;;;;;;;;x
+EMIGRATION_ENTRY_TOOLTIP;?R$NUM$?!去?Y$PROV$?!;;;;;;;;;;;x
+IMMIGRATION_ENTRY_TOOLTIP;?G$NUM$?!来自?Y$PROV$?!;;;;;;;;;;;x
+CB_GENERATION_SPEED_BONUS_ON_COLONY_COMPETITION;与?Y$COUNTRY$?!争殖民?Y$REGION$?!速度奖励?Y$BONUS$?!;;;;;;;;;;;x
+CB_GENERATION_BONUS_TOOLTIP;与竞争国家：?Y$COUNTRIES$?!战争借口制造速度奖励：?Y$BONUS$?!;;;;;;;;;;;x
 CB_GENERATION_BONUS_TROOPS_PRESENCE_TOOLTIP;（?Y$BONUS$?!自其他国家驻军）;;;;;;;;;;;;x
 CB_GENERATION_BONUS_OPPONENT_TROOPS_PRESENCE;（?Y$BONUS$?!为?Y$FOR$?!自?Y$AGAINST$?!驻军）;;;;;;;;;;;;x
 MODIFIER_CB_GENERATION_SPEED_MODIFIER;制造战争借口的速度;;;;;;;;;;;;x
 NOT_CONSTRUCTING_CASUS_BELLI_AGAINST;没有进行战争合理化以对付;;;;;;;;;;;;x
 MODIFIER_MOBILIZATION_IMPACT;动员影响;;;;;;;;;;;;x
-MOBILIZATION_IMPACT_LIMIT_DESC;动员影响?Y$IMPACT$?!于战争政策?Y$POLICY$?!可动员部队数量最大为?Y$UNITS$?!;;;;;;;;;;;;x
+MOBILIZATION_IMPACT_LIMIT_DESC;动员影响?Y$IMPACT$?!于战争政策?Y$POLICY$?!可动员部队数量最大为?Y$UNITS$?!;;;;;;;;;;;x
 MOBILIZATION_IMPACT_LIMIT_DESC2;（现役团数量为?Y$CURR$?!动员影响为?Y$IMPACT$?!;;;;;;;;;;;;x
 CONSTRUCTING_CASUS_BELLI_AGAINST;正在制造战争借口以对付;;;;;;;;;;;;x
 TRIGGER_CB_CREATION_NOT_DISCOVERED;没有在制造战争借口;;;;;;;;;;;;x
@@ -289,8 +289,8 @@ make_puppet_desc;成为傀儡国;;;;;;;;;;;;x
 RALLY_POINT_INFO;如果你设置该省为?Y集结点?!邻省组建的新部队将向这里集结\n（查看募兵地图以获得更多细节）;;;;;;;;;;;;x
 RALLY_POINT_ENABLE_INFO;设置或解除该省为集结点;;;;;;;;;;;;x
 RALLY_POINT_MERGE_INFO;开启或取消自动合并\n（部队会自动合并到本地补给上限为止）;;;;;;;;;;;;x
-RALLY_POINT_PROVINCE_INFO;$PROV$是?Y集结点?!;;;;;;;;;;;;x
-RALLY_POINT_PROVINCE_MERGE_INFO;所有到达此地的部队将合并至?Y$LIMIT$?!;;;;;;;;;;;;x
+RALLY_POINT_PROVINCE_INFO;$PROV$是?Y集结点?!;;;;;;;;;;;x
+RALLY_POINT_PROVINCE_MERGE_INFO;所有到达此地的部队将合并至?Y$LIMIT$?!;;;;;;;;;;;x
 CB_ALLOWED_MAKE_PUPPET;扶植傀儡政权;;;;;;;;;;;;x
 DIPLOMACY_NEGOTIATE_SUBSTATE;我们不能和?Y次国家?W谈判;;;;;;;;;;;;x
 DIPLOMACY_NEGOTIATE_WE_SUBSTATE;我们是?Y次国家?W，不能与别国谈判;;;;;;;;;;;;x
@@ -342,13 +342,13 @@ EVTOPTA90009;很好。;;;;;;;;;;;;x
 VOTER_ISSUES;投票者关注议题;;;;;;;;;;;;x
 OL_VIEW_NATFOCUS;打开?Y国家焦点?W界面;;;;;;;;;;;;x
 OL_VIEW_NATFOCUS_HEADER;国家焦点;;;;;;;;;;;;x
-OL_VIEW_NATFOCUS_TOOLTIP;国家焦点（?Y$FOCUS$?!在?Y$STATE$?!;;;;;;;;;;;;x
+OL_VIEW_NATFOCUS_TOOLTIP;国家焦点（?Y$FOCUS$?!在?Y$STATE$?!;;;;;;;;;;;x
 OL_VIEW_RALLYPOINTS;打开?Y集结点?W界面;;;;;;;;;;;;x
 OL_VIEW_RALLYPOINTS_HEADER;集结点;;;;;;;;;;;;x
 OL_VIEW_RALLYPOINTS_TOOLTIP;邻省组建的新部队将向?Y$PROV$?!结;;;;;;;;;;;;x
-OL_VIEW_RALLYPOINTS_MERGE_TOOLTIP;并将在到达此地时合并至?Y$LIMIT$?!;;;;;;;;;;;;x
-OL_VIEW_MERGE_ON;?G（自动合并开启）?!;;;;;;;;;;;;x
-OL_VIEW_MERGE_OFF;?Y（自动合并关闭）?!;;;;;;;;;;;;x
+OL_VIEW_RALLYPOINTS_MERGE_TOOLTIP;并将在到达此地时合并至?Y$LIMIT$?!;;;;;;;;;;;x
+OL_VIEW_MERGE_ON;?G（自动合并开启）?!;;;;;;;;;;;x
+OL_VIEW_MERGE_OFF;?Y（自动合并关闭）?!;;;;;;;;;;;x
 OUR_CB_DETECTED_SETUP;当我国的战争合理化进程被发现;;;;;;;;;;;;x
 OUR_CB_DETECTED_HEADER;$MONARCHTITLE$;;;;;;;;;;;;x
 OUR_CB_DETECTED_1;战争合理化;;;;;;;;;;;;x
@@ -483,7 +483,7 @@ acceptable_schools_desc;公立学校很普遍。;;;;;;;;;;;;x
 good_schools_desc;公立学校遍布国内。;;;;;;;;;;;;x
 NATIONALIST_UNION_MOVEMENT;$COUNTRY_ADJ$统一运动;;;;;;;;;;;;x
 NATIONALIST_LIBERATION_MOVEMENT;$COUNTRY$解放运动;;;;;;;;;;;;x
-SUPRESSION_MONTHLY_GAIN;每月得到：?G$VAL$?!;;;;;;;;;;;;x
+SUPRESSION_MONTHLY_GAIN;每月得到：?G$VAL$?!;;;;;;;;;;;x
 MODIFIER_EDUCATION_EFFICIENCY;教育效率;;;;;;;;;;;;x
 MODIFIER_SUPPRESSION_POINT_GAIN;镇压点数得到;;;;;;;;;;;;x
 NOT_SOCIAL_MOVEMENT_STRENGTH_TR;社会运动力量低于?Y$VAL$?W\n;;;;;;;;;;;;x
@@ -493,9 +493,9 @@ POLITICAL_MOVEMENT_STRENGTH_TR;政治运动力量高于?Y$VAL$?W\n;;;;;;;;;;;;x
 SUPPRESS;镇压;;;;;;;;;;;;x
 SUPPRESSION_DESC;镇压此运动。这将消耗$VAL$镇压点数，并可能会使该运动在未来变得更激进（?R+$HIT$?!。;;;;;;;;;;;;x
 CANT_SUPPRESS_DESC;我们需要更多的镇压点数。现有?R$VAL$?!我们需要?Y$NEED$?!;;;;;;;;;;;;x
-REFORM_MOVEMENT_DESC;运动呼吁通过?Y$REFORM$?!;;;;;;;;;;;;x
-NATIONALIST_UNION_MOVEMENT_DESC;运动呼吁成立?Y$COUNTRY$?!;;;;;;;;;;;;x
-NATIONALIST_LIBERATION_MOVEMENT_DESC;运动呼吁解放?Y$COUNTRY$?!;;;;;;;;;;;;x
+REFORM_MOVEMENT_DESC;运动呼吁通过?Y$REFORM$?!;;;;;;;;;;;x
+NATIONALIST_UNION_MOVEMENT_DESC;运动呼吁成立?Y$COUNTRY$?!;;;;;;;;;;;x
+NATIONALIST_LIBERATION_MOVEMENT_DESC;运动呼吁解放?Y$COUNTRY$?!;;;;;;;;;;;x
 SUPPRESSION_LABEL_DESC;镇压点数衡量你的政府镇压群众运动的能力;;;;;;;;;;;;x
 MOVEMENT_REFORM_SUPPORT;有$VAL$人参与的群众运动游说通过这项改革。;;;;;;;;;;;;x
 movement_no_slavery;废奴运动;;;;;;;;;;;;x
@@ -738,7 +738,7 @@ MILITARYREFORM_BAD_BTN3;转到;;;;;;;;;;;;x
 MILITARYREFORM_BAD_MAP;*;;;;;;;;;;;;x
 MODIFIER_CIVILIZATION_PROGRESS;开化进程;;;;;;;;;;;;x
 SUPPRESSION_TECH;镇压效率;;;;;;;;;;;;x
-REFORM_RESEARCH_COST;花费科技点：?Y$COST$?!;;;;;;;;;;;;x
+REFORM_RESEARCH_COST;花费科技点：?Y$COST$?!;;;;;;;;;;;x
 POLITICS_CIVILIZE;西方化;;;;;;;;;;;;x
 CIVILIZE_DESC;全盘采纳西方理念。这将允许我们得到势力范围主导国的先进科技。;;;;;;;;;;;;x
 CIVILIZE_NO_MASTER_DESC;全盘采纳西方理念。这将使我们得到世界各国的先进科技。;;;;;;;;;;;;x
@@ -813,10 +813,10 @@ NUMBER_MOVEMENT_SUPPORTERS_DESC;运动规模越大，越难以被镇压。如果
 PRODUCTION_CLOSE_FACTORY_BECAUSE_FOREIGN_TOOLTIP;不能关闭外国工厂\n;;;;;;;;;;;;x
 CAN_NATIONALIZE;有外国投资者;;;;;;;;;;;;x
 IS_NOT_IN_A_SPHERE;不在势力范围内;;;;;;;;;;;;x
-ACTIVATE_TECH_EFFECT;激活科技：?Y$NAME$?!;;;;;;;;;;;;x
+ACTIVATE_TECH_EFFECT;激活科技：?Y$NAME$?!;;;;;;;;;;;x
 TECHNOLOGYVIEW_NO_RESEARCH_UNCIV_TOOLTIP;只有开化国家才能研究高级科技。通过在?Y政治面板?!行改革，你可以获得基础科技，并开始自主研究。;;;;;;;;;;;;x
 RELATION_BETWEEN;$COUNTRY1$与$COUNTRY2$的关系：$RELATION$;;;;;;;;;;;;x
-ADD_RELATIVE_INCOME_EFFECT;国库：$VALUE$?!;;;;;;;;;;;x
+ADD_RELATIVE_INCOME_EFFECT;国库：$VALUE$?!;;;;;;;;;;x
 CORRUPTION_LESS_THAN;贪污少于;;;;;;;;;;;;x
 CORRUPTION_MORE_THAN;贪污多于;;;;;;;;;;;;x
 MOVEMENT_RADICALISM_FROM_SIZE;人民支持：$VAL$;;;;;;;;;;;;x
