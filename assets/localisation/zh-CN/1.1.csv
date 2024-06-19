@@ -23,9 +23,9 @@ CAL_hms_government;加利福尼亚王国;;;;;;;;;;;;x
 DOM_absolute_monarchy;圣多明哥;;;;;;;;;;;;x
 DOM_hms_government;圣多明哥;;;;;;;;;;;;x
 ENG_democracy;大不列颠;;;;;;;;;;;;x
-TECH_DAILY_LEADERSHIP_BASE_TOOLTIP;每月基本领导力：$VALUE$;;;;;;;;;;;;x
-TECH_DAILY_LEADERSHIP_TOTAL_TOOLTIP;每月领导力：+$VALUE$;;;;;;;;;;;;x
-TECH_DAILY_LEADERSHIP_TOOLTIP;$POPTYPE$提供$VALUE$领导力\n（占人口的$FRACTION$%，最佳为$OPTIMAL$%）;;;;;;;;;;;;x
+TECH_DAILY_LEADERSHIP_BASE_TOOLTIP;每月基本领导力：?Y$VALUE$?W;;;;;;;;;;;;x
+TECH_DAILY_LEADERSHIP_TOTAL_TOOLTIP;每月领导力：?G+$VALUE$?W;;;;;;;;;;;;x
+TECH_DAILY_LEADERSHIP_TOOLTIP;$POPTYPE$提供?G$VALUE$?W领导力\n（占人口的?Y$FRACTION$%?W，最佳为$OPTIMAL$%）;;;;;;;;;;;;x
 MODIFIER_CORE_POP_MILITANCY_MODIFIER;非殖民地民族斗争性;;;;;;;;;;;;x
 MODIFIER_CORE_POP_CONSCIOUSNESS_MODIFIER;非殖民地民族觉醒度;;;;;;;;;;;;x
 MODIFIER_NON_ACCEPTED_POP_MILITANCY_MODIFIER;未接受民族斗争性;;;;;;;;;;;;x
@@ -43,7 +43,7 @@ become_guatemala_desc;统一中美洲的梦想已死。其他省份太在意被�
 MOR_1683;塔扎;;;;;;;;;;;;x
 LAG_PAUSE;$PLAYER$停顿了，暂停游戏;;;;;;;;;;;;x
 LAG_DECREASE_SPEED;$PLAYER$停顿了，降低速度;;;;;;;;;;;;x
-PAUSED_BY;$PLAYER$暂停了游戏;;;;;;;;;;;;x
+PAUSED_BY;?Y$PLAYER$?W暂停了游戏;;;;;;;;;;;;x
 WARGOAL_OTHER_ACCEPT_SETUP;当某国在战争中增加了战争目标;;;;;;;;;;;;x
 WARGOAL_THEY_ACCEPT_SETUP;当我国增加了针对其他国家的战争目标;;;;;;;;;;;;x
 WARGOAL_WE_ACCEPT_SETUP;当某国增加了针对我国的战争目标;;;;;;;;;;;;x

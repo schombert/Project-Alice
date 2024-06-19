@@ -5,18 +5,18 @@ mapmode_2;政治地图;;;;;;;;;;;;x
 mapmode_3;叛乱地图;;;;;;;;;;;;x
 mapmode_4;外交地图;;;;;;;;;;;;x
 mapmode_5;地区地图;;;;;;;;;;;;x
-mapmode_6;基础设施地图;;;;;;;;;;;;x
+mapmode_6;基础设施;;;;;;;;;;;;x
 mapmode_7;殖民地图;;;;;;;;;;;;x
-mapmode_8;行政;;;;;;;;;;;;x
+mapmode_8;行政地图;;;;;;;;;;;;x
 mapmode_9;征兵地图;;;;;;;;;;;;x
-mapmode_10;国家焦点地图;;;;;;;;;;;;x
+mapmode_10;国家焦点;;;;;;;;;;;;x
 mapmode_11;原料产地地图;;;;;;;;;;;;x
 mapmode_12;人口密度地图;;;;;;;;;;;;x
-mapmode_13;文化地图;;;;;;;;;;;;x
-mapmode_14;势力圈地图;;;;;;;;;;;;x
+mapmode_13;民族地图;;;;;;;;;;;;x
+mapmode_14;势力范围地图;;;;;;;;;;;;x
 mapmode_15;补给上限地图;;;;;;;;;;;;x
-mapmode_16;政党忠诚度地图;;;;;;;;;;;;x
-mapmode_17;排名地图;;;;;;;;;;;;x
+mapmode_16;政党支持地图;;;;;;;;;;;;x
+mapmode_17;国家排名地图;;;;;;;;;;;;x
 mapmode_18;移民地图;;;;;;;;;;;;x
 mapmode_19;开化程度地图;;;;;;;;;;;;x
 mapmode_20;外交关系地图;;;;;;;;;;;;x
@@ -29,10 +29,10 @@ mapmode_26;收入地图;;;;;;;;;;;;x
 mapmode_27;觉醒度地图;;;;;;;;;;;;x
 mapmode_28;斗争性地图;;;;;;;;;;;;x
 mapmode_29;识字率地图;;;;;;;;;;;;x
-mapmode_30;职业;;;;;;;;;;;;x
+mapmode_30;职业地图;;;;;;;;;;;;x
 mapmode_31;工厂地图;;;;;;;;;;;;x
 mapmode_32;政见地图;;;;;;;;;;;;x
-mapmode_33;发展;;;;;;;;;;;;x
+mapmode_33;发展地图;;;;;;;;;;;;x
 mapmode_34;玩家地图;;;;;;;;;;;;x
 mapmode_35;必需品;;;;;;;;;;;;x
 mapmode_36;日用品;;;;;;;;;;;;x
@@ -64,8 +64,8 @@ legend_min_mapmode_33;低增长;;;;;;;;;;;;x
 legend_min_mapmode_35;低需求;;;;;;;;;;;;x
 legend_min_mapmode_36;低需求;;;;;;;;;;;;x
 legend_min_mapmode_37;低需求;;;;;;;;;;;;x
-legend_min_mapmode_38;Low amount;;;;;;;;;;;;x
-legend_min_mapmode_39;Poor CTC ratio;;;;;;;;;;;;x
+legend_min_mapmode_38;低军官;;;;;;;;;;;;x
+legend_min_mapmode_39;低职员-技工比例;;;;;;;;;;;;x
 legend_min_mapmode_40;低生活条件;;;;;;;;;;;;x
 legend_min_mapmode_44;低部队数;;;;;;;;;;;;x
 legend_max_mapmode_8;高行政;;;;;;;;;;;;x
@@ -88,8 +88,8 @@ legend_max_mapmode_33;高增长;;;;;;;;;;;;x
 legend_max_mapmode_35;高满足;;;;;;;;;;;;x
 legend_max_mapmode_36;高满足;;;;;;;;;;;;x
 legend_max_mapmode_37;高满足;;;;;;;;;;;;x
-legend_max_mapmode_38;高总量;;;;;;;;;;;;x
-legend_max_mapmode_39;Rich CTC ratio;;;;;;;;;;;;x
+legend_max_mapmode_38;高军官;;;;;;;;;;;;x
+legend_max_mapmode_39;高职员-技工比例;;;;;;;;;;;;x
 legend_max_mapmode_40;高生活条件;;;;;;;;;;;;x
 legend_max_mapmode_44;高人群数;;;;;;;;;;;;x
 mapmode_tooltip_34;玩家：$x$;;;;;;;;;;;;x
