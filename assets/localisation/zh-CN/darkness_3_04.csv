@@ -14,7 +14,7 @@ SM_WINDOW;窗口模式;;;;;;;;;;;;x
 SM_WINDOWED;窗口模式;;;;;;;;;;;;x
 SM_FULLSCREEN;全屏模式;;;;;;;;;;;;x
 SM_BORDERLESS;窗口全屏;;;;;;;;;;;;x
-IGNORE_DECISION_ON;这项决议的可行性通知已关闭。\n\n点击更改通知状态。?;;;;;;;;;;;;x
-IGNORE_DECISION_OFF;这项决议的可行性通知已开启。\n\n点击更改通知状态。?;;;;;;;;;;;;x
+IGNORE_DECISION_ON;这项决议的可行性通知已关闭。\n\n?G点击更改通知状态。?!;;;;;;;;;;;;x
+IGNORE_DECISION_OFF;这项决议的可行性通知已开启。\n\n?G点击更改通知状态。?!;;;;;;;;;;;;x
 SPLITINHALF;分成两队;;;;;;;;;;;;x
 SPLITINHALF_DRO;分成两队将把当前单位分割为大致规模相等的两个单位并选取其中规模较大的一个单位。;;;;;;;;;;;;x

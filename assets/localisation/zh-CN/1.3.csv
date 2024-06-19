@@ -39,8 +39,8 @@ BAV_fascist;国家社会主义德意志党;;;;;;;;;;;;x
 WEI_fascist;国家社会主义德意志党;;;;;;;;;;;;x
 WLL_fascist;雷克斯特党;;;;;;;;;;;;x
 NEW_fascist;法西斯党;;;;;;;;;;;;x
-DIPLOMACY_CHANCE_JOIN_WAR;可能加入战争：$VAL$;;;;;;;;;;;;x
-PO_ISBETTER;拒绝这些条款将导致下列结果：\n+$MIL$斗争性，+$WE$厌战度;;;;;;;;;;;;x
+DIPLOMACY_CHANCE_JOIN_WAR;可能加入战争：?Y$VAL$?W;;;;;;;;;;;;x
+PO_ISBETTER;拒绝这些条款将导致下列结果：\n?R+$MIL$?W斗争性，?R+$WE$?W厌战度;;;;;;;;;;;;x
 leave_soi_title;脱离势力范围;;;;;;;;;;;;x
 leave_soi_desc;我们可以脱离这个势力范围，不过之前的控制者很可能宣战阻止我们。;;;;;;;;;;;;x
 NEW_PARTY_AVAIL_SETUP;新的政党;;;;;;;;;;;;x
@@ -67,8 +67,8 @@ PARTY_UNAVAIL_BTN1;好的;;;;;;;;;;;;x
 PARTY_UNAVAIL_BTN2;好的;;;;;;;;;;;;x
 PARTY_UNAVAIL_BTN3;查看;;;;;;;;;;;;x
 PARTY_UNAVAIL_LOG;政党解散;;;;;;;;;;;;x
-PRODUCTION_FACTORY_DAYSRED_TOOLTIP;破产时间：$DAYS$;;;;;;;;;;;;x
-EXPENSE_NO_AFFORD;我们只能从开支中支付$VAL$?;;;;;;;;;;;x
+PRODUCTION_FACTORY_DAYSRED_TOOLTIP;破产时间：?R$DAYS$?W;;;;;;;;;;;;x
+EXPENSE_NO_AFFORD;我们只能从开支中支付?R$VAL$?W?!;;;;;;;;;;;x
 ENG_presidential_dictatorship;大不列颠;;;;;;;;;;;;x
 EVTNAME16451;袭击驻军;;;;;;;;;;;;x
 EVTDESC16451;在德克萨斯革命的初期，德克萨斯部队袭击了大量的墨西哥驻军。这为德克萨斯军队提供了大量所需的资金和补给。;;;;;;;;;;;;x
@@ -84,7 +84,7 @@ EVTNAME70002;$FROMCOUNTRY$已经破产！;;;;;;;;;;;;x
 EVTDESC70002;$FROMCOUNTRY$已经破产并声明不承认对我国的债务！我国必须动用军事力量来保卫我们的投资者。;;;;;;;;;;;;x
 EVTOPTA70002;好的;;;;;;;;;;;;x
 USE_LEADER;使用将领;;;;;;;;;;;;x
-SHORTCUT;快捷方式：;;;;;;;;;;;;x
+SHORTCUT;?W快捷方式：?Y;;;;;;;;;;;;x
 SM_SHORTCUT;快捷栏;;;;;;;;;;;;x
 TUR_proletarian_dictatorship_ADJ;土耳其的;;;;;;;;;;;;x
 move_capital_to_moscow_title;重返第三罗马;;;;;;;;;;;;x

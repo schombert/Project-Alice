@@ -13,9 +13,9 @@ blank_loyalty;$text$忠诚度;;;;;;;;;;;;x
 in_blank;在$text$;;;;;;;;;;;;x
 no_effect;没有效果;;;;;;;;;;;;x
 move_capital_to;迁都至;;;;;;;;;;;;x
-add_x_core;增加$adj$的核心;;;;;;;;;;;;x
+add_x_core;增加$adj$核心;;;;;;;;;;;;x
 add_core_to;添加核心到;;;;;;;;;;;;x
-remove_x_core;移除$adj$的核心;;;;;;;;;;;;x
+remove_x_core;移除$adj$核心;;;;;;;;;;;;x
 remove_core_from;移出势力范围;;;;;;;;;;;;x
 change_name_to;名称变为$text$;;;;;;;;;;;;x
 change_terrain_to;地形变为$text$;;;;;;;;;;;;x
@@ -37,8 +37,8 @@ add_to_treasury;添加到国库;;;;;;;;;;;;x
 war_exhaustion;厌战度;;;;;;;;;;;;x
 become_blank;成为$text$;;;;;;;;;;;;x
 player_control_change;玩家操作国家变为$text$;;;;;;;;;;;;x
-set_national_flag;$text$是为该国设定的;;;;;;;;;;;;x
-remove_national_flag;$text$为该国未定的;;;;;;;;;;;;x
+set_national_flag;设置国家变量$text$;;;;;;;;;;;;x
+remove_national_flag;取消国家变量$text$;;;;;;;;;;;;x
 infamy;恶名;;;;;;;;;;;;x
 change_province_owner;转移省份拥有者至$text$;;;;;;;;;;;;x
 annex_effect;吞并$text$;;;;;;;;;;;;x

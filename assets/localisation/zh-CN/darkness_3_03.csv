@@ -4,7 +4,7 @@ GIVE_UNIT_COMMAND_BUTTON;指挥单位;;;;;;;;;;;;x
 GIVE_UNIT_COMMANDTITLE;指挥单位;;;;;;;;;;;;x
 GIVE_UNIT_COMMAND_DESC;当傀儡国与其宗主国共同作战时，傀儡国将会把其单位的指挥权交予宗主国。;;;;;;;;;;;;x
 GIVE_UNIT_COMMAND_OK;要求你的傀儡国收回对他们自己单位的指挥权。;;;;;;;;;;;;x
-GIVE_UNIT_COMMAND_CANT_CONTROL;只有当你们在共同作战时，你才可以指挥你的傀儡国?的单位。;;;;;;;;;;;;x
+GIVE_UNIT_COMMAND_CANT_CONTROL;只有当你们在共同作战时，你才可以指挥你的?Y傀儡国?!单位。;;;;;;;;;;;;x
 GIVE_UNIT_COMMAND_ALREADY_CONTROL;你已经在指挥他们的单位了。;;;;;;;;;;;;x
 CANCEL_UNIT_COMMAND_BUTTON;返还单位;;;;;;;;;;;;x
 CANCEL_UNIT_COMMANDTITLE;返还单位;;;;;;;;;;;;x
@@ -34,8 +34,8 @@ INFLUENCE_SPHERE_NEIGHBOUR;相邻的势力范围成员;;;;;;;;;;;;x
 col_liferate_techs;研究以下科技能够帮助改善当地生活条件:;;;;;;;;;;;;x
 unite_moldavia_wallachia_title;摩尔达维亚与瓦拉几亚联合！;;;;;;;;;;;;x
 unite_moldavia_wallachia_desc;摩尔达维亚与瓦拉几亚两国共同组建了罗马尼亚！;;;;;;;;;;;;x
-SOIS_HAS_REBELS_WARNING;叛军已经起而反抗我们的势力范围成员：$LIST$?;;;;;;;;;;;;x
-ALLIANCE_INVALID_GPS_IN_CRISIS;当危机?正在进行时，无法建立两个列强?之间的联盟。;;;;;;;;;;;;x
+SOIS_HAS_REBELS_WARNING;叛军已经起而反抗我们的势力范围成员：?Y$LIST$?!;;;;;;;;;;;;x
+ALLIANCE_INVALID_GPS_IN_CRISIS;当?Y危机?!在进行时，无法建立?Y两个列强?!间的联盟。;;;;;;;;;;;;x
 BP_TOOL_ARROW_MEDIUM_1_DASHED;中虚箭头1;;;;;;;;;;;;x
 BP_TOOL_ARROW_MEDIUM_2_DASHED;中虚箭头2;;;;;;;;;;;;x
 BP_TOOL_ARROW_MEDIUM_3_DASHED;中虚箭头3;;;;;;;;;;;;x
@@ -74,7 +74,7 @@ panama_canal_NEWS_SHORT;横贯巴拿马地峡的运河的开通为$TAG0_0$带来
 empress_of_india_NEWS_LONG;德里的“帝国杜尔巴”结束后，在特拉法加广场的纪念柱脚下一份皇家公告被朗读，宣布维多利亚女王被冠以“印度女皇”的头衔。自从莫卧儿皇帝被英国东印度公司废黜以来印度就没有一位统治者获得过皇帝的桂冠。公司的权力被解除后，有种观点受到普遍传播，认为女王相对于印度王公的优越性应该以皇帝头衔的形式得到确认。首相本杰明·迪斯雷利据信是这个主意的设计者。;;;;;;;;;;;;x
 empress_of_india_NEWS_MEDIUM;德里的“帝国杜尔巴”结束后，在特拉法加广场的纪念柱脚下一份皇家公告被朗读，宣布维多利亚女王被冠以“印度女皇”的头衔。皇帝头衔确认了女王相对于许多印度王公的优越性。;;;;;;;;;;;;x
 empress_of_india_NEWS_SHORT;德里的正式的“帝国杜尔巴”结束后，在特拉法加广场的纪念柱脚下一份皇家公告被朗读，宣布维多利亚女王被冠以“印度女皇”的头衔。;;;;;;;;;;;;x
-COUNTRYALERT_ColonialGood_invest;我们可以投资我们的?$REGION$殖民地?;;;;;;;;;;;;x
+COUNTRYALERT_ColonialGood_invest;?G我们可以投资我们的?!Y$REGION$殖民地?!;;;;;;;;;;;;x
 aar_fake1_title;蒙面的正义使者;;;;;;;;;;;;x
 aar_fake1;最近在我们的首都出现了一些私自打击犯罪的活动，始作俑者是一个身穿猫装并自称“猫人”的家伙，他四处奔走对付犯罪者。;;;;;;;;;;;;x
 aar_fake2_title;高斯去世;;;;;;;;;;;;x

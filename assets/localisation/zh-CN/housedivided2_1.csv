@@ -2,7 +2,7 @@
 #CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
 PV_INTERNAL_IMMIGRATION;国内移民：;;;;;;;;;;;;x
 PV_EXTERNAL_IMMIGRATION;境外移民：;;;;;;;;;;;;x
-COUNTRYALERT_CanRemoveFromSphere;我们可以将这个国家移出我国势力范围?:;;;;;;;;;;;;x
+COUNTRYALERT_CanRemoveFromSphere;我们可以将这个国家移出我国?Y势力范围?!;;;;;;;;;;;;x
 PV_CLERGY_LIT_DESC1;$LOC$的人口中有$NUM$是神职人员;;;;;;;;;;;;x
 PV_CLERGY_LIT_DESC2;最优数量是$OPT$;;;;;;;;;;;;x
 PV_CLERGY_LIT_DESC3;每月变化基础值：$VAL$;;;;;;;;;;;;x
