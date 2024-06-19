@@ -540,7 +540,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(fromcountry_adj)
 		CT_STRING_ENUM(provinceculture)
 	} else if(v.length() == 16) {
-		if(false) { }
+		if(false) { }ge
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
@@ -897,13 +897,13 @@ dcon::text_key get_adjective(sys::state& state, dcon::nation_id id) {
 }
 
 dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n) {
-	auto ident = state.world.nation_get_identity_from_identity_holder(id);
-	auto gov = state.world.nation_get_government_type(id);
+	auto ident = state.world.nation_get_identity_from_identity_holder(n);
+	auto gov = state.world.nation_get_government_type(n);
 	//government specific adjective
-	if(auto k = state.world.national_identity_get_government_ruler(ident, gov); state.key_is_localized(k)) {
+	if(auto k = state.world.national_identity_get_government_ruler_name(ident, gov); state.key_is_localized(k)) {
 		return k;
 	}
-	return state.world.government_type_get_ruler(gov);
+	return state.world.government_type_get_ruler_name(gov);
 }
 
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
