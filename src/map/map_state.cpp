@@ -386,7 +386,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					if(float(e.second) / float(total_provinces) >= 0.75f) {
 						// Adjective + " " + National identity
 						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-						if(state.world.national_identity_get_name(nid)) {
+						if(auto k = state.world.national_identity_get_name(nid); state.key_is_localized(k)) {
 							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
 							|| nid == n.get_identity_from_identity_holder()) {
 								if(n.get_capital().get_continent() == state.world.province_get_continent(last_province)) {
