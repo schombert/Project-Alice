@@ -249,7 +249,7 @@ static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 	"Szenario neu erstellen",
 	"Arbeitet...",
 	"Neues Szenario für die",
-	"ausgew�hlten mods erstellen",
+	"ausgewählten mods erstellen",
 	"Szenario nicht gefunden",
 	"IP-Adresse",
 	"Passwort",
