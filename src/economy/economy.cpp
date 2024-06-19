@@ -131,17 +131,6 @@ void initialize_artisan_distribution(sys::state& state) {
 	auto const csize = state.world.commodity_size();
 
 	for(auto n : state.world.in_nation) {
-		//float total = 0.0f;
-		for(uint32_t i = 1; i < csize; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
-
-			if(state.world.commodity_get_artisan_output_amount(cid) > 0.0f && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
-
-				//total += 1.0f;
-			}
-		}
-		//assert(total > 0.0f);
 		for(uint32_t i = 1; i < csize; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
