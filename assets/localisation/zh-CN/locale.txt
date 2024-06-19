@@ -3,9 +3,9 @@ script = Hani
 
 body_font = FZSSK.TTF
 
-header_font = HYCFSJ.ttf
+header_font = FZKTK.TTF
 
-map_font = FZWBK.TTF
+map_font = STXINWEI.TTF
 
 prevent_map_letterspacing = no
 rtl = no
