@@ -170,7 +170,7 @@ COMBAT_DIGIN;防御方完备的战壕系统对攻击方相当不利;;;;;;;;;;;;x
 PRODUCTION_COST_BUILD;建设成本：?Y$VAL$?W;;;;;;;;;;;;x
 PRODUCTION_COST_INPUT;投入成本：?Y$VAL$?W;;;;;;;;;;;;x
 PRODUCTION_NO_PROJECT;没有计划;;;;;;;;;;;;x
-PRODUCTION_PROJECT_MONEY;该计划已获得?Y$MONEY$?Wぃ芗菩枰Y$NEED$?Wぁ?!;;;;;;;;;;;x
+PRODUCTION_PROJECT_MONEY;该计划共需要?Y$NEED$?W，已获得?Y$MONEY$?W;;;;;;;;;;;x
 WAR_HAS_COMPLETE_VICTORY;完全的胜利;;;;;;;;;;;;x
 DIPLOMACY_CAN_INTERVENE;战争干涉;;;;;;;;;;;;x
 DIPLOMACY_CANNOT_INTERVENE;战争干涉\n我们不能加入这一方因为：;;;;;;;;;;;;x
@@ -255,7 +255,7 @@ POP_DETAILS_COLONIAL_MIGRATION;殖民移民：;;;;;;;;;;;;x
 PRODUCTION_OUTPUT_YESTERDAY;昨日产量：?Y$VALUE$?W;;;;;;;;;;;;x
 PRODUCTION_OUTPUT_GOODS_TOOLTIP2;最大产量：?Y$CURR$?W;;;;;;;;;;;;x
 PRODUCTION_CURRENT_STOCKPILE;现有储备：?Y$VALUE$?W;;;;;;;;;;;;x
-POP_DAILY_INTEREST;储蓄利息：?Y$VAL$?W?!;;;;;;;;;;;x
+POP_DAILY_INTEREST;储蓄利息：?Y$VAL$?W?!;;;;;;;;;;x
 MODIFIER_OVERSEAS_PRODUCTION_PENALTY;海外工厂及原料产地惩罚：$VALUE$;;;;;;;;;;;;x
 PRODUCTION_FACTORY_EMPLOYEECOUNT_TOOLTIP2;现有雇员：$EMPLOYEES$/$EMPLOYEE_MAX$;;;;;;;;;;;;x
 LIFERATING_EFFECT;$DIRECTION$$VALUE$生活条件\n;;;;;;;;;;;;x
@@ -1114,7 +1114,7 @@ WAR_DESC;宣战将使我国军队可以进攻他国。战争将会持续到一�
 POLITICS_SHOW_VASSALS;查看施放国家;;;;;;;;;;;;x
 POLITICS_SHOW_REFORMS;查看改革;;;;;;;;;;;;x
 POLITICS_RELEASE_VASSAL;释放国家;;;;;;;;;;;;x
-POLITICS_RELEASE_VASSAL_DESC;?Y$TAG$?!获得以下共?Y$NUM$?!省份：?Y$PROVINCES$?!;;;;;;;;;;;;x
+POLITICS_RELEASE_VASSAL_DESC;?Y$TAG$?!获得以下共?Y$NUM$?!省份：?Y$PROVINCES$?!;;;;;;;;;;;x
 POLITICS_RELEASE_VASSAL_DESC_LIMIT;?b和其他。;;;;;;;;;;;;x
 POLITICS_SATELLITE;卫星国;;;;;;;;;;;;x
 POLITICS_DOMINION;自治领;;;;;;;;;;;;x
@@ -1370,7 +1370,7 @@ POLITICS_ALREADY_RULING_PARTY;$PARTY$现在是执政党。;;;;;;;;;;;;x
 POLITICS_CANNOT_SET_RULING_PARTY_RULE;我国政体不允许我们指定执政党;;;;;;;;;;;;x
 BANK_OF;$COUNTRY$银行;;;;;;;;;;;;x
 TRADE_STOCKPILE_BUY;我国昨日花费了?Y$MONEY$?Wす郝颛Y$UNITS$?W单位;;;;;;;;;;;;x
-TRADE_STOCKPILE_SOLD;我国昨日销售?Y$UNITS$?W单位获得了?Y$MONEY$?W?!;;;;;;;;;;;x
+TRADE_STOCKPILE_SOLD;我国昨日销售?Y$UNITS$?W单位获得了?Y$MONEY$?W?!;;;;;;;;;;x
 annals_of_the_fulani_jihad_title;富拉尼圣战编年史;;;;;;;;;;;;x
 annals_of_the_fulani_jihad_desc;阿布杜拉·丹·弗迪奥（Abdullahi dan Fodio，1766-1828）是昆杜（Gwandu）的埃米尔。在其仍在世时，他写了一本关于富拉尼圣战的书，正是在这场大战的洗礼下索科托诞生了。通过传播这本历史著作的一字一言，我们可以恢复我国的荣耀与声威。;;;;;;;;;;;;x
 become_negusa_nagast_title;万王之王;;;;;;;;;;;;x
@@ -1400,8 +1400,8 @@ COUNTRYALERT_NO_LoosingGPStatus;我们现在并未正失去?Y列强?W地位;;;;;
 COUNTRYALERT_NO_GPStatus;我们还不是?Y列强?W;;;;;;;;;;;;x
 PEACE_DESC;提议和平;;;;;;;;;;;;x
 TOPBAR_TOP5_GOODS;我国生产最多的五项物资：;;;;;;;;;;;;x
-TOPBAR_HISTORICAL_INCOME;在最近的?Y$DAYS$?W天内，我们的最高收入为$MAX$ぷ畹褪杖胛?!IN$ぁ?!;;;;;;;;;;;x
-TOPBAR_FUNDS;昨天我们收入$YESTERDAY$ぁＮ颐悄壳暗南纸鸫⒈甘千Y$CASH$?Wぁ?!;;;;;;;;;;;x
+TOPBAR_HISTORICAL_INCOME;在最近的?Y$DAYS$?W天内，我们的最高收入为$MAX$，最低收入为$MIN$;;;;;;;;;;;x
+TOPBAR_FUNDS;昨天我们收入$YESTERDAY$，我们目前的现金储备为?Y$CASH$?W;;;;;;;;;;;x
 TOPBAR_AVG_LITERACY;我国民众的平均?Y识字率?W为?Y$AVG$?W%;;;;;;;;;;;;x
 TOPBAR_AVG_MIL;我国民众的平均?Y斗争性?W为?Y$AVG$?W;;;;;;;;;;;;x
 TOPBAR_AVG_CON;我国民众的平均?Y觉醒度?W为?Y$AVG$?W;;;;;;;;;;;;x
@@ -1420,7 +1420,7 @@ TOPBAR_UNEMPLOYED;在$STATE$有?Y$NUM$?W名失业的?Y$TYPE$?W（占全部的$PE
 TOPBAR_XINY;?Y$Y$?W内的$X$;;;;;;;;;;;;x
 TOPBAR_AT_PEACE;处于和平;;;;;;;;;;;;x
 TOPBAR_FACTION;?Y$NAME$?W拥有?Y$STRENGTH$?W暴徒，平均组织度：?Y$ORG$?W%;;;;;;;;;;;;x
-TOPBAR_PROJECTED_INCOME;预计每日收入：$VAL$?!;;;;;;;;;;;x
+TOPBAR_PROJECTED_INCOME;预计每日收入：$VAL$?!;;;;;;;;;;x
 SIDEMENU_menubar_msg_combat;左键点击以显示所有?Y战斗?W信息。右键点击以清除所有。;;;;;;;;;;;;x
 SIDEMENU_menubar_msg_diplo;左键点击以显示所有?Y外交?W信息。右键点击以清除所有。;;;;;;;;;;;;x
 SIDEMENU_menubar_msg_unit;左键点击以显示所有?Y单位?W信息。右键点击以清除所有。;;;;;;;;;;;;x
@@ -1442,7 +1442,7 @@ signed_the_geneva_convention_desc;我国是日内瓦公约的缔约国;;;;;;;;;;
 sign_the_geneva_convention_title;签署日内瓦公约;;;;;;;;;;;;x
 sign_the_geneva_convention_desc;我国尚未签署日内瓦公约，它定义了合理的战争行为和伤员\n的处理方式。我们仍然可以签署它。;;;;;;;;;;;;x
 PRODUCTION_SORT_BY_INFRA;基础设施;;;;;;;;;;;;x
-BUILD_ESTIMATED_COST;库存缺少物资的预估花费：?R$COST$?W?!;;;;;;;;;;;x
+BUILD_ESTIMATED_COST;库存缺少物资的预估花费：?R$COST$?W?!;;;;;;;;;;x
 PRODUCTION_NEED_TECH;我们完成对?Y$TECH$?W的研究才能生产?Y$GOOD$?W;;;;;;;;;;;;x
 PRODUCTION_NEED_FACTORY;要生产?Y$GOOD$?W，我们必须建设一座?Y$FACTORY$?W;;;;;;;;;;;;x
 PRODUCTION_NEED_RGO;要生产?Y$GOOD$?W，我们需要一个生产它的省份;;;;;;;;;;;;x

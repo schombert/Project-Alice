@@ -39,7 +39,7 @@ war_we_lose_medium_desc;在$DATE_LONG_1$，随着我军的战败，$TAG_0_0$与$
 war_we_lose_small_title;与$TAG_2_0$议和;;;;;;;;;;;;x
 war_we_lose_small_desc;$STRING_0_0$结束了，我们败于$TAG_2_0$手下。;;;;;;;;;;;;x
 rebels_win_small_title;革命！;;;;;;;;;;;;x
-rebels_win_small_desc;$STRING_0_0$击垮了$TAG_0_0$，整个国家都生灵涂炭。现在$STRING_0_3$$STRING_0_4$会干些什么呢?!;;;;;;;;;;;;x
+rebels_win_small_desc;$STRING_0_0$击垮了$TAG_0_0$，整个国家都生灵涂炭。现在$STRING_0_3$$STRING_0_4$会干些什么呢?!;;;;;;;;;;;x
 some_fake_1836_title_1;鸦片快讯！;;;;;;;;;;;;x
 some_fake_1836_1;鸦片狂潮席卷中国，商路虽远，但绝对值得一试。;;;;;;;;;;;;x
 some_fake_1836_title_2;乙醚狂热;;;;;;;;;;;;x

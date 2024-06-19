@@ -68,7 +68,7 @@ PARTY_UNAVAIL_BTN2;好的;;;;;;;;;;;;x
 PARTY_UNAVAIL_BTN3;查看;;;;;;;;;;;;x
 PARTY_UNAVAIL_LOG;政党解散;;;;;;;;;;;;x
 PRODUCTION_FACTORY_DAYSRED_TOOLTIP;破产时间：?R$DAYS$?W;;;;;;;;;;;;x
-EXPENSE_NO_AFFORD;我们只能从开支中支付?R$VAL$?W?!;;;;;;;;;;;x
+EXPENSE_NO_AFFORD;我们只能从开支中支付?R$VAL$?W?!;;;;;;;;;;x
 ENG_presidential_dictatorship;大不列颠;;;;;;;;;;;;x
 EVTNAME16451;袭击驻军;;;;;;;;;;;;x
 EVTDESC16451;在德克萨斯革命的初期，德克萨斯部队袭击了大量的墨西哥驻军。这为德克萨斯军队提供了大量所需的资金和补给。;;;;;;;;;;;;x
