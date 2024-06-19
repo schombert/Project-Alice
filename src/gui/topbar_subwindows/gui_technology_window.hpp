@@ -55,6 +55,18 @@ public:
 		case culture::tech_category::navy:
 			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
 			break;
+		case culture::tech_category::military_theory:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::military_theory_tech_research_bonus, true);
+			break;
+		case culture::tech_category::population:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::population_tech_research_bonus, true);
+			break;
+		case culture::tech_category::diplomacy:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomacy_tech_research_bonus, true);
+			break;
+		case culture::tech_category::flavor:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::flavor_tech_research_bonus, true);
+			break;
 		case culture::tech_category::unknown:
 			break;
 		}

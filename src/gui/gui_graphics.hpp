@@ -88,8 +88,7 @@ inline constexpr int32_t rotation_bit_offset = 3;
 enum class rotation : uint8_t { // 2 bits
 	upright = (0x00 << rotation_bit_offset),
 	r90_left = (0x01 << rotation_bit_offset),
-	r90_right = (0x02 << rotation_bit_offset),
-	downright = (0x03 << rotation_bit_offset)
+	r90_right = (0x02 << rotation_bit_offset)
 };
 
 inline constexpr int32_t orientation_bit_offset = 5;
