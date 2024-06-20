@@ -3086,6 +3086,32 @@ guiTypes = {
 	}
 
 	windowType = {
+		name = "alice_console_window"
+		position = { 5 135 }
+		size = { 500 600 }
+		moveable = 0
+		iconType =  {
+			name = "background"
+			size = { 500 565 }
+			spriteType = "console_background"
+		}
+		instantTextBoxType = {
+			name = "console_list"
+			font = "Arial16"
+			maxsize = { 500 565 }
+			format = left
+		}
+		editBoxType = {
+			name = "console_edit"
+			font = "FPS_Font"
+			position = { 0 560 }
+			size = { 500 40 }
+			borderSize = { 10 10 }
+			textureFile = "gfx\\interface\\small_tiles_dialog.dds"
+		}
+	}
+
+	windowType = {
 		name = "alice_select_legend_entry"
 		position = { 0 0 }
 		size = { 172 24 }

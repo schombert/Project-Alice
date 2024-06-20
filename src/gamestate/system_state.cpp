@@ -52,9 +52,8 @@ void create_in_game_windows(sys::state& state) {
 		state.ui_state.end_screen->add_child_to_front(std::move(ewin));
 	}
 	{
-		auto window = ui::make_element_by_type<ui::console_window>(state, "console_wnd");
+		auto window = ui::make_element_by_type<ui::console_window>(state, "alice_console_window");
 		state.ui_state.console_window = window.get();
-		window->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(window));
 	}
 	state.world.for_each_province([&](dcon::province_id id) {
