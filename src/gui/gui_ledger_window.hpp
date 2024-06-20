@@ -2433,21 +2433,21 @@ public:
 		//gdp block
 
 		{
-			auto def = state.ui_state.defs_by_name.find("gdp_ledger_linegraph_bg")->second.definition;
+			auto def = state.ui_state.defs_by_name.find(state.lookup_key("gdp_ledger_linegraph_bg"))->second.definition;
 			auto ptr = make_element_by_type<image_element_base>(state, def);
 			gdp_linegraph_image = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
 
 		{ 
-			auto def = state.ui_state.defs_by_name.find("gdp_ledger_linegraphs")->second.definition;
+			auto def = state.ui_state.defs_by_name.find(state.lookup_key("gdp_ledger_linegraphs"))->second.definition;
 			auto ptr = make_element_by_type<gdp_graph>(state, def);
 			gdp_linegraph = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
 
 		{
-			auto def = state.ui_state.defs_by_name.find("gdp_ledger_linegraph_legend")->second.definition;
+			auto def = state.ui_state.defs_by_name.find(state.lookup_key("gdp_ledger_linegraph_legend"))->second.definition;
 			auto ptr = make_element_by_type<nations_linegraph_legend_window>(state, def);
 			gdp_linegraph_legend = ptr.get();
 			add_child_to_front(std::move(ptr));

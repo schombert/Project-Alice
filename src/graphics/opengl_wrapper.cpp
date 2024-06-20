@@ -525,9 +525,9 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 	}
 }
 
-void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped) {
+void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::linegraph_color };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
