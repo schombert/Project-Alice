@@ -93,20 +93,14 @@ public:
 	tinted_image_element_base(uint32_t c) : color(c) { }
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
-			return message_result::unseen;
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
 };
 
 class opaque_element_base : public image_element_base {
 public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip)
+		if(type == mouse_probe_type::click)
 			return message_result::consumed;
-		else
-			return message_result::unseen;
+		return image_element_base::test_mouse(state, x, y, type);
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
@@ -447,17 +441,13 @@ public:
 	}
 };
 
-class main_window_element_base : public window_element_base {
+template<class TabT>
+class generic_tabbed_window : public window_element_base {
 public:
+	TabT active_tab = TabT();
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
 	}
-};
-
-template<class TabT>
-class generic_tabbed_window : public main_window_element_base {
-public:
-	TabT active_tab = TabT();
 };
 
 class generic_close_button : public button_element_base {
@@ -803,11 +793,6 @@ public:
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept final;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept final;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::tooltip)
-			return message_result::consumed;
-		return opaque_element_base::test_mouse(state, x, y, type);
-	}
 };
 
 class scrollbar_slider : public opaque_element_base {
@@ -930,8 +915,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(type == mouse_probe_type::scroll)
 			return message_result::consumed;
-		else
-			return message_result::unseen;
+		return window_element_base::test_mouse(state, x, y, type);
 	}
 };
 
@@ -996,7 +980,7 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void scroll_to_bottom(sys::state& state);
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::scroll ? message_result::consumed : message_result::unseen;
+		return (type == mouse_probe_type::scroll && row_contents.size() > row_windows.size()) ? message_result::consumed : message_result::unseen;
 	}
 };
 
@@ -1042,7 +1026,7 @@ public:
 	void resize(sys::state& state, int32_t height);
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::scroll ? message_result::consumed : message_result::unseen;
+		return (type == mouse_probe_type::scroll && row_contents.size() > row_windows.size()) ? message_result::consumed : message_result::unseen;
 	}
 };
 
