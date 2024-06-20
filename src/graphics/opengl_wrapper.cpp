@@ -800,7 +800,11 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 
 void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
 	if(txt.is_inline_image()) {
+		float x_scale = 1.f;
+		float y_scale = 1.f;
 		bool draw_flag = false;
+		bool draw_army_or_navy = false;
+		float icon_baseline = baseline_y + (f.internal_ascender / 64.f * size);
 		if(txt.inline_image[0] == '(' && txt.inline_image[2] == ')') {
 			if(txt.inline_image[1] == 'F' || txt.inline_image[1] == 'T') { //(F)alse or (T)rue
 				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
@@ -809,20 +813,24 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 					? state.open_gl.color_blind_cross_icon_tex
 					: state.open_gl.cross_icon_tex;
 				glBindTexture(GL_TEXTURE_2D, txt.inline_image[1] == 'F' ? false_icon : state.open_gl.checkmark_icon_tex);
+				icon_baseline = baseline_y; //Already corrected to baseline
 			} else { //(A)rmy or (N)avy
 				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, txt.inline_image[1] == 'A' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
+				x_scale = 1.5f;
+				y_scale = 1.5f;
+				icon_baseline = baseline_y; //Already corrected to baseline
 			}
 		} else {
 			GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, txt.inline_image);
 			bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-			draw_flag = true;
+			x_scale = 1.5f;
 		}
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
-		glUniform4f(parameters::drawing_rectangle, x, baseline_y - size, size * (draw_flag ? 1.5f : 1.f), size);
+		glUniform4f(parameters::drawing_rectangle, x, icon_baseline - size - size, x_scale * size, y_scale * size);
 		glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
