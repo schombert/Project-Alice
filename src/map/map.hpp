@@ -202,7 +202,8 @@ public:
 	static constexpr uint32_t texture_strategy_unit_arrow = 21;
 	static constexpr uint32_t texture_objective_unit_arrow = 22;
 	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
-	static constexpr uint32_t texture_count = 24;
+	static constexpr uint32_t texture_hover_border = 24;
+	static constexpr uint32_t texture_count = 25;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
