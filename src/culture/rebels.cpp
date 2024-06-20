@@ -357,6 +357,7 @@ bool rebel_faction_is_valid(sys::state& state, dcon::rebel_faction_id m) {
 	- Rebel factions whose independence country exists will disband (different for defection rebels?)
 	- Pan nationalists inside their union country will disband
 	- Any pops belonging to a rebel faction that disbands have their militancy reduced to 0
+ 	- The current ideology is the same as the ideology wanted by the faction
 	*/
 
 	auto pops = state.world.rebel_faction_get_pop_rebellion_membership(m);
@@ -368,6 +369,9 @@ bool rebel_faction_is_valid(sys::state& state, dcon::rebel_faction_id m) {
 	auto tag = state.world.rebel_faction_get_defection_target(m);
 	auto within = fatten(state.world, m).get_rebellion_within().get_ruler();
 	if(within.get_identity_from_identity_holder() == tag)
+		return false;
+
+	if(type.get_ideology() && within.get_ruling_party().get_ideology() == type.get_ideology())
 		return false;
 
 	return true;
