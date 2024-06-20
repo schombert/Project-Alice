@@ -758,15 +758,15 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 }
 
 
-GLuint get_flag_texture_handle_from_tag(sys::state& state, char tag[3]) {
-	tag[0] = char(toupper(tag[0]));
-	tag[1] = char(toupper(tag[1]));
-	tag[2] = char(toupper(tag[2]));
-
+GLuint get_flag_texture_handle_from_tag(sys::state& state, const char tag[3]) {
+	char ltag[3];
+	ltag[0] = char(toupper(tag[0]));
+	ltag[1] = char(toupper(tag[1]));
+	ltag[2] = char(toupper(tag[2]));
 	dcon::national_identity_id ident{};
 	state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 		auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-		if(curr[0] == tag[0] && curr[1] == tag[1] && curr[2] == tag[2]) {
+		if(curr[0] == ltag[0] && curr[1] == ltag[1] && curr[2] == ltag[2]) {
 			ident = id;
 		}
 	});
@@ -799,6 +799,36 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 }
 
 void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
+	if(txt.is_inline_image()) {
+		bool draw_flag = false;
+		if(txt.inline_image[0] == '(' && txt.inline_image[2] == ')') {
+			if(txt.inline_image[1] == 'F' || txt.inline_image[1] == 'T') { //(F)alse or (T)rue
+				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
+				glActiveTexture(GL_TEXTURE0);
+				GLuint false_icon = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan)
+					? state.open_gl.color_blind_cross_icon_tex
+					: state.open_gl.cross_icon_tex;
+				glBindTexture(GL_TEXTURE_2D, txt.inline_image[1] == 'F' ? false_icon : state.open_gl.checkmark_icon_tex);
+			} else { //(A)rmy or (N)avy
+				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, txt.inline_image[1] == 'A' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
+			}
+		} else {
+			GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, txt.inline_image);
+			bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
+			draw_flag = true;
+		}
+		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
+		glUniform4f(parameters::drawing_rectangle, x, baseline_y - size, size * (draw_flag ? 1.5f : 1.f), size);
+		glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
+		return;
+	}
+
 	auto const* glyph_pos = txt.glyph_pos.data();
 	auto const* glyph_info = txt.glyph_info.data();
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_count);
@@ -808,54 +838,14 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-
-		bool draw_icon = false;
-		bool draw_flag = false;
-		if(glyphid == FT_Get_Char_Index(f.font_face, '@')) {
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 1].codepoint) : 0;
-			tag[1] = (i + 2 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 2].codepoint) : 0;
-			tag[2] = (i + 3 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 3].codepoint) : 0;
-			if(tag[0] == '(' && tag[2] == ')') {
-				if(tag[1] == 'F' || tag[1] == 'T') { //(F)alse or (T)rue
-					bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
-					glActiveTexture(GL_TEXTURE0);
-					GLuint false_icon = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan)
-						? state.open_gl.color_blind_cross_icon_tex
-						: state.open_gl.cross_icon_tex;
-					glBindTexture(GL_TEXTURE_2D, tag[1] == 'F' ? false_icon : state.open_gl.checkmark_icon_tex);
-					draw_icon = true;
-				} else { //(A)rmy or (N)avy
-					bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, tag[1] == 'A' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
-					draw_icon = true;
-				}
-			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
-				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
-				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-				draw_icon = true;
-				draw_flag = true;
-			}
-			if(draw_icon) {
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
-				glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.0f, size * (draw_flag ? 1.5f : 1.f), size);
-				glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
-				i += 3;
-			}
-		}
-		if(!draw_icon && glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
+		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
 			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		x += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+		x += x_advance * size / 64.f;
 		baseline_y -= (float(glyph_pos[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
 	}
 }
@@ -894,65 +884,57 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, font.ftexid);
 
-	for(uint32_t i = 0; i < count; ++i) {
-		if(uint8_t(codepoints[i]) == '@') {
-			auto const& f = font.chars[0x4D];
-			float scaling = 1.f;
-			float offset = 0.f;
-			float CurX = x + f.x_offset - (float(f.width) * offset);
-			float CurY = y + f.y_offset - (float(f.height) * offset);
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
-			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
-			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
-			if(uint8_t(tag[0]) == '(' || uint8_t(codepoints[2]) == ')') {
-				GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
-				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
-				GLuint icon_tex = 0;
-				if(uint8_t(tag[1]) == 'F')
-					icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
-				else if(uint8_t(tag[1]) == 'T')
-					icon_tex = state.open_gl.checkmark_icon_tex;
-				else if(uint8_t(tag[1]) == 'A')
-					icon_tex = state.open_gl.army_icon_tex;
-				else if(uint8_t(tag[1]) == 'N')
-					icon_tex = state.open_gl.navy_icon_tex;
-				glBindTexture(GL_TEXTURE_2D, icon_tex);
+	if(txt.is_inline_image()) {
+		auto const& f = font.chars[0x4D];
+		float scaling = 1.f;
+		float offset = 0.f;
+		float CurX = x + f.x_offset - (float(f.width) * offset);
+		float CurY = y + f.y_offset - (float(f.height) * offset);
+		if(uint8_t(txt.inline_image[0]) == '(' || uint8_t(txt.inline_image[2]) == ')') {
+			GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
+			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
+			GLuint icon_tex = 0;
+			if(uint8_t(txt.inline_image[1]) == 'F')
+				icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
+			else if(uint8_t(txt.inline_image[1]) == 'T')
+				icon_tex = state.open_gl.checkmark_icon_tex;
+			else if(uint8_t(txt.inline_image[1]) == 'A')
+				icon_tex = state.open_gl.army_icon_tex;
+			else if(uint8_t(txt.inline_image[1]) == 'N')
+				icon_tex = state.open_gl.navy_icon_tex;
+			glBindTexture(GL_TEXTURE_2D, icon_tex);
+			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+			glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
+					float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
+					float(f.height) / float(font.width) /* y height */
+			);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			// Restore affected state
+			glBindTexture(GL_TEXTURE_2D, font.ftexid);
+			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+		} else {
+			GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, txt.inline_image);
+			if(flag_texture_handle != 0) {
+				GLuint flag_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
+				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
+				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
 				glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 				glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-						float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-						float(f.height) / float(font.width) /* y height */
+					float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
+					float(f.height) / float(font.width) /* y height */
 				);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 				// Restore affected state
 				glBindTexture(GL_TEXTURE_2D, font.ftexid);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-				x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
-				i += 3;
-				continue;
-			} else {
-				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
-				if(flag_texture_handle != 0) {
-					GLuint flag_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
-					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
-					glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
-					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-					glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-					glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-							float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-							float(f.height) / float(font.width) /* y height */
-					);
-					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-					// Restore affected state
-					glBindTexture(GL_TEXTURE_2D, font.ftexid);
-					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-					x += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
-					i += 3;
-					continue;
-				}
 			}
 		}
+		return;
+	}
+
+	for(uint32_t i = 0; i < count; ++i) {
 		uint8_t ch = uint8_t(codepoints[i]);
 		if(i != 0 && i < count - 1 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
 			ch = 0xA3;

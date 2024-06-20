@@ -63,6 +63,7 @@ struct stored_glyphs {
 	std::vector<hb_glyph_info_t> glyph_info;
 	std::vector<hb_glyph_position_t> glyph_pos;
 	unsigned int glyph_count = 0;
+	char inline_image[3] = { 0, 0, 0 };
 
 	struct no_bidi { };
 
@@ -76,6 +77,9 @@ struct stored_glyphs {
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
+	bool is_inline_image() const {
+		return inline_image[0] != 0;
+	}
 	void clear() {
 		glyph_info.clear();
 		glyph_pos.clear();
