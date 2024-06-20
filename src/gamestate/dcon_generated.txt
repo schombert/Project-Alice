@@ -1756,7 +1756,7 @@ object {
 object {
 	name{ navy }
 	storage_type{ erasable }
-	size{ 6000 }
+	size{ 10000 }
 	tag{ save }
 
 	property{
@@ -1767,7 +1767,7 @@ object {
 
 	property{
 		name{ path }
-		type{vector_pool{5000}{province_id}}
+		type{vector_pool{20000}{province_id}}
 		tag{ save }
 	}
 	property{

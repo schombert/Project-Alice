@@ -1198,39 +1198,43 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 
 	//Divide inline images
-	size_t at_pos = std::string::npos;
 	for(uint32_t i = 0; i < uint32_t(text.size());) {
 		uint32_t ch = text::codepoint_from_utf8(text.data() + i, text.data() + text.size());
 		if(ch == U'@' && i + 3 < uint32_t(text.size())) {
-			at_pos = size_t(i);
-			break;
+			auto sv1 = std::string_view(text.begin(), text.begin() + i);
+			add_to_layout_box(state, dest, box, sv1, color);
+			// insert inline image
+			text::stored_glyphs image_glyphs{};
+			image_glyphs.inline_image[0] = text[i + 1];
+			image_glyphs.inline_image[1] = text[i + 2];
+			image_glyphs.inline_image[2] = text[i + 3];
+			float extent = float(font_size) * 1.5f;
+			if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+				box.x_position -= text::size_from_font_id(dest.fixed_parameters.font_id);
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
+				dest.base_layout.contents.push_back(text_chunk{ image_glyphs, box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+			} else {
+				dest.base_layout.contents.push_back(text_chunk{ image_glyphs, box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+				box.x_position += extent;
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(box.x_position));
+			}
+			//
+			auto sv2 = std::string_view(text.begin() + i + 4, text.end());
+			add_to_layout_box(state, dest, box, sv2, color);
+			return;
+		} else if(ch == U'?' && i + 1 < uint32_t(text.size()) && is_qmark_color(text[i + 1])) {
+			auto sv1 = std::string_view(text.begin(), text.begin() + i);
+			add_to_layout_box(state, dest, box, sv1, color);
+			auto new_color = char_to_color(text[i + 1]);
+			if(new_color == text_color::reset)
+				new_color = dest.fixed_parameters.color;
+			auto sv2 = std::string_view(text.begin() + i + 2, text.end());
+			add_to_layout_box(state, dest, box, sv2, new_color);
+			return;
 		}
 		i += uint32_t(text::size_from_utf8(text.data() + i, text.data() + text.size()));
-	}
-	if(at_pos != std::string::npos) {
-		auto sv1 = std::string_view(text.begin(), text.begin() + at_pos);
-		add_to_layout_box(state, dest, box, sv1, color);
-		// insert inline image
-		text::stored_glyphs image_glyphs{};
-		image_glyphs.inline_image[0] = text.data()[at_pos + 1];
-		image_glyphs.inline_image[1] = text.data()[at_pos + 2];
-		image_glyphs.inline_image[2] = text.data()[at_pos + 3];
-		float extent = float(font_size) * 1.5f;
-		if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
-			box.x_position -= text::size_from_font_id(dest.fixed_parameters.font_id);
-			box.y_size = std::max(box.y_size, box.y_position + line_height);
-			box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
-			dest.base_layout.contents.push_back(text_chunk{ image_glyphs, box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-		} else {
-			dest.base_layout.contents.push_back(text_chunk{ image_glyphs, box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-			box.x_position += extent;
-			box.y_size = std::max(box.y_size, box.y_position + line_height);
-			box.x_size = std::max(box.x_size, int32_t(box.x_position));
-		}
-		//
-		auto sv2 = std::string_view(text.begin() + at_pos + 4, text.end());
-		add_to_layout_box(state, dest, box, sv2, color);
-		return;
 	}
 
 	std::vector<uint16_t> temp_text;
