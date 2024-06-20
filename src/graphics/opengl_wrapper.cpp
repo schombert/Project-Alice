@@ -842,7 +842,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
 		glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		x += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+		x += x_advance * size / 64.f;
 		baseline_y -= (float(glyph_pos[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
 	}
 }
