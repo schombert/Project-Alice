@@ -802,7 +802,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 	if(txt.is_inline_image()) {
 		float x_scale = 1.f;
 		float y_scale = 1.f;
-		float icon_baseline = baseline_y + (f.internal_ascender / 64.f * size);
+		float icon_baseline = baseline_y + (f.internal_ascender / 64.f * size) - size;
 		if(txt.inline_image[0] == '(' && txt.inline_image[2] == ')') {
 			if(txt.inline_image[1] == 'F' || txt.inline_image[1] == 'T') { //(F)alse or (T)rue
 				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
@@ -828,7 +828,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 			x_scale = 1.5f;
 		}
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
-		glUniform4f(parameters::drawing_rectangle, x, icon_baseline - size - size, x_scale * size, y_scale * size);
+		glUniform4f(parameters::drawing_rectangle, x, icon_baseline - size, x_scale * size, y_scale * size);
 		glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
