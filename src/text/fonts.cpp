@@ -960,21 +960,6 @@ float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t st
 		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		bool draw_icon = false;
 		bool draw_flag = false;
-		if(glyphid == FT_Get_Char_Index(font_face, '@')) {
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 1].codepoint) : 0;
-			tag[1] = (i + 2 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 2].codepoint) : 0;
-			tag[2] = (i + 3 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 3].codepoint) : 0;
-			if(tag[0] == '(' && tag[2] == ')') {
-				draw_icon = true;
-			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
-				draw_flag = true;
-				draw_icon = true;
-			}
-			if(draw_icon) {
-				i += 3;
-			}
-		}
 		x_total += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
 	return x_total;
