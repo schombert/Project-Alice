@@ -246,7 +246,6 @@ public:
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
-
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		// Ignore mouse wheel scrolls so people DO NOT get confused!
 		if(type == mouse_probe_type::scroll)

@@ -1853,7 +1853,7 @@ public:
 	}
 };
 
-class pop_details_window : public generic_settable_element<main_window_element_base, pop_details_data> {
+class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
@@ -1882,7 +1882,7 @@ class pop_details_window : public generic_settable_element<main_window_element_b
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		main_window_element_base::on_create(state);
+		window_element_base::on_create(state);
 		set_visible(state, false);
 
 		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
@@ -2092,6 +2092,10 @@ public:
 			}
 		}
 		return message_result::unseen;
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
 	}
 };
 

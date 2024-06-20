@@ -864,10 +864,6 @@ public:
 		}
 		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
 	}
-
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
 };
 
 class election_parties_listbox : public listbox_element_base<election_party_entry, dcon::political_party_id> {

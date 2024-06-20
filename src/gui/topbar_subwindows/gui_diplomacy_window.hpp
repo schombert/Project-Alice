@@ -2015,11 +2015,6 @@ public:
 
 class diplomacy_sort_nation_gp_flag : public nation_gp_flag {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
-			return message_result::unseen;
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
 	void button_action(sys::state& state) noexcept override { }
 };
 

@@ -187,9 +187,6 @@ public:
 		text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
 		text::close_layout_box(container, box);
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
-	}
 };
 
 class unciv_reforms_reform_window : public window_element_base {

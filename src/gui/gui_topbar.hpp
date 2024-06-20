@@ -258,8 +258,6 @@ public:
 		auto layout = text::create_endless_layout(internal_layout,
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 		auto box = text::open_layout_box(layout, 0);
-
-
 		text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
 		text::add_to_layout_box(state, layout, box, std::string(" ("));
 		if(pop_change > 0) {
@@ -267,11 +265,7 @@ public:
 		}
 		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(pop_change)}, color);
 		text::add_to_layout_box(state, layout, box, std::string(")"));
-
 		text::close_layout_box(layout, box);
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type != mouse_probe_type::tooltip ? message_result::unseen : message_result::consumed;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -740,13 +734,10 @@ public:
 		base_data.size.x = int16_t(ui_width(state));
 		base_data.size.y = int16_t(ui_height(state));
 		opaque_element_base::render(state, x, y);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
-		if(is_visible()) {
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		//Put it far away!
+		if(base_data.position.x >= 256 || base_data.position.y >= 256) {
+			base_data.position.x = int16_t(8192 * 2);
+			base_data.position.y = int16_t(8192 * 2);
 		}
 	}
 };

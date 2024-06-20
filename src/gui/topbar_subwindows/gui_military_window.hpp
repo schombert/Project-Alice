@@ -162,9 +162,6 @@ public:
 	bool is_active(sys::state& state) noexcept override {
 		return state.world.nation_get_mobilized_is_ai_controlled(state.local_player_nation);
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return button_element_base::test_mouse(state, x, y, type);
-	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}

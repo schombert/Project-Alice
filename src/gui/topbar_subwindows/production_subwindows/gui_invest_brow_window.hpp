@@ -7,10 +7,6 @@ namespace ui {
 
 class production_investment_country_select : public button_element_base {
 public:
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		auto for_nation = retrieve<dcon::nation_id>(state, parent);
 
@@ -123,9 +119,6 @@ protected:
 
 class production_sort_nation_gp_flag : public nation_gp_flag {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -136,9 +129,6 @@ class production_sort_my_nation_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

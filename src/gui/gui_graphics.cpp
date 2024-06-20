@@ -149,9 +149,8 @@ xy_pair child_relative_location(sys::state& state, element_base const& parent, e
 		case orientation::center:
 			return xy_pair{ int16_t(parent.base_data.size.x / 2 - child.base_data.position.x - child.base_data.size.x), y };
 		}
-	} else {
-		return child_relative_non_mirror_location(state, parent, child);
 	}
+	return child_relative_non_mirror_location(state, parent, child);
 }
 
 uint8_t element_base::get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid) {
@@ -195,6 +194,8 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 				} else {
 					probe_result.under_mouse = this;
 				}
+			} else {
+				probe_result.under_mouse = this;
 			}
 		} else {
 			probe_result.under_mouse = this;

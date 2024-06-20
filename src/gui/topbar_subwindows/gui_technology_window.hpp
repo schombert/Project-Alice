@@ -88,9 +88,6 @@ public:
 		});
 		progress = bool(total) && bool(discovered) ? float(discovered) / float(total) : 0.f;
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
-	}
 };
 
 class technology_num_discovered_text : public simple_text_element_base {
@@ -636,7 +633,6 @@ public:
 		base_data.size.x -= 10;
 		scrollable_text::on_create(state);
 	}
-
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
 		auto layout = text::create_endless_layout(delegate->internal_layout,
@@ -645,10 +641,6 @@ public:
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false});
 		technology_description(state, layout, content);
 		calibrate_scrollbar(state);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
 	}
 };
 

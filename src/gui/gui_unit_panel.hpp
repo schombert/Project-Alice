@@ -887,8 +887,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, t);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 };
 class unit_details_unload_army_button : public button_element_base {
@@ -932,8 +931,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, t);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 };
 class unit_details_unload_navy_button : public button_element_base {
@@ -1009,8 +1007,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, type);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1036,8 +1033,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, type);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1057,9 +1053,6 @@ class unit_details_ai_controlled : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept override {
 		return state.world.army_get_is_ai_controlled(retrieve<dcon::army_id>(state, parent));
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return button_element_base::test_mouse(state, x, y, type);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1966,9 +1959,6 @@ public:
 		checkbox_button::on_update(state);
 		visible = state.selected_navies.empty();
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return button_element_base::test_mouse(state, x, y, type);
-	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -1999,7 +1989,7 @@ public:
 	}
 };
 
-class mulit_unit_selection_panel : public main_window_element_base {
+class mulit_unit_selection_panel : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
