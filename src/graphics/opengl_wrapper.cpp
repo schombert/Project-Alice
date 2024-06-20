@@ -802,8 +802,6 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 	if(txt.is_inline_image()) {
 		float x_scale = 1.f;
 		float y_scale = 1.f;
-		bool draw_flag = false;
-		bool draw_army_or_navy = false;
 		float icon_baseline = baseline_y + (f.internal_ascender / 64.f * size);
 		if(txt.inline_image[0] == '(' && txt.inline_image[2] == ')') {
 			if(txt.inline_image[1] == 'F' || txt.inline_image[1] == 'T') { //(F)alse or (T)rue
