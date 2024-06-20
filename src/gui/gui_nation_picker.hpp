@@ -584,6 +584,7 @@ public:
 	}
 };
 
+
 class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {

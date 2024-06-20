@@ -100,17 +100,21 @@ int16_t child_relative_location_y_component(element_base const& parent, element_
 	auto orientation = child.base_data.get_orientation();
 	switch(orientation) {
 	case orientation::upper_left:
+		return int16_t(child.base_data.position.y);
 	case orientation::upper_right:
-	default:
 		return int16_t(child.base_data.position.y);
 	case orientation::lower_left:
+		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::lower_right:
 		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::upper_center:
+		return int16_t(child.base_data.position.y);
 	case orientation::lower_center:
 		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::center:
 		return int16_t(parent.base_data.size.y / 2 + child.base_data.position.y);
+	default:
+		return int16_t(child.base_data.position.y);
 	}
 }
 
