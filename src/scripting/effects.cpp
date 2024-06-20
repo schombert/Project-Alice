@@ -272,6 +272,27 @@ uint32_t es_x_decision_country_scope_nation(EFFECT_PARAMTERS) {
 		return i;
 	}
 }
+uint32_t es_from_bounce_scope(EFFECT_PARAMTERS) {
+	if((tval[0] & effect::scope_has_limit) != 0) {
+		auto limit = trigger::payload(tval[2]).tr_id;
+		if(trigger::evaluate(ws, limit, primary_slot, this_slot, primary_slot)) {
+			return apply_subeffects(tval, ws, primary_slot, this_slot, primary_slot, r_hi, r_lo + 1, els);
+		}
+		return 0;
+	}
+	return apply_subeffects(tval, ws, primary_slot, this_slot, primary_slot, r_hi, r_lo + 1, els);
+}
+uint32_t es_this_bounce_scope(EFFECT_PARAMTERS) {
+	if((tval[0] & effect::scope_has_limit) != 0) {
+		auto limit = trigger::payload(tval[2]).tr_id;
+		if(trigger::evaluate(ws, limit, primary_slot, primary_slot, from_slot)) {
+			return apply_subeffects(tval, ws, primary_slot, primary_slot, from_slot, r_hi, r_lo + 1, els);
+		}
+		return 0;
+	}
+	return apply_subeffects(tval, ws, primary_slot, primary_slot, from_slot, r_hi, r_lo + 1, els);
+}
+
 uint32_t es_x_country_scope(EFFECT_PARAMTERS) {
 	return es_x_country_scope_nation(tval, ws, trigger::to_generic(dcon::nation_id{}), this_slot, from_slot, r_hi, r_lo, els);
 }
@@ -986,6 +1007,15 @@ uint32_t es_random_scope(EFFECT_PARAMTERS) {
 		return 1 + apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, els);
 	return 1;
 }
+uint32_t es_random_by_modifier_scope(EFFECT_PARAMTERS) {
+	auto mod_k = dcon::value_modifier_key{ dcon::value_modifier_key::value_base_t(tval[2]) };
+	auto chance = trigger::evaluate_multiplicative_modifier(ws, mod_k, primary_slot, this_slot, from_slot);
+	assert(chance >= 0.f);
+	auto r = int32_t(rng::get_random(ws, r_hi, r_lo) % 100);
+	if(r < chance)
+		return 1 + apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, els);
+	return 1;
+}
 uint32_t es_owner_scope_state(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot)); owner)
 		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo, els);
@@ -1533,14 +1563,14 @@ uint32_t ef_remove_core_reb(EFFECT_PARAMTERS) {
 }
 uint32_t ef_change_region_name_state(EFFECT_PARAMTERS) {
 	auto def = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	dcon::text_key name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
 	ws.world.state_definition_set_name(def, name);
 	return 0;
 }
 uint32_t ef_change_region_name_province(EFFECT_PARAMTERS) {
 	auto def = ws.world.province_get_state_from_abstract_state_membership(trigger::to_prov(primary_slot));
 	if(def) {
-		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+		dcon::text_key name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
 		ws.world.state_definition_set_name(def, name);
 	}
 	return 0;
@@ -2733,7 +2763,7 @@ uint32_t ef_release_vassal_province_random(EFFECT_PARAMTERS) {
 		return 0;
 }
 uint32_t ef_change_province_name(EFFECT_PARAMTERS) {
-	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	dcon::text_key name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
 	ws.world.province_set_name(trigger::to_prov(primary_slot), name);
 	return 0;
 }
@@ -5018,7 +5048,7 @@ uint32_t ef_fop_clr_global_flag_12(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_fop_change_province_name(EFFECT_PARAMTERS) {
-	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	dcon::text_key name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
 	ws.world.province_set_name(trigger::payload(tval[3]).prov_id, name);
 	return 0;
 }
@@ -5106,6 +5136,9 @@ inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_x_decision_country_scope, // constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 		es_x_event_country_scope_nation,//constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
 		es_x_decision_country_scope_nation,//constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
+		es_from_bounce_scope,//constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
+		es_this_bounce_scope,//constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
+		es_random_by_modifier_scope,//constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {

@@ -622,7 +622,7 @@ public:
 				std::string tag_str = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(producers[i].n)));
 				text::add_to_layout_box(state, contents, box, tag_str);
 				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, state.world.nation_get_name(producers[i].n));
+				text::add_to_layout_box(state, contents, box, text::get_name(state, producers[i].n));
 				text::add_space_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
 				text::close_layout_box(contents, box);
@@ -1184,24 +1184,24 @@ public:
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "header_produced_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_produced");
+			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_produced", true);
 			return ptr;
 		} else if(name == "header_used_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_consumed");
+			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_consumed", true);
 			return ptr;
 		} else if(name == "header_may_be_used_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_may_be_used");
+			ptr->text_id = text::find_or_add_key(state, "trade_flow_may_be_used", true);
 			return ptr;
 		} else if(name == "total_produced_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_produced");
+			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_produced", true);
 			ptr->base_data.position.x += 48; // Nudge
 			return ptr;
 		} else if(name == "total_used_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used");
+			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used", true);
 			ptr->base_data.position.x += 48; // Nudge
 			return ptr;
 		} else if(name == "total_produced_value") {
@@ -1227,12 +1227,12 @@ class trade_commodity_group_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("goods_entry_offset")->second.definition].position;
+		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("goods_entry_offset"))->second.definition].position;
 		xy_pair offset{0, 0};
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
 				return;
-			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
+			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find(state.lookup_key("goods_entry"))->second.definition);
 			ptr->commodity_id = id;
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
@@ -1575,10 +1575,10 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto btn = make_element_by_type<stockpile_buy_from_stockpile_hint>(state, state.ui_state.defs_by_name.find("alice_buy_from_stockpile")->second.definition);
+		auto btn = make_element_by_type<stockpile_buy_from_stockpile_hint>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_buy_from_stockpile"))->second.definition);
 		add_child_to_front(std::move(btn));
 
-		auto ptr = make_element_by_type<trade_flow_window>(state, state.ui_state.defs_by_name.find("trade_flow")->second.definition);
+		auto ptr = make_element_by_type<trade_flow_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("trade_flow"))->second.definition);
 		trade_flow_win = ptr.get();
 		add_child_to_front(std::move(ptr));
 

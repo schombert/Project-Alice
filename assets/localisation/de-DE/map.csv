@@ -1,12 +1,12 @@
-map_remove_prefix;Der 
-map_expand_acronym;;
-map_expand_acronym_to;;
+map_remove_prefix;Das ;
+map_expand_acronym;USA;
+map_expand_acronym_to;Vereinigte Staaten von Amerika;
 map_label_country;$country$
 map_label_adj_continent;$adj$ $continentname$
 map_label_adj_state;$adj$ $state$
 map_label_adj_province;$adj$ $province$
-map_label_west_country;West $country$
-map_label_east_country;Est $country$
-map_label_north_country;Nord $country$
-map_label_south_country;Sud $country$
+map_label_west_country;West$country$
+map_label_east_country;Ost$country$
+map_label_north_country;Nord$country$
+map_label_south_country;Südliche$country$
 map_label_adj_tag;$adj$ $tag$

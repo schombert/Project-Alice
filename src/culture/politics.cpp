@@ -68,11 +68,11 @@ sys::date next_election_date(sys::state& state, dcon::nation_id nation) {
 
 dcon::reform_id get_reform_by_name(sys::state& state, std::string_view name) {
 	dcon::reform_id result{};
-	auto it = state.key_to_text_sequence.find(name);
-	if(it != state.key_to_text_sequence.end()) {
+	auto it = state.lookup_key(name);
+	if(it) {
 		state.world.for_each_reform([&](dcon::reform_id reform_id) {
 			auto key = state.world.reform_get_name(reform_id);
-			if(it->second == key) {
+			if(it == key) {
 				result = reform_id;
 			}
 		});
@@ -82,11 +82,11 @@ dcon::reform_id get_reform_by_name(sys::state& state, std::string_view name) {
 
 dcon::issue_id get_issue_by_name(sys::state& state, std::string_view name) {
 	dcon::issue_id result{};
-	auto it = state.key_to_text_sequence.find(name);
-	if(it != state.key_to_text_sequence.end()) {
+	auto it = state.lookup_key(name);
+	if(it) {
 		state.world.for_each_issue([&](dcon::issue_id issue_id) {
 			auto key = state.world.issue_get_name(issue_id);
-			if(it->second == key) {
+			if(it == key) {
 				result = issue_id;
 			}
 		});
@@ -347,14 +347,10 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	auto gov_id = state.world.nation_get_government_type(id);
 	assert(!gov_id || state.world.government_type_is_valid(gov_id));
 	if(gov_id) {
-		state.world.nation_set_name(id, state.world.national_identity_get_government_name(ident, gov_id));
 		state.world.nation_set_color(id, state.world.national_identity_get_government_color(ident, gov_id));
 	} else {
-		state.world.nation_set_name(id, state.world.national_identity_get_name(ident));
 		state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
 	}
-	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
-
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 

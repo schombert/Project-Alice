@@ -11,7 +11,7 @@ bmfont_file
 	second                          value      int                               member_fn
 	amount                          value      int                               member_fn
 	id                              value      int                               member_fn
-    lineheight                      value      int                               member_fn
+	lineheight                      value      int                               member_fn
 	pages                           value      int                               discard
 	scalew                          value      int                               discard
 	scaleh                          value      int                               discard

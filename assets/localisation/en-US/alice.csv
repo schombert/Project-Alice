@@ -315,6 +315,7 @@ units_in_the_state;units in the state
 at_war_against;at war against
 num_of_divisions;a number of divisions
 an_ongoing_battle;an ongoing battle
+an_assigned_leader;an assigned leader
 treasury;treasury
 o_treasury;owner's treasury
 o_of_prov;the owner of the province
@@ -1119,7 +1120,7 @@ demobilize;Demobilize
 mobilize;Mobilize
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
 alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
-alice_mob_controls;?YRight-click?W to remobilize
+alice_mob_controls;?YRight-click?! to remobilize
 alice_mw_create_1;Add general
 alice_mw_create_2;Add admiral
 alice_mw_create_lpb;?YLeadership points?W will automatically be used to create generals or admirals when hitting the cap

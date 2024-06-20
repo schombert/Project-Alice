@@ -141,24 +141,6 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 
 	for(uint32_t i = 0; i < count; ++i) {
 		auto ch = uint8_t(string[i]);
-		if(ch == '@') { // Handle @TAG
-			auto const& f = chars[0x4D];
-			float scaling = 1.f;
-			float offset = 0.f;
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < count) ? char(string[i + 1]) : 0;
-			tag[1] = (i + 2 < count) ? char(string[i + 2]) : 0;
-			tag[2] = (i + 3 < count) ? char(string[i + 3]) : 0;
-			if(tag[0] == '(' || tag[2] == ')') {
-				total += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
-				i += 3;
-				continue;
-			} else if(ogl::display_tag_is_valid(state, tag)) {
-				total += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
-				i += 3;
-				continue;
-			}
-		}
 		if(i != 0 && ch == 0xC3 && uint8_t(string[i + 1]) == 0xA3) {
 			ch = 0xA3;
 			i++;

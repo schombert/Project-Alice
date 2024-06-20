@@ -38,6 +38,7 @@ public:
 class projection_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
+
 class fonts_mode_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -284,7 +285,7 @@ class music_player_display : public simple_text_element_base {
 
 struct notify_setting_update { };
 
-class controls_menu_window : public window_element_base {
+class options_menu_window : public window_element_base {
 	bool setting_changed = false;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
@@ -321,27 +322,7 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<map_mouse_edge_scrolling>(state, id);
 		} else if(name == "wasd_for_map_movement_checkbox") {
 			return make_element_by_type<wasd_for_map_movement_checkbox>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-	void on_hide(sys::state& state) noexcept override {
-		if(setting_changed)
-			state.save_user_settings();
-	}
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<notify_setting_update>()) {
-			setting_changed = true;
-			impl_on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-class graphics_menu_window : public window_element_base {
-	bool setting_changed = false;
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
@@ -409,48 +390,29 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<color_blind_left>(state, id);
 		} else if(name == "color_blind_right") {
 			return make_element_by_type<color_blind_right>(state, id);
+		} else if(name == "close_button") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<draggable_target>(state, id);
+		} else if(name == "master_volume_scroll_bar") {
+			return make_element_by_type<master_volume>(state, id);
+		} else if(name == "music_volume_scroll_bar") {
+			return make_element_by_type<music_volume>(state, id);
+		} else if(name == "interface_volume_scroll_bar") {
+			return make_element_by_type<interface_volume>(state, id);
+		} else if(name == "effect_volume_scroll_bar") {
+			return make_element_by_type<effects_volume>(state, id);
+		} else if(name == "music_player_value") {
+			return make_element_by_type<music_player_display>(state, id);
+		} else if(name == "music_player_left") {
+			return make_element_by_type<music_player_left>(state, id);
+		} else if(name == "music_player_right") {
+			return make_element_by_type<music_player_right>(state, id);
+		} else if(name == "mute_on_focus_lost_checkbox") {
+			return make_element_by_type<mute_on_focus_lost_checkbox>(state, id);
 		} else {
 			return nullptr;
 		}
-	}
-	void on_hide(sys::state& state) noexcept override {
-		if(setting_changed)
-			state.save_user_settings();
-	}
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<notify_setting_update>()) {
-			setting_changed = true;
-			impl_on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-class audio_menu_window : public window_element_base {
-	bool setting_changed = false;
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button")
-			return make_element_by_type<generic_close_button>(state, id);
-		else if(name == "background")
-			return make_element_by_type<draggable_target>(state, id);
-		else if(name == "master_volume_scroll_bar")
-			return make_element_by_type<master_volume>(state, id);
-		else if(name == "music_volume_scroll_bar")
-			return make_element_by_type<music_volume>(state, id);
-		else if(name == "interface_volume_scroll_bar")
-			return make_element_by_type<interface_volume>(state, id);
-		else if(name == "effect_volume_scroll_bar")
-			return make_element_by_type<effects_volume>(state, id);
-		else if(name == "music_player_value")
-			return make_element_by_type<music_player_display>(state, id);
-		else if(name == "music_player_left")
-			return make_element_by_type<music_player_left>(state, id);
-		else if(name == "music_player_right")
-			return make_element_by_type<music_player_right>(state, id);
-		else if(name == "mute_on_focus_lost_checkbox")
-			return make_element_by_type<mute_on_focus_lost_checkbox>(state, id);
-		else
-			return nullptr;
 	}
 	void on_hide(sys::state& state) noexcept override {
 		if(setting_changed)
@@ -483,7 +445,6 @@ public:
 		button_element_base::on_create(state);
 		disabled = true;
 	}
-
 };
 
 class save_button : public button_element_base {
@@ -501,12 +462,10 @@ public:
 };
 
 class restricted_main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
-	controls_menu_window* controls_menu = nullptr;
-	graphics_menu_window* graphics_menu = nullptr;
-	audio_menu_window* audio_menu = nullptr;
-
+	options_menu_window* controls_menu = nullptr;
+	options_menu_window* graphics_menu = nullptr;
+	options_menu_window* audio_menu = nullptr;
 public:
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
@@ -533,17 +492,17 @@ public:
 		} else if(name == "exit") {
 			return make_element_by_type<close_application_button>(state, id);
 		} else if(name == "alice_graphics_menu") {
-			auto ptr = make_element_by_type<graphics_menu_window>(state, id);
+			auto ptr = make_element_by_type<options_menu_window>(state, id);
 			graphics_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "alice_controls_menu") {
-			auto ptr = make_element_by_type<controls_menu_window>(state, id);
+			auto ptr = make_element_by_type<options_menu_window>(state, id);
 			controls_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "alice_audio_menu") {
-			auto ptr = make_element_by_type<audio_menu_window>(state, id);
+			auto ptr = make_element_by_type<options_menu_window>(state, id);
 			audio_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
@@ -585,9 +544,9 @@ public:
 };
 
 class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
-	controls_menu_window* controls_menu = nullptr;
-	graphics_menu_window* graphics_menu = nullptr;
-	audio_menu_window* audio_menu = nullptr;
+	options_menu_window* controls_menu = nullptr;
+	options_menu_window* graphics_menu = nullptr;
+	options_menu_window* audio_menu = nullptr;
 	element_base* message_settings_menu = nullptr;
 
 public:
@@ -628,17 +587,17 @@ public:
 		} else if(name == "save_and_exit") {
 			return make_element_by_type<save_and_quit_button>(state, id);
 		} else if(name == "alice_graphics_menu") {
-			auto ptr = make_element_by_type<graphics_menu_window>(state, id);
+			auto ptr = make_element_by_type<options_menu_window>(state, id);
 			graphics_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "alice_controls_menu") {
-			auto ptr = make_element_by_type<controls_menu_window>(state, id);
+			auto ptr = make_element_by_type<options_menu_window>(state, id);
 			controls_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "alice_audio_menu") {
-			auto ptr = make_element_by_type<audio_menu_window>(state, id);
+			auto ptr = make_element_by_type<options_menu_window>(state, id);
 			audio_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;

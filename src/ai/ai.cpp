@@ -5015,8 +5015,7 @@ void update_land_constructions(sys::state& state) {
 		static std::vector<dcon::province_land_construction_id> hopeless_construction;
 		hopeless_construction.clear();
 
-		state.world.nation_for_each_province_land_construction(state.local_player_nation,
-					[&](dcon::province_land_construction_id plcid) {
+		state.world.nation_for_each_province_land_construction(n, [&](dcon::province_land_construction_id plcid) {
 			auto fat_plc = dcon::fatten(state.world, plcid);
 			auto prov = fat_plc.get_pop().get_province_from_pop_location();
 			if(prov.get_nation_from_province_control() != n)

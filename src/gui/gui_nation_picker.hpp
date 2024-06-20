@@ -300,11 +300,13 @@ public:
 					float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
 					float(mask_tex.size_x),
 					float(mask_tex.size_y),
-					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
+					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+					false);
 			} else {
 				ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-						float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
-						gfx_def.is_vertically_flipped());
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
+					gfx_def.is_vertically_flipped(),
+					false);
 			}
 		}
 		image_element_base::render(state, x, y);
@@ -320,7 +322,10 @@ public:
 		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
-			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
+			auto name = text::get_name(state, state.world.national_identity_get_nation_from_identity_holder(i->save_flag));
+			if(auto gov_name = state.world.national_identity_get_government_name(i->save_flag, i->as_gov); state.key_is_localized(gov_name)) {
+				name = gov_name;
+			}
 			set_text(state, text::produce_simple_string(state, name));
 		}
 	}
@@ -569,14 +574,6 @@ class playable_nations_window : public window_element_base {
 	}
 };
 
-class nation_picker_hidden : public element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		element_base::on_create(state);
-		set_visible(state, false);
-	}
-};
-
 class date_label : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -587,12 +584,9 @@ public:
 	}
 };
 
+
 class start_game_button : public button_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-	}
-
 	void button_action(sys::state& state) noexcept override {
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
@@ -809,8 +803,7 @@ class nation_alice_readme_text : public scrollable_text {
 		text::add_line(state, contents, "gc_desc");
 	}
 public:
-	void on_create(sys::state& state) noexcept override {
-		scrollable_text::on_create(state);
+	void on_reset_text(sys::state& state) noexcept override {
 		auto container = text::create_endless_layout(delegate->internal_layout,
 		text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
@@ -818,6 +811,10 @@ public:
 			false });
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
+	}
+	void on_create(sys::state& state) noexcept override {
+		scrollable_text::on_create(state);
+		on_reset_text(state);
 	}
 };
 
@@ -827,11 +824,11 @@ public:
 		if(name == "frontend_chat_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "lobby_chat_edit") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "newgame_tab") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "savedgame_tab") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "year_label") {
 			return make_element_by_type<date_label>(state, id);
 		} else if(name == "multiplayer") {
@@ -841,7 +838,7 @@ public:
 		} else if(name == "save_games") {
 			return make_element_by_type<saves_window>(state, id);
 		} else if(name == "bookmarks") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "playable_countries_window") {
 			return make_element_by_type<playable_nations_window>(state, id);
 		} else if(name == "back_button") {
@@ -849,9 +846,9 @@ public:
 		} else if(name == "play_button") {
 			return make_element_by_type<start_game_button>(state, id);
 		} else if(name == "chatlog") {
-			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find("alice_readme_text")->second.definition);
+			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
 			add_child_to_front(std::move(ptr));
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		}
 		return nullptr;
 	}

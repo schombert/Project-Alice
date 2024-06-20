@@ -7,7 +7,7 @@ namespace parsers {
 
 void make_religion(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto new_id = context.state.world.create_religion();
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	context.state.world.religion_set_name(new_id, name_id);
 
 	context.map_of_religion_names.insert_or_assign(std::string(name), new_id);
@@ -18,7 +18,7 @@ void make_religion(std::string_view name, token_generator& gen, error_handler& e
 
 void make_culture_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	dcon::culture_group_id new_id = context.state.world.create_culture_group();
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	context.state.world.culture_group_set_name(new_id, name_id);
 	context.state.world.culture_group_set_is_overseas(new_id, true);
 
@@ -29,7 +29,7 @@ void make_culture_group(std::string_view name, token_generator& gen, error_handl
 
 void make_culture(std::string_view name, token_generator& gen, error_handler& err, culture_group_context& context) {
 	dcon::culture_id new_id = context.outer_context.state.world.create_culture();
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 	context.outer_context.state.world.culture_set_name(new_id, name_id);
 	context.outer_context.state.world.force_create_culture_group_membership(new_id, context.id);
 
@@ -50,7 +50,7 @@ void make_ln_list(token_generator& gen, error_handler& err, culture_context& con
 void register_ideology(std::string_view name, token_generator& gen, error_handler& err, ideology_group_context& context) {
 
 	dcon::ideology_id new_id = context.outer_context.state.world.create_ideology();
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 
 	context.outer_context.state.world.ideology_set_name(new_id, name_id);
 	context.outer_context.map_of_ideologies.insert_or_assign(std::string(name), pending_ideology_content{gen, new_id});
@@ -62,7 +62,7 @@ void register_ideology(std::string_view name, token_generator& gen, error_handle
 
 void make_ideology_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	dcon::ideology_group_id new_id = context.state.world.create_ideology_group();
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	context.state.world.ideology_group_set_name(new_id, name_id);
 	context.map_of_ideology_groups.insert_or_assign(std::string(name), new_id);
@@ -98,9 +98,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	switch(context.issue_cat) {
 	case ::culture::issue_category::party: {
 		dcon::issue_id new_id = context.outer_context.state.world.create_issue();
-		auto name_id = text::find_or_add_key(context.outer_context.state, name);
+		auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 		context.outer_context.state.world.issue_set_name(new_id, name_id);
-		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 		context.outer_context.state.world.issue_set_desc(new_id, desc_id);
 		context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
 
@@ -111,9 +111,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	} break;
 	case ::culture::issue_category::economic: {
 		dcon::reform_id new_id = context.outer_context.state.world.create_reform();
-		auto name_id = text::find_or_add_key(context.outer_context.state, name);
+		auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 		context.outer_context.state.world.reform_set_name(new_id, name_id);
-		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 		context.outer_context.state.world.reform_set_desc(new_id, desc_id);
 		context.outer_context.map_of_reforms.insert_or_assign(std::string(name), new_id);
 
@@ -124,9 +124,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	} break;
 	case ::culture::issue_category::social: {
 		dcon::issue_id new_id = context.outer_context.state.world.create_issue();
-		auto name_id = text::find_or_add_key(context.outer_context.state, name);
+		auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 		context.outer_context.state.world.issue_set_name(new_id, name_id);
-		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 		context.outer_context.state.world.issue_set_desc(new_id, desc_id);
 		context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
 
@@ -136,9 +136,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	} break;
 	case ::culture::issue_category::political: {
 		dcon::issue_id new_id = context.outer_context.state.world.create_issue();
-		auto name_id = text::find_or_add_key(context.outer_context.state, name);
+		auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 		context.outer_context.state.world.issue_set_name(new_id, name_id);
-		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 		context.outer_context.state.world.issue_set_desc(new_id, desc_id);
 		context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
 
@@ -148,9 +148,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	} break;
 	case ::culture::issue_category::military: {
 		dcon::reform_id new_id = context.outer_context.state.world.create_reform();
-		auto name_id = text::find_or_add_key(context.outer_context.state, name);
+		auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 		context.outer_context.state.world.reform_set_name(new_id, name_id);
-		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 		context.outer_context.state.world.reform_set_desc(new_id, desc_id);
 		context.outer_context.map_of_reforms.insert_or_assign(std::string(name), new_id);
 
@@ -163,18 +163,15 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 }
 void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context) {
 	dcon::issue_option_id new_id = context.outer_context.state.world.create_issue_option();
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 
-	auto movement_name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto movement_name_id = text::find_or_add_key(context.outer_context.state, std::string("movement_") + std::string(name), false);
 	context.outer_context.state.world.issue_option_set_name(new_id, name_id);
-	auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+	auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 	context.outer_context.state.world.issue_option_set_desc(new_id, desc_id);
 	context.outer_context.map_of_ioptions.insert_or_assign(std::string(name), pending_option_content{gen, new_id});
 
-	auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(std::string("movement_") + std::string(name)));
-	if(it != context.outer_context.state.key_to_text_sequence.end()) {
-		context.outer_context.state.world.issue_option_set_movement_name(new_id, it->second);
-	}
+	context.outer_context.state.world.issue_option_set_movement_name(new_id, movement_name_id);
 
 	bool assigned = false;
 	auto& existing_options = context.outer_context.state.world.issue_get_options(context.id);
@@ -193,9 +190,9 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 }
 void register_option(std::string_view name, token_generator& gen, error_handler& err, reform_context& context) {
 	dcon::reform_option_id new_id = context.outer_context.state.world.create_reform_option();
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 	context.outer_context.state.world.reform_option_set_name(new_id, name_id);
-	auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+	auto desc_id = text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false);
 	context.outer_context.state.world.reform_option_set_desc(new_id, desc_id);
 	context.outer_context.map_of_roptions.insert_or_assign(std::string(name), pending_roption_content{gen, new_id});
 
@@ -218,11 +215,11 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 void make_government(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	dcon::government_type_id new_id = context.state.world.create_government_type();
 
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	context.state.world.government_type_set_name(new_id, name_id);
-	context.state.world.government_type_set_desc(new_id, text::find_key(context.state, std::string(name) + "_desc"));
-	context.state.world.government_type_set_ruler_name(new_id, text::find_or_add_key(context.state, std::string(name) + "_ruler"));
+	context.state.world.government_type_set_desc(new_id, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
+	context.state.world.government_type_set_ruler_name(new_id, text::find_or_add_key(context.state, std::string(name) + "_ruler", false));
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{context, new_id};
@@ -233,7 +230,7 @@ void register_crime(std::string_view name, token_generator& gen, error_handler& 
 	dcon::crime_id new_id = dcon::crime_id(dcon::crime_id::value_base_t(context.state.culture_definitions.crimes.size()));
 	context.state.culture_definitions.crimes.emplace_back();
 
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	context.state.culture_definitions.crimes[new_id].name = name_id;
 
 	context.map_of_crimes.insert_or_assign(std::string(name), pending_crime_content{gen, new_id});
@@ -244,10 +241,10 @@ void register_crime(std::string_view name, token_generator& gen, error_handler& 
 void register_rebel_type(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	dcon::rebel_type_id new_id = context.state.world.create_rebel_type();
 
-	auto name_id = text::find_or_add_key(context.state, std::string(name) + "_name");
-	auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc");
-	auto army_id = text::find_or_add_key(context.state, std::string(name) + "_army");
-	auto title_id = text::find_or_add_key(context.state, std::string(name) + "_title");
+	auto name_id = text::find_or_add_key(context.state, std::string(name) + "_name", false);
+	auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc", false);
+	auto army_id = text::find_or_add_key(context.state, std::string(name) + "_army", false);
+	auto title_id = text::find_or_add_key(context.state, std::string(name) + "_title", false);
 
 	context.state.world.rebel_type_set_name(new_id, name_id);
 	context.state.world.rebel_type_set_description(new_id, desc_id);
@@ -273,6 +270,15 @@ void make_tech_folder_list(std::string_view name, token_generator& gen, error_ha
 		cat = ::culture::tech_category::culture;
 	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "industry_tech")) {
 		cat = ::culture::tech_category::industry;
+	//non vanilla
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "military_theory_tech")) {
+		cat = ::culture::tech_category::military_theory;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "population_tech")) {
+		cat = ::culture::tech_category::population;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "diplomacy")) {
+		cat = ::culture::tech_category::diplomacy;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "flavor_tech")) {
+		cat = ::culture::tech_category::flavor;
 	} else {
 		err.accumulated_errors += "Unknown technology category " + std::string(name) + " in file " + err.file_name + "\n";
 	}
@@ -294,12 +300,12 @@ void make_tech_folder_list(std::string_view name, token_generator& gen, error_ha
 	}
 }
 void read_school_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
+	context.state.world.modifier_set_desc(new_modifier, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
 
 	auto school = parse_modifier_base(gen, err, context);
 
@@ -310,8 +316,9 @@ void read_school_modifier(std::string_view name, token_generator& gen, error_han
 void register_technology(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto new_id = context.state.world.create_technology();
 
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	context.state.world.technology_set_name(new_id, name_id);
+	context.state.world.technology_set_desc(new_id, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
 
 	context.map_of_technologies.insert_or_assign(std::string(name), pending_tech_content{gen, new_id});
 
@@ -349,9 +356,9 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 			new_obj.primary_texture_handle = itb->second;
 		} else {
 			auto index = context.state.ui_defs.textures.size();
-			context.state.ui_defs.textures.emplace_back(context.state.add_to_pool(file_name));
+			context.state.ui_defs.textures.emplace_back(context.state.add_key_win1252(file_name));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, new_obj.primary_texture_handle);
 		}
 		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
 
@@ -364,8 +371,9 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 void register_invention(std::string_view name, token_generator& gen, error_handler& err, tech_group_context& context) {
 	auto new_id = context.outer_context.state.world.create_invention();
 
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 	context.outer_context.state.world.invention_set_name(new_id, name_id);
+	context.outer_context.state.world.invention_set_desc(new_id, text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc", false));
 	context.outer_context.state.world.invention_set_technology_type(new_id, uint8_t(context.category));
 
 	context.outer_context.map_of_inventions.insert_or_assign(std::string(name), pending_invention_content{gen, new_id});

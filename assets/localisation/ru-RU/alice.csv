@@ -315,6 +315,7 @@ units_in_the_state;units in the state
 at_war_against;at war against
 num_of_divisions;a number of divisions
 an_ongoing_battle;an ongoing battle
+an_assigned_leader;an assigned leader
 treasury;treasury
 o_treasury;owner's treasury
 o_of_prov;the owner of the province
@@ -1173,13 +1174,15 @@ alice_mvcap_9;Текущая столица не находится в осад�
 alice_mvcap_10;Принадлежит вам
 alice_mvcap_11;Управляется вами
 alice_mvcap_12;Является владельцем ядра
-alice_pnt_pops;?YНаселение:?! $х$
+alice_pnt_pops;?YНаселение:?! $x$
 alice_pnt_rpops;?YРич Страта:?! $x$ ($y$)
 alice_pnt_mpops;?YСредние слои:?! $x$ ($y$)
 alice_pnt_ppops;?YБедные слои:?! $x$ ($y$)
-alice_pnt_culture;?YКультура:?! $х$
-alice_pnt_religion;?YReligion:?! $х$
-alice_pnt_dominant_religion;?YДоминирующая религия:?! $х$
-alice_pnt_dominant_ideology;?YДоминантная идеология:?! $х$
+alice_pnt_culture;?YКультура:?! $x$
+alice_pnt_religion;?YReligion:?! $x$
+alice_pnt_dominant_religion;?YДоминирующая религия:?! $x$
+alice_pnt_dominant_ideology;?YДоминантная идеология:?! $x$
 ledger_ppp_gdp;ВВП(ППС)
 ledger_ppp_gdp_per_capita;ВВП(ППС) на 1 млн человек
+becomes_from;Scoped becomes from
+becomes_this;Scoped becomes this

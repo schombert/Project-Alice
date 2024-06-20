@@ -50,38 +50,27 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
 		text::add_line_break_to_layout_box(state, contents, box);
 		switch(nations::get_status(state, nation_id)) {
 		case(nations::status::great_power):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"),
-					text::substitution_map{});
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"), text::substitution_map{});
 			break;
 		case(nations::status::secondary_power):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"),
-					text::substitution_map{});
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"), text::substitution_map{});
 			break;
 		case(nations::status::civilized):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"),
-					text::substitution_map{});
-			// Civil
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"), text::substitution_map{});
 			break;
 		case(nations::status::westernizing):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"),
-					text::substitution_map{});
-			// ???
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"), text::substitution_map{});
 			break;
 		case(nations::status::uncivilized):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"),
-					text::substitution_map{});
-			// Nothing
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"), text::substitution_map{});
 			break;
 		case(nations::status::primitive):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"),
-					text::substitution_map{});
-			// Nothing
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"), text::substitution_map{});
 			break;
 		default:
 			break;
@@ -177,12 +166,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		std::vector<float> datapoints(size_t(32));
 		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
-			datapoints[i] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + i) % 32] -
-				state.player_data_cache.treasury_record[(state.ui_date.value + 0 + i) % 32];
-		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + 31) % 32] -
-																				state.player_data_cache.treasury_record[(state.ui_date.value + 0 + 31) % 32];
+			datapoints[i] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + i) % 32] - state.player_data_cache.treasury_record[(state.ui_date.value + 0 + i) % 32];
+		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + 31) % 32] - state.player_data_cache.treasury_record[(state.ui_date.value + 0 + 31) % 32];
 		datapoints[0] = datapoints[1]; // otherwise you will store the difference between two non-consecutive days here
-
 		set_data_points(state, datapoints);
 	}
 };
@@ -239,20 +225,17 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
 		auto box = text::open_layout_box(contents, 0);
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy"), text::variable_type::value,
-				text::fp_two_places{fat_id.get_infamy()});
-		text::add_divider_to_layout_box(state, contents, box);
-		// text::add_to_layout_box(state, contents, box, text::format_ratio(fat_id.get_infamy(), ));
+		text::localised_format_box(state, contents, box, "infamy");
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, text::fp_two_places{fat_id.get_infamy()});
 		text::add_to_layout_box(state, contents, box, std::string_view("/"));
 		text::add_to_layout_box(state, contents, box, text::fp_two_places{state.defines.badboy_limit});
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+		text::localised_format_box(state, contents, box, "badboy_dro_1");
 		text::close_layout_box(contents, box);
-
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::badboy, false);
 	}
 };
@@ -275,8 +258,6 @@ public:
 		auto layout = text::create_endless_layout(internal_layout,
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 		auto box = text::open_layout_box(layout, 0);
-
-
 		text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
 		text::add_to_layout_box(state, layout, box, std::string(" ("));
 		if(pop_change > 0) {
@@ -284,11 +265,7 @@ public:
 		}
 		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(pop_change)}, color);
 		text::add_to_layout_box(state, layout, box, std::string(")"));
-
 		text::close_layout_box(layout, box);
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type != mouse_probe_type::tooltip ? message_result::unseen : message_result::consumed;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -757,13 +734,10 @@ public:
 		base_data.size.x = int16_t(ui_width(state));
 		base_data.size.y = int16_t(ui_height(state));
 		opaque_element_base::render(state, x, y);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
-		if(is_visible()) {
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		//Put it far away!
+		if(base_data.position.x >= 256 || base_data.position.y >= 256) {
+			base_data.position.x = int16_t(8192 * 2);
+			base_data.position.y = int16_t(8192 * 2);
 		}
 	}
 };
@@ -1687,21 +1661,21 @@ public:
 			text::add_line(state, contents, std::string_view("alice_crisis_par_1"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && par.supports_attacker) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 			//defenders
 			text::add_line(state, contents, std::string_view("alice_crisis_par_2"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && !par.supports_attacker) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 			//merely interested
 			text::add_line(state, contents, std::string_view("alice_crisis_par_3"));
 			for(const auto par : state.crisis_participants) {
 				if(par.merely_interested) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 		}

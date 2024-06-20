@@ -158,7 +158,7 @@ public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(!state.user_settings.use_classic_fonts) {
+		
 			auto old_handle = base_data.data.text_common.font_handle;
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
@@ -168,9 +168,7 @@ public:
 			multiline_text_element_base::render(state, x, y);
 
 			base_data.data.text_common.font_handle = old_handle;
-		} else {
-			multiline_text_element_base::render(state, x, y);
-		}
+		
 	}
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
@@ -188,7 +186,7 @@ public:
 
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 
-		if(!state.user_settings.use_classic_fonts) {
+		
 			auto old_handle = base_data.data.text_common.font_handle;
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
@@ -210,21 +208,7 @@ public:
 			populate_layout(state, container);
 
 			base_data.data.text_common.font_handle = old_handle;
-		} else {
-			auto container = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{
-				border.x,
-					border.y,
-					int16_t(base_data.size.x - border.x * 2),
-					int16_t(base_data.size.y - border.y * 2),
-					base_data.data.text.font_handle,
-					0,
-					align,
-					color,
-					false});
-			populate_layout(state, container);
-		}
+		
 	}
 };
 
@@ -769,14 +753,13 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto fat_id = dcon::fatten(state.world, n);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::country, n);
-		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+		text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
 		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 		text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
-		text::add_to_layout_box(state, contents, box, fat_id.get_government_type().get_desc(), sub);
+		text::add_to_layout_box(state, contents, box, state.world.government_type_get_desc(state.world.nation_get_government_type(n)), sub);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -1127,7 +1110,7 @@ public:
 			if(state.world.modifier_get_desc(mod_id)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
-				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
 				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod_id), sub);
@@ -1186,15 +1169,9 @@ public:
 			progress = 0.f;
 		}
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-		auto tech_id = nations::current_research(state, nation_id);
-		return (type == mouse_probe_type::tooltip && bool(tech_id)) ? message_result::consumed : message_result::unseen;
-	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto tech_id = nations::current_research(state, nation_id);
@@ -2006,15 +1983,18 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<nations::focus_type>()) {
 			auto category = any_cast<nations::focus_type>(payload);
-			category_label->set_text(state, text::get_focus_category_name(state, category));
+			if(category_label)
+				category_label->set_text(state, text::get_focus_category_name(state, category));
 
-			focus_list->row_contents.clear();
-			state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
-				auto fat_id = dcon::fatten(state.world, focus_id);
-				if(fat_id.get_type() == uint8_t(category))
-					focus_list->row_contents.push_back(focus_id);
-			});
-			focus_list->update(state);
+			if(focus_list) {
+				focus_list->row_contents.clear();
+				state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
+					auto fat_id = dcon::fatten(state.world, focus_id);
+					if(fat_id.get_type() == uint8_t(category))
+						focus_list->row_contents.push_back(focus_id);
+				});
+				focus_list->update(state);
+			}
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;

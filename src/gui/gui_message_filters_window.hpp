@@ -117,11 +117,11 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
 				dcon::modifier_id filter_mod_id{0};
-				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
-				if(it != state.key_to_text_sequence.end())
+				auto k = state.lookup_key(parsers::lowercase_str(filter_name));
+				if(k)
 					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
 						auto fat_id = dcon::fatten(state.world, mod_id);
-						if(it->second == fat_id.get_name())
+						if(k == fat_id.get_name())
 							filter_mod_id = mod_id;
 					});
 				return filter_mod_id;

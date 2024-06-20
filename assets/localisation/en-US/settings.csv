@@ -1,22 +1,3 @@
-language_en-US;English (US)
-language_fr-FR;French (France)
-language_de-DE;German (Germany)
-language_es-ES;Spanish (Spain)
-language_it-IT;Italian (Italy)
-language_sv-SV;Swedish (Sweden)
-language_cs-CZ;Czech (Czech Rep.)
-language_hu-HU;Hungarian (Hungary)
-language_nl-NL;Dutch (Netherlands)
-language_po-PO;Portuguese (Portugal)
-language_ru-RU;Russian (Russia)
-language_fi-FI;Finnish (Finland)
-language_pl-PL;Polish (Poland)
-language_ar-AR;Arabic (Arabia)
-language_zh-CN;Chinese (China)
-language_jp-JP;Japanese (Japan)
-language_ko-SK;Korean (South Korea)
-language_ko-NK;Korean (North Korea)
-language_bg-BG;Bulgarian (Bulgaria)
 save_and_exit;Save and Exit
 save;Save
 exit;Exit

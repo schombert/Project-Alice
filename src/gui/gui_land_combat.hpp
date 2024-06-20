@@ -138,8 +138,9 @@ public:
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(),
+				false);
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -169,8 +170,9 @@ public:
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(),
+				false);
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -897,7 +899,7 @@ public:
 			std::string tag_str = "";
 			if(bool(n)) {
 				tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
-				tag_str += " " + text::produce_simple_string(state, state.world.nation_get_name(n));
+				tag_str += " " + text::produce_simple_string(state, text::get_name(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			} else {
 				auto rf = state.world.army_get_controller_from_army_rebel_control(state.world.regiment_get_army_from_army_membership(reg));
@@ -945,7 +947,7 @@ public:
 		window_element_base::on_create(state);
 		state.ui_state.army_combat_window = this;
 
-		auto def = state.ui_state.defs_by_name.find("counter")->second.definition;
+		auto def = state.ui_state.defs_by_name.find(state.lookup_key("counter"))->second.definition;
 		for(int32_t i = 0; i < 30; ++i) {
 			int32_t s = (i < 15) ? 28 - i * 2 : (i - 15) * 2 + 1;
 			{

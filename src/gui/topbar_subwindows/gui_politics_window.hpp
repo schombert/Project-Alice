@@ -296,7 +296,8 @@ protected:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		nations::get_active_political_parties(state, state.local_player_nation).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, state.local_player_nation, row_contents);
 		update(state);
 	}
 };
@@ -337,8 +338,9 @@ public:
 		} else {
 			all_party_window->set_visible(state, !all_party_window->is_visible());
 		}
-		if(all_party_window && all_party_window->is_visible())
+		if(all_party_window && all_party_window->is_visible()) {
 			all_party_window->impl_on_update(state);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -367,7 +369,7 @@ class politics_ruling_party_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("ruling_party_pos")->second.definition].position;
+		base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("ruling_party_pos"))->second.definition].position;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -488,6 +490,10 @@ class politics_hold_election_button : public button_element_base {
 
 class national_modifier_icon : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {

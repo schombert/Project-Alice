@@ -64,7 +64,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		std::string formatted_tag = std::string("@") + nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int());
 		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, owner.get_name());
+		text::add_to_layout_box(state, contents, box, text::get_name(state, owner.id));
 		text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
 	} else {
 		text::add_to_layout_box(state, contents, box, fat.get_name());
@@ -121,7 +121,7 @@ void political_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 		std::string formatted_tag = std::string("@") + nations::int_to_tag(fat_id.get_identity_from_identity_holder().get_identifying_int());
 		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, fat_id.get_name());
+		text::add_to_layout_box(state, contents, box, text::get_name(state, n));
 		text::close_layout_box(contents, box);
 	} else if(auto rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov); rf) {
 		auto fat_id = dcon::fatten(state.world, rf);
@@ -162,60 +162,43 @@ void diplomatic_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		dcon::nation_fat_id nationundermouse = fat.get_nation_from_province_ownership();
-		dcon::nation_fat_id selectednation = (dcon::fatten(state.world, state.map_state.selected_province).get_nation_from_province_ownership().is_valid()) ?
-			dcon::fatten(state.world, state.map_state.selected_province).get_nation_from_province_ownership() :
-			dcon::fatten(state.world, state.local_player_nation);
 		//if(selectednation.get_is_great_power() && fat.get_nation_from_province_ownership() != selectednation) {
-		uint32_t level = nations::influence::get_level(state, selectednation.id, fat.get_nation_from_province_ownership().id);
-		level = level & nations::influence::level_mask;
-
-		if(nationundermouse.get_overlord_as_subject().get_ruler() == selectednation && nationundermouse.get_is_substate()) {
-			text::localised_format_box(state, contents, box, std::string_view("diplo_they_substate"));
-			text::add_line_break_to_layout_box(state, contents, box);
-
-		} else if(selectednation.get_overlord_as_subject().get_ruler() == nationundermouse && selectednation.get_is_substate()) {
-			text::localised_format_box(state, contents, box, std::string_view("diplo_we_substate"));
-			text::add_line_break_to_layout_box(state, contents, box);
-
-		} else if(nationundermouse.get_overlord_as_subject().get_ruler() == selectednation && !nationundermouse.get_is_substate()) {
-			text::localised_format_box(state, contents, box, std::string_view("diplo_they_satellite"));
-			text::add_line_break_to_layout_box(state, contents, box);
-
-		} else if(selectednation.get_overlord_as_subject().get_ruler() == nationundermouse && !selectednation.get_is_substate()) {
-			text::localised_format_box(state, contents, box, std::string_view("diplo_we_satellite"));
-			text::add_line_break_to_layout_box(state, contents, box);
-
-		} else if(selectednation.get_is_great_power() && nationundermouse != selectednation) {
-			text::add_to_layout_box(state, contents, box, fat.get_nation_from_province_ownership().id);
-			text::add_to_layout_box(state, contents, box, std::string_view(": "));
-
-			if(level == nations::influence::level_in_sphere) {
-				text::localised_format_box(state, contents, box, std::string_view("rel_sphere_of_influence"));
-			} else if(level == nations::influence::level_friendly) {
-				text::localised_format_box(state, contents, box, std::string_view("rel_friendly"));
-			} else if(level == nations::influence::level_cordial) {
-				text::localised_format_box(state, contents, box, std::string_view("rel_cordial"));
-			} else if(level == nations::influence::level_neutral) {
-				text::localised_format_box(state, contents, box, std::string_view("rel_neutral"));
-			} else if(level == nations::influence::level_opposed) {
-				text::localised_format_box(state, contents, box, std::string_view("rel_opposed"));
-			} else if(level == nations::influence::level_hostile) {
-				text::localised_format_box(state, contents, box, std::string_view("rel_hostile"));
-			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("map_tooltip.cpp:109 :: Send to a Programmer!"));
+		if(nationundermouse) {
+			dcon::nation_fat_id selectednation = (dcon::fatten(state.world, state.map_state.selected_province).get_nation_from_province_ownership().is_valid()) ?
+				dcon::fatten(state.world, state.map_state.selected_province).get_nation_from_province_ownership() :
+				dcon::fatten(state.world, state.local_player_nation);
+			uint8_t level = uint8_t(nations::influence::get_level(state, selectednation, fat.get_nation_from_province_ownership()));
+			level = level & nations::influence::level_mask;
+			if(nationundermouse.get_overlord_as_subject().get_ruler() == selectednation && nationundermouse.get_is_substate()) {
+				text::localised_format_box(state, contents, box, std::string_view("diplo_they_substate"));
+				text::add_line_break_to_layout_box(state, contents, box);
+			} else if(selectednation.get_overlord_as_subject().get_ruler() == nationundermouse && selectednation.get_is_substate()) {
+				text::localised_format_box(state, contents, box, std::string_view("diplo_we_substate"));
+				text::add_line_break_to_layout_box(state, contents, box);
+			} else if(nationundermouse.get_overlord_as_subject().get_ruler() == selectednation && !nationundermouse.get_is_substate()) {
+				text::localised_format_box(state, contents, box, std::string_view("diplo_they_satellite"));
+				text::add_line_break_to_layout_box(state, contents, box);
+			} else if(selectednation.get_overlord_as_subject().get_ruler() == nationundermouse && !selectednation.get_is_substate()) {
+				text::localised_format_box(state, contents, box, std::string_view("diplo_we_satellite"));
+				text::add_line_break_to_layout_box(state, contents, box);
+			} else if(selectednation.get_is_great_power() && nationundermouse != selectednation) {
+				text::add_to_layout_box(state, contents, box, fat.get_nation_from_province_ownership().id);
+				text::add_to_layout_box(state, contents, box, std::string_view(": "));
+				auto str = text::get_influence_level_name(state, level);
+				text::add_to_layout_box(state, contents, box, std::string_view(str));
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
+			text::localised_format_box(state, contents, box, std::string_view("following_have_claims"));
 			text::add_line_break_to_layout_box(state, contents, box);
+			for(auto c : fat.get_core()) {
+				text::add_to_layout_box(state, contents, box, std::string_view("• "));
+				auto tag = "@" + nations::int_to_tag(c.get_identity().get_identifying_int());
+				text::add_to_layout_box(state, contents, box, std::string_view(tag));
+				text::add_to_layout_box(state, contents, box, c.get_identity().get_name());
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::localised_format_box(state, contents, box, std::string_view("following_have_claims"));
-		text::add_line_break_to_layout_box(state, contents, box);
-		for(auto c : fat.get_core()) {
-			// TODO - replace these once flags get implemented
-			text::add_to_layout_box(state, contents, box, std::string_view(" - "));
-			text::add_to_layout_box(state, contents, box, c.get_identity().get_name());
-			text::add_line_break_to_layout_box(state, contents, box);
-		}
-
-		text::close_layout_box(contents, box);
 	}
 }
 
@@ -226,7 +209,7 @@ void region_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
-		std::string state_name = text::get_dynamic_state_name(state, fat.get_state_membership().id);
+		std::string state_name = text::get_province_state_name(state, prov);
 		text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
 		text::add_to_substitution_map(sub, text::variable_type::continentname, fat.get_continent().get_name());
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_state_entry"), sub);
@@ -344,10 +327,10 @@ void nationalfocus_map_tt_box(sys::state& state, text::columnar_layout& contents
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		if(fat.get_state_membership().get_owner_focus().is_valid()) {
+		if(fat.get_state_membership().get_owner_focus()) {
 			text::localised_format_box(state, contents, box, std::string_view("pw_national_focus"));
 			text::add_to_layout_box(state, contents, box, fat.get_state_membership().get_owner_focus().get_name(), text::text_color::yellow);
-			// TODO - nattional focus desc should go here
+			modifier_description(state, contents, fat.get_state_membership().get_owner_focus().get_modifier());
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -467,53 +450,45 @@ void supply_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
 		auto self_controlled = prov_controller == state.local_player_nation;
 		if(state.world.province_get_nation_from_province_ownership(prov) == state.local_player_nation && self_controlled) {
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_owner") + " x", text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_owner"), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::fp_three_places{ 2.5f }, text::text_color::green);
 			text::add_line_break_to_layout_box(state, contents, box);
-			/*} else if(self_controlled ||
-								bool(state.world.province_get_rebel_faction_from_province_rebel_control(p))) { // TODO: check for sieging
-
-					// This does not appear to be used
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_allied") + " x", text::text_color::white);
-			text::add_to_layout_box(state, contents, box, text::format_float{2.0f, 0}, text::text_color::red);
-			text::add_line_break_to_layout_box(state, contents, box);
-			*/
-		} else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, state.local_player_nation);
-							state.world.diplomatic_relation_get_are_allied(dip_rel)
-			|| fat.get_nation_from_province_control().get_overlord_as_subject().get_ruler() == state.local_player_nation) {
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_allied") + " x", text::text_color::white);
+		} else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, state.local_player_nation); state.world.diplomatic_relation_get_are_allied(dip_rel) || fat.get_nation_from_province_control().get_overlord_as_subject().get_ruler() == state.local_player_nation) {
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_allied"), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::format_float(2.0f, 0), text::text_color::green);
 			text::add_line_break_to_layout_box(state, contents, box);
-		} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, state.local_player_nation);
-							state.world.unilateral_relationship_get_military_access(uni_rel)) {
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_access") + " x", text::text_color::white);
+		} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, state.local_player_nation); state.world.unilateral_relationship_get_military_access(uni_rel)) {
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_access"), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::format_float(2.0f, 0), text::text_color::green);
 			text::add_line_break_to_layout_box(state, contents, box);
 		} else if(bool(state.world.get_core_by_prov_tag_key(prov, state.world.nation_get_identity_from_identity_holder(state.local_player_nation)))) {
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_core") + " x", text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_core"), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::format_float(2.0f, 0), text::text_color::green);
 			text::add_line_break_to_layout_box(state, contents, box);
 		} else if(state.world.province_get_siege_progress(prov) > 0.0f) {
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_siege") + " x", text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_siege"), text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::format_float(2.0f, 0), text::text_color::red);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-
 		text::close_layout_box(contents, box);
 	}
 }
 
-void partyloyalty_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    // Done
+void party_loyalty_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    // Done
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		text::localised_single_sub_box(state, contents, box, std::string_view("party_loyalty_desc_header"), text::variable_type::prov, prov);
-		std::vector<dcon::political_party_id> activeparties;
-		nations::get_active_political_parties(state, fat.get_nation_from_province_ownership().id).swap(activeparties);
-
-		for(auto party : activeparties) {
+		std::vector<dcon::political_party_id> active_parties;
+		nations::get_active_political_parties(state, fat.get_nation_from_province_ownership(), active_parties);
+		for(auto party : active_parties) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			auto loyalty = state.world.province_get_party_loyalty(prov, dcon::fatten(state.world, party).get_ideology().id);
 			if(loyalty > 0) {
@@ -527,13 +502,8 @@ void partyloyalty_map_tt_box(sys::state& state, text::columnar_layout& contents,
 			}
 			text::add_to_layout_box(state, contents, box, dcon::fatten(state.world, party).get_name(), text::text_color::white);
 			text::add_space_to_layout_box(state, contents, box);
-			if(loyalty > 0) {
-				text::add_to_layout_box(state, contents, box, text::fp_three_places{ loyalty * 100 }, text::text_color::green);
-			} else if(loyalty == 0) {
-				text::localised_format_box(state, contents, box, std::string_view("party_loyalty_desc_neutral"));
-			}
+			text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ loyalty }, loyalty > 0 ? text::text_color::green : text::text_color::yellow);
 		}
-
 		text::close_layout_box(contents, box);
 	}
 }
@@ -544,7 +514,6 @@ void rank_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::p
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-
 		switch(nations::get_status(state, fat.get_nation_from_province_ownership().id)) {
 		case(nations::status::great_power):
 		{
@@ -580,7 +549,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			std::string formatted_tag = std::string("@") + nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int());
 			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, owner.get_name());
+			text::add_to_layout_box(state, contents, box, text::get_name(state, owner.id));
 			text::close_layout_box(contents, box);
 		}
 		struct nation_and_value {
@@ -637,7 +606,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			std::string formatted_tag = std::string("@") + nations::int_to_tag(fatten(state.world, positive_vals[i].n).get_identity_from_identity_holder().get_identifying_int());
 			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, state.world.nation_get_name(positive_vals[i].n));
+			text::add_to_layout_box(state, contents, box, text::get_name(state, positive_vals[i].n));
 
 			text::close_layout_box(contents, box);
 		}
@@ -661,7 +630,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			std::string formatted_tag = std::string("@") + nations::int_to_tag(fatten(state.world, neg_vals[i].n).get_identity_from_identity_holder().get_identifying_int());
 			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, state.world.nation_get_name(neg_vals[i].n));
+			text::add_to_layout_box(state, contents, box, text::get_name(state, neg_vals[i].n));
 
 			text::close_layout_box(contents, box);
 		}
@@ -677,7 +646,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 	}
 }
 
-void civilsationlevel_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    //Done
+void civilsation_level_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    //Done
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
 
@@ -957,7 +926,7 @@ void employment_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 		float employment_rate = fat.get_demographics(demographics::employable) == 0.f ? 0.f : (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
 
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_total_employment"));
-		text::add_to_layout_box(state, contents, box, text::format_percentage(employment_rate, 1), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ employment_rate }, text::text_color::yellow);
 
 		text::close_layout_box(contents, box);
 	}
@@ -973,7 +942,7 @@ void literacy_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 		float literacy_rate = fat.get_demographics(demographics::total) == 0.f ? 0.f : (fat.get_demographics(demographics::literacy) / fat.get_demographics(demographics::total));
 
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_literacy_rate"));
-		text::add_to_layout_box(state, contents, box, text::format_percentage(literacy_rate, 1), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ literacy_rate }, text::text_color::yellow);
 
 		text::close_layout_box(contents, box);
 	}
@@ -1301,12 +1270,7 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 	if(auto n = state.world.province_get_nation_from_province_ownership(prov); n) {
 		auto fat_id = dcon::fatten(state.world, n);
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(economy::money), text::text_color::yellow);
-		text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ fat_id.get_stockpiles(economy::money) }, text::text_color::green);
+		text::add_to_layout_box(state, contents, box, text::get_name(state, n), text::text_color::yellow);
 		text::add_line_break_to_layout_box(state, contents, box);
 		auto total = fat_id.get_demographics(demographics::total);
 		if(total > 0.f) {
@@ -1426,7 +1390,7 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		supply_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::party_loyalty:
-		partyloyalty_map_tt_box(state, contents, prov);
+		party_loyalty_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::rank:
 		rank_map_tt_box(state, contents, prov);
@@ -1435,7 +1399,7 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		migration_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::civilization_level:
-		civilsationlevel_map_tt_box(state, contents, prov);
+		civilsation_level_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::relation:
 		relation_map_tt_box(state, contents, prov);

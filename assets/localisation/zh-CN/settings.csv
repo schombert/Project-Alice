@@ -1,75 +1,58 @@
-language_en-US;English (US)
-language_fr-FR;French (France)
-language_de-DE;German (Germany)
-language_es-ES;Spanish (Spain)
-language_it-IT;Italian (Italy)
-language_sv-SV;Swedish (Sweden)
-language_cs-CZ;Czech (Czech Rep.)
-language_hu-HU;Hungarian (Hungary)
-language_nl-NL;Dutch (Netherlands)
-language_po-PO;Portuguese (Portugal)
-language_ru-RU;Russian (Russia)
-language_fi-FI;Finnish (Finland)
-language_pl-PL;Polish (Poland)
-language_ar-AR;Arabic (Arabia)
-language_zh-CN;Chinese (China)
-language_jp-JP;Japanese (Japan)
-language_ko-SK;Korean (South Korea)
-language_ko-NK;Korean (North Korea)
-language_bg-BG;Bulgarian (Bulgaria)
-save_and_exit;Save and Exit
-save;Save
-exit;Exit
-graphics_options;Graphics Options
-sound_options;Sound Options
-controls_options;Misc. Options
-message_settings_options;Message Settings
-window_mode_label;Fullscreen
-map_projection;Projection
-map_projection_globe;Orthographic
-map_projection_flat;Equirectangular
-map_projection_globe_perspective;Vertical
-dm_popup_label;Diplomatic message as popups
-ui_scale;UI scale
-zoom_mode_label;Zoom style
-zoom_mode_panning;Panning
-zoom_mode_inverted;Inverted
-zoom_mode_centered;Centered
-zoom_mode_to_cursor;To cursor
-zoom_mode_away_from_cursor;Away from cursor
-zoom_speed_label;Zoom Acceleration
-river_label;Rivers
-mute_on_focus_lost_label;Mute on focus lost
-wasd_for_map_movement_label;WASD for movement
-vassal_color_label;Vassal coloring
-vassal_color_inherit;Inherit
-vassal_color_same;Same
-vassal_color_none;None
-black_map_font_label;Black map font
-edge_scrolling_label;Edge scrolling
-color_blind_mode_label;Color blind
-color_blind_mode_none;None
-color_blind_mode_deutan;Deutan
-color_blind_mode_protan;Protan
-color_blind_mode_tritan;Tritan
-color_blind_mode_achroma;Achroma
-render_models_label;Render models
-language_label;Language
-fow_label;Fog of War
-railroad_label;Railroad networks
-master_volume_label;Master volume
-music_volume_label;Music volume
-interface_volume_label;Interface volume
-effect_volume_label;Sound effect volume
-fonts_label;Classic fonts
-tooltip_mode_label;Floating tooltip
-music_player_label;Music player
-gaussianblur_label;Gaussian blur
-gamma_label;Gamma
-map_label;Map text
-map_label_0;None
-map_label_1;Linear
-map_label_2;Quadratic
-map_label_3;Cubic
-antialiasing_label;Antialiasing
-spoilers_label;Spoilers
+﻿#Powered_by_ParaTranz;;;;;;;;;;;;;x
+#CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
+save_and_exit;保存并退出;;;;;;;;;;;;x
+save;保存;;;;;;;;;;;;x
+exit;退出;;;;;;;;;;;;x
+graphics_options;图像选项;;;;;;;;;;;;x
+sound_options;声音选项;;;;;;;;;;;;x
+controls_options;杂项选项;;;;;;;;;;;;x
+message_settings_options;信息设置;;;;;;;;;;;;x
+window_mode_label;全屏模式;;;;;;;;;;;;x
+map_projection;地图投影;;;;;;;;;;;;x
+map_projection_globe;正交;;;;;;;;;;;;x
+map_projection_flat;等矩;;;;;;;;;;;;x
+map_projection_globe_perspective;垂直;;;;;;;;;;;;x
+dm_popup_label;弹出外交信息;;;;;;;;;;;;x
+ui_scale;UI缩放;;;;;;;;;;;;x
+zoom_mode_label;缩放风格;;;;;;;;;;;;x
+zoom_mode_panning;拍摄;;;;;;;;;;;;x
+zoom_mode_inverted;颠倒;;;;;;;;;;;;x
+zoom_mode_centered;中心;;;;;;;;;;;;x
+zoom_mode_to_cursor;随光标;;;;;;;;;;;;x
+zoom_mode_away_from_cursor;远离光标;;;;;;;;;;;;x
+zoom_speed_label;缩放加速度;;;;;;;;;;;;x
+river_label;河流;;;;;;;;;;;;x
+mute_on_focus_lost_label;当游戏不是主要视窗时静音;;;;;;;;;;;;x
+wasd_for_map_movement_label;使用WASD移动;;;;;;;;;;;;x
+vassal_color_label;附庸着色;;;;;;;;;;;;x
+vassal_color_inherit;继承;;;;;;;;;;;;x
+vassal_color_same;相同;;;;;;;;;;;;x
+vassal_color_none;不着色;;;;;;;;;;;;x
+black_map_font_label;黑色地图字体;;;;;;;;;;;;x
+edge_scrolling_label;边缘滚动;;;;;;;;;;;;x
+color_blind_mode_label;色盲;;;;;;;;;;;;x
+color_blind_mode_none;无;;;;;;;;;;;;x
+color_blind_mode_deutan;绿色盲;;;;;;;;;;;;x
+color_blind_mode_protan;红色盲;;;;;;;;;;;;x
+color_blind_mode_tritan;黄蓝色盲;;;;;;;;;;;;x
+color_blind_mode_achroma;红绿色盲;;;;;;;;;;;;x
+render_models_label;渲染模型;;;;;;;;;;;;x
+language_label;语言;;;;;;;;;;;;x
+fow_label;战争迷雾;;;;;;;;;;;;x
+railroad_label;铁路网络;;;;;;;;;;;;x
+master_volume_label;主音量;;;;;;;;;;;;x
+music_volume_label;音乐音量;;;;;;;;;;;;x
+interface_volume_label;界面音量;;;;;;;;;;;;x
+effect_volume_label;音效音量;;;;;;;;;;;;x
+fonts_label;经典字体;;;;;;;;;;;;x
+tooltip_mode_label;浮动工具提示;;;;;;;;;;;;x
+music_player_label;音乐播放器;;;;;;;;;;;;x
+gaussianblur_label;高斯模糊;;;;;;;;;;;;x
+gamma_label;亮度;;;;;;;;;;;;x
+map_label;地图文本;;;;;;;;;;;;x
+map_label_0;无;;;;;;;;;;;;x
+map_label_1;线性;;;;;;;;;;;;x
+map_label_2;二次线性;;;;;;;;;;;;x
+map_label_3;立体;;;;;;;;;;;;x
+antialiasing_label;反锯齿;;;;;;;;;;;;x
+spoilers_label;遮挡任务栏;;;;;;;;;;;;x

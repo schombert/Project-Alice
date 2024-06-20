@@ -81,6 +81,8 @@ static_assert(sizeof(pending_human_f_p_event) ==
 	+ sizeof(pending_human_f_p_event::p)
 	+ sizeof(pending_human_f_p_event::padding));
 
+bool is_valid_option(sys::event_option const& opt);
+
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo,
 		int32_t from_slot = 0, slot_type ft = slot_type::none);
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo,

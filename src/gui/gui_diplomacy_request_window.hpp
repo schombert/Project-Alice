@@ -83,9 +83,9 @@ class diplomacy_request_desc_text : public scrollable_text {
 			dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
 			text::substitution_map wsub;
 			text::add_to_substitution_map(wsub, text::variable_type::order, std::string_view(""));
-			text::add_to_substitution_map(wsub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
+			text::add_to_substitution_map(wsub, text::variable_type::second, text::get_adjective(state, primary_defender));
 			text::add_to_substitution_map(wsub, text::variable_type::second_country, primary_defender);
-			text::add_to_substitution_map(wsub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
+			text::add_to_substitution_map(wsub, text::variable_type::first, text::get_adjective(state, primary_attacker));
 			text::add_to_substitution_map(wsub, text::variable_type::third, war.get_over_tag());
 			text::add_to_substitution_map(wsub, text::variable_type::state, war.get_over_state());
 			auto war_name = text::resolve_string_substitution(state, state.world.war_get_name(war), wsub);
@@ -259,12 +259,12 @@ public:
 			gid = base_data.data.button.button_image;
 		}
 		if(gid && flag_texture_handle > 0) {
-			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto const& gfx_def = state.ui_defs.gfx[gid];
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(), false);
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -290,7 +290,7 @@ public:
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<diplomacy_request_lr_button<false>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -298,7 +298,7 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<diplomacy_request_count_text>(state,
-					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("alice_page_count"))->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
@@ -306,7 +306,7 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<diplomacy_request_lr_button<true>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));

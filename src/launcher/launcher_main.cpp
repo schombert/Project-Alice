@@ -71,6 +71,7 @@
 #include "resource.h"
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
+#pragma comment(lib, "icu.lib")
 #include "fonts.hpp"
 #include "texture.hpp"
 #include "text.hpp"
@@ -125,7 +126,7 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"for the selected mods",
 	"No scenario found",
 	"IP Address",
-	"Passowrd",
+	"Password",
 	"Nickname",
 	"Singleplayer",
 	"Multiplayer",
@@ -133,6 +134,42 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"Host",
 	"Join",
 	"Mod list"
+};
+//turkish
+static std::string_view tr_localised_strings[uint8_t(string_index::count)] = {
+	"Senaryo oluştur",
+	"Senaryoyu yeniden oluştur",
+	"Çalışma...",
+	"Seçilen modlar için yeni",
+	"bir senaryo oluşturun",
+	"Senaryo bulunamadı",
+	"IP adresi",
+	"Şifre",
+	"Takma ad",
+	"Tek oyunculu",
+	"Çok Oyunculu",
+	"Oyunu başlatmak",
+	"Ev sahibi",
+	"Katılmak",
+	"Mod listesi"
+};
+//albanian
+static std::string_view sq_localised_strings[uint8_t(string_index::count)] = {
+	"Krijo skenar",
+	"Rikrijo skenar",
+	"Punon...",
+	"Krijo një skenar të ri",
+	"për modalitetet e zgjedhura",
+	"Nuk u gjet asnjë skenar",
+	"Adresa IP",
+	"Fjalëkalimi",
+	"Pseudonimi",
+	"Lojtar i vetëm",
+	"Shumë lojtarë",
+	"Fillo lojen",
+	"Mikpritës",
+	"Bashkohu",
+	"Lista e modës"
 };
 //spanish
 static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
@@ -212,7 +249,7 @@ static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 	"Szenario neu erstellen",
 	"Arbeitet...",
 	"Neues Szenario für die",
-	"ausgew�hlten mods erstellen",
+	"ausgewählten mods erstellen",
 	"Szenario nicht gefunden",
 	"IP-Adresse",
 	"Passwort",
@@ -278,6 +315,42 @@ static std::string_view ar_localised_strings[uint8_t(string_index::count)] = {
 	"ينضم",
 	"قائمة وزارة الدفاع",
 };
+//norwegian
+static std::string_view no_localised_strings[uint8_t(string_index::count)] = {
+	"Lag scenario",
+	"Gjenskape scenario",
+	"Arbeider...",
+	"Lag et nytt scenario",
+	"for de valgte modsene",
+	"Ingen scenarioer funnet",
+	"IP adresse",
+	"Passord",
+	"Kallenavn",
+	"Enkeltspiller",
+	"Flerspiller",
+	"Start spill",
+	"Vert",
+	"Bli med",
+	"Mod liste",
+};
+//romanian
+static std::string_view ro_localised_strings[uint8_t(string_index::count)] = {
+	"Creați script",
+	"Scenariu de recenzie",
+	"Lucru...",
+	"Creați un nou script",
+	"pentru moduri selectate",
+	"Nu a fost găsit niciun script",
+	"adresa IP",
+	"Parola",
+	"Poreclă",
+	"Un singur jucator",
+	"Jucători multipli",
+	"Începeți jocul",
+	"Gazdă",
+	"A te alatura",
+	"Lista de moduri"
+};
 //russian
 static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Создать сценарий",
@@ -295,6 +368,312 @@ static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Хозяин",
 	"Присоединиться",
 	"Список модов",
+};
+//polish
+static std::string_view pl_localised_strings[uint8_t(string_index::count)] = {
+	"Stwórz scenariusz",
+	"Odtwórz scenariusz",
+	"Pracujący...",
+	"Utwórz nowy scenariusz",
+	"dla wybranych modów",
+	"Nie znaleziono scenariusza",
+	"Adres IP",
+	"Hasło",
+	"Przezwisko",
+	"Jeden gracz",
+	"Tryb wieloosobowy",
+	"Rozpocząć grę",
+	"Gospodarz",
+	"Dołączyć",
+	"Lista modów"
+};
+//bulgarian
+static std::string_view bg_localised_strings[uint8_t(string_index::count)] = {
+	"Създайте сценарий",
+	"Пресъздайте сценарий",
+	"Работи...",
+	"Създайте нов сценарий",
+	"за избраните модове",
+	"Няма намерен сценарий",
+	"IP адрес",
+	"Парола",
+	"Псевдоним",
+	"Един играч",
+	"Мултиплейър",
+	"Започни игра",
+	"Домакин",
+	"Присъединяване",
+	"Мод списък",
+};
+//catalan
+static std::string_view ca_localised_strings[uint8_t(string_index::count)] = {
+	"Crea un escenari",
+	"Recrea l'escenari",
+	"Treball...",
+	"Creeu un nou escenari",
+	"per als mods seleccionats",
+	"No s'ha trobat cap escenari",
+	"Adreça IP",
+	"Contrasenya",
+	"Pseudònim",
+	"Sol jugador",
+	"Multijugador",
+	"Començar el joc",
+	"Amfitrió",
+	"Uneix - te",
+	"Llista de modificacions",
+};
+//czech
+static std::string_view cs_localised_strings[uint8_t(string_index::count)] = {
+	"Vytvořte scénář",
+	"Znovu vytvořit scénář",
+	"Pracovní...",
+	"Vytvořte nový scénář",
+	"pro vybrané mody",
+	"Nebyl nalezen žádný scénář",
+	"IP adresa",
+	"Heslo",
+	"Přezdívka",
+	"Pro jednoho hráče",
+	"Pro více hráčů",
+	"Začít hru",
+	"Hostitel",
+	"Připojit",
+	"Seznam modů"
+};
+//danish
+static std::string_view da_localised_strings[uint8_t(string_index::count)] = {
+	"Opret scenarie",
+	"Genskab scenariet",
+	"Arbejder...",
+	"Opret et nyt scenarie",
+	"for de valgte mods",
+	"Intet scenarie fundet",
+	"IP - adresse",
+	"Adgangskode",
+	"Kaldenavn",
+	"En spiller",
+	"Flere spillere",
+	"Start Spil",
+	"Vært",
+	"Tilslutte",
+	"Mod liste"
+};
+//greek
+static std::string_view el_localised_strings[uint8_t(string_index::count)] = {
+	"Δημιουργία σεναρίου",
+	"Αναδημιουργήστε το σενάριο",
+	"Εργαζόμενος...",
+	"Δημιουργήστε ένα νέο σενάριο",
+	"για τα επιλεγμένα mods",
+	"Δεν βρέθηκε κανένα σενάριο",
+	"Διεύθυνση IP",
+	"Κωδικός πρόσβασης",
+	"Παρατσούκλι",
+	"Μονος παιχτης",
+	"Λειτουργία για πολλούς παίκτες",
+	"Ξεκίνα το παιχνίδι",
+	"Πλήθος",
+	"Συμμετοχή",
+	"Λίστα mod"
+};
+//finnish
+static std::string_view fi_localised_strings[uint8_t(string_index::count)] = {
+	"Luo skenaario",
+	"Luo skenaario uudelleen",
+	"Työskentelee...",
+	"Luo uusi skenaario",
+	"valituille modeille",
+	"Skenaariota ei löytynyt",
+	"IP - osoite",
+	"Salasana",
+	"Nimimerkki",
+	"Yksinpeli",
+	"Moninpeli",
+	"Aloita peli",
+	"Isäntä",
+	"Liittyä seuraan",
+	"Mod lista",
+};
+//hebrew
+static std::string_view he_localised_strings[uint8_t(string_index::count)] = {
+	"צור תרחיש",
+	"ליצור מחדש תרחיש",
+	"עובד...",
+	"צור תרחיש חדש עבור",
+	"המצבים שנבחרו",
+	"לא נמצא תרחיש",
+	"כתובת פרוטוקול אינטרנט",
+	"סיסמה",
+	"כינוי",
+	"שחקן יחיד",
+	"רב משתתפים",
+	"התחל משחק",
+	"מנחה",
+	"לְהִצְטַרֵף",
+	"רשימת השינויים במשחק"
+};
+//hungarian
+static std::string_view hu_localised_strings[uint8_t(string_index::count)] = {
+	"Forgatókönyv létrehozása",
+	"Forgatókönyv újbóli létrehozása",
+	"Dolgozó...",
+	"Hozzon létre egy új forgatókönyvet",
+	"a kiválasztott modokhoz",
+	"Nem található forgatókönyv",
+	"IP - cím",
+	"Jelszó",
+	"Becenév",
+	"Egyjátékos",
+	"Többjátékos",
+	"Játék kezdése",
+	"Házigazda",
+	"Csatlakozik",
+	"Mod lista"
+};
+//dutch
+static std::string_view nl_localised_strings[uint8_t(string_index::count)] = {
+	"Scenario maken",
+	"Scenario opnieuw maken",
+	"Werken...",
+	"Maak een nieuw scenario",
+	"voor de geselecteerde mods",
+	"Geen scenario gevonden",
+	"IP adres",
+	"Wachtwoord",
+	"Bijnaam",
+	"Een speler",
+	"Meerdere spelers",
+	"Start het spel",
+	"Gastheer",
+	"Meedoen",
+	"Mod - lijst"
+};
+//lithuanian
+static std::string_view lt_localised_strings[uint8_t(string_index::count)] = {
+	"Sukurti scenarijų",
+	"Atkurti scenarijų",
+	"Dirba...",
+	"Sukurkite naują pasirinktų",
+	"modifikacijų scenarijų",
+	"Scenarijus nerastas",
+	"IP adresas",
+	"Slaptažodis",
+	"Slapyvardis",
+	"Vieno žaidėjo",
+	"Kelių žaidėjų",
+	"Pradėti žaidimą",
+	"Šeimininkas",
+	"Prisijunk",
+	"Modifikacijų sąrašas"
+};
+//latvian
+static std::string_view lv_localised_strings[uint8_t(string_index::count)] = {
+	"Izveidojiet scenāriju",
+	"Atkārtoti izveidojiet scenāriju",
+	"Strādā...",
+	"Izveidojiet jaunu scenāriju",
+	"atlasītajiem modiem",
+	"Nav atrasts neviens scenārijs",
+	"IP adrese",
+	"Parole",
+	"Segvārds",
+	"Viens spēlētājs",
+	"Vairāku spēlētāju spēle",
+	"Sākt spēli",
+	"Uzņēmēja",
+	"Pievienojieties",
+	"Modu saraksts"
+};
+//estonian
+static std::string_view et_localised_strings[uint8_t(string_index::count)] = {
+	"Loo stsenaarium",
+	"Loo stsenaarium uuesti",
+	"Töötab...",
+	"Looge valitud modifikatsioonide",
+	"jaoks uus stsenaarium",
+	"Stsenaariumi ei leitud",
+	"IP - aadress",
+	"Parool",
+	"Hüüdnimi",
+	"Üksik mängija",
+	"Mitmikmäng",
+	"Alusta mängu",
+	"Host",
+	"Liitu",
+	"Modifikatsioonide loend"
+};
+//hindi
+static std::string_view hi_localised_strings[uint8_t(string_index::count)] = {
+	"परिदृश्य बनाएँ",
+	"परिदृश्य फिर से बनाएँ",
+	"कार्य कर रहा है...",
+	"चयनित मॉड के लिए",
+	"एक नया परिदृश्य बनाएँ",
+	"कोई परिदृश्य नहीं मिला",
+	"आईपी पता",
+	"पासवर्ड",
+	"उपनाम",
+	"एकल खिलाड़ी",
+	"मल्टीप्लेयर",
+	"खेल शुरू करें",
+	"होस्ट",
+	"जॉइन करें",
+	"मॉड सूची"
+};
+//vietnamese
+static std::string_view vi_localised_strings[uint8_t(string_index::count)] = {
+	"Tạo kịch bản",
+	"Kịch bản tái tạo",
+	"Đang làm việc...",
+	"Tạo một kịch bản mới cho",
+	"các mod đã chọn",
+	"Không tìm thấy kịch bản",
+	"Địa chỉ IP",
+	"Mật khẩu",
+	"Tên nick",
+	"Người chơi đơn",
+	"Nhiều người chơi",
+	"Bắt đầu trò chơi",
+	"Chủ nhà",
+	"Tham gia",
+	"Danh sách mod"
+};
+//armenian
+static std::string_view hy_localised_strings[uint8_t(string_index::count)] = {
+	"Ստեղծեք սցենար",
+	"Վերստեղծեք սցենարը",
+	"Աշխատանքային ...",
+	"Ստեղծեք նոր սցենար",
+	"ընտրված ռեժիմների համար",
+	"Ոչ մի սցենար չի գտնվել",
+	"IP հասցե",
+	"Գաղտնաբառ",
+	"Մականուն",
+	"Միայնակ խաղացող",
+	"Բազմապատկիչ",
+	"Սկսել խաղը",
+	"Հյուրընկալող",
+	"Միանալ",
+	"Mod ուցակ"
+};
+//ukrainian
+static std::string_view uk_localised_strings[uint8_t(string_index::count)] = {
+	"Створити сценарій",
+	"Сценарій огляду",
+	"Працює ...",
+	"Створіть новий сценарій",
+	"для вибраних мод",
+	"Не знайдено сценарію",
+	"IP - адреса",
+	"Пароль",
+	"Прізвище",
+	"Один гравець",
+	"Мультиплеєр",
+	"Почніть гру",
+	"Господар",
+	"З'єднувати",
+	"Список мод"
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -453,7 +832,7 @@ void create_opengl_context() {
 	} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
 		wglSwapIntervalEXT(1);
 	} else {
-		MessageBoxW(m_hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
+		window::emit_error_message("WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", true);
 	}
 }
 
@@ -1008,7 +1387,6 @@ void load_shaders() {
 		"layout (location = 0) out vec4 frag_color;\n"
 		"layout (binding = 0) uniform sampler2D texture_sampler;\n"
 		"layout (binding = 1) uniform sampler2D secondary_texture_sampler;\n"
-		"layout (binding = 2) uniform sampler2DArray texture_atlas_sampler;\n"
 		"layout (location = 2) uniform vec4 d_rect;\n"
 		"layout (location = 6) uniform float border_size;\n"
 		"layout (location = 7) uniform vec3 inner_color;\n"
@@ -1020,7 +1398,7 @@ void load_shaders() {
 		"}\n"
 		"layout(index = 0) subroutine(font_function_class)\n"
 		"vec4 border_filter(vec2 tc) {\n"
-		"\tvec4 color_in = texture(texture_atlas_sampler, vec3(tc, atlas_index));\n"
+		"\tvec4 color_in = texture(texture_sampler, tc);\n"
 		"\tif(color_in.r > 0.5) {\n"
 		"\t\treturn vec4(inner_color, 1.0);\n"
 		"\t} else if(color_in.r > 0.5 - border_size) {\n"
@@ -1033,7 +1411,7 @@ void load_shaders() {
 		"}\n"
 		"layout(index = 1) subroutine(font_function_class)\n"
 		"vec4 color_filter(vec2 tc) {\n"
-		"\tvec4 color_in = texture(texture_atlas_sampler, vec3(tc, atlas_index));\n"
+		"\tvec4 color_in = texture(texture_sampler, tc);\n"
 		"\tfloat sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);\n"
 		"\treturn vec4(inner_color, sm_val);\n"
 		"}\n"
@@ -1312,42 +1690,48 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size, ::text::font& f) {
-	auto it = f.get_cached_glyphs(codepoints, count);
-	assert(it != f.cached_text.end());
-	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
-	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
-	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
+void internal_text_render(std::string_view str, float baseline_x, float baseline_y, float size, ::text::font& f) {
+	hb_buffer_clear_contents(f.hb_buf);
+	hb_buffer_add_utf8(f.hb_buf, str.data(), int(str.size()), 0, int(str.size()));
+	hb_buffer_guess_segment_properties(f.hb_buf);
+	hb_shape(f.hb_font_face, f.hb_buf, NULL, 0);
+	unsigned int glyph_count = 0;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
+	float x = baseline_x;
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		f.make_glyph(glyph_info[i].codepoint);
+	}
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(f.glyph_advances[glyphid]);
-		float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
-		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
+		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 			glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
 			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		x += x_advance * size / 64.f;
 	}
 }
 
-void render_new_text(char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
+void render_new_text(std::string_view sv, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-	internal_text_render(codepoints, count, x, y + size, size, f);
+	internal_text_render(sv, x, y + size, size, f);
 }
 
 } // launcher::ogl
 
-static ::text::font_manager font_collection;
+static ::text::font_manager font_collection; //keep static because it uninits FT lib on destructor
+static ::text::font fonts[2];
 
 static ::ogl::texture bg_tex;
 static ::ogl::texture left_tex;
@@ -1364,34 +1748,26 @@ static ::ogl::texture big_r_button_tex;
 static ::ogl::texture warning_tex;
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& f) {
-	hb_feature_t hb_features[1];
-	unsigned int num_features = 0;
-	if(f.features == text::font_feature::small_caps) {
-		hb_features[0].tag = hb_tag_from_string("smcp", 4);
-		hb_features[0].start = 0; /* Start point in text */
-		hb_features[0].end = (unsigned int)-1; /* End point in text */
-		hb_features[0].value = 1;
-		num_features = 1;
-	}
-	hb_buffer_t* buf = hb_buffer_create();
-	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
-	hb_buffer_guess_segment_properties(buf);
-	hb_shape(f.hb_font_face, buf, hb_features, num_features);
+	hb_buffer_clear_contents(f.hb_buf);
+	hb_buffer_add_utf8(f.hb_buf, codepoints, int(count), 0, int(count));
+	hb_buffer_guess_segment_properties(f.hb_buf);
+	hb_shape(f.hb_font_face, f.hb_buf, NULL, 0);
 	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
-	float total = 0.0f;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
+	float x = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		f.make_glyph(glyph_info[i].codepoint);
 	}
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(f.glyph_advances[glyphid]);
-		total += x_advance * size / 64.f;
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
+		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
+		x += x_advance * size / 64.f;
 	}
-	hb_buffer_destroy(buf);
-	return total;
+	return x;
 }
 
 void render() {
@@ -1413,7 +1789,7 @@ void render() {
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0, 0, int32_t(base_width), int32_t(base_height), bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83, 5, 26, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", launcher::ogl::color_modification::none, 83, 5, 26, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -1474,12 +1850,12 @@ void render() {
 
 		if(selected_scenario_file.empty()) {
 			auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_scenario)];
-			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]) / 2.0f;
+			launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, fonts[1]);
 		} else {
 			auto sv = launcher::localised_strings[uint8_t(launcher::string_index::recreate_scenario)];
-			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]) / 2.0f;
+			launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, fonts[1]);
 		}
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
@@ -1497,18 +1873,18 @@ void render() {
 				warning_tex.get_texture_handle(), ui::rotation::upright, false);
 		}
 		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
-		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]) / 2.0f;
+		launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, fonts[1]);
 	}
 
 	{
 		// Create a new scenario file for the selected mods
 		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_a_new_scenario)];
-		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 		sv = launcher::localised_strings[uint8_t(launcher::string_index::for_the_selected_mods)];
-		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	}
 
 	if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
@@ -1554,12 +1930,12 @@ void render() {
 		// No scenario file found
 
 		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::no_scenario_found)];
-		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	}
 
 	auto sv = launcher::localised_strings[uint8_t(launcher::string_index::ip_address)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_ip_addr ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_ip_addr].x,
 		ui_rects[ui_obj_ip_addr].y,
@@ -1568,7 +1944,7 @@ void render() {
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::password)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_password ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_password].x,
 		ui_rects[ui_obj_password].y,
@@ -1577,7 +1953,7 @@ void render() {
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::nickname)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_player_name].x,
 		ui_rects[ui_obj_player_name].y,
@@ -1586,34 +1962,34 @@ void render() {
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::singleplayer)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[1]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::start_game)];
-	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, fonts[1]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::multiplayer)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[1]);
 
 	// Join and host game buttons
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::host)];
-	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, fonts[1]);
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::join)];
-	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, fonts[1]);
 
 	// Text fields
-	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(ip_addr.c_str(), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 	float ps_x_pos = ui_rects[ui_obj_password].x + 6.f;
-	launcher::ogl::render_new_text(password.c_str(), uint32_t(password.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
-	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(password.c_str(), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
+	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(player_name.c_str(), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::mod_list)];
-	auto ml_xoffset = list_text_right_align - base_text_extent(sv.data(), uint32_t(sv.size()), 24, font_collection.fonts[1]);
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	auto ml_xoffset = list_text_right_align - base_text_extent(sv.data(), uint32_t(sv.size()), 24, fonts[1]);
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[1]);
 
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
@@ -1677,9 +2053,9 @@ void render() {
 			empty_check_tex.get_texture_handle(), ui::rotation::upright, false);
 		}
 
-		auto xoffset = list_text_right_align - base_text_extent(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), 14, font_collection.fonts[0]);
+		auto xoffset = list_text_right_align - base_text_extent(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), 14, fonts[0]);
 
-		launcher::ogl::render_new_text(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), launcher::ogl::color_modification::none, xoffset, 75.0f + 7.0f + i * ui_row_height, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(mod_ref.name_.data(), launcher::ogl::color_modification::none, xoffset, 75.0f + 7.0f + i * ui_row_height, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	}
 
 	SwapBuffers(opengl_window_dc);
@@ -1722,35 +2098,112 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		LANGID lang = GetUserDefaultUILanguage();
 		//lang = 0x0004;
 		switch(lang & 0xff) {
-		case 0x0007:
-			localised_strings = &de_localised_strings[0];
+		//case 0x0001:
+		//	localised_strings = &ar_localised_strings[0];
+		//	font_set_load = 2;
+		//	break;
+		case 0x0002:
+			localised_strings = &bg_localised_strings[0];
+			font_set_load = 3;
 			break;
-		case 0x000A:
-			localised_strings = &es_localised_strings[0];
-			break;
-		case 0x0010:
-			localised_strings = &it_localised_strings[0];
-			break;
-		case 0x001D:
-			localised_strings = &sv_localised_strings[0];
-			break;
-		case 0x000C:
-			localised_strings = &fr_localised_strings[0];
-			break;
-		case 0x0016:
-			localised_strings = &po_localised_strings[0];
+		case 0x0003:
+			localised_strings = &ca_localised_strings[0];
 			break;
 		case 0x0004:
 			localised_strings = &zh_localised_strings[0];
 			font_set_load = 1;
 			break;
-		case 0x0001:
-			localised_strings = &ar_localised_strings[0];
-			font_set_load = 2;
+		case 0x0005:
+			localised_strings = &cs_localised_strings[0];
+			break;
+		case 0x0006:
+			localised_strings = &da_localised_strings[0];
+			break;
+		case 0x0007:
+			localised_strings = &de_localised_strings[0];
+			break;
+		case 0x0008:
+			localised_strings = &el_localised_strings[0];
+			break;
+		case 0x0009:
+			localised_strings = &en_localised_strings[0];
+			break;
+		case 0x000A:
+			localised_strings = &es_localised_strings[0];
+			break;
+		case 0x000B:
+			localised_strings = &fi_localised_strings[0];
+			break;
+		case 0x000C:
+			localised_strings = &fr_localised_strings[0];
+			break;
+		//case 0x000D:
+		//	localised_strings = &he_localised_strings[0];
+		//	break;
+		case 0x000E:
+			localised_strings = &hu_localised_strings[0];
+			break;
+		case 0x000F:
+			//localised_strings = &is_localised_strings[0];
+			break;
+		case 0x0010:
+			localised_strings = &it_localised_strings[0];
+			break;
+		case 0x0011:
+			//localised_strings = &ja_localised_strings[0];
+			break;
+		case 0x0012:
+			//localised_strings = &ko_localised_strings[0];
+			break;
+		case 0x0016:
+			localised_strings = &po_localised_strings[0];
+			break;
+		case 0x0013:
+			localised_strings = &nl_localised_strings[0];
+			break;
+		case 0x0014:
+			localised_strings = &no_localised_strings[0];
+			break;
+		case 0x0015:
+			localised_strings = &pl_localised_strings[0];
+			break;
+		case 0x0018:
+			localised_strings = &ro_localised_strings[0];
 			break;
 		case 0x0019:
 			localised_strings = &ru_localised_strings[0];
 			font_set_load = 3;
+			break;
+		case 0x001C:
+			localised_strings = &sq_localised_strings[0];
+			break;
+		case 0x001D:
+			localised_strings = &sv_localised_strings[0];
+			break;
+		case 0x001F:
+			localised_strings = &tr_localised_strings[0];
+			break;
+		case 0x0022:
+			localised_strings = &uk_localised_strings[0];
+			font_set_load = 3;
+			break;
+		case 0x0025:
+			localised_strings = &et_localised_strings[0];
+			break;
+		case 0x0026:
+			localised_strings = &lv_localised_strings[0];
+			break;
+		case 0x0027:
+			localised_strings = &lt_localised_strings[0];
+			break;
+		case 0x002A:
+			localised_strings = &vi_localised_strings[0];
+			break;
+		case 0x002B:
+			localised_strings = &hy_localised_strings[0];
+			break;
+		case 0x0039:
+			localised_strings = &hi_localised_strings[0];
 			break;
 		default:
 			break;
@@ -1759,48 +2212,47 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
-				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[0], file_content.data, file_content.file_size);
 			}
 			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
 			if(font_b) {
 				auto file_content = simple_fs::view_contents(*font_b);
-				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[1], file_content.data, file_content.file_size);
 			}
 		} else if(font_set_load == 1) { //chinese
-			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifSC-Bold.ttf"));
+			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/STZHONGS.TTF"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
-				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[0], file_content.data, file_content.file_size);
 			}
-			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifSC-Regular.ttf"));
+			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/STZHONGS.TTF"));
 			if(font_b) {
 				auto file_content = simple_fs::view_contents(*font_b);
-				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[1], file_content.data, file_content.file_size);
 			}
 		} else if(font_set_load == 2) { //arabic
 			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoNaskhArabic-Bold.ttf"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
-				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[0], file_content.data, file_content.file_size);
 			}
 			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoNaskhArabic-Regular.ttf"));
 			if(font_b) {
 				auto file_content = simple_fs::view_contents(*font_b);
-				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[1], file_content.data, file_content.file_size);
 			}
 		} else if(font_set_load == 3) { //cyrillic
 			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerif-Regular.ttf"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
-				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[0], file_content.data, file_content.file_size);
 			}
-			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerif-Italic.ttf"));
+			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerif-Regular.ttf"));
 			if(font_b) {
 				auto file_content = simple_fs::view_contents(*font_b);
-				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+				font_collection.load_font(fonts[1], file_content.data, file_content.file_size);
 			}
 		}
-		font_collection.load_all_glyphs();
 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_bg.png"), fs, bg_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_left.png"), fs, left_tex, false);

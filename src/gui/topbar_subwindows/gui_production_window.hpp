@@ -1144,14 +1144,14 @@ public:
 		// Create factory slots for each of the provinces
 		for(int16_t factory_index = 0; factory_index < int16_t(state.defines.factories_per_state); ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state,
-					state.ui_state.defs_by_name.find("factory_info")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("factory_info"))->second.definition);
 			ptr->index = uint8_t(factory_index);
 			ptr->base_data.position.x = (factory_index % num_cols) * ptr->base_data.size.x;
 			ptr->base_data.position.y += std::max<int16_t>(0, (factory_index / num_cols) * (ptr->base_data.size.y - 26));
 			infos.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
-		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("factory_info")->second.definition].size.y
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("factory_info"))->second.definition].size.y
 			* ((int16_t(state.defines.factories_per_state) + num_cols - 1) / num_cols);
 	}
 
@@ -1285,7 +1285,7 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			auto r = num_factories < int32_t(state.defines.factories_per_state);
-			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, contents.fixed_parameters.font_id)).get_conditional_indicator(r);
 			if(r) {
 				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
@@ -1355,7 +1355,7 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			auto r = num_factories < int32_t(state.defines.factories_per_state);
-			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, contents.fixed_parameters.font_id)).get_conditional_indicator(r);
 			if(r) {
 				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
@@ -1532,12 +1532,12 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::state_instance_id>::on_create(state);
 		constexpr int16_t num_cols = 8;
-		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("factory_info")->second.definition].size.y
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("factory_info"))->second.definition].size.y
 			* (((int16_t(state.defines.factories_per_state) + num_cols - 1) / num_cols) - 1);
 		// (8 + 7 - 1) - 1 = (8 + 6) - 1 = (14 / 8) - 1 ~= 1.75 rundown 1 - 1 = 0, ok
 
 		xy_pair base_sort_template_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template_offset"))->second.definition].position;
 
 		{
 			auto text_elm = std::make_unique< per_state_primary_worker_amount>();
@@ -1864,7 +1864,7 @@ public:
 
 			// Place legend for this category...
 			auto ptr = make_element_by_type<production_goods_category_name>(state,
-					state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("production_goods_name"))->second.definition);
 			ptr->base_data.position = commodity_offset;
 			Cyto::Any payload = curr_commodity_group;
 			ptr->impl_set(state, payload);
@@ -1880,7 +1880,7 @@ public:
 					continue;
 
 				auto info_ptr = make_element_by_type<production_good_info>(state,
-						state.ui_state.defs_by_name.find("production_info")->second.definition);
+						state.ui_state.defs_by_name.find(state.lookup_key("production_info"))->second.definition);
 				info_ptr->base_data.position = commodity_offset;
 				info_ptr->set_visible(state, false);
 
@@ -1910,12 +1910,12 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
+		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("build_factory"))->second.definition);
 		build_win = win.get();
 		add_child_to_front(std::move(win));
 
 		auto win2 = make_element_by_type<project_investment_window>(state,
-				state.ui_state.defs_by_name.find("invest_project_window")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("invest_project_window"))->second.definition);
 		win2->set_visible(state, false);
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));

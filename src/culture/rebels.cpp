@@ -1278,7 +1278,7 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 	auto religion = state.world.rebel_faction_get_religion(reb);
 	auto defection_target = state.world.rebel_faction_get_defection_target(reb);
 	auto in_nation = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
-	auto rebel_adj = state.world.nation_get_adjective(in_nation);
+	auto rebel_adj = text::get_adjective(state, in_nation);
 	auto adjective = defection_target.get_adjective();
 
 	text::add_to_substitution_map(sub, text::variable_type::country, rebel_adj);

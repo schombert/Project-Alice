@@ -1,1194 +1,1195 @@
-support_for_blank;support for $text$
-uh_support_for_blank;upper house support for $text$
-up_to;up to 
-scaled_support; proportional to support of $text$
-scaled_unemployment; proportional to unemployment
-stockpile_of;to national stockpile of $text$
-create_general;A new general is created
-create_admiral;A new admiral is created
-add_war_goal;A $text$ war goal is added against $nation$
-blank_loyalty;$text$ loyalty
-in_blank;in $text$
-no_effect;No effect
-move_capital_to;Move capital to
-add_x_core;Add $adj$ core
-add_core_to;Add core to
-remove_x_core;Remove $adj$ core
-remove_core_from;Remove core from
-change_name_to;Change name to $text$
-change_terrain_to;Change terrain to $text$
-change_rgo_production_to;Change RGO production to $text$
-make_accepted_culture;$text$ becomes an accepted culture
-primary_culture_changes_to;Primary culture changes to $text$
-union_culture_accepted;All cultures in the nation's primary culture group become accepted
-remove_accepted_culture;$text$ stops being an accepted culture
-increase_national_variable_by;Increase national variable $text$ by $value$
-decrease_national_variable_by;Decrease national variable $text$ by $value$
-life_rating;Life rating
-make_national_religion;$text$ becomes the national religion
-make_slave_state;Becomes a slave state
-make_slave_pop;Becomes a slave
-research_points;Research points
-change_tech_school;Technology school changes to $text$
-change_government_to;Government changes to $text$
-add_to_treasury;Added to treasury
-war_exhaustion;War exhaustion
-become_blank;Becomes $text$
-player_control_change;Player control changes to $text$
-set_national_flag;$text$ is set for this nation
-remove_national_flag;$text$ is unset for this nation
-infamy;Infamy
-change_province_owner;Change province owner to $text$
-annex_effect;Annex $text$
-annexed_by_effect;Is annexed by $text$
-core_return;$adj$ cores are returned to $text$
-core_return_short;$adj$ cores are returned
-change_province_controller;change province controller to $text$
-change_state_controller;change state controller to $text$
-pop_savings;Pop savings
-leadership_points;Leadership points
-release_as_vassal;Release $text$ as a vassal
-end_alliance;End alliance with $text$
-end_war_with;End war with $text$
-enable_ideology;Enable ideology ?Y$text$?!
-enable_technology;Give technology ?Y$text$?!
-enable_invention;Give invention ?Y$text$?!
-change_ruling_party;Change ruling party to $text$
-remove_prov_mod;Remove provincial modifier $text$
-remove_nat_mod;Remove national modifier $text$
-make_alliance;Enter into an alliance with $text$
-becomes_independent;$text$ becomes an independent nation
-release_as_independent;Release $text$ as an independent nation
-set_global_flag;Set $text$ globally
-remove_global_flag;Unset $text$ globally
-change_national_value;Change national value to $text$
-become_civ;Becomes a civilized nation
-become_unciv;Becomes an uncivilized nation
-free_slave_state;Becomes a free state
-free_slave_pop;Is freed from slavery
-hold_election;Hold election
-issue_change;$issue$ changes to $text$
-add_relative_income;Times last income added to treasury
-make_neutral;All alliances ended and all vassals released
-pop_size;Pop size
-move_pop_to;Move pop to $text$
-change_pop_type;Change pop type to $text$
-years_of_research;Years of research
-remove_mil_reforms;Remove $value$ military reforms
-remove_econ_reforms;Remove $value$ economic reforms
-add_crime;Add crime $text$
-remove_crime;Remove active crime
-perform_nationalization;Perform nationalization
-build_factory_in_capital;Build $text$ in capital state
-enable_great_wars;Great wars are enabled
-enable_world_wars;World wars are enabled
-disable_great_wars;Great wars are no longer possible
-disable_world_wars;World wars are no longer possible
-assimilate_pop;Change culture to $text$
-assimilate_province;Change the culture of all pops to $text$
-owner_primary_culture;its owner's primary culture
-literacy;literacy
-add_crisis_interest;Becomes interested in current crisis
-crisis_temperature_plain;crisis temperature
-militancy;militancy
-consciousness;consciousness
-rgo_size;RGO size
-trigger_every_revolt;Trigger a revolt of every rebel faction
-call_allies;Call allies into their current wars
-truce_with;Truce with $text$ until ?Y$y$?!
-diplomatic_influence_with;diplomatic influence with $text$
-relations_with;relationship with $text$
-add_modifier_until;Gets $text$ until $date$
-add_modifier;Gets $text$
-add_cb_months;Gets a $name$ casus belli against $text$ until $date$
-add_cb_no_months;Gets a $name$ casus belli against $text$
-add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope until $date$
-add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
-remove_cb_reversed;Loses any $name$ casus bellis against $text$
-remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
-set_national_variable_to;Set national variable $text$ to $value$
-event_fires;Event $text$ is triggered
-event_fires_in_days;Event $text$ is triggered in $value$ days
-railroad_in_capital;?G+1?! railroad level in capital
-railroad_in_capital_state;?G+1?! railroad level in capital state
-fort_in_capital;?G+1?! fort level in capital
-fort_in_capital_state;?G+1?! fort level in capital state
-fort_in_capital;?G+1?! fort level in capital
-fort_in_capital_state;?G+1?! fort level in capital state
-university_in_capital;?G+1?! university level in capital
-university_in_capital_state;?G+1?! university level in capital state
-bank_in_capital;?G+1?! bank level in capital
-bank_in_capital_state;?G+1?! bank level in capital state
-railroad_level;Railroad level
-fort_level;fort level
-naval_base_level;naval base level
-university_base_level;naval base level
-bank_base_level;naval base level
-apply;Apply
+support_for_blank;obsługa $text$
+uh_support_for_blank;wsparcie izby wyższej dla $text$
+up_to;aż do
+scaled_support;proporcjonalnie do wsparcia $text$
+scaled_unemployment;proporcjonalnie do bezrobocia
+stockpile_of;do krajowego zapasu $text$
+create_general;Tworzy się nowego generała
+create_admiral;Powstaje nowy admirał
+add_war_goal;Cel wojenny $text$ zostaje dodany przeciwko $nation$
+blank_loyalty;$tekst$ lojalność
+in_blank;w $tekst$
+no_effect;Bez efektu
+move_capital_to;Przenieś kapitał do
+add_x_core;Dodaj rdzeń $adj$
+add_core_to;Dodaj rdzeń do
+remove_x_core;Usuń rdzeń $adj$
+remove_core_from;Usuń rdzeń z
+change_name_to;Zmień nazwę na $text$
+change_terrain_to;Zmień teren na $text$
+change_rgo_production_to;Zmień produkcję RGO na $text$
+make_accepted_culture;$text$ staje się akceptowaną kulturą
+primary_culture_changes_to;Kultura podstawowa zmienia się na $text$
+union_culture_accepted;Wszystkie kultury z podstawowej grupy kulturowej narodu zostają zaakceptowane
+remove_accepted_culture;$text$ przestaje być akceptowaną kulturą
+increase_national_variable_by;Zwiększ zmienną krajową $text$ o $value$
+decrease_national_variable_by;Zmniejsz zmienną krajową $text$ o $value$
+life_rating;Ocena życia
+make_national_religion;$text$ staje się religią narodową
+make_slave_state;Staje się państwem niewolniczym
+make_slave_pop;Staje się niewolnikiem
+research_points;Punkty badawcze
+change_tech_school;Szkoła techniczna zmienia się na $text$
+change_government_to;Rząd zmienia $text$
+add_to_treasury;Dodano do skarbca
+war_exhaustion;Wyczerpanie wojenne
+become_blank;Staje się $text$
+player_control_change;Kontrola gracza zmienia się na $text$
+set_national_flag;Dla tego narodu ustawiono $text$
+remove_national_flag;Wartość $text$ nie jest ustawiona dla tego kraju
+infamy;Hańba
+change_province_owner;Zmień właściciela prowincji na $text$
+annex_effect;Załącznik $tekst$
+annexed_by_effect;Jest załączony przez $text$
+core_return;Rdzenie $adj$ są zwracane do $text$
+core_return_short;Zwracane są rdzenie $adj$
+change_province_controller;zmień kontroler prowincji na $text$
+change_state_controller;zmień kontroler stanu na $text$
+pop_savings;Popowe oszczędności
+leadership_points;Punkty przywództwa
+release_as_vassal;Zwolnij $text$ jako wasal
+end_alliance;Zakończ sojusz za pomocą $text$
+end_war_with;Zakończ wojnę za pomocą $text$
+enable_ideology;Włącz ideologię ?Y$text$?!
+enable_technology;Daj technologię?Y$text$?!
+enable_invention;Daj wynalazek?Y$text$?!
+change_ruling_party;Zmień partię rządzącą na $text$
+remove_prov_mod;Usuń modyfikator prowincji $text$
+remove_nat_mod;Usuń modyfikator narodowy $text$
+make_alliance;Wejdź do sojuszu z $text$
+becomes_independent;$text$ staje się niepodległym narodem
+release_as_independent;Uwolnij $text$ jako niezależny naród
+set_global_flag;Ustaw $text$ globalnie
+remove_global_flag;Usuń ustawienie $text$ globalnie
+change_national_value;Zmień wartość krajową na $text$
+become_civ;Staje się cywilizowanym narodem
+become_unciv;Staje się narodem niecywilizowanym
+free_slave_state;Staje się wolnym państwem
+free_slave_pop;Jest uwolniony z niewoli
+hold_election;Wstrzymaj wybory
+issue_change;$issue$ zmienia się na $text$
+add_relative_income;Razy ostatniego dochodu dodanego do skarbca
+make_neutral;Wszystkie sojusze zostały zakończone, a wszyscy wasale uwolnieni
+pop_size;Rozmiar popu
+move_pop_to;Przenieś pop do $text$
+change_pop_type;Zmień typ popu na $text$
+years_of_research;Lata badań
+remove_mil_reforms;Usuń $value$ reformy wojskowe
+remove_econ_reforms;Usuń reformy gospodarcze o wartości $
+add_crime;Dodaj przestępstwo $text$
+remove_crime;Usuń aktywne przestępstwo
+perform_nationalization;Dokonaj nacjonalizacji
+build_factory_in_capital;Zbuduj $text$ w stanie stołecznym
+enable_great_wars;Wielkie wojny są włączone
+enable_world_wars;Wojny światowe są włączone
+disable_great_wars;Wielkie wojny nie są już możliwe
+disable_world_wars;Wojny światowe nie są już możliwe
+assimilate_pop;Zmień kulturę na $text$
+assimilate_province;Zmień kulturę wszystkich wyskakujących okienek na $text$
+owner_primary_culture;pierwotną kulturę swojego właściciela
+literacy;alfabetyzacja
+add_crisis_interest;Interesuje się bieżącym kryzysem
+crisis_temperature_plain;temperatura kryzysowa
+militancy;bojowość
+consciousness;świadomość
+rgo_size;Rozmiar RGO
+trigger_every_revolt;Wywołaj bunt każdej frakcji rebeliantów
+call_allies;Wzywaj sojuszników do ich bieżących wojen
+truce_with;Rozejm z $text$ do ?Y$y$?!
+diplomatic_influence_with;wpływ dyplomatyczny za pomocą $text$
+relations_with;związek z $text$
+add_modifier_until;Pobiera $text$ do $date$
+add_modifier;Pobiera $tekst$
+add_cb_months;Pobiera $name$ casus belli przeciwko $text$ do $date$
+add_cb_no_months;Pobiera $name$ casus belli przeciwko $text$
+add_cb_reversed_months;$text$ otrzymuje $name$ casus belli przeciwko narodowi w zakresie do $date$
+add_cb_reversed_no_months;$text$ otrzymuje $name$ casus belli przeciwko całemu narodowi
+remove_cb_reversed;Przegrywa $name$ casus bellis przeciwko $text$
+remove_cb;$text$ traci wszelkie $name$ casus bellis przeciwko krajowi w zasięgu
+set_national_variable_to;Ustaw zmienną krajową $text$ na $value$
+event_fires;Wyzwalane jest zdarzenie $text$
+event_fires_in_days;Zdarzenie $text$ jest wyzwalane w ciągu $value$ dni
+railroad_in_capital;?G+1?! poziom kolei w stolicy
+railroad_in_capital_state;?G+1?! poziom kolei w stanie stołecznym
+fort_in_capital;?G+1?! poziom fortu w stolicy
+fort_in_capital_state;?G+1?! poziom fortu w stanie stołecznym
+fort_in_capital;?G+1?! poziom fortu w stolicy
+fort_in_capital_state;?G+1?! poziom fortu w stanie stołecznym
+university_in_capital;?G+1?! poziom uniwersytecki w stolicy
+university_in_capital_state;?G+1?! poziomie uniwersyteckim w stolicy
+bank_in_capital;?G+1?! poziom banku w kapitale
+bank_in_capital_state;?G+1?! poziom banku w państwie stołecznym
+railroad_level;Poziom kolei
+fort_level;poziom fortu
+naval_base_level;poziom bazy morskiej
+university_base_level;poziom bazy morskiej
+bank_base_level;poziom bazy morskiej
+apply;Stosować
 ok;OK
-close;Close
-delete;Delete
-new;New
-reset;Reset
-every;Every
-ready;Ready
-any;Any
-none;None
-random;A random
-neighboring_province;neighboring province
-where;where: 
-neighboring_nation;neighboring nation
-nation;nation
-continent;continent
-same_continent;on the same continent as
-empty_neighboring_province;Empty neighboring province
-poor_strata_pop;poor strata pop
-middle_strata_pop;middle strata pop
-rich_strata_pop;rich strata pop
-pop;Pop
-owned_province;province belonging to
-singular_nation;that nation
-singular_state;that state
-singular_province;that province
-singular_pop;that pop
-one_of_the_following;one of the following effects:
-this_nation;this nation
-this_state;this state
-this_province;this province
-this_pop;this pop
-from_nation;from nation
-from_state;from state
-from_province;from province
-from_pop;from pop
-province_in;province in
-this_nation_culture;The primary culture of this nation
-from_nation_culture;The primary culture of the from nation
-cultural_union_nation;The cultural union nation for its primary culture
-core_of;core of
-state_of;state of
-chance_of;chance of:
-owner_of;owner of
-controller_of;controller of
-location_of_pop;location of that pop
-nation_of_pop;nation containing that pop
-capital_of;capital of
-containing_state;state containing
-adjacent_sea;adjacent sea zone
-cultural_union_of;cultural union of
-overlord_of;overlord of
-sphere_leader_of;sphere leader of
-crisis_state;crisis state
-reb_independence_nation;rebel independence nation
-flashpoint_nation;flashpoint nation
-rebel;Rebel
-flashpoint_tension_label;Flashpoint tension
-for_text; for $text$
-where_ideology_is;Where its ideology is $text$
-where_culture_is;Where its culture is $text$
-where_religion_is;Where its religion is $text$
-of_type;of type $text$
-no_nation;no nation
-declare_war_on;Declare war on $text$
-attacker_wg_label;Attacker war goal: $text$
-defender_wg_label;Defender war goal: $text$
-attacker_no_allies;Attacker's allies will not be called in
-attacker_yes_allies;Attacker's allies will be called in
-war_start_date_desc;war started in ?Y$date$?!
-cmp_ge;is at least
-cmp_le;is at most
-cmp_gt;is greater than
-cmp_lt;is less than
-cmp_eq;is
-cmp_ne;is not
-cmp_has_eq;has
-cmp_has_ne;does not have
-cmp_has_lt;has less than
-cmp_has_gt;has more than
-cmp_has_ge;has at least
-cmp_has_le;has at most
-all_of_the_following;All of the following:
-any_of_the_following;Any of the following:
-nation_at_war_against;nation at war against
-core_in;core in
-colonial_pop;located in a colonial province
-substate_of;substate of
-nation_in_sphere;nation in the sphere of
-year;year
-month;month
-a_port;a port
-national_rank;national rank
-att_technology;technology
-strata;strata
-rich;rich
-poor;poor
-middle;middle
-minimum_state_life_raing;minimum life rating in state
-an_empy_adj_prov;an empty adjacent province
-belongs_to_same_state;belongs to the same state as $text$
-does_not_belong_to_same_state;does not belong to the same state as $text$
-contains_blank;contains $text$
-does_not_contain_blank;does not contain $text$
-times_target_needs_spending;times desired needs spending
-unemployment;unemployment
-slavery;slavery
-allowed;allowed
-a_slave_state;a slave state
-a_slave;a slave
-an_independent_nation;an independent nation
-non_prim_culture_pops;non primary-culture pops
-government;government
-capital;capital
-technology_school;technology school
-primary_culture;primary culture
-primary_culture_pop;the primary culture of the nation the pop is in
-an_accepted_culture;an accepted culture
-culture;Culture
-dominant_culture;dominant culture
-a_primary_or_accepted;a primary or accepted culture
-rebel_culture;rebel culture
-this_nation_prim_culture;the primary culture or an accepted culture of this nation
-from_nation_prim_culture;the primary culture or an accepted culture of the from nation
-culture_group;culture group
-dominant_culture_group;dominant culture group
-primary_culture_group;primary culture group
-a_core_ob;a core owned by
-rebel_culture_group;rebel cultural group
-this_nation_culture_group;the same as the culture group of this nation 
-from_nation_culture_group;the same as the culture group of the from nation
-rebel_religion;the rebel religion
-this_nation_religion;the national religion of this nation
-from_nation_religion;the national religion of the from nation
-province_terrain;province terrain
-rgo_production;RGO production
-a_secondary_power;a colonial power
-owner;owner
-an_active_rebel;an active rebel faction
-a_member_of;a member of
-unclaimed_cores;unclaimed cores
-a_cultural_union;a cultural union
-union_for_pop;the cultural union for the pop
-union_for_nation;the cultural union for the nation
-the_rebel_ind_nation;the rebel independence nation
-capitalists_can_build;capitalists are allowed to build factories
-capitalists_cannot_build;capitalists are not allowed to build factories
-at_war;at war
-total_blockade;total blockade
-owns;owns
-does_not_own;does not own
-controls;controls
-does_not_control;does not control
-a_core_in;a core in
-a_core_of;a core of
-a_core_of_owner;a core of its owner
-located_in_a_core_of;located in a core of
-percentage_reb_control;percentage of rebel controlled provinces
-num_of_reb_control;number of rebel controlled provinces
-num_owned_provinces;number of owned provinces
-num_provinces_owned_by;the number of provinces owned by
-num_of_ports;number of ports
-num_of_allies;number of allies
-num_of_vassals;number of vassals
-owned_by;owned by
-exists;exists
-does_not_exist;does not exist
-att_set;set
-in;in
-located_in;located in
-the_owner_of_region;the owner of every province in
-a_casus_belli_against;a casus belli against
-military_access_with;military access with
-prestige_of;the prestige of
-prestige;Prestige
-a_railroad;a railroad
-a_fort;a fort
-a_naval_base;a naval base
-a_factory;a factory
-empty;unowned
-blockaded;blockaded
-national_modifier;national modifier
-provincial_modifier;provincial modifier
-part_of;part of
-a_border_with;a border with
-units_in_province;units in province
-units_in_the_province;units in the province
-units_in_the_state;units in the state
-at_war_against;at war against
-num_of_divisions;a number of divisions
-an_ongoing_battle;an ongoing battle
-treasury;treasury
-o_treasury;owner's treasury
-o_of_prov;the owner of the province
-percentage_unowned_cores;percentage of unowned cores
-a_vassal;a vassal
-ruling_party_ideology;ruling party ideology
-ruling_party;ruling party
-enabled;enabled
-political_reform_desire;political reform desire
-social_reform_desire;social reform desire
-num_of_ships;number of ships
-crime_percent;percentage of provinces with crime
-national_religion;the national_religion
-member_of_nat_religion;a member of the national religion
-dominant_religion;the dominant religion
-same_rel_as_this;the same religion as this nation
-this_pop_culture;the culture of this pop
-this_nation_primary_culture;the primary culture of this nation
-this_nation_accepted_culture;an accepted culture of this nation
-coastal;coastal
-in_sphere_of;in the sphere of
-a_producer_of;a producer of
-next_reform;next reform
-always;always
-never;never
-percentage_recruited;percentage of recruited pops
-in_cultural_core_prov;in a province with a core of the same culture
-nationalism;nationalism
-overseas;overseas
-overseas_pop;located in an overseas province
-controlled_by_rebel;controlled by rebels
-controlled_by;controlled by
-state_capital;the state capital
-loc_state_capital;located in the state capital
-a_truce_with;a truce with
-att_population;population
-size;size
-pops_of_type;pops of type
-of_type_plain;of type
-ai_controlled;AI controlled
-a_leader_named;a leader named
-a_possible_vassal;a possible vassal
-a_vassal_of;a vassal of
-a_substate_of;a substate of
-allied_to;allied to
-has_recently_lost_war;has recently lost a war
-has_not_recently_lost_war;has not recently lost a war
-mobilized;mobilized
-mobilization_size;mobilization size
-admin_spending;administration spending
-greater_than_edu_spending;greater than education spending
-support_for_rp;support for ruling party
-colonial;colonial
-in_default_to;in default to
-in_bnkrpt;bankrupt
-num_of_ports_connected;number of ports connected to capital
-holding_an_election;holding an election
-set_globally;set globally
-national_value;national value
-industrial_score;industrial score
-industrial_score_of;the industrial score of
-military_score;military score
-military_score_of;the military score of
-civilized;civilized
-percent_occupied;percentage of occupied provinces
-rich_tax;rich tax
-middle_tax;middle tax
-poor_tax;poor tax
-soc_spending;social spending
-edu_spending;education spending
-mil_spending;military spending
-colonies;colonies
-dominant_ideology;dominant ideology
-dominant_issue;dominant issue
-poor_militancy;poor strata militancy
-middle_militancy;middle strata militancy
-rich_militancy;rich strata militancy
-gt_poor_tax;greater than poor tax
-cultural_union;cultural union
-same_cultural_union;the same as the cultural union of
-non_accepted_pops;non accepted pops
-crime;crime
-num_substates;number of substates
-num_vassals_no_substates;number of non-substate vassals
-num_regiments;number of regiments
-owner_num_regiments;owner's number of regiments
-num_regiments_of;the number of regiments belonging to
-times_num_regiments_of;$x$ times the number of regiments belonging to
-fabricating_on;fabricating a casus belli on
-cb_discovered;casus belli fabrication has been discovered
-cb_not_discovered;casus belli fabrication has not been discovered
-cb_progress;casus belli fabrication progress
-civ_progress;civilization progress
-constructing_a;fabricating a
+close;Zamknąć
+delete;Usuwać
+new;Nowy
+reset;Resetowanie
+every;Każdy
+ready;Gotowy
+any;Każdy
+none;Nic
+random;Losowy
+neighboring_province;sąsiednia prowincja
+where;Gdzie:
+neighboring_nation;sąsiedni naród
+nation;naród
+continent;kontynent
+same_continent;na tym samym kontynencie co
+empty_neighboring_province;Pusta sąsiednia prowincja
+poor_strata_pop;kiepski pop warstwowy
+middle_strata_pop;pop średniej warstwy
+rich_strata_pop;bogaty, warstwowy pop
+pop;Muzyka pop
+owned_province;prowincja należąca do
+singular_nation;ten naród
+singular_state;ten stan
+singular_province;ta prowincja
+singular_pop;ten pop
+one_of_the_following;jeden z następujących efektów:
+this_nation;ten naród
+this_state;ten stan
+this_province;tej prowincji
+this_pop;ten pop
+from_nation;od narodu
+from_state;ze stanu
+from_province;z prowincji
+from_pop;z popu
+province_in;prowincja w
+this_nation_culture;Pierwotna kultura tego narodu
+from_nation_culture;Pierwotna kultura narodu
+cultural_union_nation;Naród będący unią kulturową ze względu na swoją kulturę pierwotną
+core_of;rdzeń
+state_of;stan
+chance_of;szansa na:
+owner_of;właściciel
+controller_of;kontroler
+location_of_pop;lokalizacja tego popu
+nation_of_pop;naród zawierający ten pop
+capital_of;stolica
+containing_state;stan zawierający
+adjacent_sea;przyległą strefę morską
+cultural_union_of;unii kulturalnej
+overlord_of;władca
+sphere_leader_of;lider sfery
+crisis_state;stan kryzysowy
+reb_independence_nation;zbuntowany naród niepodległościowy
+flashpoint_nation;naród punktu zapalnego
+rebel;Buntownik
+flashpoint_tension_label;Napięcie punktu zapłonu
+for_text;za $tekst$
+where_ideology_is;Gdzie jego ideologią jest $text$
+where_culture_is;Gdzie jego kultura to $text$
+where_religion_is;Gdzie jego religią jest $text$
+of_type;typu $tekst$
+no_nation;żaden naród
+declare_war_on;Wypowiedz wojnę $text$
+attacker_wg_label;Cel wojenny atakującego: $text$
+defender_wg_label;Cel wojenny obrońcy: $text$
+attacker_no_allies;Sojusznicy atakującego nie zostaną wezwani
+attacker_yes_allies;Sojusznicy atakującego zostaną wezwani
+war_start_date_desc;wojna zaczęła się w ?Y$date$?!
+cmp_ge;jest przynajmniej
+cmp_le;jest co najwyżej
+cmp_gt;jest większy niż
+cmp_lt;jest mniej niż
+cmp_eq;Jest
+cmp_ne;nie jest
+cmp_has_eq;ma
+cmp_has_ne;nie ma
+cmp_has_lt;ma mniej niż
+cmp_has_gt;ma więcej niż
+cmp_has_ge;ma przynajmniej
+cmp_has_le;ma co najwyżej
+all_of_the_following;Wszystkie z poniższych:
+any_of_the_following;Którekolwiek z poniższych:
+nation_at_war_against;naród w stanie wojny przeciwko
+core_in;rdzeń w
+colonial_pop;położony w prowincji kolonialnej
+substate_of;podstan
+nation_in_sphere;naród w sferze
+year;rok
+month;miesiąc
+a_port;port
+national_rank;rangę narodową
+att_technology;technologia
+strata;warstwa
+rich;bogaty
+poor;słaby
+middle;środek
+minimum_state_life_raing;minimalna ocena życia w stanie
+an_empy_adj_prov;pustą sąsiednią prowincję
+belongs_to_same_state;należy do tego samego stanu co $text$
+does_not_belong_to_same_state;nie należy do tego samego stanu co $text$
+contains_blank;zawiera $tekst$
+does_not_contain_blank;nie zawiera $text$
+times_target_needs_spending;razy pożądane potrzeby wydatków
+unemployment;bezrobocie
+slavery;niewolnictwo
+allowed;dozwolony
+a_slave_state;stan niewolniczy
+a_slave;niewolnik
+an_independent_nation;niezależny naród
+non_prim_culture_pops;popy niebędące kulturą pierwotną
+government;rząd
+capital;kapitał
+technology_school;szkoła technologiczna
+primary_culture;kultura pierwotna
+primary_culture_pop;pierwotna kultura narodu, w którym żyje pop
+an_accepted_culture;akceptowaną kulturę
+culture;Kultura
+dominant_culture;Kultura dominująca
+a_primary_or_accepted;kultura pierwotna lub akceptowana
+rebel_culture;kulturę rebeliantów
+this_nation_prim_culture;kultura pierwotna lub kultura akceptowana tego narodu
+from_nation_prim_culture;kultura pierwotna lub kultura przyjęta przez naród
+culture_group;grupa kulturowa
+dominant_culture_group;dominująca grupa kulturowa
+primary_culture_group;grupa kultury pierwotnej
+a_core_ob;rdzeń będący własnością
+rebel_culture_group;buntownicza grupa kulturowa
+this_nation_culture_group;taka sama jak grupa kulturowa tego narodu
+from_nation_culture_group;taka sama jak grupa kulturowa narodu pochodzenia
+rebel_religion;religię rebeliantów
+this_nation_religion;religią narodową tego narodu
+from_nation_religion;religia narodowa narodu
+province_terrain;teren prowincji
+rgo_production;Produkcja RGO
+a_secondary_power;potęga kolonialna
+owner;właściciel
+an_active_rebel;aktywna frakcja rebeliantów
+a_member_of;członek
+unclaimed_cores;nieodebrane rdzenie
+a_cultural_union;unię kulturalną
+union_for_pop;unii kulturalnej popu
+union_for_nation;unię kulturalną narodu
+the_rebel_ind_nation;zbuntowany naród niepodległościowy
+capitalists_can_build;kapitaliści mogą budować fabryki
+capitalists_cannot_build;kapitalistom nie wolno budować fabryk
+at_war;w stanie wojny
+total_blockade;totalna blokada
+owns;posiada
+does_not_own;nie posiada
+controls;sterownica
+does_not_control;nie kontroluje
+a_core_in;rdzeń w
+a_core_of;rdzeń
+a_core_of_owner;rdzeń jego właściciela
+located_in_a_core_of;położony w rdzeniu
+percentage_reb_control;procent prowincji kontrolowanych przez rebeliantów
+num_of_reb_control;liczba prowincji kontrolowanych przez rebeliantów
+num_owned_provinces;liczbę posiadanych prowincji
+num_provinces_owned_by;liczba prowincji będących własnością
+num_of_ports;liczba portów
+num_of_allies;liczba sojuszników
+num_of_vassals;liczba wasali
+owned_by;posiadany przez
+exists;istnieje
+does_not_exist;nie istnieje
+att_set;ustawić
+in;W
+located_in;położony w
+the_owner_of_region;właściciel każdej prowincji w
+a_casus_belli_against;casus belli przeciwko
+military_access_with;dostęp wojskowy z
+prestige_of;prestiż
+prestige;Prestiż
+a_railroad;kolej
+a_fort;Fort
+a_naval_base;bazę morską
+a_factory;Fabryka
+empty;bezpański
+blockaded;zablokowany
+national_modifier;modyfikator narodowy
+provincial_modifier;modyfikator prowincjonalny
+part_of;część
+a_border_with;granica z
+units_in_province;jednostki w województwie
+units_in_the_province;jednostki w województwie
+units_in_the_state;jednostek w państwie
+at_war_against;w wojnie przeciwko
+num_of_divisions;szereg oddziałów
+an_ongoing_battle;tocząca się bitwa
+an_assigned_leader;an assigned leader
+treasury;skarbiec
+o_treasury;skarbiec właściciela
+o_of_prov;właściciel prowincji
+percentage_unowned_cores;procent nieposiadanych rdzeni
+a_vassal;wasal
+ruling_party_ideology;ideologia partii rządzącej
+ruling_party;partia rządząca
+enabled;włączony
+political_reform_desire;pragnienie reform politycznych
+social_reform_desire;pragnienie reform społecznych
+num_of_ships;liczba statków
+crime_percent;odsetek prowincji, w których występuje przestępczość
+national_religion;religia_narodowa
+member_of_nat_religion;członek religii narodowej
+dominant_religion;dominującą religią
+same_rel_as_this;tej samej religii co ten naród
+this_pop_culture;kulturę tego popu
+this_nation_primary_culture;pierwotną kulturę tego narodu
+this_nation_accepted_culture;akceptowaną kulturę tego narodu
+coastal;nadbrzeżny
+in_sphere_of;w sferze
+a_producer_of;producent
+next_reform;następna reforma
+always;zawsze
+never;nigdy
+percentage_recruited;procent zrekrutowanych popów
+in_cultural_core_prov;w prowincji o rdzeniu tej samej kultury
+nationalism;nacjonalizm
+overseas;za granicą
+overseas_pop;położony w prowincji zamorskiej
+controlled_by_rebel;kontrolowane przez rebeliantów
+controlled_by;kontrolowany przez
+state_capital;stolica stanu
+loc_state_capital;zlokalizowany w stolicy stanu
+a_truce_with;rozejm z
+att_population;populacja
+size;rozmiar
+pops_of_type;typu pop
+of_type_plain;typu
+ai_controlled;Kontrolowana przez sztuczną inteligencję
+a_leader_named;przywódca o imieniu
+a_possible_vassal;potencjalnego wasala
+a_vassal_of;wasalem
+a_substate_of;podstan
+allied_to;sprzymierzony
+has_recently_lost_war;niedawno przegrał wojnę
+has_not_recently_lost_war;nie przegrał ostatnio wojny
+mobilized;zmobilizowany
+mobilization_size;wielkość mobilizacji
+admin_spending;wydatki administracyjne
+greater_than_edu_spending;większe niż wydatki na edukację
+support_for_rp;poparcie dla partii rządzącej
+colonial;kolonialny
+in_default_to;domyślnie do
+in_bnkrpt;bankrut
+num_of_ports_connected;liczba portów połączonych ze stolicą
+holding_an_election;zorganizowanie wyborów
+set_globally;ustawić globalnie
+national_value;wartość narodowa
+industrial_score;wynik przemysłowy
+industrial_score_of;wynik przemysłowy
+military_score;wynik wojskowy
+military_score_of;wynik wojskowy
+civilized;cywilizowany
+percent_occupied;procent okupowanych prowincji
+rich_tax;bogaty podatek
+middle_tax;średni podatek
+poor_tax;słaby podatek
+soc_spending;wydatki socjalne
+edu_spending;wydatki na edukację
+mil_spending;Wydatki wojskowe
+colonies;kolonie
+dominant_ideology;dominującą ideologią
+dominant_issue;dominująca kwestia
+poor_militancy;słaba bojowość warstwowa
+middle_militancy;bojówka warstwy średniej
+rich_militancy;bogata bojówka warstwowa
+gt_poor_tax;większy niż słaby podatek
+cultural_union;unię kulturalną
+same_cultural_union;taki sam jak unii kulturalnej
+non_accepted_pops;nieakceptowane wyskakujące okienka
+crime;przestępczość
+num_substates;liczba podstanów
+num_vassals_no_substates;liczba wasali niebędących substanami
+num_regiments;liczba pułków
+owner_num_regiments;liczba pułków właściciela
+num_regiments_of;liczba pułków należących do
+times_num_regiments_of;$x$ razy liczba pułków należących do
+fabricating_on;fabrykując casus belli
+cb_discovered;Odkryto fabrykację casus belli
+cb_not_discovered;Nie odkryto fabrykacji casus belli
+cb_progress;postęp w produkcji casus belli
+civ_progress;postęp cywilizacyjny
+constructing_a;fabrykowanie A
 casus_belli;casus belli
-nation_in_scope;the nation in scope
-a_substate;a substate
-gw_enabled;great wars are enabled
-gw_not_enabled;great wars are not enabled
-ww_enabled;world wars are enabled
-ww_not_enabled;world wars are not enabled
-can_perform_nationalization;can nationalize
-cannot_perform_nationalization;can't nationalize
-in_sphere;in a sphere of influence
-num_states;number of states
-a_releasable_vassal;a releasable vassal
-recent_immigration;recent immigration
-num_control_days;number of days under current control
-disarmed;disarmed
-social_mov_support;social movement support
-political_mov_support;political movement support
-a_member_of_social_mov;a member of a social movement
-a_member_of_political_mov;a member of a political movement
-cultural_sphere_members;sphere members in the same cultural group
-pops;pops
-this_pop_religion;the religion of this pop
-pops_with;pops with
-life_needs_satisfaction;life-needs satisfaction
-everyday_needs_satisfaction;everyday-needs satisfaction
-luxury_needs_satisfaction;luxury-needs satisfaction
-present_in_state;present in state
-flashpoint;Flashpoint
-plurality_pop;the plurality of the nation the pop is in
-an_ongoing_crisis;an ongoing crisis
-there;There
-current_crisis;current crisis
-liberation_crisis;a liberation crisis
-claim_crisis;a claim crisis
-involved_in_crisis;involved in crisis
-poor_life_needs_satisfaction;poor-strata life-needs satisfaction
-poor_everyday_needs_satisfaction;poor-strata everyday-needs satisfaction
-poor_luxury_needs_satisfaction;poor-strata luxury-needs satisfaction
-middle_life_needs_satisfaction;middle-strata life-needs satisfaction
-middle_everyday_needs_satisfaction;middle-strata everyday-needs satisfaction
-middle_luxury_needs_satisfaction;middle-strata luxury-needs satisfaction
-rich_life_needs_satisfaction;rich-strata life-needs satisfaction
-rich_everyday_needs_satisfaction;rich-strata everyday-needs satisfaction
-rich_luxury_needs_satisfaction;rich-strata luxury-needs satisfaction
-dip_influence_over;diplomatic influence over
-relationship_with;relationship with
-this_pop_type;this pop type
-nat_variable;national variable
-support_in_uh;support in upper house
-support_in;loyalty in
-scope_province;province in scope
-able_build_rr;able to build a railroad in this province
-able_build_fort;able to build a fort in this province
-able_build_naval_base;able to build a naval base in this province
-work;work
-available_for;available for:
-support;support
-percentage;percentage
-stockpile;stockpile
-this_nat_religion;the national religion of this country
-from_nat_religion;the national religion of the from country
-event_show_requirements;Requirements for the event
-event_only_other_requirements;This event is only triggered by other events
-event_show_odds;Odds of the event
-value_mod_product;Value $val$ is the product of:
-value_mod_sum;Value $val$ is the sum of:
-value_mod_sum_factor;Value $val$ is $x$ times the sum of:
-admin_explain_1;Administrative efficiency modifier of $val$
-admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$
-admin_explain_3;To the required percentage: $val$ (base $x$ + $y$ from reforms)
-factory_condition_1;The nation is civilized
-factory_condition_2;This is not a colonial state
-factory_condition_3;The ruling party allows building factories
-factory_condition_4;There are fewer than $val$ factories in the state
-cant_subsidize_explanation;The ruling party does not allow us to subsidize factories
-percent_of_pop_strata;$val$ of the population of their strata
-cant_prioritize_explanation;The ruling party does not allow us to change factory priority
-factory_upgrade_condition_1;The nation is civilized
-factory_upgrade_condition_2;This is not a colonial state
-factory_upgrade_condition_3;The technology requirements to construct the factory are met
-factory_upgrade_condition_4;Your nation is a great power while the target nation is not
-factory_upgrade_condition_5;The investment target is civilized
-factory_upgrade_condition_6;The ruling party of the investment target allows foreign investment
-factory_upgrade_condition_7;The investment target is not at war with you
-factory_upgrade_condition_8;The ruling party allows upgrading factories
-factory_upgrade_condition_9;The factory is not already being upgraded
-factory_upgrade_condition_10;The factory is not at max level
-factory_delete_header;Delete factory
-factory_delete_not_allowed;The ruling party does not allow us to delete factories
-factory_stats_1;This factory is currently operating at $val$ capacity
-factory_stats_2;This factory is targeting $val$ capacity
-factory_stats_3;It produced $val$ units of $x$ in the previous day
-factory_stats_4;It made a profit of $val$ in the previous day
-factory_stats_5;Inputs availability:
-factory_stats_6;Efficiency inputs availability:
-factory_stats_wage;Wage:
-factory_stats_expenses;Total expenses
-factory_stats_desired_income;Desired raw profit
-speed;$val$ kph
-shift_to_hold_open;Hold ?YSHIFT?! to keep this window open, ?YSHIFT-Right-click?! to build this in every state (but not expand)
-factory_upgrade_shortcuts;?YSHIFT-Left-click?W upgrade ?Gall?!S factories in a state\n?YSHIFT-Right-click?W upgrade ?Gall profitable?W factories in a state\n?YCTRL-Left-click?W upgrade ?Gall?W factories in a nation\n?YCTRL-Right-click?W upgrade ?Gall profitable?W factories in a nation\n?YCTRL-SHIFT-Left-click?W upgrade ?Gall profitable with full employment?W factories in a state\n?YCTRL-SHIFT-Right-click?W upgrade ?Gall profitable with full employment?W factories in a state
-blank_org_gain;organization gain
-plurality_change_reason;(based on the average consciousness)
-revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
-allow_reform_cond;Requirements:
-reform_effect_if_desc;When activated, if
-reform_effect_then_desc;Then:
-reform_effect_desc;When activated:
-special_rules;Special rules:
-voting_rules;Voting rules:
-hide_decision;Hide the notification for this decision
-sup_point_gain;Monthly suppression point increase: ?G+$val$
-sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
-pop_size_1;In the coming month the size of this pop is expected to change by: 
-pop_size_2;From growth: 
-pop_size_3;From promotion and demotion: 
-pop_size_4;From assimilation: 
-pop_size_5;From internal migration: 
-pop_size_6;From colonial migration: 
-pop_size_7;From emigration: 
-pop_size_8;From conversion: 
-pop_l_migration_header;?YMigration away: $val$
-pop_l_c_migration_header;?YColonial migration away: $val$
-pop_l_emigration_header;?YEmigration away: $val$
-pop_mig_1;There is no internal migration from colonial provinces
-pop_mig_2;Slaves do not migrate internally
-pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$)
-pop_mig_4;?YMigration factor:
-pop_cmig_1;The nation does not have any colonies
-pop_cmig_2;There is no colonial migration from colonial provinces
-pop_cmig_3;Slaves do not migrate colonially
-pop_cmig_4;Rich-strata pops do not migrate colonially
-pop_cmig_5;Factory workers do not migrate colonially
-pop_cmig_6;The number of people that will migrate colonially is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the province's colonial-migration modifier ($num$) times the colonial migration factor ($val$)
-pop_cmig_7;?YColonial migration factor:
-pop_emg_1;Pops can only emigrate from civilized nations
-pop_emg_2;There is no emigration from colonial provinces
-pop_emg_3;Slaves do not emigrate
-pop_emg_4;Pops without an ?Yoverseas?! culture do not emigrate
-pop_emg_5;The number of people that will emigrate is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$, squared if it's greater than 100%) times the emigration factor ($val$)
-pop_emg_6;?YEmigration factor:
-pop_prom_1;?YPromotion factor:
-pop_prom_2;From national focus: ?G$val$
-pop_prom_3;0 (because of national focus)
-pop_prom_4;?YDemotion factor:
-pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
-pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
-pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
-pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
-pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
-pop_con_1;Monthly consciousness change: 
-pop_con_2;Is the sum of:
-pop_con_3;From luxury needs satisfaction: ?G+$x$
-pop_con_4;From the local clergymen percentage ($val$): ?R$x$
-pop_con_5;The plurality and literacy factor: ?G+$x$?!, which is the product of:
-pop_con_6;Plurality: $x$
-pop_con_7;The national modifier to literacy-on-consciousness impact: $x$
-pop_con_8;The literacy impact factor: $x$
-pop_con_9;The pop's literacy: $x$
-pop_con_10;The colonial consciousness factor: $x$
-pop_con_11;and 0.1
-pop_con_12;Local pop consciousness modifier: 
-pop_con_13;National pop consciousness modifier: 
-pop_con_14;National non-colonial pop consciousness modifier: 
-pop_con_15;National non-accepted pop consciousness modifier: 
-pop_mil_1;Monthly militancy change: 
-pop_mil_2;Is the sum of:
-pop_mil_3;From life-needs satisfaction: ?R+$x$
-pop_mil_4;From everyday-needs satisfaction: 
-pop_mil_5;From luxury-needs satisfaction: ?G$x$
-pop_mil_6;From conservatism support: ?G$x$
-pop_mil_7;From ruling party support: ?G$x$
-pop_mil_8;From reform desire: ?R+$x$
-pop_mil_9;Local pop militancy modifier: 
-pop_mil_10;National pop militancy modifier: 
-pop_mil_11;National non-colonial pop militancy modifier: 
-pop_mil_12;From separatism: ?R+$val$?! (?R+$x$?! times national separatism modifier ?R$y$)
-pop_mil_13;From war exhaustion ?R+$val$?!
-pop_lit_1;Monthly literacy change: 
-pop_lit_2;Is the product of:
-pop_lit_3;From the local clergymen percentage ($val$): $x$
-pop_lit_4;Effective education spending: $x$
-pop_lit_5;The national education-efficiency modifier: $x$
-pop_lit_6;The modifier to the national education-efficiency modifier: $x$
-pop_lit_7;The base literacy change rate: $x$
-pop_lit_8;And 0.01
-pop_growth_topbar;It's expected to grow by ?G$x$?W within the next month.
-pop_growth_topbar_2;population changed by ?G$x$?W in the last ?Y30?W days.
-pop_growth_topbar_3;Our Adult male population is ?Y$curr$?W. Our adult male
-pop_growth_topbar_4;Our total population is ?Y$val$?W.
-pop_growth_1;Monthly pop growth: 
-pop_growth_2;Slaves do not grow
-pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:
-pop_growth_4;The quality-of-life factor $x$, which is the product of:
-pop_growth_5;The province factor $x$, which is itself the sum of:
-pop_growth_6;The life rating of the province $x$ minus the minimum life rating $y$, all times $val$
-pop_growth_7;And the base pop growth value $x$
-pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the starvation limit $val$)
-pop_growth_9;And 4
-pop_growth_10;The local population-growth modifier $x$
-pop_growth_11;The national population-growth modifier $x$
-pop_assim_1;Monthly pop assimilation: $x$
-pop_assim_2;Slaves do not assimilate
-pop_assim_3;Pops of an accepted culture do not assimilate
-pop_assim_4;Pops in colonial provinces do not assimilate
-pop_assim_5;Pops in overseas provinces do not assimilate
-pop_assim_6;Assimilation is proportional to the size of the pop times the product of:
-pop_assim_7;The base assimilation scale: $x$
-pop_assim_8;The national assimilation-rate modifier: $x$
-pop_assim_9;The local assimilation-rate modifier: $x$
-pop_assim_10;0.1 for not having an overseas culture
-pop_assim_11;$x$ from cores present in the province
-pop_assim_12;Variable assimilation factors: $x$
-pop_conver_1;Monthly pop conversion: $x$
-pop_conver_2;Pops of the state religion do not convert
-pop_conver_3;Pops do not convert unless there are pops of the state religion in the same province
-pop_conver_4;Conversion is proportional to the size of the pop times the product of:
-pop_conver_5;The base conversion scale: $x$
-pop_conver_6;The national conversion-rate modifier: $x$
-pop_conver_7;The local conversion-rate modifier: $x$
-pop_conver_8;Variable conversion factors: $x$
-pop_issue_attraction_1;Issue attraction: $x$
-pop_issue_attraction_2;This reform is not currently possible
-pop_issue_attraction_3;Issue attraction is the product of:
-pop_issue_attraction_4;The national modifier to social reform desire: $x$
-pop_issue_attraction_5;The national modifier to political reform desire: $x$
-pop_issue_attraction_6;And the issue attraction factor: $x$
-pop_ideology_attraction_1;Ideology attraction: $x$
-pop_ideology_attraction_2;This ideology is not currently available
-trade_setting_drawing;Drawing on stockpiles
-trade_setting_filling;Filling stockpiles
-trade_setting_stable;No stockpile activity
-trade_commodity_report_1;Current global demand: $x$
-trade_commodity_report_2;Current global production: $x$
-trade_commodity_report_3;Current global consumption: $x$
-trade_commodity_report_4;Amount on world market: $x$
-trade_fill;Fill
-trade_use;Draw upon
-trade_stockpile_target;Stockpile target amount:
-trade_stockpile_current;Current stockpile: 
-diplomacy_wx_1;Monthly war exhaustion: 
-influence_explain_1;We are currently banned and accumulate no influence with this nation
-influence_explain_2;We have a truce with this nation and accumulate no influence with it
-influence_explain_3;We are at war with this nation and accumulate no influence with it
-influence_explain_4;We accumulate, with all nations, a total of $x$ influence daily.
-influence_explain_5;This is the product of the base influence gain rate ($x$) times our national influence modifier ($y$) times our influence modifier from technology ($val$)
-influence_explain_6;National influence modifier: $x$
-influence_explain_7;Influence modifier from technology: $x$
-influence_explain_8;This is divided among the nations we are influencing, resulting in a base daily gain of: $x$
-influence_explain_9;which is further multiplied by 1 plus the sum of the following factors:
-influence_explain_10;$x$ from being discredited
-influence_explain_11;$x$ from being neighbors
-influence_explain_12;$x$ from having one or more of our sphere members as a neighbor
-influence_explain_13;$x$ from not having its capital on the same continent as ours
-influence_explain_14;$x$ from being our subject
-influence_explain_15;$x$ from our relationship
-influence_explain_16;$x$ from our investment in the nation
-influence_explain_17;$x$ from the size of the target nation
-influence_explain_18;$x$ from our relative score
-until_date;Until $x$
-add_wg_1;You can't add a war goal against yourself
-add_wg_2;You are at war
-add_wg_3;You have at least $x$ diplomatic point(s)
-add_wg_4;Current jingoism support ($x$) meets the threshold required to add a war goal ($y$)
-add_wg_5;A status quo war goal has not been added to your side
-intervene_1;Intervene in war
-intervene_2;Intervene in great war
-intervene_3;Is a great power
-intervene_4;Isn't involved in a crisis
-intervene_5;It has been at least $x$ month(s) since the war started
-intervene_6;Joining the war would not place you at war against the same nation twice or both fighting with and against the same nation
-intervene_7;Isn't a crisis war
-intervene_8;Joining would break a truce
-intervene_9;Is supporting the defender
-intervene_10;Defenders have no war goals other than status quo
-intervene_11;Attacker's war score is at least $x$
-intervene_12;War exhaustion is less than $x$
-intervene_13;Relations with the war leader are at least $x$
-intervene_14;None of your sphere members are on the opposing side
-intervene_15;None of your allies are on the opposing side
-intervene_16;None of your armies are located in provinces owned by the opposing side
-intervene_17;Primary defender has a friendly opinion of you
-military_score_explain_1;Capital ship score: $x$
-military_score_explain_2;Recruitable regiments: $x$
-military_score_explain_3;Active regiments: $x$
-military_score_explain_4;Is disarmed? (penalty factor of $x$)
-military_score_explain_5;Supply consumption modifier: $x$
-military_score_explain_6;Average land unit score: $x$
-military_score_explain_7;Total number of leaders: $x$
-industry_score_explain_2;The following foreign investments also add up (weight factor $x$):
-industry_score_explain_3;$y$ in $x$
-war_goal_1;Added by: $x$
-war_goal_2;Targeting: $x$
-war_goal_3;For state: $x$
-war_goal_4;Secondary nation: $x$
-war_goal_5;Ticking war score: $x$
-war_goal_6;If we occupy ?Y$x$?! of the the provinces, we will gain ?Y$y$?! ticking war score (relative to the fraction of occupied provinces)
-war_goal_7;We have a grace period of ?Y$x$?! days to occupy, otherwise we will lose ?Y$y$?! ticking war score daily
-war_goal_8;War started in ?Y$x$?!, we should fullfill by ?Y$y$?!, before the grace period ?Rruns out?!
-war_goal_9;The grace period ?Rhas ran out?! (period was from ?Y$x$?! to ?Y$y$?!)
-war_goal_10;Secondary tag: $x$
-utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$)
-utt_noleader;no leader
-war_score_1;From occupation: $x$
-war_score_2;From battles: $x$
-war_score_3;From war goals: $x$
-war_score_4;From blockades: $x$
-dp_inf_tooltip_ban;Embassy banned until $x$
-dp_inf_tooltip_discredit;Discredited until $x$
-discredit_explain_1;You can't discredit yourself
-discredit_explain_2;The target's opinion of you is better than hostile
-discredit_explain_3;The great power is not banned
-iaction_explain_1;You have at least $x$ influence with the target
-iaction_explain_2;Your embassy is not banned
-iaction_explain_3;You are not at war with the target
-iaction_explain_4;The target's opinion of the great power is at most equal to their opinion of you
-expel_explain_1;You can't expel your own advisors
-expel_explain_2;The target's opinion of you is at least neutral
-ban_explain_1;You can't ban your own embassy
-ban_explain_2;The target's opinion of you is at least friendly
-dec_op_explain_1;You can't decrease a nation's opinion of you
-dec_op_explain_2;You can't decrease a nation's opinion of their sphere leader
-dec_op_explain_3;The target's opinion of you is better than hostile
-dec_op_explain_4;The target's opinion of a great power can't be made worse than hostile
-iaction_explain_5;You're a great power
-iaction_explain_6;The target is not a great power
-state_transfer_di;State transfer
-state_transfer_button;State transfer
-state_transfer_offer;$actor$ is offering to give us the states of:
-state_transfer_desc;Transfers the ownership of one state to another nation, useful for negotiations beyond the game's scope
-state_transfer_explain_1;The target nation is a player
-state_transfer_explain_2;There isn't any crisis currently
-state_transfer_explain_3;We're not subjects
-state_transfer_explain_4;They're not subjects
-state_transfer_explain_5;We're at peace
-state_transfer_explain_6;We have more than 1 state
-cancel_ally_explain_1;You can't cancel an alliance with yourself
-cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
-cancel_ally_explain_3;You're currently allied
-cancel_ally_explain_4;You're not currently in a war together
-cancel_ally_explain_5;You're not a vassal of the target nation
-ally_explain_1;You can't form an alliance with yourself
-ally_explain_2;You have at least $x$ diplomatic point(s)
-ally_explain_3;You're not currently allied
-ally_explain_4;You're not both great powers while a crisis is ongoing
-ally_explain_5;You're not a subject nation
-ally_explain_6;You're not currently at war with the target
-ally_explain_7;The AI will accept
-ally_explain_8;The target isn't a subject nation
-call_ally_explain_1;You have an alliance with this nation
-call_ally_explain_2;You have at least $x$ diplomatic point(s)
-call_ally_explain_3;You're at war
-call_ally_explain_4;There is a war this nation can be called into
-call_ally_explain_5;The AI will accept
-cancel_access_explain_1;You have at least $x$ diplomatic point(s)
-ask_access_explain_1;You can't get military access from yourself
-ask_access_explain_2;You have at least $x$ diplomatic point(s)
-ask_access_explain_3;The AI will accept
-ask_access_explain_4;You are not currently at war with the target
-cancel_given_access_explain_1;You have at least $x$ diplomatic point(s)
-give_access_explain_1;You can't give military access to yourself
-give_access_explain_2;You have at least $x$ diplomatic point(s)
-give_access_explain_3;You are not currently at war with the target
-increase_rel_explain_1;Improves our relations by ?G+$x$
-increase_rel_explain_2;You can't increase your relationship with yourself
-increase_rel_explain_3;You have at least $x$ diplomatic point(s)
-increase_rel_explain_4;Current relations are less than 200
-increase_rel_explain_5;You are not currently at war with the target
-decrease_rel_explain_1;Worsens our relations by ?R$x$
-decrease_rel_explain_2;You can't decrease your relationship with yourself
-decrease_rel_explain_3;You have at least $x$ diplomatic point(s)
-decrease_rel_explain_4;Current relations are greater than -200
-decrease_rel_explain_5;You are not currently at war with the target
-cancel_w_sub_explain_1;Currently we are subsidizing this nation ?Y$x$?! per day
-cancel_w_sub_explain_2;You have at least $x$ diplomatic point(s)
-w_sub_explain_1;You can't offer war subsidies to yourself
-w_sub_explain_2;You have at least $x$ diplomatic point(s)
-w_sub_explain_3;You are not currently at war with the target
-w_sub_explain_4;The target is at war
-invention_bulb_1;This invention can't currently be discovered
-invention_bulb_2;It is possible to discover this invention
-invention_bulb_3;This invention has been discovered
-not_implemented;This feature is not currently implemented
-inc_op_explain_1;The nation's opinion of you is less than friendly
-add_sphere_explain_1;The nation has a friendly opinion of you
-add_sphere_explain_2;The nation is not currently sphered by another great power
-rem_sphere_explain_1;The nation is currently sphered by a great power
-rem_sphere_explain_2;The nation has a friendly opinion of you
-rem_sphere_explain_3;The nation is in your sphere of influence
-rem_sphere_explain_4;Removing a nation from your own sphere of influence will increase your infamy by ?R$x$
-rem_sphere_explain_5;Removing a nation from your own sphere of influence will reduce your prestige by ?R$x$
-fab_explain_1;You can't justify war against yourself
-fab_explain_2;You have at least $x$ diplomatic point(s)
-fab_explain_3;You are not currently fabricating a casus belli
-fab_explain_4;You are an independent nation or the target is your overlord
-fab_explain_5;The target is not in your sphere of influence
-fab_explain_6;You are not currently at war with the target
-fab_explain_7;You can fabricate a casus belli
-peace_description;Make a peace offer to end hostilities between you and this nation
-peace_explain_1;Is not a subject nation
-peace_explain_2;The target is not a subject nation
-peace_explain_3;At least one of the negotiating parties is the war leader for their side
-peace_explain_4;Both the parties are war leaders (crisis war)
-peace_explain_5;You have no other peace offer in progress
-war_explain_1;You can't declare war upon yourself
-war_explain_2;You have a casus belli to use against this nation
-war_explain_3;You have at least $x$ diplomatic point(s)
-war_explain_4;You are not already in a war with this nation
-wg_result_1;On adding this war goal:
-wg_result_2;On achieving this war goal:
-wg_result_3;On failing to achieve this war goal:
-wg_not_ready;You must finish choosing a war goal
-crisis_temperature_ex;The current crisis temperature is ?R$value$?W! Reaching ?R100?W will trigger a crisis war between the two sides
-crisis_mode_no_crisis;There is no crisis
-crisis_mode_finding_attacker;Finding a backer for the attacker side
-crisis_mode_finding_defender;Finding a backer for the defender side
-crisis_mode_heating_up;Crisis heating up
-crisis_back_explain_1;You are interested in the crisis (on the fence)
-crisis_back_explain_2;The crisis has attracted its initial backers
-crisis_add_interest_button;Take an interest in this crisis
-crisis_add_interest_button_ex_1;You are a great power
-crisis_add_interest_button_ex_2;The crisis has attracted its initial backers
-crisis_add_interest_button_ex_3;You have at least 1 diplomatic point
-crisis_offer_button;Make an offer to this nation to join your side of the crisis
-crisis_offer_button_ex_1;You are the leader of one of the crisis sides
-crisis_offer_button_ex_2;The crisis has attracted its initial backers
-crisis_offer_button_ex_3;You have at least 1 diplomatic point
-multiunit_header;$x$ Units Selected
-ai_alliance_1;The AI is currently seeking allies
-ai_alliance_2;Your nation is close enough to assist in a war
-ai_alliance_3;No conflicting ambitions
-ai_alliance_4;Your nation's military is sufficiently strong
-ai_alliance_5;Has shared mutual strategic interests
-ai_access_1;The AI sees one of your wars as advantageous to them
-col_start_title;Begin colonizing this state
-col_start_1;No colonizers are present or colonization is still in the initial stage
-col_start_2;Your nation is at least rank $x$
-col_start_3;The state is not the target of a colonial crisis
-col_start_4;You are not participating in a crisis war
-col_start_5;The minimum life rating you can colonize ($x$) is less than or equal to the life rating of the state ($y$)
-col_start_6;Base ?Y$x$
-col_start_7;There are at most three other colonizers present
-col_start_8;You are adjacent to the state or it is within naval range
-col_start_9;You have at least $x$ free colonial points
-col_invest_title;Invest in your colony
-col_invest_1;Your nation is at least rank $x$
-col_invest_2;The state is not the target of a colonial crisis
-col_invest_3;You are not participating in a crisis war
-col_invest_4;Without competition, you will be able to turn this state into a colony on $x$
-col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
-col_invest_6;You have at least $x$ free colonial points
-activated_by_with_a_chance_of;Activated by ?Y$x$?!, with a chance of:
-unit_max_speed;Max Speed ?G$x$?! KPH
-unit_attack;Attack ?G$x$
-unit_hull;Hull ?G$x$
-unit_fire_range;Firing Range ?G$x$
-unit_supply_consumption;Supply Consumption ?R$x$
-unit_supply_load;Supplies Weight ?R$x$
-unit_defence;Defence ?G$x$
-unit_discipline;Discipline ?G$x$
-unit_maneuver;Maneuver ?G$x$
-unit_recon;Reconaissance ?G$x$
-unit_support;Support ?G$x$
-unit_evasion;Evasion ?G$x$
-unit_siege;Siege ?G$x$
-unit_torpedo_attack;Torpedo Attack ?G$x$
-unit_build_time;$x$ days
-unit_build_unit_pop_size;$x$k
+nation_in_scope;naród w zasięgu
+a_substate;podstan
+gw_enabled;wielkie wojny są włączone
+gw_not_enabled;wielkie wojny nie są włączone
+ww_enabled;wojny światowe są włączone
+ww_not_enabled;wojny światowe nie są włączone
+can_perform_nationalization;może znacjonalizować
+cannot_perform_nationalization;nie można znacjonalizować
+in_sphere;w strefie wpływów
+num_states;liczba stanów
+a_releasable_vassal;wasalem, którego można zwolnić
+recent_immigration;niedawna imigracja
+num_control_days;liczba dni pod bieżącą kontrolą
+disarmed;rozbrojony
+social_mov_support;wsparcie ruchu społecznego
+political_mov_support;wsparcie ruchu politycznego
+a_member_of_social_mov;członek ruchu społecznego
+a_member_of_political_mov;członek ruchu politycznego
+cultural_sphere_members;członkowie sfery należący do tej samej grupy kulturowej
+pops;wyskakuje
+this_pop_religion;religia tego popu
+pops_with;wyskakuje z
+life_needs_satisfaction;zaspokojenie potrzeb życiowych
+everyday_needs_satisfaction;zaspokojenie codziennych potrzeb
+luxury_needs_satisfaction;zaspokojenie potrzeb luksusu
+present_in_state;obecny w stanie
+flashpoint;Temperatura zapłonu
+plurality_pop;pluralizm narodu, w którym żyje pop
+an_ongoing_crisis;trwający kryzys
+there;Tam
+current_crisis;obecny kryzys
+liberation_crisis;kryzys wyzwoleńczy
+claim_crisis;kryzys roszczeń
+involved_in_crisis;zaangażowana w kryzys
+poor_life_needs_satisfaction;zaspokojenie potrzeb życiowych warstw biednych
+poor_everyday_needs_satisfaction;Zaspokojenie codziennych potrzeb biednych warstw
+poor_luxury_needs_satisfaction;zaspokojenie potrzeb luksusowych biednych warstw
+middle_life_needs_satisfaction;zaspokojenie potrzeb życiowych warstwy środkowej
+middle_everyday_needs_satisfaction;zaspokojenie codziennych potrzeb warstwy środkowej
+middle_luxury_needs_satisfaction;zaspokojenie potrzeb luksusowych warstwy średniej
+rich_life_needs_satisfaction;zaspokojenie potrzeb życiowych warstw bogatych
+rich_everyday_needs_satisfaction;zaspokojenie codziennych potrzeb bogatych warstw
+rich_luxury_needs_satisfaction;zaspokojenie potrzeb luksusowych bogatych warstw
+dip_influence_over;wpływ dyplomatyczny
+relationship_with;związek z
+this_pop_type;ten typ popu
+nat_variable;zmienna krajowa
+support_in_uh;poparcie w izbie wyższej
+support_in;lojalność w
+scope_province;województwo w swoim zasięgu
+able_build_rr;w stanie zbudować linię kolejową w tej prowincji
+able_build_fort;w stanie zbudować fort w tej prowincji
+able_build_naval_base;w stanie zbudować bazę morską w tej prowincji
+work;praca
+available_for;dostępne dla:
+support;wsparcie
+percentage;odsetek
+stockpile;robić zapasy żywności
+this_nat_religion;religią narodową tego kraju
+from_nat_religion;religia narodowa kraju pochodzenia
+event_show_requirements;Wymagania dotyczące wydarzenia
+event_only_other_requirements;To zdarzenie jest wywoływane tylko przez inne zdarzenia
+event_show_odds;Szanse na wydarzenie
+value_mod_product;Wartość $val$ jest iloczynem:
+value_mod_sum;Wartość $val$ jest sumą:
+value_mod_sum_factor;Wartość $val$ to $x$ razy suma:
+admin_explain_1;Modyfikator wydajności administracyjnej $val$
+admin_explain_2;W odniesieniu do stosunku niekolonialnych biurokratów: $val$
+admin_explain_3;Do wymaganego procentu: $val$ (podstawa $x$ + $y$ z reform)
+factory_condition_1;Naród jest cywilizowany
+factory_condition_2;To nie jest państwo kolonialne
+factory_condition_3;Partia rządząca pozwala na budowę fabryk
+factory_condition_4;W stanie jest mniej niż $val$ fabryk
+cant_subsidize_explanation;Partia rządząca nie pozwala na dotowanie fabryk
+percent_of_pop_strata;$val$ populacji ich warstw
+cant_prioritize_explanation;Partia rządząca nie pozwala nam na zmianę priorytetu fabryki
+factory_upgrade_condition_1;Naród jest cywilizowany
+factory_upgrade_condition_2;To nie jest państwo kolonialne
+factory_upgrade_condition_3;Spełnione są wymagania technologiczne potrzebne do budowy fabryki
+factory_upgrade_condition_4;Twój naród jest wielką potęgą, podczas gdy naród docelowy nie jest
+factory_upgrade_condition_5;Cel inwestycji jest cywilizowany
+factory_upgrade_condition_6;Partia rządząca celem inwestycyjnym dopuszcza inwestycje zagraniczne
+factory_upgrade_condition_7;Cel inwestycyjny nie jest z Tobą w stanie wojny
+factory_upgrade_condition_8;Partia rządząca pozwala na modernizację fabryk
+factory_upgrade_condition_9;Fabryka nie jest jeszcze modernizowana
+factory_upgrade_condition_10;Fabryka nie jest na maksymalnym poziomie
+factory_delete_header;Usuń fabrykę
+factory_delete_not_allowed;Partia rządząca nie pozwala nam na likwidację fabryk
+factory_stats_1;Ta fabryka pracuje obecnie z wydajnością $val$
+factory_stats_2;Celem tej fabryki jest wydajność w wysokości $val$
+factory_stats_3;Poprzedniego dnia wyprodukowano jednostki $val$ o wartości x$
+factory_stats_4;Poprzedniego dnia osiągnął zysk w wysokości $val$
+factory_stats_5;Dostępność wejść:
+factory_stats_6;Dostępność wejść efektywnościowych:
+factory_stats_wage;Płaca:
+factory_stats_expenses;Łączne wydatki
+factory_stats_desired_income;Pożądany surowy zysk
+speed;$val$ km/h
+shift_to_hold_open;Przytrzymaj ?YSHIFT?! aby zachować to okno otwarte, ?YSHIFT-kliknij prawym przyciskiem myszy?! zbudować to w każdym stanie (ale nie rozszerzać)
+factory_upgrade_shortcuts;?YSHIFT-kliknięcie lewym przyciskiem?W aktualizacja ?Gall?!S fabryki w stanie\n?YSHIFT-kliknięcie prawym przyciskiem?W aktualizacja ?Gall opłacalny?W fabryki w stanie\n?YCTRL-kliknięcie lewym przyciskiem?W aktualizacja ? Gall?W fabryk w kraju\n?YCTRL-kliknięcie prawym przyciskiem?W aktualizacja?Gall opłacalne?W fabryki w kraju\n?YCTRL-SHIFT-kliknięcie lewym przyciskiem?W aktualizacja?Gall opłacalne przy pełnym zatrudnieniu?W fabryki w stan\n?YCTRL-SHIFT-kliknięcie prawym przyciskiem myszy?W aktualizacja?Gall przynosi zyski przy pełnym zatrudnieniu?W fabryki w stanie
+blank_org_gain;zysk organizacji
+plurality_change_reason;(w oparciu o średnią świadomość)
+revanchism_reason;Na podstawie liczby nieposiadanych rdzeni (w przypadku rdzeni z podstawową kulturą liczy się więcej)
+allow_reform_cond;Wymagania:
+reform_effect_if_desc;Po włączeniu, jeśli
+reform_effect_then_desc;Następnie:
+reform_effect_desc;Po aktywacji:
+special_rules;Zasady specjalne:
+voting_rules;Zasady głosowania:
+hide_decision;Ukryj powiadomienie o tej decyzji
+sup_point_gain;Miesięczny wzrost punktu tłumienia: ?G+$val$
+sup_point_explain;Od: stawka podstawowa $x$ x $y$ od biurokratów x $val$ z naszego modyfikatora do przyrostu punktów tłumienia
+pop_size_1;Oczekuje się, że w nadchodzącym miesiącu wielkość tego popu zmieni się o:
+pop_size_2;Ze wzrostu:
+pop_size_3;Z awansów i degradacji:
+pop_size_4;Z asymilacji:
+pop_size_5;Z migracji wewnętrznej:
+pop_size_6;Z migracji kolonialnej:
+pop_size_7;Z emigracji:
+pop_size_8;Z konwersji:
+pop_l_migration_header;?YMigracja poza domem: $val$
+pop_l_c_migration_header;?YMigracja kolonialna: $val$
+pop_l_emigration_header;?YEmigracja poza domem: $val$
+pop_mig_1;Nie ma migracji wewnętrznej z prowincji kolonialnych
+pop_mig_2;Niewolnicy nie migrują wewnętrznie
+pop_mig_3;Liczba osób, które będą migrować wewnętrznie, jest równa wielkości popu razy skali imigracji ($x$) razy modyfikatorowi wypychania imigrantów w prowincji ($y$) razy współczynnikowi migracji ($val$)
+pop_mig_4;?współczynnik migracji:
+pop_cmig_1;Naród nie ma żadnych kolonii
+pop_cmig_2;Nie ma migracji kolonialnej z prowincji kolonialnych
+pop_cmig_3;Niewolnicy nie migrują kolonialnie
+pop_cmig_4;Popy z bogatych warstw nie migrują kolonialnie
+pop_cmig_5;Pracownicy fabryk nie migrują kolonialnie
+pop_cmig_6;Liczba osób, które będą migrować kolonialnie, jest równa wielkości popu razy skali imigracji ($x$) razy modyfikatorowi wypychania imigrantów z prowincji ($y$) razy modyfikatorowi migracji kolonialnej prowincji ($num$) razy współczynnik migracji kolonialnej ($val$)
+pop_cmig_7;?YWspółczynnik migracji kolonialnej:
+pop_emg_1;Popowcy mogą emigrować jedynie z krajów cywilizowanych
+pop_emg_2;Nie ma emigracji z prowincji kolonialnych
+pop_emg_3;Niewolnicy nie emigrują
+pop_emg_4;Pops bez „Yoverseas?” kultura nie emigruje
+pop_emg_5;Liczba osób, które wyemigrują, jest równa wielkości popu, skali imigracji ($x$), razy modyfikatorowi wypychania imigrantów obowiązującemu w prowincji ($y$, kwadratowi, jeśli jest większe niż 100%), razy współczynnikowi emigracji ($ wartość $)
+pop_emg_6;?Współczynnik emigracji:
+pop_prom_1;?Yczynnik promocji:
+pop_prom_2;Z perspektywy krajowej: ?G$val$
+pop_prom_3;0 (ze względu na nacisk na kraj)
+pop_prom_4;?YWspółczynnik degradacji:
+pop_prom_5;Pop obecnie awansuje, ponieważ współczynnik awansu jest większy niż współczynnik degradacji
+pop_prom_6;Pop obecnie ulega degradacji, ponieważ współczynnik degradacji jest większy niż współczynnik awansu
+pop_prom_7;Ponieważ oba czynniki są negatywne, obecnie pop nie promuje, ani nie degraduje
+pop_prom_8;Liczba osób, które będą awansować, jest równa wielkości popu razy skala promocji ($x$) razy współczynnik awansu ($val$) razy wydajność administracyjna ($y$)
+pop_prom_9;Liczba osób, które ulegną degradacji, jest równa wielkości popu, skali awansu ($x$) razy współczynnikowi degradacji ($val$)
+pop_con_1;Miesięczna zmiana świadomości:
+pop_con_2;Czy suma:
+pop_con_3;Z zaspokojenia potrzeb luksusowych: ?G+$x$
+pop_con_4;Z procentu miejscowych duchownych ($val$): ?R$x$
+pop_con_5;Czynnik mnogości i umiejętności czytania i pisania: ?G+$x$?!, który jest iloczynem:
+pop_con_6;Wiele: $x$
+pop_con_7;Krajowy modyfikator wpływu umiejętności czytania i pisania na świadomość: $x$
+pop_con_8;Współczynnik wpływu umiejętności czytania i pisania: $x$
+pop_con_9;Umiejętność czytania i pisania popu: $x$
+pop_con_10;Współczynnik świadomości kolonialnej: $x$
+pop_con_11;i 0,1
+pop_con_12;Lokalny modyfikator świadomości popu:
+pop_con_13;Narodowy modyfikator świadomości popu:
+pop_con_14;Narodowy modyfikator niekolonialnej świadomości popu:
+pop_con_15;Krajowy, nieakceptowany modyfikator świadomości popowej:
+pop_mil_1;Miesięczna zmiana bojowości:
+pop_mil_2;Czy suma:
+pop_mil_3;Od zaspokojenia potrzeb życiowych: ?R+$x$
+pop_mil_4;Z zaspokojenia potrzeb codziennych:
+pop_mil_5;Od zaspokojenia potrzeb luksusowych: ?G$x$
+pop_mil_6;Ze wsparcia konserwatyzmu: ?G$x$
+pop_mil_7;Od wsparcia partii rządzącej: ?G$x$
+pop_mil_8;Z pragnienia reformy: ?R+$x$
+pop_mil_9;Lokalny modyfikator bojowości pop:
+pop_mil_10;Narodowy modyfikator bojowości popowej:
+pop_mil_11;Narodowy modyfikator niekolonialnej bojowości popowej:
+pop_mil_12;Z separatyzmu: ?R+$val$?! (?R+$x$?! razy modyfikator narodowego separatyzmu ?R$y$)
+pop_mil_13;Z wyczerpania wojennego ?R+$val$?!
+pop_lit_1;Miesięczna zmiana umiejętności czytania i pisania:
+pop_lit_2;Czy produkt:
+pop_lit_3;Z procentu miejscowych duchownych ($val$): $x$
+pop_lit_4;Efektywne wydatki na edukację: $x$
+pop_lit_5;Krajowy modyfikator efektywności edukacji: $x$
+pop_lit_6;Modyfikator krajowego modyfikatora efektywności edukacji: $x$
+pop_lit_7;Podstawowy wskaźnik zmiany umiejętności czytania i pisania: $x$
+pop_lit_8;I 0,01
+pop_growth_topbar;Oczekuje się, że w ciągu najbliższego miesiąca wzrośnie o ?G$x$?W.
+pop_growth_topbar_2;populacja zmieniła się o ?G$x$?W w ciągu ostatnich ?Y30?W dni.
+pop_growth_topbar_3;Nasza populacja dorosłych mężczyzn to ?Y$curr$?W. Nasz dorosły samiec
+pop_growth_topbar_4;Nasza całkowita populacja wynosi?Y$val$?W.
+pop_growth_1;Miesięczny wzrost popu:
+pop_growth_2;Niewolnicy nie rosną
+pop_growth_3;Wzrost popu jest proporcjonalny do wielkości popu pomnożonej przez sumę:
+pop_growth_4;Współczynnik jakości życia $x$, który jest iloczynem:
+pop_growth_5;Współczynnik prowincji $x$, który sam w sobie jest sumą:
+pop_growth_6;Wartość życia prowincji $x$ minus minimalna wartość życia $y$, cały czas $val$
+pop_growth_7;A podstawowa wartość wzrostu popu $x$
+pop_growth_8;Współczynnik potrzeb życiowych popu $x$ (zaspokojenie potrzeb życiowych $y$ - granica głodu $val$)
+pop_growth_9;I 4
+pop_growth_10;Lokalny modyfikator wzrostu populacji $x$
+pop_growth_11;Krajowy modyfikator wzrostu populacji $x$
+pop_assim_1;Miesięczna asymilacja popu: $x$
+pop_assim_2;Niewolnicy się nie asymilują
+pop_assim_3;Popy z akceptowanej kultury nie asymilują się
+pop_assim_4;Popowcy z prowincji kolonialnych nie asymilują się
+pop_assim_5;Popy z prowincji zamorskich nie asymilują się
+pop_assim_6;Asymilacja jest proporcjonalna do wielkości popu razy iloczyn:
+pop_assim_7;Podstawowa skala asymilacji: $x$
+pop_assim_8;Narodowy modyfikator współczynnika asymilacji: $x$
+pop_assim_9;Lokalny modyfikator współczynnika asymilacji: $x$
+pop_assim_10;0,1 za brak kultury zagranicznej
+pop_assim_11;$x$ z rdzeni obecnych w prowincji
+pop_assim_12;Zmienne współczynniki asymilacji: $x$
+pop_conver_1;Miesięczna konwersja pop: $x$
+pop_conver_2;Wyznawcy religii państwowej nie nawracają się
+pop_conver_3;Popowcy nie nawracają się, chyba że w tej samej prowincji są wyznawcy religii państwowej
+pop_conver_4;Konwersja jest proporcjonalna do wielkości popu razy iloczyn:
+pop_conver_5;Podstawowa skala konwersji: $x$
+pop_conver_6;Krajowy modyfikator współczynnika konwersji: $x$
+pop_conver_7;Lokalny modyfikator współczynnika konwersji: $x$
+pop_conver_8;Zmienne współczynniki przeliczeniowe: $x$
+pop_issue_attraction_1;Atrakcja problemu: $x$
+pop_issue_attraction_2;Reforma ta nie jest obecnie możliwa
+pop_issue_attraction_3;Atrakcyjność wydania jest efektem:
+pop_issue_attraction_4;Krajowy modyfikator pragnienia reform społecznych: $x$
+pop_issue_attraction_5;Krajowy modyfikator chęci reform politycznych: $x$
+pop_issue_attraction_6;A współczynnik atrakcyjności problemu: $x$
+pop_ideology_attraction_1;Atrakcyjność ideologiczna: $x$
+pop_ideology_attraction_2;Ta ideologia nie jest obecnie dostępna
+trade_setting_drawing;Czerpanie z zapasów
+trade_setting_filling;Uzupełnianie zapasów
+trade_setting_stable;Brak aktywności związanej ze składowaniem
+trade_commodity_report_1;Obecny popyt globalny: $x$
+trade_commodity_report_2;Obecna produkcja światowa: $x$
+trade_commodity_report_3;Aktualne globalne zużycie: $x$
+trade_commodity_report_4;Kwota na rynku światowym: $x$
+trade_fill;Wypełnić
+trade_use;Czerpać
+trade_stockpile_target;Docelowa ilość zapasów:
+trade_stockpile_current;Aktualny stan zapasów:
+diplomacy_wx_1;Miesięczne wyczerpanie wojną:
+influence_explain_1;Obecnie jesteśmy zbanowani i nie mamy żadnego wpływu na ten naród
+influence_explain_2;Mamy rozejm z tym narodem i nie mamy z nim żadnego wpływu
+influence_explain_3;Jesteśmy w stanie wojny z tym narodem i nie mamy z nim żadnego wpływu
+influence_explain_4;Codziennie gromadzimy, ze wszystkimi narodami, łącznie $x$ wpływów.
+influence_explain_5;Jest to iloczyn podstawowego współczynnika przyrostu wpływu ($x$) razy nasz narodowy modyfikator wpływu ($y$) razy nasz modyfikator wpływu z technologii ($val$)
+influence_explain_6;Narodowy modyfikator wpływu: $x$
+influence_explain_7;Modyfikator wpływu technologii: $x$
+influence_explain_8;Kwota ta jest dzielona pomiędzy narody, na które wpływamy, co daje podstawowy dzienny zysk w wysokości: $x$
+influence_explain_9;który następnie mnoży się przez 1 plus sumę następujących czynników:
+influence_explain_10;$x$ za zdyskredytowanie
+influence_explain_11;$x$ od bycia sąsiadami
+influence_explain_12;$x$ z posiadania jednego lub więcej członków naszej sfery jako sąsiada
+influence_explain_13;$x$ z powodu braku stolicy na tym samym kontynencie co nasza
+influence_explain_14;$x$ od bycia naszym tematem
+influence_explain_15;$x$ z naszego związku
+influence_explain_16;$x$ z naszej inwestycji w kraju
+influence_explain_17;$x$ od wielkości docelowego narodu
+influence_explain_18;$x$ od naszego względnego wyniku
+until_date;Do $x$
+add_wg_1;Nie możesz dodać celu wojennego przeciwko sobie
+add_wg_2;Jesteś na wojnie
+add_wg_3;Masz co najmniej $x$ punktów dyplomatycznych
+add_wg_4;Obecne wsparcie dla szowinizmu ($x$) osiąga próg wymagany do dodania celu wojennego ($y$)
+add_wg_5;Cel wojny o status quo nie został dodany do twojej strony
+intervene_1;Interweniować na wojnie
+intervene_2;Interweniuj w wielkiej wojnie
+intervene_3;Jest wielką mocą
+intervene_4;Nie popada w kryzys
+intervene_5;Od wybuchu wojny minęło co najmniej x$ miesięcy
+intervene_6;Przyłączenie się do wojny nie spowodowałoby, że byłeś w stanie wojny dwa razy z tym samym narodem lub walczyłeś z tym samym narodem i przeciwko temu samemu narodowi
+intervene_7;To nie jest wojna kryzysowa
+intervene_8;Dołączenie zerwałoby rozejm
+intervene_9;Wspiera obrońcę
+intervene_10;Obrońcy nie mają żadnych celów wojennych poza status quo
+intervene_11;Wynik wojenny atakującego wynosi co najmniej $x$
+intervene_12;Wyczerpanie wojną jest mniejsze niż $x$
+intervene_13;Relacje z przywódcą wojennym wynoszą co najmniej $x$
+intervene_14;Żaden z członków Twojej sfery nie jest po przeciwnej stronie
+intervene_15;Żaden z twoich sojuszników nie jest po przeciwnej stronie
+intervene_16;Żadna z twoich armii nie znajduje się w prowincjach należących do strony przeciwnej
+intervene_17;Główny obrońca ma o Tobie przyjazną opinię
+military_score_explain_1;Wynik statku kapitałowego: $x$
+military_score_explain_2;Rekrutowane pułki: $x$
+military_score_explain_3;Aktywne pułki: $x$
+military_score_explain_4;Czy jest rozbrojony? (współczynnik kary $x$)
+military_score_explain_5;Modyfikator zużycia zaopatrzenia: $x$
+military_score_explain_6;Średni wynik jednostki lądowej: $x$
+military_score_explain_7;Całkowita liczba liderów: $x$
+industry_score_explain_2;Sumują się także następujące inwestycje zagraniczne (współczynnik wagi $x$):
+industry_score_explain_3;$y$ w $x$
+war_goal_1;Dodane przez: $x$
+war_goal_2;Kierowanie: $x$
+war_goal_3;Dla stanu: $x$
+war_goal_4;Kraj drugorzędny: $x$
+war_goal_5;Tykający wynik wojenny: $x$
+war_goal_6;Jeśli zajmiemy ?Y$x$?! województw, zyskamy ?Y$y$?! tykający wynik wojny (w stosunku do odsetka okupowanych prowincji)
+war_goal_7;Mamy okres karencji wynoszący ?Y$x$?! dni do zajęcia, w przeciwnym razie stracimy ?Y$y$?! tykający wynik wojenny codziennie
+war_goal_8;Wojna rozpoczęła się za „Y$x$?!, powinniśmy ją wypełnić do „Y$y$?!, zanim okres karencji „Skończy się?!
+war_goal_9;Okres karencji ?Rhas się skończył?! (okres wynosił od ?Y$x$?! do ?Y$y$?!)
+war_goal_10;Tag dodatkowy: $x$
+utt_unit;($kraj$) - $jednostka$ ($lider$)\n ($piechota$ / $kawaleria$ / $specjalność$)
+utt_noleader;żadnego lidera
+war_score_1;Z zawodu: $x$
+war_score_2;Z bitew: $x$
+war_score_3;Z celów wojennych: $x$
+war_score_4;Z blokad: $x$
+dp_inf_tooltip_ban;Ambasada zakazana do $x$
+dp_inf_tooltip_discredit;Zdyskredytowany do kwoty $x$
+discredit_explain_1;Nie możesz się dyskredytować
+discredit_explain_2;Opinia celu jest o Tobie lepsza niż wroga
+discredit_explain_3;Wielka moc nie jest zakazana
+iaction_explain_1;Masz co najmniej $x$ wpływu na cel
+iaction_explain_2;Twoja ambasada nie jest zakazana
+iaction_explain_3;Nie prowadzisz wojny z celem
+iaction_explain_4;Opinia celu o wielkiej potędze jest co najwyżej równa jego opinii o tobie
+expel_explain_1;Nie możesz wydalić swoich własnych doradców
+expel_explain_2;Opinia celu jest co najmniej neutralna
+ban_explain_1;Nie możesz zakazać własnej ambasady
+ban_explain_2;Opinia celu jest co najmniej przyjazna
+dec_op_explain_1;Nie możesz obniżyć opinii narodu o Tobie
+dec_op_explain_2;Nie możesz obniżyć opinii narodu na temat przywódcy swojej sfery
+dec_op_explain_3;Opinia celu jest o Tobie lepsza niż wroga
+dec_op_explain_4;Opinia celu o wielkiej mocy nie może być gorsza niż wroga
+iaction_explain_5;Jesteś wielką mocą
+iaction_explain_6;Celem nie jest wielka moc
+state_transfer_di;Przeniesienie stanu
+state_transfer_button;Przeniesienie stanu
+state_transfer_offer;$actor$ oferuje nam następujące stany:
+state_transfer_desc;Przenosi własność jednego państwa na inny naród, przydatne w negocjacjach wykraczających poza zakres gry
+state_transfer_explain_1;Nacją docelową jest gracz
+state_transfer_explain_2;Obecnie nie ma żadnego kryzysu
+state_transfer_explain_3;Nie jesteśmy podmiotami
+state_transfer_explain_4;To nie są poddani
+state_transfer_explain_5;Jesteśmy spokojni
+state_transfer_explain_6;Mamy więcej niż 1 stan
+cancel_ally_explain_1;Nie możesz zerwać sojuszu ze sobą
+cancel_ally_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+cancel_ally_explain_3;Obecnie jesteś sojusznikiem
+cancel_ally_explain_4;Obecnie nie prowadzicie razem wojny
+cancel_ally_explain_5;Nie jesteś wasalem narodu docelowego
+ally_explain_1;Nie możesz zawierać sojuszu sam ze sobą
+ally_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+ally_explain_3;Obecnie nie jesteś sojusznikiem
+ally_explain_4;Nie jesteście oboje wielkimi mocarstwami, kiedy trwa kryzys
+ally_explain_5;Nie jesteś narodem poddanym
+ally_explain_6;Nie prowadzisz obecnie wojny z celem
+ally_explain_7;AI zaakceptuje
+ally_explain_8;Celem nie jest naród poddany
+call_ally_explain_1;Masz sojusz z tym narodem
+call_ally_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+call_ally_explain_3;Jesteś na wojnie
+call_ally_explain_4;Istnieje wojna, do której ten naród może zostać wezwany
+call_ally_explain_5;AI zaakceptuje
+cancel_access_explain_1;Masz co najmniej $x$ punktów dyplomatycznych
+ask_access_explain_1;Nie możesz uzyskać od siebie dostępu do wojska
+ask_access_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+ask_access_explain_3;AI zaakceptuje
+ask_access_explain_4;Nie prowadzisz obecnie wojny z celem
+cancel_given_access_explain_1;Masz co najmniej $x$ punktów dyplomatycznych
+give_access_explain_1;Nie możesz dać wojsku dostępu do siebie
+give_access_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+give_access_explain_3;Nie prowadzisz obecnie wojny z celem
+increase_rel_explain_1;Poprawia nasze relacje o ?G+$x$
+increase_rel_explain_2;Nie możesz poprawić swojej relacji ze sobą
+increase_rel_explain_3;Masz co najmniej $x$ punktów dyplomatycznych
+increase_rel_explain_4;Obecne relacje są mniejsze niż 200
+increase_rel_explain_5;Nie prowadzisz obecnie wojny z celem
+decrease_rel_explain_1;Pogarsza nasze relacje o ?R$x$
+decrease_rel_explain_2;Nie możesz osłabić swojej relacji ze sobą
+decrease_rel_explain_3;Masz co najmniej $x$ punktów dyplomatycznych
+decrease_rel_explain_4;Obecne relacje są większe niż -200
+decrease_rel_explain_5;Nie prowadzisz obecnie wojny z celem
+cancel_w_sub_explain_1;Obecnie dotujemy ten kraj ?Y$x$?! na dzień
+cancel_w_sub_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+w_sub_explain_1;Nie możesz sobie oferować dotacji wojennych
+w_sub_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+w_sub_explain_3;Nie prowadzisz obecnie wojny z celem
+w_sub_explain_4;Cel jest w stanie wojny
+invention_bulb_1;Tego wynalazku nie można obecnie odkryć
+invention_bulb_2;Odkrycie tego wynalazku jest możliwe
+invention_bulb_3;Ten wynalazek został odkryty
+not_implemented;Ta funkcja nie jest obecnie zaimplementowana
+inc_op_explain_1;Opinia narodu o Tobie jest niezbyt przyjazna
+add_sphere_explain_1;Naród ma o Was przyjazną opinię
+add_sphere_explain_2;Naród nie znajduje się obecnie pod władzą innej wielkiej potęgi
+rem_sphere_explain_1;Naród znajduje się obecnie pod władzą wielkiej potęgi
+rem_sphere_explain_2;Naród ma o Was przyjazną opinię
+rem_sphere_explain_3;Naród jest w twojej strefie wpływów
+rem_sphere_explain_4;Usunięcie narodu ze swojej strefy wpływów zwiększy twoją niesławę o ?R$x$
+rem_sphere_explain_5;Usunięcie narodu ze swojej strefy wpływów obniży twój prestiż o ?R$x$
+fab_explain_1;Nie możesz usprawiedliwiać wojny przeciwko sobie
+fab_explain_2;Masz co najmniej $x$ punktów dyplomatycznych
+fab_explain_3;Obecnie nie tworzysz casus belli
+fab_explain_4;Jesteś niezależnym narodem lub celem jest twój władca
+fab_explain_5;Cel nie znajduje się w twojej strefie wpływów
+fab_explain_6;Nie prowadzisz obecnie wojny z celem
+fab_explain_7;Możesz sfabrykować casus belli
+peace_description;Złóż ofertę pokojową, aby zakończyć działania wojenne między tobą a tym narodem
+peace_explain_1;Nie jest narodem poddanym
+peace_explain_2;Celem nie jest naród poddany
+peace_explain_3;Przynajmniej jedna z negocjujących stron jest przywódcą wojennym po swojej stronie
+peace_explain_4;Obie strony są przywódcami wojny (wojna kryzysowa)
+peace_explain_5;Nie masz innej oferty pokojowej w toku
+war_explain_1;Nie możesz wypowiedzieć sobie wojny
+war_explain_2;Masz casus belli, który możesz wykorzystać przeciwko temu narodowi
+war_explain_3;Masz co najmniej $x$ punktów dyplomatycznych
+war_explain_4;Nie prowadzicie już wojny z tym narodem
+wg_result_1;Po dodaniu tego celu wojennego:
+wg_result_2;O osiągnięciu tego celu wojennego:
+wg_result_3;W przypadku nieosiągnięcia tego celu wojennego:
+wg_not_ready;Musisz dokończyć wybieranie celu wojny
+crisis_temperature_ex;Obecna temperatura kryzysu to ?R$value$?W! Osiągnięcie 100 rupii wywoła wojnę kryzysową pomiędzy obiema stronami
+crisis_mode_no_crisis;Nie ma kryzysu
+crisis_mode_finding_attacker;Znalezienie wsparcia dla strony atakującej
+crisis_mode_finding_defender;Znalezienie obrońcy dla strony obrońcy
+crisis_mode_heating_up;Kryzys się nakręca
+crisis_back_explain_1;Interesuje Cię kryzys (na płocie)
+crisis_back_explain_2;Kryzys przyciągnął swoich początkowych zwolenników
+crisis_add_interest_button;Zainteresuj się tym kryzysem
+crisis_add_interest_button_ex_1;Jesteś wielką mocą
+crisis_add_interest_button_ex_2;Kryzys przyciągnął swoich początkowych zwolenników
+crisis_add_interest_button_ex_3;Masz co najmniej 1 punkt dyplomatyczny
+crisis_offer_button;Złóż ofertę temu narodowi, aby dołączył do twojej strony kryzysu
+crisis_offer_button_ex_1;Jesteś liderem jednej ze stron kryzysu
+crisis_offer_button_ex_2;Kryzys przyciągnął swoich początkowych zwolenników
+crisis_offer_button_ex_3;Masz co najmniej 1 punkt dyplomatyczny
+multiunit_header;Wybrano jednostki $x$
+ai_alliance_1;AI poszukuje obecnie sojuszników
+ai_alliance_2;Twój naród jest wystarczająco blisko, aby pomóc w wojnie
+ai_alliance_3;Żadnych sprzecznych ambicji
+ai_alliance_4;Armia twojego narodu jest wystarczająco silna
+ai_alliance_5;Ma wspólne interesy strategiczne
+ai_access_1;AI uważa jedną z twoich wojen za korzystną dla nich
+col_start_title;Rozpocznij kolonizację tego stanu
+col_start_1;Nie ma tam żadnych kolonizatorów lub kolonizacja jest wciąż w początkowej fazie
+col_start_2;Twój naród ma co najmniej rangę $x$
+col_start_3;Państwo nie jest celem kryzysu kolonialnego
+col_start_4;Nie bierzesz udziału w wojnie kryzysowej
+col_start_5;Minimalny poziom życia, jaki możesz skolonizować ($x$), jest mniejszy lub równy wskaźnikowi życia obowiązującemu w danym stanie ($y$)
+col_start_6;Baza ?Y$x$
+col_start_7;Obecnych jest co najwyżej trzech innych kolonizatorów
+col_start_8;Sąsiadujesz ze stanem lub znajduje się on w zasięgu marynarki wojennej
+col_start_9;Masz co najmniej $x$ darmowych punktów kolonialnych
+col_invest_title;Zainwestuj w swoją kolonię
+col_invest_1;Twój naród ma co najmniej rangę $x$
+col_invest_2;Państwo nie jest celem kryzysu kolonialnego
+col_invest_3;Nie bierzesz udziału w wojnie kryzysowej
+col_invest_4;Bez konkurencji będziesz mógł zamienić ten stan w kolonię za x$
+col_invest_5;Minęło $x$ dni od Twojej ostatniej inwestycji (następna inwestycja możliwa za $y$)
+col_invest_6;Masz co najmniej $x$ darmowych punktów kolonialnych
+activated_by_with_a_chance_of;Aktywowany przez ?Y$x$?!, z szansą na:
+unit_max_speed;Maksymalna prędkość ?G$x$?! KPH
+unit_attack;Atak ?G$x$
+unit_hull;Kadłub ?G$x$
+unit_fire_range;Zasięg strzału ?G$x$
+unit_supply_consumption;Zużycie dostaw?R$x$
+unit_supply_load;Waga materiałów eksploatacyjnych?R$x$
+unit_defence;Obrona ?G$x$
+unit_discipline;Dyscyplina ?G$x$
+unit_maneuver;Manewr ?G$x$
+unit_recon;Rekonesans ?G$x$
+unit_support;Wsparcie ?G$x$
+unit_evasion;Unikanie ?G$x$
+unit_siege;Oblężenie ?G$x$
+unit_torpedo_attack;Atak torpedowy ?G$x$
+unit_build_time;$x$ dni
+unit_build_unit_pop_size;$x$ tys
 unit_build_unit_brigades;$x$/$y$
 uv_sort_a;Att
-uv_sort_b;Def
+uv_sort_b;def
 uv_sort_c;Org
 uv_sort_d;Mor
 uv_sort_e;Spd
-uv_sort_f;Rec
-uv_sort_g;Rel
-uv_sort_h;Exp
-alice_condition_diplo_points;Has atleast $x$ diplomatic points
-alice_retreat;Retreat from battle
-alice_retreat_1;It has been at least $x$ days since the battle started
-alice_retreat_2;You are the lead attacker or defender
-alice_province_select;Selects province
-alice_province_deselect;Deselects province
-alice_province_selector_on;ON
-alice_province_selector_off;OFF
-province_selector;Selector
-province_immigrator;Immigrator
-tt_a_bank;a bank
-tt_a_university;a university
-et_add_selector;enable province selector
-et_remove_selector;disable province selector
-et_add_immigrator;enable province immigrator
-et_remove_immigrator;disable province immigrator
-et_if;If
-et_else_if;Else
-modifier_province_selector;Province selector
-modifier_province_immigrator;Province immigrator
-modifier_conversion_rate;Conversion Rate
-modifier_attrition;Attrition
-chat_player_joins;@$x$ $playername$ joined
-chat_player_leaves;@$x$ $playername$ left
-chat_player_ban;@$x$ $playername$ was banned
-chat_player_kick;@$x$ $playername$ was kicked
-chat_player_switch;@$x$ $playername$ has choosen $country$
-chat_player_oos;@$x$ $playername$ has OOSed!
-alice_status_stream;Save progress $value$
-alice_play_pending_client;$playername$ is not ready yet
-alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see ?Ggreen?W lines go up, and ?Rred?W lines go down, as per usual I'm ?Ynot?W a line graph so I mostly go unnoticed :)
-alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... ?ROR ELSE?W
-alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a ?Ydifferent?W dialogue and that's just boring
-alice_stockpile_button_1_2;Alright I can't make you stop, perhaps this will?
-alice_stockpile_button_2_0;I'm a souless button, move on
-alice_stockpile_button_3_0;Playing with friends aren't we? ?RWELL GOOD LUCK YOU WILL NEED IT?W
-a_alert_reb;One or more of our sphere members has active rebels:
-event_auto;Automatically choose this option for the remainder of the session.
-event_taken_auto;This option will automatically be taken on ?Y$date$?W.
-alice_load_unload_1;A navy docked here has sufficient capacity
-alice_load_unload_2;The army is being transported
-alice_load_unload_3;The transporting fleet is docked
-alice_load_unload_4;One or more armies is being transported
-alice_load_unload_5;The fleet is docked
-alice_unload_fleet;Unload all armies transported by the fleet
-auto_save_lb;Auto-save frequency
-auto_save_1;Daily
-auto_save_2;Monthly
-auto_save_3;Yearly
-auto_save_0;None
-monthly_emigration_lab;Monthly emigration to (top 10)
-monthly_immigration_lab;Monthly immigration from (top 10)
-im_em_header;Predicted immigration/emigration for 
-alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W attrition
+uv_sort_f;Rekomendacja
+uv_sort_g;Względ
+uv_sort_h;Do potęgi
+alice_condition_diplo_points;Posiada co najmniej $x$ punktów dyplomatycznych
+alice_retreat;Wycofaj się z bitwy
+alice_retreat_1;Od rozpoczęcia bitwy minęło co najmniej $x$ dni
+alice_retreat_2;Jesteś głównym atakującym lub obrońcą
+alice_province_select;Wybiera prowincję
+alice_province_deselect;Odznacza prowincję
+alice_province_selector_on;NA
+alice_province_selector_off;WYŁĄCZONY
+province_selector;Selektor
+province_immigrator;Imigrator
+tt_a_bank;Brzeg rzeki
+tt_a_university;Uniwersytet
+et_add_selector;włącz wybór prowincji
+et_remove_selector;wyłącz wybór prowincji
+et_add_immigrator;włączyć imigranta z prowincji
+et_remove_immigrator;wyłączyć imigranta z prowincji
+et_if;Jeśli
+et_else_if;W przeciwnym razie
+modifier_province_selector;Selektor prowincji
+modifier_province_immigrator;Imigrant z prowincji
+modifier_conversion_rate;Współczynnik konwersji
+modifier_attrition;Ścieranie
+chat_player_joins;Dołączył @$x$ $nazwa_gracza$
+chat_player_leaves;Pozostało @$x$ $nazwa_gracza$
+chat_player_ban;@$x$ $playername$ został zbanowany
+chat_player_kick;@$x$ $playername$ został wyrzucony
+chat_player_switch;@$x$ $playername$ wybrał $country$
+chat_player_oos;@$x$ $playername$ przeszedł OOS!
+alice_status_stream;Zapisz postęp $wartość$
+alice_play_pending_client;$playername$ nie jest jeszcze gotowy
+alice_stockpile_button_0_0;Krajowe zapasy stanowią dodatek do zwykłej działalności gospodarczo-biznesowej, gdzie ludzie widzą, jak linie „Ggreen” W rosną, a linie „Rred” W maleją, jak zwykle „Jestem” „Ynot” to wykres liniowy, więc głównie pozostać niezauważonym :)
+alice_stockpile_button_1_0;Jeśli klikniesz mnie 10 razy, nie otrzymasz nic w zamian, po prostu zaufaj mi, nie klikaj mnie... ?ROR ELSE?W
+alice_stockpile_button_1_1;Rozumiem, cóż, teraz nic nie powiem, bo wiem, że będziesz klikać, dopóki nie powiem dialogu „Inne” W, a to jest po prostu nudne
+alice_stockpile_button_1_2;W porządku, nie mogę cię zmusić, żeby przestał, może to się uda?
+alice_stockpile_button_2_0;Jestem bezdusznym guzikiem, ruszaj dalej
+alice_stockpile_button_3_0;Bawimy się z przyjaciółmi, prawda? – ŻYCZYSZ MI SZCZĘŚCIA, BĘDZIESZ POTRZEBNY? W
+a_alert_reb;Jeden lub więcej członków naszej sfery ma aktywnych rebeliantów:
+event_auto;Automatycznie wybierz tę opcję do końca sesji.
+event_taken_auto;Ta opcja zostanie automatycznie wybrana w dniu ?Y$date$?W.
+alice_load_unload_1;Zacumowana tu marynarka wojenna ma wystarczającą pojemność
+alice_load_unload_2;Wojsko jest transportowane
+alice_load_unload_3;Flota transportowa jest zadokowana
+alice_load_unload_4;Transportowana jest jedna lub więcej armii
+alice_load_unload_5;Flota jest zadokowana
+alice_unload_fleet;Wyładuj wszystkie armie transportowane przez flotę
+auto_save_lb;Częstotliwość automatycznego zapisywania
+auto_save_1;Codziennie
+auto_save_2;Miesięczny
+auto_save_3;Rocznie
+auto_save_0;Nic
+monthly_emigration_lab;Miesięczna emigracja do (top 10)
+monthly_immigration_lab;Miesięczna imigracja z (top 10)
+im_em_header;Przewidywana imigracja/emigracja dla
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W ścieranie
 ol_unit_standing_text;$m$ $n$/$x$/$y$
-unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
-unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
-disarmed_pop;a member of a disarmed nation
-cancel_fac_construction;Cancel factory construction
-cancel_fac_upgrade;Cancel factory upgrade
-kierkegaard_1;Either
-kierkegaard_2;Or
-open_and_sub;Subsidize & Reopen Factory
-o_set_national_flag;Set national flag $text$ for the owner
-o_add_modifier_until;Owner of the province gets $text$ until $date$
-o_add_modifier;Owner of the province gets $text$
-o_relations_with;Owner of the province's relation with $text$
-o_add_to_treasury; for the owner of the province
-w_rgo_prod;Global RGO production: $x$
-w_artisan_prod;Global artisan production: $x$
-w_artisan_profit;National artisan profit: $x$
-w_artisan_distribution;National artisan distribution: $x$
-w_fac_prod;Global factory production: $x$
-alice_lose_gp;We are losing ?YGreat Power?! status!
-alice_state_select_title;Select state
-press_esc_to_cancel;Press ?YESC?! to cancel
-fort_build_tt_1;The province is under your control
-fort_build_tt_2;The province is not under siege
-fort_build_tt_3;The current level, $x$, plus the province's difficulty level, $n$, is less than your current max level, $y$
-nb_build_tt_1;The province is coastal
-nb_build_tt_2;No other naval base has been built or is under construction in the state
-rr_build_tt_1;Our ruling party allows the government to construct rail roads
-tech_ol_tt;?G$x$?! from your overlord having this technology
-tech_year_tt;?G$x$?! from the current year
-disband_all;Disband all selected units
-alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
-alice_play_save_stream;Host is streaming a save to you, wait until it completes
-ai_will_accept_po;They will accept this offer
-ai_will_not_accept_po;They will NOT accept this offer
-close_and_del;Close & Delete Factory
-cb_conditions_header;Conditions to use:
-as_a_vassal;as a vassal
-change_state_name_to;change state name to $text$
-alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
-alice_unit_disable_rebel_hunt;Stop hunting rebels
-alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nOrganisation: ?Y$organisation$?W\nStrength: ?Y$strength$?W
-understaffed_regiment;?RThis regiment is understaffed and will only have $value$ soldiers!?W
-tech_queue_explain;Press ?YSHIFT?W to add to queue, ?YRight-click?W to remove
-alice_province_building_build;?YSHIFT?W to build on the entire ?Gstate?W.\n?YSHIFT-Right-click?W to build on the entire ?Gcountry?W.
-commodity_shortage;?RThere is a shortage of this commodity
-commodity_surplus;?GThere is a surplus of this commodity
-alice_trade_flow_produced;?YDomestic production:
-alice_trade_flow_consumed;?YDomestic consumption:
-alice_trade_flow_label;Market overview:
-alice_trade_flow_piechart_producers;Producers
-alice_trade_flow_piechart_consumers;Consumers
-alice_trade_flow_piechart_workforce;Investors
-alice_diplo_release_subject;Release subject
-alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
-alice_diplo_release_subject_0;Is our subject
-kill_leader;Kill leader
-annex_null;becomes unowned
-meets_the_conditions_of;meets the conditions of 
-does_not_meet_the_conditions_of;does not meet the conditions of 
-fab_finish_date;CB fabrication is expected to finish on $date$
-fab_is_paused;CB fabrication is currently paused
-macro_builder;Macro-builder
-macro_total_desc;Total unit stats:
-macro_switch_type_land;Build army
-macro_switch_type_naval;Build navy
-macro_warn_overseas;?RCan't build this unit overseas!?!
-macro_warn_culture;?RCan only build using primary culture POPs!?!
-macro_warn_unlocked;?RUsing units not unlocked yet!?!
-macro_select_province;Please select a province on the map
-macro_warn_insuff;?RCan't build $x$ $name$ (only $y$)?!
-macro_warn_invalid_province;?RProvince not part of a region?!
-shortcut_tooltip;Shortcut: ?Y$x$?!
-filter_all;Show ?Yall?! relevant nations.
-filter_allies;Filter by nations we have an ?Yalliance?! with.\n?YRight-click?! to filter by nations which want to ally us.
-filter_enemies;Filter by nations that are either ?Yenemies or at war with us?!.
-filter_sphere;Filter by nations that are within our ?Ysphere of influence?!.\n?YRight-click?! to filter by nations which we are influencing but not on our sphere.
-filter_neighbors;Filter by nations we share a ?Yborder?! with.\n?YRight-click?! to filter by nations we share a ?Yborder?! and are not ?Yvassals?!.
-filter_best_guess;Filter using a ?Ybest guess?! by relevancy, this includes all ?Yallies?!, ?Yenemies?!, ?Yspherelings?! and nations we share a ?Yborder?! with.
-alice_warn_war_ends_for_us;?RThis will end the war for everyone on our side?!.
-alice_invention_chance;The chance of discovering this ?Yinvention?! are as follows:
-is_primary_culture;?Y$NAME$?! is the primary culture.
-is_primary_religion;?Y$NAME$?! is the primary religion.
-tt_can_use_nation;The conditions needed to allow the use of this wargoal:
-et_on_add;The effects executed from adding this wargoal to a war:
-et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
-alice_no_possible_units;No possible units can be built, and no units are in construction.
-alice_debt_spending;Enable/disable debt spending
-alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
-alice_currently_bankrupt;We are bankrupt (until $x$)
-alice_no_loans_possible;We are currently unable to take loans
-alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:
-alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will apply the following effect:
-alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
-alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
-may_month_name;May
-alice_ca_cant_influence;We currently are unable to increase or decrease the opinion of other nations at the moment
-alice_gp_status_regain_expiration;If we don't become rank ?Y$x$?W or higher, we will lose ?Ygreat power?W status by ?Y$date?W!
-alice_mil_decay_description;Natural decay ?G-$x$
-alice_con_decay_description;Natural decay ?R-$x$
-x_from_y;$x$ from $y$
-reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
-reinforce_rate_none;This regiment can't currently be reinforced.
-alice_domestic_investment_button;Investing in individual projects is ?Rdeprecated?W, use the ?Ydomestic investment?W slider on the budget screen instead
-alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
-alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
-alice_budget_scaled_inc;Income: ?G$value$
-alice_budget_scaled_1;Poor tax: ?G$value$
-alice_budget_scaled_2;Middle tax: ?G$value$
-alice_budget_scaled_3;Rich tax: ?G$value$
-alice_budget_scaled_4;Tariffs: ?G$value$
-alice_budget_scaled_exp;Expenses: ?R$value$
-alice_budget_scaled_5;Army maintanance: ?R$value$
-alice_budget_scaled_6;Navy maintanance: ?R$value$
-alice_budget_scaled_7;Construction: ?R$value$
-alice_budget_scaled_8;Education: ?R$value$
-alice_budget_scaled_9;Administration: ?R$value$
-alice_budget_scaled_10;Social spending: ?R$value$
-alice_budget_scaled_11;Military spending: ?R$value$
-alice_budget_scaled_12;Domestic investments: ?R$value$
-alice_budget_scaled_13;Overseas spending: ?R$value$
-alice_budget_scaled_14;Stockpile filling: ?R$value$
-alice_budget_scaled_15;War subsidies: ?R$value$
-alice_budget_scaled_16;Diplomatic interest: ?G$value$
-alice_budget_scaled_17;Gold production: ?G$value$
-alice_budget_scaled_net;Net revenue: ?Y$value$
-alice_budget_setting_percent;Set at $perc$.
-alice_spending_land_construction;Land construction in $name$: ?R$cost$?W
-alice_spending_naval_construction;Naval construction in $name$: ?R$cost$?W
-alice_spending_building_construction;Building construction in $name$: ?R$cost$?W
-alice_spending_factory_construction;Factory construction in $name$: ?R$cost$?W
-alice_spending_unit;Total spent on this unit in $name$: ?R$cost$?W
-alice_spending_unit_1;Total spent on this unit: ?R$cost$?W
-alice_spending_total;?YTotal spent:?W
-alice_spending_commodity;?R$cost$?W - Needs $need$ of $name$ ($val$)
-alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit). Progress: $x$/$y$
-alice_recommended_build;?GThis factory is recommended to be built?W
-alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
-alice_factory_inputs;Inputs required:
-alice_factory_input_item;?R$cost$?W - Needs $need$ of $name$ ($val$)
-alice_factory_base_workforce;Base workforce ?Y$x$?W
-alice_factory_total_bonus;This sums to about ?Y$x$?W
-alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
-alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
-explain_colonial_points;Secondary and Great Powers accumulate colonial points.
-alice_lobby_back;Back to lobby
-alice_lobby_back_tt_1;You're already in the fucking lobby
-alice_lobby_back_tt_2;Only the host may go back to lobby
-reopen_with_tab;You can reopen this window with ?YTAB?W
-alice_topbar_tab_1;Open or close this tab
-alice_topbar_tab_2;Open or close the population tab
-colonial_points_from_technology;From technologies:
-colonial_points_from_naval_bases;From naval bases:
-colonial_points_from_ships;From ships:
-used_colonial_maintenance;Maintaining existing colonies:
-topbar_pause_speed;Pauses the game, click again to unpause
-att_call_will_accept;$x$ will join your war
-att_call_will_decline;$x$ will not join your war
-att_call_is_human;$x$ may join your war
-att_call_no_allies;You don't have any allies!
-domestic_investment_label;Domestic investment:
-modifier_min_domestic_investment;Min domestic investment rate
-modifier_max_domestic_investment;Max domestic investment rate
-mouse_left_click_mode_label;Click hold release
-alice_supply_limit_desc;Supply limit: $x$
-alice_factory_worker_1;Employed: ?G$x$?W
-alice_factory_worker_2;Unemployed: ?R$x$?W
-alice_rgo_unemployment_country_alert;The following states have unemployed RGOs:
-pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
-alice_readme;?GWelcome to Project Alice!?W\nProject Alice is an emulation (not a simulator!) of your favourite victorian-era video game, in other words, we tweak some mechanics to make it more easier to understand for newer players, while also making the world more dynamic and entertaining, fixing old bugs (such as with crises) and implementing new quality of life features.\n?GNew features!?W\n?YGlobe?W: ?GLoved?W by many, ?Rhated?W by some, turn it off if it bothers you!\n?YTech queue:?W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)\n?YDomestic investment:?W Instead of investing on individual projects, do it in one go\n?YPerformance:?W The ticks per second (not FPS) are atleast, x10 times faster\n?YLinter:?W Get coverage errors and warnings in your mods, catch bugs and typos easily\n?YMacro builder:?W Build units with varying compositions using our macro builder\n?Y11 new mapmodes:?W Religion, fort, employment, etc\n?YBuild in entire country:?W SHIFT Right-click to build in the entire country!\n?GControls:?W\n?YTAB?W: Open chat window\n?YESC?W: Open main menu and settings menu\n?YTilde (`)?W or ?YTilde (~)?W: Open console\n?GEnjoy the game! =^w^=?W
-alice_nf_controls;?YLeft-click?W to select or replace\n?YRight-click?W to remove
-unit_controls_tooltip_1;?YLeft-click?W select (deselecting everything else)\n?YSHIFT-Left-click?W add to selection
-unit_controls_tooltip_2;?YRight-click on a province?W partial retreat (?Gcycling/rotation?W) to province
-unit_control_group_tooltip;Press ?YCTRL-1?W thru ?YCTRL-9?W to assign/unassign this unit to a control group, which you can then press ?Y1?W thru ?Y9?W to select
-console_button_tooltip;Open the command console
-demobilize;Demobilize
-mobilize;Mobilize
-alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
-alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
-alice_mob_controls;?YRight-click?W to remobilize
-alice_mw_create_1;Add general
-alice_mw_create_2;Add admiral
-alice_mw_create_lpb;?YLeadership points?W will automatically be used to create generals or admirals when hitting the cap
-alice_mw_create_lp;We need ?R$x$?W ?Yleadership points?W to add
-alice_mw_controls_1;?YRight-click?W create ?Gall?W possible as generals
-alice_mw_controls_2;?YRight-click?W create ?Gall?W possible as admirals
-alice_daily_leadership_tt;$poptype$ provides ?G$value$?W leadership points (?Y$fraction$?W of the population, ?Y$optimal$?W is optimal). Extra leadership points will automatically be spent on creating new generals.
-unit_current_supply;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe amount we could get of our current supply consumption was:
-unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l demand satisfaction)
-unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l demand satisfaction)
-unit_current_supply_low;$what$: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l demand satisfaction)
-alice_crisis_inactive;No current active crisis
-alice_crisis_finding_attacker;Finding an attacker for the current crisis
-alice_crisis_finding_defender;Finding a defender for the current crisis
-alice_crisis_heating_up;Crisis is heating up in temperature, currently at ?R$temperature$?W
-alice_last_crisis;Last crisis ocurred in $date$ (there is a $time$ month cooldown between crises)
-alice_crisis_par_1;?RAttackers?W:
-alice_crisis_par_2;?BDefenders?W:
-alice_crisis_par_3;?YMerely interested (no side)?W:
-alice_commodity_cprice;Current price: $x$
-alice_commodity_cost;Cost: $x$
-alice_commodity_eprice;Effective price: $x$
-alice_trade_top_producers;Top ?Y$value$?W producers:
-alice_trade_no_producers;?RNobody is producing this commodity?W
-alice_political_party_trigger;Only available from ?Y$date_long_0$?W to ?Y$date_long_1$?W, and satisfying the following trigger:
-alice_political_party_no_trigger;Only available from ?Y$date_long_0$?W to ?Y$date_long_1$?W
-alice_ai_decision;AI's chance of choosing this decision will depend on:
-alice_mobilized_is_ai_controlled;Whetever mobilized units will automatically become AI controlled
-alice_ai_controlled_unit;Enable/Disable AI control of this unit, the unit will:\n- Automatically reinforce frontlines\n- Automatically siege when it's safe to do so\n- Hunt rebels\n- Form a defensive position against nations we're likely to attack (this is at the AI's discretion, and only at peace time)\nIf you want to make this unit target a specific nation or region, first move it close to that region or nation, then turn on AI control - because the AI will override all of your commands until you turn it off again
-alice_navy_allocation_tt;With ?Y$curr$?W ships, we accumulate a total supply throughput of ?Y$tot$?W, requiring ?Y$req$?W for our fleets. A detailed summary of the consumption of each naval fleet:
-alice_navy_allocation_2;$name$: ?Y$value$?W (?Y$perc$?W)
-alice_wg_condition_1;Does not have status quo as a defender
-alice_wg_condition_2;Is in a war with us
-alice_wg_condition_3;Unique wargoal (isn't a duplicate of another wargoal)
-alice_wg_condition_4;Not on the same side as us
-alice_wg_condition_5;Satisfies triggers for wargoal
-alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
-alice_wg_condition_7;Is constructable wargoal
-alice_tt_wg_infamy_limit;?RThis wargoal will exceed the infamy limit?W
-alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
-province_id;Province Id
-nation_tag;Nation tag
-alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
-alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)
-alice_rgo_trade_prod_3;RGO Minting Production: $x$ ($y$)
-alice_artisan_trade_prod;Artisan Production: $x$ ($y$)
-alice_factory_trade_prod;Factory Production: $x$ ($y$)
-alice_all_trade_prod;Total Production: $x$
-alice_interested_in_alliance;(Only applies to AI nations) Mark that we're interested in an alliance with this country, and will immediately accept alliance offers
-alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge
-alice_mvcap_1;Moves the capital to this province
-alice_mvcap_2;No ongoing crisis
-alice_mvcap_3;At peace
-alice_mvcap_4;Not the capital already
-alice_mvcap_5;Not colonial
-alice_mvcap_6;On the same continent as current capital
-alice_mvcap_7;Dominant accepted culture
-alice_mvcap_8;This province is not being sieged
-alice_mvcap_9;The current capital not being sieged
-alice_mvcap_10;Is owned by you
-alice_mvcap_11;Is controlled by you
-alice_mvcap_12;Is owner core
-alice_pnt_pops;?YPopulation:?! $x$
-alice_pnt_rpops;?YRich strata:?! $x$ ($y$)
-alice_pnt_mpops;?YMiddle strata:?! $x$ ($y$)
-alice_pnt_ppops;?YPoor strata:?! $x$ ($y$)
-alice_pnt_culture;?YCulture:?! $x$
-alice_pnt_religion;?YReligion:?! $x$
-alice_pnt_dominant_religion;?YDominant religion:?! $x$
-alice_pnt_dominant_ideology;?YDominant Ideology:?! $x$
-ledger_ppp_gdp;GDP(PPP)
-ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($data$) - ?R$koszt$?W ($attunit$/$defunit$)
+unit_standing_text;$m$ $n$/$x$/$y$ - ?R$koszt$?W ($attunit$/$defunit$)
+disarmed_pop;członkiem rozbrojonego narodu
+cancel_fac_construction;Anuluj budowę fabryki
+cancel_fac_upgrade;Anuluj aktualizację fabryczną
+kierkegaard_1;Albo
+kierkegaard_2;Lub
+open_and_sub;Dotuj i ponownie otwórz fabrykę
+o_set_national_flag;Ustaw flagę narodową $text$ dla właściciela
+o_add_modifier_until;Właściciel prowincji otrzymuje $text$ do $date$
+o_add_modifier;Właściciel prowincji otrzymuje $text$
+o_relations_with;Właściciel relacji prowincji z $text$
+o_add_to_treasury;dla właściciela prowincji
+w_rgo_prod;Globalna produkcja RGO: $x$
+w_artisan_prod;Globalna produkcja rzemieślnicza: $x$
+w_artisan_profit;Krajowy zysk rzemieślnika: $x$
+w_artisan_distribution;Krajowa dystrybucja rzemieślników: $x$
+w_fac_prod;Globalna produkcja fabryczna: $x$
+alice_lose_gp;Tracimy ?Wielką Moc?! status!
+alice_state_select_title;Wybierz stan
+press_esc_to_cancel;Naciśnij ?TAK?! anulować
+fort_build_tt_1;Prowincja jest pod twoją kontrolą
+fort_build_tt_2;Prowincja nie jest oblężona
+fort_build_tt_3;Obecny poziom $x$ plus poziom trudności prowincji $n$ jest niższy niż twój aktualny maksymalny poziom $y$
+nb_build_tt_1;Prowincja ma charakter nadmorski
+nb_build_tt_2;Żadna inna baza morska nie została zbudowana ani nie jest w budowie w stanie
+rr_build_tt_1;Nasza partia rządząca pozwala rządowi na budowę dróg kolejowych
+tech_ol_tt;?G$x$?! od twojego mrocznego władcy posiadającego tę technologię
+tech_year_tt;?G$x$?! z bieżącego roku
+disband_all;Rozwiąż wszystkie wybrane jednostki
+alice_play_checksum_host;Niezgodność sumy kontrolnej z hostem, upewnij się, że masz te same modyfikacje i pliki zapisu
+alice_play_save_stream;Host przesyła do Ciebie zapis, poczekaj, aż się zakończy
+ai_will_accept_po;Przyjmą tę ofertę
+ai_will_not_accept_po;NIE przyjmą tej oferty
+close_and_del;Zamknij i usuń fabrykę
+cb_conditions_header;Warunki stosowania:
+as_a_vassal;jako wasal
+change_state_name_to;zmień nazwę stanu na $text$
+alice_join_crisis_offer;$ACTOR$ zapewni nam następujące korzyści, jeśli dołączymy do ich strony w obecnym kryzysie:
+alice_unit_disable_rebel_hunt;Przestań polować na rebeliantów
+alice_regiment_battle_info;$m$ $nazwa$ ?Y$typ$?!\nOrganizacja: ?Y$organizacja$?W\nSiła: ?Y$siła$?W
+understaffed_regiment;„Ten pułk ma za mało personelu i będzie miał tylko żołnierzy o wartości $!” W
+tech_queue_explain;Naciśnij ?YSHIFT?W, aby dodać do kolejki, ?Ykliknij prawym przyciskiem?W, aby usunąć
+alice_province_building_build;„YSHIFT?W, aby budować na całym „Gstanie” W.\n?YSHIFT, kliknij prawym przyciskiem myszy? W, aby budować na całym „Gkraju” W.
+commodity_shortage;? Brakuje tego towaru
+commodity_surplus;?GJest nadwyżka tego towaru
+alice_trade_flow_produced;?Produkcja krajowa:
+alice_trade_flow_consumed;?YKonsumpcja krajowa:
+alice_trade_flow_label;Przegląd rynku:
+alice_trade_flow_piechart_producers;Producenci
+alice_trade_flow_piechart_consumers;Konsumenci
+alice_trade_flow_piechart_workforce;Inwestorzy
+alice_diplo_release_subject;Zwolnij temat
+alice_diplo_release_subject_desc;Uwalnia jednego z naszych poddanych, czyniąc go już naszym poddanym. Sojusze należy zerwać osobno
+alice_diplo_release_subject_0;Jest naszym tematem
+kill_leader;Zabij przywódcę
+annex_null;staje się nieposiadany
+meets_the_conditions_of;spełnia warunki
+does_not_meet_the_conditions_of;nie spełnia warunków
+fab_finish_date;Oczekuje się, że produkcja CB zakończy się $date$
+fab_is_paused;Produkcja CB jest obecnie wstrzymana
+macro_builder;Konstruktor makro
+macro_total_desc;Łączne statystyki jednostek:
+macro_switch_type_land;Buduj armię
+macro_switch_type_naval;Zbuduj marynarkę wojenną
+macro_warn_overseas;?Nie można zbudować tego urządzenia za granicą!?!
+macro_warn_culture;?RMożesz budować tylko przy użyciu POPów kultury podstawowej!?!
+macro_warn_unlocked;?Używanie jednostek, które nie zostały jeszcze odblokowane!?!
+macro_select_province;Proszę wybrać województwo na mapie
+macro_warn_insuff;?RCnie można zbudować $x$ $name$ (tylko $y$)?!
+macro_warn_invalid_province;?Prowincja nie jest częścią regionu?!
+shortcut_tooltip;Skrót: ?Y$x$?!
+filter_all;Pokaż?Yall?! odpowiednie narody.
+filter_allies;Filtruj według krajów, mamy „Yalliance!” z.\n?YKliknij prawym przyciskiem myszy?! filtrować według narodów, które chcą się z nami sprzymierzyć.
+filter_enemies;Filtruj według narodów, które są „wrogami lub są z nami w stanie wojny!”.
+filter_sphere;Filtruj według narodów znajdujących się w naszej „sferze wpływów?!”.\n?YKliknij prawym przyciskiem myszy?! filtrować według narodów, na które mamy wpływ, ale nie z naszej sfery.
+filter_neighbors;Filtruj według narodów, z którymi dzielimy „Ygranicę?” z.\n?YKliknij prawym przyciskiem myszy?! aby filtrować według narodów, dzielimy „Ygranicę?” i nie są ?Ywasalami?!.
+filter_best_guess;Filtruj przy użyciu „Najlepszego przypuszczenia?” według trafności, obejmuje to wszystkie „Yallies?!”, „Yenemies?!, „Yspherelings?! i narody dzielimy „Ygranicę?” z.
+alice_warn_war_ends_for_us;„To zakończy wojnę dla wszystkich po naszej stronie?”.
+alice_invention_chance;Szansa na odkrycie tego ?Ywynalazku?! są następujące:
+is_primary_culture;?Y$NAZWA$?! jest kulturą pierwotną.
+is_primary_religion;?Y$NAZWA$?! jest religią pierwotną.
+tt_can_use_nation;Warunki potrzebne do umożliwienia użycia tego celu wojennego:
+et_on_add;Efekty wynikające z dodania tego celu wojennego do wojny:
+et_on_po_accepted;Skutki wynikające z przyjęcia oferty pokojowej z tym celem wojennym:
+alice_no_possible_units;Nie można zbudować żadnych możliwych jednostek i żadna jednostka nie jest w budowie.
+alice_debt_spending;Włącz/wyłącz wydawanie długów
+alice_loan_size;Nasza obecna maksymalna pożyczka wynosi $x$. Większy dług doprowadzi nas do bankructwa
+alice_currently_bankrupt;Jesteśmy bankrutem (do $x$)
+alice_no_loans_possible;Obecnie nie możemy brać kredytów
+alice_rf_demands_enforced_trigger;Rebelianci będą egzekwować swoje żądania tylko wtedy, gdy:
+alice_rf_demands_enforced_effect;Gdy rebelianci wyegzekwują swoje żądania, zastosują następujący efekt:
+alice_rf_siege_won_trigger;Jeśli buntownik wygra oblężenie, sprawdzane są następujące elementy, na przykład w Twojej stolicy $x$:
+alice_rf_siege_won_effect;A jeśli wszystko powyższe było prawdą, obowiązują następujące efekty, na przykład w Twoim kapitale $x$:
+may_month_name;Móc
+alice_ca_cant_influence;Obecnie nie jesteśmy w stanie zwiększyć ani zmniejszyć opinii innych narodów
+alice_gp_status_regain_expiration;Jeśli nie osiągniemy rangi ?Y$x$?W lub wyższej, utracimy status ?Ywielka moc?W do dnia ?Y$data?W!
+alice_mil_decay_description;Naturalny rozkład ?G-$x$
+alice_con_decay_description;Naturalny rozkład ?R-$x$
+x_from_y;$x$ z $y$
+reinforce_rate;Pułk ten może wzmocnić do x $ żołnierzy miesięcznie.
+reinforce_rate_none;Pułk ten nie może być obecnie wzmocniony.
+alice_domestic_investment_button;Inwestowanie w indywidualne projekty jest „przestarzałe”. Zamiast tego użyj suwaka „Inwestycje krajowe” na ekranie budżetu
+alice_domestic_investment_pops;Mamy kapitalistów o wartości x $, którym możemy pośrednio przekazywać hojne datki
+alice_domestic_investment_needs;Każdego dnia potrzebują x $, aby zaspokoić swój luksusowy styl życia
+alice_budget_scaled_inc;Dochód: ?Wartość G$
+alice_budget_scaled_1;Słaby podatek: ?G$wartość$
+alice_budget_scaled_2;Podatek środkowy: ?G$wartość$
+alice_budget_scaled_3;Bogaty podatek: ?G$wartość$
+alice_budget_scaled_4;Taryfy: ?G$wartość$
+alice_budget_scaled_exp;Wydatki: ?R$wartość$
+alice_budget_scaled_5;Utrzymanie armii: ?R$value$
+alice_budget_scaled_6;Konserwacja marynarki wojennej: ?R$value$
+alice_budget_scaled_7;Konstrukcja: ?R$wartość$
+alice_budget_scaled_8;Edukacja: ?R$wartość$
+alice_budget_scaled_9;Administracja: ?R$wartość$
+alice_budget_scaled_10;Wydatki socjalne: ?R$value$
+alice_budget_scaled_11;Wydatki wojskowe: ?R$value$
+alice_budget_scaled_12;Inwestycje krajowe: ?R$value$
+alice_budget_scaled_13;Wydatki zagraniczne: ?R$value$
+alice_budget_scaled_14;Wypełnianie zapasów: ?R$value$
+alice_budget_scaled_15;Subsydia wojenne: ?R$value$
+alice_budget_scaled_16;Zainteresowanie dyplomatyczne: ?G$value$
+alice_budget_scaled_17;Produkcja złota: ?G$value$
+alice_budget_scaled_net;Przychód netto: ?Y$wartość$
+alice_budget_setting_percent;Ustaw na $perc$.
+alice_spending_land_construction;Budowa gruntu w $name$: ?R$cost$?W
+alice_spending_naval_construction;Budowa marynarki wojennej w $name$: ?R$cost$?W
+alice_spending_building_construction;Budownictwo w $name$: ?R$cost$?W
+alice_spending_factory_construction;Budowa fabryki w $name$: ?R$cost$?W
+alice_spending_unit;Całkowite wydatki na to urządzenie w $name$: ?R$cost$?W
+alice_spending_unit_1;Całkowite wydatki na to urządzenie: ?R$koszt$?W
+alice_spending_total;? Całkowite wydatki:? W
+alice_spending_commodity;?R$cost$?W - Potrzebuje $need$ z $name$ ($val$)
+alice_spending_commodity_2;?R$koszt$?W - Kupowanie $potrzeba$ $name$ (przy $val$ x jednostka). Postęp: $x$/$y$
+alice_recommended_build;?GTa fabryka jest zalecana do budowy?W
+alice_factory_bonus;Otrzymamy premię ?Y$x$?W jeśli:
+alice_factory_inputs;Wymagane dane wejściowe:
+alice_factory_input_item;?R$cost$?W - Potrzebuje $need$ z $name$ ($val$)
+alice_factory_base_workforce;Podstawowa siła robocza ?Y$x$?W
+alice_factory_total_bonus;To daje około ?Y$x$?W
+alice_slider_controls;?YLewy przycisk myszy?W, aby zwiększyć o ?Y$wartość$?W\n?YSHIFT-Kliknięcie lewym przyciskiem?W, aby zwiększyć o ?Y$x$?W\n?YSHIFT-Kliknięcie prawym przyciskiem?W, aby zwiększyć do maksimum
+alice_slider_controls_2;?YLewy przycisk myszy?W, aby zmniejszyć o ?Y$wartość$?W\n?YSHIFT-Kliknięcie lewym przyciskiem?W, aby zmniejszyć o ?Y$x$?W\n?YSHIFT-Kliknięcie prawym przyciskiem?W, aby zmniejszyć do minimum
+explain_colonial_points;Mocarstwa drugorzędne i wielkie gromadzą punkty kolonialne.
+alice_lobby_back;Powrót do lobby
+alice_lobby_back_tt_1;Jesteś już w pieprzonym lobby
+alice_lobby_back_tt_2;Tylko gospodarz może wrócić do lobby
+reopen_with_tab;Możesz ponownie otworzyć to okno za pomocą ?YTAB?W
+alice_topbar_tab_1;Otwórz lub zamknij tę kartę
+alice_topbar_tab_2;Otwórz lub zamknij kartę populacji
+colonial_points_from_technology;Z technologii:
+colonial_points_from_naval_bases;Z baz morskich:
+colonial_points_from_ships;Ze statków:
+used_colonial_maintenance;Utrzymanie istniejących kolonii:
+topbar_pause_speed;Wstrzymuje grę. Kliknij ponownie, aby wznowić grę
+att_call_will_accept;$x$ dołączy do twojej wojny
+att_call_will_decline;$x$ nie dołączy do twojej wojny
+att_call_is_human;$x$ może dołączyć do Twojej wojny
+att_call_no_allies;Nie masz żadnych sojuszników!
+domestic_investment_label;Inwestycje krajowe:
+modifier_min_domestic_investment;Minimalna stopa inwestycji krajowych
+modifier_max_domestic_investment;Maksymalna stopa inwestycji krajowych
+mouse_left_click_mode_label;Kliknij i przytrzymaj zwolnienie
+alice_supply_limit_desc;Limit dostaw: $x$
+alice_factory_worker_1;Zatrudniony: ?G$x$?W
+alice_factory_worker_2;Bezrobotny: ?R$x$?W
+alice_rgo_unemployment_country_alert;W następujących stanach działają bezrobotne organizacje pozarządowe:
+pop_promote_info_on_sel_2;$val$ oczekiwana zmiana $who$ w $where$ w ciągu następnego miesiąca.
+alice_readme;„GWitamy w Project Alice!? W\nProject Alice to emulacja (nie symulator!) Twojej ulubionej gry wideo z epoki wiktoriańskiej. Innymi słowy, poprawiamy pewne mechaniki, aby była łatwiejsza do zrozumienia dla nowszych graczy, a jednocześnie uczynienie świata bardziej dynamicznym i rozrywkowym, naprawianie starych błędów (takich jak kryzysy) i wdrażanie nowych funkcji poprawiających jakość życia.\n?GNowe funkcje!?W\n?YGlobe?W: ?Pokochany?W przez wielu, ?Rhated? W niektórych, wyłącz to, jeśli ci to przeszkadza!\n?YKolejka technologii:?W SHIFT – kliknij prawym przyciskiem myszy, aby dodać technologie do kolejki technologii! (Kliknij prawym przyciskiem myszy, aby usunąć z kolejki)\n?YInwestycje krajowe:?W Zamiast inwestować w pojedyncze projekty, zrób to za jednym razem\n?YWydajność:?W Liczba taktów na sekundę (nie FPS) jest co najmniej x10 razy większa\n? YLinter:?W Uzyskaj błędy i ostrzeżenia w swoich modach, łatwo wyłapuj błędy i literówki\n?YKreator makr:?W Twórz jednostki o różnym składzie za pomocą naszego kreatora makr\n?Y11 nowych trybów map:?W Religia, fort, zatrudnienie, itp\n?YBuduj w całym kraju:?W SHIFT Kliknij prawym przyciskiem myszy, aby budować w całym kraju!\n?GSterowanie:?W\n?YTAB?W: Otwórz okno czatu\n?YESC?W: Otwórz menu główne i menu ustawień\n?YTilde (`)?W lub ?YTilde (~)?W: Otwórz konsolę\n?GCiesz się grą! =^w^=?W
+alice_nf_controls;?YKliknij lewym przyciskiem?W, aby wybrać lub zastąpić\n?YKliknij prawym przyciskiem?W, aby usunąć
+unit_controls_tooltip_1;?YLewy przycisk myszy?W zaznaczenie (odznaczenie wszystkiego innego)\n?YSHIFT-kliknięcie lewym przyciskiem?Dodaj do zaznaczenia
+unit_controls_tooltip_2;?YKliknij prawym przyciskiem myszy prowincję?W częściowy odwrót (?Gcykl/rotacja?W) do prowincji
+unit_control_group_tooltip;Naciśnij ?YCTRL-1?W do ?YCTRL-9?W, aby przypisać/cofnąć przypisanie tego urządzenia do grupy kontrolnej, którą możesz następnie nacisnąć ?Y1?W do ?Y9?W, aby wybrać
+console_button_tooltip;Otwórz konsolę poleceń
+demobilize;Demobilizować
+mobilize;Zmobilizować
+alice_cb_creation_detail_none;Wybierz casus belli, aby rozpocząć produkcję przeciwko $country$.
+alice_cb_creation_detail;"Możemy sfabrykować casus belli przeciwko $country$ z powodu „Y$type$?W. Proces ten może zająć mniej więcej około Y$dni$?W, a potencjalne koszty wykrycia przysporzą nam ""R$badboy$?W niesławy."
+alice_mob_controls;?YKliknij prawym przyciskiem myszy?W, aby ponownie się zmobilizować
+alice_mw_create_1;Dodaj ogólne
+alice_mw_create_2;Dodaj admirała
+alice_mw_create_lpb;„YPunkty przywódcze” zostaną automatycznie wykorzystane do stworzenia generałów lub admirałów po osiągnięciu limitu
+alice_mw_create_lp;Potrzebujemy ?R$x$?W?Punktów przywódczych?W do dodania
+alice_mw_controls_1;?YKliknij prawym przyciskiem myszy?Utwórz ?Galę? Jest to możliwe jako generałowie
+alice_mw_controls_2;?YKliknij prawym przyciskiem? Stwórz ?Gall? Jest to możliwe jako admirałowie
+alice_daily_leadership_tt;$poptype$ zapewnia ?G$value$?W punktów przywództwa (?Y$ułamek$?W populacji, ?Y$optymalne$?W jest optymalne). Dodatkowe punkty przywództwa zostaną automatycznie wydane na tworzenie nowych generałów.
+unit_current_supply;Ta jednostka otrzymała ?Y$val$%?W zapasów potrzebnych ostatniego dnia.\nIlość, jaką mogliśmy uzyskać z naszego bieżącego zużycia zapasów, wynosiła:
+unit_current_supply_high;$co$: ?Y$val$?W/?Y$wartość$?! ?l(?W?G$total$%?W?l żądam satysfakcji)
+unit_current_supply_mid;$co$: ?Y$val$?!/?Y$wartość$?! ?l(?O$total$%?W?l żądam satysfakcji)
+unit_current_supply_low;$co$: ?Y$val$?!/?Y$wartość$?! ?l(?R$total$%?W?l żądam satysfakcji)
+alice_crisis_inactive;Brak aktywnego kryzysu
+alice_crisis_finding_attacker;Znalezienie napastnika na obecny kryzys
+alice_crisis_finding_defender;Znalezienie obrońcy na obecny kryzys
+alice_crisis_heating_up;Kryzys nagrzewa się w temperaturze, obecnie na poziomie „R$temperatura$?W
+alice_last_crisis;Ostatni kryzys miał miejsce w $date$ (pomiędzy kryzysami obowiązuje miesięczny okres odnowienia wynoszący $time$)
+alice_crisis_par_1;„RAtakowcy” W:
+alice_crisis_par_2;„BDefenders” W:
+alice_crisis_par_3;?Jesteś zainteresowany (bez strony)?W:
+alice_commodity_cprice;Obecna cena: $x$
+alice_commodity_cost;Koszt: $x$
+alice_commodity_eprice;Efektywna cena: $x$
+alice_trade_top_producers;Najlepsi producenci ?Y$value$?W:
+alice_trade_no_producers;„Nikt nie produkuje tego towaru?” W
+alice_political_party_trigger;Dostępne tylko od ?Y$date_long_0$?W do ?Y$date_long_1$?W i spełniające następujący warunek:
+alice_political_party_no_trigger;Dostępne tylko od ?Y$date_long_0$?W do ?Y$date_long_1$?W
+alice_ai_decision;Szansa AI na podjęcie tej decyzji będzie zależała od:
+alice_mobilized_is_ai_controlled;Niezależnie od tego, czy zmobilizowane jednostki automatycznie staną się kontrolowane przez sztuczną inteligencję
+alice_ai_controlled_unit;Włącz/wyłącz kontrolę AI nad tą jednostką. Jednostka będzie:\n- Automatycznie wzmacniała linie frontu\n- Automatycznie oblegała, gdy będzie to bezpieczne\n- Polowała na rebeliantów\n- Utworzyła pozycję obronną przeciwko narodom, które prawdopodobnie zaatakujemy (decyduje o tym AI i tylko w czasie pokoju)\nJeśli chcesz, aby ta jednostka obrała za cel konkretny kraj lub region, najpierw przesuń ją blisko tego regionu lub narodu, a następnie włącz kontrolę AI – ponieważ AI to zastąpi wszystkie polecenia, dopóki nie wyłączysz go ponownie
+alice_navy_allocation_tt;Dzięki statkom „Y$curr$?W gromadzimy łączną przepustowość dostaw wynoszącą „Y$tot$?W, co wymaga „Y$req$?W dla naszych flot. Szczegółowe podsumowanie zużycia każdej floty morskiej:
+alice_navy_allocation_2;$name$: ?Y$wartość$?W (?Y$perc$?W)
+alice_wg_condition_1;Jako obrońca nie ma status quo
+alice_wg_condition_2;Jest z nami w stanie wojny
+alice_wg_condition_3;Unikalny cel wojenny (nie jest duplikatem innego celu wojennego)
+alice_wg_condition_4;Nie po tej samej stronie co my
+alice_wg_condition_5;Spełnia wyzwalacze celu wojennego
+alice_wg_condition_6;Dość szowinizmu (potrzebuje $potrzebuje$, ma $wartość$)
+alice_wg_condition_7;Jest celem wojennym, który można zbudować
+alice_tt_wg_infamy_limit;„Ten cel wojenny przekroczy limit niesławy?” W
+alice_wg_usage_trigger;Można użyć tylko wtedy, gdy spełniony jest następujący wyzwalacz:
+province_id;Identyfikator prowincji
+nation_tag;Etykieta narodu
+alice_rgo_trade_prod_1;Produkcja rolnicza RGO: $x$ ($y$)
+alice_rgo_trade_prod_2;Produkcja górnicza RGO: $x$ ($y$)
+alice_rgo_trade_prod_3;Produkcja mięty RGO: $x$ ($y$)
+alice_artisan_trade_prod;Produkcja rzemieślnicza: $x$ ($y$)
+alice_factory_trade_prod;Produkcja fabryczna: $x$ ($y$)
+alice_all_trade_prod;Całkowita produkcja: $x$
+alice_interested_in_alliance;(Dotyczy tylko krajów AI) Zaznacz, że jesteśmy zainteresowani sojuszem z tym krajem i natychmiast przyjmiemy oferty sojuszu
+alice_merge_rally_point_why;Scalanie punktów zbiórki zostało wycofane. Punkty zbiórki będą teraz automatycznie łączone
+alice_mvcap_1;Przenosi stolicę do tej prowincji
+alice_mvcap_2;Żadnego ciągłego kryzysu
+alice_mvcap_3;W pokoju
+alice_mvcap_4;Już nie stolica
+alice_mvcap_5;Nie kolonialny
+alice_mvcap_6;Na tym samym kontynencie, co obecna stolica
+alice_mvcap_7;Dominująca kultura akceptowana
+alice_mvcap_8;Ta prowincja nie jest oblężona
+alice_mvcap_9;Obecna stolica nie jest oblężona
+alice_mvcap_10;Jest Twoją własnością
+alice_mvcap_11;Jest kontrolowany przez Ciebie
+alice_mvcap_12;Jest rdzeniem właściciela
+alice_pnt_pops;?Populacja:?! $x$
+alice_pnt_rpops;?YBogate warstwy:?! $x$ ($y$)
+alice_pnt_mpops;?Średnia warstwa:?! $x$ ($y$)
+alice_pnt_ppops;?YBiedna warstwa:?! $x$ ($y$)
+alice_pnt_culture;?Kultura:?! $x$
+alice_pnt_religion;?YReligia:?! $x$
+alice_pnt_dominant_religion;?Dominująca religia:?! $x$
+alice_pnt_dominant_ideology;?Dominująca ideologia:?! $x$
+ledger_ppp_gdp;PKB (PPP)
+ledger_ppp_gdp_per_capita;PKB(PPP) na 1 milion osób

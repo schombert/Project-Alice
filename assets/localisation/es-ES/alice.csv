@@ -315,6 +315,7 @@ units_in_the_state;unidades en el estado
 at_war_against;en guerra contra
 num_of_divisions;un numero de divisiones
 an_ongoing_battle;una batalla en marcha
+an_assigned_leader;an assigned leader
 treasury;tesoro
 o_treasury;el tesoro del duenio
 o_of_prov;el duenio de la provincia
@@ -1192,3 +1193,5 @@ alice_pnt_dominant_religion;
 alice_pnt_dominant_ideology;
 ledger_ppp_gdp;
 ledger_ppp_gdp_per_capita;
+becomes_from;Scoped becomes from
+becomes_this;Scoped becomes this

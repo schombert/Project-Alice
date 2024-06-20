@@ -431,10 +431,6 @@ public:
 		}
 		calibrate_scrollbar(state);
 	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
 };
 class macro_builder_apply_button : public button_element_base {
 	std::vector<dcon::province_id> provinces;
@@ -1004,6 +1000,10 @@ public:
 
 class minimap_picture_window : public opaque_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		opaque_element_base::render(state, x, y);
 		// TODO draw white box to represent window borders

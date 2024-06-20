@@ -1,75 +1,56 @@
-language_en-US;English (US)
-language_fr-FR;French (France)
-language_de-DE;German (Germany)
-language_es-ES;Spanish (Spain)
-language_it-IT;Italian (Italy)
-language_sv-SV;Swedish (Sweden)
-language_cs-CZ;Czech (Czech Rep.)
-language_hu-HU;Hungarian (Hungary)
-language_nl-NL;Dutch (Netherlands)
-language_po-PO;Portuguese (Portugal)
-language_ru-RU;Russian (Russia)
-language_fi-FI;Finnish (Finland)
-language_pl-PL;Polish (Poland)
-language_ar-AR;Arabic (Arabia)
-language_zh-CN;Chinese (China)
-language_jp-JP;Japanese (Japan)
-language_ko-SK;Korean (South Korea)
-language_ko-NK;Korean (North Korea)
-language_bg-BG;Bulgarian (Bulgaria)
-save_and_exit;Save and Exit
-save;Save
-exit;Exit
-graphics_options;Graphics Options
-sound_options;Sound Options
-controls_options;Misc. Options
-message_settings_options;Message Settings
-window_mode_label;Fullscreen
-map_projection;Projection
-map_projection_globe;Orthographic
-map_projection_flat;Equirectangular
-map_projection_globe_perspective;Vertical
-dm_popup_label;Diplomatic message as popups
-ui_scale;UI scale
-zoom_mode_label;Zoom style
-zoom_mode_panning;Panning
-zoom_mode_inverted;Inverted
-zoom_mode_centered;Centered
-zoom_mode_to_cursor;To cursor
-zoom_mode_away_from_cursor;Away from cursor
-zoom_speed_label;Zoom Acceleration
-river_label;Rivers
-mute_on_focus_lost_label;Mute on focus lost
-wasd_for_map_movement_label;WASD for movement
-vassal_color_label;Vassal coloring
-vassal_color_inherit;Inherit
-vassal_color_same;Same
-vassal_color_none;None
-black_map_font_label;Black map font
-edge_scrolling_label;Edge scrolling
-color_blind_mode_label;Color blind
-color_blind_mode_none;None
-color_blind_mode_deutan;Deutan
-color_blind_mode_protan;Protan
-color_blind_mode_tritan;Tritan
-color_blind_mode_achroma;Achroma
-render_models_label;Render models
-language_label;Language
-fow_label;Fog of War
-railroad_label;Railroad networks
-master_volume_label;Master volume
-music_volume_label;Music volume
-interface_volume_label;Interface volume
-effect_volume_label;Sound effect volume
-fonts_label;Classic fonts
-tooltip_mode_label;Floating tooltip
-music_player_label;Music player
-gaussianblur_label;Gaussian blur
-gamma_label;Gamma
-map_label;Map text
-map_label_0;None
-map_label_1;Linear
-map_label_2;Quadratic
-map_label_3;Cubic
-antialiasing_label;Antialiasing
-spoilers_label;Spoilers
+save_and_exit;저장 및 종료
+save;구하다
+exit;출구
+graphics_options;그래픽 옵션
+sound_options;사운드 옵션
+controls_options;기타 옵션
+message_settings_options;메시지 설정
+window_mode_label;전체 화면
+map_projection;투사
+map_projection_globe;직교
+map_projection_flat;등장방형
+map_projection_globe_perspective;수직의
+dm_popup_label;외교 메시지를 팝업으로 표시
+ui_scale;UI 규모
+zoom_mode_label;줌 스타일
+zoom_mode_panning;패닝
+zoom_mode_inverted;거꾸로
+zoom_mode_centered;가운데 맞춤
+zoom_mode_to_cursor;커서로
+zoom_mode_away_from_cursor;커서에서 멀어짐
+zoom_speed_label;줌 가속
+river_label;강하
+mute_on_focus_lost_label;초점 상실 시 음소거
+wasd_for_map_movement_label;이동용 WASD
+vassal_color_label;가신 색칠
+vassal_color_inherit;상속
+vassal_color_same;같은
+vassal_color_none;없음
+black_map_font_label;검은 지도 글꼴
+edge_scrolling_label;가장자리 스크롤
+color_blind_mode_label;색맹
+color_blind_mode_none;없음
+color_blind_mode_deutan;듀탄
+color_blind_mode_protan;프로탄
+color_blind_mode_tritan;트라이탄
+color_blind_mode_achroma;아크로마
+render_models_label;모델 렌더링
+language_label;언어
+fow_label;전쟁의 안개
+railroad_label;철도망
+master_volume_label;마스터 볼륨
+music_volume_label;음악 볼륨
+interface_volume_label;인터페이스 볼륨
+effect_volume_label;음향 효과 볼륨
+fonts_label;클래식 글꼴
+tooltip_mode_label;부동 툴팁
+music_player_label;뮤직 플레이어
+gaussianblur_label;가우스 흐림
+gamma_label;감마
+map_label;지도 텍스트
+map_label_0;없음
+map_label_1;선의
+map_label_2;이차
+map_label_3;큐빅
+antialiasing_label;안티 앨리어싱
+spoilers_label;스포일러

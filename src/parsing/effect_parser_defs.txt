@@ -326,7 +326,14 @@ effect_body
 	any_defined_country             extern      ef_scope_any_defined_country  discard
 	any_existing_country_except_scoped	extern	ef_scope_any_existing_country_except_scoped  discard
 	random_neighbor_country         extern      ef_scope_random_neighbor_country    discard
+	from_bounce						extern		ef_scope_from_bounce		discard
+	this_bounce						extern		ef_scope_this_bounce		discard
+	random_by_modifier				extern		ef_random_by_modifier		discard
 	#any                            extern      ef_scope_variable           discard
+
+ef_scope_random_by_modifier
+	#base		effect_body
+	chance		extern		read_chance_modifier	member (chance_modifier)
 
 event_option
 	#base    effect_body

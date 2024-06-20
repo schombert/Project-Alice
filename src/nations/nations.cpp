@@ -39,34 +39,16 @@ int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n)
 	 * month, depending which one is better to implement Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is
 	 * divided by 30
 	 */
-
 	int64_t estimated_change = 0;
-
-	std::vector<dcon::state_instance_id> state_list{};
-	for(auto si : state.world.nation_get_state_ownership(n))
-		state_list.push_back(si.get_state().id);
-
-	std::vector<dcon::province_id> province_list{};
-	for(auto& state_id : state_list) {
-		auto fat_id = dcon::fatten(state.world, state_id);
-		province::for_each_province_in_state_instance(state, fat_id, [&](dcon::province_id id) { province_list.push_back(id); });
-	}
-
-	for(auto& province_id : province_list) {
-		auto fat_id = dcon::fatten(state.world, province_id);
-		fat_id.for_each_pop_location_as_province([&](dcon::pop_location_id id) {
-			auto pop = state.world.pop_location_get_pop(id);
-
-			auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
-			auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pop));
-			auto emigration = -int64_t(demographics::get_estimated_emigration(state, pop));
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		for(auto pl : state.world.province_get_pop_location(p.get_province())) {
+			auto growth = int64_t(demographics::get_monthly_pop_increase(state, pl.get_pop()));
+			auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pl.get_pop()));
+			auto emigration = -int64_t(demographics::get_estimated_emigration(state, pl.get_pop()));
 			auto total = int64_t(growth) + colonial_migration + emigration;
-
 			estimated_change += total;
-		});
+		}
 	}
-
-
 	return estimated_change;
 }
 
@@ -235,10 +217,10 @@ void global_national_state::set_global_flag_variable(dcon::global_flag_id id, bo
 		dcon::bit_vector_set(global_flag_variables.data(), id.index(), state);
 }
 
-dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag) {
+dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag) {
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(tag);
 	if(holder)
-		return state.world.nation_get_name(holder);
+		return text::get_name(state, holder);
 	else
 		return state.world.national_identity_get_name(tag);
 }
@@ -915,19 +897,16 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
-std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n) {
-	std::vector<dcon::political_party_id> parties{};
+void get_active_political_parties(sys::state& state, dcon::nation_id n, std::vector<dcon::political_party_id>& parties) {
 	auto identity = state.world.nation_get_identity_from_identity_holder(n);
 	auto start = state.world.national_identity_get_political_party_first(identity).id.index();
 	auto end = start + state.world.national_identity_get_political_party_count(identity);
-
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(uint16_t(i));
 		if(politics::political_party_is_active(state, n, pid)) {
 			parties.push_back(pid);
 		}
 	}
-	return parties;
 }
 
 void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
@@ -1363,6 +1342,17 @@ void adjust_prestige(sys::state& state, dcon::nation_id n, float delta) {
 	state.world.nation_set_prestige(n, new_prestige);
 }
 
+bool destroy_vassal_relationships(sys::state& state, dcon::nation_id n) {
+	auto ov_rel = state.world.nation_get_overlord_as_ruler(n);
+	for(auto it = ov_rel.begin(); it != ov_rel.end(); ++it) {
+		if((*it).get_subject().get_is_substate() == false) {
+			release_vassal(state, *it);
+			return true;
+		}
+	}
+	return false;
+}
+
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 	{
 		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
@@ -1389,15 +1379,7 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		auto ov_rel = state.world.nation_get_overlord_as_ruler(n);
 		bool released_vassal = true;
 		while(released_vassal) {
-			released_vassal = [&]() {
-				for(auto it = ov_rel.begin(); it != ov_rel.end(); ++it) {
-					if((*it).get_subject().get_is_substate() == false) {
-						release_vassal(state, *it);
-						return true;
-					}
-				}
-				return false;
-			}();
+			released_vassal = destroy_vassal_relationships(state, n);
 		}
 	}
 }
@@ -1479,7 +1461,7 @@ void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 			break_alliance(state, r);
 			if(a != state.local_player_nation) {
 				notification::post(state, notification::message{
-					[from = state.world.nation_get_name(a), to = state.world.nation_get_name(b)](sys::state& state, text::layout_base& contents) {
+					[from = text::get_name(state, a), to = text::get_name(state, b)](sys::state& state, text::layout_base& contents) {
 						text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
 					},
 					"msg_alliance_ends_title",
@@ -1517,10 +1499,8 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 
 bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon::gp_relationship_id rel) {
 	for(auto orel : state.world.nation_get_gp_relationship_as_influence_target(target)) {
-		if(orel != rel) {
-			if(orel.get_influence() > 0.0f)
-				return true;
-		}
+		if(orel != rel && orel.get_influence() > 0.0f)
+			return true;
 	}
 	return false;
 }
@@ -1532,8 +1512,8 @@ bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::
 		return false;
 	if(military::are_at_war(state, gp, target))
 		return false;
-	if(state.world.gp_relationship_get_influence(rel) >= state.defines.max_influence &&
-			!other_nation_is_influencing(state, target, rel))
+	if(state.world.gp_relationship_get_influence(rel) >= state.defines.max_influence
+		&& !other_nation_is_influencing(state, target, rel))
 		return false;
 	return true;
 }
@@ -2434,10 +2414,7 @@ void update_crisis(sys::state& state) {
 
 				if(gp_attackers >= 2 && gp_defenders >= 2) {
 					state.world.war_set_is_great(war, true);
-					auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"});
-					if(it != state.key_to_text_sequence.end()) {
-						state.world.war_set_name(war, it->second);
-					}
+					state.world.war_set_name(war, state.lookup_key(std::string_view{ "great_war_name" }));
 				}
 			}
 
@@ -2449,9 +2426,9 @@ void update_crisis(sys::state& state) {
 					text::substitution_map sub;
 
 					text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-					text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+					text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, pd));
 					text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
-					text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+					text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, pa));
 					text::add_to_substitution_map(sub, text::variable_type::third, tag);
 					text::add_to_substitution_map(sub, text::variable_type::state, st);
 					text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.national_identity_get_adjective(tag));

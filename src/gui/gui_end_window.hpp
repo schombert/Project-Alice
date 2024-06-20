@@ -127,7 +127,6 @@ protected:
 
 class end_right_flag : public flag_button {
 public:
-
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		dcon::gfx_object_id gid;
 		if(base_data.get_element_type() == element_type::image) {
@@ -140,8 +139,9 @@ public:
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(),
+				false);
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -177,14 +177,12 @@ public:
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
 				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle,
-				ui::rotation::r90_right, false);
-	
+				ui::rotation::r90_right, false, false);
 			ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-				ui::rotation::r90_right, false);
+				ui::rotation::r90_right, false, false);
 		}
-
 	}
 
 	void on_create(sys::state& state) noexcept override {
@@ -278,7 +276,7 @@ public:
 		} else if(name == "workforce_chart") {
 			return make_element_by_type<nation_picker_poptypes_chart>(state, id);
 		} else if(name == "ledger_button") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		}
 		return nullptr;
 	}

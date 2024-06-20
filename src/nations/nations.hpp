@@ -44,7 +44,19 @@ enum class focus_type : uint8_t {
 	diplomatic_focus = 3,
 	promotion_focus = 4,
 	production_focus = 5,
-	party_loyalty_focus = 6
+	party_loyalty_focus = 6,
+	//non-vanilla
+	policy_focus = 7,
+	tier_1_focus = 8,
+	tier_2_focus = 9,
+	tier_3_focus = 10,
+	tier_4_focus = 11,
+	tier_5_focus = 12,
+	tier_6_focus = 13,
+	tier_7_focus = 14,
+	tier_8_focus = 15,
+	building_focus = 16,
+	population_focus = 17,
 };
 
 struct global_national_state {
@@ -52,9 +64,9 @@ struct global_national_state {
 	std::vector<dcon::bitfield_type> global_flag_variables;
 	std::vector<dcon::nation_id> nations_by_rank;
 
-	tagged_vector<dcon::text_sequence_id, dcon::national_flag_id> flag_variable_names;
-	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
-	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
+	tagged_vector<dcon::text_key, dcon::national_flag_id> flag_variable_names;
+	tagged_vector<dcon::text_key, dcon::global_flag_id> global_flag_variable_names;
+	tagged_vector<dcon::text_key, dcon::national_variable_id> variable_names;
 
 	dcon::national_identity_id rebel_id;
 
@@ -105,8 +117,6 @@ struct global_national_state {
 	int32_t num_allocated_national_variables = 0;
 	int32_t num_allocated_national_flags = 0;
 	int32_t num_allocated_global_flags = 0;
-
-	dcon::national_identity_id cleanup_tag;
 
 	dcon::national_focus_id flashpoint_focus;
 	dcon::national_focus_id clergy_focus;
@@ -252,7 +262,7 @@ void restore_unsaved_values(sys::state& state);
 void restore_state_instances(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
 
-dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
+dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag);
 
 void update_administrative_efficiency(sys::state& state);
 
@@ -312,7 +322,7 @@ bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index);
 military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index);
 int32_t num_crisis_wargoals(sys::state& state);
 
-std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
+void get_active_political_parties(sys::state& state, dcon::nation_id n, std::vector<dcon::political_party_id>& parties);
 
 void update_monthly_points(sys::state& state);
 

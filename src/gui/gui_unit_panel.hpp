@@ -170,7 +170,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
-		auto location = get_absolute_location(*this);
+		auto location = get_absolute_non_mirror_location(state, *this);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			if(command::can_change_general(state, state.local_player_nation, unit, dcon::leader_id{}))
 				open_leader_selection(state, unit, dcon::navy_id{}, location.x, location.y);
@@ -257,7 +257,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
-		auto location = get_absolute_location(*this);
+		auto location = get_absolute_non_mirror_location(state, *this);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			open_leader_selection(state, unit, dcon::navy_id{}, location.x + base_data.size.x, location.y);
 		} else {
@@ -475,13 +475,13 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		{
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				auto win2 = make_element_by_type<unit_reorg_window<T, dcon::regiment_id>>(state, state.ui_state.defs_by_name.find("reorg_window")->second.definition);
+				auto win2 = make_element_by_type<unit_reorg_window<T, dcon::regiment_id>>(state, state.ui_state.defs_by_name.find(state.lookup_key("reorg_window"))->second.definition);
 				win2->base_data.position.y = base_data.position.y - 29;
 				win2->set_visible(state, false);
 				reorg_window = win2.get();
 				add_child_to_front(std::move(win2));
 			} else {
-				auto win2 = make_element_by_type<unit_reorg_window<T, dcon::ship_id>>(state, state.ui_state.defs_by_name.find("reorg_window")->second.definition);
+				auto win2 = make_element_by_type<unit_reorg_window<T, dcon::ship_id>>(state, state.ui_state.defs_by_name.find(state.lookup_key("reorg_window"))->second.definition);
 				win2->base_data.position.y = base_data.position.y - 29;
 				win2->set_visible(state, false);
 				reorg_window = win2.get();
@@ -748,7 +748,7 @@ protected:
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("subunit_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("subunit_entry"))->second.definition].size.y; //nudge - allows for the extra element in the lb
 		listbox_element_base<subunit_details_entry_regiment, dcon::regiment_id>::on_create(state);
 	}
 
@@ -778,7 +778,7 @@ protected:
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("subunit_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("subunit_entry"))->second.definition].size.y; //nudge - allows for the extra element in the lb
 		listbox_element_base<subunit_details_entry_ship, dcon::ship_id>::on_create(state);
 	}
 
@@ -887,8 +887,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, t);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 };
 class unit_details_unload_army_button : public button_element_base {
@@ -932,8 +931,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, t);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 };
 class unit_details_unload_navy_button : public button_element_base {
@@ -1009,8 +1007,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, type);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1036,8 +1033,7 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
 			return button_element_base::test_mouse(state, x, y, type);
-		else
-			return message_result::unseen;
+		return message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1057,9 +1053,6 @@ class unit_details_ai_controlled : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept override {
 		return state.world.army_get_is_ai_controlled(retrieve<dcon::army_id>(state, parent));
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return button_element_base::test_mouse(state, x, y, type);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1262,40 +1255,40 @@ public:
 
 		xy_pair base_position = {20,
 				0}; // state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_start")->second.definition].position;
-		xy_pair base_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item_offset")->second.definition].position;
+		xy_pair base_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("unittype_item_offset"))->second.definition].position;
 
 		{
 			auto win = make_element_by_type<unit_details_type_item<T, 0>>(state,
-					state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition);
 			win->base_data.position.x = base_position.x + (0 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (0 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 		{
 			auto win = make_element_by_type<unit_details_type_item<T, 1>>(state,
-					state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition);
 			win->base_data.position.x = base_position.x + (1 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (1 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 		{
 			auto win = make_element_by_type<unit_details_type_item<T, 2>>(state,
-					state.ui_state.defs_by_name.find("unittype_item")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition);
 			win->base_data.position.x = base_position.x + (2 * base_offset.x); // Flexnudge
 			win->base_data.position.y = base_position.y + (2 * base_offset.y); // Flexnudge
 			add_child_to_front(std::move(win));
 		}
 
-		const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item")->second.definition].position;
+		const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition].position;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			auto ptr = make_element_by_type<unit_details_army_listbox>(state,
-					state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("sup_subunits"))->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
 			add_child_to_front(std::move(ptr));
 		} else {
 			auto ptr = make_element_by_type<unit_details_navy_listbox>(state,
-					state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("sup_subunits"))->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
 			add_child_to_front(std::move(ptr));
@@ -1303,14 +1296,14 @@ public:
 
 		{
 			auto ptr = make_element_by_type<unit_details_buttons<T>>(state,
-					state.ui_state.defs_by_name.find("sup_buttons_window")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("sup_buttons_window"))->second.definition);
 			ptr->base_data.position.y = base_data.size.y; // Nudge
 			add_child_to_front(std::move(ptr));
 		}
 
 		{
 			auto ptr =
-					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+					make_element_by_type<unit_selection_panel<T>>(state, state.ui_state.defs_by_name.find(state.lookup_key("unitpanel"))->second.definition);
 			unit_selection_win = ptr.get();
 			ptr->base_data.position.y = -80;
 			add_child_to_front(std::move(ptr));
@@ -1885,7 +1878,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		auto location = get_absolute_location(*this);
+		auto location = get_absolute_non_mirror_location(state, *this);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			open_leader_selection(state, std::get<dcon::army_id>(foru), dcon::navy_id{}, location.x + base_data.size.x, location.y);
 		} else {
@@ -1966,9 +1959,6 @@ public:
 		checkbox_button::on_update(state);
 		visible = state.selected_navies.empty();
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return button_element_base::test_mouse(state, x, y, type);
-	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -1999,7 +1989,7 @@ public:
 	}
 };
 
-class mulit_unit_selection_panel : public main_window_element_base {
+class mulit_unit_selection_panel : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);

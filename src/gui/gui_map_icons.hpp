@@ -283,7 +283,7 @@ public:
 					}
 				}
 
-				auto location = get_absolute_location(*this);
+				auto location = get_absolute_non_mirror_location(state, *this);
 				location.x -= 18;
 				location.y -= 18;
 				state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(63), int16_t(36)}, port_for, true);
@@ -573,9 +573,6 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->top_right_org_value;
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
-	}
 };
 
 class tr_status : public image_element_base {
@@ -606,7 +603,7 @@ public:
 	}
 };
 
-class tr_strength : public multiline_text_element_base {
+class tr_strength : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
@@ -615,17 +612,7 @@ public:
 			strength *= state.defines.pop_size_per_regiment;
 			strength = floor(strength);
 		}
-		auto layout = text::create_endless_layout(internal_layout,
-		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
-		auto box = text::open_layout_box(layout, 0);
-
-		
-		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(strength)}, text::text_color::white);
-		text::close_layout_box(layout, box);
-
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
+		set_text(state, text::prettify(int32_t(strength)));
 	}
 };
 
@@ -772,9 +759,6 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->top_left_org_value;
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
-	}
 };
 
 class tl_status : public image_element_base {
@@ -790,7 +774,7 @@ public:
 	}
 };
 
-class tl_strength : public multiline_text_element_base {
+class tl_strength : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
@@ -799,17 +783,8 @@ public:
 			strength *= state.defines.pop_size_per_regiment;
 			strength = floor(strength);
 		}
-		auto layout = text::create_endless_layout(internal_layout,
-		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false});
-		auto box = text::open_layout_box(layout, 0);
+		set_text(state, text::prettify(int32_t(strength)));
 
-
-		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(strength)}, text::text_color::white);
-		text::close_layout_box(layout, box);
-
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
 	}
 };
 
@@ -1603,8 +1578,7 @@ public:
 		if(populated) {
 			auto mid_point = state.world.province_get_mid_point(prov);
 			auto map_pos = state.map_state.normalize_map_coord(mid_point);
-			auto screen_size =
-				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+			auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 			glm::vec2 screen_pos;
 			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 				visible = false;
@@ -1678,10 +1652,7 @@ public:
 					}
 				}
 
-
-
-				auto location = get_absolute_location(*this);
-
+				auto location = get_absolute_non_mirror_location(state, *this);
 				if(state.map_state.get_zoom() >= big_counter_cutoff) {
 					int32_t height = 60;
 					int32_t left = -30;
@@ -1755,7 +1726,7 @@ public:
 		}
 		image_element_base::render(state, x, y);
 		ogl::color3f color{ 0.f, 0.f, 0.f };
-		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
+		//ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 
@@ -1771,7 +1742,7 @@ public:
 		}
 		image_element_base::render(state, x, y);
 		ogl::color3f color{ 0.f, 0.f, 0.f };
-		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
+		//ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 

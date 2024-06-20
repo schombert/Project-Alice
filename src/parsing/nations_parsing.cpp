@@ -22,8 +22,9 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "war")
 		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "tag")
-		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "any")) {
-		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": A tag which conflicts with a built-in 'war', 'any' or 'tag'\n";
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "any")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "log")) {
+		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": A tag which conflicts with a built-in 'war', 'any', 'log' or 'tag'\n";
 		return;
 	}
 
@@ -35,15 +36,12 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
-	// Recognize the cleanup utility tag
-	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
-		context.state.national_definitions.cleanup_tag = new_ident;
-	} else if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
 		context.state.national_definitions.rebel_id = new_ident;
 	}
 
-	auto name_id = text::find_or_add_key(context.state, tag);
-	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
+	auto name_id = context.state.add_key_win1252(tag);
+	auto adj_id = context.state.add_key_win1252(std::string(tag) + "_ADJ");
 	context.state.world.national_identity_set_name(new_ident, name_id);
 	context.state.world.national_identity_set_adjective(new_ident, adj_id);
 	context.state.world.national_identity_set_identifying_int(new_ident, as_int);
@@ -54,13 +52,13 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 }
 
 void triggered_modifier::finish(triggered_modifier_context& context) {
-	auto name_id = text::find_or_add_key(context.outer_context.state, context.name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, context.name, false);
 
 	auto modifier_id = context.outer_context.state.world.create_modifier();
 
 	context.outer_context.state.world.modifier_set_icon(modifier_id, uint8_t(icon_index));
 	context.outer_context.state.world.modifier_set_name(modifier_id, name_id);
-	context.outer_context.state.world.modifier_set_desc(modifier_id, text::find_key(context.outer_context.state, std::string(context.name) + "_desc"));
+	context.outer_context.state.world.modifier_set_desc(modifier_id, text::find_or_add_key(context.outer_context.state, std::string(context.name) + "_desc", false));
 	context.outer_context.state.world.modifier_set_national_values(modifier_id, force_national_mod());
 
 	context.outer_context.map_of_modifiers.insert_or_assign(std::string(context.name), modifier_id);
@@ -83,7 +81,7 @@ void make_triggered_modifier(std::string_view name, token_generator& gen, error_
 }
 
 void make_national_value(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -91,7 +89,7 @@ void make_national_value(std::string_view name, token_generator& gen, error_hand
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(context.number_of_national_values_seen));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
+	context.state.world.modifier_set_desc(new_modifier, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
@@ -100,7 +98,7 @@ void make_national_value(std::string_view name, token_generator& gen, error_hand
 }
 
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "very_easy_player");
+	auto name_id = text::find_or_add_key(context.state, "very_easy_player", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -115,7 +113,7 @@ void m_very_easy_player(token_generator& gen, error_handler& err, scenario_build
 }
 
 void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "easy_player");
+	auto name_id = text::find_or_add_key(context.state, "easy_player", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -130,7 +128,7 @@ void m_easy_player(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "hard_player");
+	auto name_id = text::find_or_add_key(context.state, "hard_player", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -145,7 +143,7 @@ void m_hard_player(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_very_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "very_hard_player");
+	auto name_id = text::find_or_add_key(context.state, "very_hard_player", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -160,7 +158,7 @@ void m_very_hard_player(token_generator& gen, error_handler& err, scenario_build
 }
 
 void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "very_easy_ai");
+	auto name_id = text::find_or_add_key(context.state, "very_easy_ai", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -175,7 +173,7 @@ void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_
 }
 
 void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "easy_ai");
+	auto name_id = text::find_or_add_key(context.state, "easy_ai", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -190,7 +188,7 @@ void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_conte
 }
 
 void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "hard_ai");
+	auto name_id = text::find_or_add_key(context.state, "hard_ai", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -205,7 +203,7 @@ void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_conte
 }
 
 void m_very_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "very_hard_ai");
+	auto name_id = text::find_or_add_key(context.state, "very_hard_ai", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -220,7 +218,7 @@ void m_very_hard_ai(token_generator& gen, error_handler& err, scenario_building_
 }
 
 void m_overseas(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "overseas");
+	auto name_id = text::find_or_add_key(context.state, "overseas", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -236,7 +234,7 @@ void m_overseas(token_generator& gen, error_handler& err, scenario_building_cont
 }
 
 void m_coastal(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "coastal");
+	auto name_id = text::find_or_add_key(context.state, "coastal", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -252,7 +250,7 @@ void m_coastal(token_generator& gen, error_handler& err, scenario_building_conte
 }
 
 void m_non_coastal(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "non_coastal");
+	auto name_id = text::find_or_add_key(context.state, "non_coastal", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -268,7 +266,7 @@ void m_non_coastal(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_coastal_sea(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "coastal_sea");
+	auto name_id = text::find_or_add_key(context.state, "coastal_sea", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -284,7 +282,7 @@ void m_coastal_sea(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_sea_zone(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "sea_zone");
+	auto name_id = text::find_or_add_key(context.state, "sea_zone", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -300,7 +298,7 @@ void m_sea_zone(token_generator& gen, error_handler& err, scenario_building_cont
 }
 
 void m_land_province(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "land_province");
+	auto name_id = text::find_or_add_key(context.state, "land_province", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -316,7 +314,7 @@ void m_land_province(token_generator& gen, error_handler& err, scenario_building
 }
 
 void m_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "blockaded");
+	auto name_id = text::find_or_add_key(context.state, "blockaded", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -332,7 +330,7 @@ void m_blockaded(token_generator& gen, error_handler& err, scenario_building_con
 }
 
 void m_no_adjacent_controlled(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "no_adjacent_controlled");
+	auto name_id = text::find_or_add_key(context.state, "no_adjacent_controlled", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -348,7 +346,7 @@ void m_no_adjacent_controlled(token_generator& gen, error_handler& err, scenario
 }
 
 void m_core(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "core");
+	auto name_id = text::find_or_add_key(context.state, "core", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -364,7 +362,7 @@ void m_core(token_generator& gen, error_handler& err, scenario_building_context&
 }
 
 void m_has_siege(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "has_siege");
+	auto name_id = text::find_or_add_key(context.state, "has_siege", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -380,7 +378,7 @@ void m_has_siege(token_generator& gen, error_handler& err, scenario_building_con
 }
 
 void m_occupied(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "occupied");
+	auto name_id = text::find_or_add_key(context.state, "occupied", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -396,7 +394,7 @@ void m_occupied(token_generator& gen, error_handler& err, scenario_building_cont
 }
 
 void m_nationalism(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "nationalism");
+	auto name_id = text::find_or_add_key(context.state, "nationalism", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -412,7 +410,7 @@ void m_nationalism(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_infrastructure(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "infrastructure");
+	auto name_id = text::find_or_add_key(context.state, "infrastructure", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -428,7 +426,7 @@ void m_infrastructure(token_generator& gen, error_handler& err, scenario_buildin
 }
 
 void m_base_values(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "base_values");
+	auto name_id = text::find_or_add_key(context.state, "base_values", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -443,7 +441,7 @@ void m_base_values(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_war(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "war");
+	auto name_id = text::find_or_add_key(context.state, "war", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -458,7 +456,7 @@ void m_war(token_generator& gen, error_handler& err, scenario_building_context& 
 }
 
 void m_peace(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "peace");
+	auto name_id = text::find_or_add_key(context.state, "peace", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -473,7 +471,7 @@ void m_peace(token_generator& gen, error_handler& err, scenario_building_context
 }
 
 void m_disarming(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "disarming");
+	auto name_id = text::find_or_add_key(context.state, "disarming", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -488,7 +486,7 @@ void m_disarming(token_generator& gen, error_handler& err, scenario_building_con
 }
 
 void m_war_exhaustion(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "war_exhaustion");
+	auto name_id = text::find_or_add_key(context.state, "war_exhaustion", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -503,7 +501,7 @@ void m_war_exhaustion(token_generator& gen, error_handler& err, scenario_buildin
 }
 
 void m_badboy(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "badboy");
+	auto name_id = text::find_or_add_key(context.state, "badboy", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -518,7 +516,7 @@ void m_badboy(token_generator& gen, error_handler& err, scenario_building_contex
 }
 
 void m_debt_default_to(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "debt_default_to");
+	auto name_id = text::find_or_add_key(context.state, "debt_default_to", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -533,7 +531,7 @@ void m_debt_default_to(token_generator& gen, error_handler& err, scenario_buildi
 }
 
 void m_bad_debter(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "bad_debter");
+	auto name_id = text::find_or_add_key(context.state, "bad_debter", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -548,7 +546,7 @@ void m_bad_debter(token_generator& gen, error_handler& err, scenario_building_co
 }
 
 void m_great_power(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "great_power");
+	auto name_id = text::find_or_add_key(context.state, "great_power", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -563,7 +561,7 @@ void m_great_power(token_generator& gen, error_handler& err, scenario_building_c
 }
 
 void m_second_power(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "second_power");
+	auto name_id = text::find_or_add_key(context.state, "second_power", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -578,7 +576,7 @@ void m_second_power(token_generator& gen, error_handler& err, scenario_building_
 }
 
 void m_civ_nation(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "civ_nation");
+	auto name_id = text::find_or_add_key(context.state, "civ_nation", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -593,7 +591,7 @@ void m_civ_nation(token_generator& gen, error_handler& err, scenario_building_co
 }
 
 void m_unciv_nation(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "unciv_nation");
+	auto name_id = text::find_or_add_key(context.state, "unciv_nation", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -608,7 +606,7 @@ void m_unciv_nation(token_generator& gen, error_handler& err, scenario_building_
 }
 
 void m_average_literacy(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "average_literacy");
+	auto name_id = text::find_or_add_key(context.state, "average_literacy", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -623,7 +621,7 @@ void m_average_literacy(token_generator& gen, error_handler& err, scenario_build
 }
 
 void m_plurality(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "plurality");
+	auto name_id = text::find_or_add_key(context.state, "plurality", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -638,7 +636,7 @@ void m_plurality(token_generator& gen, error_handler& err, scenario_building_con
 }
 
 void m_generalised_debt_default(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "generalised_debt_default");
+	auto name_id = text::find_or_add_key(context.state, "generalised_debt_default", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -653,7 +651,7 @@ void m_generalised_debt_default(token_generator& gen, error_handler& err, scenar
 }
 
 void m_total_occupation(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "total_occupation");
+	auto name_id = text::find_or_add_key(context.state, "total_occupation", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -668,7 +666,7 @@ void m_total_occupation(token_generator& gen, error_handler& err, scenario_build
 }
 
 void m_total_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "total_blockaded");
+	auto name_id = text::find_or_add_key(context.state, "total_blockaded", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -683,7 +681,7 @@ void m_total_blockaded(token_generator& gen, error_handler& err, scenario_buildi
 }
 
 void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, "in_bankrupcy");
+	auto name_id = text::find_or_add_key(context.state, "in_bankrupcy", true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -698,7 +696,7 @@ void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_
 }
 
 void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, true);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
 
@@ -706,7 +704,9 @@ void make_event_modifier(std::string_view name, token_generator& gen, error_hand
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
+	auto desc_1 = text::find_or_add_key(context.state, std::string(name) + "_desc", false);
+	
+	context.state.world.modifier_set_desc(new_modifier, desc_1);
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
@@ -747,7 +747,7 @@ dcon::national_variable_id scenario_building_context::get_national_variable(std:
 				dcon::national_variable_id::value_base_t(state.national_definitions.num_allocated_national_variables));
 		++state.national_definitions.num_allocated_national_variables;
 		map_of_national_variables.insert_or_assign(name, new_id);
-		state.national_definitions.variable_names.safe_get(new_id) = text::find_or_add_key(state, name);
+		state.national_definitions.variable_names.safe_get(new_id) = text::find_or_add_key(state, name, false);
 		return new_id;
 	}
 }
@@ -760,7 +760,7 @@ dcon::national_flag_id scenario_building_context::get_national_flag(std::string 
 				dcon::national_flag_id(dcon::national_flag_id::value_base_t(state.national_definitions.num_allocated_national_flags));
 		++state.national_definitions.num_allocated_national_flags;
 		map_of_national_flags.insert_or_assign(name, new_id);
-		state.national_definitions.flag_variable_names.safe_get(new_id) = text::find_or_add_key(state, name);
+		state.national_definitions.flag_variable_names.safe_get(new_id) = text::find_or_add_key(state, name, false);
 		return new_id;
 	}
 }
@@ -773,7 +773,7 @@ dcon::global_flag_id scenario_building_context::get_global_flag(std::string cons
 				dcon::global_flag_id(dcon::global_flag_id::value_base_t(state.national_definitions.num_allocated_global_flags));
 		++state.national_definitions.num_allocated_global_flags;
 		map_of_global_flags.insert_or_assign(name, new_id);
-		state.national_definitions.global_flag_variable_names.safe_get(new_id) = text::find_or_add_key(state, name);
+		state.national_definitions.global_flag_variable_names.safe_get(new_id) = text::find_or_add_key(state, name, false);
 		return new_id;
 	}
 }
@@ -790,7 +790,7 @@ dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, nat
 	return make_trigger(gen, err, t_context);
 }
 void make_focus(std::string_view name, token_generator& gen, error_handler& err, national_focus_context& context) {
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 	auto new_focus = context.outer_context.state.world.create_national_focus();
 	context.outer_context.state.world.national_focus_set_name(new_focus, name_id);
 	context.outer_context.state.world.national_focus_set_type(new_focus, uint8_t(context.type));
@@ -824,15 +824,28 @@ void make_focus_group(std::string_view name, token_generator& gen, error_handler
 	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "party_loyalty_focus"))
 		t = nations::focus_type::party_loyalty_focus;
 	// non vanilla but present in some MP mods
-	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_1_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_2_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_3_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_4_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_5_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_6_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_7_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_8_focus"))
-		t = nations::focus_type::promotion_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "policy_focus"))
+		t = nations::focus_type::policy_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_1_focus"))
+		t = nations::focus_type::tier_1_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_2_focus"))
+		t = nations::focus_type::tier_2_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_3_focus"))
+		t = nations::focus_type::tier_3_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_4_focus"))
+		t = nations::focus_type::tier_4_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_5_focus"))
+		t = nations::focus_type::tier_5_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_6_focus"))
+		t = nations::focus_type::tier_6_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_7_focus"))
+		t = nations::focus_type::tier_7_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_8_focus"))
+		t = nations::focus_type::tier_8_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "building_focus"))
+		t = nations::focus_type::building_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "population_focus"))
+		t = nations::focus_type::population_focus;
 	else
 		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
 
@@ -860,8 +873,8 @@ dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, 
 void make_decision(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto new_decision = context.state.world.create_decision();
 
-	auto name_id = text::find_or_add_key(context.state, std::string(name) + "_title");
-	auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc");
+	auto name_id = text::find_or_add_key(context.state, std::string(name) + "_title", false);
+	auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc", false);
 
 	auto root = get_root(context.state.common_fs);
 	auto gfx = open_directory(root, NATIVE("gfx"));
@@ -904,9 +917,9 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 				new_obj.primary_texture_handle = itb->second;
 			} else {
 				auto index = context.state.ui_defs.textures.size();
-				context.state.ui_defs.textures.emplace_back(context.state.add_to_pool(file_name));
-				new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-				context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+				context.state.ui_defs.textures.emplace_back(context.state.add_key_win1252(file_name));
+				new_obj.primary_texture_handle = dcon::texture_id(dcon::texture_id::value_base_t(index));
+				context.gfx_context.map_of_texture_names.insert_or_assign(file_name, new_obj.primary_texture_handle);
 			}
 			new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
 

@@ -67,8 +67,8 @@ struct text_line_vertex {
 
 struct text_line_generator_data {
 	text_line_generator_data() { };
-	text_line_generator_data(std::string text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(text_), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
-	std::string text{};
+	text_line_generator_data(text::stored_glyphs&& text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(std::move(text_)), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
+	text::stored_glyphs text;
 	glm::vec4 coeff{0.f};
 	glm::vec2 basis{0.f};
 	glm::vec2 ratio{0.f};
@@ -141,6 +141,7 @@ public:
 	std::vector<GLint> other_objective_unit_arrow_starts;
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
+	std::vector<GLuint> text_line_texture_per_quad;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
@@ -201,7 +202,8 @@ public:
 	static constexpr uint32_t texture_strategy_unit_arrow = 21;
 	static constexpr uint32_t texture_objective_unit_arrow = 22;
 	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
-	static constexpr uint32_t texture_count = 24;
+	static constexpr uint32_t texture_hover_border = 24;
+	static constexpr uint32_t texture_count = 25;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;

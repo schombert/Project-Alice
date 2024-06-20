@@ -21,18 +21,18 @@ font = { #Font used for the map labels
 ##CHINESE
 font = { #Font used for normal, regular text
 	id = 4
-	path = "assets/fonts/NotoSerifSC-Regular.ttf"
+	path = "assets/fonts/STZHONGS.TTF"
 	smallCaps = no
 }
 font = { #Font used for headers and "bold" text
 	id = 5
-	path = "assets/fonts/NotoSerifSC-Bold.ttf"
-	smallCaps = yes
+	path = "assets/fonts/STZHONGS.TTF"
+	smallCaps = no
 }
 font = { #Font used for the map labels
 	id = 6
-	path = "assets/fonts/NotoSerifSC-Regular.ttf"
-	smallCaps = yes
+	path = "assets/fonts/STXINWEI.TTF"
+	smallCaps = no
 }
 
 ##ARABIC
@@ -44,12 +44,12 @@ font = { #Font used for normal, regular text
 font = { #Font used for headers and "bold" text
 	id = 8
 	path = "assets/fonts/NotoNaskhArabic-Bold.ttf"
-	smallCaps = yes
+	smallCaps = no
 }
 font = { #Font used for the map labels
 	id = 9
-	path = "assets/fonts/NotoNaskhArabic-Bold.ttf"
-	smallCaps = yes
+	path = "assets/fonts/NotoNaskhArabic-Regular.ttf"
+	smallCaps = no
 }
 
 ##CYRILLIC
@@ -65,10 +65,6 @@ font = { #Font used for headers and "bold" text
 }
 font = { #Font used for the map labels
 	id = 12
-	path = "assets/fonts/NotoSerif-Bold.ttf"
+	path = "assets/fonts/NotoSerif-Regular.ttf"
 	smallCaps = yes
 }
-
-
-
-

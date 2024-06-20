@@ -93,8 +93,7 @@ void message_body_text::on_update(sys::state& state) noexcept {
 	}
 }
 
-message_result message_body_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
+message_result message_body_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		delegate->current_line = int32_t(text_scrollbar->scaled_value());
@@ -136,8 +135,9 @@ public:
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(),
+				false);
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -159,7 +159,7 @@ public:
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<message_lr_button<false>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -167,7 +167,7 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<message_count_text>(state,
-					state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("alice_page_count"))->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			count_text = ptr.get();
@@ -175,7 +175,7 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<message_lr_button<true>>(state,
-					state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));

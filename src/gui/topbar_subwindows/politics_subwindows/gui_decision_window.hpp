@@ -9,11 +9,12 @@
 namespace ui {
 
 inline void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
-	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
-	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
-	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
-	text::add_to_substitution_map(m, text::variable_type::capital, state.world.province_get_name(state.world.nation_get_capital(n)));
-	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(n), state.world.nation_get_government_type(n)));
+	text::add_to_substitution_map(m, text::variable_type::country_adj, text::get_adjective(state, n));
+	text::add_to_substitution_map(m, text::variable_type::country, n);
+	text::add_to_substitution_map(m, text::variable_type::countryname, n);
+	text::add_to_substitution_map(m, text::variable_type::thiscountry, n);
+	text::add_to_substitution_map(m, text::variable_type::capital, state.world.nation_get_capital(n));
+	text::add_to_substitution_map(m, text::variable_type::monarchtitle, text::get_ruler_title(state, n));
 	text::add_to_substitution_map(m, text::variable_type::continentname, state.world.nation_get_capital(n).get_continent().get_name());
 	// Date
 	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
@@ -21,7 +22,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::day, int32_t(state.current_date.to_ymd(state.start_date).day));
 	auto sm = state.world.nation_get_in_sphere_of(n);
 	text::add_to_substitution_map(m, text::variable_type::spheremaster, sm);
-	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, text::get_adjective(state, sm));
 	auto smpc = state.world.nation_get_primary_culture(sm);
 	text::add_to_substitution_map(m, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
@@ -47,7 +48,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_capital, state.world.nation_get_capital(state.primary_crisis_defender));
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(m, text::variable_type::crisistarget, state.primary_crisis_defender);
-	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
 	text::add_to_substitution_map(m, text::variable_type::crisisarea, state.crisis_state);
 	text::add_to_substitution_map(m, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// TODO: Is this correct? I remember in vanilla it could vary
@@ -98,14 +99,24 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
+		text::add_line(state, contents, "alice_ai_decision");
+		auto mkey = state.world.decision_get_ai_will_do(id);
+		if(mkey)
+			multiplicative_value_modifier_description(state, contents, mkey, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+	}
+};
+
+class decision_potential : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto potential = state.world.decision_get_potential(id);
 		if(potential)
 			trigger_description(state, contents, potential, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
-		text::add_line(state, contents, "alice_ai_decision");
-		auto mkey = state.world.decision_get_ai_will_do(id);
-		if(mkey) {
-			multiplicative_value_modifier_description(state, contents, mkey, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
-		}
 	}
 };
 
@@ -192,6 +203,9 @@ public:
 
 class decision_image : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, id);
@@ -205,7 +219,7 @@ public:
 
 class decision_desc : public scrollable_text {
 private:
-	dcon::text_sequence_id description;
+	dcon::text_key description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map m;
@@ -232,7 +246,6 @@ public:
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
-
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		// Ignore mouse wheel scrolls so people DO NOT get confused!
 		if(type == mouse_probe_type::scroll)
@@ -284,9 +297,12 @@ public:
 			return make_element_by_type<decision_desc>(state, id);
 		} else if(name == "requirements") {
 			// Extra button to tell if AI will do
-			auto ptr = make_element_by_type<decision_ai_will_do>(state, id);
-			ptr->base_data.position.x -= ptr->base_data.size.x;
-			add_child_to_front(std::move(ptr));
+			auto btn1 = make_element_by_type<decision_ai_will_do>(state, id);
+			btn1->base_data.position.x -= btn1->base_data.size.x * 2;
+			add_child_to_front(std::move(btn1));
+			auto btn2 = make_element_by_type<decision_potential>(state, id);
+			btn2->base_data.position.x -= btn2->base_data.size.x;
+			add_child_to_front(std::move(btn2));
 			return make_element_by_type<decision_requirements>(state, id);
 		} else if(name == "ignore_checkbox") {
 			return make_element_by_type<ignore_checkbox>(state, id);

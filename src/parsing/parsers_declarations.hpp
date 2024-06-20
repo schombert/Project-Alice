@@ -813,6 +813,11 @@ public:
 		naval_unit_start_experience(type, v, err, line, context);
 	}
 
+	MOD_NAT_FUNCTION(military_theory_tech_research_bonus)
+	MOD_NAT_FUNCTION(diplomacy_tech_research_bonus)
+	MOD_NAT_FUNCTION(population_tech_research_bonus)
+	MOD_NAT_FUNCTION(flavor_tech_research_bonus)
+
 	template<typename T>
 	void finish(T& context) { }
 
@@ -2241,8 +2246,8 @@ struct generic_event {
 	bool fire_only_once = false;
 	bool allow_multiple_instances = false;
 	dcon::gfx_object_id picture_;
-	dcon::text_sequence_id title_;
-	dcon::text_sequence_id desc_;
+	dcon::text_key title_;
+	dcon::text_key desc_;
 	dcon::issue_id issue_group_;
 
 	void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
@@ -2808,6 +2813,28 @@ struct bookmark_file {
 		}
 	}
 };
+
+struct locale_parser {
+	bool rtl = false;
+	bool prevent_map_letterspacing = false;
+	std::string display_name;
+	std::string script = "Latn";
+	std::string body_font;
+	std::string header_font;
+	std::string map_font;
+	std::string fallback;
+	std::vector<uint32_t> body_features;
+	std::vector<uint32_t> header_features;
+	std::vector<uint32_t> map_features;
+
+	void body_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+	void header_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+	void map_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+
+	void finish(sys::state& context) { }
+};
+
+void add_locale(sys::state& state, std::string_view locale_name, char const* data_start, char const* data_end);
 
 } // namespace parsers
 
