@@ -544,7 +544,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		{
-			glUniform1f(4, 0.0003f); // width
+			glUniform1f(4, 0.00085f); // width
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 			for(auto b : borders) {
@@ -646,7 +646,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
 			glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
 			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
 			if(owner && state.mode == sys::game_mode_type::pick_nation) {
 				//per nation
@@ -2347,6 +2347,9 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_other_objective_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("otherobjectivearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_other_objective_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_hover_border] = load_dds_texture(assets_dir, NATIVE("hover_border.dds"));
+	ogl::set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes
