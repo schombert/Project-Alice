@@ -848,10 +848,10 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 				i += 3;
 			}
 		}
-		if(!draw_icon && glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
+		if(!draw_icon) {
+			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
+			glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
 			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}

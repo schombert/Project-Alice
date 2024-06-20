@@ -573,7 +573,7 @@ void font::make_glyph(char32_t ch_in) {
 		float const hb_x = float(font_face->glyph->metrics.horiBearingX) / 64.f;
 		float const hb_y = float(font_face->glyph->metrics.horiBearingY) / 64.f;
 
-		auto sub_index = ch_in & 63;
+		
 		uint8_t pixel_buffer[64 * 64] = { 0 };
 		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
@@ -597,12 +597,10 @@ void font::make_glyph(char32_t ch_in) {
 			}
 		}
 		//The array
-		gso.texture_slot = uint16_t(ch_in >> 6);
+		gso.texture_slot = first_free_slot;
 		GLuint texid = 0;
-		if(auto it = texture_slots.find(gso.texture_slot); it != texture_slots.end()) {
-			texid = it->second;
-			glBindTexture(GL_TEXTURE_2D, texid);
-		} else {
+		if((first_free_slot & 63) == 0) {
+			GLuint new_text = 0;
 			glGenTextures(1, &texid);
 			glBindTexture(GL_TEXTURE_2D, texid);
 			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
@@ -610,14 +608,21 @@ void font::make_glyph(char32_t ch_in) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			texture_slots.insert_or_assign(gso.texture_slot, texid);
+			textures.push_back(texid);
+			uint32_t clearvalue = 0;
+			glClearTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, &clearvalue);
+		} else {
+			texid = textures.back();
+			glBindTexture(GL_TEXTURE_2D, texid);
 		}
 		if(texid) {
+			auto sub_index = first_free_slot & 63;
 			glTexSubImage2D(GL_TEXTURE_2D, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, 64, 64, GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
 		}
 		FT_Done_Glyph(g_result);
 		//after texture slot
 		glyph_positions.insert_or_assign(ch_in, gso);
+		++first_free_slot;
 	}
 }
 
