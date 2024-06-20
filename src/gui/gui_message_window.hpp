@@ -93,8 +93,7 @@ void message_body_text::on_update(sys::state& state) noexcept {
 	}
 }
 
-message_result message_body_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount,
-		sys::key_modifiers mods) noexcept {
+message_result message_body_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		delegate->current_line = int32_t(text_scrollbar->scaled_value());

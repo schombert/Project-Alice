@@ -544,7 +544,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		{
-			glUniform1f(4, 0.0003f); // width
+			glUniform1f(4, 0.00085f); // width
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 			for(auto b : borders) {
@@ -646,7 +646,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
 			glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
 			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
 			if(owner && state.mode == sys::game_mode_type::pick_nation) {
 				//per nation
@@ -1836,10 +1836,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-				float type = float((glyphid >> 6) % text::max_texture_layers);
+				float type = float((gso.texture_slot >> 6) % text::max_texture_layers);
 				float step = 1.f / 8.f;
-				float tx = float(glyphid & 7) * step;
-				float ty = float((glyphid & 63) >> 3) * step;
+				float tx = float(gso.texture_slot & 7) * step;
+				float ty = float((gso.texture_slot & 63) >> 3) * step;
 
 				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
@@ -1848,7 +1848,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				text_line_texture_per_quad.emplace_back(f.texture_slots[gso.texture_slot]);
+				text_line_texture_per_quad.emplace_back(f.textures[gso.texture_slot >> 6]);
 			}
 			float glyph_advance = x_advance * size / 64.f;
 			for(float glyph_length = 0.f; ; x += x_step) {
@@ -1938,10 +1938,10 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-				float type = float((glyphid >> 6) % text::max_texture_layers);
+				float type = float((gso.texture_slot >> 6) % text::max_texture_layers);
 				float step = 1.f / 8.f;
-				float tx = float(glyphid & 7) * step;
-				float ty = float((glyphid & 63) >> 3) * step;
+				float tx = float(gso.texture_slot & 7) * step;
+				float ty = float((gso.texture_slot & 63) >> 3) * step;
 
 				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
 				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
@@ -2347,6 +2347,9 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_other_objective_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("otherobjectivearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_other_objective_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_hover_border] = load_dds_texture(assets_dir, NATIVE("hover_border.dds"));
+	ogl::set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes

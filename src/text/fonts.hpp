@@ -121,8 +121,10 @@ public:
 	float internal_descender = 0.0f;
 	float internal_top_adj = 0.0f;
 	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
-	ankerl::unordered_dense::map<uint16_t, uint32_t> texture_slots;
+	std::vector<uint32_t> textures;
 	std::array<FT_ULong, 256> win1252_codepoints;
+
+	uint16_t first_free_slot = 0;
 
 	std::unique_ptr<FT_Byte[]> file_data;
 
@@ -145,7 +147,7 @@ public:
 
 	friend class font_manager;
 
-	font(font&& o) noexcept : file_name(std::move(o.file_name)), texture_slots(std::move(o.texture_slots)), win1252_codepoints(std::move(o.win1252_codepoints)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)) {
+	font(font&& o) noexcept : file_name(std::move(o.file_name)), textures(std::move(o.textures)), win1252_codepoints(std::move(o.win1252_codepoints)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)), first_free_slot(o.first_free_slot) {
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
@@ -161,7 +163,7 @@ public:
 		file_name = std::move(o.file_name);
 		file_data = std::move(o.file_data);
 		glyph_positions = std::move(o.glyph_positions);
-		texture_slots = std::move(o.texture_slots);
+		textures = std::move(o.textures);
 		win1252_codepoints = std::move(o.win1252_codepoints);
 		font_face = o.font_face;
 		o.font_face = nullptr;
@@ -173,6 +175,7 @@ public:
 		internal_ascender = o.internal_ascender;
 		internal_descender = o.internal_descender;
 		internal_top_adj = o.internal_top_adj;
+		first_free_slot = o.first_free_slot;
 	}
 };
 

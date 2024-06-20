@@ -701,12 +701,6 @@ private:
 			break;
 		}
 	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::tooltip)
-			return message_result::consumed;
-		return scrollbar::test_mouse(state, x, y, type);
-	}
 };
 
 

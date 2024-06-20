@@ -1295,9 +1295,8 @@ message_result scrollable_text::on_scroll(sys::state& state, int32_t x, int32_t 
 		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		delegate->current_line = int32_t(text_scrollbar->scaled_value());
 		return message_result::consumed;
-	} else {
-		return message_result::unseen;
 	}
+	return message_result::unseen;
 }
 
 message_result scrollable_text::get(sys::state& state, Cyto::Any& payload) noexcept {
@@ -1418,8 +1417,9 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
 		state.ui_state.last_tooltip = nullptr; //force update of tooltip
 		update(state);
+		return message_result::consumed;
 	}
-	return message_result::consumed;
+	return message_result::unseen;
 }
 
 template<class RowWinT, class RowConT>
@@ -1439,8 +1439,9 @@ message_result listbox2_base<contents_type>::on_scroll(sys::state& state, int32_
 		//amount = is_reversed() ? -amount : amount;
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
 		impl_on_update(state);
+		return message_result::consumed;
 	}
-	return message_result::consumed;
+	return message_result::unseen;
 }
 
 template<typename contents_type>

@@ -828,7 +828,6 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
 		return;
 	}
-
 	auto const* glyph_pos = txt.glyph_pos.data();
 	auto const* glyph_info = txt.glyph_info.data();
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_count);
@@ -838,14 +837,12 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
-			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-		x += x_advance * size / 64.f;
+		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
+		glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		x += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 		baseline_y -= (float(glyph_pos[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
 	}
 }
