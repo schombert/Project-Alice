@@ -1,9 +1,9 @@
 display_name = "中文（中国）"
 script = Hani
 
-body_font = FZSSK.TTF
+body_font = STZHONGS.TTF
 
-header_font = FZKTK.TTF
+header_font = STZHONGS.TTF
 
 map_font = STXINWEI.TTF
 
