@@ -54,6 +54,14 @@ struct ledger_sort {
 	bool reversed = false;
 };
 
+struct price_toggle_list {
+	std::vector<bool> data;
+};
+
+struct nation_toggle_list {
+	std::vector<bool> data;
+};
+
 class ledger_generic_sort_button : public button_element_base {
 public:
 	std::variant<std::monostate, ledger_sort_type, dcon::issue_id, dcon::pop_type_id> type;
@@ -86,7 +94,7 @@ public:
 		if(parent) {
 			auto num = int8_t(content.value - 1);
 			if(num <= 0)
-				num = 11;
+				num = 12;
 			Cyto::Any new_payload = ledger_page_number{num};
 			parent->impl_set(state, new_payload);
 		}
@@ -98,7 +106,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			auto num = int8_t(content.value + 1);
-			if(num > 11)
+			if(num > 12)
 				num = 1;
 			Cyto::Any new_payload = ledger_page_number{num};
 			parent->impl_set(state, new_payload);
@@ -328,40 +336,22 @@ public:
 				break;
 			case ledger_sort_type::gdp_capita:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					float a_costs =
-						state.world.nation_get_life_needs_costs(a, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_everyday_needs_costs(a, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_luxury_needs_costs(a, state.culture_definitions.primary_factory_worker);
-					float b_costs =
-						state.world.nation_get_life_needs_costs(b, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_everyday_needs_costs(b, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_luxury_needs_costs(b, state.culture_definitions.primary_factory_worker);
-
 					float a_population = state.world.nation_get_demographics(a, demographics::total);
 					float b_population = state.world.nation_get_demographics(b, demographics::total);
 
 					if(lsort.reversed) {
-						return state.world.nation_get_gdp(a) / a_costs / a_population < state.world.nation_get_gdp(b) / b_costs / b_population;
+						return economy::gdp_adjusted(state, a) / a_population < economy::gdp_adjusted(state, b) / b_population;
 					} else {
-						return state.world.nation_get_gdp(a) / a_costs / a_population > state.world.nation_get_gdp(b) / b_costs / b_population;
+						return economy::gdp_adjusted(state, a) / a_population > economy::gdp_adjusted(state, b) / b_population;
 					}
 				});
 				break;
 			case ledger_sort_type::gdp:	
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					float a_costs =
-						state.world.nation_get_life_needs_costs(a, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_everyday_needs_costs(a, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_luxury_needs_costs(a, state.culture_definitions.primary_factory_worker);
-					float b_costs =
-						state.world.nation_get_life_needs_costs(b, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_everyday_needs_costs(b, state.culture_definitions.primary_factory_worker)
-						+ state.world.nation_get_luxury_needs_costs(b, state.culture_definitions.primary_factory_worker);
-
 					if(lsort.reversed) {
-						return state.world.nation_get_gdp(a) / a_costs < state.world.nation_get_gdp(b) / b_costs;
+						return economy::gdp_adjusted(state, a) < economy::gdp_adjusted(state, b);
 					} else {
-						return state.world.nation_get_gdp(a) / a_costs > state.world.nation_get_gdp(b) / b_costs;
+						return economy::gdp_adjusted(state, a) > economy::gdp_adjusted(state, b);
 					}
 				});
 				break;
@@ -1986,6 +1976,119 @@ public:
 	}
 };
 
+class ledger_nation_plupp : public tinted_image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		color = state.world.nation_get_color(content);
+	}
+};
+
+//
+// GDP graph
+//
+
+class gdp_graph : public window_element_base {
+	std::vector<line_graph*> graph_per_nation;
+	const uint32_t graph_length = economy::gdp_history_length;
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		uint32_t total_nations = state.world.nation_size();
+
+		state.world.for_each_nation([&](dcon::nation_id nation) {
+			auto ptr = make_element_by_type<line_graph>(state, "ledger_linechart", graph_length);
+			auto graph = reinterpret_cast<line_graph*>(ptr.get());
+			auto color = state.world.nation_get_color(nation);
+			graph->is_coloured = true;
+			graph->r = sys::red_from_int(color);
+			graph->g = sys::green_from_int(color);
+			graph->b = sys::blue_from_int(color);
+
+			graph_per_nation.push_back(graph);
+			add_child_to_front(std::move(ptr));
+		});
+	}
+	void on_update(sys::state& state) noexcept override {
+		float min = 0.f;
+		float max = 0.f;
+
+		auto ptr = retrieve< nation_toggle_list*>(state, parent);
+		if(!ptr)
+			return;
+
+		state.world.for_each_nation([&](dcon::nation_id nation) {
+			auto newest_index = economy::most_recent_gdp_record_index(state);
+			if((*ptr).data[nation.index()]) {
+				for(uint32_t i = 0; i < graph_length; ++i) {
+					auto record = state.world.nation_get_gdp_record(nation, (newest_index + economy::gdp_history_length - graph_length + i + 1) % economy::gdp_history_length);
+					if(record > max) {
+						max = record;
+					}
+				}
+			}
+		});
+
+		state.world.for_each_nation([&](dcon::nation_id nation) {
+			if(!((*ptr).data[nation.index()])) {
+				graph_per_nation[nation.index()]->set_visible(state, false);
+			} else {
+				graph_per_nation[nation.index()]->set_visible(state, true);
+				std::vector<float> datapoints(graph_length);
+				auto newest_index = economy::most_recent_gdp_record_index(state);
+
+				for(uint32_t i = 0; i < graph_length; ++i) {
+					datapoints[i] = state.world.nation_get_gdp_record(nation, (newest_index + economy::gdp_history_length - graph_length + i + 1) % economy::gdp_history_length);
+				}
+				graph_per_nation[nation.index()]->set_data_points(state, datapoints, min, max);
+			}
+		});
+	}
+};
+
+class nation_toggle_checkbox : public checkbox_button {
+public:
+	int32_t index;
+	nation_toggle_checkbox(dcon::nation_id nation_id) {
+		index = nation_id.index();
+	};
+	void button_action(sys::state& state) noexcept override {
+		if(index < 0) return;
+		auto ptr = retrieve< nation_toggle_list*>(state, parent);
+		if(!ptr)
+			return;
+		(*ptr).data[index] = !(*ptr).data[index];
+		state.game_state_updated.store(true, std::memory_order_release);
+	}
+	bool is_active(sys::state& state) noexcept override {
+		if(index < 0) return false;
+		auto ptr = retrieve< nation_toggle_list*>(state, parent);
+		if(!ptr)
+			return false;
+		return (*ptr).data[index];
+	}
+};
+
+class ledger_nation_entry : public listbox_row_element_base<dcon::nation_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "nation_ledger_default_textbox") {
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+		} else if(name == "nation_ledger_legend_plupp") {
+			return make_element_by_type<ledger_nation_plupp>(state, id);
+		} else if(name == "nation_ledger_legend_checkbox") {
+			return make_element_by_type<nation_toggle_checkbox>(state, id, content);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		(reinterpret_cast<nation_toggle_checkbox*>(get_child_by_name(state, "nation_ledger_legend_checkbox")))->index = content.index();
+	}
+};
+
+
 //
 // Commodity price
 //
@@ -2016,18 +2119,16 @@ public:
 		});
 	}
 	void on_update(sys::state& state) noexcept override {
-		uint32_t total_commodities = state.world.commodity_size();
-
 		float min = 0.f;
 		float max = 0.f;
 
-		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		auto ptr = retrieve< price_toggle_list*>(state, parent);
 		if(!ptr)
 			return;
 
 		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
 			auto newest_index = economy::most_recent_price_record_index(state);
-			if((*ptr)[commodity.index()]) {
+			if((*ptr).data[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
 					if(price > max) {
@@ -2038,7 +2139,7 @@ public:
 		});
 
 		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
-			if(!((*ptr)[commodity.index()])) {
+			if(!((*ptr).data[commodity.index()])) {
 				graph_per_price[commodity.index()]->set_visible(state, false);
 			} else {
 				graph_per_price[commodity.index()]->set_visible(state, true);
@@ -2054,7 +2155,6 @@ public:
 	}
 };
 
-
 class price_toggle_checkbox : public checkbox_button {
 public:
 	int32_t index;
@@ -2063,18 +2163,18 @@ public:
 	};
 	void button_action(sys::state& state) noexcept override {
 		if(index < 0) return;
-		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		auto ptr = retrieve< price_toggle_list*>(state, parent);
 		if(!ptr)
 			return;
-		(*ptr)[index] = !(*ptr)[index];
+		(*ptr).data[index] = !(*ptr).data[index];
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
 	bool is_active(sys::state& state) noexcept override {
 		if(index < 0) return false;
-		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		auto ptr = retrieve< price_toggle_list*>(state, parent);
 		if(!ptr)
 			return false;
-		return (*ptr)[index];
+		return (*ptr).data[index];
 	}
 };
 
@@ -2111,6 +2211,22 @@ public:
 		update(state);
 	}
 };
+
+class ledger_nations_listbox : public listbox_element_base<ledger_nation_entry, dcon::nation_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "ledger_nations_legend_entry";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_nation([&](dcon::nation_id id) {
+			row_contents.push_back(id);
+		});
+		update(state);
+	}
+};
+
 class commodity_linegraph_legend_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -2122,13 +2238,30 @@ public:
 	}
 };
 
+class nations_linegraph_legend_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_nations_list") {
+			return make_element_by_type<ledger_nations_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 class ledger_window : public window_element_base {
 	dcon::gui_def_id listbox_def_id{};
 	dcon::gui_def_id sort_buttons_window_id{};
 
 	all_prices_graph* commodity_linegraph = nullptr;
+	gdp_graph* gdp_linegraph = nullptr;
+
 	commodity_linegraph_legend_window* commodity_linegraph_legend = nullptr;
+	nations_linegraph_legend_window* gdp_linegraph_legend = nullptr;
+
 	image_element_base* commodity_linegraph_image = nullptr;
+	image_element_base* gdp_linegraph_image = nullptr;
+
 	simple_text_element_base* page_number_text = nullptr;
 	simple_text_element_base* ledger_header_text = nullptr;
 	ledger_page_number page_num{int8_t(1)};
@@ -2162,9 +2295,15 @@ class ledger_window : public window_element_base {
 		commodity_linegraph->set_visible(state, false);
 		commodity_linegraph_legend->set_visible(state, false);
 		commodity_linegraph_image->set_visible(state, false);
+
+
+		gdp_linegraph->set_visible(state, false);
+		gdp_linegraph_legend->set_visible(state, false);
+		gdp_linegraph_image->set_visible(state, false);
 	}
 
-	std::vector<bool> price_toggle_status;
+	price_toggle_list price_toggle_status;
+	nation_toggle_list nation_toggle_status;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -2172,7 +2311,12 @@ public:
 
 		uint32_t total_commodities = state.world.commodity_size();
 		for(uint32_t k = 0; k < total_commodities; ++k) {
-			price_toggle_status.push_back(true);
+			price_toggle_status.data.push_back(true);
+		}
+
+		uint32_t total_nations = state.world.nation_size();
+		for(uint32_t k = 0; k < total_nations; ++k) {
+			nation_toggle_status.data.push_back(true);
 		}
 
 		{
@@ -2286,6 +2430,29 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
+		//gdp block
+
+		{
+			auto def = state.ui_state.defs_by_name.find("gdp_ledger_linegraph_bg")->second.definition;
+			auto ptr = make_element_by_type<image_element_base>(state, def);
+			gdp_linegraph_image = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}
+
+		{ 
+			auto def = state.ui_state.defs_by_name.find("gdp_ledger_linegraphs")->second.definition;
+			auto ptr = make_element_by_type<gdp_graph>(state, def);
+			gdp_linegraph = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}
+
+		{
+			auto def = state.ui_state.defs_by_name.find("gdp_ledger_linegraph_legend")->second.definition;
+			auto ptr = make_element_by_type<nations_linegraph_legend_window>(state, def);
+			gdp_linegraph_legend = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}	
+
 		Cyto::Any payload = page_num;
 		impl_set(state, payload);
 	}
@@ -2297,7 +2464,7 @@ public:
 			return ptr;
 		} else if(name == "ledger_bg") {
 			return make_element_by_type<draggable_target>(state, id);
-		} else if(name == "ledger_linegraphs") {
+		} else if(name == "ledger_linegraphs") { // prices block
 			auto ptr = make_element_by_type<all_prices_graph>(state, id);
 			commodity_linegraph = ptr.get();
 			return ptr;
@@ -2383,6 +2550,12 @@ public:
 			commodity_linegraph_legend->set_visible(state, true);
 			commodity_linegraph_image->set_visible(state, true);
 			break;
+		case 12:
+			ledger_header_text->set_text(state, text::produce_simple_string(state, "alice_ledger_header_gdp_history"));
+			gdp_linegraph->set_visible(state, true);
+			gdp_linegraph_legend->set_visible(state, true);
+			gdp_linegraph_image->set_visible(state, true);
+			break;
 		default:
 			break;
 		}
@@ -2395,8 +2568,11 @@ public:
 			current_sorting = any_cast<element_selection_wrapper<ledger_sort>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type< std::vector<bool>*>()) {
-			payload.emplace<std::vector<bool>*>(&price_toggle_status);
+		} else if(payload.holds_type< price_toggle_list*>()) {
+			payload.emplace<price_toggle_list*>(&price_toggle_status);
+			return message_result::consumed;
+		} else if(payload.holds_type< nation_toggle_list*>()) {
+			payload.emplace<nation_toggle_list*>(&nation_toggle_status);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

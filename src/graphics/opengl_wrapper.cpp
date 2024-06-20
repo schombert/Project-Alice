@@ -443,6 +443,17 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 	}
 }
 
+void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	bind_vertices_by_rotation(state, r, flipped);
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::linegraph_color };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glLineWidth(2.0f);
+	glUniform3f(parameters::inner_color, 1.f, 0.f, 0.f);
+	glDrawArrays(GL_LINE_STRIP, 0, 4);
+}
+
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);

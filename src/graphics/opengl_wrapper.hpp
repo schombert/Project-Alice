@@ -266,7 +266,7 @@ public:
 	void set_y(float* v);
 	void bind_buffer();
 };
-
+void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped);
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, ui::rotation r, bool flipped);
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
