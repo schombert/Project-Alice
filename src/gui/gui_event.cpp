@@ -347,7 +347,6 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 					delegate->base_data.data.text.font_handle, 0, text::alignment::left, delegate->black_text ? text::text_color::black : text::text_color::white, false});
 
-	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
 	dcon::text_key description{};
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
@@ -367,8 +366,12 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		description = state.world.free_provincial_event_get_description(phe.e);
 		populate_event_submap(state, sub, phe);
 	}
-	text::add_to_layout_box(state, contents, box, description, sub);
-	text::close_layout_box(contents, box);
+
+	if(state.key_is_localized(description)) {
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, description, sub);
+		text::close_layout_box(contents, box);
+	}
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);

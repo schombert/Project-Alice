@@ -197,8 +197,10 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			if(rebel_fact) {
 				text::add_to_layout_box(state, contents, box, rebel_fact.get_name());
-				text::add_divider_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, rebel_fact.get_description());
+				if(auto desc = rebel_fact.get_description(); state.key_is_localized(desc)) {
+					text::add_divider_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, desc);
+				}
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -2114,11 +2116,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::pop_id>(state, parent);
 		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, name);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
 	}
 };
 

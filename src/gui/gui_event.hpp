@@ -60,8 +60,11 @@ public:
 class event_name_text : public multiline_text_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		multiline_text_element_base::on_create(state);
+		on_reset_text(state);
+	}
+	void on_reset_text(sys::state& state) noexcept override {
 		//TODO: Adapt to classic fonts too!
-		//TODO: And change when locale changes too...
 		auto fh = base_data.data.text.font_handle;
 		auto font_index = text::font_index_from_font_id(state, fh);
 		auto font_size = text::size_from_font_id(fh);
