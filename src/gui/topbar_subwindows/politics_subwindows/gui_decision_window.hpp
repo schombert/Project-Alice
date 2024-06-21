@@ -181,7 +181,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto const id = retrieve<dcon::decision_id>(state, parent);
-		auto const description = state.world.decision_get_description(id);
 		if(state.cheat_data.show_province_id_tooltip) {
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, std::string_view("Decision ID:"));
@@ -189,11 +188,14 @@ public:
 			text::add_to_layout_box(state, contents, box, std::to_string(id.value));
 			text::close_layout_box(contents, box);
 		}
-		auto box = text::open_layout_box(contents);
-		text::substitution_map m;
-		produce_decision_substitutions(state, m, state.local_player_nation);
-		text::add_to_layout_box(state, contents, box, description, m);
-		text::close_layout_box(contents, box);
+		auto const desc = state.world.decision_get_description(id);
+		if(state.key_is_localized(desc)) {
+			auto box = text::open_layout_box(contents);
+			text::substitution_map m;
+			produce_decision_substitutions(state, m, state.local_player_nation);
+			text::add_to_layout_box(state, contents, box, desc, m);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
