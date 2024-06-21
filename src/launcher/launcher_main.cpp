@@ -281,12 +281,12 @@ static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
 };
 //chinese
 static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
-	"创建场景",
-	"重新创建场景",
-	"工作中。。。",
-	"创建新场景",
-	"针对所选模组",
-	"未找到场景",
+	"创建方案",
+	"重新创建方案",
+	"工作中……",
+	"为所选模组",
+	"创建新方案",
+	"未找到方案",
 	"IP 地址",
 	"密码",
 	"昵称",
