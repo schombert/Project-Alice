@@ -100,7 +100,6 @@ public:
 			text::add_line(state, contents, "cant_prioritize_explanation");
 		} else {
 			text::add_line(state, contents, "production_allowed_to_change_prio_tooltip");
-
 			switch(economy::factory_priority(state, fid)) {
 			case 0:
 				text::add_line(state, contents, "diplomacy_prio_none");
@@ -294,10 +293,10 @@ public:
 
 			auto rules = state.world.nation_get_combined_issue_rules(n);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
-					(rules & issue_rule::allow_foreign_investment) != 0);
+				(rules & issue_rule::allow_foreign_investment) != 0);
 
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7",
-					!military::are_at_war(state, state.local_player_nation, n));
+				!military::are_at_war(state, state.local_player_nation, n));
 		} else {
 			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
@@ -335,7 +334,6 @@ public:
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		if(n == state.local_player_nation) {
 			text::add_line(state, contents, "open_and_sub");
-
 			if(disabled) {
 				text::add_line(state, contents, "production_not_allowed_to_subsidise_tooltip");
 				text::add_line(state, contents, "cant_subsidize_explanation");

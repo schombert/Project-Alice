@@ -36,8 +36,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		auto name = fat_id.get_national_value().get_name();
-		if(bool(name)) {
+		if(auto name = fat_id.get_national_value().get_name(); state.key_is_localized(name)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, "politics_nationalvalue_tooltip", text::variable_type::nationalvalue, name);
 			text::close_layout_box(contents, box);
@@ -98,8 +97,6 @@ public:
 		text::add_line(state, contents, "revanchism_reason");
 	}
 };
-
-
 
 class politics_unciv_overlay : public standard_nation_icon {
 public:

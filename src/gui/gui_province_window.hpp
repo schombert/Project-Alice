@@ -393,14 +393,14 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
 			text::add_line_break_to_layout_box(state, contents, box);
-			if(state.world.modifier_get_desc(mod.mod_id)) {
+			if(auto desc = state.world.modifier_get_desc(mod.mod_id); state.key_is_localized(desc)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
 				text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
 				text::add_to_substitution_map(sub, text::variable_type::provincename, p);
-				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod.mod_id), sub);
+				text::add_to_layout_box(state, contents, box, desc, sub);
 			}
 			text::close_layout_box(contents, box);
 			modifier_description(state, contents, mod.mod_id, 15);
