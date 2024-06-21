@@ -4016,7 +4016,7 @@ guiTypes = {
 			position = { 2 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "new"
+			buttonText = "macro_new_template"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {

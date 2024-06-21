@@ -225,9 +225,6 @@ public:
 };
 class macro_builder_new_template_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_button_text(state, text::produce_simple_string(state, "macro_new_template"));
-	}
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.current_template = sys::macro_builder_template{};
 		std::memset(state.ui_state.current_template.name, ' ', sizeof(sys::macro_builder_template::name));
