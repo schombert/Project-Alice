@@ -271,6 +271,20 @@ void state::state_select(dcon::state_definition_id sdef) {
 	map_state.update(*this);
 }
 
+ui::element_base* state::get_root_element() {
+	switch(mode) {
+	case sys::game_mode_type::end_screen:
+	default:
+		return ui_state.end_screen.get();
+	case sys::game_mode_type::pick_nation:
+		return ui_state.nation_picker.get();
+	case sys::game_mode_type::select_states:
+		return ui_state.select_states_legend.get();
+	case sys::game_mode_type::in_game:
+		return ui_state.root.get();
+	}
+}
+
 //
 // window event functions
 //
@@ -590,23 +604,10 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		}
 	}
 }
+
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 	//update en demand
-	ui::element_base* root_elm = nullptr;
-	switch(mode) {
-	case sys::game_mode_type::end_screen:
-		root_elm = ui_state.end_screen.get();
-		break;
-	case sys::game_mode_type::pick_nation:
-		root_elm = ui_state.nation_picker.get();
-		break;
-	case sys::game_mode_type::select_states:
-		root_elm = ui_state.select_states_legend.get();
-		break;
-	case sys::game_mode_type::in_game:
-		root_elm = ui_state.root.get();
-		break;
-	}
+	ui::element_base* root_elm = get_root_element();
 	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale),
@@ -877,21 +878,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	ui::element_base* root_elm = nullptr;
-	switch(mode) {
-	case sys::game_mode_type::end_screen:
-		root_elm = ui_state.end_screen.get();
-		break;
-	case sys::game_mode_type::pick_nation:
-		root_elm = ui_state.nation_picker.get();
-		break;
-	case sys::game_mode_type::select_states:
-		root_elm = ui_state.select_states_legend.get();
-		break;
-	case sys::game_mode_type::in_game:
-		root_elm = ui_state.root.get();
-		break;
-	}
+	ui::element_base* root_elm = get_root_element();
 
 	root_elm->base_data.size.x = ui_state.root->base_data.size.x;
 	root_elm->base_data.size.y = ui_state.root->base_data.size.y;

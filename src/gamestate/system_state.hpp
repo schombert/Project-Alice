@@ -675,6 +675,7 @@ struct alignas(64) state {
 	void start_state_selection(state_selection_data& data);
 	void finish_state_selection();
 	void state_select(dcon::state_definition_id sdef);
+	ui::element_base* get_root_element();
 
 	// the following function are for interacting with the string pool
 
