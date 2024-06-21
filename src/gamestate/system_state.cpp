@@ -2729,7 +2729,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto name_k = add_key_win1252(name);
 			ident.set_government_name(named_gov.second, name_k);
 			auto const adj = tag + "_" + named_gov.first + "_ADJ";
-			auto adj_k = add_key_win1252(name);
+			auto adj_k = add_key_win1252(adj);
 			ident.set_government_adjective(named_gov.second, adj_k);
 			auto const ruler = tag + "_" + named_gov.first + "_ruler";
 			auto ruler_k = add_key_win1252(ruler);
