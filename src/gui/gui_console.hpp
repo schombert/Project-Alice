@@ -8,8 +8,8 @@ class console_edit : public edit_box_element_base {
 protected:
 	// Vector list of last commands
 	std::vector<std::string> command_history;
-	text::stored_text lhs_suggestion;
-	text::stored_text rhs_suggestion;
+	text::stored_glyphs lhs_suggestion;
+	text::stored_glyphs rhs_suggestion;
 	// Index of the current command in the history
 	int history_index = 0;
 

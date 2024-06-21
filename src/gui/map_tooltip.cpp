@@ -61,8 +61,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 	if(owner) {
 		text::add_to_layout_box(state, contents, box, fat.get_name());
 		text::add_to_layout_box(state, contents, box, std::string_view{ " (" });
-		std::string formatted_tag = std::string("@") + nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int());
-		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(owner) });
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, text::get_name(state, owner.id));
 		text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
@@ -80,14 +79,15 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			auto controller = dcon::fatten(state.world, state.local_player_nation);
 			ui::unitamounts amounts = ui::calc_amounts_from_army(state, dcon::fatten(state.world, a));
 			text::substitution_map sub{};
-			auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x03";
+			auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "@(A)";
 			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ selected_relative_attrition_amount(state, state.local_player_nation, state.selected_armies, prov) });
+			auto resolved = text::resolve_string_substitution(state, "alice_unit_relative_attrition", sub);
 			box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, "alice_unit_relative_attrition", sub);
+			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 			text::close_layout_box(contents, box);
 		}
 	} else if(state.selected_navies.size() > 0) {
@@ -118,16 +118,14 @@ void political_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 	if(auto n = state.world.province_get_nation_from_province_control(prov); n && n != state.world.province_get_nation_from_province_ownership(prov)) {
 		auto fat_id = dcon::fatten(state.world, n);
 		auto box = text::open_layout_box(contents);
-		std::string formatted_tag = std::string("@") + nations::int_to_tag(fat_id.get_identity_from_identity_holder().get_identifying_int());
-		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(n) });
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, text::get_name(state, n));
 		text::close_layout_box(contents, box);
 	} else if(auto rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov); rf) {
 		auto fat_id = dcon::fatten(state.world, rf);
 		auto box = text::open_layout_box(contents);
-		std::string formatted_tag = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.national_definitions.rebel_id));
-		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.national_definitions.rebel_id });
 		text::add_space_to_layout_box(state, contents, box);
 		auto name = rebel::rebel_name(state, rf);
 		text::add_to_layout_box(state, contents, box, std::string_view{ name });
@@ -192,8 +190,7 @@ void diplomatic_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 			text::add_line_break_to_layout_box(state, contents, box);
 			for(auto c : fat.get_core()) {
 				text::add_to_layout_box(state, contents, box, std::string_view("• "));
-				auto tag = "@" + nations::int_to_tag(c.get_identity().get_identifying_int());
-				text::add_to_layout_box(state, contents, box, std::string_view(tag));
+				text::add_to_layout_box(state, contents, box, text::embedded_flag{ c.get_identity().id });
 				text::add_to_layout_box(state, contents, box, c.get_identity().get_name());
 				text::add_line_break_to_layout_box(state, contents, box);
 			}
@@ -546,8 +543,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 		{
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "im_em_header");
-			std::string formatted_tag = std::string("@") + nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int());
-			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(owner) });
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::get_name(state, owner.id));
 			text::close_layout_box(contents, box);
@@ -603,8 +599,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 
 			text::add_to_layout_box(state, contents, box, int64_t(positive_vals[i].v), text::text_color::green);
 			text::add_space_to_layout_box(state, contents, box);
-			std::string formatted_tag = std::string("@") + nations::int_to_tag(fatten(state.world, positive_vals[i].n).get_identity_from_identity_holder().get_identifying_int());
-			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(positive_vals[i].n) });
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::get_name(state, positive_vals[i].n));
 
@@ -627,8 +622,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 
 			text::add_to_layout_box(state, contents, box, int64_t(-neg_vals[i].v), text::text_color::red);
 			text::add_space_to_layout_box(state, contents, box);
-			std::string formatted_tag = std::string("@") + nations::int_to_tag(fatten(state.world, neg_vals[i].n).get_identity_from_identity_holder().get_identifying_int());
-			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(neg_vals[i].n) });
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::get_name(state, neg_vals[i].n));
 

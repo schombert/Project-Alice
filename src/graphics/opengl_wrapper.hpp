@@ -298,6 +298,8 @@ void render_new_text(sys::state const& state, text::stored_glyphs const& txt, co
 		float y, float size, color3f const& c, text::font& f);
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id);
+void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
+void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 
 bool msaa_enabled(sys::state const& state);
 void initialize_msaa(sys::state& state, int32_t x, int32_t y);

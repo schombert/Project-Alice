@@ -778,10 +778,16 @@ struct int_percentage {
 struct int_wholenum {
 	int32_t value = 0;
 };
+enum class embedded_icon : uint8_t {
+	check, xmark, army, navy
+};
+struct embedded_flag {
+	dcon::national_identity_id tag;
+};
 using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
 		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
 		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum,
-		dcon::state_definition_id>;
+		dcon::state_definition_id, embedded_icon, embedded_flag>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 struct text_chunk {
@@ -803,6 +809,7 @@ struct layout_parameters {
 	alignment align = alignment::left;
 	text_color color = text_color::white;
 	bool suppress_hyperlinks = false;
+	bool single_line = false;
 };
 struct layout {
 	std::vector<text_chunk> contents;
@@ -860,6 +867,28 @@ struct endless_layout : public layout_base {
 	void internal_close_box(layout_box& box) final;
 };
 
+layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
+
+struct single_line_layout : public layout_base {
+	layout_box box;
+
+	single_line_layout(layout& base_layout, layout_parameters const& fixed_parameters)
+		: layout_base(base_layout, fixed_parameters), box(open_layout_box(*this, 0)) {
+
+		base_layout.number_of_lines = 0;
+		base_layout.contents.clear();
+	}
+
+	void internal_close_box(layout_box& box) final;
+
+	~single_line_layout() {
+		internal_close_box(box);
+	}
+
+	void add_text(sys::state& state, std::string_view v);
+	void add_text(sys::state& state, dcon::text_key source_text);
+};
+
 text_color char_to_color(char in);
 
 endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
@@ -867,8 +896,9 @@ void close_layout_box(endless_layout& dest, layout_box& box);
 
 columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
 
-layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 void close_layout_box(columnar_layout& dest, layout_box& box);
+void close_layout_box(single_line_layout& dest, layout_box& box);
+void add_unparsed_text_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view sv, substitution_map const& mp = substitution_map{});
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_key source_text,
 		substitution_map const& mp = substitution_map{});
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view,
@@ -882,6 +912,8 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest);
 void add_line_break_to_layout(sys::state& state, endless_layout& dest);
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_flag ico);
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_icon ico);
 
 void close_layout_box(layout_base& dest, layout_box& box);
 
@@ -895,6 +927,7 @@ std::string produce_simple_string(sys::state const& state, std::string_view key)
 std::string produce_simple_string(sys::state const& state, dcon::text_key id);
 text::alignment localized_alignment(sys::state& state, text::alignment in);
 ui::alignment localized_alignment(sys::state& state, ui::alignment in);
+text::alignment to_text_alignment(ui::alignment in);
 
 dcon::text_key find_or_add_key(sys::state& state, std::string_view key, bool as_unicode);
 

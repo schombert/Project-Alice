@@ -773,7 +773,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 		auto prepared_name = text::stored_glyphs(state, text::font_selection::map_font, name);
-		float name_extent = f.text_extent(state, prepared_name, 0, prepared_name.glyph_count, 1);
+		float name_extent = f.text_extent(state, prepared_name, 0, uint32_t(prepared_name.glyph_info.size()), 1);
 
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very

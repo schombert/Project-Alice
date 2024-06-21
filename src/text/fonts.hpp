@@ -59,11 +59,27 @@ inline surrogate_pair make_surrogate_pair(uint32_t val) noexcept {
 	return surrogate_pair{ uint16_t(h), uint16_t(l) };
 }
 
+struct stored_glyph {
+	uint32_t codepoint = 0;
+	uint32_t cluster = 0;
+	hb_position_t  x_advance = 0;
+	hb_position_t  y_advance = 0;
+	hb_position_t  x_offset = 0;
+	hb_position_t  y_offset = 0;
+
+	stored_glyph() noexcept = default;
+	stored_glyph(hb_glyph_info_t const& gi, hb_glyph_position_t const& gp) {
+		codepoint = gi.codepoint;
+		cluster = gi.cluster;
+		x_advance = gp.x_advance;
+		y_advance = gp.y_advance;
+		x_offset = gp.x_offset;
+		y_offset = gp.y_offset;
+	}
+};
+
 struct stored_glyphs {
-	std::vector<hb_glyph_info_t> glyph_info;
-	std::vector<hb_glyph_position_t> glyph_pos;
-	unsigned int glyph_count = 0;
-	char inline_image[3] = { 0, 0, 0 };
+	std::vector<stored_glyph> glyph_info;
 
 	struct no_bidi { };
 
@@ -77,30 +93,8 @@ struct stored_glyphs {
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
-	bool is_inline_image() const {
-		return inline_image[0] != 0;
-	}
 	void clear() {
 		glyph_info.clear();
-		glyph_pos.clear();
-		glyph_count = 0;
-	}
-};
-
-struct stored_text : public stored_glyphs {
-	std::string base_text;
-
-	stored_text() = default;
-	stored_text(stored_text const& other) noexcept = default;
-	stored_text(stored_text&& other) noexcept = default;
-	stored_text(sys::state& state, font_selection type, std::string const& s);
-	stored_text(sys::state& state, font_selection type, std::string&& s);
-
-	void set_text(sys::state& state, font_selection type, std::string const& s);
-	void set_text(sys::state& state, font_selection type, std::string&& s);
-	void clear() {
-		base_text.clear();
-		stored_glyphs::clear();
 	}
 };
 
@@ -132,7 +126,6 @@ public:
 
 	char codepoint_to_alnum(char32_t codepoint);
 	bool can_display(char32_t ch_in) const;
-	std::string get_conditional_indicator(bool v) const;
 	void make_glyph(char32_t ch_in);
 	float base_glyph_width(char32_t ch_in);
 	float line_height(int32_t size) const;

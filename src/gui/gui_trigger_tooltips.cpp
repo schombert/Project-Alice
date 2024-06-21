@@ -150,12 +150,11 @@ void tf_unused_1(TRIGGER_DISPLAY_PARAMS) { }
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 		auto r = trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot);
-		auto str = ws.font_collection.get_font(ws, text::font_index_from_font_id(ws, layout.fixed_parameters.font_id)).get_conditional_indicator(r);
 		if(r) {
-			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::green);
+			text::add_to_layout_box(ws, layout, box, text::embedded_icon::check);
 			text::add_space_to_layout_box(ws, layout, box);
 		} else {
-			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::red);
+			text::add_to_layout_box(ws, layout, box, text::embedded_icon::xmark);
 			text::add_space_to_layout_box(ws, layout, box);
 		}
 	} else {

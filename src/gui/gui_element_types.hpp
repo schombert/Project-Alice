@@ -192,8 +192,8 @@ public:
 
 class button_element_base : public opaque_element_base {
 protected:
-	text::stored_text stored_text;
-	float text_offset = 0.0f;
+	text::layout internal_layout;
+	std::string cached_text;
 	bool black_text = true;
 
 public:
@@ -348,8 +348,8 @@ public:
 
 class simple_text_element_base : public element_base {
 protected:
-	text::stored_text stored_text;
-	float text_offset = 0.0f;
+	std::string cached_text;
+	text::layout internal_layout;
 public:
 	bool black_text = true;
 	int32_t data = 0;
@@ -362,7 +362,7 @@ public:
 	void format_text(sys::state& state);
 
 	std::string_view get_text(sys::state& state) const {
-		return stored_text.base_text;
+		return cached_text;
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
