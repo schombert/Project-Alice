@@ -33,21 +33,21 @@ mapmode_31;工厂地图
 mapmode_32;政见地图
 mapmode_33;发展地图
 mapmode_34;玩家地图
-mapmode_35;必需品
-mapmode_36;日用品
-mapmode_37;奢侈品
-mapmode_38;军官
-mapmode_39;职员-技工比例
-mapmode_40;生活条件
-mapmode_41;罪犯
-mapmode_42;集结
-mapmode_43;劳力
-mapmode_44;动员
+mapmode_35;必需品地图
+mapmode_36;日用品地图
+mapmode_37;奢侈品地图
+mapmode_38;军官地图
+mapmode_39;职员-技工比例地图
+mapmode_40;生活条件地图
+mapmode_41;罪犯地图
+mapmode_42;集结地图
+mapmode_43;劳力地图
+mapmode_44;动员地图
 legend_min_mapmode_8;低行政
 legend_min_mapmode_19;未开化
 legend_min_mapmode_7;未殖民
 legend_min_mapmode_21;低紧张
-legend_min_mapmode_18;移民
+legend_min_mapmode_18;迁出
 legend_min_mapmode_12;低密度
 legend_min_mapmode_17;低排名
 legend_min_mapmode_20;低关系
@@ -71,7 +71,7 @@ legend_max_mapmode_8;高行政
 legend_max_mapmode_19;开化
 legend_max_mapmode_7;殖民
 legend_max_mapmode_21;高紧张
-legend_max_mapmode_18;移民
+legend_max_mapmode_18;迁入
 legend_max_mapmode_12;高密度
 legend_max_mapmode_17;高排名
 legend_max_mapmode_20;高关系
@@ -94,69 +94,69 @@ legend_max_mapmode_44;高人群数
 mapmode_tooltip_34;玩家：$x$
 mapmode_tooltip_34_you_sp;这是你！
 mapmode_tooltip_34_you;玩家：$x$（这是你！）
-mapmode_tooltip_34_ai;AI控制
+mapmode_tooltip_34_ai;AI 控制
 mapmode_tooltip_35;必需品满足：$x$
 mapmode_tooltip_36;日用品满足：$x$
 mapmode_tooltip_37;奢侈品满足：$x$
-mapmode_tooltip_38;军官总数：$x$（人口之$y$，$value$为最佳）
-mapmode_tooltip_39;职员与技工的比例为: $fraction$ ($x$/$y$), $value$ 时是最佳
+mapmode_tooltip_38;军官总数：$x$（占总人口的 $y$，$value$ 为最佳）
+mapmode_tooltip_39;职员与技工的比例为: $fraction$（$x$/$y$），$value$ 为最佳
 mapmode_tooltip_40;生活条件：$x$
-mapmode_tooltip_41;犯罪：$x$
+mapmode_tooltip_41;犯罪率：$x$
 mapmode_tooltip_42_1;陆军集结点
 mapmode_tooltip_42_2;海军集结点
-mapmode_tooltip_43;劳力分布：
-mapmode_tooltip_44;该省动员团：$x$（可能有$y$）
-mapmode_tooltip_44_2;无兵可用
+mapmode_tooltip_43;劳动力分布：
+mapmode_tooltip_44;已动员团数：$x$（最多为 $y$）
+mapmode_tooltip_44_2;无可动员团
 mapmode_tooltip_name;$state$ ($name$ - )
 mapmode_tooltip_core_entry;$$faction$ - $name$
 mapmode_tooltip_state_entry; - $state$ \n $continentname$
-mapmode_tooltip_culture_majorities;?Y$PROV$?W文化是：
-mapmode_tooltip_religion_majorities;?Y$PROV$?W宗教是：
-mapmode_tooltip_dominant_issues;该议题在 ?Y$PROV$?W 是:
+mapmode_tooltip_culture_majorities;?Y$PROV$?W文化为：
+mapmode_tooltip_religion_majorities;?Y$PROV$?W宗教为：
+mapmode_tooltip_dominant_issues;该议题在?Y$PROV$?W为:
 mapmode_tooltip_total_income;每日总收入：
-mapmode_tooltip_dominant_ideology;?Y$PROV$?W意识形态是：
+mapmode_tooltip_dominant_ideology;?Y$PROV$?W意识形态为：
 mapmode_tooltip_con_average;平均觉醒度：?Y$val$?W
 mapmode_tooltip_total_employment;职业：
 mapmode_tooltip_literacy_rate;识字率：
 mapmode_tooltip_factory_count;?Y$state$?W工厂：
 mapmode_tooltip_fort_level;要塞等级
-mapmode_tooltip_fort_being_built;一个要塞在此地建设中。
-mapmode_tooltip_can_build_fort;可以在此地建设新要塞。
+mapmode_tooltip_fort_being_built;正在建设要塞。
+mapmode_tooltip_can_build_fort;可建设新要塞。
 mapmode_tooltip_population_change;每月人口变化：
 mapmode_tooltip_rebels_amount;省份叛乱：
 mapmode_tooltip_rebels_none;安居乐业
 aml_civ_s1;开化
 aml_civ_s2;未殖民
-aml_civ_s3;100% 西化
-aml_civ_s4;0% 西化
+aml_civ_s3;100% 开化
+aml_civ_s4;0% 开化
 aml_civ_s5;殖民地
 aml_col_s1;潜在
 aml_col_s2;N/A
-aml_col_s3;可投资
+aml_col_s3;可殖民
 aml_col_s4;殖民中
-aml_dip_s1;观点
+aml_dip_s1;玩家
 aml_dip_s2;盟友
 aml_dip_s3;敌人
 aml_dip_s4;傀儡
-aml_dip_s5;势力圈
+aml_dip_s5;势力范围
 aml_dip_s6;其他
 aml_dip_s7;核心
 aml_dip_s8;非核心
 aml_dip_s9;文化母国核心
-aml_rr_s1;等级 0
-aml_rr_s2;等级 6
-aml_rr_s3;升级中
-aml_rr_s4;最大等级
+aml_rr_s1;0 级
+aml_rr_s2;6 级
+aml_rr_s3;正在升级
+aml_rr_s4;最高等级
 aml_rr_s5;封锁
 aml_nav_s1;没有海军基地
-aml_nav_s2;最大等级
-aml_nav_s3;升级中
+aml_nav_s2;最高等级
+aml_nav_s3;正在升级
 aml_nav_s4;可升级
 aml_nav_s5;可建造
 aml_rank_s1;列强
 aml_rank_s2;次强
-aml_rank_s3;开化
-aml_rank_s4;未开化
+aml_rank_s3;开化国家
+aml_rank_s4;未开化国家
 aml_rec_s1;可用
-aml_rec_s2;全部使用
+aml_rec_s2;已满
 aml_rec_s3;无
