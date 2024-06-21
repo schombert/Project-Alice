@@ -312,8 +312,8 @@ display_data::~display_data() {
 		glDeleteTextures(texture_count, textures);
 	if(texture_arrays[0])
 		glDeleteTextures(texture_count, texture_arrays);
-	if(static_mesh_textures[0])
-		glDeleteTextures(max_static_meshes, static_mesh_textures);
+	//if(static_mesh_textures[0])
+	//	glDeleteTextures(max_static_meshes, static_mesh_textures);
 	if(vao_array[0])
 		glDeleteVertexArrays(vo_count, vao_array);
 	if(vbo_array[0])
@@ -777,6 +777,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		
 	}*/
 
+	/*
 	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
 		constexpr float dist_step = 1.77777f;
 		// Render standing objects
@@ -788,16 +789,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, time_counter);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
-		/*
-		for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
-			glUniform2f(12, 0.f, float(i * 8));
-			glUniform1f(13, 0.f);
-			glUniform1f(14, -0.75f);
-			glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
-		}
-		*/
+		
+		//for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
+		//	glActiveTexture(GL_TEXTURE14);
+		//	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
+		//	glUniform2f(12, 0.f, float(i * 8));
+		//	glUniform1f(13, 0.f);
+		//	glUniform1f(14, -0.75f);
+		//	glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
+		//}
+
 		// Train stations
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
@@ -1095,6 +1096,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 		glDisable(GL_DEPTH_TEST);
 	}
+	*/
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -1999,6 +2001,7 @@ emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material 
 }
 
 void load_static_meshes(sys::state& state) {
+	/*
 	struct static_mesh_vertex {
 		glm::vec3 position_;
 		glm::vec2 normal_;
@@ -2263,6 +2266,7 @@ void load_static_meshes(sys::state& state) {
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glBindVertexArray(0);
+	*/
 }
 
 void display_data::load_map(sys::state& state) {

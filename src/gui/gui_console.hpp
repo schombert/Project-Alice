@@ -61,7 +61,7 @@ public:
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, raw_text);
+		text::add_unparsed_text_to_layout_box(state, contents, box, raw_text);
 		text::close_layout_box(contents, box);
 		calibrate_scrollbar(state);
 	}
@@ -94,7 +94,7 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<std::string>()) {
 			auto entry = any_cast<std::string>(payload);
-			console_output_list->raw_text += entry + "\n";
+			console_output_list->raw_text += entry + "\\n";
 			console_output_list->impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<console_edit*>()) {

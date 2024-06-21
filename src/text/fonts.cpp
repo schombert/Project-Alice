@@ -609,7 +609,9 @@ void font::make_glyph(char32_t ch_in) {
 			uint32_t clearvalue = 0;
 			glClearTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, &clearvalue);
 		} else {
+			assert(textures.size() > 0);
 			texid = textures.back();
+			assert(texid);
 			glBindTexture(GL_TEXTURE_2D, texid);
 		}
 		if(texid) {

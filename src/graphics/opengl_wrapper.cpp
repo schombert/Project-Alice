@@ -873,6 +873,10 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		float y_offset = float(gso.y) - float(txt.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
+
+		assert(uint32_t(gso.texture_slot >> 6) < f.textures.size());
+		assert(f.textures[gso.texture_slot >> 6]);
+
 		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
 		glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

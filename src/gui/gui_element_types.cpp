@@ -308,9 +308,9 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 
 	for(auto& t : internal_layout.contents) {
 		if(std::holds_alternative<text::embedded_flag>(t.source)) {
-			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
 		} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
 		} else {
 			ogl::render_text(state, t.unicodechars, cmod, float(x) + t.x, float(y + int32_t(ycentered)), text_color, base_data.data.button.font_handle);
 		}
@@ -365,9 +365,9 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 
 	for(auto& t : internal_layout.contents) {
 		if(std::holds_alternative<text::embedded_flag>(t.source)) {
-			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
 		} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
 		} else {
 			ogl::render_text(state, t.unicodechars, cmod, float(x) + t.x, float(y + int32_t(ycentered)), black_text ? ogl::color3f{ 0.0f, 0.0f, 0.0f } : ogl::color3f{ 1.0f, 1.0f, 1.0f }, base_data.data.button.font_handle);
 		}
@@ -629,9 +629,9 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		auto& f = state.font_collection.get_font(state, text::font_index_from_font_id(state, state.ui_state.tooltip_font));
 
 		if(std::holds_alternative<text::embedded_flag>(t.source)) {
-			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + t.y), text::size_from_font_id(state.ui_state.tooltip_font), f);
+			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + t.y), float(text::size_from_font_id(state.ui_state.tooltip_font)), f);
 		} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + t.y), text::size_from_font_id(state.ui_state.tooltip_font), f);
+			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + t.y), float(text::size_from_font_id(state.ui_state.tooltip_font)), f);
 		} else {
 			ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
 				float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
@@ -783,9 +783,9 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 
 		for(auto& t : internal_layout.contents) {
 			if(std::holds_alternative<text::embedded_flag>(t.source)) {
-				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 			} else {
 				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x) + t.x, float(y + int32_t(ycentered)), get_text_color(state, t.color), base_data.data.button.font_handle);
 			}
@@ -793,9 +793,9 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 	} else {
 		for(auto& t : internal_layout.contents) {
 			if(std::holds_alternative<text::embedded_flag>(t.source)) {
-				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), text::size_from_font_id(base_data.data.text.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
 			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), text::size_from_font_id(base_data.data.text.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
 			} else {
 				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), get_text_color(state, t.color), base_data.data.text.font_handle);
 			}
@@ -854,9 +854,9 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 
 		for(auto& t : internal_layout.contents) {
 			if(std::holds_alternative<text::embedded_flag>(t.source)) {
-				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 			} else {
 				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x) + t.x, float(y + int32_t(ycentered)), tc, base_data.data.button.font_handle);
 			}
@@ -864,9 +864,9 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 	} else {
 		for(auto& t : internal_layout.contents) {
 			if(std::holds_alternative<text::embedded_flag>(t.source)) {
-				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 			} else {
 				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), tc, base_data.data.button.font_handle);
 			}
@@ -893,9 +893,9 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				if(std::holds_alternative<text::embedded_flag>(t.source)) {
-					ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + line_offset), text::size_from_font_id(base_data.data.text.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+					ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
 				} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-					ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + line_offset), text::size_from_font_id(base_data.data.text.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+					ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
 				} else {
 					ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
 							float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.text.font_handle);
@@ -1033,9 +1033,9 @@ void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t
 
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				if(std::holds_alternative<text::embedded_flag>(t.source)) {
-					ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + line_offset), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+					ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 				} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
-					ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + line_offset), text::size_from_font_id(base_data.data.button.font_handle), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+					ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
 				} else {
 					ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
 							float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.button.font_handle);
