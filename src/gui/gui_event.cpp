@@ -366,12 +366,10 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		description = state.world.free_provincial_event_get_description(phe.e);
 		populate_event_submap(state, sub, phe);
 	}
-
-	if(state.key_is_localized(description)) {
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, description, sub);
-		text::close_layout_box(contents, box);
-	}
+	
+	auto box = text::open_layout_box(contents);
+	text::add_to_layout_box(state, contents, box, description, sub);
+	text::close_layout_box(contents, box);
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);

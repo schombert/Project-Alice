@@ -61,6 +61,7 @@ class event_name_text : public multiline_text_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		multiline_text_element_base::on_create(state);
+		black_text = true;
 		on_reset_text(state);
 	}
 	void on_reset_text(sys::state& state) noexcept override {
