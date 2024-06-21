@@ -1005,6 +1005,7 @@ fab_finish_date;Die CB-Fertigung wird voraussichtlich am $date$ abgeschlossen se
 fab_is_paused;Die CB-Fertigung ist derzeit pausiert
 macro_builder;Makro-Builder
 macro_total_desc;Gesamtstatistik der Einheiten:
+macro_new_template;Neu
 macro_switch_type_land;Baue eine Armee auf
 macro_switch_type_naval;Marine bauen
 macro_warn_overseas;„Diese Einheit kann nicht im Ausland gebaut werden!?!“

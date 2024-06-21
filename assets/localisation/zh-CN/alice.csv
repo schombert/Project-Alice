@@ -1007,6 +1007,7 @@ fab_finish_date;伪造宣战理由将在$date$完成;;;;;;;;;;;;x
 fab_is_paused;伪造宣战理由暂停中;;;;;;;;;;;;x
 macro_builder;宏组建器;;;;;;;;;;;;x
 macro_total_desc;单位总计：;;;;;;;;;;;;x
+macro_new_template;新建;;;;;;;;;;;;x
 macro_switch_type_land;组建陆军;;;;;;;;;;;;x
 macro_switch_type_naval;组建海军;;;;;;;;;;;;x
 macro_warn_overseas;?R无法在海外省份组建该单位!?!;;;;;;;;;;;;x
