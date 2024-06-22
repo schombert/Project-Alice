@@ -1375,7 +1375,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, next_cluster_position - cluster_start_position)),
 					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
-				if(!dest.fixed_parameters.single_line && box.x_position - extent <= dest.fixed_parameters.left)
+				if(!dest.fixed_parameters.single_line && box.x_position <= dest.fixed_parameters.left)
 					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 
 				glyph_start_position = next_glyph_position;
@@ -1490,7 +1490,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(box.x_position));
 
-				if(!dest.fixed_parameters.single_line && box.x_position + extent >= dest.fixed_parameters.right)
+				if(!dest.fixed_parameters.single_line && box.x_position >= dest.fixed_parameters.right)
 					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 
 				glyph_start_position = next_glyph_position;
