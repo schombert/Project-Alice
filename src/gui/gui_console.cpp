@@ -1134,9 +1134,10 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	break;
 	case command_info::type::dump_tooltip:
 	{
+		/*
 		std::string out_text = "#Tooltip data\n";
 		if(state.ui_state.last_tooltip) {
-			auto container = text::create_columnar_layout(state.ui_state.tooltip->internal_layout,
+			auto container = text::create_columnar_layout(state, state.ui_state.tooltip->internal_layout,
 				text::layout_parameters{ 16, 16, 32762, 32762, state.ui_state.tooltip_font, 0,
 				text::alignment::left, text::text_color::white, true }, 10);
 			state.ui_state.last_tooltip->update_tooltip(state, 0, 0, container);
@@ -1154,6 +1155,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
+		*/
 	}
 	break;
 	case command_info::type::dump_tags_and_provinces_csv:

@@ -137,7 +137,7 @@ public:
 		auto border = base_data.data.text.border_size;
 
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state,
 			internal_layout,
 			text::layout_parameters{
 				border.x,
@@ -193,7 +193,7 @@ public:
 			base_data.data.text_common.font_handle &= ~(0x003F);
 			base_data.data.text_common.font_handle |= (old_value - 2);
 
-			auto container = text::create_endless_layout(
+			auto container = text::create_endless_layout(state,
 				internal_layout,
 				text::layout_parameters{
 				border.x,
@@ -233,7 +233,7 @@ public:
 
 		auto content = retrieve<T>(state, parent);
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state, 
 			internal_layout,
 			text::layout_parameters{
 				border.x,
@@ -381,7 +381,7 @@ public:
 		auto content = retrieve<dcon::movement_id>(state, parent);
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 		auto container =
-				text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
+				text::create_endless_layout(state, internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
 		populate_layout(state, container, content);
 	}
 };
@@ -1706,7 +1706,7 @@ public:
 		bool is_positive = profit >= 0.f;
 		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 		// Create colour
-		auto contents = text::create_endless_layout(internal_layout,
+		auto contents = text::create_endless_layout(state, internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true});
 		auto box = text::open_layout_box(contents);

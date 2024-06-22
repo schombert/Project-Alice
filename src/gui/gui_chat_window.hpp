@@ -11,7 +11,7 @@ public:
 		auto content = retrieve<chat_message>(state, parent);
 		auto border = base_data.data.text.border_size;
 		auto color = IsShadow ? text::text_color::black : (content.target ? text::text_color::orange : text::text_color::white);
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state, 
 			internal_layout,
 			text::layout_parameters{
 				border.x,

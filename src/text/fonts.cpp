@@ -683,7 +683,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 	}
 	uint32_t hb_feature_count = std::min(features.size(), uint32_t(std::extent_v<decltype(feature_buffer)>));
 
-	ubidi_setPara(para, (UChar const*)(source.data()), int32_t(source.size()), state.world.locale_get_native_rtl(locale) ? UBIDI_DEFAULT_RTL : UBIDI_DEFAULT_LTR, nullptr, &errorCode);
+	ubidi_setPara(para, (UChar const*)(source.data()), int32_t(source.size()), state.world.locale_get_native_rtl(locale) ? 1 : 0, nullptr, &errorCode);
 
 	if(U_SUCCESS(errorCode)) {
 		auto runcount = ubidi_countRuns(para, &errorCode);
@@ -865,7 +865,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 		}
 		uint32_t hb_feature_count = std::min(features.size(), uint32_t(std::extent_v<decltype(feature_buffer)>));
 
-		ubidi_setPara(para, (UChar const*)temp_text.data(), int32_t(temp_text.size()), UBIDI_DEFAULT_RTL, nullptr, &errorCode);
+		ubidi_setPara(para, (UChar const*)temp_text.data(), int32_t(temp_text.size()), 1, nullptr, &errorCode);
 
 		if(U_SUCCESS(errorCode)) {
 			auto runcount = ubidi_countRuns(para, &errorCode);

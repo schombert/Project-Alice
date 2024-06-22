@@ -1241,26 +1241,28 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
 								text::text_color::white, true },
 							10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-					float dead_space = float(container.used_width);
-					for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-						dead_space = std::min(dead_space, t.x);
+				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+					container.used_width = -container.used_width;
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16 + container.used_width;
+						t.y += 16;
 					}
-					for(auto& t : ui_state.tooltip->internal_layout.contents) {
-						t.x -= dead_space - 16.f;
+				} else {
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16;
+						t.y += 16;
 					}
-					ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 				}
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1278,24 +1280,26 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 0, 0, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 					text::alignment::left, text::text_color::white, true }, 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-					float dead_space = float(container.used_width);
-					for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-						dead_space = std::min(dead_space, t.x);
+				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+					container.used_width = -container.used_width;
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16 + container.used_width;
+						t.y += 16;
 					}
-					for(auto& t : ui_state.tooltip->internal_layout.contents) {
-						t.x -= dead_space - 16.f;
+				} else {
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16;
+						t.y += 16;
 					}
-					ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 				}
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1307,23 +1311,25 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, false);
 		}
 	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-			text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+		auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+			text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 			text::alignment::left, text::text_color::white, true }, 10);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-		if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-			float dead_space = float(container.used_width);
-			for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-				dead_space = std::min(dead_space, t.x);
+		if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+			container.used_width = -container.used_width;
+			for(auto& t : container.base_layout.contents) {
+				t.x += 16 + container.used_width;
+				t.y += 16;
 			}
-			for(auto& t : ui_state.tooltip->internal_layout.contents) {
-				t.x -= dead_space - 16.f;
+		} else {
+			for(auto& t : container.base_layout.contents) {
+				t.x += 16;
+				t.y += 16;
 			}
-			ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 		}
+		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 		if(container.used_width > 0)
 			ui_state.tooltip->set_visible(*this, true);
 		else
@@ -1404,22 +1410,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		}
 		if(prov) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
+			auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 0, 0, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
 				20);
 			ui::populate_map_tooltip(*this, container, prov);
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-			if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-				float dead_space = float(container.used_width);
-				for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-					dead_space = std::min(dead_space, t.x);
+			if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+				container.used_width = -container.used_width;
+				for(auto& t : container.base_layout.contents) {
+					t.x += 16 + container.used_width;
+					t.y += 16;
 				}
-				for(auto& t : ui_state.tooltip->internal_layout.contents) {
-					t.x -= dead_space - 16.f;
+			} else {
+				for(auto& t : container.base_layout.contents) {
+					t.x += 16;
+					t.y += 16;
 				}
-				ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 			}
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 			if(container.used_width > 0) {
 				// This block positions the tooltip somewhat under the province centroid
 				auto mid_point = world.province_get_mid_point(prov);
