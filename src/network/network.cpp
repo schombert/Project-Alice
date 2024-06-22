@@ -726,7 +726,16 @@ void send_and_receive_commands(sys::state& state) {
 						}
 					}
 					if(!found_match) {
-						window::emit_error_message("Could not find a scenario with a matching checksum! This is most likely a false positive, so just ask the host for their scenario file and it should work. Or you haven't clicked on \"Make scenario\"!", true);
+						std::string msg = "Could not find a scenario with a matching checksum!"
+							"This is most likely a false positive, so just ask the host for their"
+							"scenario file and it should work. Or you haven't clicked on 'Make scenario'!";
+						msg += "\n";
+						msg += "Host should give you the scenario from:\n"
+							"'My Documents\\Project Alice\\scenarios\\<Most recent scenario>'";
+						msg += "And you place it on:\n"
+							"'My Documents\\Project Alice\\scenarios\\'\n";
+
+						window::emit_error_message(msg.c_str(), true);
 					}
 				}
 				state.session_host_checksum = state.network_state.s_hshake.save_checksum;
