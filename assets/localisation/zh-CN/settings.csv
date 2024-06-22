@@ -8,11 +8,11 @@ controls_options;杂项选项
 message_settings_options;信息设置
 window_mode_label;全屏模式
 map_projection;地图投影
-map_projection_globe;正交
+map_projection_globe;正投影
 map_projection_flat;等矩
 map_projection_globe_perspective;垂直
 dm_popup_label;弹出外交信息
-ui_scale;UI缩放
+ui_scale;UI 缩放
 zoom_mode_label;缩放风格
 zoom_mode_panning;拍摄
 zoom_mode_inverted;颠倒
@@ -21,15 +21,15 @@ zoom_mode_to_cursor;随光标
 zoom_mode_away_from_cursor;远离光标
 zoom_speed_label;缩放加速度
 river_label;河流
-mute_on_focus_lost_label;当游戏不是主要视窗时静音
-wasd_for_map_movement_label;使用WASD移动
-vassal_color_label;附庸着色
-vassal_color_inherit;继承
+mute_on_focus_lost_label;当游戏不为活动窗口时静音
+wasd_for_map_movement_label;使用 WASD 移动地图
+vassal_color_label;附庸地图颜色
+vassal_color_inherit;相似
 vassal_color_same;相同
-vassal_color_none;不着色
+vassal_color_none;原始
 black_map_font_label;黑色地图字体
 edge_scrolling_label;边缘滚动
-color_blind_mode_label;色盲
+color_blind_mode_label;色盲模式
 color_blind_mode_none;无
 color_blind_mode_deutan;绿色盲
 color_blind_mode_protan;红色盲
