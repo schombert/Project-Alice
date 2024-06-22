@@ -1187,8 +1187,8 @@ alice_pnt_pops;?Y人口：?! $x$
 alice_pnt_rpops;?Y富裕阶层：?! $x$ ($y$)
 alice_pnt_mpops;?Y中产阶层：?! $x$ ($y$)
 alice_pnt_ppops;?Y贫困阶层：?! $x$ ($y$)
-alice_pnt_culture;?Y民族：?!$x$
-alice_pnt_religion;?Y宗教：?! $x$
+alice_pnt_culture;?Y主体民族：?!$x$
+alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;GDP(PPP)
