@@ -1931,8 +1931,8 @@ public:
 			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
 				modifier_description(state, contents, mid, 15);
 			}
-
-			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(sid), trigger::to_generic(state.local_player_nation), -1);
+			auto state_cap = state.world.state_instance_get_capital(sid);
+			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(state_cap), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 
