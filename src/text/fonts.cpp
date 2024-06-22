@@ -912,8 +912,8 @@ float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t st
 	unsigned int glyph_count = static_cast<unsigned int>(count);
 	float x_total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+		hb_codepoint_t glyphid = txt.glyph_info[starting_offset + i].codepoint;
+		float x_advance = float(txt.glyph_info[starting_offset + i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		bool draw_icon = false;
 		bool draw_flag = false;
 		x_total += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
