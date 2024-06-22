@@ -734,6 +734,7 @@ void send_and_receive_commands(sys::state& state) {
 							"'My Documents\\Project Alice\\scenarios\\<Most recent scenario>'";
 						msg += "And you place it on:\n"
 							"'My Documents\\Project Alice\\scenarios\\'\n";
+
 						window::emit_error_message(msg.c_str(), true);
 					}
 				}
