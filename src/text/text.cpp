@@ -1332,6 +1332,10 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					ellipsis_valid = false;
 					width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * font_size / 64.f;
 				}
+				if(state.user_settings.use_classic_fonts) {
+					ellipsis_valid = false;
+					width_of_ellipsis = 3.0f * font_size / 6.f;
+				}
 
 				int32_t m = glyph_start_position;
 				while(m < next_glyph_position) {
@@ -1339,6 +1343,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 						break;
 					++m;
 				}
+				if(m >= next_glyph_position) m = next_glyph_position - 1;
 				
 				auto cluster_end = all_glyphs.glyph_info[m].cluster;
 				std::vector<uint16_t> tempv{ temp_text.data() + cluster_start_position, temp_text.data() + cluster_end };
@@ -1449,6 +1454,10 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					ellipsis_valid = false;
 					width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * font_size / 64.f;
 				}
+				if(state.user_settings.use_classic_fonts) {
+					ellipsis_valid = false;
+					width_of_ellipsis = 3.0f * font_size / 6.f;
+				}
 
 				int32_t m = glyph_start_position;
 				while(m < next_glyph_position) {
@@ -1456,6 +1465,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 						break;
 					++m;
 				}
+				if(m >= next_glyph_position) m = next_glyph_position - 1;
 				
 				auto cluster_end = all_glyphs.glyph_info[m].cluster;
 				std::vector<uint16_t> tempv{temp_text.data() + cluster_start_position, temp_text.data() + cluster_end };
