@@ -643,8 +643,8 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 	if(only_raw_codepoints && type != font_selection::map_font) {
 		for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
 			text::stored_glyph glyph;
-			glyph.codepoint = hb_codepoint_t(source[i]);
-			make_glyph(FT_Get_Char_Index(font_face, glyph.codepoint));
+			glyph.codepoint = source[i];
+			glyph.cluster = i;
 			txt.glyph_info.push_back(glyph);
 		}
 		return;
@@ -720,8 +720,8 @@ void font::remake_bidiless_cache(sys::state& state, font_selection type, stored_
 	if(only_raw_codepoints && type != font_selection::map_font) {
 		for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
 			text::stored_glyph glyph;
-			glyph.codepoint = hb_codepoint_t(source[i]);
-			make_glyph(FT_Get_Char_Index(font_face, glyph.codepoint));
+			glyph.codepoint = source[i];
+			glyph.cluster = i;
 			txt.glyph_info.push_back(glyph);
 		}
 		return;
@@ -774,7 +774,7 @@ void font::remake_cache(stored_glyphs& txt, std::string const& s) {
 		for(uint32_t i = 0; i < uint32_t(s.size());) {
 			text::stored_glyph glyph;
 			glyph.codepoint = text::codepoint_from_utf8(s.data() + i, s.data() + s.size());
-			make_glyph(FT_Get_Char_Index(font_face, glyph.codepoint));
+			glyph.cluster = i;
 			txt.glyph_info.push_back(glyph);
 			i += uint32_t(text::size_from_utf8(s.data() + i, s.data() + s.size()));
 		}
@@ -809,7 +809,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 		for(uint32_t i = 0; i < uint32_t(s.size());) {
 			text::stored_glyph glyph;
 			glyph.codepoint = text::codepoint_from_utf8(s.data() + i, s.data() + s.size());
-			make_glyph(FT_Get_Char_Index(font_face, glyph.codepoint));
+			glyph.cluster = i;
 			txt.glyph_info.push_back(glyph);
 			i += uint32_t(text::size_from_utf8(s.data() + i, s.data() + s.size()));
 		}
@@ -929,11 +929,10 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 }
 
 float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {
-	unsigned int glyph_count = static_cast<unsigned int>(count);
 	float x_total = 0.0f;
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = txt.glyph_info[starting_offset + i].codepoint;
-		float x_advance = float(txt.glyph_info[starting_offset + i].x_advance) / (float((1 << 6) * text::magnification_factor));
+	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
+		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
+		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		x_total += x_advance * size / 64.f;
 	}
 	return x_total;

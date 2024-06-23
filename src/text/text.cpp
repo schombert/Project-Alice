@@ -1457,9 +1457,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					++m;
 				}
 				
-				auto cluster_end = m < int32_t(all_glyphs.glyph_info.size())
-					? all_glyphs.glyph_info[m].cluster
-					: 0;
+				auto cluster_end = all_glyphs.glyph_info[m].cluster;
 				std::vector<uint16_t> tempv{temp_text.data() + cluster_start_position, temp_text.data() + cluster_end };
 
 				if(ellipsis_valid) {
