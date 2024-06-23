@@ -128,7 +128,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		bool headless = false;
 
 		network::port_forwarder forwarding_apparatus;
-		forwarding_apparatus.start_forwarding();
 
 		if(num_params < 2) {
 #ifdef NDEBUG

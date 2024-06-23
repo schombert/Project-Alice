@@ -57,6 +57,7 @@ void port_forwarder::start_forwarding() {
 
 		std::vector<std::wstring> found_locals;
 
+		// try to figure out what the computer's local address is
 		{
 			IP_ADAPTER_ADDRESSES* adapter_addresses(NULL);
 			IP_ADAPTER_ADDRESSES* adapter(NULL);
@@ -157,50 +158,45 @@ void port_forwarder::start_forwarding() {
 			adapter_addresses = NULL;
 		}
 
-		if(found_locals.size() == 0)
-			return;
+		// try to add port mapping
+		if(found_locals.size() != 0) {
+			IUPnPNAT* nat_interface = nullptr;
+			IStaticPortMappingCollection* port_mappings = nullptr;
+			IStaticPortMapping* opened_port = nullptr;
 
+			BSTR proto = SysAllocString(L"TCP");
+			BSTR desc = SysAllocString(L"Project Alice Host");
+			BSTR local_host = SysAllocString(found_locals[0].c_str());
+			VARIANT_BOOL enabled = VARIANT_TRUE;
 
-		IUPnPNAT* nat_interface = nullptr;
-		IStaticPortMappingCollection* port_mappings = nullptr;
-		IStaticPortMapping* opened_port = nullptr;
+			if(SUCCEEDED(CoCreateInstance(__uuidof(UPnPNAT), NULL, CLSCTX_ALL, __uuidof(IUPnPNAT), (void**)&nat_interface)) && nat_interface) {
+				if(SUCCEEDED(nat_interface->get_StaticPortMappingCollection(&port_mappings)) && port_mappings) {
 
-
-		BSTR proto = SysAllocString(L"TCP");
-		BSTR desc = SysAllocString(L"Project Alice Host");
-		BSTR local_host = SysAllocString(found_locals[0].c_str());
-		VARIANT_BOOL enabled = VARIANT_TRUE;
-
-		if(SUCCEEDED(CoCreateInstance(__uuidof(UPnPNAT), NULL, CLSCTX_ALL, __uuidof(IUPnPNAT), (void**)&nat_interface)) && nat_interface) {
-			if(SUCCEEDED(nat_interface->get_StaticPortMappingCollection(&port_mappings)) && port_mappings) {
-
-				port_mappings->Add(1984, proto, 1984, local_host, enabled, desc, &opened_port);
+					port_mappings->Add(default_server_port, proto, default_server_port, local_host, enabled, desc, &opened_port);
+				}
 			}
+
+
+			// wait for destructor
+			internal_wait.lock();
+
+			//cleanup forwarding
+			if(port_mappings)
+				port_mappings->Remove(default_server_port, proto);
+
+			if(opened_port)
+				opened_port->Release();
+			if(port_mappings)
+				port_mappings->Release();
+			if(nat_interface)
+				nat_interface->Release();
+
+			SysFreeString(proto);
+			SysFreeString(local_host);
+			SysFreeString(desc);
+
+			internal_wait.unlock();
 		}
-
-		// Get the collection of forwarded ports 
-
-		
-
-		// wait for destructor
-		internal_wait.lock();
-
-		//cleanup forwarding
-		if(port_mappings)
-			port_mappings->Remove(1984, proto);
-
-		if(opened_port)
-			opened_port->Release();
-		if(port_mappings)
-			port_mappings->Release();
-		if(nat_interface)
-			nat_interface->Release();
-
-		SysFreeString(proto);
-		SysFreeString(local_host);
-		SysFreeString(desc);
-
-		internal_wait.unlock();
 		CoUninitialize();
 	} };
 #else
