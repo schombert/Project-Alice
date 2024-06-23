@@ -43,7 +43,7 @@ change_province_owner;省份拥有者变为$text$
 annex_effect;吞并$text$
 annexed_by_effect;被$text$吞并
 core_return;向$text$归还$adj$核心
-core_return_short;$adj$ 核心已收回
+core_return_short;$adj$核心已收回
 change_province_controller;省份控制者变为$text$
 change_state_controller;地区控制者变为$text$
 pop_savings;人群储蓄
@@ -110,26 +110,26 @@ remove_cb;$text$失去$name$宣战理由针对此国
 set_national_variable_to;设置国家变量$text$为$value$
 event_fires;已触发事件$text$
 event_fires_in_days;事件$text$在$value$天内触发
-railroad_in_capital;首都铁路等级 ?G+1?!
-railroad_in_capital_state;州府铁路等级 ?G+1?!
-fort_in_capital;首都要塞等级 ?G+1?!
-fort_in_capital_state;州府要塞等级 ?G+1?!
-fort_in_capital;首都要塞等级 ?G+1?!
-fort_in_capital_state;州府要塞等级 ?G+1?!
-university_in_capital;首都大学等级 ?G+1?!
-university_in_capital_state;州府大学等级 ?G+1?!
-bank_in_capital;首都银行等级 ?G+1?!
-bank_in_capital_state;州府银行等级 ?G+1?!
+railroad_in_capital;首都铁路等级?G+1?!
+railroad_in_capital_state;首府铁路等级?G+1?!
+fort_in_capital;首都要塞等级?G+1?!
+fort_in_capital_state;首府要塞等级?G+1?!
+fort_in_capital;首都要塞等级?G+1?!
+fort_in_capital_state;首府要塞等级?G+1?!
+university_in_capital;首都大学等级?G+1?!
+university_in_capital_state;首府大学等级?G+1?!
+bank_in_capital;首都银行等级?G+1?!
+bank_in_capital_state;首府银行等级?G+1?!
 railroad_level;铁路等级
 fort_level;要塞等级
 naval_base_level;海军基地等级
-university_base_level;海军基地等级
-bank_base_level;海军基地等级
+university_base_level;大学等级
+bank_base_level;银行等级
 apply;应用
 ok;好的
 close;关闭
 delete;删除
-new;新
+new;新建
 reset;重置
 every;所有
 ready;准备
@@ -142,7 +142,7 @@ neighboring_nation;邻国
 nation;国家
 continent;大陆
 same_continent;在同一大陆
-empty_neighboring_province;无人省相邻
+empty_neighboring_province;无接壤省份
 poor_strata_pop;贫困阶层人群
 middle_strata_pop;中产阶层人群
 rich_strata_pop;富裕阶层人群
@@ -174,7 +174,7 @@ location_of_pop;人群位置
 nation_of_pop;国家有此人群
 capital_of;首都
 containing_state;地区有
-adjacent_sea;相邻海域
+adjacent_sea;接壤海域
 cultural_union_of;文化联盟
 overlord_of;宗主
 sphere_leader_of;势力范围领袖
@@ -218,13 +218,13 @@ year;年
 month;月
 a_port;港口
 national_rank;国际排名
-att_technology;发明
+att_technology;研究
 strata;阶层
 rich;富裕
 poor;贫困
 middle;中产
 minimum_state_life_raing;地区最低生活条件
-an_empy_adj_prov;相邻无人省
+an_empy_adj_prov;无接壤省份
 belongs_to_same_state;统一$text$地区
 does_not_belong_to_same_state;分别$text$地区
 contains_blank;有$text$
@@ -309,7 +309,7 @@ blockaded;受封锁
 national_modifier;国家修正
 provincial_modifier;省份修正
 part_of;属于
-a_border_with;相邻于
+a_border_with;接壤于
 units_in_province;位于省
 units_in_the_province;位于此省
 units_in_the_state;位于地区
@@ -485,7 +485,7 @@ factory_condition_2;此地区不是一个殖民地区
 factory_condition_3;执政党允许修建工厂
 factory_condition_4;有少于$val$间工厂位于此地区
 cant_subsidize_explanation;执政党不允许我们资助工厂
-percent_of_pop_strata;$val$ 阶层的人口
+percent_of_pop_strata;占所在阶层人口的 $val$
 cant_prioritize_explanation;执政党冻结工厂优先级
 factory_upgrade_condition_1;此国已开化
 factory_upgrade_condition_2;此地区不是一个殖民地区
@@ -522,7 +522,7 @@ special_rules;特殊规则：
 voting_rules;投票规则：
 hide_decision;隐藏此决议通知
 sup_point_gain;每月镇压点增加：?G+$val$
-sup_point_explain;来自：基础比例$x$乘以来自官僚的$y$再乘以来自我们的镇压点数获得修正$val$
+sup_point_explain;来自：基础比例 $x$×来自官僚的 $y$×来自镇压点数修正的 $val$
 pop_size_1;下月人群预估变化：
 pop_size_2;来自增长：
 pop_size_3;来自升降职：
@@ -661,7 +661,7 @@ influence_explain_7;修正来自科技：$x$
 influence_explain_8;这在我们影响的国家之间分配，造成每日获得的基础收益为：$x$
 influence_explain_9;它将进一步乘以1，加上下列因子的和：
 influence_explain_10;$x$来自败坏名誉
-influence_explain_11;$x$来自相邻
+influence_explain_11;$x$来自接壤
 influence_explain_12;$x$ 来自一个或多个作为我们成员的邻居
 influence_explain_13;$x$来自首都非同一大陆
 influence_explain_14;$x$来自作为我们的附庸
@@ -937,9 +937,9 @@ auto_save_1;每日
 auto_save_2;每月
 auto_save_3;每年
 auto_save_0;不自动保存
-monthly_emigration_lab;每月出境移民到（前10名）
-monthly_immigration_lab;月度移民来自（前十）
-im_em_header;预估出入境移民对于
+monthly_emigration_lab;每月移民到（前十名）
+monthly_immigration_lab;每月移民来自（前十名）
+im_em_header;省份属于：
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W 损耗
 ol_unit_standing_text;$m$ $n$/$x$/$y$
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
@@ -1022,8 +1022,8 @@ filter_neighbors;选择与我们?Y接壤?!的国家。\n?Y右键点击?!以选�
 filter_best_guess;将使用基于关联性的?Y最好猜测?!进行选择，包括?Y盟友?!, ?Y敌人?!, ?Y势力范围成员?!以及?Y接壤?!国家。
 alice_warn_war_ends_for_us;?R这将为所有站在我们一方的国家终结这场战争?!.
 alice_invention_chance;发现这个 ?Y发明?! 的概率如下:
-is_primary_culture;?Y$NAME$?!是主体民族。
-is_primary_religion;?Y$NAME$?! 是国教。
+is_primary_culture;?Y$NAME$?!是主体民族
+is_primary_religion;?Y$NAME$?!是国教
 tt_can_use_nation;使用本目标需要的条件: 
 et_on_add;将本战争目标添加到战争中将会产生以下效果: 
 et_on_po_accepted;接受有此战争目标的和平提议将会产生以下效果: 
@@ -1110,11 +1110,11 @@ alice_factory_worker_1;雇佣：?G$x$?W
 alice_factory_worker_2;失业：?R$x$?W
 alice_rgo_unemployment_country_alert;以下地区有失业的农民和劳工: 
 pop_promote_info_on_sel_2;$val$预计下月$who$将变动$where$
-alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活质量功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y宏组建器?W：使用我们的宏组建器构建由不同兵种组成的军队单位\n?Y11种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
+alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活质量功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y宏组建器?W：使用我们的宏组建器构建由不同兵种组成的军队单位\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除
 unit_controls_tooltip_1;?Y左键?W选择（取消选择其它）\n?YSHIFT+左键?W增加到选择中
 unit_controls_tooltip_2;?Y右键点击一个省份?W以局部撤退（?G循环/轮流?W）到此省
-unit_control_group_tooltip;按下?YCTRL+1?W到?YCTRL+9?W将此单位指定/解除指定到一个控制分组，你可以按下?Y1?W到?Y9?W以进行选择
+unit_control_group_tooltip;按下 ?YCTRL+1?W 到 ?YCTRL+9?W 将此单位指定/解除指定到一个控制分组，你可以按下 ?Y1?W 到 ?Y9?W 以进行选择
 console_button_tooltip;打开控制台
 demobilize;遣散
 mobilize;动员
@@ -1195,3 +1195,4 @@ ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;每100万人的GDP（PPP）
 an_assigned_leader;an assigned leader
 macro_new_template;新建
+invention;发明
