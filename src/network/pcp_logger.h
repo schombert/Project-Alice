@@ -68,8 +68,7 @@ __FILE__, __LINE__, __FUNCTION__); }
 #define PCP_MAX_LOG_LEVEL PCP_LOGLVL_INFO
 #endif
 
-#define PCP_LOG(level, fmt, ...) { \
-if (level<=PCP_MAX_LOG_LEVEL) pcp_logger(level, fmt, __VA_ARGS__); }
+#define PCP_LOG(level, fmt, ...)
 
 #define PCP_LOG_END(level)
 

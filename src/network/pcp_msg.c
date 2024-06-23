@@ -218,7 +218,7 @@ static pcp_errno build_pcp_options(pcp_flow_t *flow, void *cur)
     }
 #endif
 
-    flow->pcp_msg_len=((char*)cur) - flow->pcp_msg_buffer;
+    flow->pcp_msg_len=(uint32_t)(((char*)cur) - flow->pcp_msg_buffer);
 
     //TODO: implement building all pcp options into msg
     return PCP_ERR_SUCCESS;
@@ -414,7 +414,7 @@ void *build_pcp_msg(pcp_flow_t *flow)
         memcpy(&req->ip, &flow->kd.src_ip, 16);
         // next data in the packet
         next_data=req->next_data;
-        flow->pcp_msg_len=(uint8_t *)next_data - (uint8_t *)req;
+        flow->pcp_msg_len=(uint32_t)((uint8_t *)next_data - (uint8_t *)req);
 
         switch (flow->kd.operation) {
             case PCP_OPCODE_PEER:
@@ -615,8 +615,8 @@ static pcp_errno parse_v0_resp(pcp_recv_msg_t *f, pcp_response_t *resp)
                 f->recv_lifetime=ntohl(r->lifetime);
                 f->recv_result=ntohs(r->result);
                 f->kd.map_peer.protocol=
-                        f->kd.operation == NATPMP_OPCODE_MAP_TCP ?
-                                IPPROTO_TCP : IPPROTO_UDP;
+                        f->kd.operation == (uint8_t)(NATPMP_OPCODE_MAP_TCP ?
+                                IPPROTO_TCP : IPPROTO_UDP);
                 f->kd.operation=PCP_OPCODE_MAP;
                 return PCP_ERR_SUCCESS;
             }

@@ -91,158 +91,6 @@ static pcp_server_state_e pcp_terminate_server(pcp_server_t *s);
 static pcp_server_state_e log_unexepected_state_event(pcp_server_t *s);
 static pcp_server_state_e ignore_events(pcp_server_t *s);
 
-#if PCP_MAX_LOG_LEVEL>=PCP_LOGLVL_DEBUG
-
-//LCOV_EXCL_START
-static const char *dbg_get_func_name(void *f)
-{
-    if (f == fhndl_send) {
-        return "fhndl_send";
-    } else if (f == fhndl_send_renew) {
-        return "fhndl_send_renew";
-    } else if (f == fhndl_resend) {
-        return "fhndl_resend";
-    } else if (f == fhndl_shortlifeerror) {
-        return "fhndl_shortlifeerror";
-    } else if (f == fhndl_received_success) {
-        return "fhndl_received_success";
-    } else if (f == fhndl_clear_timeouts) {
-        return "fhndl_clear_timeouts";
-    } else if (f == fhndl_waitresp) {
-        return "fhndl_waitresp";
-    } else if (f == handle_wait_io_receive_msg) {
-        return "handle_wait_io_receive_msg";
-    } else if (f == handle_server_ping) {
-        return "handle_server_ping";
-    } else if (f == handle_wait_ping_resp_timeout) {
-        return "handle_wait_ping_resp_timeout";
-    } else if (f == handle_wait_ping_resp_recv) {
-        return "handle_wait_ping_resp_recv";
-    } else if (f == handle_version_negotiation) {
-        return "handle_version_negotiation";
-    } else if (f == handle_send_all_msgs) {
-        return "handle_send_all_msgs";
-    } else if (f == handle_server_restart) {
-        return "handle_server_restart";
-    } else if (f == handle_wait_io_timeout) {
-        return "handle_wait_io_timeout";
-    } else if (f == handle_server_set_not_working) {
-        return "handle_server_set_not_working";
-    } else if (f == handle_server_not_working) {
-        return "handle_server_not_working";
-    } else if (f == handle_server_reping) {
-        return "handle_server_reping";
-    } else if (f == pcp_terminate_server) {
-        return "pcp_terminate_server";
-    } else if (f == log_unexepected_state_event) {
-        return "log_unexepected_state_event";
-    } else if (f == ignore_events) {
-        return "ignore_events";
-    } else {
-        return "unknown";
-    }
-}
-
-static const char *dbg_get_event_name(pcp_flow_event_e ev)
-{
-    static const char *event_names[]={
-            "fev_flow_timedout",
-            "fev_server_initialized",
-            "fev_send",
-            "fev_msg_sent",
-            "fev_failed",
-            "fev_none",
-            "fev_server_restarted",
-            "fev_ignored",
-            "fev_res_success",
-            "fev_res_unsupp_version",
-            "fev_res_not_authorized",
-            "fev_res_malformed_request",
-            "fev_res_unsupp_opcode",
-            "fev_res_unsupp_option",
-            "fev_res_malformed_option",
-            "fev_res_network_failure",
-            "fev_res_no_resources",
-            "fev_res_unsupp_protocol",
-            "fev_res_user_ex_quota",
-            "fev_res_cant_provide_ext",
-            "fev_res_address_mismatch",
-            "fev_res_exc_remote_peers",
-    };
-
-    assert(((int)ev < sizeof(event_names) / sizeof(event_names[0])));
-
-    return (int)ev >= 0 ? event_names[ev] : "";
-}
-
-static const char *dbg_get_state_name(pcp_flow_state_e s)
-{
-    static const char *state_names[]={
-            "pfs_idle",
-            "pfs_wait_for_server_init",
-            "pfs_send",
-            "pfs_wait_resp",
-            "pfs_wait_after_short_life_error",
-            "pfs_wait_for_lifetime_renew",
-            "pfs_send_renew",
-            "pfs_failed"
-    };
-
-    assert((int)s < (int)(sizeof(state_names) / sizeof(state_names[0])));
-
-    return s >= 0 ? state_names[s] : "";
-}
-
-static const char *dbg_get_sevent_name(pcp_event_e ev)
-{
-    static const char *sevent_names[]={
-            "pcpe_any",
-            "pcpe_timeout",
-            "pcpe_io_event",
-            "pcpe_terminate"
-    };
-
-    assert((int) ev < sizeof(sevent_names) / sizeof(sevent_names[0]));
-
-    return sevent_names[ev];
-}
-
-static const char *dbg_get_sstate_name(pcp_server_state_e s)
-{
-    static const char *server_state_names[]={
-            "pss_unitialized",
-            "pss_allocated",
-            "pss_ping",
-            "pss_wait_ping_resp",
-            "pss_version_negotiation",
-            "pss_send_all_msgs",
-            "pss_wait_io",
-            "pss_wait_io_calc_nearest_timeout",
-            "pss_server_restart",
-            "pss_server_reping",
-            "pss_set_not_working",
-            "pss_not_working"
-    };
-
-    assert((int)s < (int)(sizeof(server_state_names) /
-        sizeof(server_state_names[0])));
-
-    return (s >=0 ) ? server_state_names[s] : "";
-}
-
-static const char *dbg_get_fstate_name(pcp_fstate_e s)
-{
-    static const char *flow_state_names[]={"pcp_state_processing",
-            "pcp_state_succeeded", "pcp_state_partial_result",
-            "pcp_state_short_lifetime_error", "pcp_state_failed"};
-
-    assert((int)s < (int)sizeof(flow_state_names) /
-        sizeof(flow_state_names[0]));
-
-    return flow_state_names[s];
-}
-//LCOV_EXCL_STOP
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 //                  Flow State Machine definition
@@ -383,7 +231,7 @@ static pcp_errno read_msg(pcp_ctx_t *ctx, pcp_recv_msg_t *msg)
         return (pcp_errno)ret;
     }
 
-    msg->pcp_msg_len=ret;
+    msg->pcp_msg_len=(uint32_t)ret;
 
     return PCP_ERR_SUCCESS;
 }
@@ -673,22 +521,6 @@ static pcp_flow_t *server_process_rcvd_pcp_msg(pcp_server_t *s,
 #endif
 
     if (!f) {
-        char in6[INET6_ADDRSTRLEN];
-
-        PCP_LOG(PCP_LOGLVL_INFO, "%s",
-                "Couldn't find matching flow to received PCP message.");
-        PCP_LOG(PCP_LOGLVL_PERR, "  Operation   : %u", msg->kd.operation);
-        if ((msg->kd.operation == PCP_OPCODE_MAP)
-                || (msg->kd.operation == PCP_OPCODE_PEER)) {
-            PCP_LOG(PCP_LOGLVL_PERR, "  Protocol    : %u",
-                    msg->kd.map_peer.protocol);
-            PCP_LOG(PCP_LOGLVL_PERR, "  Source      : %s:%hu",
-                    inet_ntop(s->af, &msg->kd.src_ip, in6, sizeof(in6)), ntohs(msg->kd.map_peer.src_port));
-            PCP_LOG(PCP_LOGLVL_PERR, "  Destination : %s:%hu",
-                    inet_ntop(s->af, &msg->kd.map_peer.dst_ip, in6, sizeof(in6)), ntohs(msg->kd.map_peer.dst_port));
-        } else {
-            //TODO: add print of SADSCP params
-        }
         return NULL;
     }
 
@@ -984,7 +816,7 @@ static pcp_server_state_e handle_wait_io_receive_msg(pcp_server_t *s)
             PCP_LOG(PCP_LOGLVL_DEBUG, "PCP server %s returned "
             "result_code=Unsupported version", s->pcp_server_paddr);
             gettimeofday(&s->next_timeout, NULL);
-            s->next_version=msg->recv_version;
+            s->next_version=(uint8_t)(msg->recv_version);
             return pss_version_negotiation;
         case PCP_RES_ADDRESS_MISMATCH:
             PCP_LOG(PCP_LOGLVL_WARN, "There is PCP-unaware NAT present "

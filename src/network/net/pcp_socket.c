@@ -69,7 +69,6 @@ int pcp_win_sock_startup()
     int err;
     WORD wVersionRequested;
     WSADATA wsaData;
-    OSVERSIONINFOEX osvi;
 
     /* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
     wVersionRequested=MAKEWORD(2, 2);
@@ -78,14 +77,6 @@ int pcp_win_sock_startup()
         /* Tell the user that we could not find a usable */
         /* Winsock DLL.                                  */
         perror("WSAStartup failed with error");
-        return 1;
-    }
-    //find windows version
-    ZeroMemory(&osvi, sizeof(osvi));
-    osvi.dwOSVersionInfoSize=sizeof(osvi);
-
-    if (!GetVersionEx((LPOSVERSIONINFO)(&osvi))) {
-        printf("pcp_app: GetVersionEx failed");
         return 1;
     }
 
@@ -236,7 +227,7 @@ static PCP_SOCKET pcp_socket_create_impl(int domain, int type, int protocol)
     OSDEP(flg);
 
     memset(&sas, 0, sizeof(sas));
-    sas.ss_family=domain;
+    sas.ss_family=(ADDRESS_FAMILY)domain;
     if (domain == AF_INET) {
         sin->sin_port=htons(5350);
         SET_SA_LEN(sin, sizeof(struct sockaddr_in));

@@ -338,7 +338,7 @@ int pcp_new_server(pcp_ctx_t *ctx, struct in6_addr *ip, uint16_t port, uint32_t 
     ret->server_state=pss_allocated;
     ret->pcp_version=PCP_MAX_SUPPORTED_VERSION;
     createNonce(&ret->nonce);
-    ret->index=ret - ctx->pcp_db.pcp_servers;
+    ret->index=(uint32_t)(ret - ctx->pcp_db.pcp_servers);
 
     PCP_LOG_END(PCP_LOGLVL_DEBUG);
     return ret->index;

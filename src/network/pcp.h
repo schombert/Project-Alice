@@ -102,9 +102,9 @@ typedef struct pcp_ctx_s pcp_ctx_t;
 
 typedef struct pcp_socket_vt_s {
     PCP_SOCKET (*sock_create)(int domain, int type, int protocol);
-    ssize_t (*sock_recvfrom)(PCP_SOCKET sockfd, void *buf, size_t len,
+    int (*sock_recvfrom)(PCP_SOCKET sockfd, void *buf, size_t len,
             int flags, struct sockaddr *src_addr, socklen_t *addrlen);
-    ssize_t (*sock_sendto)(PCP_SOCKET sockfd, const void *buf, size_t len,
+    int (*sock_sendto)(PCP_SOCKET sockfd, const void *buf, size_t len,
             int flags, struct sockaddr *dest_addr, socklen_t addrlen);
     int (*sock_close)(PCP_SOCKET sockfd);
 } pcp_socket_vt_t;

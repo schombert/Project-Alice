@@ -227,7 +227,7 @@ pcp_fstate_e pcp_wait(pcp_flow_t *flow, int timeout, int exit_on_partial_res)
     FD_ZERO(&read_fds);
 
     fd=pcp_get_socket(flow->ctx);
-    fdmax=fd + 1;
+    fdmax= (int)fd + 1;
 
     // main loop
     for (;;) {
@@ -707,7 +707,7 @@ pcp_flow_info_t *pcp_flow_get_info(pcp_flow_t *f, size_t *info_count)
 
         info_iter->recv_lifetime_end=fiter->recv_lifetime;
         info_iter->lifetime_renew_s=fiter->lifetime;
-        info_iter->pcp_result_code=fiter->recv_result;
+        info_iter->pcp_result_code=(uint8_t)(fiter->recv_result);
         memcpy(&info_iter->int_ip, &fiter->kd.src_ip, sizeof(struct in6_addr));
         memcpy(&info_iter->pcp_server_ip, &fiter->kd.pcp_server_ip,
                 sizeof(info_iter->pcp_server_ip));

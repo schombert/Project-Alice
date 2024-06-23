@@ -73,10 +73,10 @@ const char *findsaddr(const struct sockaddr_in *to,
 {
     const char *errstr;
     struct sockaddr_in cto, cfrom;
-    SOCKET s;
+
     socklen_t len;
 
-    s=socket(AF_INET, SOCK_DGRAM, 0);
+    auto s=socket(AF_INET, SOCK_DGRAM, 0);
     if (s == INVALID_SOCKET)
         return ("failed to open DGRAM socket for src addr selection.");
     errstr=NULL;
@@ -115,7 +115,6 @@ const char *findsaddr6(const struct sockaddr_in6 *to,
 {
     const char *errstr;
     struct sockaddr_in6 cto, cfrom;
-    SOCKET s;
     socklen_t len;
     uint32_t sock_flg=0;
 
@@ -124,7 +123,7 @@ const char *findsaddr6(const struct sockaddr_in6 *to,
         return NULL;
     }
 
-    s=socket(AF_INET6, SOCK_DGRAM, 0);
+    auto s=socket(AF_INET6, SOCK_DGRAM, 0);
     if (s == INVALID_SOCKET)
         return ("failed to open DGRAM socket for src addr selection.");
 
