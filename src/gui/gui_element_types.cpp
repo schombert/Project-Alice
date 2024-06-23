@@ -300,6 +300,9 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 		image_element_base::render(state, x, y);
 	}
 
+	if(internal_layout.contents.empty())
+		return;
+
 	auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 	if(linesz == 0.f)
 		return;
@@ -356,6 +359,9 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 			}
 		}
 	}
+
+	if(internal_layout.contents.empty())
+		return;
 
 	auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 	if(linesz == 0.f)

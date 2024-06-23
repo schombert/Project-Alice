@@ -601,6 +601,7 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 
 void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
+	state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	//
 	window::change_cursor(state, window::cursor_type::busy);
 	if(state.ui_state.units_root)
