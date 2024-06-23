@@ -11,6 +11,9 @@
 #include <windows.h>
 #include <natupnp.h>
 #include <iphlpapi.h>
+#include <Mstcpip.h>
+#include <ip2string.h>
+#include "pcp.h"
 #else // NIX
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -33,6 +36,7 @@
 
 #ifdef _WIN64
 #pragma comment(lib, "Iphlpapi.lib")
+#pragma comment(lib, "ntdll.lib")
 #endif
 
 namespace network {
@@ -40,6 +44,11 @@ namespace network {
 //
 // platform specific
 //
+
+struct local_addresses {
+	std::string address;
+	bool ipv6 = false;
+};
 
 port_forwarder::port_forwarder() { }
 
@@ -55,7 +64,8 @@ void port_forwarder::start_forwarding() {
 		if(!SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
 			return;
 
-		std::vector<std::wstring> found_locals;
+		
+		std::vector<local_addresses> found_locals;
 
 		// try to figure out what the computer's local address is
 		{
@@ -120,7 +130,7 @@ void port_forwarder::start_forwarding() {
 
 						char str_buffer[INET_ADDRSTRLEN] = { 0 };
 						inet_ntop(AF_INET, &(ipv4->sin_addr), str_buffer, INET_ADDRSTRLEN);
-						found_locals.push_back(simple_fs::utf8_to_native(str_buffer));
+						found_locals.push_back(local_addresses{ std::string(str_buffer),  false});
 					} else if(AF_INET6 == family) {
 						// IPv6
 						SOCKADDR_IN6* ipv6 = reinterpret_cast<SOCKADDR_IN6*>(address->Address.lpSockaddr);
@@ -144,7 +154,7 @@ void port_forwarder::start_forwarding() {
 						}
 
 						if(!(is_link_local || is_special_use)) {
-							found_locals.push_back(simple_fs::utf8_to_native(ipv6_str));
+							found_locals.push_back(local_addresses{ std::string(ipv6_str), true });
 						}
 					} else {
 						// Skip all other types of addresses
@@ -159,6 +169,7 @@ void port_forwarder::start_forwarding() {
 		}
 
 		// try to add port mapping
+		bool mapped_ports_with_upnp = false;
 		if(found_locals.size() != 0) {
 			IUPnPNAT* nat_interface = nullptr;
 			IStaticPortMappingCollection* port_mappings = nullptr;
@@ -166,19 +177,63 @@ void port_forwarder::start_forwarding() {
 
 			BSTR proto = SysAllocString(L"TCP");
 			BSTR desc = SysAllocString(L"Project Alice Host");
-			BSTR local_host = SysAllocString(found_locals[0].c_str());
+			auto tmpwstr = simple_fs::utf8_to_native(found_locals[0].address);
+			BSTR local_host = SysAllocString(tmpwstr.c_str());
 			VARIANT_BOOL enabled = VARIANT_TRUE;
 
 			if(SUCCEEDED(CoCreateInstance(__uuidof(UPnPNAT), NULL, CLSCTX_ALL, __uuidof(IUPnPNAT), (void**)&nat_interface)) && nat_interface) {
 				if(SUCCEEDED(nat_interface->get_StaticPortMappingCollection(&port_mappings)) && port_mappings) {
-
-					port_mappings->Add(default_server_port, proto, default_server_port, local_host, enabled, desc, &opened_port);
+					if(SUCCEEDED(port_mappings->Add(default_server_port, proto, default_server_port, local_host, enabled, desc, &opened_port)) && opened_port) {
+						mapped_ports_with_upnp = true;
+					}
 				}
 			}
 
+			pcp_ctx_t* pcp_obj = nullptr;
+			if(!mapped_ports_with_upnp) {
+				pcp_obj = pcp_init(ENABLE_AUTODISCOVERY, NULL);
+
+				sockaddr_storage source_ip;
+				sockaddr_storage ext_ip;
+
+				WORD wVersionRequested;
+				WSADATA wsaData;
+
+				wVersionRequested = MAKEWORD(2, 2);
+				auto err = WSAStartup(wVersionRequested, &wsaData);
+
+				memset(&source_ip, 0, sizeof(source_ip));
+				memset(&ext_ip, 0, sizeof(ext_ip));
+
+				if(found_locals[0].ipv6 == false) {
+					((sockaddr_in*)(&source_ip))->sin_port = 1984;
+					((sockaddr_in*)(&source_ip))->sin_addr.s_addr = inet_addr(found_locals[0].address.c_str());
+					((sockaddr_in*)(&source_ip))->sin_family = AF_INET;
+
+					((sockaddr_in*)(&ext_ip))->sin_port = 1984;
+					((sockaddr_in*)(&ext_ip))->sin_family = AF_INET;
+				} else {
+					((sockaddr_in6*)(&source_ip))->sin6_port = 1984;
+					PCSTR term = nullptr;
+					RtlIpv6StringToAddressA(found_locals[0].address.c_str(), &term, &(((sockaddr_in6*)(&source_ip))->sin6_addr));
+					((sockaddr_in6*)(&source_ip))->sin6_family = AF_INET6;
+
+					((sockaddr_in6*)(&ext_ip))->sin6_port = 1984;
+					((sockaddr_in6*)(&ext_ip))->sin6_family = AF_INET6;
+				}
+
+				auto flow = pcp_new_flow(pcp_obj, (sockaddr*)&source_ip, nullptr, (sockaddr*)&ext_ip, IPPROTO_TCP, 3600, nullptr);
+				if(flow)
+					pcp_wait(flow, 10000, 0);
+
+			}
 
 			// wait for destructor
 			internal_wait.lock();
+
+			if(pcp_obj) {
+				pcp_terminate(pcp_obj, 0);
+			}
 
 			//cleanup forwarding
 			if(port_mappings)
