@@ -924,7 +924,7 @@ public:
 	dcon::text_key text_id{};
 
 	void on_update(sys::state& state) noexcept override {
-		auto layout = text::create_endless_layout(internal_layout,
+		auto layout = text::create_endless_layout(state, internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 						base_data.data.text.font_handle, 0, text::alignment::left, black_text ? text::text_color::black : text::text_color::white, false});
 		auto box = text::open_layout_box(layout, 0);

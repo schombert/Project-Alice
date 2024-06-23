@@ -1081,29 +1081,19 @@ text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {
 	return nullptr;
 }
 
-endless_layout create_endless_layout(layout& dest, layout_parameters const& params) {
+endless_layout create_endless_layout(sys::state& state, layout& dest, layout_parameters const& params) {
 	dest.contents.clear();
 	dest.number_of_lines = 0;
-	return endless_layout(dest, params);
+	return endless_layout(dest, params, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? layout_base::rtl_status::rtl : layout_base::rtl_status::ltr);
 }
 
 namespace impl {
 
-void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, bool rtl) {
-	if(box.rtl_kludge) {
-		float dead_space = 0.f;
-		for(auto i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dead_space = std::min(dead_space, dest.base_layout.contents[i].x);
-		}
-		for(auto i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents[i].x -= dead_space;
-		}
-		box.x_position -= dead_space;
-	}
-
+void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
+	bool rtl = dest.native_rtl == layout_base::rtl_status::rtl;
 	if(dest.fixed_parameters.align == alignment::center) {
-		if(box.rtl_kludge) {
-			auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
+		if(rtl) {
+			auto gap = (box.x_position - float(dest.fixed_parameters.left)) / 2.0f;
 			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
 				dest.base_layout.contents[i].x -= gap;
 			}
@@ -1113,18 +1103,24 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, boo
 				dest.base_layout.contents[i].x += gap;
 			}
 		}
-	} else if(dest.fixed_parameters.align == alignment::right) {
+	} else if(dest.fixed_parameters.align == alignment::right && !rtl) {
 		auto gap = float(dest.fixed_parameters.right) - box.x_position;
 		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
 			dest.base_layout.contents[i].x += gap;
 		}
+	} else if(dest.fixed_parameters.align == alignment::left && rtl) {
+		auto gap = box.x_position - float(dest.fixed_parameters.left);
+		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+			dest.base_layout.contents[i].x -= gap;
+		}
 	}
+
 	if(rtl) {
-		//dest.max_column_width = std::max(box.x_size - box.x_position);
 		box.x_position = float(dest.fixed_parameters.right - box.x_offset);
 	} else {
 		box.x_position = float(box.x_offset + dest.fixed_parameters.left);
 	}
+
 	box.y_position += line_height;
 	dest.base_layout.number_of_lines += 1;
 	box.line_start = dest.base_layout.contents.size();
@@ -1135,7 +1131,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, boo
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
-	impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	impl::lb_finish_line(dest, box, line_height);
 }
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
@@ -1153,7 +1149,7 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_flag ico) {
 	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
 
-	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		box.x_position -= v_amount * 1.5f;
 		dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs{}, box.x_position, ico, int16_t(box.y_position), int16_t(v_amount * 1.5f), int16_t(v_amount), text::text_color::white });
 	} else {
@@ -1164,7 +1160,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, em
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_icon ico) {
 	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
 
-	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		box.x_position -= v_amount;
 		dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs{}, box.x_position, ico, int16_t(box.y_position), int16_t(v_amount), int16_t(v_amount), text::text_color::white });
 	} else {
@@ -1265,16 +1261,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data(), temp_text.size()), text::stored_glyphs::no_bidi{});
 
-	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		int32_t glyph_position = 0;
 		int32_t glyph_start_position = 0;
 		int32_t cluster_position = 0;
 		int32_t cluster_start_position = 0;
-
-		if(!box.rtl_kludge) {
-			box.x_position = float(dest.fixed_parameters.right - box.x_offset);
-			box.rtl_kludge = true;
-		}
 
 		while(cluster_start_position < int32_t(temp_text.size())) {
 			if(dest.fixed_parameters.single_line && box.x_position <= dest.fixed_parameters.left)
@@ -1308,7 +1299,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
 				if(box.x_position - extent <= dest.fixed_parameters.left)
-					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					impl::lb_finish_line(dest, box, line_height);
 
 				glyph_start_position = next_glyph_position;
 				glyph_position = next_glyph_position;
@@ -1324,7 +1315,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(temp_text.data() + cluster_start_position, cluster_position - cluster_start_position)),
 					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 				
-				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				impl::lb_finish_line(dest, box, line_height);
 
 				glyph_start_position = glyph_position;
 				cluster_start_position = cluster_position;
@@ -1376,7 +1367,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
 				if(!dest.fixed_parameters.single_line && box.x_position <= dest.fixed_parameters.left)
-					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					impl::lb_finish_line(dest, box, line_height);
 
 				glyph_start_position = next_glyph_position;
 				glyph_position = next_glyph_position;
@@ -1425,7 +1416,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.x_size = std::max(box.x_size, int32_t(box.x_position));
 
 				if(box.x_position + extent >= dest.fixed_parameters.right)
-					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					impl::lb_finish_line(dest, box, line_height);
 
 				glyph_start_position = next_glyph_position;
 				glyph_position = next_glyph_position;
@@ -1441,7 +1432,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(box.x_position));
 
-				impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				impl::lb_finish_line(dest, box, line_height);
 
 				glyph_start_position = glyph_position;
 				cluster_start_position = cluster_position;
@@ -1491,7 +1482,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.x_size = std::max(box.x_size, int32_t(box.x_position));
 
 				if(!dest.fixed_parameters.single_line && box.x_position >= dest.fixed_parameters.right)
-					impl::lb_finish_line(dest, box, line_height, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					impl::lb_finish_line(dest, box, line_height);
 
 				glyph_start_position = next_glyph_position;
 				glyph_position = next_glyph_position;
@@ -1748,38 +1739,63 @@ void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& b
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
 	auto glyphid = FT_Get_Char_Index(font.font_face, ' ');
 	float amount = font.base_glyph_width(glyphid) * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.f;;
-	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
-		amount = -amount;
-	}
-	box.x_position += amount;
+
+	if(dest.native_rtl == layout_base::rtl_status::rtl)
+		box.x_position -= amount;
+	else
+		box.x_position += amount;
 }
 
 layout_box open_layout_box(layout_base& dest, int32_t indent) {
-	return layout_box{dest.base_layout.contents.size(), dest.base_layout.contents.size(), indent, 0, 0,
+	if(dest.native_rtl == layout_base::rtl_status::ltr)
+		return layout_box{dest.base_layout.contents.size(), dest.base_layout.contents.size(), indent, 0, 0,
 			float(indent + dest.fixed_parameters.left), 0, dest.fixed_parameters.color};
+	else
+		return layout_box{ dest.base_layout.contents.size(), dest.base_layout.contents.size(), indent, 0, 0,
+			float(dest.fixed_parameters.right - indent), 0, dest.fixed_parameters.color };
 }
 void close_layout_box(columnar_layout& dest, layout_box& box) {
-	impl::lb_finish_line(dest, box, 0, false); //we're not adding any text so this is fine
-	if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
-		dest.current_column_x = dest.used_width + dest.column_width;
-		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents[i].y += dest.fixed_parameters.top;
-			dest.base_layout.contents[i].x += float(dest.current_column_x);
-			dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
+	impl::lb_finish_line(dest, box, 0);
+	if(dest.native_rtl == layout_base::rtl_status::ltr) {
+		if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
+			dest.current_column_x = dest.used_width + dest.column_width;
+			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].y += dest.fixed_parameters.top;
+				dest.base_layout.contents[i].x += float(dest.current_column_x);
+				dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
+			}
+			dest.y_cursor = box.y_size + dest.fixed_parameters.top;
+		} else { // append to current column
+			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
+				dest.base_layout.contents[i].x += float(dest.current_column_x);
+				dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
+			}
+			dest.y_cursor += box.y_size;
 		}
-		dest.y_cursor = box.y_size + dest.fixed_parameters.top;
-	} else { // append to current column
-		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
-			dest.base_layout.contents[i].x += float(dest.current_column_x);
-			dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
+		dest.used_height = std::max(dest.used_height, dest.y_cursor);
+	} else {
+		if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
+			dest.current_column_x = dest.used_width - dest.column_width;
+			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].y += dest.fixed_parameters.top;
+				dest.base_layout.contents[i].x += float(dest.current_column_x) - float(dest.fixed_parameters.right - dest.fixed_parameters.left);
+				dest.used_width = std::min(dest.used_width, int32_t(dest.base_layout.contents[i].x));
+			}
+			dest.y_cursor = box.y_size + dest.fixed_parameters.top;
+		} else { // append to current column
+			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
+				dest.base_layout.contents[i].x += float(dest.current_column_x) - float(dest.fixed_parameters.right - dest.fixed_parameters.left);
+				dest.used_width = std::min(dest.used_width, int32_t(dest.base_layout.contents[i].x));
+			}
+			dest.y_cursor += box.y_size;
 		}
-		dest.y_cursor += box.y_size;
+		dest.used_height = std::max(dest.used_height, dest.y_cursor);
 	}
-	dest.used_height = std::max(dest.used_height, dest.y_cursor);
 }
 void close_layout_box(endless_layout& dest, layout_box& box) {
-	impl::lb_finish_line(dest, box, 0, false); //not adding any text so this is fine
+	impl::lb_finish_line(dest, box, 0);
 	for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
 		dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
 	}
@@ -1787,7 +1803,7 @@ void close_layout_box(endless_layout& dest, layout_box& box) {
 	dest.y_cursor += box.y_size;
 }
 void close_layout_box(single_line_layout& dest, layout_box& box) {
-	impl::lb_finish_line(dest, box, 0, false); //not adding any text so this is fine
+	impl::lb_finish_line(dest, box, 0);
 }
 
 void close_layout_box(layout_base& dest, layout_box& box) {
@@ -1804,10 +1820,10 @@ void single_line_layout::internal_close_box(layout_box& b) {
 	close_layout_box(*this, b);
 }
 
-columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
+columnar_layout create_columnar_layout(sys::state& state, layout& dest, layout_parameters const& params, int32_t column_width) {
 	dest.contents.clear();
 	dest.number_of_lines = 0;
-	return columnar_layout(dest, params, 0, 0, params.top, column_width);
+	return columnar_layout(dest, params, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? layout_base::rtl_status::rtl : layout_base::rtl_status::ltr, 0, 0, params.top, column_width);
 }
 
 // Reduces code repeat

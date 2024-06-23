@@ -167,7 +167,7 @@ class decision_name : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
-		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
 		auto box = text::open_layout_box(contents);
 		text::substitution_map m;
 		produce_decision_substitutions(state, m, state.local_player_nation);
@@ -240,7 +240,7 @@ public:
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, id);
 		description = fat_id.get_description();
-		auto container = text::create_endless_layout(delegate->internal_layout,
+		auto container = text::create_endless_layout(state, delegate->internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 				base_data.data.text.font_handle, 0, text::alignment::left,
 				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,

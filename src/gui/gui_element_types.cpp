@@ -457,7 +457,7 @@ void button_element_base::set_button_text(sys::state& state, std::string const& 
 		internal_layout.number_of_lines = 0;
 
 		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-					base_data.data.button.font_handle, 0, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, true, true } };
+					base_data.data.button.font_handle, 0, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -475,7 +475,8 @@ void button_element_base::on_reset_text(sys::state& state) noexcept {
 			internal_layout.number_of_lines = 0;
 
 			text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.button.font_handle, 0, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, true, true } };
+						base_data.data.button.font_handle, 0, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, true, true },
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 			sl.add_text(state, cached_text);
 		}
 	}
@@ -697,9 +698,10 @@ void simple_text_element_base::set_text(sys::state& state, std::string const& ne
 				internal_layout.contents.clear();
 				internal_layout.number_of_lines = 0;
 
-				auto al = text::to_text_alignment(text::localized_alignment(state, base_data.data.button.get_alignment()));
+				auto al = text::to_text_alignment(base_data.data.button.get_alignment());
 				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
-							base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true } };
+							base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 				sl.add_text(state, cached_text);
 			}
 			format_text(state);
@@ -711,9 +713,10 @@ void simple_text_element_base::set_text(sys::state& state, std::string const& ne
 				internal_layout.contents.clear();
 				internal_layout.number_of_lines = 0;
 
-				auto al = text::to_text_alignment(text::localized_alignment(state, base_data.data.text.get_alignment()));
+				auto al = text::to_text_alignment(base_data.data.text.get_alignment());
 				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-							base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true } };
+							base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 				sl.add_text(state, cached_text);
 			}
 			format_text(state);
@@ -750,9 +753,10 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
 
-		auto al = text::to_text_alignment(text::localized_alignment(state, base_data.data.button.get_alignment()));
+		auto al = text::to_text_alignment(base_data.data.button.get_alignment());
 		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-					base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true } };
+					base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+			state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 
 		sl.add_text(state, cached_text);
 	} else if(base_data.get_element_type() == element_type::text) {
@@ -761,9 +765,10 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
 
-		auto al = text::to_text_alignment(text::localized_alignment(state, base_data.data.text.get_alignment()));
+		auto al = text::to_text_alignment(base_data.data.text.get_alignment());
 		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
-					base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true } };
+					base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+			state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 
 		sl.add_text(state, cached_text);
 	}

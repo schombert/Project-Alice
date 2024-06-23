@@ -296,7 +296,7 @@ public:
 class macro_builder_details : public scrollable_text {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto contents = text::create_endless_layout(delegate->internal_layout,
+		auto contents = text::create_endless_layout(state, delegate->internal_layout,
 				text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });

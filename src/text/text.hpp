@@ -827,16 +827,24 @@ struct layout_box {
 	float x_position = 0;
 	int32_t y_position = 0;
 	text_color color = text_color::white;
-	bool rtl_kludge = false;
 };
 
 struct layout_base {
+	enum class rtl_status : uint8_t { ltr, rtl };
 	layout& base_layout;
 	layout_parameters fixed_parameters;
-	int32_t max_column_width = 0; //for rtl
+	rtl_status native_rtl = rtl_status::ltr;
 
-	layout_base(layout& base_layout, layout_parameters const& fixed_parameters)
-			: base_layout(base_layout), fixed_parameters(fixed_parameters) { }
+	layout_base(layout& base_layout, layout_parameters const& fixed_parameters, rtl_status native_rtl)
+			: base_layout(base_layout), fixed_parameters(fixed_parameters), native_rtl(native_rtl) {
+		if(native_rtl == rtl_status::rtl) {
+			if(fixed_parameters.align == text::alignment::left) {
+				layout_base::fixed_parameters.align = text::alignment::right;
+			} else if(fixed_parameters.align == text::alignment::left) {
+				layout_base::fixed_parameters.align = text::alignment::left;
+			}
+		}
+	}
 
 	virtual void internal_close_box(layout_box& box) = 0;
 };
@@ -848,9 +856,8 @@ struct columnar_layout : public layout_base {
 	int32_t current_column_x = 0;
 	int32_t column_width = 0;
 
-	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0,
-			int32_t y_cursor = 0, int32_t column_width = 0)
-			: layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
+	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t column_width = 0)
+			: layout_base(base_layout, fixed_parameters, native_rtl), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
 				current_column_x(fixed_parameters.left), column_width(column_width) {
 		layout_base::fixed_parameters.left = 0;
 	}
@@ -861,8 +868,8 @@ struct columnar_layout : public layout_base {
 struct endless_layout : public layout_base {
 	int32_t y_cursor = 0;
 
-	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t y_cursor = 0)
-			: layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
+	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl, int32_t y_cursor = 0)
+			: layout_base(base_layout, fixed_parameters, native_rtl), y_cursor(y_cursor) { }
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -872,8 +879,8 @@ layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 struct single_line_layout : public layout_base {
 	layout_box box;
 
-	single_line_layout(layout& base_layout, layout_parameters const& fixed_parameters)
-		: layout_base(base_layout, fixed_parameters), box(open_layout_box(*this, 0)) {
+	single_line_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl)
+		: layout_base(base_layout, fixed_parameters, native_rtl), box(open_layout_box(*this, 0)) {
 
 		base_layout.number_of_lines = 0;
 		base_layout.contents.clear();
@@ -891,10 +898,10 @@ struct single_line_layout : public layout_base {
 
 text_color char_to_color(char in);
 
-endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
+endless_layout create_endless_layout(sys::state& state, layout& dest, layout_parameters const& params);
 void close_layout_box(endless_layout& dest, layout_box& box);
 
-columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
+columnar_layout create_columnar_layout(sys::state& state, layout& dest, layout_parameters const& params, int32_t column_width);
 
 void close_layout_box(columnar_layout& dest, layout_box& box);
 void close_layout_box(single_line_layout& dest, layout_box& box);

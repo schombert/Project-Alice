@@ -343,7 +343,7 @@ void event_desc_text::on_create(sys::state& state) noexcept {
 void event_desc_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 
-	auto contents = text::create_endless_layout(delegate->internal_layout,
+	auto contents = text::create_endless_layout(state, delegate->internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 					delegate->base_data.data.text.font_handle, 0, text::alignment::left, delegate->black_text ? text::text_color::black : text::text_color::white, false});
 
@@ -419,7 +419,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 void event_name_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 
-	auto contents = text::create_endless_layout(internal_layout,
+	auto contents = text::create_endless_layout(state, internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 					base_data.data.text.font_handle, -15, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, false});
 
