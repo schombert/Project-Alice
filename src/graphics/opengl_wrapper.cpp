@@ -888,14 +888,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 void render_classic_text(sys::state& state, text::stored_glyphs const& txt, float x, float y, float size, color_modification enabled, color3f const& c, text::bm_font const& font, text::font& base_font) {
 	std::string codepoints = "";
 	for(uint32_t i = 0; i < uint32_t(txt.glyph_info.size()); i++) {
-		auto cdp = txt.glyph_info[i].codepoint;
-		auto sv = classic_unligate_utf8(base_font, cdp);
-		if(sv.empty()) { //no ligature
-			auto cl = base_font.codepoint_to_alnum(cdp);
-			codepoints += cl ? cl : '?';
-		} else { //unligated
-			codepoints += sv;
-		}
+		codepoints.push_back(char(txt.glyph_info[i].codepoint));
 	}
 	uint32_t count = uint32_t(codepoints.length());
 
