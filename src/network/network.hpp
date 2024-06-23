@@ -112,4 +112,15 @@ void write_network_save(sys::state& state);
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
 void broadcast_to_clients(sys::state& state, command::payload& c);
 
+class port_forwarder {
+private:
+	std::mutex internal_wait;
+	std::thread do_forwarding;
+	bool started = false;
+public:
+	port_forwarder();
+	void start_forwarding();
+	~port_forwarder();
+};
+
 }

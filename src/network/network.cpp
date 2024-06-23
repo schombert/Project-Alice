@@ -9,6 +9,8 @@
 #include <ws2tcpip.h>
 #endif
 #include <windows.h>
+#include <natupnp.h>
+#include <iphlpapi.h>
 #else // NIX
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -29,11 +31,191 @@
 #define XXH_NAMESPACE ZSTD_
 #include "zstd.h"
 
+#ifdef _WIN64
+#pragma comment(lib, "Iphlpapi.lib")
+#endif
+
 namespace network {
 
 //
 // platform specific
 //
+
+port_forwarder::port_forwarder() { }
+
+void port_forwarder::start_forwarding() {
+#ifdef _WIN64
+	if(started)
+		return;
+
+	internal_wait.lock();
+	started = true;
+	do_forwarding = std::thread{ [&]() {
+		//setup forwarding
+		if(!SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
+			return;
+
+		std::vector<std::wstring> found_locals;
+
+		{
+			IP_ADAPTER_ADDRESSES* adapter_addresses(NULL);
+			IP_ADAPTER_ADDRESSES* adapter(NULL);
+
+			// Start with a 16 KB buffer and resize if needed -
+			// multiple attempts in case interfaces change while
+			// we are in the middle of querying them.
+			DWORD adapter_addresses_buffer_size = 16 * 1024;
+			for(int attempts = 0; attempts != 3; ++attempts) {
+				adapter_addresses = (IP_ADAPTER_ADDRESSES*)malloc(adapter_addresses_buffer_size);
+				assert(adapter_addresses);
+
+				DWORD error = GetAdaptersAddresses(
+				  AF_UNSPEC,
+				  GAA_FLAG_SKIP_ANYCAST |
+				    GAA_FLAG_SKIP_MULTICAST |
+				    GAA_FLAG_SKIP_DNS_SERVER |
+				    GAA_FLAG_SKIP_FRIENDLY_NAME,
+				  NULL,
+				  adapter_addresses,
+				  &adapter_addresses_buffer_size);
+
+				if(ERROR_SUCCESS == error) {
+					// We're done here, people!
+					break;
+				} else if(ERROR_BUFFER_OVERFLOW == error) {
+					// Try again with the new size
+					free(adapter_addresses);
+					adapter_addresses = NULL;
+
+					continue;
+				} else {
+					// Unexpected error code - log and throw
+					free(adapter_addresses);
+					adapter_addresses = NULL;
+
+					// @todo
+				}
+			}
+
+			// Iterate through all of the adapters
+			for(adapter = adapter_addresses; NULL != adapter; adapter = adapter->Next) {
+				// Skip loopback adapters
+				if(IF_TYPE_SOFTWARE_LOOPBACK == adapter->IfType) {
+					continue;
+				}
+
+				// Parse all IPv4 and IPv6 addresses
+				for(
+				  IP_ADAPTER_UNICAST_ADDRESS* address = adapter->FirstUnicastAddress;
+				  NULL != address;
+				  address = address->Next) {
+					auto family = address->Address.lpSockaddr->sa_family;
+					if(address->DadState != NldsPreferred && address->DadState != IpDadStatePreferred)
+						continue;
+
+					if(AF_INET == family) {
+						// IPv4
+						SOCKADDR_IN* ipv4 = reinterpret_cast<SOCKADDR_IN*>(address->Address.lpSockaddr);
+
+						char str_buffer[INET_ADDRSTRLEN] = { 0 };
+						inet_ntop(AF_INET, &(ipv4->sin_addr), str_buffer, INET_ADDRSTRLEN);
+						found_locals.push_back(simple_fs::utf8_to_native(str_buffer));
+					} else if(AF_INET6 == family) {
+						// IPv6
+						SOCKADDR_IN6* ipv6 = reinterpret_cast<SOCKADDR_IN6*>(address->Address.lpSockaddr);
+
+						char str_buffer[INET6_ADDRSTRLEN] = { 0 };
+						inet_ntop(AF_INET6, &(ipv6->sin6_addr), str_buffer, INET6_ADDRSTRLEN);
+
+						std::string ipv6_str(str_buffer);
+
+						// Detect and skip non-external addresses
+						bool is_link_local(false);
+						bool is_special_use(false);
+
+						if(0 == ipv6_str.find("fe")) {
+							char c = ipv6_str[2];
+							if(c == '8' || c == '9' || c == 'a' || c == 'b') {
+								is_link_local = true;
+							}
+						} else if(0 == ipv6_str.find("2001:0:")) {
+							is_special_use = true;
+						}
+
+						if(!(is_link_local || is_special_use)) {
+							found_locals.push_back(simple_fs::utf8_to_native(ipv6_str));
+						}
+					} else {
+						// Skip all other types of addresses
+						continue;
+					}
+				}
+			}
+
+			// Cleanup
+			free(adapter_addresses);
+			adapter_addresses = NULL;
+		}
+
+		if(found_locals.size() == 0)
+			return;
+
+
+		IUPnPNAT* nat_interface = nullptr;
+		IStaticPortMappingCollection* port_mappings = nullptr;
+		IStaticPortMapping* opened_port = nullptr;
+
+
+		BSTR proto = SysAllocString(L"TCP");
+		BSTR desc = SysAllocString(L"Project Alice Host");
+		BSTR local_host = SysAllocString(found_locals[0].c_str());
+		VARIANT_BOOL enabled = VARIANT_TRUE;
+
+		if(SUCCEEDED(CoCreateInstance(__uuidof(UPnPNAT), NULL, CLSCTX_ALL, __uuidof(IUPnPNAT), (void**)&nat_interface)) && nat_interface) {
+			if(SUCCEEDED(nat_interface->get_StaticPortMappingCollection(&port_mappings)) && port_mappings) {
+
+				port_mappings->Add(1984, proto, 1984, local_host, enabled, desc, &opened_port);
+			}
+		}
+
+		// Get the collection of forwarded ports 
+
+		
+
+		// wait for destructor
+		internal_wait.lock();
+
+		//cleanup forwarding
+		if(port_mappings)
+			port_mappings->Remove(1984, proto);
+
+		if(opened_port)
+			opened_port->Release();
+		if(port_mappings)
+			port_mappings->Release();
+		if(nat_interface)
+			nat_interface->Release();
+
+		SysFreeString(proto);
+		SysFreeString(local_host);
+		SysFreeString(desc);
+
+		internal_wait.unlock();
+		CoUninitialize();
+	} };
+#else
+#endif
+}
+
+port_forwarder::~port_forwarder() {
+#ifdef _WIN64
+	if(started) {
+		internal_wait.unlock();
+		do_forwarding.join();
+	}
+#else
+#endif
+}
 
 std::string get_last_error_msg() {
 #ifdef _WIN64
