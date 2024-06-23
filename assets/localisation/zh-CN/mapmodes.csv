@@ -28,7 +28,7 @@ mapmode_26;收入地图
 mapmode_27;觉醒度地图
 mapmode_28;斗争性地图
 mapmode_29;识字率地图
-mapmode_30;职业地图
+mapmode_30;就业率地图
 mapmode_31;工厂地图
 mapmode_32;政见地图
 mapmode_33;发展地图
@@ -110,13 +110,13 @@ mapmode_tooltip_44_2;无可动员团
 mapmode_tooltip_name;$state$ ($name$ - )
 mapmode_tooltip_core_entry;$$faction$ - $name$
 mapmode_tooltip_state_entry; - $state$ \n $continentname$
-mapmode_tooltip_culture_majorities;?Y$PROV$?W文化为：
-mapmode_tooltip_religion_majorities;?Y$PROV$?W宗教为：
-mapmode_tooltip_dominant_issues;该议题在?Y$PROV$?W为:
+mapmode_tooltip_culture_majorities;?Y$PROV$?W的主要民族是：
+mapmode_tooltip_religion_majorities;?Y$PROV$?W的宗教信仰为：
+mapmode_tooltip_dominant_issues;?Y$PROV$?W的主要政见为:
 mapmode_tooltip_total_income;每日总收入：
-mapmode_tooltip_dominant_ideology;?Y$PROV$?W意识形态为：
+mapmode_tooltip_dominant_ideology;?Y$PROV$?W的意识形态为：
 mapmode_tooltip_con_average;平均觉醒度：?Y$val$?W
-mapmode_tooltip_total_employment;职业：
+mapmode_tooltip_total_employment;就业率：
 mapmode_tooltip_literacy_rate;识字率：
 mapmode_tooltip_factory_count;?Y$state$?W工厂：
 mapmode_tooltip_fort_level;要塞等级
