@@ -423,6 +423,11 @@ public:
 
 class draggable_target : public opaque_element_base {
 public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::tooltip)
+			return message_result::consumed;
+		return opaque_element_base::test_mouse(state, x, y, type);
+	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
