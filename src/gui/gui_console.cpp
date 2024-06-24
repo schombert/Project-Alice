@@ -629,7 +629,7 @@ void ui::console_edit::edit_box_down(sys::state& state) noexcept {
 template<typename F>
 void write_single_component(sys::state& state, native_string_view filename, F&& func) {
 	auto sdir = simple_fs::get_or_create_oos_directory();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(state)]);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(state).total_size]);
 	auto buffer_position = func(buffer.get(), state);
 	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
 	simple_fs::write_file(sdir, filename, reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
