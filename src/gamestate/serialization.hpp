@@ -199,7 +199,11 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state);
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state);
-size_t sizeof_scenario_section(sys::state& state);
+struct scenario_size {
+	size_t total_size;
+	size_t checksum_offset;
+};
+scenario_size sizeof_scenario_section(sys::state& state);
 size_t sizeof_save_section(sys::state& state);
 
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);
