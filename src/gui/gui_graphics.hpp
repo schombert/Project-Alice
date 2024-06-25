@@ -309,6 +309,11 @@ struct element_data {
 };
 static_assert(sizeof(element_data) == 28);
 
+struct window_extension {
+	dcon::text_key window;
+	dcon::gui_def_id child;
+};
+
 class definitions {
 public:
 	static constexpr dcon::texture_id small_tiles_dialog = dcon::texture_id(0);
@@ -318,6 +323,8 @@ public:
 	tagged_vector<gfx_object, dcon::gfx_object_id> gfx;
 	tagged_vector<dcon::text_key, dcon::texture_id> textures;
 	tagged_vector<element_data, dcon::gui_def_id> gui;
+	std::vector<window_extension> extensions;
+
 };
 
 void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err);

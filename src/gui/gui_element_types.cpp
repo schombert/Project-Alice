@@ -1127,6 +1127,17 @@ void window_element_base::on_create(sys::state& state) noexcept {
 				this->add_child_to_back(std::move(ch_res));
 			}
 		}
+		for(auto ex : state.ui_defs.extensions) {
+			if(ex.window == base_data.name) {
+				auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[ex.child].name)), ex.child);
+				if(!ch_res) {
+					ch_res = ui::make_element_immediate(state, ex.child);
+				}
+				if(ch_res) {
+					this->add_child_to_back(std::move(ch_res));
+				}
+			}
+		}
 	}
 }
 

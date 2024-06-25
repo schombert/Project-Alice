@@ -169,6 +169,9 @@ void gui_element_common::name(association_type, std::string_view txt, error_hand
 		building_gfx_context& context) {
 	target.name = context.full_state.add_key_win1252(txt);
 }
+void gui_element_common::extends(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
+	extension = context.full_state.add_key_win1252(txt);
+}
 void gui_element_common::rotation(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")
@@ -766,24 +769,39 @@ void window::finish(building_gfx_context& context) {
 void guitypes::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.window.flags |= ui::window_data::is_dialog_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.text.flags |= ui::text_data::is_instant_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
@@ -792,33 +810,54 @@ void guitypes::positiontype(gui_element_common const& v, error_handler& err, int
 void guitypes::scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.button.flags |= ui::button_data::is_checkbox_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.image.flags |= ui::image_data::is_mask_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().data.text.flags |= ui::text_data::is_edit_mask;
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 void guitypes::textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
 }
 
 } // namespace parsers

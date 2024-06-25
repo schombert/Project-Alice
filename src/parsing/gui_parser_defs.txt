@@ -48,6 +48,7 @@ gui_element_common
 	size				group		gfx_xy_pair		member_fn
 	rotation			value		text			member_fn
 	name				value		text			member_fn
+	extends				value		text			member_fn
 	orientation			value		text			member_fn
 	maxheight			value		int				member_fn
 	maxwidth			value		int				member_fn

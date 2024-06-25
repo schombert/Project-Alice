@@ -103,12 +103,14 @@ struct gfx_files {
 
 struct gui_element_common {
 	ui::element_data target;
+	dcon::text_key extension;
 
 	gui_element_common() { }
 	void size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void orientation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
+	void extends(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);

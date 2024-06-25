@@ -1,6 +1,8 @@
-## Modding extensions
+# Modding extensions
 
 This document covers modding extensions that have been added to Project Alice in addition to what Victoria 2 provided. We are generally open to adding more modding extensions by request, under the condition that you actually plan to use them. Generally, we are not interested in speculatively adding extensions just because they might be useful.
+
+## Scripting
 
 ### Trigger Condition Parsing
 
@@ -323,6 +325,21 @@ else_if = {
 ```
 These `else_if` statments are chained together, if the first runs, the second will not, and viceversa. If no preceding `if` exists before them, the first `else_if` takes the role of the `if` statment.
 
+## UI Modding
+
+### Extension controls
+
+It is now possible to add new controls (such as buttons, text labels, and so on) to an existing window control without modifying the original file. To add new controls to a window simply define additional top level controls like the example below:
+```
+	guiButtonType = {
+		name = "alice_move_capital"
+		extends = "province_view_header"
+		position = { x= 180 y = 3 }
+		quadTextureSprite = "GFX_move_capital"	
+	}
+```
+This control will then automatically be inserted into the window named `province_view_header` when it is created. This allows you to extend a window defined in a `.gui` file without editing that file. The example above comes from `alice.gui` and is used to add a button to a window defined in `province_interface.gui` without editing that file. You mod can thus define a new `.gui` file, add new controls there, and have them show up in existing windows without interfering with another mod that also wants to add controls to that window (because now both mods don't have to make changes to the *same* `.gui` file).
+
 ### Abbreviated `.gui` syntax
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
@@ -338,6 +355,7 @@ However, the following new extensions will make GUI editing way less painful:
 - `add_position = { x y }`: Adds the specified amount to the current `position`
 - `table_layout = { x y }`: Where `x` is the column and `y` is the row, this basically translates to `position.x = column * size.x`, and `position.y = row * size.y`. Useful for laying out elements in a table-like way
 
+## Game rules modding
 
 ### New defines
 
@@ -385,6 +403,33 @@ Alice adds a handful of new defines:
 - `alice_artificial_gp_limitant`: Limit the number of GP allies the AI can have
 - `alice_rename_dont_use_localisation`: Keys specified on `change_region_name` or `change_province_name` will be treated as CSV keys, otherwise they will define in-line.
 - `alice_spherelings_only_ally_sphere`: Spherelings will only ally their spherelord.
+
+
+### Political party triggers
+
+Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
+
+```
+party = {
+	name = "default_fascist_military_junta"
+	start_date = 1836.1.1 #also part of trigger check
+	end_date = 2000.1.1 #same here
+	ideology = fascist
+	#[...]
+	#Example trigger!
+	trigger = {
+		war = yes
+		nationalism_n_imperialism = 1
+	}
+}
+```
+
+### Extra on-actions
+
+- `on_election_started`: When an election starts
+- `on_election_finished`: When an election ends
+
+## New data formats
 
 ### Dense CSV pop listing
 
@@ -487,31 +532,7 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 - `$CONTINENTNAME$`: The continent of the modifier (capital used as reference if national modifier).
 - `$PROVINCENAME$`: The province of the modifier (capital used as reference if national modifier).
 
-### Political party triggers
-
-Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
-
-```
-party = {
-	name = "default_fascist_military_junta"
-	start_date = 1836.1.1 #also part of trigger check
-	end_date = 2000.1.1 #same here
-	ideology = fascist
-	#[...]
-	#Example trigger!
-	trigger = {
-		war = yes
-		nationalism_n_imperialism = 1
-	}
-}
-```
-
-## Extra on-actions
-
-- `on_election_started`: When an election starts
-- `on_election_finished`: When an election ends
-
-## Government ruler-names
+### Government ruler-names
 
 Now you can define ruler names for a specific nation with a specific government type, for example:
 
@@ -520,7 +541,7 @@ RUS_absolute_monarchy;The Russian Empire
 RUS_absolute_monarchy_ruler;Tsar
 ```
 
-## Definitions for multiple goods produced by local RGO
+### Definitions for multiple goods produced by local RGO
 
 As RGO can produce a whole distribution of goods, you can define your own distribution for specific provinces:
 
