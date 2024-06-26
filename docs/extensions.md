@@ -374,6 +374,30 @@ It is now possible to add new controls (such as buttons, text labels, and so on)
 ```
 This control will then automatically be inserted into the window named `province_view_header` when it is created. This allows you to extend a window defined in a `.gui` file without editing that file. The example above comes from `alice.gui` and is used to add a button to a window defined in `province_interface.gui` without editing that file. You mod can thus define a new `.gui` file, add new controls there, and have them show up in existing windows without interfering with another mod that also wants to add controls to that window (because now both mods don't have to make changes to the *same* `.gui` file).
 
+### Scriptable buttons
+
+Of course, adding new buttons wouldn't mean much if you couldn't make them do things. To allow you to add custom button effects to the game, we have introduced two new ui element types: `provinceScriptButtonType` and `nationScriptButtonType`. These buttons are defined in the same way as a `guiButtonType`, except that they can be given additional `allow` and `effect` parameters. For example:
+```
+	provinceScriptButtonType = {
+		name = "wololo_button"
+		extends = "province_view_header"
+		position = { x= 146 y = 3 }
+		quadTextureSprite = "GFX_wololo"
+		allow = {
+			owner = { tag = FROM }
+		}
+		effect = {
+			assimilate = "yes please"
+		}
+	}
+```
+
+A province script button has its main and THIS slots filled with the province that the containing window is about, with FROM the player's nation. A nation script button has its main and THIS slots filled with the nation that the containing window is about, if there is one, or the player's nation if there is not, and has FROM populated with the player's nation.
+
+The allow trigger condition is optional and is used to determine when the button is enabled. If the allow condition is omitted, the button will always be enabled.
+
+The tooltip for these scriptable buttons will always display the relevant allow condition and the effect. You may also optionally add a custom description to the tooltip by adding a localization key that is the name of the button followed by `_tooltip`. In the case of the button above, for example, the tooltip is defined as `wololo_button_tooltip;Wololo $PROVINCE$`. The following three variables can be used in the tooltip: `$PROVINCE$`, which will resolve to the targeted province, `$NATION$`, which will resolve to the targeted nation or the owner of the targeted province, and `$PLAYER$`, which will always resolve to the player's own nation.
+
 ### Abbreviated `.gui` syntax
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
