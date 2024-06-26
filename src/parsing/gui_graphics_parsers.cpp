@@ -451,6 +451,53 @@ void button::clicksound(association_type, std::string_view t, error_handler& err
 	}
 }
 
+void nation_script_button::allow(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_allow != -1) {
+		err.accumulated_errors += "multiple allow conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_allow = int32_t(context.nation_buttons_allow.size()) - 1;
+}
+void nation_script_button::effect(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_effect != -1) {
+		err.accumulated_errors += "multiple effects for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_effect = int32_t(context.nation_buttons_effect.size()) - 1;
+}
+void province_script_button::allow(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_allow != -1) {
+		err.accumulated_errors += "multiple allow conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_allow = int32_t(context.province_buttons_allow.size()) - 1;
+}
+void province_script_button::effect(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_effect != -1) {
+		err.accumulated_errors += "multiple effects for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_effect = int32_t(context.province_buttons_effect.size()) - 1;
+}
+
+
+bool province_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.province_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	gen.discard_group();
+	return true;
+}
+bool province_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.province_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	gen.discard_group();
+	return true;
+}
+bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	gen.discard_group();
+	return true;
+}
+bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	gen.discard_group();
+	return true;
+}
+
 image::image() {
 	target.data.image = ui::image_data{};
 	target.flags = uint8_t(ui::element_type::image);
@@ -757,10 +804,33 @@ void window::editboxtype(textbox const& v, error_handler& err, int32_t line, bui
 void window::textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 }
+void window::provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
+	children.push_back(v.target);
+	sc.push_back(window::scripted_children{ uint32_t(children.size() - 1), v.added_allow, v.added_effect, -1, -1 });
+}
+void window::nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
+	children.push_back(v.target);
+	sc.push_back(window::scripted_children{ uint32_t(children.size() - 1), -1, -1, v.added_allow, v.added_effect});
+}
 void window::finish(building_gfx_context& context) {
 	auto first_child = context.full_state.ui_defs.gui.size();
 	for(auto& ch : children) {
 		context.full_state.ui_defs.gui.push_back(ch);
+	}
+	for(auto& s : sc) {
+		auto child_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(first_child + s.child_number));
+		if(s.pallow != -1) {
+			context.province_buttons_allow[s.pallow].button_element = child_id;
+		}
+		if(s.peffect != -1) {
+			context.province_buttons_effect[s.peffect].button_element = child_id;
+		}
+		if(s.nallow != -1) {
+			context.nation_buttons_allow[s.nallow].button_element = child_id;
+		}
+		if(s.neffect != -1) {
+			context.nation_buttons_effect[s.neffect].button_element = child_id;
+		}
 	}
 	target.data.window.num_children = uint8_t(children.size());
 	target.data.window.first_child = dcon::gui_def_id(dcon::gui_def_id::value_base_t(first_child));
@@ -855,6 +925,33 @@ void guitypes::editboxtype(textbox const& v, error_handler& err, int32_t line, b
 void guitypes::textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
+}
+
+void guitypes::provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
+	context.full_state.ui_defs.gui.push_back(v.target);
+	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.added_allow != -1) {
+		context.province_buttons_allow[v.added_allow].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	}
+	if(v.added_effect != -1) {
+		context.province_buttons_effect[v.added_effect].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	}
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
+}
+void guitypes::nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
+	context.full_state.ui_defs.gui.push_back(v.target);
+	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	if(v.added_allow != -1) {
+		context.nation_buttons_allow[v.added_allow].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	}
+	if(v.added_effect != -1) {
+		context.nation_buttons_effect[v.added_effect].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	}
 	if(v.extension) {
 		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
 	}

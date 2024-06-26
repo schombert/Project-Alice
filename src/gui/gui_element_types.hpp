@@ -514,6 +514,31 @@ public:
 	void update(sys::state& state);
 };
 
+class province_script_button : public button_element_base {
+public:
+	dcon::gui_def_id base_definition;
+
+	province_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+class nation_script_button : public button_element_base {
+public:
+	dcon::gui_def_id base_definition;
+
+	nation_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+
 class flag_button : public button_element_base {
 protected:
 	GLuint flag_texture_handle = 0;

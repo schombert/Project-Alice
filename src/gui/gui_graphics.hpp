@@ -103,11 +103,11 @@ enum class orientation : uint8_t { // 3 bits
 };
 
 struct text_base_data {
-	static constexpr uint8_t alignment_mask = 0x03;
+	static constexpr uint16_t alignment_mask = 0x03;
 
 	dcon::text_key txt; // 4bytes
 	uint16_t font_handle = 0; // 6bytes
-	uint8_t flags = 0; // 7bytes
+	uint16_t flags = 0; // 8bytes
 
 	alignment get_alignment() const {
 		return alignment(flags & alignment_mask);
@@ -116,20 +116,32 @@ struct text_base_data {
 static_assert(sizeof(text_base_data) == 8);
 
 inline constexpr int32_t clicksound_bit_offset = 2;
-enum class clicksound : uint8_t { // 2 bits
+enum class clicksound : uint16_t { // 2 bits
 	none = (0x00 << clicksound_bit_offset),
 	click = (0x01 << clicksound_bit_offset),
 	close_window = (0x02 << clicksound_bit_offset),
 	start_game = (0x03 << clicksound_bit_offset)
 };
 
+inline constexpr int32_t checkbox_bit_offset = clicksound_bit_offset + 2;
+
+inline constexpr int32_t button_scripting_bit_offset = checkbox_bit_offset + 1;
+enum class button_scripting : uint16_t { // 2 bits
+	none = (0x00 << button_scripting_bit_offset),
+	province = (0x01 << button_scripting_bit_offset),
+	nation = (0x02 << button_scripting_bit_offset)
+};
+
 struct button_data : public text_base_data {
-	static constexpr uint8_t clicksound_mask = (0x03 << clicksound_bit_offset);
-	static constexpr uint8_t is_checkbox_mask = (0x01 << (clicksound_bit_offset + 2));
+	static constexpr uint16_t clicksound_mask = (0x03 << clicksound_bit_offset);
+	static constexpr uint16_t is_checkbox_mask = (0x01 << checkbox_bit_offset);
+	static constexpr uint16_t button_scripting_mask = (0x03 << button_scripting_bit_offset);
 
 	//8bytes
 	dcon::gfx_object_id button_image; // 8+2bytes
-	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+3bytes
+	dcon::trigger_key scriptable_enable; // 8 + 4 bytes
+	dcon::effect_key scriptable_effect; // 8 + 6 bytes
+	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+7 bytes
 
 	clicksound get_clicksound() const {
 		return clicksound(text_base_data::flags & clicksound_mask);
@@ -137,8 +149,11 @@ struct button_data : public text_base_data {
 	bool is_checkbox() const {
 		return (text_base_data::flags & is_checkbox_mask) != 0;
 	}
+	button_scripting get_button_scripting() const {
+		return button_scripting(text_base_data::flags & button_scripting_mask);
+	}
 };
-static_assert(sizeof(button_data) == sizeof(text_base_data) + 4);
+static_assert(sizeof(button_data) == sizeof(text_base_data) + 8);
 
 inline constexpr int32_t text_background_bit_offset = 2;
 enum class text_background : uint8_t { // 2 bits
@@ -284,7 +299,7 @@ struct element_data {
 			position = position_data{};
 		}
 	} data; // +12 = 24
-	static_assert(sizeof(internal_data) == 12);
+	static_assert(sizeof(internal_data) == 16);
 
 	uint8_t flags = 0; // 25
 	uint8_t ex_flags = 0; // 26
@@ -307,7 +322,7 @@ struct element_data {
 		return (ex_flags & ex_is_top_level) != 0;
 	}
 };
-static_assert(sizeof(element_data) == 28);
+static_assert(sizeof(element_data) == 32);
 
 struct window_extension {
 	dcon::text_key window;
