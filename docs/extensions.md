@@ -30,6 +30,10 @@ ENG_52 = {
 
 This often caused crashes if not handled carefully (especially the seceding to a null tag part). Not anymore.
 
+Another new feature is allowing usage of uniform `yes/no` inside triggers, in the original engine, triggers such as `unit_has_leader = yes` was the same as `unit_has_leader = no`, so it'd need to be wrapped around a `NOT = { unit_has_leader = yes }`. Not anymore.
+
+Additionally, triggers such as technology triggers no longer suffer from having to be specified like: `nationalism_n_imperialism = 1`, they can alternatively be specified as `nationalism_n_imperialism = yes`. For ease of reading and uniformity.
+
 ### New effects
 
 - `increment_variable = ...`: Shorthand to increment by 1
@@ -53,6 +57,28 @@ This often caused crashes if not handled carefully (especially the seceding to a
 - `random_by_modifier = { ... }`: See below for syntax usage
 - `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
 - `custom_tooltip = { ... }:`: See below for syntax usage
+- `build_bank_in_capital = { ... }`: Invalid in vanilla, added for mods to use.
+- `build_university_in_capital = { ... }`: Invalid in vanilla, added for mods to use.
+- `any_owned_province = { ... }`: Providing uniformity with respect to triggers.
+- `any_prov = { ... }`: Shorthand for `any_owned`.
+- `any_owned_province = { ... }` : Shorthand for `any_owned`.
+- `any_substate = { ... }`: For parity with triggers, scopes any substates of the country.
+- `remove_country_flag = flag`: Alias of `clr_country_flag`.
+- `clear_global_flag = flag`: Alias of `clr_global_flag`.
+- `province_immigrator = n`: `n` can only be `1` or `-1`. This is the "province selector" used in various mods.
+- `immigrator = n`: Alias of `province_immigrator`.
+- `immigrator_selector = n`: Alias of `province_immigrator`.
+
+As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
+
+The syntax for `build_bank_in_capital` and it's university counterpart is the same:
+
+```
+build_bank_in_capital = {
+	in_whole_capital_state = yes/no
+	limit_to_world_greatest_level = yes/no
+}
+```
 
 ### New trigger conditions
 
@@ -69,6 +95,14 @@ This often caused crashes if not handled carefully (especially the seceding to a
 - `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
 - `all_greater_power = { ... }`: All greater powers must fullfill condition.
 - `any_owned = { ... }`: Shorthand for `any_owned_province`.
+- `is_ai = yes/no`: Alias of `ai = yes/no`.
+- `recently_lost_war`: Alias of `has_recently_lost_war = yes`
+- `has_recent_immigration`: Alias of `has_recent_imigration` (the original is mispelt).
+- `industry_score`: Alias of `industrial_score`.
+- `has_accepted_culture`: Alias of `accepted_culture`.
+- `number_of_cities`: Alias of `num_of_cities`.
+- `disarmed`: Alias of `is_disarmed`.
+- `is_vassal_of`: Alias of `vassal_of`.
 
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:
