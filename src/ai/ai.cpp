@@ -3031,11 +3031,42 @@ void make_war_decs(sys::state& state) {
 					targets.set(n, target.id);
 				}
 			}
-		} else {
-			for(auto adj : state.world.nation_get_nation_adjacency(n)) {
-				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
-				auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
-				if(real_target == n)
+		}
+		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
+			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
+			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
+			if(real_target == n)
+				continue;
+			if(nations::are_allied(state, n, real_target) || nations::are_allied(state, n, other))
+				continue;
+			if(real_target.get_in_sphere_of() == n)
+				continue;
+			if(state.world.nation_get_in_sphere_of(other) == n)
+				continue;
+			if(military::has_truce_with(state, n, other) || military::has_truce_with(state, n, real_target))
+				continue;
+			if(!military::can_use_cb_against(state, n, other))
+				continue;
+			if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !naval_supremacy(state, n, other))
+				continue;
+			auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
+			if(str_difference > best_difference) {
+				best_difference = str_difference;
+				targets.set(n, other.id);
+			}
+		}
+		if(state.world.nation_get_central_ports(n) > 0) {
+			// try some random coastal nations
+			for(uint32_t j = 0; j < 6; ++j) {
+				auto rvalue = rng::get_random(state, uint32_t((n.index() << 3) + j));
+				auto reduced_value = rng::reduce(uint32_t(rvalue), state.world.nation_size());
+				dcon::nation_id other{ dcon::nation_id::value_base_t(reduced_value) };
+				auto real_target = fatten(state.world, other).get_overlord_as_subject().get_ruler() ? fatten(state.world, other).get_overlord_as_subject().get_ruler() : fatten(state.world, other);
+				if(other == n || real_target == n)
+					continue;
+				if(state.world.nation_get_owned_province_count(other) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
+					continue;
+				if(state.world.nation_get_central_ports(other) == 0 || state.world.nation_get_central_ports(real_target) == 0)
 					continue;
 				if(nations::are_allied(state, n, real_target) || nations::are_allied(state, n, other))
 					continue;
@@ -3052,39 +3083,7 @@ void make_war_decs(sys::state& state) {
 				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
 				if(str_difference > best_difference) {
 					best_difference = str_difference;
-					targets.set(n, other.id);
-				}
-			}
-			if(state.world.nation_get_central_ports(n) > 0) {
-				// try some random coastal nations
-				for(uint32_t j = 0; j < 6; ++j) {
-					auto rvalue = rng::get_random(state, uint32_t((n.index() << 3) + j));
-					auto reduced_value = rng::reduce(uint32_t(rvalue), state.world.nation_size());
-					dcon::nation_id other{ dcon::nation_id::value_base_t(reduced_value) };
-					auto real_target = fatten(state.world, other).get_overlord_as_subject().get_ruler() ? fatten(state.world, other).get_overlord_as_subject().get_ruler() : fatten(state.world, other);
-					if(other == n || real_target == n)
-						continue;
-					if(state.world.nation_get_owned_province_count(other) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
-						continue;
-					if(state.world.nation_get_central_ports(other) == 0 || state.world.nation_get_central_ports(real_target) == 0)
-						continue;
-					if(nations::are_allied(state, n, real_target) || nations::are_allied(state, n, other))
-						continue;
-					if(real_target.get_in_sphere_of() == n)
-						continue;
-					if(state.world.nation_get_in_sphere_of(other) == n)
-						continue;
-					if(military::has_truce_with(state, n, other) || military::has_truce_with(state, n, real_target))
-						continue;
-					if(!military::can_use_cb_against(state, n, other))
-						continue;
-					if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !naval_supremacy(state, n, other))
-						continue;
-					auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
-					if(str_difference > best_difference) {
-						best_difference = str_difference;
-						targets.set(n, other);
-					}
+					targets.set(n, other);
 				}
 			}
 		}
