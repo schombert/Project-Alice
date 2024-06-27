@@ -73,6 +73,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/text/fonts.cpp"
 	"src/text/text.cpp"
 	"src/zstd/zstd.cpp"
+	"src/network/pcp.cpp"
 )
 
 if(WIN32)

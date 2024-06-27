@@ -271,6 +271,20 @@ void state::state_select(dcon::state_definition_id sdef) {
 	map_state.update(*this);
 }
 
+ui::element_base* state::get_root_element() {
+	switch(mode) {
+	case sys::game_mode_type::end_screen:
+	default:
+		return ui_state.end_screen.get();
+	case sys::game_mode_type::pick_nation:
+		return ui_state.nation_picker.get();
+	case sys::game_mode_type::select_states:
+		return ui_state.select_states_legend.get();
+	case sys::game_mode_type::in_game:
+		return ui_state.root.get();
+	}
+}
+
 //
 // window event functions
 //
@@ -590,23 +604,10 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		}
 	}
 }
+
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 	//update en demand
-	ui::element_base* root_elm = nullptr;
-	switch(mode) {
-	case sys::game_mode_type::end_screen:
-		root_elm = ui_state.end_screen.get();
-		break;
-	case sys::game_mode_type::pick_nation:
-		root_elm = ui_state.nation_picker.get();
-		break;
-	case sys::game_mode_type::select_states:
-		root_elm = ui_state.select_states_legend.get();
-		break;
-	case sys::game_mode_type::in_game:
-		root_elm = ui_state.root.get();
-		break;
-	}
+	ui::element_base* root_elm = get_root_element();
 	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale),
@@ -877,21 +878,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	ui::element_base* root_elm = nullptr;
-	switch(mode) {
-	case sys::game_mode_type::end_screen:
-		root_elm = ui_state.end_screen.get();
-		break;
-	case sys::game_mode_type::pick_nation:
-		root_elm = ui_state.nation_picker.get();
-		break;
-	case sys::game_mode_type::select_states:
-		root_elm = ui_state.select_states_legend.get();
-		break;
-	case sys::game_mode_type::in_game:
-		root_elm = ui_state.root.get();
-		break;
-	}
+	ui::element_base* root_elm = get_root_element();
 
 	root_elm->base_data.size.x = ui_state.root->base_data.size.x;
 	root_elm->base_data.size.y = ui_state.root->base_data.size.y;
@@ -1254,26 +1241,28 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
 								text::text_color::white, true },
 							10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-					float dead_space = float(container.used_width);
-					for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-						dead_space = std::min(dead_space, t.x);
+				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+					container.used_width = -container.used_width;
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16 + container.used_width;
+						t.y += 16;
 					}
-					for(auto& t : ui_state.tooltip->internal_layout.contents) {
-						t.x -= dead_space - 16.f;
+				} else {
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16;
+						t.y += 16;
 					}
-					ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 				}
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1291,24 +1280,26 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 0, 0, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 					text::alignment::left, text::text_color::white, true }, 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-					float dead_space = float(container.used_width);
-					for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-						dead_space = std::min(dead_space, t.x);
+				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+					container.used_width = -container.used_width;
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16 + container.used_width;
+						t.y += 16;
 					}
-					for(auto& t : ui_state.tooltip->internal_layout.contents) {
-						t.x -= dead_space - 16.f;
+				} else {
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16;
+						t.y += 16;
 					}
-					ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 				}
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1320,23 +1311,25 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, false);
 		}
 	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-			text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+		auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+			text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 			text::alignment::left, text::text_color::white, true }, 10);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-		if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-			float dead_space = float(container.used_width);
-			for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-				dead_space = std::min(dead_space, t.x);
+		if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+			container.used_width = -container.used_width;
+			for(auto& t : container.base_layout.contents) {
+				t.x += 16 + container.used_width;
+				t.y += 16;
 			}
-			for(auto& t : ui_state.tooltip->internal_layout.contents) {
-				t.x -= dead_space - 16.f;
+		} else {
+			for(auto& t : container.base_layout.contents) {
+				t.x += 16;
+				t.y += 16;
 			}
-			ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 		}
+		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 		if(container.used_width > 0)
 			ui_state.tooltip->set_visible(*this, true);
 		else
@@ -1417,22 +1410,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		}
 		if(prov) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
+			auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 0, 0, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
 				20);
 			ui::populate_map_tooltip(*this, container, prov);
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-			if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
-				float dead_space = float(container.used_width);
-				for(const auto& t : ui_state.tooltip->internal_layout.contents) {
-					dead_space = std::min(dead_space, t.x);
+			if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+				container.used_width = -container.used_width;
+				for(auto& t : container.base_layout.contents) {
+					t.x += 16 + container.used_width;
+					t.y += 16;
 				}
-				for(auto& t : ui_state.tooltip->internal_layout.contents) {
-					t.x -= dead_space - 16.f;
+			} else {
+				for(auto& t : container.base_layout.contents) {
+					t.x += 16;
+					t.y += 16;
 				}
-				ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
 			}
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 			if(container.used_width > 0) {
 				// This block positions the tooltip somewhat under the province centroid
 				auto mid_point = world.province_get_mid_point(prov);
@@ -2729,7 +2724,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto name_k = add_key_win1252(name);
 			ident.set_government_name(named_gov.second, name_k);
 			auto const adj = tag + "_" + named_gov.first + "_ADJ";
-			auto adj_k = add_key_win1252(name);
+			auto adj_k = add_key_win1252(adj);
 			ident.set_government_adjective(named_gov.second, adj_k);
 			auto const ruler = tag + "_" + named_gov.first + "_ruler";
 			auto ruler_k = add_key_win1252(ruler);
@@ -3476,6 +3471,52 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 	if(gov_error)
 		return;
+
+	//
+	// make ui scripts
+	//
+	for(auto& s : context.gfx_context.nation_buttons_allow) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			ui_defs.gui[s.button_element].data.button.scriptable_enable = make_trigger(s.generator_state, err, t_context);
+			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.nation_buttons_effect) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			parsers::effect_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
+			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_allow) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				ui_defs.gui[s.button_element].data.button.scriptable_enable = make_trigger(s.generator_state, err, t_context);
+				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_effect) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::effect_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
+				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
+		}
+	}
 
 	// Sanity checking navies & armies
 	for(auto n : world.in_navy) {
@@ -4434,7 +4475,7 @@ void state::debug_scenario_oos_dump() {
 		simple_fs::write_file(sdir, NATIVE("scen.bin"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 	}
 	{
-		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this)]);
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this).total_size]);
 		auto buffer_position = sys::write_scenario_section(buffer.get(), *this);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
 		simple_fs::write_file(sdir, NATIVE("all_scen.bin"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));

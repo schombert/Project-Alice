@@ -335,7 +335,7 @@ public:
 			unitamounts amounts = calc_amounts_from_army(state, army);
 
 			text::substitution_map sub;
-			auto tag_str = std::string("@") + nations::int_to_tag(army.get_controller_from_army_control().get_identity_from_identity_holder().get_identifying_int()) + "\x03";
+			auto tag_str = std::string("@") + nations::int_to_tag(army.get_controller_from_army_control().get_identity_from_identity_holder().get_identifying_int()) + "@(A)";
 			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
@@ -361,7 +361,7 @@ public:
 			unitamounts amounts = calc_amounts_from_navy(state, navy);
 
 			text::substitution_map sub;
-			auto tag_str = std::string("@") + nations::int_to_tag(navy.get_controller_from_navy_control().get_identity_from_identity_holder().get_identifying_int()) + "\x04";
+			auto tag_str = std::string("@") + nations::int_to_tag(navy.get_controller_from_navy_control().get_identity_from_identity_holder().get_identifying_int()) + "@(N)";
 			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
@@ -735,7 +735,7 @@ public:
 
 		auto rsz = row_windows[0]->base_data.size.y + row_windows[0]->base_data.position.y;
 		auto max_size = int32_t(rsz * row_contents.size());
-		auto space = (state.ui_state.root->base_data.size.y - 330) - ui::get_absolute_location(state, *this).y;
+		auto space = (state.ui_state.root->base_data.size.y - 200) - ui::get_absolute_location(state, *this).y;
 		auto max_rows = space / rsz;
 
 		if(max_size < space) {

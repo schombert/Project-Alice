@@ -804,7 +804,7 @@ class nation_alice_readme_text : public scrollable_text {
 	}
 public:
 	void on_reset_text(sys::state& state) noexcept override {
-		auto container = text::create_endless_layout(delegate->internal_layout,
+		auto container = text::create_endless_layout(state, delegate->internal_layout,
 		text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,

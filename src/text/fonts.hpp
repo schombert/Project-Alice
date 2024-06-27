@@ -59,11 +59,27 @@ inline surrogate_pair make_surrogate_pair(uint32_t val) noexcept {
 	return surrogate_pair{ uint16_t(h), uint16_t(l) };
 }
 
+struct stored_glyph {
+	uint32_t codepoint = 0;
+	uint32_t cluster = 0;
+	hb_position_t  x_advance = 0;
+	hb_position_t  y_advance = 0;
+	hb_position_t  x_offset = 0;
+	hb_position_t  y_offset = 0;
+
+	stored_glyph() noexcept = default;
+	stored_glyph(hb_glyph_info_t const& gi, hb_glyph_position_t const& gp) {
+		codepoint = gi.codepoint;
+		cluster = gi.cluster;
+		x_advance = gp.x_advance;
+		y_advance = gp.y_advance;
+		x_offset = gp.x_offset;
+		y_offset = gp.y_offset;
+	}
+};
+
 struct stored_glyphs {
-	std::vector<hb_glyph_info_t> glyph_info;
-	std::vector<hb_glyph_position_t> glyph_pos;
-	unsigned int glyph_count = 0;
-	char inline_image[3] = { 0, 0, 0 };
+	std::vector<stored_glyph> glyph_info;
 
 	struct no_bidi { };
 
@@ -77,30 +93,8 @@ struct stored_glyphs {
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
-	bool is_inline_image() const {
-		return inline_image[0] != 0;
-	}
 	void clear() {
 		glyph_info.clear();
-		glyph_pos.clear();
-		glyph_count = 0;
-	}
-};
-
-struct stored_text : public stored_glyphs {
-	std::string base_text;
-
-	stored_text() = default;
-	stored_text(stored_text const& other) noexcept = default;
-	stored_text(stored_text&& other) noexcept = default;
-	stored_text(sys::state& state, font_selection type, std::string const& s);
-	stored_text(sys::state& state, font_selection type, std::string&& s);
-
-	void set_text(sys::state& state, font_selection type, std::string const& s);
-	void set_text(sys::state& state, font_selection type, std::string&& s);
-	void clear() {
-		base_text.clear();
-		stored_glyphs::clear();
 	}
 };
 
@@ -125,14 +119,11 @@ public:
 	std::array<FT_ULong, 256> win1252_codepoints;
 
 	uint16_t first_free_slot = 0;
-
 	std::unique_ptr<FT_Byte[]> file_data;
+	bool only_raw_codepoints = false;
 
 	~font();
-
-	char codepoint_to_alnum(char32_t codepoint);
 	bool can_display(char32_t ch_in) const;
-	std::string get_conditional_indicator(bool v) const;
 	void make_glyph(char32_t ch_in);
 	float base_glyph_width(char32_t ch_in);
 	float line_height(int32_t size) const;
@@ -147,7 +138,7 @@ public:
 
 	friend class font_manager;
 
-	font(font&& o) noexcept : file_name(std::move(o.file_name)), textures(std::move(o.textures)), win1252_codepoints(std::move(o.win1252_codepoints)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)), first_free_slot(o.first_free_slot) {
+	font(font&& o) noexcept : file_name(std::move(o.file_name)), textures(std::move(o.textures)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)), first_free_slot(o.first_free_slot), only_raw_codepoints(o.only_raw_codepoints) {
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
@@ -164,7 +155,6 @@ public:
 		file_data = std::move(o.file_data);
 		glyph_positions = std::move(o.glyph_positions);
 		textures = std::move(o.textures);
-		win1252_codepoints = std::move(o.win1252_codepoints);
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
@@ -176,6 +166,7 @@ public:
 		internal_descender = o.internal_descender;
 		internal_top_adj = o.internal_top_adj;
 		first_free_slot = o.first_free_slot;
+		only_raw_codepoints = o.only_raw_codepoints;
 	}
 };
 
@@ -202,6 +193,7 @@ public:
 	void load_font(font& fnt, char const* file_data, uint32_t file_size);
 	float line_height(sys::state& state, uint16_t font_id);
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint16_t font_id);
+	void set_classic_fonts(bool v);
 };
 
 std::string_view classic_unligate_utf8(text::font& font, char32_t c);

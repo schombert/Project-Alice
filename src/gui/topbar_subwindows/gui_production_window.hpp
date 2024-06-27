@@ -100,7 +100,6 @@ public:
 			text::add_line(state, contents, "cant_prioritize_explanation");
 		} else {
 			text::add_line(state, contents, "production_allowed_to_change_prio_tooltip");
-
 			switch(economy::factory_priority(state, fid)) {
 			case 0:
 				text::add_line(state, contents, "diplomacy_prio_none");
@@ -294,10 +293,10 @@ public:
 
 			auto rules = state.world.nation_get_combined_issue_rules(n);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
-					(rules & issue_rule::allow_foreign_investment) != 0);
+				(rules & issue_rule::allow_foreign_investment) != 0);
 
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7",
-					!military::are_at_war(state, state.local_player_nation, n));
+				!military::are_at_war(state, state.local_player_nation, n));
 		} else {
 			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
@@ -335,7 +334,6 @@ public:
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		if(n == state.local_player_nation) {
 			text::add_line(state, contents, "open_and_sub");
-
 			if(disabled) {
 				text::add_line(state, contents, "production_not_allowed_to_subsidise_tooltip");
 				text::add_line(state, contents, "cant_subsidize_explanation");
@@ -1285,11 +1283,10 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			auto r = num_factories < int32_t(state.defines.factories_per_state);
-			auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, contents.fixed_parameters.font_id)).get_conditional_indicator(r);
 			if(r) {
-				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::check);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::xmark);
 			}
 			text::add_space_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
@@ -1355,11 +1352,10 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			auto r = num_factories < int32_t(state.defines.factories_per_state);
-			auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, contents.fixed_parameters.font_id)).get_conditional_indicator(r);
 			if(r) {
-				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::check);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::xmark);
 			}
 			text::add_space_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));

@@ -152,7 +152,7 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense
 }
 
 constexpr inline uint32_t save_file_version = 39;
-constexpr inline uint32_t scenario_file_version = 128 + save_file_version;
+constexpr inline uint32_t scenario_file_version = 130 + save_file_version;
 
 struct scenario_header {
 	uint32_t version = scenario_file_version;
@@ -199,7 +199,11 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state);
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state);
-size_t sizeof_scenario_section(sys::state& state);
+struct scenario_size {
+	size_t total_size;
+	size_t checksum_offset;
+};
+scenario_size sizeof_scenario_section(sys::state& state);
 size_t sizeof_save_section(sys::state& state);
 
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);

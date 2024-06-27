@@ -2127,9 +2127,7 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	// Its easy to defeat a nation at war
 	if(state.world.nation_get_is_at_war(target)) {
-		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.15f)
-			return false;
-		return true;
+		return estimate_strength(state, from) >= estimate_strength(state, target) * 0.15f;
 	} else {
 		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
 			return false;
@@ -2140,9 +2138,6 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 	if(state.world.province_get_continent(state.world.nation_get_capital(from)) != state.world.province_get_continent(state.world.nation_get_capital(target))) {
 		// We must achieve naval superiority to even invade them
 		if(state.world.nation_get_capital_ship_score(from) < std::max(1.f, 1.5f * state.world.nation_get_capital_ship_score(target)))
-			return false;
-		// And we should perhaps not be at war...
-		if(!state.world.nation_get_is_at_war(target))
 			return false;
 	}
 	return true;
@@ -2278,9 +2273,8 @@ void place_instance_in_result_war(sys::state& state, std::vector<possible_cb>& r
 	} else if(allowed_countries) {
 		bool liberate = (state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_transfer_provinces) != 0;
 		for(auto other_nation : state.world.in_nation) {
-			if(other_nation != target && other_nation != n) {
-				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(n),
-					trigger::to_generic(other_nation.id))) {
+			if(other_nation != target) {
+				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(other_nation.id))) {
 					if(allowed_states) { // check whether any state within the target is valid for free / liberate
 						for(auto i = target_states.size(); i-- > 0;) {
 							auto si = target_states[i];
@@ -2421,7 +2415,7 @@ void place_instance_in_result(sys::state & state, std::vector<possible_cb>&resul
 	} else if(allowed_countries) {
 		bool liberate = (state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_transfer_provinces) != 0;
 		for(auto other_nation : state.world.in_nation) {
-			if(other_nation != target && other_nation != n) {
+			if(other_nation != target) {
 				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(n),
 					trigger::to_generic(other_nation.id))) {
 					if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -2716,7 +2710,7 @@ void make_peace_offers(sys::state& state) {
 					if(w.get_primary_defender().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 						if(war_duration >= 365) {
-							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+							float willingness_factor = float(war_duration - 365) * 10.f / 365.0f;
 							if(defender_surrender || (overall_score > (total_po_cost - willingness_factor) && (-overall_score / 2 + total_po_cost - willingness_factor) < 0)) {
 								send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(total_po_cost), false);
 								continue;
@@ -2740,7 +2734,7 @@ void make_peace_offers(sys::state& state) {
 					if(w.get_primary_attacker().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 						if(war_duration >= 365) {
-							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+							float willingness_factor = float(war_duration - 365) * 10.f / 365.0f;
 							if(attacker_surrender  || (-overall_score > (total_po_cost - willingness_factor) && (overall_score / 2 + total_po_cost - willingness_factor) < 0)) {
 								send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(total_po_cost), false);
 								continue;
@@ -2794,7 +2788,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(war_duration < 365) {
 			return false;
 		}
-		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+		float willingness_factor = float(war_duration - 365) * 10.f / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && (overall_score * 2 - overall_po_value - willingness_factor) < 0)
 				return true;
@@ -2901,7 +2895,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(war_duration < 365) {
 			return false;
 		}
-		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+		float willingness_factor = float(war_duration - 365) * 10.f / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
 				return true;
@@ -2993,16 +2987,12 @@ void make_war_decs(sys::state& state) {
 			return;
 		if(auto ol = state.world.nation_get_overlord_as_subject(n); state.world.overlord_get_ruler(ol))
 			return;
-
 		auto base_strength = estimate_strength(state, n);
 		float best_difference = 2.0f;
-
 		//Great powers should look for non-neighbor nations to use their existing wargoals on; helpful for forcing unification/repay debts wars to happen
-
 		if(nations::is_great_power(state, n)) {
 			for(auto target : state.world.in_nation) {
 				auto real_target = target.get_overlord_as_subject().get_ruler() ? target.get_overlord_as_subject().get_ruler() : target;
-
 				if(target == n || real_target == n)
 					continue;
 				if(state.world.nation_get_owned_province_count(real_target) == 0)
@@ -3042,11 +3032,9 @@ void make_war_decs(sys::state& state) {
 				}
 			}
 		}
-
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
-
 			if(real_target == n)
 				continue;
 			if(nations::are_allied(state, n, real_target) || nations::are_allied(state, n, other))
@@ -3061,23 +3049,19 @@ void make_war_decs(sys::state& state) {
 				continue;
 			if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !naval_supremacy(state, n, other))
 				continue;
-
 			auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
-
 			if(str_difference > best_difference) {
 				best_difference = str_difference;
 				targets.set(n, other.id);
 			}
 		}
-
 		if(state.world.nation_get_central_ports(n) > 0) {
-			// try some random nations
+			// try some random coastal nations
 			for(uint32_t j = 0; j < 6; ++j) {
 				auto rvalue = rng::get_random(state, uint32_t((n.index() << 3) + j));
 				auto reduced_value = rng::reduce(uint32_t(rvalue), state.world.nation_size());
 				dcon::nation_id other{ dcon::nation_id::value_base_t(reduced_value) };
 				auto real_target = fatten(state.world, other).get_overlord_as_subject().get_ruler() ? fatten(state.world, other).get_overlord_as_subject().get_ruler() : fatten(state.world, other);
-
 				if(other == n || real_target == n)
 					continue;
 				if(state.world.nation_get_owned_province_count(other) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
@@ -3096,7 +3080,6 @@ void make_war_decs(sys::state& state) {
 					continue;
 				if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !naval_supremacy(state, n, other))
 					continue;
-
 				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
 				if(str_difference > best_difference) {
 					best_difference = str_difference;
@@ -4628,7 +4611,8 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 
 	// organize attack stacks
 	bool is_at_war = state.world.nation_get_is_at_war(n);
-	int32_t max_attacks_to_make = is_at_war ? (ready_count + 1) / 3 : ready_count; // not at war -- allow all stacks to attack rebels
+	int32_t min_ready_count = std::min(ready_count, 3); //Atleast 3 attacks
+	int32_t max_attacks_to_make = is_at_war ? std::max(min_ready_count, (ready_count + 1) / 3) : ready_count; // not at war -- allow all stacks to attack rebels
 	auto const psize = potential_targets.size();
 
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {

@@ -13,7 +13,7 @@ class player_investement_text : public multiline_text_element_base {
 		auto ul = state.world.get_unilateral_relationship_by_unilateral_pair(to_nation, state.local_player_nation);
 		auto player_investment = state.world.unilateral_relationship_get_foreign_investment(ul);
 		float total_investment = nations::get_foreign_investment(state, to_nation);
-		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
+		auto container = text::create_endless_layout(state, multiline_text_element_base::internal_layout,
 				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
 						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
 						text::alignment::left, black_text ? text::text_color::black : text::text_color::white, true});

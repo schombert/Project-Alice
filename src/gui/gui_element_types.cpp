@@ -20,6 +20,8 @@
 #include "text.hpp"
 #include "sound.hpp"
 #include "unit_tooltip.hpp"
+#include "triggers.hpp"
+#include "effects.hpp"
 
 namespace ui {
 
@@ -299,15 +301,24 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 	} else {
 		image_element_base::render(state, x, y);
 	}
-	if(stored_text.glyph_count > 0) {
-		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
-		if (linesz == 0.f)
-			return;
-		auto ycentered = (base_data.size.y - linesz) / 2;
-		ogl::render_text(state, stored_text,
-				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
-				float(y + int32_t(ycentered)), text_color,
-				base_data.data.button.font_handle);
+
+	if(internal_layout.contents.empty())
+		return;
+
+	auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+	if(linesz == 0.f)
+		return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = get_color_modification(this == state.ui_state.under_mouse, disabled, interactable);
+
+	for(auto& t : internal_layout.contents) {
+		if(std::holds_alternative<text::embedded_flag>(t.source)) {
+			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+		} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+		} else {
+			ogl::render_text(state, t.unicodechars, cmod, float(x) + t.x, float(y + int32_t(ycentered)), text_color, base_data.data.button.font_handle);
+		}
 	}
 }
 
@@ -350,15 +361,24 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 			}
 		}
 	}
-	if(stored_text.glyph_count > 0) {
-		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
-		if(linesz == 0)
-			return;
-		auto ycentered = (base_data.size.y - linesz) / 2;
-		ogl::render_text(state, stored_text,
-				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + text_offset),
-				float(y + ycentered), black_text ? ogl::color3f{ 0.0f, 0.0f, 0.0f } : ogl::color3f{ 1.0f, 1.0f, 1.0f },
-				base_data.data.button.font_handle);
+
+	if(internal_layout.contents.empty())
+		return;
+
+	auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+	if(linesz == 0.f)
+		return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = get_color_modification(this == state.ui_state.under_mouse, disabled, interactable);
+
+	for(auto& t : internal_layout.contents) {
+		if(std::holds_alternative<text::embedded_flag>(t.source)) {
+			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+		} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)), cmod);
+		} else {
+			ogl::render_text(state, t.unicodechars, cmod, float(x) + t.x, float(y + int32_t(ycentered)), black_text ? ogl::color3f{ 0.0f, 0.0f, 0.0f } : ogl::color3f{ 1.0f, 1.0f, 1.0f }, base_data.data.button.font_handle);
+		}
 	}
 }
 
@@ -439,15 +459,18 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 }
 
 void button_element_base::set_button_text(sys::state& state, std::string const& new_text) {
-	stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.button.font_handle), new_text);
-	format_text(state);
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+					base_data.data.button.font_handle, 0, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
 }
 
 void button_element_base::format_text(sys::state& state) {
-	if(stored_text.glyph_count > 0) {
-		auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle));
-		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, base_data.data.button.font_handle)) / 2.0f;
-	}
 }
 
 void button_element_base::on_reset_text(sys::state& state) noexcept {
@@ -455,11 +478,16 @@ void button_element_base::on_reset_text(sys::state& state) noexcept {
 		auto base_text_handle = base_data.data.button.txt;
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		if(base_text_handle) {
-			stored_text.clear();
-			stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.button.font_handle), text::produce_simple_string(state, base_data.data.button.txt));
+			cached_text = text::produce_simple_string(state, base_data.data.button.txt);
+			internal_layout.contents.clear();
+			internal_layout.number_of_lines = 0;
+
+			text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+						base_data.data.button.font_handle, 0, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, true, true },
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+			sl.add_text(state, cached_text);
 		}
 	}
-	format_text(state);
 }
 
 void button_element_base::on_create(sys::state& state) noexcept {
@@ -565,9 +593,9 @@ void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
 
 void edit_box_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		simple_text_element_base::text_offset = 0.0f;
+		//simple_text_element_base::text_offset = 0.0f;
 	} else if(base_data.get_element_type() == element_type::text) {
-		simple_text_element_base::text_offset = base_data.data.text.border_size.x;
+		//simple_text_element_base::text_offset = base_data.data.text.border_size.x;
 	}
 	on_reset_text(state);
 }
@@ -606,9 +634,17 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		float(base_data.size.y), ogl::get_texture_handle(state, definitions::tiles_dialog, true), ui::rotation::upright, false, false);
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
 	for(auto& t : internal_layout.contents) {
+
 		auto& f = state.font_collection.get_font(state, text::font_index_from_font_id(state, state.ui_state.tooltip_font));
-		ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
-			float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
+
+		if(std::holds_alternative<text::embedded_flag>(t.source)) {
+			ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + t.y), float(text::size_from_font_id(state.ui_state.tooltip_font)), f);
+		} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+			ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + t.y), float(text::size_from_font_id(state.ui_state.tooltip_font)), f);
+		} else {
+			ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
+				float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
+		}
 	}
 }
 
@@ -664,17 +700,39 @@ void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
 	if(base_data.get_element_type() == element_type::button) {
-		stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.button.font_handle), new_text);
+		if(new_text != cached_text) {
+			cached_text = new_text;
+			{
+				internal_layout.contents.clear();
+				internal_layout.number_of_lines = 0;
+
+				auto al = text::to_text_alignment(base_data.data.button.get_alignment());
+				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
+							base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+				sl.add_text(state, cached_text);
+			}
+			format_text(state);
+		}
 	} else if(base_data.get_element_type() == element_type::text) {
-		stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.text.font_handle), new_text);
+		if(new_text != cached_text) {
+			cached_text = new_text;
+			{
+				internal_layout.contents.clear();
+				internal_layout.number_of_lines = 0;
+
+				auto al = text::to_text_alignment(base_data.data.text.get_alignment());
+				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+							base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+				sl.add_text(state, cached_text);
+			}
+			format_text(state);
+		}
 	}
-	format_text(state);
 }
 
 void simple_text_element_base::format_text(sys::state& state) {
-	if(stored_text.glyph_count == 0)
-		return;
-
 	float extent = 0.f;
 	uint16_t font_handle = 0;
 	if(base_data.get_element_type() == element_type::button)
@@ -682,79 +740,45 @@ void simple_text_element_base::format_text(sys::state& state) {
 	else if(base_data.get_element_type() == element_type::text)
 		font_handle = base_data.data.text.font_handle;
 
-
-	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
-	extent = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
-
-	if(/*stored_text.glyph_info[stored_text.glyph_count - 1].codepoint != 0x2026 && */ int16_t(extent) > base_data.size.x) {
-		// …
-		// 0x2026
-		// utf8: 0xe2 0x80 0xa6
-		auto glyphid = FT_Get_Char_Index(font.font_face, 0x2026);
-
-		bool ellipsis_valid = true;
-		auto width_of_ellipsis = font.base_glyph_width(glyphid) * text::size_from_font_id(font_handle) / 64.f;
-
-		if(width_of_ellipsis <= 0 || glyphid == 0) {
-			ellipsis_valid = false;
-			width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * text::size_from_font_id(font_handle) / 64.f;
-		}
-		uint32_t m = 0;
-
-		while(m < stored_text.glyph_count) {
-			m += uint32_t(text::size_from_utf8(stored_text.base_text.c_str() + m, stored_text.base_text.c_str() + stored_text.base_text.length()));
-
-			if(state.font_collection.text_extent(state, stored_text, 0, m, font_handle) + width_of_ellipsis > base_data.size.x)
-				break;
-		}
-
-		auto last_cluster = m >= stored_text.glyph_count ? stored_text.base_text.length() : stored_text.glyph_info[m].cluster;
-
-		if(ellipsis_valid)
-			stored_text.set_text(state, text::font_index_from_font_id(state, font_handle), stored_text.base_text.substr(0, last_cluster) + "…");
-		else
-			stored_text.set_text(state, text::font_index_from_font_id(state, font_handle), stored_text.base_text.substr(0, last_cluster) + "...");
-		extent = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
+	float x_limit = float(base_data.size.x);
+	if(base_data.get_element_type() == element_type::text) {
+		x_limit -= base_data.data.text.border_size.x;
 	}
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
+	auto font_size = text::size_from_font_id(font_handle);
 
-	if(base_data.get_element_type() == element_type::button) {
-		switch(text::localized_alignment(state, base_data.data.button.get_alignment())) {
-		case alignment::centered:
-		case alignment::justified:
-			text_offset = (base_data.size.x - extent) / 2.0f;
-			break;
-		case alignment::right:
-			text_offset = (base_data.size.x - extent);
-			break;
-		case alignment::left:
-			text_offset = 0.0f;
-			break;
-		}
-	} else if(base_data.get_element_type() == element_type::text) {
-		switch(text::localized_alignment(state, base_data.data.button.get_alignment())) {
-		case alignment::centered:
-		case alignment::justified:
-			text_offset = (base_data.size.x - extent - base_data.data.text.border_size.x) / 2.0f;
-			break;
-		case alignment::right:
-			text_offset = (base_data.size.x - extent - base_data.data.text.border_size.x);
-			break;
-		case alignment::left:
-			text_offset = base_data.data.text.border_size.x;
-			break;
+	for(size_t i = internal_layout.contents.size(); i-- > 0; ) {
+		if(internal_layout.contents[i].x >= x_limit) {
+			internal_layout.contents.resize(i);
 		}
 	}
 }
 
 void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		stored_text.clear();
-		stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.button.font_handle), text::produce_simple_string(state, base_data.data.button.txt));
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		cached_text = text::produce_simple_string(state, base_data.data.button.txt);
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+
+		auto al = text::to_text_alignment(base_data.data.button.get_alignment());
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+					base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+			state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+
+		sl.add_text(state, cached_text);
 	} else if(base_data.get_element_type() == element_type::text) {
-		stored_text.clear();
-		stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.text.font_handle), text::produce_simple_string(state, base_data.data.text.txt));
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		cached_text = text::produce_simple_string(state, base_data.data.text.txt);
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+
+		auto al = text::to_text_alignment(base_data.data.text.get_alignment());
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
+					base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+			state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+
+		sl.add_text(state, cached_text);
 	}
 	format_text(state);
 }
@@ -762,20 +786,32 @@ void simple_text_element_base::on_create(sys::state& state) noexcept {
 	on_reset_text(state);
 }
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(stored_text.glyph_count > 0) {
-		if(base_data.get_element_type() == element_type::text) {
-			ogl::render_text(state, stored_text, ogl::color_modification::none,
-					float(x + int32_t(text_offset)), float(y + base_data.data.text.border_size.y),
-					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.button.font_handle);
-		} else {
-			auto linesz = state.font_collection.line_height(state, base_data.data.text.font_handle);
-			if(linesz == 0)
-				return;
-			auto ycentered = (base_data.size.y - linesz) / 2;
+	auto tc = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
 
-			ogl::render_text(state, stored_text, ogl::color_modification::none,
-					float(x + int32_t(text_offset)), float(y + ycentered),
-					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.text.font_handle);
+	if(base_data.get_element_type() == element_type::button) {
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if(linesz == 0.f)
+			return;
+		auto ycentered = (base_data.size.y - linesz) / 2;
+
+		for(auto& t : internal_layout.contents) {
+			if(std::holds_alternative<text::embedded_flag>(t.source)) {
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+			} else {
+				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x) + t.x, float(y + int32_t(ycentered)), get_text_color(state, t.color), base_data.data.button.font_handle);
+			}
+		}
+	} else {
+		for(auto& t : internal_layout.contents) {
+			if(std::holds_alternative<text::embedded_flag>(t.source)) {
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+			} else {
+				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), get_text_color(state, t.color), base_data.data.text.font_handle);
+			}
 		}
 	}
 }
@@ -821,18 +857,32 @@ void simple_body_text::on_reset_text(sys::state& state) noexcept {
 }
 
 void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(stored_text.glyph_count > 0) {
-		if(base_data.get_element_type() == element_type::text) {
-			ogl::render_text(state, stored_text, ogl::color_modification::none,
-				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(state, color), base_data.data.button.font_handle);
-		} else {
-			auto linesz = state.font_collection.line_height(state, base_data.data.text.font_handle);
-			if(linesz == 0)
-				return;
-			auto ycentered = (base_data.size.y - linesz) / 2;
+	auto tc = get_text_color(state, color);
 
-			ogl::render_text(state, stored_text, ogl::color_modification::none,
-				float(x + text_offset), float(y + ycentered), get_text_color(state, color), base_data.data.text.font_handle);
+	if(base_data.get_element_type() == element_type::button) {
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if(linesz == 0.f)
+			return;
+		auto ycentered = (base_data.size.y - linesz) / 2;
+
+		for(auto& t : internal_layout.contents) {
+			if(std::holds_alternative<text::embedded_flag>(t.source)) {
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + int32_t(ycentered)), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+			} else {
+				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x) + t.x, float(y + int32_t(ycentered)), tc, base_data.data.button.font_handle);
+			}
+		}
+	} else {
+		for(auto& t : internal_layout.contents) {
+			if(std::holds_alternative<text::embedded_flag>(t.source)) {
+				ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+			} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+				ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+			} else {
+				ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x + base_data.data.text.border_size.x) + t.x, float(y + base_data.data.text.border_size.y), tc, base_data.data.button.font_handle);
+			}
 		}
 	}
 }
@@ -852,11 +902,17 @@ void multiline_text_element_base::on_reset_text(sys::state& state) noexcept {
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		for(auto& t : internal_layout.contents) {
-			auto& f = state.font_collection.get_font(state, text::font_index_from_font_id(state, state.ui_state.tooltip_font));
 			float line_offset = t.y - line_height * float(current_line);
+
 			if(0 <= line_offset && line_offset < base_data.size.y) {
-				ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
-						float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.text.font_handle);
+				if(std::holds_alternative<text::embedded_flag>(t.source)) {
+					ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+				} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+					ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.text.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)));
+				} else {
+					ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
+							float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.text.font_handle);
+				}
 			}
 		}
 	}
@@ -980,14 +1036,22 @@ void multiline_button_element_base::on_create(sys::state& state) noexcept {
 
 void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	button_element_base::render(state, x, y);
+	if(internal_layout.contents.empty())
+		return;
+
 	if(base_data.get_element_type() == element_type::button) {
 		if(line_height == 0.f)
 			return;
 		for(auto& t : internal_layout.contents) {
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
-				ogl::render_text(state, t.unicodechars, ogl::color_modification::none,
-						float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.button.font_handle);
+				if(std::holds_alternative<text::embedded_flag>(t.source)) {
+					ogl::render_text_flag(state, std::get<text::embedded_flag>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
+					ogl::render_text_icon(state, std::get<text::embedded_icon>(t.source), float(x) + t.x, float(y + line_offset), float(text::size_from_font_id(base_data.data.button.font_handle)), state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)));
+				} else {
+					ogl::render_text(state, t.unicodechars, ogl::color_modification::none, float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.button.font_handle);
+				}
 			}
 		}
 	}
@@ -1063,6 +1127,17 @@ void window_element_base::on_create(sys::state& state) noexcept {
 			}
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+			}
+		}
+		for(auto ex : state.ui_defs.extensions) {
+			if(ex.window == base_data.name) {
+				auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[ex.child].name)), ex.child);
+				if(!ch_res) {
+					ch_res = ui::make_element_immediate(state, ex.child);
+				}
+				if(ch_res) {
+					this->add_child_to_back(std::move(ch_res));
+				}
 			}
 		}
 	}
@@ -1951,6 +2026,116 @@ void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	}
 }
 
+void province_script_button::button_action(sys::state& state) noexcept {
+	auto p = retrieve<dcon::province_id>(state, parent);
+	if(p && state.local_player_nation)
+		command::use_province_button(state, state.local_player_nation, base_definition, p);
+}
+void province_script_button::on_update(sys::state& state) noexcept {
+	disabled = false;
+	auto& def = state.ui_defs.gui[base_definition];
+	if(def.get_element_type() != ui::element_type::button) {
+		disabled = true;
+		return;
+	}
+	if(def.data.button.get_button_scripting() != ui::button_scripting::province) {
+		disabled = true;
+		return;
+	}
+	auto p = retrieve<dcon::province_id>(state, parent);
+	if(!p) {
+		disabled = true;
+		return;
+	}
+	disabled = !command::can_use_province_button(state, state.local_player_nation, base_definition, p);
+}
+void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto& def = state.ui_defs.gui[base_definition];
+
+	if(def.get_element_type() != ui::element_type::button)
+		return;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::province)
+		return;
+	auto p = retrieve<dcon::province_id>(state, parent);
+	if(!p)
+		return;
+	if(!state.local_player_nation)
+		return;
+
+	auto name = state.to_string_view(def.name);
+	auto tt_name = std::string{ name } + "_tooltip";
+	if(state.key_is_localized(tt_name)) {
+		text::add_line(state, contents, std::string_view{tt_name}, text::variable_type::province, p, text::variable_type::nation, state.world.province_get_nation_from_province_ownership(p), text::variable_type::player, state.local_player_nation);
+		text::add_line_break_to_layout(state, contents);
+	}
+
+	if(def.data.button.scriptable_enable) {
+		text::add_line(state, contents, "allow_reform_cond");
+		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation));
+		text::add_line_break_to_layout(state, contents);
+	}
+	if(def.data.button.scriptable_effect) {
+		text::add_line(state, contents, "msg_decision_2");
+		ui::effect_description(state, contents, def.data.button.scriptable_effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(p.index() ^ (base_definition.index() << 4)));
+	}
+}
+void nation_script_button::button_action(sys::state& state) noexcept {
+	auto n = retrieve<dcon::nation_id>(state, parent);
+	if(n && state.local_player_nation) {
+		command::use_nation_button(state, state.local_player_nation, base_definition, n);
+	} else if(state.local_player_nation) {
+		command::use_nation_button(state, state.local_player_nation, base_definition, state.local_player_nation);
+	}
+}
+void nation_script_button::on_update(sys::state& state) noexcept {
+	disabled = false;
+	auto& def = state.ui_defs.gui[base_definition];
+	if(def.get_element_type() != ui::element_type::button) {
+		disabled = true;
+		return;
+	}
+	if(def.data.button.get_button_scripting() != ui::button_scripting::nation) {
+		disabled = true;
+		return;
+	}
+	auto n = retrieve<dcon::nation_id>(state, parent);
+	if(!state.local_player_nation) {
+		disabled = true;
+		return;
+	}
+	disabled = !command::can_use_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
+}
+void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto& def = state.ui_defs.gui[base_definition];
+
+	if(def.get_element_type() != ui::element_type::button)
+		return;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
+		return;
+	auto n = retrieve<dcon::nation_id>(state, parent);
+	if(!n)
+		n = state.local_player_nation;
+	if(!state.local_player_nation)
+		return;
+
+	auto name = state.to_string_view(def.name);
+	auto tt_name = std::string{ name } + "_tooltip";
+	if(state.key_is_localized(tt_name)) {
+		text::add_line(state, contents, std::string_view{ tt_name }, text::variable_type::nation, n, text::variable_type::player, state.local_player_nation);
+		text::add_line_break_to_layout(state, contents);
+	}
+
+	if(def.data.button.scriptable_enable) {
+		text::add_line(state, contents, "allow_reform_cond");
+		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
+		text::add_line_break_to_layout(state, contents);
+	}
+	if(def.data.button.scriptable_effect) {
+		text::add_line(state, contents, "msg_decision_2");
+		ui::effect_description(state, contents, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(n.index() ^ (base_definition.index() << 4)));
+	}
+}
+
 message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	for(auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
 		if(tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {
@@ -1970,11 +2155,25 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 		res->on_create(state);
 		return res;
 	} else if(def.get_element_type() == ui::element_type::button) {
-		auto res = std::make_unique<button_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
+		if(def.data.button.get_button_scripting() == ui::button_scripting::province) {
+			auto res = std::make_unique<province_script_button>(id);
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		} else if(def.data.button.get_button_scripting() == ui::button_scripting::nation) {
+			auto res = std::make_unique<nation_script_button>(id);
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		} else {
+			auto res = std::make_unique<button_element_base>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
 	} else if(def.get_element_type() == ui::element_type::window) {
 		auto res = std::make_unique<window_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
