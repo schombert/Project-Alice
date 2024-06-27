@@ -6,17 +6,19 @@ void message_log_text::on_update(sys::state& state) noexcept {
 	auto const& messages = static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages;
 	if(index < int32_t(messages.size())) {
 		auto m = messages[index];
-		auto container = text::create_endless_layout(internal_layout,
-				text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0,
-						text::alignment::left, text::text_color::white, false});
+		auto container = text::create_endless_layout(state, internal_layout,
+			text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.button.font_handle, 0,
+			text::alignment::left, text::text_color::white, false});
 
 		auto box = text::open_layout_box(container);
-		std::string tags_string = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(m.source)));
+		text::add_to_layout_box(state, container, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(m.source) });
+		text::add_space_to_layout_box(state, container, box);
 		if(m.target) {
-			tags_string += std::string(" @") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(m.target)));
+			text::add_to_layout_box(state, container, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(m.target) });
+			text::add_space_to_layout_box(state, container, box);
 		}
-		tags_string += ": ";
-		text::add_to_layout_box(state, container, box, std::string_view{ tags_string });
+		text::add_to_layout_box(state, container, box, std::string_view{ ":" });
+		text::add_space_to_layout_box(state, container, box);
 		text::localised_format_box(state, container, box, m.title);
 		text::close_layout_box(container, box);
 	}

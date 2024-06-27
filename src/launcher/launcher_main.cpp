@@ -49,6 +49,7 @@
 #include "prng.cpp"
 #include "blake2.cpp"
 #include "zstd.cpp"
+#include "pcp.cpp"
 #endif
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
@@ -281,12 +282,12 @@ static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
 };
 //chinese
 static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
-	"创建场景",
-	"重新创建场景",
-	"工作中。。。",
-	"创建新场景",
-	"针对所选模组",
-	"未找到场景",
+	"创建方案",
+	"重新创建方案",
+	"工作中……",
+	"为所选模组",
+	"创建新方案",
+	"未找到方案",
 	"IP 地址",
 	"密码",
 	"昵称",
@@ -1709,9 +1710,9 @@ void internal_text_render(std::string_view str, float baseline_x, float baseline
 		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-			glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, sub_square_buffers[f.glyph_positions[glyphid].texture_slot & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.texture_slots[f.glyph_positions[glyphid].texture_slot]);
+			glBindTexture(GL_TEXTURE_2D, f.textures[f.glyph_positions[glyphid].texture_slot >> 6]);
 			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}

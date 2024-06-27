@@ -137,7 +137,7 @@ public:
 		auto border = base_data.data.text.border_size;
 
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state,
 			internal_layout,
 			text::layout_parameters{
 				border.x,
@@ -193,7 +193,7 @@ public:
 			base_data.data.text_common.font_handle &= ~(0x003F);
 			base_data.data.text_common.font_handle |= (old_value - 2);
 
-			auto container = text::create_endless_layout(
+			auto container = text::create_endless_layout(state,
 				internal_layout,
 				text::layout_parameters{
 				border.x,
@@ -233,7 +233,7 @@ public:
 
 		auto content = retrieve<T>(state, parent);
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state, 
 			internal_layout,
 			text::layout_parameters{
 				border.x,
@@ -381,7 +381,7 @@ public:
 		auto content = retrieve<dcon::movement_id>(state, parent);
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 		auto container =
-				text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
+				text::create_endless_layout(state, internal_layout, text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false});
 		populate_layout(state, container, content);
 	}
 };
@@ -624,7 +624,6 @@ public:
 		auto supply_mod = std::max(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f, 0.1f);
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto gen_range = state.world.nation_get_leader_loyalty(n);
-		auto num_leaders = float((gen_range.end() - gen_range.begin()));
 		auto num_capital_ships = state.world.nation_get_capital_ship_score(n);
 		text::add_line(state, contents, "military_score_explain_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
 		text::add_line(state, contents, "military_score_explain_2", text::variable_type::x, text::int_wholenum{ recruitable });
@@ -633,7 +632,7 @@ public:
 		text::add_line(state, contents, "military_score_explain_5", text::variable_type::x, text::fp_two_places{ supply_mod });
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_consumption, true);
 		text::add_line(state, contents, "military_score_explain_6", text::variable_type::x, text::fp_two_places{ avg_land_score });
-		text::add_line(state, contents, "military_score_explain_7", text::variable_type::x, text::fp_two_places{ num_leaders });
+		//text::add_line(state, contents, "military_score_explain_7", text::variable_type::x, text::fp_two_places{ num_leaders });
 	}
 };
 
@@ -1118,7 +1117,7 @@ public:
 		if(bool(mod_id)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
-			if(state.world.modifier_get_desc(mod_id)) {
+			if(auto desc = state.world.modifier_get_desc(mod_id); state.key_is_localized(desc)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
 				text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
@@ -1127,7 +1126,6 @@ public:
 				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod_id), sub);
 			}
 			text::close_layout_box(contents, box);
-
 			modifier_description(state, contents, mod_id);
 		}
 	}
@@ -1338,11 +1336,9 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto name = state.world.pop_type_get_name(type);
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, name);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1361,11 +1357,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::pop_type_id>(state, parent);
 		auto name = state.world.pop_type_get_name(content);
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, name);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
 	}
 };
 class religion_type_icon : public button_element_base {
@@ -1711,7 +1705,7 @@ public:
 		bool is_positive = profit >= 0.f;
 		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 		// Create colour
-		auto contents = text::create_endless_layout(internal_layout,
+		auto contents = text::create_endless_layout(state, internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true});
 		auto box = text::open_layout_box(contents);
@@ -1835,15 +1829,13 @@ public:
 							return;
 						auto box = text::open_layout_box(contents, 0);
 						if(!have_header) {
-							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.technology_get_name(tid)), text::text_color::yellow);
+							text::add_to_layout_box(state, contents, box, state.world.technology_get_name(tid), text::text_color::yellow);
 							text::add_line_break_to_layout_box(state, contents, box);
 							have_header = true;
 						}
 						auto name = state.world.commodity_get_name(mod.type);
-						if(bool(name)) {
-							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::white);
-							text::add_space_to_layout_box(state, contents, box);
-						}
+						text::add_to_layout_box(state, contents, box, name);
+						text::add_space_to_layout_box(state, contents, box);
 						text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white);
 						text::add_to_layout_box(state, contents, box, std::string{ ":" }, text::text_color::white);
 						text::add_space_to_layout_box(state, contents, box);
@@ -1866,15 +1858,13 @@ public:
 							return;
 						auto box = text::open_layout_box(contents, 0);
 						if(!have_header) {
-							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.invention_get_name(iid)), text::text_color::yellow);
+							text::add_to_layout_box(state, contents, box, state.world.invention_get_name(iid), text::text_color::yellow);
 							text::add_line_break_to_layout_box(state, contents, box);
 							have_header = true;
 						}
 						auto name = state.world.commodity_get_name(mod.type);
-						if(bool(name)) {
-							text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::white);
-							text::add_space_to_layout_box(state, contents, box);
-						}
+						text::add_to_layout_box(state, contents, box, name);
+						text::add_space_to_layout_box(state, contents, box);
 						text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white);
 						text::add_to_layout_box(state, contents, box, std::string{ ":" }, text::text_color::white);
 						text::add_space_to_layout_box(state, contents, box);
@@ -1940,8 +1930,8 @@ public:
 			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
 				modifier_description(state, contents, mid, 15);
 			}
-
-			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(sid), trigger::to_generic(state.local_player_nation), -1);
+			auto state_cap = state.world.state_instance_get_capital(sid);
+			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(state_cap), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 

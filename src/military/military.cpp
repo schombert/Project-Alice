@@ -177,9 +177,8 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
-					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-								 trigger::to_generic(n.id))) {
+				if(n != target) {
+					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
 
 							bool found_dup = false;
@@ -264,8 +263,7 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(!allowed_countries && allowed_states) {
 		bool any_allowed = false;
 		for(auto si : state.world.nation_get_state_ownership(target)) {
-			if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-						 trigger::to_generic(actor))) {
+			if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
 				any_allowed = true;
 				break;
 			}
@@ -296,9 +294,8 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
-					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-								 trigger::to_generic(n.id))) {
+				if(n != target) {
+					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
 							for(auto si : state.world.nation_get_state_ownership(target)) {
 								if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
@@ -388,7 +385,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 	if(allowed_countries) {
 		auto secondary_nation = secondary ? secondary : state.world.national_identity_get_nation_from_identity_holder(tag);
 
-		if(secondary_nation != target && secondary_nation != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(secondary_nation))) {
+		if(secondary_nation != target && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(secondary_nation))) {
 			bool validity = false;
 			if(allowed_states) { // check whether any state within the target is valid for free / liberate
 				if((state.world.cb_type_get_type_bits(cb) & cb_flag::all_allowed_states) != 0) {
@@ -2245,6 +2242,18 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	assert(primary_attacker);
 	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
+
+	// release puppet if subject declares on overlord or vice versa
+	{
+		auto ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
+		if(auto ol = state.world.overlord_get_ruler(ol_rel); ol && ol == primary_attacker)
+			nations::release_vassal(state, ol_rel);
+	}
+	{
+		auto ol_rel = state.world.nation_get_overlord_as_subject(primary_attacker);
+		if(auto ol = state.world.overlord_get_ruler(ol_rel); ol && ol == primary_defender)
+			nations::release_vassal(state, ol_rel);
+	}
 
 	auto real_target = primary_defender;
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);

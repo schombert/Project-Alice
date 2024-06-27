@@ -137,8 +137,7 @@ int bm_font::get_kerning_pair(char first, char second) const {
 }
 
 float bm_font::get_string_width(sys::state& state, char const* string, uint32_t count) const {
-	float total = 0;
-
+	float total = 0.f;
 	for(uint32_t i = 0; i < count; ++i) {
 		auto ch = uint8_t(string[i]);
 		if(i != 0 && ch == 0xC3 && uint8_t(string[i + 1]) == 0xA3) {
@@ -180,7 +179,6 @@ bm_font const& get_bm_font(sys::state& state, uint16_t font_handle) {
 		auto root = get_root(state.common_fs);
 		auto gfx_dir = open_directory(root, NATIVE("gfx"));
 		auto font_dir = open_directory(gfx_dir, NATIVE("fonts"));
-
 		auto font_def = open_file(font_dir, simple_fs::win1250_to_native(fname + ".fnt"));
 		auto font_image = open_file(font_dir, simple_fs::win1250_to_native(fname + ".tga"));
 		if(!bool(font_def) || !bool(font_image)) {

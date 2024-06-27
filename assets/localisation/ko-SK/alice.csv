@@ -1005,6 +1005,7 @@ fab_finish_date;CB 제조는 $date$에 완료될 것으로 예상됩니다.
 fab_is_paused;CB 제작은 현재 일시중지되어 있습니다
 macro_builder;매크로 빌더
 macro_total_desc;총 유닛 통계:
+macro_new_template;신규
 macro_switch_type_land;군대를 건설하다
 macro_switch_type_naval;해군을 건설하다
 macro_warn_overseas;?R해외에서는 이 유닛을 건설할 수 없습니다!?!

@@ -197,8 +197,10 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			if(rebel_fact) {
 				text::add_to_layout_box(state, contents, box, rebel_fact.get_name());
-				text::add_divider_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, rebel_fact.get_description());
+				if(auto desc = rebel_fact.get_description(); state.key_is_localized(desc)) {
+					text::add_divider_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, desc);
+				}
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -2114,11 +2116,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::pop_id>(state, parent);
 		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, name);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -2242,26 +2242,19 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::substitution_map sub;
-		text::substitution_map sub2;
 		auto pop_fat_id = dcon::fatten(state.world, content);
 		auto nation_fat = dcon::fatten(state.world, state.local_player_nation);
-
 		float pop_growth = demographics::get_effective_estimation_type_change(state, state.local_player_nation, pop_fat_id.id);
 
 		//check if the pop is growing or not and change the text accordingly
-		text::add_to_substitution_map(sub2, text::variable_type::val,
-				text::pretty_integer{
-						int32_t(pop_growth) });
-		text::add_to_substitution_map(sub, text::variable_type::val,
-				text::pretty_integer{
-						int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
-
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::val, text::pretty_integer{ int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
 		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
-		text::add_to_substitution_map(sub, text::variable_type::where, text::get_name(state, state.local_player_nation));
-
+		text::add_to_substitution_map(sub, text::variable_type::where, state.local_player_nation);
+		text::substitution_map sub2;
+		text::add_to_substitution_map(sub2, text::variable_type::val, text::pretty_integer{ int32_t(pop_growth) });
 		text::add_to_substitution_map(sub2, text::variable_type::who, pop_fat_id.get_name());
-		text::add_to_substitution_map(sub2, text::variable_type::where, text::get_name(state, state.local_player_nation));
+		text::add_to_substitution_map(sub2, text::variable_type::where, state.local_player_nation);
 		
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
 		text::add_divider_to_layout_box(state, contents, box);

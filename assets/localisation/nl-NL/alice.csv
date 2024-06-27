@@ -1005,6 +1005,7 @@ fab_finish_date;De CB-fabricage zal naar verwachting eindigen op $date$
 fab_is_paused;De CB-fabricage is momenteel onderbroken
 macro_builder;Macro-bouwer
 macro_total_desc;Statistieken van totale eenheden:
+macro_new_template;Nieuw
 macro_switch_type_land;Bouw leger
 macro_switch_type_naval;Bouw marine
 macro_warn_overseas;?Kan deze eenheid niet in het buitenland bouwen!?!

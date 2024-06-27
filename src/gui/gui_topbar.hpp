@@ -255,7 +255,7 @@ public:
 		if(pop_change == 0)
 			color = text::text_color::white;
 
-		auto layout = text::create_endless_layout(internal_layout,
+		auto layout = text::create_endless_layout(state, internal_layout,
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 		auto box = text::open_layout_box(layout, 0);
 		text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
@@ -294,7 +294,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 
-		auto layout = text::create_endless_layout(internal_layout,
+		auto layout = text::create_endless_layout(state, internal_layout,
 		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black, false });
 		auto box = text::open_layout_box(layout, 0);
 

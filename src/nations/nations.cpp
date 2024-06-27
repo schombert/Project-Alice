@@ -382,20 +382,11 @@ void update_military_scores(sys::state& state) {
 	state.world.execute_serial_over_nation([&, disarm = state.defines.disarmament_army_hit](auto n) {
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
-		auto is_disarmed =
-				ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
+		auto is_disarmed = ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
 		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
 		auto supply_mod = ve::max(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f, 0.1f);
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
-		auto num_leaders = ve::apply(
-				[&](dcon::nation_id i) {
-					auto gen_range = state.world.nation_get_leader_loyalty(i);
-					return float((gen_range.end() - gen_range.begin())) * lp_factor;
-				},
-				n);
-		state.world.nation_set_military_score(n,
-				ve::to_int((ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f) +
-									 state.world.nation_get_capital_ship_score(n) + ve::max(num_leaders, active_regs)));
+		state.world.nation_set_military_score(n, ve::to_int((ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f) + state.world.nation_get_capital_ship_score(n) + active_regs));
 	});
 }
 

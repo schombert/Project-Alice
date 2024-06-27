@@ -279,7 +279,7 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			if(n != target && n != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
+			if(n != target && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 				auto id = state.world.nation_get_identity_from_identity_holder(n);
 				if(!war) {
 					row_contents.push_back(id);
@@ -1450,7 +1450,7 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			if(n != target && n != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
+			if(n != target && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 				row_contents.push_back(state.world.nation_get_identity_from_identity_holder(n));
 			}
 		}

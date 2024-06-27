@@ -167,7 +167,7 @@ class decision_name : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
-		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
 		auto box = text::open_layout_box(contents);
 		text::substitution_map m;
 		produce_decision_substitutions(state, m, state.local_player_nation);
@@ -181,7 +181,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto const id = retrieve<dcon::decision_id>(state, parent);
-		auto const description = state.world.decision_get_description(id);
 		if(state.cheat_data.show_province_id_tooltip) {
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, std::string_view("Decision ID:"));
@@ -189,11 +188,14 @@ public:
 			text::add_to_layout_box(state, contents, box, std::to_string(id.value));
 			text::close_layout_box(contents, box);
 		}
-		auto box = text::open_layout_box(contents);
-		text::substitution_map m;
-		produce_decision_substitutions(state, m, state.local_player_nation);
-		text::add_to_layout_box(state, contents, box, description, m);
-		text::close_layout_box(contents, box);
+		auto const desc = state.world.decision_get_description(id);
+		if(state.key_is_localized(desc)) {
+			auto box = text::open_layout_box(contents);
+			text::substitution_map m;
+			produce_decision_substitutions(state, m, state.local_player_nation);
+			text::add_to_layout_box(state, contents, box, desc, m);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -238,7 +240,7 @@ public:
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, id);
 		description = fat_id.get_description();
-		auto container = text::create_endless_layout(delegate->internal_layout,
+		auto container = text::create_endless_layout(state, delegate->internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 				base_data.data.text.font_handle, 0, text::alignment::left,
 				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,

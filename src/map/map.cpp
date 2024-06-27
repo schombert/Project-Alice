@@ -312,8 +312,8 @@ display_data::~display_data() {
 		glDeleteTextures(texture_count, textures);
 	if(texture_arrays[0])
 		glDeleteTextures(texture_count, texture_arrays);
-	if(static_mesh_textures[0])
-		glDeleteTextures(max_static_meshes, static_mesh_textures);
+	//if(static_mesh_textures[0])
+	//	glDeleteTextures(max_static_meshes, static_mesh_textures);
 	if(vao_array[0])
 		glDeleteVertexArrays(vo_count, vao_array);
 	if(vbo_array[0])
@@ -777,6 +777,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		
 	}*/
 
+	/*
 	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
 		constexpr float dist_step = 1.77777f;
 		// Render standing objects
@@ -788,16 +789,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, time_counter);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
-		/*
-		for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
-			glUniform2f(12, 0.f, float(i * 8));
-			glUniform1f(13, 0.f);
-			glUniform1f(14, -0.75f);
-			glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
-		}
-		*/
+		
+		//for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
+		//	glActiveTexture(GL_TEXTURE14);
+		//	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
+		//	glUniform2f(12, 0.f, float(i * 8));
+		//	glUniform1f(13, 0.f);
+		//	glUniform1f(14, -0.75f);
+		//	glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
+		//}
+
 		// Train stations
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
@@ -1095,6 +1096,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 		glDisable(GL_DEPTH_TEST);
 	}
+	*/
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -1746,9 +1748,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
 
-		float text_length = f.text_extent(state, e.text, 0, e.text.glyph_count, 1);
+		float text_length = f.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
-		float x_step = (result_interval / float(e.text.glyph_count * 32.f));
+		float x_step = (result_interval / float(e.text.glyph_info.size() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		if(is_linear) {
 			float height = poly_fn(right) - poly_fn(left);
@@ -1811,15 +1813,14 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			accumulated_length += added_distance;
 		}
 
-		hb_glyph_position_t const* glyph_pos = e.text.glyph_pos.data();
-		hb_glyph_info_t const* glyph_info = e.text.glyph_info.data();
+
 		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
 		for(unsigned int i = 0; i < glyph_count; i++) {
-			hb_codepoint_t glyphid = glyph_info[i].codepoint;
+			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
 			auto gso = f.glyph_positions[glyphid];
-			float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-			float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-			float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
+			float x_advance = float(e.text.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+			float x_offset = float(e.text.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
+			float y_offset = float(gso.y) - float(e.text.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 				// Add up baseline and kerning offsets
 				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
@@ -1880,14 +1881,14 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 
 		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
 
-		float text_length = f.text_extent(state, e.text, 0, e.text.glyph_count, 1);
+		float text_length = f.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 			};
-		float x_step = (1.f / float(e.text.glyph_count * 32.f));
+		float x_step = (1.f / float(e.text.glyph_info.size() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
 			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
@@ -1908,16 +1909,13 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 			accumulated_length += added_distance;
 		}
 
-		unsigned int glyph_count = e.text.glyph_count;
-		hb_glyph_info_t const* glyph_info = e.text.glyph_info.data();
-		auto const* glyph_pos = e.text.glyph_pos.data();
-
-		for(unsigned int i = 0; i < e.text.glyph_count; i++) {
-			hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		unsigned int glyph_count = uint32_t(e.text.glyph_info.size());
+		for(unsigned int i = 0; i < glyph_count; i++) {
+			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
 			auto gso = f.glyph_positions[glyphid];
 			float x_advance = float(gso.x_advance);
-			float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
-			float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
+			float x_offset = float(e.text.glyph_info[i].x_offset) / 4.f + float(gso.x);
+			float y_offset = float(gso.y) - float(e.text.glyph_info[i].y_offset) / 4.f;
 			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 				// Add up baseline and kerning offsets
 				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
@@ -2003,6 +2001,7 @@ emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material 
 }
 
 void load_static_meshes(sys::state& state) {
+	/*
 	struct static_mesh_vertex {
 		glm::vec3 position_;
 		glm::vec2 normal_;
@@ -2267,6 +2266,7 @@ void load_static_meshes(sys::state& state) {
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glBindVertexArray(0);
+	*/
 }
 
 void display_data::load_map(sys::state& state) {

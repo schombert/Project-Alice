@@ -393,14 +393,14 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
 			text::add_line_break_to_layout_box(state, contents, box);
-			if(state.world.modifier_get_desc(mod.mod_id)) {
+			if(auto desc = state.world.modifier_get_desc(mod.mod_id); state.key_is_localized(desc)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
 				text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
 				text::add_to_substitution_map(sub, text::variable_type::provincename, p);
-				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod.mod_id), sub);
+				text::add_to_layout_box(state, contents, box, desc, sub);
 			}
 			text::close_layout_box(contents, box);
 			modifier_description(state, contents, mod.mod_id, 15);
@@ -527,15 +527,11 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
-			auto ptr = make_element_by_type<province_colony_button>(state, id);
-			colony_button = ptr.get();
-			//...
-			auto btn = make_element_by_type<province_move_capital_button>(state, "alice_move_capital");
-			btn->base_data.position = colony_button->base_data.position;
-			btn->base_data.position.y -= 3;
-			btn->base_data.position.x -= colony_button->base_data.size.x * 2;
-			add_child_to_front(std::move(btn));
-			return ptr;
+			auto btn = make_element_by_type<province_colony_button>(state, id);
+			colony_button = btn.get();
+			return btn;
+		} else if(name == "alice_move_capital") {
+			return make_element_by_type<province_move_capital_button>(state, id);
 		} else if(name == "national_focus") {
 			return make_element_by_type<province_national_focus_button>(state, id);
 		} else if(name == "admin_efficiency") {

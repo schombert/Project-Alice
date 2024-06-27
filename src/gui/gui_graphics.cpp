@@ -71,6 +71,7 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_gui_files(gen, err, context);
+				context.gui_files.emplace_back(std::move(*ofile));
 			}
 		}
 
@@ -90,6 +91,7 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 					err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_gui_files(gen, err, context);
+					context.gui_files.emplace_back(std::move(*ofile));
 				}
 			}
 		}

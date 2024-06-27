@@ -217,7 +217,7 @@ public:
 
 		auto content = retrieve<diplomatic_message::message>(state, parent);
 		auto color = delegate->black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state,
 			delegate->internal_layout,
 			text::layout_parameters{
 				border.x,

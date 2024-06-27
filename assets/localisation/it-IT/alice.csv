@@ -1005,6 +1005,7 @@ fab_finish_date;Si prevede che la fabbricazione del CB terminerà il $date$
 fab_is_paused;La fabbricazione del CB è attualmente sospesa
 macro_builder;Costruttore di macro
 macro_total_desc;Statistiche totali dell'unità:
+macro_new_template;Nuovo
 macro_switch_type_land;Costruisci un esercito
 macro_switch_type_naval;Costruisci la marina
 macro_warn_overseas;?RNon puoi costruire questa unità all'estero!?!

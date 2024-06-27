@@ -192,8 +192,8 @@ public:
 
 class button_element_base : public opaque_element_base {
 protected:
-	text::stored_text stored_text;
-	float text_offset = 0.0f;
+	text::layout internal_layout;
+	std::string cached_text;
 	bool black_text = true;
 
 public:
@@ -348,8 +348,8 @@ public:
 
 class simple_text_element_base : public element_base {
 protected:
-	text::stored_text stored_text;
-	float text_offset = 0.0f;
+	std::string cached_text;
+	text::layout internal_layout;
 public:
 	bool black_text = true;
 	int32_t data = 0;
@@ -362,7 +362,7 @@ public:
 	void format_text(sys::state& state);
 
 	std::string_view get_text(sys::state& state) const {
-		return stored_text.base_text;
+		return cached_text;
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
@@ -423,6 +423,11 @@ public:
 
 class draggable_target : public opaque_element_base {
 public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::tooltip)
+			return message_result::consumed;
+		return opaque_element_base::test_mouse(state, x, y, type);
+	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
@@ -507,6 +512,31 @@ protected:
 public:
 	std::vector<ItemConT> row_contents{};
 	void update(sys::state& state);
+};
+
+class province_script_button : public button_element_base {
+public:
+	dcon::gui_def_id base_definition;
+
+	province_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+class nation_script_button : public button_element_base {
+public:
+	dcon::gui_def_id base_definition;
+
+	nation_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 class flag_button : public button_element_base {
@@ -924,7 +954,7 @@ public:
 	dcon::text_key text_id{};
 
 	void on_update(sys::state& state) noexcept override {
-		auto layout = text::create_endless_layout(internal_layout,
+		auto layout = text::create_endless_layout(state, internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 						base_data.data.text.font_handle, 0, text::alignment::left, black_text ? text::text_color::black : text::text_color::white, false});
 		auto box = text::open_layout_box(layout, 0);

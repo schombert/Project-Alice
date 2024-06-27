@@ -1005,6 +1005,7 @@ fab_finish_date;A CB gyártása várhatóan $date$-on fejeződik be
 fab_is_paused;A CB gyártás jelenleg szünetel
 macro_builder;Makroépítő
 macro_total_desc;Teljes egységstatisztikák:
+macro_new_template;Új
 macro_switch_type_land;Építs hadsereget
 macro_switch_type_naval;Építs haditengerészetet
 macro_warn_overseas;?Ezt az egységet nem lehet megépíteni külföldön!?!

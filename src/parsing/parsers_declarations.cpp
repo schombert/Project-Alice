@@ -1584,8 +1584,7 @@ void technology_contents::area(association_type, std::string_view value, error_h
 			it != context.outer_context.map_of_tech_folders.end()) {
 		context.outer_context.state.world.technology_set_folder_index(context.id, uint8_t(it->second));
 	} else {
-		err.accumulated_errors +=
-				"Invalid technology folder name " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid technology folder name " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 

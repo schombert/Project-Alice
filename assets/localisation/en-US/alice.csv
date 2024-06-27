@@ -1005,6 +1005,7 @@ fab_finish_date;CB fabrication is expected to finish on $date$
 fab_is_paused;CB fabrication is currently paused
 macro_builder;Macro-builder
 macro_total_desc;Total unit stats:
+macro_new_template;New
 macro_switch_type_land;Build army
 macro_switch_type_naval;Build navy
 macro_warn_overseas;?RCan't build this unit overseas!?!

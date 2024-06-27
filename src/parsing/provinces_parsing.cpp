@@ -262,7 +262,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context) {
 	auto ymd = parse_date(name, 0, err);
-	if(sys::date(ymd, context.outer_context.state.start_date) >= context.outer_context.state.current_date) { // is after the start date
+	if(sys::date(ymd, context.outer_context.state.start_date) > context.outer_context.state.current_date) { // is after the start date
 		gen.discard_group();
 	} else {
 		parse_province_history_file(gen, err, context);
@@ -310,9 +310,6 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
-		if(context.outer_context.state.world.province_ownership_get_nation(context.outer_context.state.world.province_get_province_ownership(context.id))) {
-			err.accumulated_warnings += "Duplicate owner statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		}
 		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -322,9 +319,6 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
-		if(context.outer_context.state.world.province_control_get_nation(context.outer_context.state.world.province_get_province_control(context.id))) {
-			err.accumulated_warnings += "Duplicate controller statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		}
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";

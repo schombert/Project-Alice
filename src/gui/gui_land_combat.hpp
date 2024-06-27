@@ -439,7 +439,7 @@ public:
 				color = text::text_color::black;
 			}
 		}
-		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::right, text::text_color::white, true });
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::right, text::text_color::white, true });
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, text::prettify(uint64_t(total * state.defines.pop_size_per_regiment)), color);
 		text::close_layout_box(contents, box);
