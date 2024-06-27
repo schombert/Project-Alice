@@ -2243,6 +2243,18 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
 
+	// release puppet if subject declares on overlord or vice versa
+	{
+		auto ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
+		if(auto ol = state.world.overlord_get_ruler(ol_rel); ol && ol == primary_attacker)
+			nations::release_vassal(state, ol_rel);
+	}
+	{
+		auto ol_rel = state.world.nation_get_overlord_as_subject(primary_attacker);
+		if(auto ol = state.world.overlord_get_ruler(ol_rel); ol && ol == primary_defender)
+			nations::release_vassal(state, ol_rel);
+	}
+
 	auto real_target = primary_defender;
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
 	if(auto ol = state.world.overlord_get_ruler(target_ol_rel); ol && ol != primary_attacker)
