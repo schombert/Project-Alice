@@ -53,12 +53,11 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
+- `all_core = { ... } (for provinces)`: The ability to use it within provinces to scope all the cores of the province in question, for example if England and Russia have cores on Houston, then this will scope both England and Russia
 - `any_core = { ... }`: Effects dont have `any_core`, but triggers do, so for consistency its supported too.
 - `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
 - `this_bounce = { ... }`: Same as above but with `THIS`.
 - `random_by_modifier = { ... }`: See below for syntax usage
-- `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
-- `custom_tooltip = { ... }:`: See below for syntax usage
 - `build_bank_in_capital = { ... }`: Invalid in vanilla, added for mods to use.
 - `build_university_in_capital = { ... }`: Invalid in vanilla, added for mods to use.
 - `any_owned_province = { ... }`: Providing uniformity with respect to triggers.
@@ -70,6 +69,9 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `province_immigrator = n`: `n` can only be `1` or `-1`. This is the "province selector" used in various mods.
 - `immigrator = n`: Alias of `province_immigrator`.
 - `immigrator_selector = n`: Alias of `province_immigrator`.
+- `if = { ... }`: See below for if-else usage.
+- `else_if = { ... }`: See below.
+- `else = { ... }`: See below.
 
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 

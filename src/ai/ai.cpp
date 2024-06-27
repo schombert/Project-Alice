@@ -2278,9 +2278,8 @@ void place_instance_in_result_war(sys::state& state, std::vector<possible_cb>& r
 	} else if(allowed_countries) {
 		bool liberate = (state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_transfer_provinces) != 0;
 		for(auto other_nation : state.world.in_nation) {
-			if(other_nation != target && other_nation != n) {
-				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(n),
-					trigger::to_generic(other_nation.id))) {
+			if(other_nation != target) {
+				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(other_nation.id))) {
 					if(allowed_states) { // check whether any state within the target is valid for free / liberate
 						for(auto i = target_states.size(); i-- > 0;) {
 							auto si = target_states[i];
@@ -2421,7 +2420,7 @@ void place_instance_in_result(sys::state & state, std::vector<possible_cb>&resul
 	} else if(allowed_countries) {
 		bool liberate = (state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_transfer_provinces) != 0;
 		for(auto other_nation : state.world.in_nation) {
-			if(other_nation != target && other_nation != n) {
+			if(other_nation != target) {
 				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(n),
 					trigger::to_generic(other_nation.id))) {
 					if(allowed_states) { // check whether any state within the target is valid for free / liberate
