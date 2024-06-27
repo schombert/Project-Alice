@@ -2715,7 +2715,7 @@ void make_peace_offers(sys::state& state) {
 					if(w.get_primary_defender().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 						if(war_duration >= 365) {
-							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+							float willingness_factor = float(war_duration - 365) * (10.f / std::max(1.f, float(state.world.nation_get_military_score(w.get_primary_defender())))) / 365.0f;
 							if(defender_surrender || (overall_score > (total_po_cost - willingness_factor) && (-overall_score / 2 + total_po_cost - willingness_factor) < 0)) {
 								send_offer_up_to(w.get_primary_attacker(), w.get_primary_defender(), w, true, int32_t(total_po_cost), false);
 								continue;
@@ -2732,6 +2732,10 @@ void make_peace_offers(sys::state& state) {
 				bool attacker_surrender = has_cores_occupied(state, w.get_primary_attacker());
 				auto total_po_cost = military::defender_peace_cost(state, w);
 				if(w.get_primary_defender().get_is_player_controlled() == false) { // defender makes offer
+					float attacker_milscore = std::max(1.f, float(w.get_primary_attacker().get_military_score()));
+					float defender_milscore = std::max(1.f, float(w.get_primary_attacker().get_military_score()));
+					float compassion_factor = attacker_milscore / defender_milscore;
+
 					if(attacker_surrender || (overall_score <= -100 || (overall_score <= -50 && overall_score <= -total_po_cost * 2))) {
 						send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(-overall_score), false);
 						continue;
@@ -2739,7 +2743,7 @@ void make_peace_offers(sys::state& state) {
 					if(w.get_primary_attacker().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 						if(war_duration >= 365) {
-							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+							float willingness_factor = float(war_duration - 365) * (10.f / std::max(1.f, float(state.world.nation_get_military_score(w.get_primary_attacker())))) / 365.0f;
 							if(attacker_surrender  || (-overall_score > (total_po_cost - willingness_factor) && (overall_score / 2 + total_po_cost - willingness_factor) < 0)) {
 								send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(total_po_cost), false);
 								continue;
@@ -2793,7 +2797,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(war_duration < 365) {
 			return false;
 		}
-		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+		float willingness_factor = float(war_duration - 365) * (10.f / std::max(1.f, float(state.world.nation_get_military_score(n)))) / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && (overall_score * 2 - overall_po_value - willingness_factor) < 0)
 				return true;
@@ -2900,7 +2904,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(war_duration < 365) {
 			return false;
 		}
-		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
+		float willingness_factor = float(war_duration - 365) * (10.f / std::max(1.f, float(state.world.nation_get_military_score(n)))) / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
 				return true;
