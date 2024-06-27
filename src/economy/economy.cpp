@@ -86,6 +86,26 @@ int32_t previous_price_record_index(sys::state& state) {
 	return ((state.current_date.value >> 4) + price_history_length - 1) % price_history_length;
 }
 
+int32_t most_recent_gdp_record_index(sys::state& state) {
+	auto date = state.current_date.to_ymd(state.start_date);
+	return (date.year * 4 + date.month / 3) % gdp_history_length;
+}
+int32_t previous_gdp_record_index(sys::state& state) {
+	auto date = state.current_date.to_ymd(state.start_date);
+	return ((date.year * 4 + date.month / 3) + gdp_history_length - 1) % gdp_history_length;
+}
+
+float ideal_pound_conversion_rate(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
+		+ 0.1f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker);
+}
+
+float gdp_adjusted(sys::state& state, dcon::nation_id n) {
+	float raw = state.world.nation_get_gdp(n);
+	float ideal_pound = ideal_pound_conversion_rate(state, n);
+	return raw / ideal_pound;
+}
+
 float full_spending_cost(sys::state& state, dcon::nation_id n);
 void populate_army_consumption(sys::state& state);
 void populate_navy_consumption(sys::state& state);
