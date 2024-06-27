@@ -2111,7 +2111,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 
 bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
 	// Copied from commands.cpp:can_fabricate_cb()
-	// if(from == target)
+	if(from == target)
 		return false;
 	if(state.world.nation_get_constructing_cb_type(from))
 		return false;
