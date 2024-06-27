@@ -1252,7 +1252,8 @@ class province_rgo_employment_progress_icon : public opaque_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province = retrieve<dcon::province_id>(state, parent);
-		auto employment_ratio = state.world.province_get_rgo_employment(province);
+		auto max_emp = province::land_maximum_employment(state, province);
+		auto employment_ratio = province::land_employment(state, province) / (max_emp + 1.f);
 		frame = int32_t(10.f * employment_ratio);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1261,8 +1262,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
-		auto max_emp = economy::rgo_total_max_employment(state, owner, prov_id);
-		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
+		auto max_emp = province::land_maximum_employment(state, prov_id);
+		auto employment_ratio = province::land_employment(state, prov_id) / (max_emp + 1.f);
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
 		float const min_wage_factor = economy::pop_min_wage_factor(state, owner);
@@ -1274,9 +1275,6 @@ public:
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
-		
-		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
-		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
 
 		text::close_layout_box(contents, box);
 	}

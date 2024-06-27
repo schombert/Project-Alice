@@ -1585,7 +1585,7 @@ class province_rgo_workers_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::prettify(int32_t(province::rgo_employment(state, province_id))));
+		set_text(state, text::prettify(int32_t(province::land_employment(state, province_id))));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1623,13 +1623,33 @@ public:
 			text::add_to_layout_box(state, contents, max_employment_box, max_employment);
 			text::add_to_layout_box(state, contents, expected_profit_box, text::format_money(expected_profit));
 
-			//text::close_layout_box(contents, name_box);
-			//text::close_layout_box(contents, employment_box);
-			//text::close_layout_box(contents, max_employment_box);
-
 			text::add_to_layout_box(state, contents, base_box, std::string(" "));
 			text::close_layout_box(contents, base_box);
 		});
+
+		auto rgo_employment = state.world.province_get_subsistence_employment(p);
+		auto current_employment = int64_t(rgo_employment);
+		auto max_employment = int64_t(economy::subsistence_max_pseudoemployment(state, n, p));
+		auto expected_profit = 0.f;
+
+		auto base_box = text::open_layout_box(contents);
+		auto name_box = base_box;
+		name_box.x_size = 75;
+		auto employment_box = base_box;
+		employment_box.x_position += 120.f;
+		auto max_employment_box = base_box;
+		max_employment_box.x_position += 180.f;
+		auto expected_profit_box = base_box;
+		expected_profit_box.x_position += 250.f;
+
+		text::add_to_layout_box(state, contents, name_box, std::string_view("Subsistence"));
+
+		text::add_to_layout_box(state, contents, employment_box, current_employment);
+		text::add_to_layout_box(state, contents, max_employment_box, max_employment);
+		text::add_to_layout_box(state, contents, expected_profit_box, text::format_money(expected_profit));
+
+		text::add_to_layout_box(state, contents, base_box, std::string(" "));
+		text::close_layout_box(contents, base_box);
 
 		active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, false);
 		if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)

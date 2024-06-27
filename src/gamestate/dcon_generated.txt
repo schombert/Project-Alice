@@ -1535,6 +1535,21 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ landowners_share }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ capitalists_share }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ subsistence_employment }
+		type{ float }
+		tag{ save }
+	}
+	property{
 		name{ rgo_profit_per_good }
 		type{ array{commodity_id}{float} }
 		tag{ save }
