@@ -452,8 +452,17 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
+float land_maximum_employment(sys::state& state, dcon::province_id id) {
+	auto owner = state.world.province_get_nation_from_province_ownership(id);
+	return economy::rgo_total_max_employment(state, owner, id) + economy::subsistence_max_pseudoemployment(state, owner, id);
+}
+float land_employment(sys::state& state, dcon::province_id id) {
+	auto owner = state.world.province_get_nation_from_province_ownership(id);
+	return economy::rgo_total_employment(state, owner, id) + state.world.province_get_subsistence_employment(id);
+}
 float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
-	return economy::rgo_total_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
+	auto owner = state.world.province_get_nation_from_province_ownership(id);
+	return economy::rgo_total_max_employment(state, owner, id);
 }
 float rgo_employment(sys::state& state, dcon::province_id id) {
 	return economy::rgo_total_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
