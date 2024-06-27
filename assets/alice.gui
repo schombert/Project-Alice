@@ -3894,6 +3894,83 @@ guiTypes = {
 			format = left
 		}
 	}
+    
+    iconType = {
+        name ="gdp_ledger_linegraph_bg"
+        spriteType = "GFX_ledger_linegraph_bg"
+        position = { x= 63 y = 151 }
+        Orientation = "UPPER_LEFT"
+    }
+    
+    windowType = {
+			name = "gdp_ledger_linegraphs"
+			backGround =""
+			position = { x = 80 y = 130 }
+			size = { x=690 y = 540 }
+			moveable = 0
+			dontRender = ""
+			horizontalBorder = "0"
+			verticalBorder = ""
+			fullScreen = no
+		}
+		
+    windowType = {
+        name = "gdp_ledger_linegraph_legend"
+        backGround =""
+        position = { x = 830 y = 153 }
+        size = { x=200 y = 540 }
+        moveable = 0
+        dontRender = ""
+        horizontalBorder = "0"
+        verticalBorder = ""
+        fullScreen = no
+        
+        listboxType = {
+            name ="legend_nations_list"
+            position = { x = 0 y = 0 }
+            backGround=""
+            size = { x=208 y = 528 }
+            Orientation = "UPPER_LEFT"
+            spacing = 2
+            scrollbartype = "standardlistbox_slider"
+            borderSize = {x = 1 y = 1}
+        }
+    }
+    
+    windowType = {
+		name = "ledger_nations_legend_entry"
+		backGround=""
+		position = { x=0 y=-0 }	
+		size = { x=200 y=24 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no
+		Orientation = "UPPER_LEFT"
+		
+		checkboxType = {
+			name = "nation_ledger_legend_checkbox"	
+			position = {x = 24 y = 1 }
+			quadTextureSprite ="GFX_checkbox_default"
+		}
+		
+		iconType = {
+			name ="nation_ledger_legend_plupp"
+			spriteType = "GFX_politics_party_plupp"
+			position = { x= 0 y = 0 }
+		}
+		
+		instantTextBoxType = { 
+			name = "nation_ledger_default_textbox"
+			position = { x = 47 y = 5 }
+			font = "Arial12_bold_black"
+			text = " "	
+			maxWidth = 160
+			maxHeight = 16
+			fixedsize = yes
+		}
+	}
 
 	checkboxType = {
 		name = "alice_debt_checkbox"
