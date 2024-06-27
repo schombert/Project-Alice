@@ -179,7 +179,6 @@ bm_font const& get_bm_font(sys::state& state, uint16_t font_handle) {
 		auto root = get_root(state.common_fs);
 		auto gfx_dir = open_directory(root, NATIVE("gfx"));
 		auto font_dir = open_directory(gfx_dir, NATIVE("fonts"));
-
 		auto font_def = open_file(font_dir, simple_fs::win1250_to_native(fname + ".fnt"));
 		auto font_image = open_file(font_dir, simple_fs::win1250_to_native(fname + ".tga"));
 		if(!bool(font_def) || !bool(font_image)) {
