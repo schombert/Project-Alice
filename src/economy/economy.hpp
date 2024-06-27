@@ -120,6 +120,7 @@ constexpr inline dcon::commodity_id money(0);
 inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
+inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float rgo_owners_cut = 0.20f;
 
 void presimulate(sys::state& state);
@@ -248,6 +249,10 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
 int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
+int32_t most_recent_gdp_record_index(sys::state& state);
+int32_t previous_gdp_record_index(sys::state& state);
+
+float gdp_adjusted(sys::state& state, dcon::nation_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);
