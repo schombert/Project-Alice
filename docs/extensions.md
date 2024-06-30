@@ -72,6 +72,8 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `if = { ... }`: See below for if-else usage.
 - `else_if = { ... }`: See below.
 - `else = { ... }`: See below.
+- `add_country_modifier = modifier`: Shorthand for `add_country_modifier = { name = modifier duration = -1 }`
+- `add_province_modifier = modifier`: Shorthand for `add_province_modifier = { name = modifier duration = -1 }`
 
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 

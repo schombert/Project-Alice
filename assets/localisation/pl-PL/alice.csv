@@ -909,12 +909,12 @@ modifier_province_selector;Selektor prowincji
 modifier_province_immigrator;Imigrant z prowincji
 modifier_conversion_rate;Współczynnik konwersji
 modifier_attrition;Ścieranie
-chat_player_joins;Dołączył @$x$ $nazwa_gracza$
-chat_player_leaves;Pozostało @$x$ $nazwa_gracza$
-chat_player_ban;@$x$ $playername$ został zbanowany
-chat_player_kick;@$x$ $playername$ został wyrzucony
-chat_player_switch;@$x$ $playername$ wybrał $country$
-chat_player_oos;@$x$ $playername$ przeszedł OOS!
+chat_player_joins;Dołączył $nazwa_gracza$
+chat_player_leaves;Pozostało $nazwa_gracza$
+chat_player_ban;$playername$ został zbanowany
+chat_player_kick;$playername$ został wyrzucony
+chat_player_switch;$playername$ wybrał $country$
+chat_player_oos;$playername$ przeszedł OOS!
 alice_status_stream;Zapisz postęp $wartość$
 alice_play_pending_client;$playername$ nie jest jeszcze gotowy
 alice_stockpile_button_0_0;Krajowe zapasy stanowią dodatek do zwykłej działalności gospodarczo-biznesowej, gdzie ludzie widzą, jak linie „Ggreen” W rosną, a linie „Rred” W maleją, jak zwykle „Jestem” „Ynot” to wykres liniowy, więc głównie pozostać niezauważonym :)
