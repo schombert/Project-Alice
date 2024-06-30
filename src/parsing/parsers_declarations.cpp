@@ -2743,6 +2743,20 @@ void country_history_file::culture(association_type, std::string_view value, err
 	}
 }
 
+void country_history_file::remove_culture(association_type, std::string_view value, error_handler& err, int32_t line,
+		country_history_context& context) {
+	if(!context.holder_id)
+		return;
+
+	if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
+			it != context.outer_context.map_of_culture_names.end()) {
+		context.outer_context.state.world.nation_set_accepted_cultures(context.holder_id, it->second, false);
+	} else {
+		err.accumulated_errors +=
+			"invalid culture " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 void country_history_file::religion(association_type, std::string_view value, error_handler& err, int32_t line,
 		country_history_context& context) {
 	if(auto it = context.outer_context.map_of_religion_names.find(std::string(value)); it != context.outer_context.map_of_religion_names.end()) {
