@@ -909,12 +909,12 @@ modifier_province_selector;Provinciekiezer
 modifier_province_immigrator;Immigrant uit de provincie
 modifier_conversion_rate;Conversiepercentage
 modifier_attrition;Slijtage
-chat_player_joins;@$x$ $spelernaam$ is lid geworden
-chat_player_leaves;@$x$ $spelernaam$ over
-chat_player_ban;@$x$ $spelernaam$ is verbannen
-chat_player_kick;@$x$ $spelernaam$ is geschopt
-chat_player_switch;@$x$ $playername$ heeft $country$ gekozen
-chat_player_oos;@$x$ $playername$ heeft OOSed!
+chat_player_joins;$spelernaam$ is lid geworden
+chat_player_leaves;$spelernaam$ over
+chat_player_ban;$spelernaam$ is verbannen
+chat_player_kick;$spelernaam$ is geschopt
+chat_player_switch;$playername$ heeft $country$ gekozen
+chat_player_oos;$playername$ heeft OOSed!
 alice_status_stream;Bewaar voortgang $value$
 alice_play_pending_client;$playername$ is nog niet klaar
 alice_stockpile_button_0_0;Nationale voorraden fungeren als aanvulling op uw gebruikelijke economisch-zakelijke activiteiten, waar mensen 'Ggroene' W-lijnen omhoog zien gaan en 'Rred' W-lijnen omlaag gaan, zoals gewoonlijk ben ik 'Ynot'W een lijngrafiek, dus ik ben meestal onopgemerkt gaan :)

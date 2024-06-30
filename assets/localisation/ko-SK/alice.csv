@@ -909,12 +909,12 @@ modifier_province_selector;지방 선택기
 modifier_province_immigrator;지방 이민자
 modifier_conversion_rate;전환율
 modifier_attrition;마찰
-chat_player_joins;@$x$ $playername$님이 합류했습니다
-chat_player_leaves;@$x$ $playername$ 남음
-chat_player_ban;@$x$ $playername$이(가) 차단되었습니다
-chat_player_kick;@$x$ $playername$이(가) 추방되었습니다
-chat_player_switch;@$x$ $playername$님이 $country$을 선택했습니다.
-chat_player_oos;@$x$ $playername$이 OOS를 받았습니다!
+chat_player_joins;$playername$님이 합류했습니다
+chat_player_leaves;$playername$ 남음
+chat_player_ban;$playername$이(가) 차단되었습니다
+chat_player_kick;$playername$이(가) 추방되었습니다
+chat_player_switch;$playername$님이 $country$을 선택했습니다.
+chat_player_oos;$playername$이 OOS를 받았습니다!
 alice_status_stream;진행 상황 $value$ 저장
 alice_play_pending_client;$playername$은(는) 아직 준비되지 않았습니다.
 alice_stockpile_button_0_0;국가 비축량은 일반적인 경제-비즈니스 활동에 대한 조미료 역할을 합니다. 사람들은 ?Ggreen?W 선이 올라가고 ?Rred?W 선이 내려가는 것을 봅니다. 평소와 같이 나는 ?Ynot?W 선 그래프이므로 대부분 눈에 띄지 않게 가세요 :)

@@ -3298,6 +3298,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_luxury_needs_weights(world.commodity_size());
 	world.nation_resize_effective_prices(world.commodity_size());
 	world.commodity_resize_price_record(economy::price_history_length);
+	world.nation_resize_gdp_record(economy::gdp_history_length);
 
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
@@ -4404,6 +4405,13 @@ void state::single_game_tick() {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
 			c.set_price_record(index, c.get_current_price());
+		}
+	}
+
+	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
+		auto index = economy::most_recent_gdp_record_index(*this);
+		for(auto n : world.in_nation) {
+			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
 		}
 	}
 

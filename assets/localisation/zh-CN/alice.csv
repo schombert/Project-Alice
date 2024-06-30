@@ -909,12 +909,12 @@ modifier_province_selector;省选区
 modifier_province_immigrator;省移民
 modifier_conversion_rate;传教率
 modifier_attrition;损耗
-chat_player_joins;@$x$$playername$加入
-chat_player_leaves;@$x$$playername$离开
-chat_player_ban;@$x$$playername$被封禁
-chat_player_kick;@$x$$playername$被踢除
-chat_player_switch;@$x$$playername$选择了$country$
-chat_player_oos;@$x$$playername$已断开连接！
+chat_player_joins;$playername$加入
+chat_player_leaves;$playername$离开
+chat_player_ban;$playername$被封禁
+chat_player_kick;$playername$被踢除
+chat_player_switch;$playername$选择了$country$
+chat_player_oos;$playername$已断开连接！
 alice_status_stream;存档处理进度：$value$
 alice_play_pending_client;$playername$未准备好
 alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在?G绿色?W 线看到价格上涨, and ?Rred?W 红线下降, 像往常一样 我 ?Y不是?W 一个折线图所以不总是被注意到: )
