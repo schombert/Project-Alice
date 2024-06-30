@@ -4447,8 +4447,6 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
@@ -4477,8 +4475,6 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
@@ -4510,8 +4506,6 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	post_chat_message(state, m);
@@ -4543,8 +4537,6 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	post_chat_message(state, m);
@@ -4595,8 +4587,6 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);

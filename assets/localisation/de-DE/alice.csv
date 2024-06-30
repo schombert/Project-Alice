@@ -909,12 +909,12 @@ modifier_province_selector;Provinzauswahl
 modifier_province_immigrator;Einwanderer aus der Provinz
 modifier_conversion_rate;Wechselkurs
 modifier_attrition;Attrition
-chat_player_joins;@$x$ $playername$ ist beigetreten
-chat_player_leaves;@$x$ $playername$ übrig
-chat_player_ban;@$x$ $playername$ wurde gesperrt
-chat_player_kick;@$x$ $playername$ wurde gekickt
-chat_player_switch;@$x$ $playername$ hat $country$ ausgewählt
-chat_player_oos;@$x$ $playername$ hat OOSed!
+chat_player_joins;$playername$ ist beigetreten
+chat_player_leaves;$playername$ übrig
+chat_player_ban;$playername$ wurde gesperrt
+chat_player_kick;$playername$ wurde gekickt
+chat_player_switch;$playername$ hat $country$ ausgewählt
+chat_player_oos;$playername$ hat OOSed!
 alice_status_stream;Speichern Sie den Fortschritt $value$
 alice_play_pending_client;$playername$ ist noch nicht fertig
 alice_stockpile_button_0_0;Nationale Vorräte fungieren als Gewürz für Ihre üblichen Wirtschafts- und Geschäftsaktivitäten, bei denen die Leute sehen, dass die „Ggrünen“ W-Linien nach oben und die „RRoten“ W-Linien nach unten gehen. Wie üblich bin ich kein Liniendiagramm, also meistens unbemerkt bleiben :)

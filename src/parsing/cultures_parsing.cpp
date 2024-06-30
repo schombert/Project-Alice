@@ -275,7 +275,7 @@ void make_tech_folder_list(std::string_view name, token_generator& gen, error_ha
 		cat = ::culture::tech_category::military_theory;
 	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "population_tech")) {
 		cat = ::culture::tech_category::population;
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "diplomacy")) {
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "diplomacy_tech")) {
 		cat = ::culture::tech_category::diplomacy;
 	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "flavor_tech")) {
 		cat = ::culture::tech_category::flavor;

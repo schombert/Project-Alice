@@ -909,12 +909,12 @@ modifier_province_selector;Selettore della provincia
 modifier_province_immigrator;Immigrato della provincia
 modifier_conversion_rate;Tasso di conversione
 modifier_attrition;Attrito
-chat_player_joins;@$x$ $playername$ si è iscritto
-chat_player_leaves;@$x$ $playername$ rimasto
-chat_player_ban;@$x$ $playername$ è stato bannato
-chat_player_kick;@$x$ $playername$ è stato espulso
-chat_player_switch;@$x$ $playername$ ha scelto $country$
-chat_player_oos;@$x$ $playername$ è fuori servizio!
+chat_player_joins;$playername$ si è iscritto
+chat_player_leaves;$playername$ rimasto
+chat_player_ban;$playername$ è stato bannato
+chat_player_kick;$playername$ è stato espulso
+chat_player_switch;$playername$ ha scelto $country$
+chat_player_oos;$playername$ è fuori servizio!
 alice_status_stream;Salva i progressi $value$
 alice_play_pending_client;$playername$ non è ancora pronto
 alice_stockpile_button_0_0;Le scorte nazionali funzionano come un condimento per le vostre consuete attività economico-commerciali, in cui le persone vedono le linee ?Ggreen?W salire e le linee ?Rred?W scendere, come al solito sono ?Ynot?W un grafico a linee, quindi per lo più Andare inosservato :)

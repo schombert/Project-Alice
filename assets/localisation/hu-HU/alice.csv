@@ -909,12 +909,12 @@ modifier_province_selector;Tartományválasztó
 modifier_province_immigrator;Tartományi bevándorló
 modifier_conversion_rate;Konverziós arány
 modifier_attrition;Kopás
-chat_player_joins;@$x$ $playername$ csatlakozott
-chat_player_leaves;@$x$ $playername$ maradt
-chat_player_ban;@$x$ $playername$ kitiltva lett
-chat_player_kick;@$x$ $playername$ rúgott
-chat_player_switch;@$x$ $playername$ a $country$ lehetőséget választotta
-chat_player_oos;@$x$ $playername$ OOS-t kapott!
+chat_player_joins;$playername$ csatlakozott
+chat_player_leaves;$playername$ maradt
+chat_player_ban;$playername$ kitiltva lett
+chat_player_kick;$playername$ rúgott
+chat_player_switch;$playername$ a $country$ lehetőséget választotta
+chat_player_oos;$playername$ OOS-t kapott!
 alice_status_stream;A folyamat mentése $érték$
 alice_play_pending_client;$playername$ még nincs kész
 alice_stockpile_button_0_0;"A nemzeti készletek az Ön szokásos gazdasági-üzleti tevékenységeinek fűszereként funkcionálnak, ahol az emberek azt látják, hogy a ""Ggreen"" W vonalak felfelé, a ""Rred"" W vonalak pedig lefelé haladnak, a szokásos módon én nem vagyok vonaldiagram, így többnyire észrevétlen marad :)"
