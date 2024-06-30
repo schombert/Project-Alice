@@ -910,7 +910,6 @@ public:
 	float line_height = 0.f;
 	int32_t current_line = 0;
 	int32_t visible_lines = 0;
-	text::layout internal_layout;
 
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;

@@ -102,7 +102,7 @@ static void default_logfn(pcp_loglvl_e mode, const char *msg)
             prefix, msg);
 }
 
-external_logger logger=default_logfn;
+static external_logger logger=default_logfn;
 
 void pcp_set_loggerfn(external_logger ext_log)
 {

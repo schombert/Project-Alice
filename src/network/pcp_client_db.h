@@ -66,14 +66,14 @@ struct flow_key_data {
     struct in6_addr src_ip;
     struct in6_addr pcp_server_ip;
     struct pcp_nonce nonce;
-    union {
+    //union {
         struct mp_keydata {
             uint8_t protocol;
             uint16_t src_port;
             struct in6_addr dst_ip;
             uint16_t dst_port;
         } map_peer;
-    };
+   // };
 };
 
 typedef struct pcp_recv_msg {

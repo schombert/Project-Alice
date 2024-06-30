@@ -103,7 +103,7 @@ typedef struct pcp_flow_state_trans {
     handle_flow_state_event handler;
 } pcp_flow_state_trans_t;
 
-pcp_flow_state_trans_t flow_transitions[]={
+static pcp_flow_state_trans_t flow_transitions[]={
         {pfs_any, pfs_wait_resp, fhndl_waitresp},
         {pfs_wait_resp, pfs_send, fhndl_resend},
         {pfs_any, pfs_send, fhndl_send},
@@ -123,7 +123,7 @@ typedef struct pcp_flow_state_event {
     pcp_flow_state_e new_state;
 } pcp_flow_state_events_t;
 
-pcp_flow_state_events_t flow_events_sm[]={
+static pcp_flow_state_events_t flow_events_sm[]={
         {pfs_any, fev_send, pfs_send},
         {pfs_wait_for_server_init, fev_server_initialized, pfs_send},
         {pfs_wait_resp, fev_res_success, pfs_wait_for_lifetime_renew},
@@ -966,7 +966,7 @@ typedef struct pcp_server_state_machine {
     handle_server_state_event handler;
 } pcp_server_state_machine_t;
 
-pcp_server_state_machine_t server_sm[]={{pss_any, pcpe_terminate,
+static pcp_server_state_machine_t server_sm[]={{pss_any, pcpe_terminate,
         pcp_terminate_server},
 // -> allocated
         {pss_ping, pcpe_any, handle_server_ping},

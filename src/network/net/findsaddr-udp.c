@@ -77,7 +77,7 @@ const char *findsaddr(const struct sockaddr_in *to,
     socklen_t len;
 
     auto s=socket(AF_INET, SOCK_DGRAM, 0);
-    if (s == INVALID_SOCKET)
+    if (s == (unsigned long long)(INVALID_SOCKET))
         return ("failed to open DGRAM socket for src addr selection.");
     errstr=NULL;
     len=sizeof(struct sockaddr_in);
@@ -124,7 +124,7 @@ const char *findsaddr6(const struct sockaddr_in6 *to,
     }
 
     auto s=socket(AF_INET6, SOCK_DGRAM, 0);
-    if (s == INVALID_SOCKET)
+    if (s == (unsigned long long)(INVALID_SOCKET))
         return ("failed to open DGRAM socket for src addr selection.");
 
     errstr=NULL;

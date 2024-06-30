@@ -214,7 +214,7 @@ static inline void createNonce(struct pcp_nonce *nonce_field)
 #ifndef HAVE_STRNDUP
 static inline char *pcp_strndup(const char *s, size_t size) {
   char *ret;
-  char *end=(char*)memchr(s, 0, size);
+  char const* end=(char const*)memchr(s, 0, size);
 
   if (end) {
     /* Length + 1 */
