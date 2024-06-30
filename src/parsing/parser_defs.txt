@@ -1178,6 +1178,7 @@ country_history_file
 	#any                            value      text                              member_fn
 	primary_culture                 value      text                              member_fn
 	culture                         value      text                              member_fn
+	remove_culture					value	   text								 member_fn
 	religion                        value      text                              member_fn
 	government                      value      text                              member_fn
 	plurality                       value      float                             member_fn

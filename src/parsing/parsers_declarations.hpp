@@ -2597,6 +2597,7 @@ struct country_history_file {
 	void primary_culture(association_type, std::string_view value, error_handler& err, int32_t line,
 			country_history_context& context);
 	void culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void remove_culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void religion(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void government(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void plurality(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
