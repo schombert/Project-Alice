@@ -2886,6 +2886,7 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 #include "trigger_parsing.hpp"
 #include "effect_parsing.hpp"
 #include "cultures_parsing.hpp"
+#include "save_parsing.hpp"
 #include "parser_defs_generated.hpp"
 #include "tutorial_parser_defs_generated.hpp"
 #include "news_parser_defs_generated.hpp"

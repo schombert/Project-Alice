@@ -47,7 +47,7 @@ save_war_dated_history
 	add_defender		value		text					member_fn
 
 save_war_history
-	#any				group		save_war_dated_history		member_fn
+	#any				group		save_war_dated_history	member_fn
 
 save_wargoal
 	casus_belli			value		text				member_fn
@@ -127,7 +127,7 @@ save_rgo
 	employment			group		none				discard
 	last_income			value		date				discard
 
-save_army_path
+save_unit_path
 	#free				value		int					member_fn
 
 save_regiment
@@ -146,7 +146,7 @@ save_army
 	name				value		text				member_fn
 	previous			value		int					member_fn
 	movement_progress	value		float				member_fn
-	path				group		save_army_path		member_fn
+	path				group		save_unit_path		member_fn
 	location			value		int					member_fn
 	dig_in_last_date	value		date				member_fn
 	supplies			value		float				member_fn
@@ -155,7 +155,6 @@ save_army
 save_ship
 	id					group		save_typed_id		member_fn
 	name				value		text				member_fn
-	pop					group		save_typed_id		member_fn
 	organisation		value		float				member_fn
 	strength			value		float				member_fn
 	experience			value		float				member_fn
@@ -167,11 +166,10 @@ save_navy
 	name				value		text				member_fn
 	previous			value		int					member_fn
 	movement_progress	value		float				member_fn
-	path				group		save_army_path		member_fn
+	path				group		save_unit_path		member_fn
 	location			value		int					member_fn
-	dig_in_last_date	value		date				member_fn
 	supplies			value		float				member_fn
-	regiment			group		save_ship			member_fn
+	ship				group		save_ship			member_fn
 
 save_province
 	name					value		text				member_fn
@@ -197,17 +195,21 @@ save_upper_house
 	#any				value		float				member_fn
 
 save_tax
-	current				value		float				member_fn
+	current				value		float				member
+	settings			value		float				member (current)
+	temp_settings		value		float				member (current)
 	tax_income			group		none				discard
 	tax_eff				group		none				discard
 	total				value		float				discard
+	factor				value		float				discard
+	reserve				value		float				discard
 	rangelimitmax		value		float				discard
 	rangelimitmin		value		float				discard
 	max_tax				value		int					discard
 	min_tax				value		int					discard
 
 save_relations
-	value				value		float				discard
+	value				value		float				member
 
 save_country
 	flags					group		save_flags			member_fn
@@ -229,7 +231,7 @@ save_country
 	crime_fighting			group		save_tax			member_fn
 	social_spending			group		save_tax			member_fn
 	military_spending		group		save_tax			member_fn
-	overseas_penalty		value		float				member_fn
+	overseas_penalty		value		float				discard
 	leadership				value		float				member_fn
 	schools					value		text				member_fn
 	primary_culture			value		text				member_fn
@@ -239,15 +241,15 @@ save_country
 	nationalvalue			value		text				member_fn
 	civilized				value		bool				member_fn
 	badboy					value		float				member_fn
-	domestic_supply_pool	group		none				member_fn
-	domestic_demand_pool	group		none				member_fn
-	actual_sold_domestic	group		none				member_fn
-	saved_country_supply	group		none				member_fn
-	max_bought				group		none				member_fn
-	national_focus			group		none				member_fn
-	expenses				group		none				member_fn
-	incomes					group		none				member_fn
 	suppression				value		float				member_fn
+	domestic_supply_pool	group		none				discard
+	domestic_demand_pool	group		none				discard
+	actual_sold_domestic	group		none				discard
+	saved_country_supply	group		none				discard
+	max_bought				group		none				discard
+	national_focus			group		none				discard
+	expenses				group		none				discard
+	incomes					group		none				discard
 	tax_base				value		float				discard
 	active_party			value		int					discard
 	auto_assign_leaders		value		bool				discard
@@ -270,9 +272,9 @@ save_file
 	date				value		date				member_fn
 	player				value		tag					member_fn
 	government			value		int					member_fn
-	automate_trade		value		bool				member_fn
+	automate_trade		value		bool				discard
 	flags				group		save_flags			member_fn
-	start_date			value		date				member_fn
+	start_date			value		date				discard
 	diplomacy			group		save_diplomacy		member_fn
 	active_war			group		save_war			member_fn
 	automate_sliders	value		bool				discard
@@ -289,4 +291,4 @@ save_file
 	news_collector		group		none				discard
 	crisis_manager		group		none				discard
 	region				group		none				discard
-	#any				group		none				discard
+	#any				group		save_province		discard
