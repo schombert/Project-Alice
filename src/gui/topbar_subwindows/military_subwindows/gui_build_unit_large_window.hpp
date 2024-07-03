@@ -961,16 +961,18 @@ public:
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
 									info.pop_info = pl.get_pop();
-									info.num_possible = int16_t(military::regiments_possible_from_pop(state, pl.get_pop()));
+									auto pop_possible = int16_t(military::regiments_possible_from_pop(state, pl.get_pop()));
 									const auto lc = pl.get_pop().get_province_land_construction_as_pop();
-									info.num_possible -= int16_t(lc.end() - lc.begin());
+									pop_possible -= int16_t(lc.end() - lc.begin());
 									const auto ar = pl.get_pop().get_regiment_source();
-									info.num_possible -= int16_t(ar.end() - ar.begin());
+									pop_possible -= int16_t(ar.end() - ar.begin());
+									info.num_possible += std::max(pop_possible, int16_t(0));
 									break;
 								}
 							}
 						}
-						row_contents.push_back(info);
+						if(info.num_possible > 0)
+							row_contents.push_back(info);
 					}
 				});
 			} else if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid)) {
