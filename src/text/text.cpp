@@ -984,7 +984,9 @@ std::string format_float(float num, size_t digits) {
 	default:
 		// fallthrough
 	case 3:
-		if(num > 0.f && num < 0.001f) {
+		if(num == 0.f) {
+			return std::string("0.000");
+		} else if(num > 0.f && num < 0.001f) {
 			return std::string(">0.000");
 		} else if(num > -0.001f && num < 0.f) {
 			return std::string("<0.000");
@@ -992,7 +994,9 @@ std::string format_float(float num, size_t digits) {
 		snprintf(buffer, sizeof(buffer), "%.3f", num);
 		break;
 	case 2:
-		if(num > 0.f && num < 0.01f) {
+		if(num == 0.f) {
+			return std::string("0.00");
+		} else if(num > 0.f && num < 0.01f) {
 			return std::string(">0.00");
 		} else if(num > -0.01f && num < 0.f) {
 			return std::string("<0.00");
@@ -1000,7 +1004,9 @@ std::string format_float(float num, size_t digits) {
 		snprintf(buffer, sizeof(buffer), "%.2f", num);
 		break;
 	case 1:
-		if(num > 0.f && num < 0.1f) {
+		if(num == 0.f) {
+			return std::string("0.0");
+		} else if(num > 0.f && num < 0.1f) {
 			return std::string(">0.0");
 		} else if(num > -0.1f && num < 0.f) {
 			return std::string("<0.0");
@@ -1008,7 +1014,9 @@ std::string format_float(float num, size_t digits) {
 		snprintf(buffer, sizeof(buffer), "%.1f", num);
 		break;
 	case 0:
-		if(num > 0.f && num < 1.f) {
+		if(num == 0.f) {
+			return std::string("0");
+		} else if(num > 0.f && num < 1.f) {
 			return std::string(">0");
 		} else if(num > -1.f && num < 0.f) {
 			return std::string("<0");
