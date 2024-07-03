@@ -1526,6 +1526,22 @@ public:
 				provinces.push_back(si.get_state().get_capital());
 			}
 		}
+
+		state.world.for_each_state_definition([&](dcon::state_definition_id sdef) {
+			if(province::can_start_colony(state, nation_id, sdef)) {
+				dcon::province_id province;
+				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
+					if(!p.get_province().get_nation_from_province_ownership()) {
+						province = p.get_province().id;
+						break;
+					}
+				}
+				if(province) {
+					provinces.push_back(province);
+				}
+			}
+		});
+
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
 			if(state.world.state_definition_get_colonization_stage(sdef) == 3) { //make protectorate
@@ -1566,6 +1582,11 @@ public:
 				break;
 			}
 		}
+		state.world.for_each_state_definition([&](dcon::state_definition_id sdef) {
+			if(province::can_start_colony(state, nation_id, sdef)) {
+				any_integratable = true;
+			}
+		});
 		if(nations::can_expand_colony(state, nation_id) || any_integratable) {
 			return 0;
 		} else if(nations::is_losing_colonial_race(state, nation_id)) {
@@ -1593,6 +1614,13 @@ public:
 				is_empty = false;
 			}
 		}
+
+		state.world.for_each_state_definition([&](dcon::state_definition_id sdef) {
+			if(province::can_start_colony(state, nation_id, sdef)) {
+				text::add_line(state, contents, "alice_countryalert_colonialgood_start", text::variable_type::region, sdef);
+				is_empty = false;
+			}
+		});
 
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
