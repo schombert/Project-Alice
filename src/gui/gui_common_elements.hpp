@@ -1185,6 +1185,16 @@ public:
 			text::add_line(state, contents, "technologyview_no_research_tooltip");
 		}
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return image_element_base::test_mouse(state, x, y, type);
+	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return image_element_base::on_lbutton_down(state, x, y, mods);
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return image_element_base::on_rbutton_down(state, x, y, mods);
+	}
 };
 
 class standard_state_instance_button : public button_element_base {

@@ -1859,7 +1859,7 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
-	simple_text_element_base* income_text = nullptr;
+	invisible_element* income_text = nullptr;
 	simple_text_element_base* expenses_text = nullptr;
 	simple_text_element_base* savings_text = nullptr;
 	std::vector<element_base*> promotion_windows;
@@ -1960,9 +1960,19 @@ public:
 			return make_element_by_type<pop_literacy_text>(state, id);
 		} else if(name == "icon_religion") {
 			return make_element_by_type<popwin_religion_type>(state, id);
+		} else if(name == "money_value") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
+			//income_text = ptr.get();
+			return ptr;
 		} else if(name == "income_value") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<invisible_element>(state, id);
 			income_text = ptr.get();
+			return ptr;
+		} else if(name == "money_label") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
+			return ptr;
+		} else if(name == "income_label") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
 			return ptr;
 		} else if(name == "expenses_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -2058,13 +2068,22 @@ public:
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
 			auto kf = state.world.commodity_get_key_factory(cid);
 			if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(nat_id, kf))) {
-				auto lfn = state.world.pop_type_get_life_needs(fat_id.get_poptype(), cid);
+				auto lfn = state.world.pop_type_get_life_needs(fat_id.get_poptype(), cid)
+					* fat_id.get_size()
+					/ state.defines.alice_needs_scaling_factor
+					* state.defines.alice_lf_needs_scale;
 				if(lfn > 0.f)
 					life_needs_list->row_contents.emplace_back(cid, lfn);
-				auto evn = state.world.pop_type_get_everyday_needs(fat_id.get_poptype(), cid);
+				auto evn = state.world.pop_type_get_everyday_needs(fat_id.get_poptype(), cid)
+					* fat_id.get_size()
+					/ state.defines.alice_needs_scaling_factor
+					* state.defines.alice_ev_needs_scale;
 				if(evn > 0.f)
 					everyday_needs_list->row_contents.emplace_back(cid, evn);
-				auto lxn = state.world.pop_type_get_luxury_needs(fat_id.get_poptype(), cid);
+				auto lxn = state.world.pop_type_get_luxury_needs(fat_id.get_poptype(), cid)
+					* fat_id.get_size()
+					/ state.defines.alice_needs_scaling_factor
+					* state.defines.alice_lx_needs_scale;
 				if(lxn > 0.f)
 					luxury_needs_list->row_contents.emplace_back(cid, lxn);
 			}
