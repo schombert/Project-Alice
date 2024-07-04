@@ -756,6 +756,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	national-war-exhaustion x (sum of support-for-each-issue x issues-war-exhaustion-effect) / 100.0
 	+ (for pops not in colonies) pops-social-issue-support x define:MIL_REQUIRE_REFORM
 	+ (for pops not in colonies) pops-political-issue-support x define:MIL_REQUIRE_REFORM
+	+ (for pops overseas) define:alice_overseas_mil x effective-overseas-spending-level - 0.5 
 	+ (Nation's war exhaustion x 0.005)
 	*/
 
@@ -779,6 +780,15 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 				(state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
 						(state.defines.mil_require_reform * 0.25f));
 
+		auto o_spending = state.world.nation_get_overseas_penalty(owner);
+		auto spending_level = state.world.nation_get_spending_level(owner);
+		auto overseas_mil = ve::select(
+			province::is_overseas(state, loc),
+			0.f,
+			(state.defines.alice_overseas_mil * 2.f)
+			* (0.5f - (o_spending * spending_level))
+		);
+
 		auto sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
 		auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_militancy_modifier);
@@ -801,7 +811,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto old_mil = state.world.pop_get_militancy(ids);
 
 		state.world.pop_set_militancy(ids,
-				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil * 0.99f)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion), 0.0f)), 10.0f));
+				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil * 0.99f)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil)), 0.0f)), 10.0f));
 	});
 }
 
@@ -821,6 +831,15 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 	float ref_mod = state.world.province_get_is_colonial(loc) ? 0.0f :
 			(state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
 					(state.defines.mil_require_reform * 0.25f);
+
+	auto o_spending = state.world.nation_get_overseas_penalty(owner);
+	auto spending_level = state.world.nation_get_spending_level(owner);
+	auto overseas_mil = ve::select(
+		province::is_overseas(state, loc),
+		0.f,
+		(state.defines.alice_overseas_mil * 2.f)
+		* (0.5f - (o_spending * spending_level))
+	);
 
 	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
@@ -843,7 +862,7 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 		state.world.nation_get_war_exhaustion(owner) * 0.005f;
 	auto old_mil = state.world.pop_get_militancy(ids);
 
-	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion) - old_mil * 0.01f;
+	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil)) - old_mil * 0.01f;
 }
 
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {

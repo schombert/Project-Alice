@@ -608,9 +608,7 @@ class normal_factory_background : public opaque_element_base {
 			state,
 			fac,
 			mobilization_impact,
-			p_fat.get_nation_from_province_control() != n, // is occupied
-			p_fat.get_connected_region_id() != cap_region
-			&& p_fat.get_continent() != cap_continent // is overseas
+			p_fat.get_nation_from_province_control() != n
 		);
 
 		float effective_production_scale = std::min(fac.get_production_scale() * fac.get_level(), max_production_scale);
