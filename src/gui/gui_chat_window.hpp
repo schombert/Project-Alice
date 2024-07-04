@@ -284,8 +284,8 @@ public:
 class chat_window : public window_element_base {
 private:
 	chat_message_listbox<true>* chat_message_box = nullptr;
-	chat_edit_box* chat_edit = nullptr;
 public:
+	chat_edit_box* chat_edit = nullptr;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_button") {
 			return make_element_by_type<chat_close_button>(state, id);
