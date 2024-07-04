@@ -2758,6 +2758,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 	int32_t war_duration, bool contains_sq) {
 	bool is_attacking = !offer_from_attacker;
 
+	auto overall_score = primary_warscore;
 	if(concession && overall_score <= -50.0f) {
 		return true;
 	}
