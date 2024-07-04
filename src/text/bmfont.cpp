@@ -168,9 +168,11 @@ bm_font const& get_bm_font(sys::state& state, uint16_t font_handle) {
 		auto fname = [&]() {
 			auto sv = state.to_string_view(fit->second);
 			if(sv == "Main_14")
-				return std::string("Arial14");
+				return std::string("garamond_14");
+			if(sv == "Main_14_plain")
+				return std::string("garamond_14");
 			if(sv == "ToolTip_Font")
-				return std::string("Arial14");
+				return std::string("garamond_16");
 			if(sv == "FPS_Font")
 				return std::string("Arial14");
 			return std::string(sv);
