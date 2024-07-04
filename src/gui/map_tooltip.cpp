@@ -150,13 +150,6 @@ void militancy_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::global_pop_militancy_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, true);
-
-		if(fat.get_crime()) {
-			text::add_line_break_to_layout(state, contents);
-			text::add_line(state, contents, state.culture_definitions.crimes[fat.get_crime()].name);
-			ui::modifier_description(state, contents, state.culture_definitions.crimes[fat.get_crime()].modifier);
-		}
-
 	}
 }
 
@@ -290,6 +283,11 @@ void admin_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 		auto box = text::open_layout_box(contents);
 		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_admin"), text::variable_type::value, text::fp_one_place{ province::state_admin_efficiency(state, fat.get_state_membership().id) * 100.0f });
 		text::close_layout_box(contents, box);
+		if(fat.get_crime()) {
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, state.culture_definitions.crimes[fat.get_crime()].name);
+			ui::modifier_description(state, contents, state.culture_definitions.crimes[fat.get_crime()].modifier);
+		}
 	}
 }
 
