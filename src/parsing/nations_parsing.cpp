@@ -807,6 +807,8 @@ void make_focus(std::string_view name, token_generator& gen, error_handler& err,
 		context.outer_context.state.world.modifier_set_national_values(new_modifier, modifier.peek_national_mod());
 		context.outer_context.state.world.national_focus_set_modifier(new_focus, new_modifier);
 	}
+
+	context.outer_context.map_of_national_focuses.insert_or_assign(std::string(name), new_focus);
 }
 void make_focus_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	nations::focus_type t = nations::focus_type::unknown;

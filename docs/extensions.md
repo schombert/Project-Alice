@@ -109,6 +109,7 @@ build_bank_in_capital = {
 - `number_of_cities`: Alias of `num_of_cities`.
 - `disarmed`: Alias of `is_disarmed`.
 - `is_vassal_of`: Alias of `vassal_of`.
+- `has_national_focus = focus`: Checks if a state (or province) in scope has a focus `focus`.
 
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:

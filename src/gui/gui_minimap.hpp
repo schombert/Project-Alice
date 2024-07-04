@@ -460,7 +460,14 @@ public:
 		button_element_base::on_create(state);
 	}
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.map_state.selected_province == dcon::province_id{});
+		disabled = true;
+		for(auto const amount : state.ui_state.current_template.amounts) {
+			if(amount != 0) {
+				disabled = false;
+				break;
+			}
+		}
+		disabled = disabled || (state.map_state.selected_province == dcon::province_id{});
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
@@ -511,7 +518,6 @@ public:
 			for(const auto& build : build_queue) {
 				command::start_land_unit_construction(state, state.local_player_nation, build.p, build.c, build.u, template_province);
 			}
-			state.game_state_updated.store(true, std::memory_order::release);
 		} else {
 			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
 				auto ab = state.world.province_get_province_naval_construction_as_province(a);
@@ -549,8 +555,8 @@ public:
 					});
 				}
 			}
-			state.game_state_updated.store(true, std::memory_order::release);
 		}
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

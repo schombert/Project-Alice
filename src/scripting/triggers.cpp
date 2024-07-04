@@ -2830,6 +2830,18 @@ TRIGGER_FUNCTION(tf_unit_has_leader) {
 	}, to_prov(primary_slot));
 	return compare_to_true(tval[0], result);
 }
+TRIGGER_FUNCTION(tf_has_national_focus_state) {
+	auto result = ve::apply([&ws, tval](dcon::state_instance_id p) {
+		return ws.world.state_instance_get_owner_focus(p) == trigger::payload(tval[1]).nf_id;
+	}, to_state(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_has_national_focus_province) {
+	auto result = ve::apply([&ws, tval](dcon::province_id p) {
+		return ws.world.state_instance_get_owner_focus(ws.world.province_get_state_membership(p)) == trigger::payload(tval[1]).nf_id;
+	}, to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
+}
 TRIGGER_FUNCTION(tf_total_amount_of_divisions) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n) {
