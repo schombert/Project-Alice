@@ -16,11 +16,6 @@ float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
 		value += subj.get_subject().get_military_score();
-	//Leaders currently make minor nations (especially spherelings) seem much more powerful than they are, so it's getting axed here
-	auto gen_range = state.world.nation_get_leader_loyalty(n);
-	auto num_leaders = float((gen_range.end() - gen_range.begin()));
-	value -= num_leaders;
-
 	return value;
 }
 
@@ -2984,6 +2979,8 @@ void make_war_decs(sys::state& state) {
 		if(state.world.nation_get_is_at_war(n))
 			return;
 		if(state.world.nation_get_is_player_controlled(n))
+			return;
+		if(state.world.nation_get_military_score(n) == 0)
 			return;
 		if(auto ol = state.world.nation_get_overlord_as_subject(n); state.world.overlord_get_ruler(ol))
 			return;
