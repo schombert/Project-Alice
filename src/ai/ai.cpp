@@ -2775,7 +2775,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(overall_score <= -50 && overall_score <= overall_po_value * 2)
 			return true;
 
-		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
+		if(concession && my_side_peace_cost <= overall_po_value)
 			return true; // offer contains everything
 		if(war_duration < 365) {
 			return false;
@@ -2792,15 +2792,6 @@ bool will_accept_peace_offer_value(sys::state& state,
 	} else if((prime_attacker == n || prime_defender == n) && concession) {
 		if(scoreagainst_me > 50)
 			return true;
-
-		int32_t my_side_against_target = 0;
-		for(auto wg : state.world.war_get_wargoals_attached(w)) {
-			if(wg.get_wargoal().get_target_nation() == from) {
-				auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), n, wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-
-				my_side_against_target += wg_value;
-			}
-		}
 
 		if(overall_score < 0.0f) { // we are losing
 			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
