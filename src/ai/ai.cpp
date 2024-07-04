@@ -2789,8 +2789,6 @@ bool will_accept_peace_offer_value(sys::state& state,
 		}
 
 	} else if((prime_attacker == n || prime_defender == n) && concession) {
-		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-
 		if(scoreagainst_me > 50)
 			return true;
 
@@ -2815,7 +2813,6 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(contains_sq)
 			return false;
 
-		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
