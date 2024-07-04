@@ -2758,10 +2758,6 @@ bool will_accept_peace_offer_value(sys::state& state,
 	int32_t war_duration, bool contains_sq) {
 	bool is_attacking = !offer_from_attacker;
 
-	auto overall_score = military::primary_warscore(state, w);
-	if(!is_attacking)
-		overall_score = -overall_score;
-
 	if(concession && overall_score <= -50.0f) {
 		return true;
 	}
@@ -2778,7 +2774,6 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(overall_score <= -50 && overall_score <= overall_po_value * 2)
 			return true;
 
-		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
 			return true; // offer contains everything
 		if(war_duration < 365) {
