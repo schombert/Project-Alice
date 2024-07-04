@@ -412,6 +412,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
 	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
 	ankerl::unordered_dense::map<std::string, std::vector<saved_stored_condition>> map_of_stored_triggers;
+	ankerl::unordered_dense::map<std::string, dcon::national_focus_id> map_of_national_focuses;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;

@@ -3226,6 +3226,20 @@ void tf_unit_has_leader(TRIGGER_DISPLAY_PARAMS) {
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_assigned_leader"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_has_national_focus_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "has_national_focus"),
+		text::produce_simple_string(ws, ws.world.national_focus_get_name(trigger::payload(tval[1]).nf_id)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_has_national_focus_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "has_national_focus"),
+		text::produce_simple_string(ws, ws.world.national_focus_get_name(trigger::payload(tval[1]).nf_id)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_total_amount_of_divisions(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -8388,6 +8402,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_has_building_university, // constexpr inline uint16_t has_building_university = 0x02DC;
 		tf_test, // constexpr inline uint16_t test = 0x02DD;
 		tf_unit_has_leader, //constexpr inline uint16_t unit_has_leader = 0x02DF
+		tf_has_national_focus_state, //constexpr inline uint16_t has_national_focus_state = 0x02E0
+		tf_has_national_focus_province, //constexpr inline uint16_t has_national_focus_province = 0x02E1
 
 		//
 		// scopes

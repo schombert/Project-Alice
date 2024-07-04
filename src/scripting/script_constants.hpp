@@ -1355,13 +1355,15 @@ TRIGGER_BYTECODE_ELEMENT(0x02DB, is_coastal_state, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_bank, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DD, has_building_university, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DE, test, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02DF, unit_has_leader, 0)
+TRIGGER_BYTECODE_ELEMENT(0x02DF, unit_has_leader, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02E0, has_national_focus_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02E1, has_national_focus_province, 1)
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02E0;
+constexpr inline uint16_t first_scope_code = 0x02E2;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1480,6 +1482,7 @@ union payload {
 	dcon::reform_option_id ropt_id;
 	dcon::region_id reg_id;
 	dcon::stored_trigger_id str_id;
+	dcon::national_focus_id nf_id;
 
 	// variables::national_variable_tag nat_var;
 	// variables::national_flag_tag nat_flag;
@@ -1493,6 +1496,10 @@ union payload {
 	payload(bool i) {
 		memset(this, 0, sizeof(payload));
 		boolean_value = i;
+	}
+	payload(dcon::national_focus_id i) {
+		memset(this, 0, sizeof(payload));
+		nf_id = i;
 	}
 	payload(dcon::government_type_id i) {
 		memset(this, 0, sizeof(payload));
