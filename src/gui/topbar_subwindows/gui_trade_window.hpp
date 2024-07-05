@@ -619,8 +619,8 @@ public:
 			}
 			for(uint32_t i = 0; i < producers.size() && i < state.defines.great_nations_count; ++i) {
 				auto box = text::open_layout_box(contents, 15);
-				std::string tag_str = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(producers[i].n)));
-				text::add_to_layout_box(state, contents, box, tag_str);
+				auto ident = state.world.nation_get_identity_from_identity_holder(producers[i].n);
+				text::add_to_layout_box(state, contents, box, text::embedded_flag{ ident ? ident : state.national_definitions.rebel_id });
 				text::add_space_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, text::get_name(state, producers[i].n));
 				text::add_space_to_layout_box(state, contents, box);
