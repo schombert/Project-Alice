@@ -658,8 +658,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
 			} else if(keycode == virtual_key::TAB) {
-				ui_state.r_chat_window->set_visible(*this, !ui_state.r_chat_window->is_visible());
-				ui_state.root->move_child_to_front(ui_state.r_chat_window);
+				ui::open_chat_window(*this);
 			}
 
 			map_state.on_key_down(keycode, mod);
@@ -702,8 +701,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 					map_state.center_map_on_province(*this, cap);
 				}
 			} else if(keycode == virtual_key::TAB) {
-				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
-				ui_state.root->move_child_to_front(ui_state.chat_window);
+				ui::open_chat_window(*this);
 			} else if(keycode == virtual_key::NUMPAD1 || keycode == virtual_key::NUM_1) {
 				ctrl_group = 1;
 			} else if(keycode == virtual_key::NUMPAD2 || keycode == virtual_key::NUM_2) {
