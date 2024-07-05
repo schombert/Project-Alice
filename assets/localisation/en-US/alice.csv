@@ -1196,3 +1196,4 @@ ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
 alice_ledger_header_gdp_history;GDP(PPP) over time
 alice_countryalert_colonialgood_start;You can colonize $region$
+alice_overseas_mil_description;Overseas militancy

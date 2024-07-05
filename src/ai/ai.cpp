@@ -3108,13 +3108,14 @@ void update_budget(sys::state& state) {
 		// and stabilize economy faster
 		// not to allow it to hoard money
 
-		float land_budget_ratio				= 0.15f;
-		float sea_budget_ratio				= 0.05f;
-		float education_budget_ratio		= 0.30f;
-		float investments_budget_ratio		= 0.05f;
-		float soldiers_budget_ratio			= 0.40f;
-		float construction_budget_ratio		= 0.50f;
-		float administration_budget_ratio	= 0.15f;
+		float land_budget_ratio					= 0.15f;
+		float sea_budget_ratio					= 0.05f;
+		float education_budget_ratio			= 0.30f;
+		float investments_budget_ratio			= 0.05f;
+		float soldiers_budget_ratio				= 0.40f;
+		float construction_budget_ratio			= 0.50f;
+		float administration_budget_ratio		= 0.15f;
+		float overseas_maintenance_budget_ratio = 0.10f;
 
 		if(n.get_is_at_war()) {
 			land_budget_ratio = 2.f;
@@ -3122,6 +3123,7 @@ void update_budget(sys::state& state) {
 
 			administration_budget_ratio *= 0.15f;
 			education_budget_ratio *= 0.15f;
+			overseas_maintenance_budget_ratio *= 0.15f;
 			//n.set_land_spending(int8_t(100));
 			//n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
@@ -3130,6 +3132,7 @@ void update_budget(sys::state& state) {
 
 			administration_budget_ratio *= 0.75f;
 			education_budget_ratio *= 0.75f;
+			overseas_maintenance_budget_ratio *= 0.75f;
 			//n.set_land_spending(int8_t(50));
 			//n.set_naval_spending(int8_t(50));
 		} else {
@@ -3142,6 +3145,7 @@ void update_budget(sys::state& state) {
 		float construction_budget = construction_budget_ratio * base_income;
 		float administration_budget = administration_budget_ratio * base_income;
 		float soldiers_budget = soldiers_budget_ratio * base_income;
+		float overseas_budget = overseas_maintenance_budget_ratio * base_income;
 
 		float ratio_land = 100.f * land_budget / (1.f + economy::estimate_land_spending(state, n));
 		float ratio_naval = 100.f * naval_budget / (1.f + economy::estimate_naval_spending(state, n));
@@ -3160,7 +3164,7 @@ void update_budget(sys::state& state) {
 		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_admin_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::administration);
-
+		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);
 
 		// solving x^2 * max = desired
 		float ratio_education = 100.f * math::sqrt(education_budget / max_education_budget);
@@ -3182,6 +3186,8 @@ void update_budget(sys::state& state) {
 				
 		float administration_max_ratio = 100.f * math::sqrt(administration_budget / max_admin_budget);
 		administration_max_ratio = std::clamp(administration_max_ratio, 0.f, 100.f);
+
+		float overseas_max_ratio = std::clamp(100.f * overseas_budget / max_overseas_budget, 0.f, 100.f);
 
 		n.set_tariffs(int8_t(0));
 
@@ -3285,6 +3291,7 @@ void update_budget(sys::state& state) {
 		n.set_administrative_spending(int8_t(std::min(int8_t(administration_max_ratio), n.get_administrative_spending())));
 		n.set_administrative_spending(int8_t(administration_max_ratio));
 		n.set_military_spending(int8_t(std::min(int8_t(soldiers_max_ratio), n.get_military_spending())));
+		n.set_overseas_spending(int8_t(overseas_max_ratio));
 
 		economy::bound_budget_settings(state, n);
 	});

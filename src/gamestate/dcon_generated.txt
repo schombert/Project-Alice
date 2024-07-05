@@ -3414,6 +3414,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ overseas_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
 		name{ land_spending }
 		type{ int8_t }
 		tag{ save }

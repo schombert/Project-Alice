@@ -687,6 +687,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_artificial_gp_limitant, 0.0) \
  	LUA_DEFINES_LIST_ELEMENT(alice_rename_dont_use_localisation, 0.0) \
  	LUA_DEFINES_LIST_ELEMENT(alice_spherelings_only_ally_sphere, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_overseas_mil, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
 
 // scales the needs values so that they are needs per this many pops

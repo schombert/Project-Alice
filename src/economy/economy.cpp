@@ -377,6 +377,7 @@ void presimulate(sys::state& state) {
 		update_rgo_employment(state);
 		update_factory_employment(state);
 		daily_update(state, false);
+		ai::update_budget(state);
 	}
 }
 
@@ -744,6 +745,7 @@ void initialize(sys::state& state) {
 		fn.set_land_spending(int8_t(100));
 		fn.set_naval_spending(int8_t(100));
 		fn.set_construction_spending(int8_t(100));
+		fn.set_overseas_spending(int8_t(100));
 
 		fn.set_poor_tax(int8_t(75));
 		fn.set_middle_tax(int8_t(75));
@@ -1191,7 +1193,8 @@ void update_factory_employment(sys::state& state) {
 - Each factory has an input, output, and throughput multipliers.
 - These are computed from the employees present. Input and output are 1 + employee effects, throughput starts at 0
 - The input multiplier is also multiplied by (1 + sum-of-any-triggered-modifiers-for-the-factory) x
-0v(national-mobilization-impact - (overseas-penalty if overseas, or 0 otherwise))
+0v(national-mobilization-impact)
+- Note: overseas is repurposed to administration of colonies
 - Owner fraction is calculated from the fraction of owners in the state to total state population in the state (with some cap --
 5%?)
 - For each pop type employed, we calculate the ratio of number-of-pop-employed-of-a-type / (base-workforce x level) to the optimal
@@ -1231,8 +1234,9 @@ float factory_full_production_quantity(sys::state const& state, dcon::factory_id
 		* 1.5f
 		* 2.f; // additional multiplier to give advantage to "old industrial giants" which have a bunch of clerks already
 
-	float max_production_scale = fac.get_primary_employment() * fac.get_level() *
-															 std::max(0.0f, (mobilization_impact - state.world.nation_get_overseas_penalty(n)));
+	float max_production_scale = fac.get_primary_employment()
+		* fac.get_level()
+		* std::max(0.0f, mobilization_impact);
 
 	return throughput_multiplier * output_multiplier * max_production_scale;
 }
@@ -1404,12 +1408,11 @@ float factory_output_multiplier(sys::state& state, dcon::factory_fat_id fac, dco
 		+ 1.0f;
 }
 
-float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied, bool overseas) {
+float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied) {
 	return fac.get_primary_employment()
 		* fac.get_level()
 		* (occupied ? 0.1f : 1.0f)
-		* std::max(0.0f, (mobilization_impact /* - (overseas ? state.world.nation_get_overseas_penalty(n) : 0)*/));
-	// i have no idea why being overseas should affect local factories in any way
+		* std::max(0.0f, mobilization_impact);
 }
 
 float update_factory_scale(sys::state& state, dcon::factory_fat_id fac, float max_production_scale, float raw_profit, float desired_raw_profit) {
@@ -1455,7 +1458,7 @@ float factory_desired_raw_profit(dcon::factory_fat_id fac, float spendings) {
 	return spendings * (1.2f + fac.get_secondary_employment() * fac.get_level() / 150.f );
 }
 
-void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float mobilization_impact, float expected_min_wage, bool occupied, bool overseas) {
+void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float mobilization_impact, float expected_min_wage, bool occupied) {
 	auto fac = fatten(state.world, f);
 	auto fac_type = fac.get_building_type();
 
@@ -1471,8 +1474,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 		state,
 		fac,
 		mobilization_impact,
-		occupied,
-		overseas
+		occupied
 	);
 		
 	float current_workers = total_workers * max_production_scale;
@@ -2152,6 +2154,8 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 	float l_spending = float(state.world.nation_get_land_spending(n)) / 100.0f;
 	float n_spending = float(state.world.nation_get_naval_spending(n)) / 100.0f;
 	float c_spending = float(state.world.nation_get_construction_spending(n)) / 100.0f;
+	float o_spending = float(state.world.nation_get_overseas_spending(n)) / 100.f;
+
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
 		auto v = state.world.nation_get_army_demand(n, cid) * l_spending * state.world.nation_get_effective_prices(n, cid);
@@ -2186,10 +2190,9 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 	if(overseas_factor > 0) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
-
 			auto kf = state.world.commodity_get_key_factory(cid);
 			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				total += overseas_factor * state.world.nation_get_effective_prices(n, cid);
+				total += overseas_factor * state.world.nation_get_effective_prices(n, cid) * o_spending;
 			}
 		}
 	}
@@ -2309,6 +2312,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 	float l_spending = float(state.world.nation_get_land_spending(n)) / 100.0f;
 	float n_spending = float(state.world.nation_get_naval_spending(n)) / 100.0f;
 	float c_spending = float(state.world.nation_get_construction_spending(n)) / 100.0f;
+	float o_spending = float(state.world.nation_get_overseas_spending(n)) / 100.0f;
 
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
@@ -2339,7 +2343,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 			dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
 			auto kf = state.world.commodity_get_key_factory(cid);
 			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				register_demand(state, n, cid, overseas_factor * spending_scale, economy_reason::overseas_penalty);
+				register_demand(state, n, cid, overseas_factor * spending_scale * o_spending, economy_reason::overseas_penalty);
 			}
 		}
 	}
@@ -3030,9 +3034,7 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 					p.get_province().get_state_membership(),
 					mobilization_impact,
 					factory_min_wage,
-					p.get_province().get_nation_from_province_control() != n, // is occupied
-					p.get_province().get_connected_region_id() != cap_region
-						&& p.get_province().get_continent() != cap_continent // is overseas
+					p.get_province().get_nation_from_province_control() != n // is occupied
 				);
 			}
 
@@ -3349,26 +3351,25 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 		*/
 
 		{
-			float count = 0.0f;
-			float total = 0.0f;
-
 			auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
+			auto overseas_budget = float(state.world.nation_get_overseas_spending(n)) / 100.f;
+			auto overseas_budget_satisfaction = 1.f;
+
 			if(overseas_factor > 0) {
 				for(uint32_t k = 1; k < total_commodities; ++k) {
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-
 					auto kf = state.world.commodity_get_key_factory(c);
 					if(state.world.commodity_get_overseas_penalty(c) &&
 						(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
 						auto sat = state.world.nation_get_demand_satisfaction(n, c);
-						total += sat;
+						overseas_budget_satisfaction = std::min(sat, overseas_budget_satisfaction);
 						refund += overseas_factor * (1.0f - sat) * nations_commodity_spending * state.world.commodity_get_current_price(c);
-						count += 1.0f;
 					}
 				}
-				state.world.nation_set_overseas_penalty(n, 0.25f * (1.0f - nations_commodity_spending * total / count));
+
+				state.world.nation_set_overseas_penalty(n, overseas_budget * overseas_budget_satisfaction);
 			} else {
-				state.world.nation_set_overseas_penalty(n, 0.0f);
+				state.world.nation_set_overseas_penalty(n, 1.0f);
 			}
 		}
 

@@ -697,6 +697,9 @@ private:
 		case budget_slider_target::domestic_investment:
 			budget_settings.domestic_investment = new_val;
 			break;
+		case budget_slider_target::overseas:
+			budget_settings.overseas = new_val;
+			break;
 		default:
 			break;
 		}
@@ -1833,6 +1836,30 @@ public:
 	}
 };
 
+// overseas_maintenance
+
+
+class overseas_maintenance_slider : public budget_slider<budget_slider_target::overseas, slider_scaling::linear> {
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_overseas_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::close_layout_box(contents, box);
+	}
+};
+class overseas_maintenance_estimated_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		float value = state.world.nation_get_overseas_spending(state.local_player_nation) / 100.0f;
+		set_text(state, text::format_money(economy::estimate_overseas_penalty_spending(state, state.local_player_nation) * value));
+	}
+};
+
 class budget_window : public window_element_base {
 private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
@@ -1858,6 +1885,7 @@ public:
 			auto elm = make_element_by_type<enable_debt_toggle>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_debt_checkbox"))->second.definition);
 			add_child_to_front(std::move(elm));
 		}
+
 		{
 			auto elm = make_element_by_type<domestic_investment_slider>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_domestic_investment_slider"))->second.definition);
 			add_child_to_front(std::move(elm));
@@ -1870,6 +1898,20 @@ public:
 			auto elm = make_element_by_type<domestic_investment_estimated_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_domestic_investment_value"))->second.definition);
 			add_child_to_front(std::move(elm));
 		}
+
+		{
+			auto elm = make_element_by_type<overseas_maintenance_slider>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_overseas_maintenance_slider"))->second.definition);
+			add_child_to_front(std::move(elm));
+		}
+		{
+			auto elm = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_overseas_maintenance_label"))->second.definition);
+			add_child_to_front(std::move(elm));
+		}
+		{
+			auto elm = make_element_by_type<overseas_maintenance_estimated_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_overseas_maintenance_value"))->second.definition);
+			add_child_to_front(std::move(elm));
+		}
+
 		set_visible(state, false);
 	}
 
