@@ -784,9 +784,9 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto spending_level = state.world.nation_get_spending_level(owner);
 		auto overseas_mil = ve::select(
 			province::is_overseas(state, loc),
-			0.f,
 			(state.defines.alice_overseas_mil * 2.f)
-			* (0.5f - (o_spending * spending_level))
+			* (0.5f - (o_spending * spending_level)),
+			0.f
 		);
 
 		auto sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
@@ -836,9 +836,9 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 	auto spending_level = state.world.nation_get_spending_level(owner);
 	auto overseas_mil = ve::select(
 		province::is_overseas(state, loc),
-		0.f,
 		(state.defines.alice_overseas_mil * 2.f)
-		* (0.5f - (o_spending * spending_level))
+		* (0.5f - (o_spending * spending_level)),
+		0.f
 	);
 
 	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
