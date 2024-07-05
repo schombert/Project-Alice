@@ -377,6 +377,7 @@ void presimulate(sys::state& state) {
 		update_rgo_employment(state);
 		update_factory_employment(state);
 		daily_update(state, false);
+		ai::update_budget(state);
 	}
 }
 
