@@ -59,7 +59,7 @@ public:
 		}
 	}
 
-	void shift_button_action(sys::state& state) noexcept override {
+	void button_shift_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			command::evenly_split_army(state, state.local_player_nation, content);
