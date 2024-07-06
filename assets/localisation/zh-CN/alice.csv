@@ -1192,7 +1192,9 @@ alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;GDP(PPP)
-ledger_ppp_gdp_per_capita;每100万人的GDP（PPP）
+ledger_ppp_gdp_per_capita;每百万人 GDP（PPP）
 an_assigned_leader;an assigned leader
 macro_new_template;新建
 invention;发明
+alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
+alice_overseas_mil_description;海外部队
