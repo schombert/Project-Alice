@@ -2045,6 +2045,9 @@ dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon
 	// TODO make name
 	reg.set_strength(1.0f);
 	reg.set_org(1.0f);
+	if(n == dcon::nation_id{}) {
+		reg.set_org(state.defines.alice_starting_rebel_org);
+	}
 	return reg.id;
 }
 dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
