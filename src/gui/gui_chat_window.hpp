@@ -239,6 +239,8 @@ public:
 		Cyto::Any payload = this;
 		impl_get(state, payload);
 	}
+
+	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
 };
 
 class chat_return_to_lobby_button : public button_element_base {
@@ -327,6 +329,10 @@ void open_chat_window(sys::state& state) {
 		state.ui_state.edit_target = static_cast<chat_window*>(state.ui_state.r_chat_window)->chat_edit;
 		state.ui_state.root->move_child_to_front(state.ui_state.r_chat_window);
 	}
+}
+
+void chat_edit_box::edit_box_tab(sys::state& state, std::string_view s) noexcept {
+	ui::open_chat_window(state); //close/open like if tab was pressed!
 }
 
 }
