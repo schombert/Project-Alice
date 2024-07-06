@@ -2015,7 +2015,9 @@ public:
 
 class diplomacy_sort_nation_gp_flag : public nation_gp_flag {
 public:
-	void button_action(sys::state& state) noexcept override { }
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, element_selection_wrapper<country_list_sort>{country_list_sort(uint8_t(country_list_sort::gp_influence) | rank)});
+	}
 };
 
 class crisis_tab_button : public checkbox_button {

@@ -119,10 +119,9 @@ protected:
 
 class production_sort_nation_gp_flag : public nation_gp_flag {
 public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, element_selection_wrapper<country_list_sort>{country_list_sort(uint8_t(country_list_sort::gp_investment) | rank)});
 	}
-	void button_action(sys::state& state) noexcept override { }
 };
 
 class production_sort_my_nation_flag : public flag_button {
