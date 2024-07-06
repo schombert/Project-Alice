@@ -331,7 +331,7 @@ void open_chat_window(sys::state& state) {
 	}
 }
 
-void chat_edit_box::edit_box_tab(sys::state& state, std::string_view s) noexcept override {
+void chat_edit_box::edit_box_tab(sys::state& state, std::string_view s) noexcept {
 	ui::open_chat_window(state); //close/open like if tab was pressed!
 }
 
