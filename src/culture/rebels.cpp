@@ -937,6 +937,7 @@ void rebel_risings_check(sys::state& state) {
 						auto pop_location = pop.get_pop().get_province_from_pop_location();
 
 						auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.irregular);
+						state.world.regiment_set_org(new_reg, state.defines.alice_starting_rebel_org);
 						auto a = [&]() {
 							for(auto ar : state.world.province_get_army_location(pop_location)) {
 								if(!(ar.get_army().get_battle_from_army_battle_participation()) && ar.get_army().get_controller_from_army_rebel_control() == rf)

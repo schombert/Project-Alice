@@ -689,6 +689,7 @@
  	LUA_DEFINES_LIST_ELEMENT(alice_spherelings_only_ally_sphere, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_overseas_mil, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_starting_rebel_org, 0.5) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3
