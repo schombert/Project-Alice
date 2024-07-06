@@ -49,14 +49,11 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			for(const auto e : state.selected_armies)
-				state.deselect(e);
 			command::evenly_split_army(state, state.local_player_nation, content);
 		} else {
-			for(const auto e : state.selected_navies)
-				state.deselect(e);
 			command::evenly_split_navy(state, state.local_player_nation, content);
 		}
+		state.deselect(content); //deselect original
 	}
 
 	void button_shift_action(sys::state& state) noexcept override {
