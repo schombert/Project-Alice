@@ -53,16 +53,7 @@ public:
 		} else {
 			command::evenly_split_navy(state, state.local_player_nation, content);
 		}
-		state.deselect(content); //deselect original
-	}
-
-	void button_shift_action(sys::state& state) noexcept override {
-		auto content = retrieve<T>(state, parent);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			command::evenly_split_army(state, state.local_player_nation, content);
-		} else {
-			command::evenly_split_navy(state, state.local_player_nation, content);
-		}
+		state.select(content); //deselect original
 	}
 
 	void on_update(sys::state& state) noexcept override {
