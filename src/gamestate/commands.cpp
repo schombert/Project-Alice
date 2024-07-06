@@ -3851,8 +3851,10 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 			state.world.regiment_set_army_from_army_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
+		if(source == state.local_player_nation && state.is_selected(a)) {
+			state.deselect(a);
 			state.select(new_u);
+		}
 	}
 }
 
@@ -3904,8 +3906,10 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
+		if(source == state.local_player_nation && state.is_selected(a)) {
+			state.deselect(a);
 			state.select(new_u);
+		}
 	}
 }
 
