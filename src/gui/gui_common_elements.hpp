@@ -159,7 +159,7 @@ public:
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto old_handle = base_data.data.text_common.font_handle;
-		if(state.user_settings.use_classic_fonts) {
+		if(!state.user_settings.use_classic_fonts) {
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
 			base_data.data.text_common.font_handle &= ~(0x003F);
@@ -185,7 +185,7 @@ public:
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 
 		auto old_handle = base_data.data.text_common.font_handle;
-		if(state.user_settings.use_classic_fonts) {
+		if(!state.user_settings.use_classic_fonts) {
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
 			base_data.data.text_common.font_handle &= ~(0x003F);
