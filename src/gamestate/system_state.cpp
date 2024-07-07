@@ -1455,8 +1455,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(ui_state.bg_gfx_id) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_width, float(x_size));
+		glUniform1f(ogl::parameters::screen_height, float(y_size));
 		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
