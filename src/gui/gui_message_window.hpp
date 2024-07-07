@@ -70,6 +70,7 @@ void message_body_text::on_create(sys::state& state) noexcept {
 	auto res = std::make_unique<message_body_text_internal>();
 	std::memcpy(&(res->base_data), &(base_data), sizeof(ui::element_data));
 	make_size_from_graphics(state, res->base_data);
+	res->base_data.data.text_common.font_handle = text::name_into_font_id(state, "garamond_16");
 	res->base_data.position.x = 0;
 	res->base_data.position.y = 0;
 	res->on_create(state);
