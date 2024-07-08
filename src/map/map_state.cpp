@@ -383,43 +383,39 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				name = text::resolve_string_substitution(state, "map_label_adj_province", sub);
 			} else {
 				for(const auto& e : map) {
-					if(float(e.second) >= float(total_provinces) * 0.66f) {
+					if(float(e.second) / float(total_provinces) >= 0.75f) {
 						// Adjective + " " + National identity
 						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-						if(auto k = state.world.national_identity_get_name(nid); state.key_is_localized(k)) {
+						if(true) {
 							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
 							|| nid == n.get_identity_from_identity_holder()) {
-								if(n.get_capital().get_continent() == state.world.province_get_continent(last_province)) {
-									//cultural union tag -> use our name
-									name = text::produce_simple_string(state, text::get_name(state, n));
-									//Get cardinality
-									auto p1 = n.get_capital().get_mid_point();
-									auto p2 = p.get_mid_point();
-									auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
-									auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
-									if(degrees < 0.f) {
-										degrees = 360.f + degrees;
-									}
-									assert(degrees >= 0.f && degrees <= 360.f);
-									//fallback just in the very unlikely case
-									name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
-									if(degrees >= 0.f && degrees < 90.f) {
-										name = text::resolve_string_substitution(state, "map_label_east_country", sub);
-									} else if(degrees >= 90.f && degrees < 180.f) {
-										name = text::resolve_string_substitution(state, "map_label_south_country", sub);
-									} else if(degrees >= 180.f && degrees < 270.f) {
-										name = text::resolve_string_substitution(state, "map_label_west_country", sub);
-									} else if(degrees >= 270.f && degrees < 360.f) {
-										name = text::resolve_string_substitution(state, "map_label_north_country", sub);
-									}
-								} else {
-									name = text::resolve_string_substitution(state, "map_label_adj_continent", sub);
+								//cultural union tag -> use our name
+								name = text::produce_simple_string(state, text::get_name(state, n));
+								//Get cardinality
+								auto p1 = n.get_capital().get_mid_point();
+								auto p2 = p.get_mid_point();
+								auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
+								auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
+								if(degrees < 0.f) {
+									degrees = 360.f + degrees;
 								}
+								assert(degrees >= 0.f && degrees <= 360.f);
+								//fallback just in the very unlikely case
+								name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
+								if(degrees >= 0.f && degrees < 90.f) {
+									name = text::resolve_string_substitution(state, "map_label_east_country", sub);
+								} else if(degrees >= 90.f && degrees < 180.f) {
+									name = text::resolve_string_substitution(state, "map_label_south_country", sub);
+								} else if(degrees >= 180.f && degrees < 270.f) {
+									name = text::resolve_string_substitution(state, "map_label_west_country", sub);
+								} else if(degrees >= 270.f && degrees < 360.f) {
+									name = text::resolve_string_substitution(state, "map_label_north_country", sub);
+								}
+								break;
 							} else {
 								text::add_to_substitution_map(sub, text::variable_type::tag, state.world.national_identity_get_name(nid));
 								name = text::resolve_string_substitution(state, "map_label_adj_tag", sub);
 							}
-							break;
 						}
 					}
 				}
