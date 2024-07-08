@@ -383,7 +383,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				name = text::resolve_string_substitution(state, "map_label_adj_province", sub);
 			} else {
 				for(const auto& e : map) {
-					if(float(e.second) / float(total_provinces) >= 0.75f) {
+					if(float(e.second) >= float(total_provinces) * 0.66f) {
 						// Adjective + " " + National identity
 						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
 						if(auto k = state.world.national_identity_get_name(nid); state.key_is_localized(k)) {
@@ -401,6 +401,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 										degrees = 360.f + degrees;
 									}
 									assert(degrees >= 0.f && degrees <= 360.f);
+									//fallback just in the very unlikely case
+									name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
 									if(degrees >= 0.f && degrees < 90.f) {
 										name = text::resolve_string_substitution(state, "map_label_east_country", sub);
 									} else if(degrees >= 90.f && degrees < 180.f) {
@@ -410,6 +412,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 									} else if(degrees >= 270.f && degrees < 360.f) {
 										name = text::resolve_string_substitution(state, "map_label_north_country", sub);
 									}
+								} else {
+									name = text::resolve_string_substitution(state, "map_label_adj_continent", sub);
 								}
 							} else {
 								text::add_to_substitution_map(sub, text::variable_type::tag, state.world.national_identity_get_name(nid));

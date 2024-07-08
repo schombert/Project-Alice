@@ -976,7 +976,7 @@ void update_monthly_points(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
 		auto pmod = state.world.nation_get_demographics(ids, demographics::consciousness) /
 								ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * 0.0222f;
-		state.world.nation_set_plurality(ids, ve::min(state.world.nation_get_plurality(ids) + pmod, 100.0f));
+		state.world.nation_set_plurality(ids, ve::max(ve::min(state.world.nation_get_plurality(ids) + pmod, 100.0f), 0.f));
 	});
 	/*
 	- Monthly diplo-points: (1 + national-modifier-to-diplo-points + diplo-points-from-technology) x
@@ -986,7 +986,7 @@ void update_monthly_points(sys::state& state) {
 		auto bmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::diplomatic_points_modifier) + 1.0f;
 		auto dmod = bmod * state.defines.base_monthly_diplopoints;
 
-		state.world.nation_set_diplomatic_points(ids, ve::min(state.world.nation_get_diplomatic_points(ids) + dmod, 9.0f));
+		state.world.nation_set_diplomatic_points(ids, ve::max(ve::min(state.world.nation_get_diplomatic_points(ids) + dmod, 9.0f), 0.f));
 	});
 	/*
 	- Monthly suppression point gain: define:SUPPRESS_BUREAUCRAT_FACTOR x fraction-of-population-that-are-bureaucrats x
@@ -1000,8 +1000,7 @@ void update_monthly_points(sys::state& state) {
 										ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) *
 										state.defines.suppress_bureaucrat_factor);
 
-		state.world.nation_set_suppression_points(ids,
-				ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
+		state.world.nation_set_suppression_points(ids, ve::max(ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression), 0.f));
 	});
 	/*
 	- Monthly relations adjustment = +0.25 for subjects/overlords, -0.01 for being at war, +0.05 if adjacent and both are at

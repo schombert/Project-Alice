@@ -1488,9 +1488,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 	ui_state.under_mouse = mouse_probe.under_mouse;
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 	if(mode == sys::game_mode_type::in_game) {
-		if(ui_state.tl_chat_list) {
-			ui_state.root->move_child_to_front(ui_state.tl_chat_list);
-		}
 		if(map_state.get_zoom() > map::zoom_close) {
 			if(!ui_state.ctrl_held_down) {
 				if(ui_state.rgos_root && map_state.active_map_mode == map_mode::mode::rgo_output) {
