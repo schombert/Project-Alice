@@ -387,8 +387,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						// Adjective + " " + National identity
 						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
 						if(true) {
-							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
-							|| nid == n.get_identity_from_identity_holder()) {
+							if((nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
+							|| nid == n.get_identity_from_identity_holder())
+							&& n.get_capital().get_continent() == p.get_continent()) {
 								//cultural union tag -> use our name
 								name = text::produce_simple_string(state, text::get_name(state, n));
 								//Get cardinality
