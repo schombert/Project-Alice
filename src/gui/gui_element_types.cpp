@@ -1136,7 +1136,7 @@ void window_element_base::on_create(sys::state& state) noexcept {
 					ch_res = ui::make_element_immediate(state, ex.child);
 				}
 				if(ch_res) {
-					this->add_child_to_back(std::move(ch_res));
+					this->add_child_to_front(std::move(ch_res));
 				}
 			}
 		}
