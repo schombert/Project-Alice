@@ -1119,6 +1119,17 @@ void window_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::window) {
 		auto first_child = base_data.data.window.first_child;
 		auto num_children = base_data.data.window.num_children;
+		for(auto ex : state.ui_defs.extensions) {
+			if(ex.window == base_data.name) {
+				auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[ex.child].name)), ex.child);
+				if(!ch_res) {
+					ch_res = ui::make_element_immediate(state, ex.child);
+				}
+				if(ch_res) {
+					this->add_child_to_back(std::move(ch_res));
+				}
+			}
+		}
 		for(uint32_t i = num_children; i-- > 0;) {
 			auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
 			auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[child_tag].name)), child_tag);
@@ -1127,17 +1138,6 @@ void window_element_base::on_create(sys::state& state) noexcept {
 			}
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
-			}
-		}
-		for(auto ex : state.ui_defs.extensions) {
-			if(ex.window == base_data.name) {
-				auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[ex.child].name)), ex.child);
-				if(!ch_res) {
-					ch_res = ui::make_element_immediate(state, ex.child);
-				}
-				if(ch_res) {
-					this->add_child_to_front(std::move(ch_res));
-				}
 			}
 		}
 	}
