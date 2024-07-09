@@ -403,6 +403,16 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 	}
 
 	auto file = open_file(root, native_name);
+	if(!file && name_length > 4) {
+		auto png_name = native_name;
+		if(auto pos = png_name.find_last_of('.'); pos != native_string::npos) {
+			png_name[pos + 1] = NATIVE('p');
+			png_name[pos + 2] = NATIVE('n');
+			png_name[pos + 3] = NATIVE('g');
+			png_name.resize(pos + 4);
+		}
+		file = open_file(root, png_name);
+	}
 	if(file) {
 		auto content = simple_fs::view_contents(*file);
 

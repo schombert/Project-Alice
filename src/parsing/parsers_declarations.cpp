@@ -2279,7 +2279,9 @@ void decision::picture(association_type, std::string_view value, error_handler& 
 	auto gfx = open_directory(root, NATIVE("gfx"));
 	auto pictures = open_directory(gfx, NATIVE("pictures"));
 	auto decisions = open_directory(pictures, NATIVE("decisions"));
-	if(!peek_file(decisions, simple_fs::utf8_to_native(value) + NATIVE(".dds")).has_value()) {
+	if(!peek_file(decisions, simple_fs::utf8_to_native(value) + NATIVE(".dds")).has_value()
+	&& !peek_file(decisions, simple_fs::utf8_to_native(value) + NATIVE(".tga")).has_value()
+	&& !peek_file(decisions, simple_fs::utf8_to_native(value) + NATIVE(".png")).has_value()) {
 		err.accumulated_warnings += "Picture " + std::string(value) + " does not exist " + " (" + err.file_name + ")\n";
 		return; // Picture not found
 	}
