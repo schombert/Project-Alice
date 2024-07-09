@@ -1676,7 +1676,7 @@ int32_t peace_offer_truce_months(sys::state& state, dcon::peace_offer_id offer) 
 	for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
 		max_months = std::max(max_months, int32_t(wg.get_wargoal().get_type().get_truce_months()));
 	}
-	return max_months + std::max(0, int32_t(state.defines.base_truce_months));
+	return max_months + int32_t(state.defines.base_truce_months);
 }
 int32_t attacker_peace_cost(sys::state& state, dcon::war_id war) {
 	int32_t total = 0;
