@@ -43,6 +43,7 @@ class fonts_mode_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
 };
 
 class left_mouse_click_mode_checkbox : public checkbox_button {
