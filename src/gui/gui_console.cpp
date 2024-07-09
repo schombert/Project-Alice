@@ -63,6 +63,7 @@ struct command_info {
 		instant_army,
 		instant_navy,
 		instant_industry,
+		addyear,
 		innovate,
 		daily_oos_check,
 		dump_map,
@@ -235,6 +236,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "addyear", command_info::type::addyear, "Add year",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
@@ -1975,6 +1979,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		log_to_console(state, parent, !state.cheat_data.instant_industry ? "✔" : "✘");
 		command::c_instant_industry(state, state.local_player_nation);
+		break;
+	}
+	case command_info::type::add_year:
+	{
+		auto years = std::get<std::int32_t>(pstate.arg_slots[0]);
+		command::c_add_year(state, state.local_player_nation, years);
 		break;
 	}
 	case command_info::type::daily_oos_check:

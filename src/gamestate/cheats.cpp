@@ -506,4 +506,16 @@ void execute_c_always_potential_decisions(sys::state& state, dcon::nation_id sou
 	state.cheat_data.always_potential_decisions = !state.cheat_data.always_potential_decisions;
 }
 
+void c_add_year(sys::state& state, dcon::nation_id source, int32_t amount) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_add_year;
+	p.source = source;
+	p.data.cheat_int.value = amount;
+	add_to_command_queue(state, p);
+}
+void execute_c_add_year(sys::state& state, dcon::nation_id source, int32_t amount) {
+	state.current_date += amount;
+}
+
 }
