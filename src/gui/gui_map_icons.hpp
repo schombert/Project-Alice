@@ -365,8 +365,10 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->battle_progress;
 	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return opaque_element_base::test_mouse(state, x, y, type);
+	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		
 		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 
 		auto prov = retrieve<dcon::province_id>(state, parent);

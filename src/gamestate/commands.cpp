@@ -5116,6 +5116,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_clear_auto_choice_all:
 	case command_type::c_always_allow_decisions:
 	case command_type::c_always_potential_decisions:
+	case command_type::c_add_year:
 		return true;
 	}
 	return false;
@@ -5581,6 +5582,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_always_potential_decisions:
 		execute_c_always_potential_decisions(state, c.source);
+		break;
+	case command_type::c_add_year:
+		execute_c_add_year(state, c.source, c.data.cheat_int.value);
 		break;
 	}
 }
