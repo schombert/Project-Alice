@@ -190,6 +190,7 @@ struct data {
 	tagged_vector<texture, dcon::texture_id> asset_textures;
 
 	void* context = nullptr;
+	bool legacy_mode = false;
 	GLuint ui_shader_program = 0;
 
 	GLuint global_square_vao = 0;

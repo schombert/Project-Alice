@@ -817,9 +817,15 @@ void create_opengl_context() {
 		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
-	// Explicitly request for OpenGL 4.5
-	static const int attribs[] = { WGL_CONTEXT_MAJOR_VERSION_ARB, 4, WGL_CONTEXT_MINOR_VERSION_ARB, 5, WGL_CONTEXT_FLAGS_ARB, 0,
-		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0 };
+	// Explicitly request for OpenGL 4.2
+	static const int attribs[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+		WGL_CONTEXT_FLAGS_ARB, 0,
+		WGL_CONTEXT_PROFILE_MASK_ARB,
+		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		0
+	};
 	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 	if(opengl_context == nullptr) {
 		window::emit_error_message("Unable to create WGL context", true);
@@ -1307,7 +1313,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 430 core\r\n",
+		"#version 420 core\r\n",
 		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
 		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
 		"#extension GL_ARB_shader_subroutine : enable\r\n",
