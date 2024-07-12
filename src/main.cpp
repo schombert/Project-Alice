@@ -21,6 +21,7 @@
 #include "effects.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
+#include "bmfont.cpp"
 #include "rebels.cpp"
 #include "politics.cpp"
 #include "events.cpp"
@@ -50,6 +51,7 @@
 #include "prng.cpp"
 #include "blake2.cpp"
 #include "zstd.cpp"
+#include "pcp.cpp"
 #endif
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"

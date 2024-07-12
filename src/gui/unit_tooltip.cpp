@@ -66,8 +66,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	}
 
 	text::substitution_map sub;
-	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "@(A)";
-	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
+	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ "@(A)" });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 	text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
@@ -78,11 +77,15 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		text::add_to_substitution_map(sub, text::variable_type::prov, *(army.get_path().end() - 1));
 		text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
 		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "unit_moving_text", sub);
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ controller.get_identity_from_identity_holder().id } );
+		auto resolved = text::resolve_string_substitution(state, "unit_moving_text", sub);
+		text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 		text::close_layout_box(contents, box);
 	} else {
 		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "unit_standing_text", sub);
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ controller.get_identity_from_identity_holder().id });
+		auto resolved = text::resolve_string_substitution(state, "unit_standing_text", sub);
+		text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 		text::close_layout_box(contents, box);
 	}
 }
@@ -113,8 +116,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	}
 
 	text::substitution_map sub;
-	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "@(N)";
-	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
+	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ "@(N)" });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 	text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
@@ -125,11 +127,15 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		text::add_to_substitution_map(sub, text::variable_type::prov, *(navy.get_path().end() - 1));
 		text::add_to_substitution_map(sub, text::variable_type::date, navy.get_arrival_time());
 		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "unit_moving_text", sub);
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ controller.get_identity_from_identity_holder().id });
+		auto resolved = text::resolve_string_substitution(state, "unit_moving_text", sub);
+		text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 		text::close_layout_box(contents, box);
 	} else {
 		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "unit_standing_text", sub);
+		text::add_to_layout_box(state, contents, box, text::embedded_flag{ controller.get_identity_from_identity_holder().id });
+		auto resolved = text::resolve_string_substitution(state, "unit_standing_text", sub);
+		text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 		text::close_layout_box(contents, box);
 	}
 }

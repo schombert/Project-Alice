@@ -141,6 +141,7 @@ public:
 	std::vector<GLint> other_objective_unit_arrow_starts;
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
+	std::vector<GLuint> text_line_texture_per_quad;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
@@ -201,7 +202,8 @@ public:
 	static constexpr uint32_t texture_strategy_unit_arrow = 21;
 	static constexpr uint32_t texture_objective_unit_arrow = 22;
 	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
-	static constexpr uint32_t texture_count = 24;
+	static constexpr uint32_t texture_hover_border = 24;
+	static constexpr uint32_t texture_count = 25;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -220,9 +222,10 @@ public:
 	static constexpr uint32_t shader_map_standing_object = 8;
 	static constexpr uint32_t shader_count = 9;
 	GLuint shaders[shader_count] = { 0 };
-	// Textures for static meshes
-	static constexpr uint32_t max_static_meshes = 42;
-	GLuint static_mesh_textures[max_static_meshes] = { 0 };
+
+	// models: Textures for static meshes
+	// static constexpr uint32_t max_static_meshes = 42;
+	// GLuint static_mesh_textures[max_static_meshes] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

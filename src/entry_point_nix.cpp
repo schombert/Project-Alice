@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
 		if(sys::try_read_scenario_and_save_file(game_state, argv[1])) {
 			game_state.fill_unsaved_data();
-	} else {
+		} else {
 			auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(argv[1]) + " could not be read";
 			window::emit_error_message(msg, true);
 			return 0;
@@ -68,7 +68,6 @@ int main(int argc, char **argv) {
 
 	// scenario loading functions (would have to run these even when scenario is pre-built
 	game_state.load_user_settings();
-	text::load_standard_fonts(game_state);
 	ui::populate_definitions_map(game_state);
 
 	std::thread update_thread([&]() { game_state.game_loop(); });

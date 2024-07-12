@@ -177,9 +177,8 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
-					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-								 trigger::to_generic(n.id))) {
+				if(n != actor) {
+					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
 
 							bool found_dup = false;
@@ -264,8 +263,7 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(!allowed_countries && allowed_states) {
 		bool any_allowed = false;
 		for(auto si : state.world.nation_get_state_ownership(target)) {
-			if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-						 trigger::to_generic(actor))) {
+			if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
 				any_allowed = true;
 				break;
 			}
@@ -296,9 +294,8 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
-					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-								 trigger::to_generic(n.id))) {
+				if(n != actor) {
+					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
 							for(auto si : state.world.nation_get_state_ownership(target)) {
 								if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
@@ -388,7 +385,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 	if(allowed_countries) {
 		auto secondary_nation = secondary ? secondary : state.world.national_identity_get_nation_from_identity_holder(tag);
 
-		if(secondary_nation != target && secondary_nation != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(secondary_nation))) {
+		if(secondary_nation != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(secondary_nation))) {
 			bool validity = false;
 			if(allowed_states) { // check whether any state within the target is valid for free / liberate
 				if((state.world.cb_type_get_type_bits(cb) & cb_flag::all_allowed_states) != 0) {
@@ -2090,9 +2087,9 @@ void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::sub
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
 
-	text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
+	text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, primary_defender));
 	text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
-	text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
+	text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, primary_attacker));
 	text::add_to_substitution_map(sub, text::variable_type::third, war.get_over_tag());
 	text::add_to_substitution_map(sub, text::variable_type::state, war.get_over_state());
 	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.national_identity_get_adjective(war.get_over_tag()));
@@ -2176,9 +2173,9 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		if(gp_attackers >= 2 && gp_defenders >= 2) {
 			auto old_name = get_war_name(state, w);
 			state.world.war_set_is_great(w, true);
-			auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"}); // misspelling is intentional; DO NOT CORRECT
-			if(it != state.key_to_text_sequence.end()) {
-				state.world.war_set_name(w, it->second);
+			auto it = state.lookup_key(std::string_view{"great_war_name"});
+			if(it) {
+				state.world.war_set_name(w, it);
 			}
 
 			notification::post(state, notification::message{
@@ -2246,6 +2243,18 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
 
+	// release puppet if subject declares on overlord or vice versa
+	{
+		auto ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
+		if(auto ol = state.world.overlord_get_ruler(ol_rel); ol && ol == primary_attacker)
+			nations::release_vassal(state, ol_rel);
+	}
+	{
+		auto ol_rel = state.world.nation_get_overlord_as_subject(primary_attacker);
+		if(auto ol = state.world.overlord_get_ruler(ol_rel); ol && ol == primary_defender)
+			nations::release_vassal(state, ol_rel);
+	}
+
 	auto real_target = primary_defender;
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
 	if(auto ol = state.world.overlord_get_ruler(target_ol_rel); ol && ol != primary_attacker)
@@ -2269,10 +2278,9 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 				primary_wargoal_secondary);
 		new_war.set_name(state.world.cb_type_get_war_name(primary_wargoal));
 	} else {
-		auto it =
-				state.key_to_text_sequence.find(std::string_view{"agression_war_name"}); // misspelling is intentional; DO NOT CORRECT
-		if(it != state.key_to_text_sequence.end()) {
-			new_war.set_name(it->second);
+		auto it = state.lookup_key(std::string_view{"agression_war_name"}); // misspelling is intentional; DO NOT CORRECT
+		if(it) {
+			new_war.set_name(it);
 		}
 	}
 
@@ -2294,15 +2302,6 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	return new_war;
 }
 
-dcon::text_key text_sequence_to_key(sys::state& state, dcon::text_sequence_id id) {
-	for(auto it = state.key_to_text_sequence.begin(); it != state.key_to_text_sequence.end(); ++it) {
-		if(it->second == id) {
-			return it->first;
-		}
-	}
-	return dcon::text_key{};
-}
-
 std::string get_war_name(sys::state& state, dcon::war_id war) {
 	text::substitution_map sub;
 	populate_war_text_subsitutions(state, war, sub);
@@ -2314,18 +2313,18 @@ std::string get_war_name(sys::state& state, dcon::war_id war) {
 	auto defender_tag = fatten(state.world, defender).get_name();
 	auto war_name_sequence = fat.get_name();
 
-	auto attacker_tag_key = text_sequence_to_key(state, attacker_tag);
-	auto defender_tag_key = text_sequence_to_key(state, defender_tag);
-	auto war_name_key = text_sequence_to_key(state, war_name_sequence);
+	auto attacker_tag_key = attacker_tag;
+	auto defender_tag_key = defender_tag;
+	auto war_name_key = war_name_sequence;
 
 	if(attacker_tag_key && defender_tag_key && war_name_key) {
-		std::string war_name = std::string(state.to_string_view(war_name_key));
-		std::string attacker_name = std::string(state.to_string_view(attacker_tag_key));
-		std::string defender_name = std::string(state.to_string_view(defender_tag_key));
-		std::string combined_name = war_name + std::string("_") + attacker_name + std::string("_") + defender_name;
+		std::string war_name = std::string{ state.to_string_view(war_name_key) };
+		auto attacker_name = state.to_string_view(attacker_tag_key);
+		auto defender_name = state.to_string_view(defender_tag_key);
+		auto combined_name = war_name + std::string("_") + std::string{attacker_name} + std::string("_") + std::string{ defender_name };
 		std::string_view name = std::string_view(combined_name);
-		if(auto it = state.key_to_text_sequence.find(name); it != state.key_to_text_sequence.end())
-			return text::resolve_string_substitution(state, it->second, sub);
+		if(auto it = state.lookup_key(name); it)
+			return text::resolve_string_substitution(state, it, sub);
 	}
 
 	return text::resolve_string_substitution(state, war_name_sequence, sub);
@@ -3192,9 +3191,9 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			[from, target, pa = state.world.war_get_primary_attacker(war), pd = state.world.war_get_primary_defender(war), name = state.world.war_get_name(war), tag = state.world.war_get_over_tag(war), st = state.world.war_get_over_state(war)](sys::state& state, text::layout_base& contents) {
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+				text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, pd));
 				text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
-				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+				text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, pa));
 				text::add_to_substitution_map(sub, text::variable_type::third, tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, st);
 
@@ -3433,9 +3432,9 @@ void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			[from, target, pa = state.world.war_get_primary_attacker(war), pd = state.world.war_get_primary_defender(war), name = state.world.war_get_name(war), tag = state.world.war_get_over_tag(war), st = state.world.war_get_over_state(war)](sys::state& state, text::layout_base& contents) {
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+				text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, pd));
 				text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
-				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+				text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, pa));
 				text::add_to_substitution_map(sub, text::variable_type::third, tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, st);
 

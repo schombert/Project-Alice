@@ -1144,6 +1144,31 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 	context.limit_position = old_limit_offset;
 }
 
+void ef_random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+
+	context.compiled_effect.push_back(uint16_t(effect::random_by_modifier_scope | effect::scope_has_limit));
+
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+	context.compiled_effect.push_back(uint16_t(0));
+
+	auto read_body = parse_ef_scope_random_by_modifier(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.compiled_effect[payload_size_offset + 2] = uint16_t(read_body.chance_modifier.index());
+	static_assert(sizeof(dcon::value_modifier_key::value_base_t) == sizeof(uint16_t));
+	context.limit_position = old_limit_offset;
+}
+
+dcon::value_modifier_key read_chance_modifier(token_generator& gen, error_handler& err, effect_building_context& context) {
+	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	return make_value_modifier(gen, err, t_context);
+}
+
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto ivalue = parse_int(label, 0, err);
 	context.compiled_effect.push_back(uint16_t(ivalue));
@@ -1705,20 +1730,9 @@ void effect_body::change_province_name(association_type t, std::string_view valu
 		err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	} else {
-		std::string new_key_str = std::string("renaming_") + std::string(value);
-		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
-		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		dcon::text_sequence_id name;
-		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
-			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
-		}
-		context.add_int32_t_to_payload(name.index());
-	}
+	
+	auto name = text::find_or_add_key(context.outer_context.state, value, false);
+	context.add_int32_t_to_payload(name.index());
 }
 void effect_body::change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::state) {
@@ -1729,20 +1743,9 @@ void effect_body::change_region_name(association_type t, std::string_view value,
 		err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	} else {
-		std::string new_key_str = std::string("renaming_") + std::string(value);
-		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
-		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		dcon::text_sequence_id name;
-		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
-			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
-		}
-		context.add_int32_t_to_payload(name.index());
-	}
+	
+	auto name = text::find_or_add_key(context.outer_context.state, value, false);
+	context.add_int32_t_to_payload(name.index());
 }
 void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {

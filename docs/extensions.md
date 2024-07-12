@@ -1,10 +1,40 @@
-## Modding extensions
+# Modding extensions
 
 This document covers modding extensions that have been added to Project Alice in addition to what Victoria 2 provided. We are generally open to adding more modding extensions by request, under the condition that you actually plan to use them. Generally, we are not interested in speculatively adding extensions just because they might be useful.
+
+## Scripting
 
 ### Trigger Condition Parsing
 
 In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when the nation's prestige is greater than or equal to 5. If you want to test whether the value is less than 5, you would have to bury it inside a `NOT` scope. And testing for exact equality would be even more complicated. To simplify things, we support replacing the `=` with one of the following tokens: `==`, `!=`, `<`, `>`, `<=`, `>=`. `==` tests for exact equality, `!=` for inequality, and the rest have their ordinary meanings. We also support replacing `=` with `!=` in most situations. For example, `tag != USA` is the same as `NOT = { tag = USA }`.
+
+Additionally, any effect scope can have a limit, in the original, `THIS`, `TAG`, `FROM`, `overlord`, `capital_scope` and `any_greater_power` couldn't reliably have a `limit = { ... }` defined within them. However Alice supports defining limits for any of them.
+
+Also, province scopes will not crash the game, take for example:
+
+```
+252 = {
+	owner = { prestige = 5 }
+	owner = { badboy = 0.2 }
+	secede_province = THIS
+}
+```
+
+This would certainly be unthinkable, as in the original, anything after the first owner gets ignored. But not anymore.
+
+```
+ENG_52 = {
+	secede_province = QQQ
+	change_region_name = "Test"
+	secede_province = THIS
+}
+```
+
+This often caused crashes if not handled carefully (especially the seceding to a null tag part). Not anymore.
+
+Another new feature is allowing usage of uniform `yes/no` inside triggers, in the original engine, triggers such as `unit_has_leader = yes` was the same as `unit_has_leader = no`, so it'd need to be wrapped around a `NOT = { unit_has_leader = yes }`. Not anymore.
+
+Additionally, triggers such as technology triggers no longer suffer from having to be specified like: `nationalism_n_imperialism = 1`, they can alternatively be specified as `nationalism_n_imperialism = yes`. For ease of reading and uniformity.
 
 ### New effects
 
@@ -12,7 +42,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `decrement_variable = ...`: Shorthand to decrement by 1
 - `set_variable_to_zero = ...`: Shorthand to set a variable to 0
 - `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
-- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
+- `add_accepted_culture = THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
 - `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
 - `kill_leader = "name of leader"`: kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
 - `annex_to = null`: this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
@@ -23,11 +53,38 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
+- `all_core = { ... } (for provinces)`: The ability to use it within provinces to scope all the cores of the province in question, for example if England and Russia have cores on Houston, then this will scope both England and Russia
 - `any_core = { ... }`: Effects dont have `any_core`, but triggers do, so for consistency its supported too.
 - `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
 - `this_bounce = { ... }`: Same as above but with `THIS`.
-- `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
-- `custom_tooltip = { ... }:`: See below for syntax usage
+- `random_by_modifier = { ... }`: See below for syntax usage
+- `build_bank_in_capital = { ... }`: Invalid in vanilla, added for mods to use.
+- `build_university_in_capital = { ... }`: Invalid in vanilla, added for mods to use.
+- `any_owned_province = { ... }`: Providing uniformity with respect to triggers.
+- `any_prov = { ... }`: Shorthand for `any_owned`.
+- `any_owned_province = { ... }` : Shorthand for `any_owned`.
+- `any_substate = { ... }`: For parity with triggers, scopes any substates of the country.
+- `remove_country_flag = flag`: Alias of `clr_country_flag`.
+- `clear_global_flag = flag`: Alias of `clr_global_flag`.
+- `province_immigrator = n`: `n` can only be `1` or `-1`. This is the "province selector" used in various mods.
+- `immigrator = n`: Alias of `province_immigrator`.
+- `immigrator_selector = n`: Alias of `province_immigrator`.
+- `if = { ... }`: See below for if-else usage.
+- `else_if = { ... }`: See below.
+- `else = { ... }`: See below.
+- `add_country_modifier = modifier`: Shorthand for `add_country_modifier = { name = modifier duration = -1 }`
+- `add_province_modifier = modifier`: Shorthand for `add_province_modifier = { name = modifier duration = -1 }`
+
+As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
+
+The syntax for `build_bank_in_capital` and it's university counterpart is the same:
+
+```
+build_bank_in_capital = {
+	in_whole_capital_state = yes/no
+	limit_to_world_greatest_level = yes/no
+}
+```
 
 ### New trigger conditions
 
@@ -44,6 +101,15 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
 - `all_greater_power = { ... }`: All greater powers must fullfill condition.
 - `any_owned = { ... }`: Shorthand for `any_owned_province`.
+- `is_ai = yes/no`: Alias of `ai = yes/no`.
+- `recently_lost_war`: Alias of `has_recently_lost_war = yes`
+- `has_recent_immigration`: Alias of `has_recent_imigration` (the original is mispelt).
+- `industry_score`: Alias of `industrial_score`.
+- `has_accepted_culture`: Alias of `accepted_culture`.
+- `number_of_cities`: Alias of `num_of_cities`.
+- `disarmed`: Alias of `is_disarmed`.
+- `is_vassal_of`: Alias of `vassal_of`.
+- `has_national_focus = focus`: Checks if a state (or province) in scope has a focus `focus`.
 
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:
@@ -120,6 +186,26 @@ country_event = {
 		FROM = { add_accepted_culture = THIS }
 		THIS = { add_accepted_culture = FROM }
 	}
+}
+```
+
+### Random by modifier
+The question of: How can we have probabilities which change depending on various factors?
+
+Well the answer is `random_by_modifier`:
+
+```
+random_by_modifier = {
+	chance = {
+		base = 50 #50% chance
+		modifier = {
+			factor = 1.5 # x1.5 (50% x 1.5 = 75%)
+			is_colonial = yes
+		}
+	}
+	#50% base chance
+	#75% chance if colonial
+	secede_province = THIS
 }
 ```
 
@@ -278,6 +364,45 @@ else_if = {
 ```
 These `else_if` statments are chained together, if the first runs, the second will not, and viceversa. If no preceding `if` exists before them, the first `else_if` takes the role of the `if` statment.
 
+## UI Modding
+
+### Extension controls
+
+It is now possible to add new controls (such as buttons, text labels, and so on) to an existing window control without modifying the original file. To add new controls to a window simply define additional top level controls like the example below:
+```
+	guiButtonType = {
+		name = "alice_move_capital"
+		extends = "province_view_header"
+		position = { x= 180 y = 3 }
+		quadTextureSprite = "GFX_move_capital"	
+	}
+```
+This control will then automatically be inserted into the window named `province_view_header` when it is created. This allows you to extend a window defined in a `.gui` file without editing that file. The example above comes from `alice.gui` and is used to add a button to a window defined in `province_interface.gui` without editing that file. You mod can thus define a new `.gui` file, add new controls there, and have them show up in existing windows without interfering with another mod that also wants to add controls to that window (because now both mods don't have to make changes to the *same* `.gui` file).
+
+### Scriptable buttons
+
+Of course, adding new buttons wouldn't mean much if you couldn't make them do things. To allow you to add custom button effects to the game, we have introduced two new ui element types: `provinceScriptButtonType` and `nationScriptButtonType`. These buttons are defined in the same way as a `guiButtonType`, except that they can be given additional `allow` and `effect` parameters. For example:
+```
+	provinceScriptButtonType = {
+		name = "wololo_button"
+		extends = "province_view_header"
+		position = { x= 146 y = 3 }
+		quadTextureSprite = "GFX_wololo"
+		allow = {
+			owner = { tag = FROM }
+		}
+		effect = {
+			assimilate = "yes please"
+		}
+	}
+```
+
+A province script button has its main and THIS slots filled with the province that the containing window is about, with FROM the player's nation. A nation script button has its main and THIS slots filled with the nation that the containing window is about, if there is one, or the player's nation if there is not, and has FROM populated with the player's nation.
+
+The allow trigger condition is optional and is used to determine when the button is enabled. If the allow condition is omitted, the button will always be enabled.
+
+The tooltip for these scriptable buttons will always display the relevant allow condition and the effect. You may also optionally add a custom description to the tooltip by adding a localization key that is the name of the button followed by `_tooltip`. In the case of the button above, for example, the tooltip is defined as `wololo_button_tooltip;Wololo $PROVINCE$`. The following three variables can be used in the tooltip: `$PROVINCE$`, which will resolve to the targeted province, `$NATION$`, which will resolve to the targeted nation or the owner of the targeted province, and `$PLAYER$`, which will always resolve to the player's own nation.
+
 ### Abbreviated `.gui` syntax
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
@@ -293,6 +418,7 @@ However, the following new extensions will make GUI editing way less painful:
 - `add_position = { x y }`: Adds the specified amount to the current `position`
 - `table_layout = { x y }`: Where `x` is the column and `y` is the row, this basically translates to `position.x = column * size.x`, and `position.y = row * size.y`. Useful for laying out elements in a table-like way
 
+## Game rules modding
 
 ### New defines
 
@@ -340,6 +466,33 @@ Alice adds a handful of new defines:
 - `alice_artificial_gp_limitant`: Limit the number of GP allies the AI can have
 - `alice_rename_dont_use_localisation`: Keys specified on `change_region_name` or `change_province_name` will be treated as CSV keys, otherwise they will define in-line.
 - `alice_spherelings_only_ally_sphere`: Spherelings will only ally their spherelord.
+- `alice_overseas_mil`: Militancy increase in overseas provinces when overseas maintenance is at zero.
+
+### Political party triggers
+
+Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
+
+```
+party = {
+	name = "default_fascist_military_junta"
+	start_date = 1836.1.1 #also part of trigger check
+	end_date = 2000.1.1 #same here
+	ideology = fascist
+	#[...]
+	#Example trigger!
+	trigger = {
+		war = yes
+		nationalism_n_imperialism = 1
+	}
+}
+```
+
+### Extra on-actions
+
+- `on_election_started`: When an election starts
+- `on_election_finished`: When an election ends
+
+## New data formats
 
 ### Dense CSV pop listing
 
@@ -442,31 +595,7 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 - `$CONTINENTNAME$`: The continent of the modifier (capital used as reference if national modifier).
 - `$PROVINCENAME$`: The province of the modifier (capital used as reference if national modifier).
 
-### Political party triggers
-
-Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
-
-```
-party = {
-	name = "default_fascist_military_junta"
-	start_date = 1836.1.1 #also part of trigger check
-	end_date = 2000.1.1 #same here
-	ideology = fascist
-	#[...]
-	#Example trigger!
-	trigger = {
-		war = yes
-		nationalism_n_imperialism = 1
-	}
-}
-```
-
-## Extra on-actions
-
-- `on_election_started`: When an election starts
-- `on_election_finished`: When an election ends
-
-## Government ruler-names
+### Government ruler-names
 
 Now you can define ruler names for a specific nation with a specific government type, for example:
 
@@ -475,7 +604,7 @@ RUS_absolute_monarchy;The Russian Empire
 RUS_absolute_monarchy_ruler;Tsar
 ```
 
-## Definitions for multiple goods produced by local RGO
+### Definitions for multiple goods produced by local RGO
 
 As RGO can produce a whole distribution of goods, you can define your own distribution for specific provinces:
 

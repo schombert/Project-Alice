@@ -300,11 +300,13 @@ public:
 					float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
 					float(mask_tex.size_x),
 					float(mask_tex.size_y),
-					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
+					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+					false);
 			} else {
 				ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-						float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
-						gfx_def.is_vertically_flipped());
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
+					gfx_def.is_vertically_flipped(),
+					false);
 			}
 		}
 		image_element_base::render(state, x, y);
@@ -320,7 +322,10 @@ public:
 		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
-			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
+			auto name = text::get_name(state, state.world.national_identity_get_nation_from_identity_holder(i->save_flag));
+			if(auto gov_name = state.world.national_identity_get_government_name(i->save_flag, i->as_gov); state.key_is_localized(gov_name)) {
+				name = gov_name;
+			}
 			set_text(state, text::produce_simple_string(state, name));
 		}
 	}
@@ -579,6 +584,7 @@ public:
 	}
 };
 
+
 class start_game_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -798,7 +804,7 @@ class nation_alice_readme_text : public scrollable_text {
 	}
 public:
 	void on_reset_text(sys::state& state) noexcept override {
-		auto container = text::create_endless_layout(delegate->internal_layout,
+		auto container = text::create_endless_layout(state, delegate->internal_layout,
 		text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
@@ -840,7 +846,7 @@ public:
 		} else if(name == "play_button") {
 			return make_element_by_type<start_game_button>(state, id);
 		} else if(name == "chatlog") {
-			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find("alice_readme_text")->second.definition);
+			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
 			add_child_to_front(std::move(ptr));
 			return make_element_by_type<invisible_element>(state, id);
 		}

@@ -3884,9 +3884,33 @@ struct trigger_body {
 			context.compiled_trigger.push_back(
 					uint16_t(trigger::unit_in_battle | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
-			err.accumulated_errors += "unit_in_battle trigger used in an incorrect scope type " +
-																slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																std::to_string(line) + ")\n";
+			err.accumulated_errors += "unit_in_battle trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
+	void unit_has_leader(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::province) {
+			context.compiled_trigger.push_back(uint16_t(trigger::unit_has_leader | trigger::no_payload | association_to_bool_code(a, value)));
+		} else {
+			err.accumulated_errors += "unit_has_leader trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
+	void has_national_focus(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(auto it = context.outer_context.map_of_national_focuses.find(std::string(value));
+			it != context.outer_context.map_of_national_focuses.end()) {
+			if(context.main_slot == trigger::slot_contents::state) {
+				context.compiled_trigger.push_back(uint16_t(trigger::has_national_focus_state | trigger::no_payload | association_to_trigger_code(a)));
+				context.compiled_trigger.push_back(trigger::payload(it->second).value);
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_trigger.push_back(uint16_t(trigger::has_national_focus_province | trigger::no_payload | association_to_trigger_code(a)));
+				context.compiled_trigger.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "has_national_focus trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors += "has_national_focus given an invalid focus '" + std::string(value) + "' (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}

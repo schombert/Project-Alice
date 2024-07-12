@@ -16,14 +16,14 @@ void register_cb_type(std::string_view name, token_generator& gen, error_handler
 		return new_id;
 	}();
 
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	auto name_desc = std::string(name) + "_desc";
 	auto name_setup = std::string(name) + "_setup";
 	auto name_cond = std::string(name) + "_short";
 	context.state.world.cb_type_set_name(id, name_id);
-	context.state.world.cb_type_set_short_desc(id, text::find_or_add_key(context.state, name_desc));
-	context.state.world.cb_type_set_long_desc(id, text::find_or_add_key(context.state, name_setup));
-	context.state.world.cb_type_set_shortest_desc(id, text::find_or_add_key(context.state, name_cond));
+	context.state.world.cb_type_set_short_desc(id, text::find_or_add_key(context.state, name_desc, false));
+	context.state.world.cb_type_set_long_desc(id, text::find_or_add_key(context.state, name_setup, false));
+	context.state.world.cb_type_set_shortest_desc(id, text::find_or_add_key(context.state, name_cond, false));
 	context.state.world.cb_type_set_construction_speed(id, 1.0f);
 
 	uint32_t special_flags = 0;
@@ -42,7 +42,7 @@ void register_cb_type(std::string_view name, token_generator& gen, error_handler
 void make_trait(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 
 	dcon::leader_trait_id new_id = context.state.world.create_leader_trait();
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	context.state.world.leader_trait_set_name(new_id, name_id);
 	context.map_of_leader_traits.insert_or_assign(std::string(name), new_id);
@@ -65,7 +65,7 @@ void make_base_units(scenario_building_context& context) {
 				dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
 		context.state.military_definitions.unit_base_definitions.emplace_back();
 
-		auto name_id = text::find_or_add_key(context.state, "army_base");
+		auto name_id = text::find_or_add_key(context.state, "army_base", false);
 		context.state.military_definitions.unit_base_definitions.back().name = name_id;
 		context.state.military_definitions.unit_base_definitions.back().is_land = true;
 		context.state.military_definitions.unit_base_definitions.back().active = false;
@@ -77,7 +77,7 @@ void make_base_units(scenario_building_context& context) {
 				dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
 		context.state.military_definitions.unit_base_definitions.emplace_back();
 
-		auto name_id = text::find_or_add_key(context.state, "navy_base");
+		auto name_id = text::find_or_add_key(context.state, "navy_base", false);
 		context.state.military_definitions.unit_base_definitions.back().name = name_id;
 		context.state.military_definitions.unit_base_definitions.back().is_land = false;
 		context.state.military_definitions.unit_base_definitions.back().active = false;
@@ -91,7 +91,7 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 			dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
 	context.state.military_definitions.unit_base_definitions.emplace_back();
 
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	context.state.military_definitions.unit_base_definitions.back() = parsers::parse_unit_definition(gen, err, context);
 	context.state.military_definitions.unit_base_definitions.back().name = name_id;

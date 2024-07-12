@@ -1,0 +1,1195 @@
+support_for_blank;دعم النص $
+uh_support_for_blank;دعم مجلس الشيوخ لـ $text$
+up_to;يصل إلى
+scaled_support;يتناسب مع دعم $text$
+scaled_unemployment;يتناسب مع البطالة
+stockpile_of;إلى المخزون الوطني من $text$
+create_general;يتم إنشاء جنرال جديد
+create_admiral;تم إنشاء أميرال جديد
+add_war_goal;تمت إضافة هدف حرب $text$ ضد $nation$
+blank_loyalty;الولاء $text$
+in_blank;في $النص$
+no_effect;بدون تأثير
+move_capital_to;نقل رأس المال إلى
+add_x_core;أضف $adj$ الأساسية
+add_core_to;إضافة الأساسية ل
+remove_x_core;قم بإزالة $adj$ الأساسية
+remove_core_from;إزالة الأساسية من
+change_name_to;تغيير الاسم إلى $text$
+change_terrain_to;تغيير التضاريس إلى $text$
+change_rgo_production_to;قم بتغيير إنتاج RGO إلى $text$
+make_accepted_culture;يصبح $text$ ثقافة مقبولة
+primary_culture_changes_to;تتغير الثقافة الأساسية إلى $text$
+union_culture_accepted;تصبح جميع الثقافات في المجموعة الثقافية الأساسية للدولة مقبولة
+remove_accepted_culture;يتوقف $text$ عن كونه ثقافة مقبولة
+increase_national_variable_by;زيادة المتغير الوطني $text$ بمقدار $value$
+decrease_national_variable_by;قم بتقليل المتغير الوطني $text$ بمقدار $value$
+life_rating;تصنيف الحياة
+make_national_religion;$text$ يصبح الدين الوطني
+make_slave_state;تصبح دولة العبيد
+make_slave_pop;يصبح عبدا
+research_points;نقاط البحث
+change_tech_school;مدرسة التكنولوجيا تتغير إلى $text$
+change_government_to;الحكومة تغير إلى $text$
+add_to_treasury;تضاف إلى الخزينة
+war_exhaustion;إنهاك الحرب
+become_blank;يصبح $text$
+player_control_change;يتغير التحكم في المشغل إلى $text$
+set_national_flag;تم تعيين $text$ لهذه الأمة
+remove_national_flag;لم يتم تعيين $text$ لهذه الأمة
+infamy;العار
+change_province_owner;قم بتغيير مالك المقاطعة إلى $text$
+annex_effect;الملحق $النص$
+annexed_by_effect;تم إرفاقه بـ $text$
+core_return;يتم إرجاع النوى $adj$ إلى $text$
+core_return_short;يتم إرجاع النوى $adj$
+change_province_controller;تغيير وحدة تحكم المقاطعة إلى $text$
+change_state_controller;تغيير وحدة تحكم الحالة إلى $text$
+pop_savings;مدخرات البوب
+leadership_points;نقاط القيادة
+release_as_vassal;حرر $text$ باعتباره تابعًا
+end_alliance;إنهاء التحالف مع $text$
+end_war_with;إنهاء الحرب مع $text$
+enable_ideology;تمكين الأيديولوجيا؟Y$text$?!
+enable_technology;إعطاء التكنولوجيا ؟Y$text$?!
+enable_invention;إعطاء الاختراع ؟Y$text$?!
+change_ruling_party;تغيير الحزب الحاكم إلى $text$
+remove_prov_mod;قم بإزالة مُعدل المقاطعة $text$
+remove_nat_mod;إزالة المعدل الوطني $text$
+make_alliance;الدخول في تحالف مع $text$
+becomes_independent;يصبح $text$ دولة مستقلة
+release_as_independent;الافراج عن $text$ كدولة مستقلة
+set_global_flag;قم بتعيين $text$ عالميًا
+remove_global_flag;قم بإلغاء تعيين $text$ عالميًا
+change_national_value;قم بتغيير القيمة الوطنية إلى $text$
+become_civ;تصبح أمة متحضرة
+become_unciv;تصبح أمة غير متحضرة
+free_slave_state;تصبح دولة حرة
+free_slave_pop;يتحرر من العبودية
+hold_election;إجراء الانتخابات
+issue_change;يتغير $issue$ إلى $text$
+add_relative_income;مرات آخر دخل يضاف إلى الخزانة
+make_neutral;انتهت جميع التحالفات وتم إطلاق سراح جميع التابعين
+pop_size;حجم البوب
+move_pop_to;انقل البوب ​​إلى $text$
+change_pop_type;قم بتغيير نوع البوب ​​إلى $text$
+years_of_research;سنوات من البحث
+remove_mil_reforms;إزالة الإصلاحات العسكرية بقيمة $value$
+remove_econ_reforms;إزالة الإصلاحات الاقتصادية ذات القيمة $
+add_crime;أضف جريمة $text$
+remove_crime;إزالة الجريمة النشطة
+perform_nationalization;تنفيذ التأميم
+build_factory_in_capital;بناء $text$ في حالة رأس المال
+enable_great_wars;الحروب الكبرى ممكنة
+enable_world_wars;الحروب العالمية ممكنة
+disable_great_wars;الحروب الكبرى لم تعد ممكنة
+disable_world_wars;الحروب العالمية لم تعد ممكنة
+assimilate_pop;تغيير الثقافة إلى $text$
+assimilate_province;قم بتغيير ثقافة جميع النوافذ المنبثقة إلى $text$
+owner_primary_culture;الثقافة الأساسية لصاحبها
+literacy;معرفة القراءة والكتابة
+add_crisis_interest;يصبح مهتما بالأزمة الحالية
+crisis_temperature_plain;درجة حرارة الأزمة
+militancy;التشدد
+consciousness;الوعي
+rgo_size;حجم آر جي أو
+trigger_every_revolt;إثارة ثورة من كل فصيل متمرد
+call_allies;دعوة الحلفاء إلى حروبهم الحالية
+truce_with;هدنة مع $text$ حتى ?Y$y$?!
+diplomatic_influence_with;النفوذ الدبلوماسي مع $text$
+relations_with;العلاقة مع $text$
+add_modifier_until;يحصل على $text$ حتى $date$
+add_modifier;يحصل على $text$
+add_cb_months;يحصل على $name$ سببًا للحرب مقابل $text$ حتى $date$
+add_cb_no_months;يحصل على $name$ سببًا للحرب مقابل $text$
+add_cb_reversed_months;يحصل $text$ على $name$ سببًا للحرب ضد الأمة في النطاق حتى $date$
+add_cb_reversed_no_months;يحصل $text$ على $name$ سببًا للحرب ضد الأمة في نطاقه
+remove_cb_reversed;يخسر أي $name$ سببًا للحرب مقابل $text$
+remove_cb;يخسر $text$ أي سبب للحرب $name$ ضد الأمة في نطاقه
+set_national_variable_to;قم بتعيين المتغير الوطني $text$ إلى $value$
+event_fires;يتم تشغيل الحدث $text$
+event_fires_in_days;يتم تشغيل الحدث $text$ خلال أيام $value$
+railroad_in_capital;؟ز+1?! مستوى السكك الحديدية في العاصمة
+railroad_in_capital_state;؟ز+1?! مستوى السكك الحديدية في ولاية العاصمة
+fort_in_capital;؟ز+1?! مستوى الحصن في العاصمة
+fort_in_capital_state;؟ز+1?! مستوى الحصن في ولاية العاصمة
+fort_in_capital;؟ز+1?! مستوى الحصن في العاصمة
+fort_in_capital_state;؟ز+1?! مستوى الحصن في ولاية العاصمة
+university_in_capital;؟ز+1?! المستوى الجامعي في العاصمة
+university_in_capital_state;؟ز+1?! المستوى الجامعي في ولاية العاصمة
+bank_in_capital;؟ز+1?! مستوى البنك في رأس المال
+bank_in_capital_state;؟ز+1?! مستوى البنك في دولة رأس المال
+railroad_level;مستوى السكك الحديدية
+fort_level;مستوى الحصن
+naval_base_level;مستوى القاعدة البحرية
+university_base_level;مستوى القاعدة البحرية
+bank_base_level;مستوى القاعدة البحرية
+apply;يتقدم
+ok;نعم
+close;يغلق
+delete;يمسح
+new;جديد
+reset;إعادة ضبط
+every;كل
+ready;مستعد
+any;أي
+none;لا أحد
+random;عشوائي
+neighboring_province;المقاطعة المجاورة
+where;أين:
+neighboring_nation;الأمة المجاورة
+nation;أمة
+continent;القارة
+same_continent;في نفس القارة
+empty_neighboring_province;المحافظة المجاورة فارغة
+poor_strata_pop;الطبقات الفقيرة البوب
+middle_strata_pop;الطبقات الوسطى البوب
+rich_strata_pop;الطبقات الغنية البوب
+pop;البوب
+owned_province;المحافظة التابعة لها
+singular_nation;تلك الأمة
+singular_state;تلك الدولة
+singular_province;تلك المقاطعة
+singular_pop;هذا البوب
+one_of_the_following;أحد التأثيرات التالية:
+this_nation;هذه الأمة
+this_state;هذه الدولة
+this_province;هذه المقاطعة
+this_pop;هذا البوب
+from_nation;من الأمة
+from_state;من الدولة
+from_province;من المحافظة
+from_pop;من البوب
+province_in;مقاطعة في
+this_nation_culture;الثقافة الأساسية لهذه الأمة
+from_nation_culture;الثقافة الأساسية للأمة
+cultural_union_nation;الأمة الثقافية الموحدة لثقافتها الأولية
+core_of;في قلب
+state_of;حالة من
+chance_of;فرصة:
+owner_of;مالك
+controller_of;وحدة تحكم
+location_of_pop;موقع هذا البوب
+nation_of_pop;الأمة التي تحتوي على تلك البوب
+capital_of;عاصمة
+containing_state;الدولة التي تحتوي على
+adjacent_sea;المنطقة البحرية المجاورة
+cultural_union_of;الاتحاد الثقافي
+overlord_of;أفرلورد من
+sphere_leader_of;زعيم المجال
+crisis_state;حالة الأزمة
+reb_independence_nation;أمة الاستقلال المتمردة
+flashpoint_nation;أمة نقطة مضيئة
+rebel;المتمردين
+flashpoint_tension_label;التوتر نقطة الوميض
+for_text;للنص $$
+where_ideology_is;حيث أيديولوجيتها هي $text$
+where_culture_is;حيث ثقافتها هي $text$
+where_religion_is;حيث دينها هو $text$
+of_type;من النوع $text$
+no_nation;لا أمة
+declare_war_on;أعلن الحرب على $text$
+attacker_wg_label;هدف حرب المهاجم: $text$
+defender_wg_label;هدف حرب المدافع: $text$
+attacker_no_allies;لن يتم استدعاء حلفاء المهاجم
+attacker_yes_allies;سيتم استدعاء حلفاء المهاجم
+war_start_date_desc;بدأت الحرب في ?Y$date$?!
+cmp_ge;هذا على الاقل
+cmp_le;هو على الأكثر
+cmp_gt;أكبر من
+cmp_lt;اقل من
+cmp_eq;يكون
+cmp_ne;ليس
+cmp_has_eq;لديه
+cmp_has_ne;لا يمتلك
+cmp_has_lt;لديه أقل من
+cmp_has_gt;لديه أكثر من
+cmp_has_ge;لديه على الاقل
+cmp_has_le;لديه على الأكثر
+all_of_the_following;كل ما يلي:
+any_of_the_following;اى من التالية:
+nation_at_war_against;أمة في حالة حرب ضد
+core_in;الأساسية في
+colonial_pop;تقع في مقاطعة استعمارية
+substate_of;الحالة الفرعية ل
+nation_in_sphere;الأمة في مجال
+year;سنة
+month;شهر
+a_port;ميناء
+national_rank;رتبة وطنية
+att_technology;تكنولوجيا
+strata;طبقات
+rich;ثري
+poor;فقير
+middle;وسط
+minimum_state_life_raing;الحد الأدنى من تصنيف الحياة في الدولة
+an_empy_adj_prov;مقاطعة مجاورة فارغة
+belongs_to_same_state;ينتمي إلى نفس الحالة مثل $text$
+does_not_belong_to_same_state;لا ينتمي إلى نفس الحالة مثل $text$
+contains_blank;يحتوي على $text$
+does_not_contain_blank;لا يحتوي على $text$
+times_target_needs_spending;الأوقات المرغوبة تحتاج إلى الإنفاق
+unemployment;البطالة
+slavery;عبودية
+allowed;مسموح
+a_slave_state;دولة العبيد
+a_slave;عبد
+an_independent_nation;أمة مستقلة
+non_prim_culture_pops;غير الملوثات العضوية الثابتة الثقافة الأولية
+government;حكومة
+capital;عاصمة
+technology_school;مدرسة التكنولوجيا
+primary_culture;الثقافة الأولية
+primary_culture_pop;الثقافة الأساسية للأمة التي يعيش فيها البوب
+an_accepted_culture;ثقافة مقبولة
+culture;ثقافة
+dominant_culture;الثقافة السائدة
+a_primary_or_accepted;ثقافة أساسية أو مقبولة
+rebel_culture;ثقافة المتمردين
+this_nation_prim_culture;الثقافة الأساسية أو الثقافة المقبولة لهذه الأمة
+from_nation_prim_culture;الثقافة الأولية أو الثقافة المقبولة للأمة
+culture_group;مجموعة الثقافة
+dominant_culture_group;المجموعة الثقافية المهيمنة
+primary_culture_group;مجموعة الثقافة الأولية
+a_core_ob;الأساسية التي يملكها
+rebel_culture_group;المجموعة الثقافية المتمردة
+this_nation_culture_group;نفس المجموعة الثقافية لهذه الأمة
+from_nation_culture_group;نفس المجموعة الثقافية للأمة
+rebel_religion;الدين المتمرد
+this_nation_religion;الدين الوطني لهذه الأمة
+from_nation_religion;الدين الوطني للأمة
+province_terrain;تضاريس المحافظة
+rgo_production;إنتاج آر جي أو
+a_secondary_power;قوة استعمارية
+owner;مالك
+an_active_rebel;فصيل متمرد نشط
+a_member_of;عضو
+unclaimed_cores;النوى لم يطالب بها أحد
+a_cultural_union;اتحاد ثقافي
+union_for_pop;الاتحاد الثقافي لشعب
+union_for_nation;الاتحاد الثقافي للأمة
+the_rebel_ind_nation;أمة الاستقلال المتمردة
+capitalists_can_build;يُسمح للرأسماليين ببناء المصانع
+capitalists_cannot_build;لا يُسمح للرأسماليين ببناء المصانع
+at_war;في الحرب
+total_blockade;الحصار الشامل
+owns;يمتلك
+does_not_own;لا يملك
+controls;ضوابط
+does_not_control;لا يتحكم
+a_core_in;جوهر في
+a_core_of;جوهر
+a_core_of_owner;نواة صاحبها
+located_in_a_core_of;تقع في قلب
+percentage_reb_control;نسبة المحافظات التي يسيطر عليها المتمردون
+num_of_reb_control;عدد المحافظات التي يسيطر عليها المتمردون
+num_owned_provinces;عدد المحافظات المملوكة
+num_provinces_owned_by;عدد المحافظات المملوكة لها
+num_of_ports;عدد المنافذ
+num_of_allies;عدد الحلفاء
+num_of_vassals;عدد التابعين
+owned_by;مملوكة من قبل
+exists;موجود
+does_not_exist;غير موجود
+att_set;تعيين
+in;في
+located_in;يقع في
+the_owner_of_region;مالك كل محافظة في
+a_casus_belli_against;سببا للحرب ضد
+military_access_with;الوصول العسكري مع
+prestige_of;هيبة
+prestige;هيبة
+a_railroad;السكك الحديدية
+a_fort;قلعة
+a_naval_base;قاعدة بحرية
+a_factory;مصنع
+empty;غير مملوكة
+blockaded;محاصر
+national_modifier;المعدل الوطني
+provincial_modifier;معدل المقاطعة
+part_of;جزء من
+a_border_with;الحدود مع
+units_in_province;الوحدات في المحافظة
+units_in_the_province;الوحدات في المحافظة
+units_in_the_state;الوحدات في الدولة
+at_war_against;في حرب ضد
+num_of_divisions;عدد من الأقسام
+an_ongoing_battle;معركة مستمرة
+an_assigned_leader;an assigned leader
+treasury;خزينة
+o_treasury;خزينة المالك
+o_of_prov;صاحب المحافظة
+percentage_unowned_cores;نسبة النوى غير المملوكة
+a_vassal;تابع
+ruling_party_ideology;أيديولوجية الحزب الحاكم
+ruling_party;الحزب الحاكم
+enabled;ممكن
+political_reform_desire;الرغبة في الإصلاح السياسي
+social_reform_desire;الرغبة في الإصلاح الاجتماعي
+num_of_ships;عدد السفن
+crime_percent;النسبة المئوية للمقاطعات التي تعاني من الجريمة
+national_religion;الوطنية_الدين
+member_of_nat_religion;عضو في الدين الوطني
+dominant_religion;الدين السائد
+same_rel_as_this;نفس دين هذه الأمة
+this_pop_culture;ثقافة هذا البوب
+this_nation_primary_culture;الثقافة الأساسية لهذه الأمة
+this_nation_accepted_culture;ثقافة مقبولة لهذه الأمة
+coastal;الساحلية
+in_sphere_of;في مجال
+a_producer_of;منتج ل
+next_reform;الإصلاح القادم
+always;دائماً
+never;أبداً
+percentage_recruited;النسبة المئوية للملوثات العضوية الثابتة المعينين
+in_cultural_core_prov;في مقاطعة ذات جوهر نفس الثقافة
+nationalism;القومية
+overseas;ما وراء البحار
+overseas_pop;تقع في مقاطعة في الخارج
+controlled_by_rebel;التي يسيطر عليها المتمردون
+controlled_by;تسيطر عليها
+state_capital;عاصمة الولاية
+loc_state_capital;تقع في عاصمة الولاية
+a_truce_with;هدنة مع
+att_population;سكان
+size;مقاس
+pops_of_type;الملوثات العضوية الثابتة من النوع
+of_type_plain;من النوع
+ai_controlled;تسيطر عليها منظمة العفو الدولية
+a_leader_named;زعيم اسمه
+a_possible_vassal;تابع محتمل
+a_vassal_of;تابع ل
+a_substate_of;دولة فرعية من
+allied_to;متحالفة مع
+has_recently_lost_war;لقد خسرت الحرب مؤخرًا
+has_not_recently_lost_war;لم يخسر الحرب في الآونة الأخيرة
+mobilized;حشدت
+mobilization_size;حجم التعبئة
+admin_spending;الإنفاق الإداري
+greater_than_edu_spending;أكبر من الإنفاق على التعليم
+support_for_rp;دعم الحزب الحاكم
+colonial;الاستعماري
+in_default_to;في الافتراضي ل
+in_bnkrpt;مفلس
+num_of_ports_connected;عدد المنافذ المرتبطة برأس المال
+holding_an_election;إجراء الانتخابات
+set_globally;تعيين عالميا
+national_value;القيمة الوطنية
+industrial_score;النتيجة الصناعية
+industrial_score_of;النتيجة الصناعية
+military_score;النتيجة العسكرية
+military_score_of;النتيجة العسكرية
+civilized;متحضر
+percent_occupied;نسبة المحافظات المحتلة
+rich_tax;ضريبة غنية
+middle_tax;ضريبة وسطية
+poor_tax;ضريبة سيئة
+soc_spending;الإنفاق الاجتماعي
+edu_spending;الإنفاق على التعليم
+mil_spending;الإنفاق العسكري
+colonies;مستعمرات
+dominant_ideology;الأيديولوجية المهيمنة
+dominant_issue;القضية المهيمنة
+poor_militancy;نضالية الطبقات الفقيرة
+middle_militancy;نضال الطبقة الوسطى
+rich_militancy;نضال الطبقات الغنية
+gt_poor_tax;أعظم من ضريبة الفقراء
+cultural_union;الاتحاد الثقافي
+same_cultural_union;نفس الاتحاد الثقافي
+non_accepted_pops;الملوثات العضوية الثابتة غير المقبولة
+crime;جريمة
+num_substates;عدد الولايات الفرعية
+num_vassals_no_substates;عدد التابعين غير الفرعيين
+num_regiments;عدد الأفواج
+owner_num_regiments;عدد أفواج المالك
+num_regiments_of;عدد الأفواج التابعة لها
+times_num_regiments_of;$x$ أضعاف عدد الأفواج التي تنتمي إليها
+fabricating_on;اختلاق سبب للحرب
+cb_discovered;تم اكتشاف تلفيق سبب للحرب
+cb_not_discovered;لم يتم اكتشاف تلفيق سبب للحرب
+cb_progress;التقدم في التصنيع سبب للحرب
+civ_progress;التقدم الحضاري
+constructing_a;افتعال أ
+casus_belli;للحرب سببا لل
+nation_in_scope;الأمة في نطاقها
+a_substate;دولة فرعية
+gw_enabled;تم تمكين الحروب العظيمة
+gw_not_enabled;لم يتم تمكين الحروب الكبرى
+ww_enabled;تم تمكين الحروب العالمية
+ww_not_enabled;لم يتم تمكين الحروب العالمية
+can_perform_nationalization;يمكن تأميمها
+cannot_perform_nationalization;لا يمكن التأميم
+in_sphere;في مجال النفوذ
+num_states;عدد الولايات
+a_releasable_vassal;تابع يمكن إطلاقه
+recent_immigration;الهجرة الأخيرة
+num_control_days;عدد الأيام تحت السيطرة الحالية
+disarmed;منزوع السلاح
+social_mov_support;دعم الحركة الاجتماعية
+political_mov_support;دعم الحركة السياسية
+a_member_of_social_mov;عضو في حركة اجتماعية
+a_member_of_political_mov;عضو في حركة سياسية
+cultural_sphere_members;أعضاء المجال في نفس المجموعة الثقافية
+pops;للملوثات العضوية الثابتة
+this_pop_religion;دين هذا البوب
+pops_with;ينبثق مع
+life_needs_satisfaction;الحياة تحتاج إلى الرضا
+everyday_needs_satisfaction;الاحتياجات اليومية الرضا
+luxury_needs_satisfaction;الرفاهية تحتاج إلى الرضا
+present_in_state;موجود في الدولة
+flashpoint;نقطة الوميض
+plurality_pop;تعددية الأمة التي ينتمي إليها البوب
+an_ongoing_crisis;أزمة مستمرة
+there;هناك
+current_crisis;الأزمة الحالية
+liberation_crisis;أزمة تحرير
+claim_crisis;أزمة المطالبات
+involved_in_crisis;متورط في الأزمة
+poor_life_needs_satisfaction;حياة الطبقات الفقيرة تحتاج إلى الرضا
+poor_everyday_needs_satisfaction;الطبقات الفقيرة اليومية تحتاج إلى الرضا
+poor_luxury_needs_satisfaction;ترف الطبقات الفقيرة يحتاج إلى الرضا
+middle_life_needs_satisfaction;حياة الطبقة الوسطى تحتاج إلى الرضا
+middle_everyday_needs_satisfaction;الطبقة الوسطى تحتاج كل يوم إلى الرضا
+middle_luxury_needs_satisfaction;الطبقة الوسطى من الرفاهية تحتاج إلى الرضا
+rich_life_needs_satisfaction;حياة الطبقات الغنية تحتاج إلى الرضا
+rich_everyday_needs_satisfaction;الطبقات الغنية تحتاج كل يوم إلى الرضا
+rich_luxury_needs_satisfaction;ترف الطبقات الغنية يحتاج إلى الرضا
+dip_influence_over;النفوذ الدبلوماسي
+relationship_with;علاقة مع
+this_pop_type;هذا النوع من البوب
+nat_variable;المتغير الوطني
+support_in_uh;الدعم في مجلس الشيوخ
+support_in;الولاء في
+scope_province;المحافظة في نطاقها
+able_build_rr;قادرة على بناء السكك الحديدية في هذه المحافظة
+able_build_fort;قادرة على بناء حصن في هذه المحافظة
+able_build_naval_base;قادرة على بناء قاعدة بحرية في هذه المحافظة
+work;عمل
+available_for;متاح لى:
+support;يدعم
+percentage;نسبة مئوية
+stockpile;مخزون
+this_nat_religion;الدين الوطني لهذا البلد
+from_nat_religion;الدين الوطني للبلد
+event_show_requirements;متطلبات الحدث
+event_only_other_requirements;يتم تشغيل هذا الحدث فقط من خلال أحداث أخرى
+event_show_odds;احتمالات الحدث
+value_mod_product;القيمة $val$ هي حاصل ضرب:
+value_mod_sum;القيمة $val$ هي مجموع:
+value_mod_sum_factor;القيمة $val$ هي $x$ مضروبة في مجموع:
+admin_explain_1;معدل الكفاءة الإدارية $val$
+admin_explain_2;تطبق على نسبة البيروقراطيين غير الاستعماريين: $val$
+admin_explain_3;إلى النسبة المطلوبة: $val$ (الأساس $x$ + $y$ من الإصلاحات)
+factory_condition_1;الأمة متحضرة
+factory_condition_2;هذه ليست دولة استعمارية
+factory_condition_3;الحزب الحاكم يسمح ببناء المصانع
+factory_condition_4;يوجد أقل من مصانع $val$ في الولاية
+cant_subsidize_explanation;الحزب الحاكم لا يسمح لنا بدعم المصانع
+percent_of_pop_strata;$val$ من سكان طبقاتهم
+cant_prioritize_explanation;الحزب الحاكم لا يسمح لنا بتغيير أولوية المصنع
+factory_upgrade_condition_1;الأمة متحضرة
+factory_upgrade_condition_2;هذه ليست دولة استعمارية
+factory_upgrade_condition_3;استيفاء المتطلبات التقنية اللازمة لبناء المصنع
+factory_upgrade_condition_4;أمتك قوة عظمى بينما الأمة المستهدفة ليست كذلك
+factory_upgrade_condition_5;الهدف الاستثماري حضاري
+factory_upgrade_condition_6;الحزب الحاكم للاستثمار المستهدف يسمح بالاستثمار الأجنبي
+factory_upgrade_condition_7;الهدف الاستثماري ليس في حالة حرب معك
+factory_upgrade_condition_8;الحزب الحاكم يسمح بتحديث المصانع
+factory_upgrade_condition_9;لم تتم ترقية المصنع بالفعل
+factory_upgrade_condition_10;المصنع ليس في المستوى الأقصى
+factory_delete_header;حذف المصنع
+factory_delete_not_allowed;الحزب الحاكم لا يسمح لنا بحذف المصانع
+factory_stats_1;يعمل هذا المصنع حاليًا بقدرة $val$
+factory_stats_2;يستهدف هذا المصنع القدرة $val$
+factory_stats_3;لقد أنتجت وحدات $val$ بقيمة $x$ في اليوم السابق
+factory_stats_4;لقد حققت ربحًا قدره $val$ في اليوم السابق
+factory_stats_5;توفر المدخلات:
+factory_stats_6;توافر مدخلات الكفاءة:
+factory_stats_wage;الأجر:
+factory_stats_expenses;المصروفات الكلية
+factory_stats_desired_income;الربح الخام المرغوب فيه
+speed;$فال$ كم/ساعة
+shift_to_hold_open;عقد؟YSHIFT?! لإبقاء هذه النافذة مفتوحة، انقر بزر الماوس الأيمن فوق YSHIFT?! لبناء هذا في كل ولاية (ولكن ليس التوسع)
+factory_upgrade_shortcuts;?YSHIFT-نقر بزر الماوس الأيسر?W ترقية ?Gall?!S مصانع في ولاية\n?YSHIFT-نقر بزر الماوس الأيمن?W ترقية ?Gall مربح?W مصانع في ولاية\n?YCTRL-نقر بزر الماوس الأيسر?W ترقية ? Gall?مصانع W في دولة\n?YCTRL-نقر بزر الماوس الأيمن?ترقية W ?مربحة للغاية?مصانع W في دولة\n?YCTRL-SHIFT-النقر بزر الماوس الأيسر?ترقية W ?مربحة للغاية مع التوظيف الكامل؟مصانع W في ولاية\n?YCTRL-SHIFT-النقر بزر الماوس الأيمن؟W الترقية؟مربحة للغاية مع التوظيف الكامل؟W المصانع في الولاية
+blank_org_gain;مكاسب تنظيمية
+plurality_change_reason;(على أساس متوسط ​​الوعي)
+revanchism_reason;استنادًا إلى عدد النوى غير المملوكة (يتم احتساب النوى التي تحتوي على ثقافتك الأساسية للمزيد)
+allow_reform_cond;متطلبات:
+reform_effect_if_desc;عند التنشيط، إذا
+reform_effect_then_desc;ثم:
+reform_effect_desc;عند التنشيط:
+special_rules;قواعد خاصة:
+voting_rules;قواعد التصويت:
+hide_decision;إخفاء الإخطار لهذا القرار
+sup_point_gain;زيادة نقطة القمع الشهرية: ?G+$val$
+sup_point_explain;من: المعدل الأساسي $x$ x $y$ من البيروقراطيين x $val$ من المعدل الخاص بنا إلى كسب نقطة القمع
+pop_size_1;ومن المتوقع أن يتغير حجم هذه البوب ​​​​في الشهر المقبل من خلال:
+pop_size_2;من النمو:
+pop_size_3;من الترقية والتخفيض:
+pop_size_4;من الاستيعاب:
+pop_size_5;من الهجرة الداخلية:
+pop_size_6;من الهجرة الاستعمارية:
+pop_size_7;من الهجرة:
+pop_size_8;من التحويل:
+pop_l_migration_header;?YMigration بعيدا: $val$
+pop_l_c_migration_header;؟ الهجرة الاستعمارية بعيدا: $val$
+pop_l_emigration_header;?YEmigration بعيدا: $val$
+pop_mig_1;لا توجد هجرة داخلية من المقاطعات الاستعمارية
+pop_mig_2;العبيد لا يهاجرون داخليا
+pop_mig_3;عدد الأشخاص الذين سيهاجرون داخليًا يساوي حجم البوب ​​مضروبًا في مقياس الهجرة ($x$) مضروبًا في معدّل دفع المهاجرين في المقاطعة ($y$) مضروبًا في عامل الهجرة ($val$)
+pop_mig_4;عامل الهجرة:
+pop_cmig_1;الأمة ليس لديها أي مستعمرات
+pop_cmig_2;لا توجد هجرة استعمارية من المقاطعات الاستعمارية
+pop_cmig_3;العبيد لا يهاجرون بشكل استعماري
+pop_cmig_4;إن الطبقات الغنية لا تهاجر بشكل استعماري
+pop_cmig_5;عمال المصانع لا يهاجرون بشكل استعماري
+pop_cmig_6;عدد الأشخاص الذين سيهاجرون استعماريًا يساوي حجم البوب ​​مضروبًا في مقياس الهجرة ($x$) مضروبًا في معدّل دفع المهاجرين في المقاطعة ($y$) مضروبًا في معدّل الهجرة الاستعمارية في المقاطعة ($num$) مرات عامل الهجرة الاستعمارية ($val$)
+pop_cmig_7;عامل الهجرة الاستعمارية:
+pop_emg_1;لا يمكن للبوب أن يهاجر إلا من الدول المتحضرة
+pop_emg_2;لا توجد هجرة من المقاطعات الاستعمارية
+pop_emg_3;العبيد لا يهاجرون
+pop_emg_4;الملوثات العضوية الثابتة دون ?Yverseas?! الثقافة لا تهاجر
+pop_emg_5;عدد الأشخاص الذين سيهاجرون يساوي حجم البوب ​​مضروبًا في مقياس الهجرة ($x$) مضروبًا في معدل دفع المهاجرين في المقاطعة ($y$، مربعًا إذا كان أكبر من 100%) مضروبًا في عامل الهجرة ($y$) فال $)
+pop_emg_6;؟عامل الهجرة:
+pop_prom_1;عامل الترويج:
+pop_prom_2;من التركيز الوطني: ?G$val$
+pop_prom_3;0 (بسبب التركيز الوطني)
+pop_prom_4;عامل التخفيض:
+pop_prom_5;يتم ترويج البوب ​​حاليًا لأن عامل الترقية أكبر من عامل خفض الرتبة
+pop_prom_6;يتم حاليًا خفض رتبة البوب ​​لأن عامل التخفيض أكبر من عامل الترقية
+pop_prom_7;وبما أن كلا العاملين سلبيين، فإن البوب ​​لا يقوم حاليًا بالترويج أو تخفيض رتبته
+pop_prom_8;عدد الأشخاص الذين سيقومون بالترويج يساوي حجم البوب ​​مضروبًا في مقياس الترويج ($x$) مضروبًا في عامل الترويج ($val$) مضروبًا في كفاءتك الإدارية ($y$)
+pop_prom_9;عدد الأشخاص الذين سيتم تخفيض رتبتهم يساوي حجم الفرقعة مضروبًا في مقياس الترقية ($x$) مضروبًا في عامل التخفيض ($val$)
+pop_con_1;تغير الوعي الشهري:
+pop_con_2;هل مجموع:
+pop_con_3;من الرفاهية يحتاج إلى الرضا: ?G+$x$
+pop_con_4;من نسبة رجال الدين المحليين ($val$): ?R$x$
+pop_con_5;عامل التعددية ومعرفة القراءة والكتابة: ?G+$x$?!، وهو نتاج:
+pop_con_6;التعددية: $x$
+pop_con_7;المعدل الوطني لتأثير معرفة القراءة والكتابة على الوعي: $x$
+pop_con_8;عامل تأثير معرفة القراءة والكتابة: $x$
+pop_con_9;معرفة القراءة والكتابة لدى البوب: $x$
+pop_con_10;عامل الوعي الاستعماري: $x$
+pop_con_11;و 0.1
+pop_con_12;معدل الوعي الشعبي المحلي:
+pop_con_13;معدل الوعي الشعبي الوطني:
+pop_con_14;معدل الوعي الشعبي الوطني غير الاستعماري:
+pop_con_15;معدل الوعي الشعبي الوطني غير المقبول:
+pop_mil_1;التغيير النضالي الشهري:
+pop_mil_2;هل مجموع:
+pop_mil_3;من إشباع احتياجات الحياة: ?R+$x$
+pop_mil_4;من إشباع الاحتياجات اليومية:
+pop_mil_5;من إشباع الاحتياجات الفاخرة: ?G$x$
+pop_mil_6;من دعم المحافظة: ?G$x$
+pop_mil_7;من دعم الحزب الحاكم: ?G$x$
+pop_mil_8;من الرغبة في الإصلاح: ?R+$x$
+pop_mil_9;معدل التشدد الشعبي المحلي:
+pop_mil_10;معدل النضال الشعبي الوطني:
+pop_mil_11;معدل النضال الشعبي الوطني غير الاستعماري:
+pop_mil_12;من الانفصالية: ?R+$val$?! (؟R+$x$?! مرات معدل الانفصال الوطني؟R$y$)
+pop_mil_13;من إرهاق الحرب؟R+$val$?!
+pop_lit_1;التغيير الشهري في معرفة القراءة والكتابة:
+pop_lit_2;هل المنتج من:
+pop_lit_3;من نسبة رجال الدين المحليين ($val$): $x$
+pop_lit_4;الإنفاق الفعال على التعليم: $x$
+pop_lit_5;معدّل كفاءة التعليم الوطني: $x$
+pop_lit_6;معدّل معدّل كفاءة التعليم الوطني: $x$
+pop_lit_7;معدل التغير الأساسي في معرفة القراءة والكتابة: $x$
+pop_lit_8;و 0.01
+pop_growth_topbar;ومن المتوقع أن ينمو بنسبة ?G$x$?W خلال الشهر المقبل.
+pop_growth_topbar_2;تغير عدد السكان بمقدار ?G$x$?W في آخر ?Y30?W أيام.
+pop_growth_topbar_3;يبلغ عدد السكان الذكور البالغين لدينا ?Y$curr$?W. ذكرنا البالغ
+pop_growth_topbar_4;مجموع سكاننا هو؟Y$val$؟W.
+pop_growth_1;نمو البوب ​​الشهري:
+pop_growth_2;العبيد لا ينمون
+pop_growth_3;يتناسب نمو البوب ​​​​مع حجم الفرقعة مضروبًا في مجموع:
+pop_growth_4;عامل جودة الحياة $x$ وهو حاصل ضرب:
+pop_growth_5;عامل المقاطعة $x$، وهو في حد ذاته مجموع:
+pop_growth_6;تصنيف الحياة للمقاطعة $x$ مطروحًا منه الحد الأدنى لتصنيف الحياة $y$، في جميع الأوقات $val$
+pop_growth_7;وقيمة نمو البوب ​​الأساسي $x$
+pop_growth_8;تحتاج حياة البوب ​​إلى العامل $x$ (الحياة تحتاج إلى الرضا $y$ - حد المجاعة $val$)
+pop_growth_9;و 4
+pop_growth_10;معدل النمو السكاني المحلي $x$
+pop_growth_11;معدل النمو السكاني الوطني $x$
+pop_assim_1;استيعاب البوب ​​الشهري: $x$
+pop_assim_2;العبيد لا يستوعبون
+pop_assim_3;لا يتم استيعاب الملوثات العضوية الثابتة في الثقافة المقبولة
+pop_assim_4;لا يتم استيعاب الملوثات العضوية الثابتة في المقاطعات الاستعمارية
+pop_assim_5;لا يتم استيعاب الملوثات العضوية الثابتة في المقاطعات الخارجية
+pop_assim_6;يتناسب الاستيعاب مع حجم البوب ​​مضروبًا في ناتج:
+pop_assim_7;مقياس الاستيعاب الأساسي: $x$
+pop_assim_8;معدّل معدل الاستيعاب الوطني: $x$
+pop_assim_9;معدّل معدل الاستيعاب المحلي: $x$
+pop_assim_10;0.1 لعدم وجود ثقافة خارجية
+pop_assim_11;$x$ من النوى الموجودة في المقاطعة
+pop_assim_12;عوامل الاستيعاب المتغيرة: $x$
+pop_conver_1;تحويل البوب ​​الشهري: $x$
+pop_conver_2;الملوثات العضوية الثابتة في دين الدولة لا تتحول
+pop_conver_3;لا يتحول البوب ​​إلا إذا كان هناك بوباء من دين الدولة في نفس المحافظة
+pop_conver_4;يتناسب التحويل مع حجم البوب ​​مضروبًا في ناتج:
+pop_conver_5;مقياس التحويل الأساسي: $x$
+pop_conver_6;معدّل معدل التحويل الوطني: $x$
+pop_conver_7;مُعدِّل معدل التحويل المحلي: $x$
+pop_conver_8;عوامل التحويل المتغيرة: $x$
+pop_issue_attraction_1;جاذبية الإصدار: $x$
+pop_issue_attraction_2;وهذا الإصلاح غير ممكن حاليا
+pop_issue_attraction_3;إن جذب القضايا هو نتاج:
+pop_issue_attraction_4;المعدل الوطني لرغبة الإصلاح الاجتماعي: $x$
+pop_issue_attraction_5;المعدل الوطني لرغبة الإصلاح السياسي: $x$
+pop_issue_attraction_6;وعامل جذب المشكلة: $x$
+pop_ideology_attraction_1;جاذبية الأيديولوجية: $x$
+pop_ideology_attraction_2;هذه الأيديولوجية غير متوفرة حاليا
+trade_setting_drawing;الرسم على المخزونات
+trade_setting_filling;ملء المخزونات
+trade_setting_stable;لا يوجد نشاط مخزون
+trade_commodity_report_1;الطلب العالمي الحالي: $x$
+trade_commodity_report_2;الإنتاج العالمي الحالي: $x$
+trade_commodity_report_3;الاستهلاك العالمي الحالي: $x$
+trade_commodity_report_4;المبلغ في السوق العالمية: $x$
+trade_fill;يملأ
+trade_use;رسم على
+trade_stockpile_target;الكمية المستهدفة للمخزون:
+trade_stockpile_current;المخزون الحالي:
+diplomacy_wx_1;الإرهاق الحربي الشهري:
+influence_explain_1;نحن محظورون حاليا وليس لدينا أي تأثير مع هذه الأمة
+influence_explain_2;لدينا هدنة مع هذه الأمة وليس لنا أي نفوذ فيها
+influence_explain_3;نحن في حالة حرب مع هذه الأمة وليس لنا أي نفوذ فيها
+influence_explain_4;نحن نجمع، مع جميع الدول، ما مجموعه $x$ من التأثير يوميًا.
+influence_explain_5;هذا هو حاصل ضرب معدل اكتساب التأثير الأساسي ($x$) مضروبًا في معدّل التأثير الوطني ($y$) مضروبًا في معدّل التأثير من التكنولوجيا ($val$)
+influence_explain_6;معدل التأثير الوطني: $x$
+influence_explain_7;معدل التأثير من التكنولوجيا: $x$
+influence_explain_8;يتم تقسيم هذا بين الدول التي نؤثر عليها، مما يؤدي إلى ربح يومي أساسي قدره: $x$
+influence_explain_9;وهو مضروب أيضًا في 1 بالإضافة إلى مجموع العوامل التالية:
+influence_explain_10;$x$ من فقدان مصداقيتها
+influence_explain_11;$x$ من كوننا جيرانًا
+influence_explain_12;$x$ من وجود واحد أو أكثر من أعضاء مجالنا كجار
+influence_explain_13;$x$ من عدم وجود رأس مالها في نفس القارة مثل قارتنا
+influence_explain_14;$x$ من كونه موضوعنا
+influence_explain_15;$x$ من علاقتنا
+influence_explain_16;$x$ من استثمارنا في الأمة
+influence_explain_17;$x$ من حجم الدولة المستهدفة
+influence_explain_18;$x$ من درجاتنا النسبية
+until_date;حتى $x$
+add_wg_1;لا يمكنك إضافة هدف حرب ضد نفسك
+add_wg_2;أنت في حالة حرب
+add_wg_3;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+add_wg_4;يلبي دعم الشوفينية الحالي ($x$) الحد الأدنى المطلوب لإضافة هدف حرب ($y$)
+add_wg_5;لم تتم إضافة هدف حرب الوضع الراهن إلى جانبك
+intervene_1;التدخل في الحرب
+intervene_2;التدخل في حرب كبيرة
+intervene_3;هي قوة عظمى
+intervene_4;لا تدخل في أزمة
+intervene_5;لقد مر شهر (أشهر) $x$ على الأقل منذ بدء الحرب
+intervene_6;إن الانضمام إلى الحرب لن يضعك في حالة حرب ضد نفس الأمة مرتين أو القتال مع نفس الأمة وضدها
+intervene_7;ليست حرب أزمة
+intervene_8;الانضمام من شأنه أن يكسر الهدنة
+intervene_9;ويدعم المدافع
+intervene_10;ليس للمدافعين أهداف حربية سوى الوضع الراهن
+intervene_11;تبلغ نتيجة حرب المهاجم $x$ على الأقل
+intervene_12;استنفاد الحرب أقل من $x$
+intervene_13;العلاقات مع زعيم الحرب لا تقل عن $x$
+intervene_14;لا يوجد أي من أعضاء مجالك على الجانب الآخر
+intervene_15;لا أحد من حلفائك في الجانب المعارض
+intervene_16;لا يوجد أي من جيوشك في المقاطعات المملوكة للجانب المعارض
+intervene_17;المدافع الأساسي لديه رأي ودي عنك
+military_score_explain_1;نقاط السفينة الرئيسية: $x$
+military_score_explain_2;الأفواج القابلة للتجنيد: $x$
+military_score_explain_3;الأفواج النشطة: $x$
+military_score_explain_4;هل منزوع السلاح؟ (عامل الجزاء $x$)
+military_score_explain_5;معدل استهلاك العرض: $x$
+military_score_explain_6;متوسط ​​نقاط وحدة الأرض: $x$
+military_score_explain_7;إجمالي عدد القادة: $x$
+industry_score_explain_2;الاستثمارات الأجنبية التالية تضيف أيضًا (عامل الوزن $x$):
+industry_score_explain_3;$y$ في $x$
+war_goal_1;تمت الإضافة بواسطة: $x$
+war_goal_2;الاستهداف: $x$
+war_goal_3;بالنسبة للحالة: $x$
+war_goal_4;الأمة الثانوية: $x$
+war_goal_5;نتيجة الحرب الموقوتة: $x$
+war_goal_6;إذا نحن نحتل؟Y$x$?! من المحافظات سنكسب ?Y$y$?! درجة الحرب الموقوتة (نسبة إلى جزء من المقاطعات المحتلة)
+war_goal_7;لدينا فترة سماح تبلغ ?Y$x$?! أيام للاحتلال، وإلا فإننا سوف تفقد؟Y$y$?! نقاط الحرب الموقوتة يوميا
+war_goal_8;بدأت الحرب في ?Y$x$?!، يجب أن نملأها بـ ?Y$y$?!، قبل انتهاء فترة السماح?!
+war_goal_9;فترة السماح ؟الرس نفذ?! (كانت الفترة من ?Y$x$?! إلى ?Y$y$?!)
+war_goal_10;العلامة الثانوية: $x$
+utt_unit;($country$) - $unit$ ($leader$)\n ($المشاة$ / $cavalry$ / $special$)
+utt_noleader;لا زعيم
+war_score_1;من المهنة: $x$
+war_score_2;من المعارك: $x$
+war_score_3;من أهداف الحرب: $x$
+war_score_4;من الحصار: $x$
+dp_inf_tooltip_ban;السفارة محظورة حتى $x$
+dp_inf_tooltip_discredit;فقدت مصداقيتها حتى $x$
+discredit_explain_1;لا يمكنك تشويه سمعة نفسك
+discredit_explain_2;رأي الهدف فيك أفضل من رأي العداء
+discredit_explain_3;القوة العظمى ليست محظورة
+iaction_explain_1;لديك تأثير $x$ على الأقل على الهدف
+iaction_explain_2;سفارتك ليست محظورة
+iaction_explain_3;أنت لست في حالة حرب مع الهدف
+iaction_explain_4;إن رأي الهدف في القوة العظمى يساوي على الأكثر رأيه فيك
+expel_explain_1;لا يمكنك طرد المستشارين الخاصين بك
+expel_explain_2;رأي الهدف فيك هو على الأقل محايد
+ban_explain_1;لا يمكنك حظر سفارتك
+ban_explain_2;رأي الهدف فيك ودود على الأقل
+dec_op_explain_1;لا يمكنك التقليل من رأي الأمة فيك
+dec_op_explain_2;لا يمكنك التقليل من رأي أمة في زعيم مجالها
+dec_op_explain_3;رأي الهدف فيك أفضل من رأي العداء
+dec_op_explain_4;إن رأي الهدف بشأن قوة عظمى لا يمكن أن يكون أسوأ من كونه عدائياً
+iaction_explain_5;أنت قوة عظيمة
+iaction_explain_6;الهدف ليس قوة عظمى
+state_transfer_di;نقل الدولة
+state_transfer_button;نقل الدولة
+state_transfer_offer;يعرض $actor$ أن يقدم لنا حالات:
+state_transfer_desc;ينقل ملكية دولة إلى دولة أخرى، وهو أمر مفيد للمفاوضات خارج نطاق اللعبة
+state_transfer_explain_1;الأمة المستهدفة هي لاعب
+state_transfer_explain_2;لا توجد أي أزمة حاليا
+state_transfer_explain_3;نحن لسنا مواضيع
+state_transfer_explain_4;إنهم ليسوا مواضيع
+state_transfer_explain_5;نحن في سلام
+state_transfer_explain_6;لدينا أكثر من 1 دولة
+cancel_ally_explain_1;لا يمكنك إلغاء التحالف مع نفسك
+cancel_ally_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+cancel_ally_explain_3;أنت متحالف حاليا
+cancel_ally_explain_4;أنت لست حاليًا في حرب معًا
+cancel_ally_explain_5;أنت لست تابعاً للدولة المستهدفة
+ally_explain_1;لا يمكنك تشكيل تحالف مع نفسك
+ally_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+ally_explain_3;أنت لست متحالفا حاليا
+ally_explain_4;أنتم لستم قوتين عظيمتين بينما الأزمة مستمرة
+ally_explain_5;أنتم لستم أمة خاضعة
+ally_explain_6;أنت لست حاليًا في حالة حرب مع الهدف
+ally_explain_7;سوف يقبل الذكاء الاصطناعي
+ally_explain_8;الهدف ليس دولة خاضعة
+call_ally_explain_1;لديك تحالف مع هذه الأمة
+call_ally_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+call_ally_explain_3;أنت في حالة حرب
+call_ally_explain_4;هناك حرب يمكن استدعاء هذه الأمة إليها
+call_ally_explain_5;سوف يقبل الذكاء الاصطناعي
+cancel_access_explain_1;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+ask_access_explain_1;لا يمكنك الحصول على وصول عسكري من نفسك
+ask_access_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+ask_access_explain_3;سوف يقبل الذكاء الاصطناعي
+ask_access_explain_4;أنت لست حاليًا في حالة حرب مع الهدف
+cancel_given_access_explain_1;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+give_access_explain_1;لا يمكنك منح حق الوصول العسكري لنفسك
+give_access_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+give_access_explain_3;أنت لست حاليًا في حالة حرب مع الهدف
+increase_rel_explain_1;يحسن علاقاتنا بـ ?G+$x$
+increase_rel_explain_2;لا يمكنك زيادة علاقتك مع نفسك
+increase_rel_explain_3;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+increase_rel_explain_4;العلاقات الحالية أقل من 200
+increase_rel_explain_5;أنت لست حاليًا في حالة حرب مع الهدف
+decrease_rel_explain_1;يؤدي إلى تفاقم علاقاتنا بنسبة ?R$x$
+decrease_rel_explain_2;لا يمكنك تقليل علاقتك مع نفسك
+decrease_rel_explain_3;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+decrease_rel_explain_4;العلاقات الحالية أكبر من -200
+decrease_rel_explain_5;أنت لست حاليًا في حالة حرب مع الهدف
+cancel_w_sub_explain_1;حاليا نحن ندعم هذه الأمة؟Y$x$?! في اليوم
+cancel_w_sub_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+w_sub_explain_1;لا يمكنك تقديم إعانات الحرب لنفسك
+w_sub_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+w_sub_explain_3;أنت لست حاليًا في حالة حرب مع الهدف
+w_sub_explain_4;الهدف في حالة حرب
+invention_bulb_1;لا يمكن اكتشاف هذا الاختراع حاليا
+invention_bulb_2;ومن الممكن اكتشاف هذا الاختراع
+invention_bulb_3;وقد تم اكتشاف هذا الاختراع
+not_implemented;لم يتم تنفيذ هذه الميزة حاليا
+inc_op_explain_1;رأي الأمة فيك أقل من الود
+add_sphere_explain_1;الأمة لديها رأي ودي فيك
+add_sphere_explain_2;الأمة لا تخضع حاليًا لقوة عظمى أخرى
+rem_sphere_explain_1;الأمة حاليا محاطة بقوة عظمى
+rem_sphere_explain_2;الأمة لديها رأي ودي فيك
+rem_sphere_explain_3;الأمة في دائرة نفوذك
+rem_sphere_explain_4;إن إزالة أمة من دائرة نفوذك سوف يزيد من شهرتك بمقدار ?R$x$
+rem_sphere_explain_5;إن إزالة أمة من مجال نفوذك سوف يقلل من هيبتك بمقدار ?R$x$
+fab_explain_1;لا يمكنك تبرير الحرب ضد نفسك
+fab_explain_2;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+fab_explain_3;أنت لا تقوم حاليًا باختلاق سبب للحرب
+fab_explain_4;أنت أمة مستقلة أو الهدف هو أفرلورد الخاص بك
+fab_explain_5;الهدف ليس في نطاق نفوذك
+fab_explain_6;أنت لست حاليًا في حالة حرب مع الهدف
+fab_explain_7;يمكنك اختلاق سبب للحرب
+peace_description;قدم عرض سلام لإنهاء الأعمال العدائية بينك وبين هذه الأمة
+peace_explain_1;ليست أمة خاضعة
+peace_explain_2;الهدف ليس أمة خاضعة
+peace_explain_3;واحد على الأقل من الأطراف المتفاوضة هو قائد الحرب من جانبهم
+peace_explain_4;كلا الطرفين قادة الحرب (حرب الأزمات)
+peace_explain_5;ليس لديك أي عرض سلام آخر قيد التنفيذ
+war_explain_1;لا يمكنك إعلان الحرب على نفسك
+war_explain_2;لديك سبب للحرب لاستخدامه ضد هذه الأمة
+war_explain_3;لديك على الأقل $x$ نقطة (نقاط) دبلوماسية
+war_explain_4;أنت لست في حرب بالفعل مع هذه الأمة
+wg_result_1;عند إضافة هدف الحرب هذا:
+wg_result_2;في تحقيق هذا الهدف الحربي:
+wg_result_3;وعن الفشل في تحقيق هدف الحرب هذا:
+wg_not_ready;يجب عليك الانتهاء من اختيار هدف الحرب
+crisis_temperature_ex;درجة حرارة الأزمة الحالية هي؟R$value$?W! الوصول إلى 100 راند سيشعل حرب أزمة بين الجانبين
+crisis_mode_no_crisis;لا توجد أزمة
+crisis_mode_finding_attacker;العثور على داعم للجانب المهاجم
+crisis_mode_finding_defender;العثور على ظهير لجانب المدافع
+crisis_mode_heating_up;تسخين الأزمة
+crisis_back_explain_1;أنت مهتم بالأزمة (على الحياد)
+crisis_back_explain_2;لقد اجتذبت الأزمة داعميها الأوائل
+crisis_add_interest_button;اهتموا بهذه الأزمة
+crisis_add_interest_button_ex_1;أنت قوة عظيمة
+crisis_add_interest_button_ex_2;لقد اجتذبت الأزمة داعميها الأوائل
+crisis_add_interest_button_ex_3;لديك نقطة دبلوماسية واحدة على الأقل
+crisis_offer_button;قدم عرضًا لهذه الأمة للانضمام إلى جانبك من الأزمة
+crisis_offer_button_ex_1;أنت قائد أحد أطراف الأزمة
+crisis_offer_button_ex_2;لقد اجتذبت الأزمة داعميها الأوائل
+crisis_offer_button_ex_3;لديك نقطة دبلوماسية واحدة على الأقل
+multiunit_header;وحدات $x$ مختارة
+ai_alliance_1;يبحث الذكاء الاصطناعي حاليًا عن حلفاء
+ai_alliance_2;أمتك قريبة بما يكفي للمساعدة في الحرب
+ai_alliance_3;لا طموحات متضاربة
+ai_alliance_4;إن جيش أمتك قوي بما فيه الكفاية
+ai_alliance_5;لديها مصالح استراتيجية مشتركة
+ai_access_1;يرى الذكاء الاصطناعي أن إحدى حروبك مفيدة لهم
+col_start_title;البدء في استعمار هذه الدولة
+col_start_1;لا يوجد مستعمرون أو أن الاستعمار لا يزال في مرحلته الأولية
+col_start_2;أمتك على الأقل رتبة $x$
+col_start_3;الدولة ليست هدفا لأزمة استعمارية
+col_start_4;أنت لا تشارك في حرب الأزمات
+col_start_5;الحد الأدنى لتصنيف الحياة الذي يمكنك استعماره ($x$) أقل من أو يساوي تصنيف الحياة للدولة ($y$)
+col_start_6;القاعدة ؟Y$x$
+col_start_7;يوجد ثلاثة مستعمرين آخرين على الأكثر
+col_start_8;أنت متاخم للدولة أو أنها ضمن النطاق البحري
+col_start_9;لديك ما لا يقل عن $x$ من النقاط الاستعمارية المجانية
+col_invest_title;استثمر في مستعمرتك
+col_invest_1;أمتك على الأقل رتبة $x$
+col_invest_2;الدولة ليست هدفا لأزمة استعمارية
+col_invest_3;أنت لا تشارك في حرب الأزمات
+col_invest_4;وبدون منافسة، ستتمكن من تحويل هذه الولاية إلى مستعمرة على $x$
+col_invest_5;لقد مرت $x$ يومًا منذ آخر استثمار لك (الاستثمار التالي ممكن على $y$)
+col_invest_6;لديك ما لا يقل عن $x$ من النقاط الاستعمارية المجانية
+activated_by_with_a_chance_of;تم التنشيط بواسطة ?Y$x$?!، مع فرصة:
+unit_max_speed;السرعة القصوى ؟G$x$?! كيلومترا في الساعة
+unit_attack;الهجوم ؟G$x$
+unit_hull;هال ؟G$x$
+unit_fire_range;نطاق إطلاق النار؟G$x$
+unit_supply_consumption;استهلاك العرض ؟R$x$
+unit_supply_load;وزن الإمدادات؟R$x$
+unit_defence;الدفاع ؟G$x$
+unit_discipline;الانضباط ؟G$x$
+unit_maneuver;مناورة ؟G$x$
+unit_recon;الاستطلاع ؟G$x$
+unit_support;الدعم ؟G$x$
+unit_evasion;التهرب؟G$x$
+unit_siege;الحصار ؟G$x$
+unit_torpedo_attack;هجوم الطوربيد ؟G$x$
+unit_build_time;$x$ أيام
+unit_build_unit_pop_size;$س$ك
+unit_build_unit_brigades;$x$/$y$
+uv_sort_a;أت
+uv_sort_b;مواطنه
+uv_sort_c;منظمة
+uv_sort_d;مور
+uv_sort_e;Spd
+uv_sort_f;تفصيل
+uv_sort_g;Rel
+uv_sort_h;إكسب
+alice_condition_diplo_points;لديه على الأقل $x$ نقاط دبلوماسية
+alice_retreat;التراجع عن المعركة
+alice_retreat_1;لقد مرت أيام $x$ على الأقل منذ بدء المعركة
+alice_retreat_2;أنت المهاجم الرئيسي أو المدافع
+alice_province_select;يختار المحافظة
+alice_province_deselect;يقوم بإلغاء تحديد المقاطعة
+alice_province_selector_on;على
+alice_province_selector_off;عن
+province_selector;محدد
+province_immigrator;مهاجر
+tt_a_bank;بنك
+tt_a_university;جامعة
+et_add_selector;تمكين محدد المقاطعة
+et_remove_selector;تعطيل محدد المقاطعة
+et_add_immigrator;تمكين مقاطعة المهاجرين
+et_remove_immigrator;تعطيل مقاطعة المهاجرين
+et_if;لو
+et_else_if;آخر
+modifier_province_selector;محدد المقاطعة
+modifier_province_immigrator;مهاجر المحافظة
+modifier_conversion_rate;معدل التحويل
+modifier_attrition;الاستنزاف
+chat_player_joins;انضم $playername$
+chat_player_leaves;$playername$ متبقي
+chat_player_ban;تم حظر $playername$
+chat_player_kick;تم طرد $playername$
+chat_player_switch;$playername$ اختار $country$
+chat_player_oos;تم تسجيل $playername$!
+alice_status_stream;حفظ التقدم $value$
+alice_play_pending_client;$playername$ ليس جاهزًا بعد
+alice_stockpile_button_0_0;"تعمل المخزونات الوطنية بمثابة بهار للأنشطة الاقتصادية والتجارية المعتادة، حيث يرى الناس خطوط ""Ggreen""W ترتفع، و""Rred""W خطوط تنخفض، كما هو معتاد أنا ""Ynot؟""W رسم بياني خطي لذلك أنا في الغالب تمر مرور الكرام :)"
+alice_stockpile_button_1_0;إذا قمت بالنقر فوقي 10 مرات فلن تحصل على أي شيء في المقابل، فقط ثق بي، لا تنقر فوقي... ?ROR ELSE?W
+alice_stockpile_button_1_1;"أرى، حسنًا، الآن لن أقول أي شيء لأنني أعلم أنك ستستمر في النقر حتى أقول حوارًا ""مختلفًا؟"" وهذا أمر ممل فحسب"
+alice_stockpile_button_1_2;حسنًا، لا أستطيع أن أجعلك تتوقف، ربما هذا سيفعل؟
+alice_stockpile_button_2_0;أنا زر بلا روح، تابع
+alice_stockpile_button_3_0;اللعب مع الأصدقاء أليس كذلك؟ ?حسن الحظ، سوف تحتاج إليه؟دبليو
+a_alert_reb;واحد أو أكثر من أعضاء مجالنا لديه متمردين نشطين:
+event_auto;اختر هذا الخيار تلقائيًا لبقية الجلسة.
+event_taken_auto;سيتم اتخاذ هذا الخيار تلقائيًا في ?Y$date$?W.
+alice_load_unload_1;البحرية الراسية هنا لديها القدرة الكافية
+alice_load_unload_2;ويجري نقل الجيش
+alice_load_unload_3;يرسو أسطول النقل
+alice_load_unload_4;يتم نقل جيش واحد أو أكثر
+alice_load_unload_5;رست الأسطول
+alice_unload_fleet;تفريغ جميع الجيوش التي ينقلها الأسطول
+auto_save_lb;تردد الحفظ التلقائي
+auto_save_1;يوميًا
+auto_save_2;شهريا
+auto_save_3;سنوي
+auto_save_0;لا أحد
+monthly_emigration_lab;الهجرة الشهرية إلى (أعلى 10)
+monthly_immigration_lab;الهجرة الشهرية من (أعلى 10)
+im_em_header;الهجرة المتوقعة/الهجرة لـ
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W الاستنزاف
+ol_unit_standing_text;$m$ $n$/$x$/$y$
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
+unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
+disarmed_pop;عضو في أمة منزوعة السلاح
+cancel_fac_construction;إلغاء بناء المصنع
+cancel_fac_upgrade;إلغاء ترقية المصنع
+kierkegaard_1;أيضاً
+kierkegaard_2;أو
+open_and_sub;دعم وإعادة فتح المصنع
+o_set_national_flag;قم بتعيين العلم الوطني $text$ للمالك
+o_add_modifier_until;يحصل مالك المقاطعة على $text$ حتى $date$
+o_add_modifier;مالك المقاطعة يحصل على $text$
+o_relations_with;صاحب علاقة المقاطعة بـ $text$
+o_add_to_treasury;لصاحب المحافظة
+w_rgo_prod;إنتاج RGO العالمي: $x$
+w_artisan_prod;الإنتاج الحرفي العالمي: $x$
+w_artisan_profit;الربح الحرفي الوطني: $x$
+w_artisan_distribution;التوزيع الحرفي الوطني: $x$
+w_fac_prod;إنتاج المصنع العالمي: $x$
+alice_lose_gp;نحن نخسر؟ القوة العظمى?! حالة!
+alice_state_select_title;اختر ولايه
+press_esc_to_cancel;اضغط نعم?! لالغاء
+fort_build_tt_1;المحافظة تحت سيطرتكم
+fort_build_tt_2;المحافظة ليست تحت الحصار
+fort_build_tt_3;المستوى الحالي، $x$، بالإضافة إلى مستوى الصعوبة في المقاطعة، $n$، أقل من المستوى الأقصى الحالي، $y$
+nb_build_tt_1;المحافظة ساحلية
+nb_build_tt_2;ولم يتم بناء أي قاعدة بحرية أخرى أو هي قيد الإنشاء في الولاية
+rr_build_tt_1;يسمح حزبنا الحاكم للحكومة ببناء طرق السكك الحديدية
+tech_ol_tt;?G$x$?! من أفرلورد الخاص بك وجود هذه التكنولوجيا
+tech_year_tt;?G$x$?! من العام الحالي
+disband_all;حل كافة الوحدات المحددة
+alice_play_checksum_host;عدم تطابق المجموع الاختباري مع المضيف، تأكد من أن لديك نفس التعديلات وملفات الحفظ
+alice_play_save_stream;يقوم المضيف ببث ملف محفوظ إليك، انتظر حتى يكتمل
+ai_will_accept_po;وسوف يقبلون هذا العرض
+ai_will_not_accept_po;لن يقبلوا هذا العرض
+close_and_del;إغلاق وحذف المصنع
+cb_conditions_header;شروط الاستخدام:
+as_a_vassal;باعتباره تابعا
+change_state_name_to;تغيير اسم الحالة إلى $text$
+alice_join_crisis_offer;سيقدم لنا $ACTOR$ ما يلي إذا انضممنا إلى جانبهم في الأزمة الحالية:
+alice_unit_disable_rebel_hunt;توقفوا عن مطاردة المتمردين
+alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nالمؤسسة: ?Y$organization$?W\nالقوة: ?Y$strength$?W
+understaffed_regiment;?Rهذا الفوج يعاني من نقص في عدد الموظفين ولن يكون به سوى جنود بقيمة $$!?W
+tech_queue_explain;اضغط على YSHIFT?W للإضافة إلى قائمة الانتظار، ثم انقر بزر الماوس الأيمن فوق Y للإزالة
+alice_province_building_build;?YSHIFT?W للبناء على ?Gstate?W.\n?YSHIFT-انقر بزر الماوس الأيمن?W للبناء على ?Gcountry?W بالكامل.
+commodity_shortage;؟ Rهناك نقص في هذه السلعة
+commodity_surplus;?هناك فائض في هذه السلعة
+alice_trade_flow_produced;?الإنتاج المحلي:
+alice_trade_flow_consumed;؟الاستهلاك المحلي:
+alice_trade_flow_label;نظرة عامة على السوق:
+alice_trade_flow_piechart_producers;المنتجين
+alice_trade_flow_piechart_consumers;المستهلكين
+alice_trade_flow_piechart_workforce;المستثمرين
+alice_diplo_release_subject;الافراج عن الموضوع
+alice_diplo_release_subject_desc;يطلق سراح أحد رعايانا، مما يجعله لم يعد موضوعنا، يجب كسر التحالفات بشكل منفصل
+alice_diplo_release_subject_0;هو موضوعنا
+kill_leader;قتل الزعيم
+annex_null;يصبح غير مملوك
+meets_the_conditions_of;يستوفي شروط
+does_not_meet_the_conditions_of;لا يستوفي شروط
+fab_finish_date;من المتوقع أن ينتهي تصنيع CB في $date$
+fab_is_paused;تصنيع CB متوقف مؤقتًا حاليًا
+macro_builder;منشئ الماكرو
+macro_total_desc;إحصائيات الوحدة الإجمالية:
+macro_switch_type_land;بناء الجيش
+macro_switch_type_naval;بناء البحرية
+macro_warn_overseas;?Rلا يمكن بناء هذه الوحدة في الخارج!?!
+macro_warn_culture;?Rيمكن البناء فقط باستخدام الملوثات العضوية الثابتة في الثقافة الأولية!?!
+macro_warn_unlocked;?استخدام الوحدات لم يتم فتحها بعد!?!
+macro_select_province;الرجاء تحديد المحافظة على الخريطة
+macro_warn_insuff;؟Rلا يمكن بناء $x$ $name$ (فقط $y$)?!
+macro_warn_invalid_province;?المحافظة ليست جزءا من منطقة?!
+shortcut_tooltip;الاختصار: ?Y$x$?!
+filter_all;عرض ؟ يال?! الدول ذات الصلة.
+filter_allies;تصفية حسب الدول لدينا؟Yalliance?! مع.\n?Yنقر بزر الماوس الأيمن?! للتصفية حسب الدول التي تريد التحالف معنا.
+filter_enemies;"تصفية حسب الدول التي هي إما ""أعداء أو في حالة حرب معنا""?!."
+filter_sphere;"قم بالتصفية حسب الدول التي تقع ضمن ""مجال نفوذنا?!"".\n?Yانقر بزر الماوس الأيمن?! للتصفية حسب الدول التي نؤثر عليها ولكن ليس في مجالنا."
+filter_neighbors;"تصفية حسب الدول التي نتقاسمها؟Yborder?! مع.\n?Yنقر بزر الماوس الأيمن?! للتصفية حسب الدول التي نتشارك فيها ""Yborder""?! وليسوا؟ يفاسالس?!."
+filter_best_guess;"تصفية باستخدام؟Ybest تخمين?! من خلال الملاءمة، وهذا يشمل جميع ""Yallies?!، ""Yenemies?!، ""Yspherelings?!"" والأمم التي نتقاسمها ؟Yborder?! مع."
+alice_warn_war_ends_for_us;?Rهذا سينهي الحرب على الجميع من جانبنا?!.
+alice_invention_chance;فرصة اكتشاف هذا؟Yinvention?! هم كالآتي:
+is_primary_culture;?Y$NAME$?! هي الثقافة الأولية.
+is_primary_religion;?Y$NAME$?! هو الدين الأساسي.
+tt_can_use_nation;الشروط اللازمة للسماح باستخدام هذا الهدف الحربي:
+et_on_add;الآثار المترتبة على إضافة هذا الهدف الحربي إلى الحرب:
+et_on_po_accepted;الآثار المترتبة على قبول عرض السلام بهذا الهدف الحربي:
+alice_no_possible_units;لا يمكن بناء وحدات محتملة، ولا توجد وحدات قيد الإنشاء.
+alice_debt_spending;تمكين/تعطيل الإنفاق على الديون
+alice_loan_size;الحد الأقصى الحالي لقرضنا هو $x$. الديون الأكبر من ذلك ستؤدي إلى إفلاسنا
+alice_currently_bankrupt;نحن مفلسون (حتى $x$)
+alice_no_loans_possible;نحن حاليا غير قادرين على الحصول على القروض
+alice_rf_demands_enforced_trigger;ولن ينفذ المتمردون مطالبهم إلا إذا:
+alice_rf_demands_enforced_effect;وبمجرد أن ينفذ المتمردون مطالبهم فسوف يطبقون التأثير التالي:
+alice_rf_siege_won_trigger;إذا فاز أحد المتمردين بالحصار، يتم التحقق مما يلي، على سبيل المثال في عاصمتك $x$:
+alice_rf_siege_won_effect;وإذا كان كل ما سبق صحيحا، تنطبق التأثيرات التالية، على سبيل المثال في رأس مالك $x$:
+may_month_name;يمكن
+alice_ca_cant_influence;نحن حاليا غير قادرين على زيادة أو تقليل رأي الدول الأخرى في الوقت الراهن
+alice_gp_status_regain_expiration;إذا لم نصبح في المرتبة ?Y$x$?W أو أعلى، فسوف نفقد ?Ygreat power?W الحالة بحلول ?Y$date?W!
+alice_mil_decay_description;الاضمحلال الطبيعي؟G-$x$
+alice_con_decay_description;الاضمحلال الطبيعي؟R-$x$
+x_from_y;$x$ من $y$
+reinforce_rate;يمكن لهذا الفوج تعزيز ما يصل إلى $x$ من الجنود شهريًا.
+reinforce_rate_none;لا يمكن تعزيز هذا الفوج حاليًا.
+alice_domestic_investment_button;"الاستثمار في المشاريع الفردية أمر مهمل، استخدم شريط التمرير ""الاستثمار المحلي"" على شاشة الميزانية بدلاً من ذلك"
+alice_domestic_investment_pops;لدينا رأسماليون $x$ يمكننا تقديم تبرعات سخية لهم بشكل غير مباشر
+alice_domestic_investment_needs;إنهم يحتاجون إلى $ x $ كل يوم لإرضاء أسلوب حياتهم الفاخر
+alice_budget_scaled_inc;الدخل: ؟G$value$
+alice_budget_scaled_1;ضريبة الفقراء: ؟G$value$
+alice_budget_scaled_2;الضريبة المتوسطة: ؟G$value$
+alice_budget_scaled_3;الضريبة الغنية: ؟G$value$
+alice_budget_scaled_4;التعريفات: ?G$value$
+alice_budget_scaled_exp;النفقات: ؟R$قيمة$
+alice_budget_scaled_5;صيانة الجيش:؟ قيمة $ R $
+alice_budget_scaled_6;صيانة البحرية:؟R$قيمة$
+alice_budget_scaled_7;البناء: ؟R$قيمة$
+alice_budget_scaled_8;التعليم: ?R$قيمة$
+alice_budget_scaled_9;الإدارة: ؟R$قيمة$
+alice_budget_scaled_10;الإنفاق الاجتماعي: ?R$value$
+alice_budget_scaled_11;الإنفاق العسكري: ?R$value$
+alice_budget_scaled_12;الاستثمارات المحلية: ?R$value$
+alice_budget_scaled_13;الإنفاق في الخارج: ?R$value$
+alice_budget_scaled_14;ملء المخزون: ?R$value$
+alice_budget_scaled_15;إعانات الحرب: ?R$value$
+alice_budget_scaled_16;المصلحة الدبلوماسية:؟G$value$
+alice_budget_scaled_17;إنتاج الذهب: ؟G$value$
+alice_budget_scaled_net;صافي الإيرادات: ?Y$value$
+alice_budget_setting_percent;تم تعيينه عند $perc$.
+alice_spending_land_construction;بناء الأراضي في $name$: ?R$cost$?W
+alice_spending_naval_construction;البناء البحري في $name$: ?R$cost$?W
+alice_spending_building_construction;تشييد المباني في $name$: ?R$cost$?W
+alice_spending_factory_construction;بناء المصنع في $name$: ?R$cost$?W
+alice_spending_unit;إجمالي الإنفاق على هذه الوحدة بـ $name$: ?R$cost$?W
+alice_spending_unit_1;إجمالي الإنفاق على هذه الوحدة: ?R$cost$?W
+alice_spending_total;?Yالإجمالي المنفق: ?W
+alice_spending_commodity;?R$cost$?W - يحتاج إلى $need$ من $name$ ($val$)
+alice_spending_commodity_2;?R$cost$?W - شراء $need$ من $name$ (بسعر $val$ x وحدة). التقدم: $x$/$y$
+alice_recommended_build;?يوصى ببناء هذا المصنع؟د
+alice_factory_bonus;سنتلقى مكافأة قدرها ?Y$x$?W إذا:
+alice_factory_inputs;المدخلات المطلوبة:
+alice_factory_input_item;?R$cost$?W - يحتاج إلى $need$ من $name$ ($val$)
+alice_factory_base_workforce;القوى العاملة الأساسية ?Y$x$?W
+alice_factory_total_bonus;هذا المبلغ إلى حوالي ?Y$x$?W
+alice_slider_controls;?YLeft-Click?W للزيادة بمقدار ?Y$value$?W\n?YSHIFT-النقر الأيسر?W للزيادة بمقدار ?Y$x$?W\n?YSHIFT-النقر بزر الماوس الأيمن?W لزيادة إلى الحد الأقصى
+alice_slider_controls_2;?YLeft-Click?W للتقليل بمقدار ?Y$value$?W\n?YSHIFT-النقر الأيسر?W للتناقص بمقدار ?Y$x$?W\n?YSHIFT-النقر بزر الماوس الأيمن?W للتناقص إلى الحد الأدنى
+explain_colonial_points;القوى الثانوية والعظمى تراكم النقاط الاستعمارية.
+alice_lobby_back;العودة إلى الردهة
+alice_lobby_back_tt_1;أنت بالفعل في الردهة اللعينة
+alice_lobby_back_tt_2;يمكن للمضيف فقط العودة إلى الردهة
+reopen_with_tab;يمكنك إعادة فتح هذه النافذة باستخدام YTAB؟W
+alice_topbar_tab_1;فتح أو إغلاق علامة التبويب هذه
+alice_topbar_tab_2;افتح أو أغلق علامة تبويب السكان
+colonial_points_from_technology;من التقنيات:
+colonial_points_from_naval_bases;من القواعد البحرية:
+colonial_points_from_ships;من السفن:
+used_colonial_maintenance;الحفاظ على المستعمرات الموجودة:
+topbar_pause_speed;توقف اللعبة مؤقتًا، انقر مرة أخرى لإلغاء الإيقاف المؤقت
+att_call_will_accept;سوف ينضم $x$ إلى حربك
+att_call_will_decline;لن ينضم $x$ إلى حربك
+att_call_is_human;قد ينضم $x$ إلى حربك
+att_call_no_allies;ليس لديك أي حلفاء!
+domestic_investment_label;الاستثمار المحلي:
+modifier_min_domestic_investment;الحد الأدنى لمعدل الاستثمار المحلي
+modifier_max_domestic_investment;الحد الأقصى لمعدل الاستثمار المحلي
+mouse_left_click_mode_label;انقر فوق تعليق الإصدار
+alice_supply_limit_desc;حد العرض: $x$
+alice_factory_worker_1;العاملين: ?G$x$?W
+alice_factory_worker_2;عاطل عن العمل: ?R$x$?W
+alice_rgo_unemployment_country_alert;الولايات التالية لديها منظمات إقليمية عاطلة عن العمل:
+pop_promote_info_on_sel_2;$val$ المتوقع تغيير $who$ في $where$ خلال الشهر المقبل.
+alice_readme;?مرحبًا بك في Project Alice!?W\nProject Alice هو محاكاة (وليس محاكاة!) للعبة الفيديو المفضلة لديك من العصر الفيكتوري، وبعبارة أخرى، نقوم بتعديل بعض الآليات لتسهيل فهمها للاعبين الجدد، بينما نقوم أيضًا بتعديلها جعل العالم أكثر ديناميكية وترفيهية، وإصلاح الأخطاء القديمة (كما هو الحال في الأزمات) وتنفيذ ميزات جديدة لجودة الحياة.\n?Gميزات جديدة!?W\n?YGlobe?W: ?Gأحبها?W من قبل الكثيرين, ?مكروه? بالنسبة للبعض، قم بإيقاف تشغيله إذا كان ذلك يزعجك!\n?YTech queue:?W SHIFT-انقر بزر الماوس الأيمن لإضافة تقنيات إلى قائمة انتظار التكنولوجيا! (انقر بزر الماوس الأيمن لإلغاء القائمة)\n?Yالاستثمار المحلي:?W بدلاً من الاستثمار في مشاريع فردية، افعل ذلك دفعة واحدة\n?Yالأداء:?W تكون علامات التجزئة في الثانية (وليس FPS) أسرع بـ 10 مرات على الأقل\n? YLinter:?W احصل على أخطاء التغطية والتحذيرات في تعديلاتك، واكتشف الأخطاء والأخطاء المطبعية بسهولة\n?YMacro builder:?W قم ببناء وحدات بتركيبات مختلفة باستخدام منشئ الماكرو الخاص بنا\n?أوضاع الخرائط الجديدة Y11:?W الدين، الحصن، التوظيف، إلخ\n?Yالإنشاء في البلد بأكمله:?W SHIFT انقر بزر الماوس الأيمن للإنشاء في البلد بأكمله!\n?GControls:?W\n?YTAB?W: فتح نافذة الدردشة\n?YESC?W: فتح القائمة الرئيسية و قائمة الإعدادات\n?YTilde (`)?W أو ?YTilde (~)?W: فتح وحدة التحكم\n?Gاستمتع باللعبة! =^ث^=?د
+alice_nf_controls;?Yانقر بزر الماوس الأيسر?W للتحديد أو الاستبدال\n?Yانقر بزر الماوس الأيمن?W للإزالة
+unit_controls_tooltip_1;?Yنقر بزر الماوس الأيسر?W تحديد (إلغاء تحديد كل شيء آخر)\n?YSHIFT-نقر بزر الماوس الأيسر?W إضافة إلى التحديد
+unit_controls_tooltip_2;?Yانقر بزر الماوس الأيمن على المقاطعة؟W التراجع الجزئي (؟Gcycling/التناوب؟W) إلى المقاطعة
+unit_control_group_tooltip;اضغط على YCTRL-1?W حتى YCTRL-9?W لتعيين/إلغاء تعيين هذه الوحدة إلى مجموعة تحكم، والتي يمكنك بعد ذلك الضغط على ?Y1?W حتى ?Y9?W للاختيار
+console_button_tooltip;افتح وحدة التحكم بالأوامر
+demobilize;تسريح
+mobilize;تعبئة
+alice_cb_creation_detail_none;الرجاء تحديد سبب للحرب لبدء التصنيع ضد $country$.
+alice_cb_creation_detail;يمكننا اختلاق سبب للحرب ضد $country$ بسبب ?Y$type$?W. قد تستغرق هذه العملية تقريبًا حوالي ?Y$days$?W، والتكاليف المحتملة الناتجة عن اكتشافها ستمنحنا العار.R$badboy$?W.
+alice_mob_controls;?Yانقر بزر الماوس الأيمن?W لإعادة التعبئة
+alice_mw_create_1;أضف عام
+alice_mw_create_2;أضف الأدميرال
+alice_mw_create_lpb;سيتم استخدام نقاط YLeadership W تلقائيًا لإنشاء جنرالات أو أميرالات عند الوصول إلى الحد الأقصى
+alice_mw_create_lp;نحن بحاجة إلى ?R$x$?W؟نقاط القيادة؟W لإضافتها
+alice_mw_controls_1;?Yانقر بزر الماوس الأيمن?W إنشاء ?Gall?W ممكن كجنرالات
+alice_mw_controls_2;?Yانقر بزر الماوس الأيمن?W قم بإنشاء ?Gall?W ممكن كأميرال
+alice_daily_leadership_tt;يوفر $poptype$ نقاط قيادة ?G$value$?W (?Y$fraction$?W من السكان، ?Y$optimal$?W هو الأمثل). سيتم إنفاق نقاط القيادة الإضافية تلقائيًا على إنشاء جنرالات جدد.
+unit_current_supply;تلقت هذه الوحدة ?Y$val$%?W من الإمدادات المطلوبة في اليوم الأخير.\nكان المبلغ الذي يمكننا الحصول عليه من استهلاك الإمدادات الحالي لدينا هو:
+unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l أطلب الرضا)
+unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l أطلب الرضا)
+unit_current_supply_low;$what$: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l أطلب الرضا)
+alice_crisis_inactive;لا توجد أزمة نشطة الحالية
+alice_crisis_finding_attacker;العثور على مهاجم للأزمة الحالية
+alice_crisis_finding_defender;العثور على مدافع للأزمة الحالية
+alice_crisis_heating_up;الأزمة تسخن في درجة الحرارة، حاليًا عند ?R$درجة الحرارة$?W
+alice_last_crisis;حدثت الأزمة الأخيرة في $date$ (هناك مهلة $time$ شهر بين الأزمات)
+alice_crisis_par_1;?المهاجمون?W:
+alice_crisis_par_2;?BDefenders?W:
+alice_crisis_par_3;?Yفقط مهتم (ليس هناك جانب)?W:
+alice_commodity_cprice;السعر الحالي: $x$
+alice_commodity_cost;التكلفة: $×$
+alice_commodity_eprice;السعر الفعلي: $x$
+alice_trade_top_producers;أهم منتجي ?Y$value$?W:
+alice_trade_no_producers;هل لا أحد ينتج هذه السلعة؟د
+alice_political_party_trigger;متاح فقط من ?Y$date_long_0$?W إلى ?Y$date_long_1$?W، ويلبي المشغل التالي:
+alice_political_party_no_trigger;متاح فقط من ?Y$date_long_0$?W إلى ?Y$date_long_1$?W
+alice_ai_decision;ستعتمد فرصة الذكاء الاصطناعي في اختيار هذا القرار على:
+alice_mobilized_is_ai_controlled;أيًا كانت الوحدات المعبأة، فسيتم التحكم فيها تلقائيًا بواسطة الذكاء الاصطناعي
+alice_ai_controlled_unit;تمكين/تعطيل تحكم الذكاء الاصطناعي في هذه الوحدة، ستقوم الوحدة بما يلي:\n- تعزيز الخطوط الأمامية تلقائيًا\n- الحصار تلقائيًا عندما يكون ذلك آمنًا\n- مطاردة المتمردين\n- تشكيل موقع دفاعي ضد الدول التي من المحتمل أن نهاجمها (هذا وفقًا لتقدير الذكاء الاصطناعي، وفي وقت السلم فقط)\nإذا كنت تريد جعل هذه الوحدة تستهدف دولة أو منطقة معينة، فقم أولاً بتحريكها بالقرب من تلك المنطقة أو تلك الدولة، ثم قم بتشغيل التحكم في الذكاء الاصطناعي - لأن الذكاء الاصطناعي سوف يتجاوز جميع أوامرك حتى تقوم بإيقاف تشغيلها مرة أخرى
+alice_navy_allocation_tt;مع سفن ?Y$curr$?W، نجمع إجمالي إنتاجية العرض البالغة ?Y$tot$?W، مما يتطلب ?Y$req$?W لأساطيلنا. ملخص تفصيلي لاستهلاك كل أسطول بحري:
+alice_navy_allocation_2;$name$: ?Y$value$?W (?Y$perc$?W)
+alice_wg_condition_1;ليس لديه الوضع الراهن كمدافع
+alice_wg_condition_2;في حرب معنا
+alice_wg_condition_3;هدف حربي فريد (ليس نسخة مكررة من هدف حربي آخر)
+alice_wg_condition_4;ليس على نفس الجانب مثلنا
+alice_wg_condition_5;يرضي محفزات الهدف الحربي
+alice_wg_condition_6;كفى شوفينية (يحتاج $need$، وله $value$)
+alice_wg_condition_7;هو هدف حربي قابل للبناء
+alice_tt_wg_infamy_limit;هل سيتجاوز هذا الهدف الحربي حد العار؟د
+alice_wg_usage_trigger;لا يمكن استخدامه إلا في حالة استيفاء المشغل التالي:
+province_id;معرف المقاطعة
+nation_tag;علامة الأمة
+alice_rgo_trade_prod_1;الإنتاج الزراعي RGO: $x$ ($y$)
+alice_rgo_trade_prod_2;إنتاج التعدين RGO: $x$ ($y$)
+alice_rgo_trade_prod_3;إنتاج شركة RGO لسك العملة: $x$ ($y$)
+alice_artisan_trade_prod;الإنتاج الحرفي: $x$ ($y$)
+alice_factory_trade_prod;إنتاج المصنع: $x$ ($y$)
+alice_all_trade_prod;إجمالي الإنتاج: $x$
+alice_interested_in_alliance;(ينطبق فقط على دول الذكاء الاصطناعي) ضع علامة على أننا مهتمون بالتحالف مع هذه الدولة، وسنقبل عروض التحالف على الفور
+alice_merge_rally_point_why;تم إهمال نقاط التجمع المدمجة، وسيتم الآن دمج نقاط التجمع تلقائيًا
+alice_mvcap_1;ينقل العاصمة إلى هذه المحافظة
+alice_mvcap_2;لا توجد أزمة مستمرة
+alice_mvcap_3;في سلام
+alice_mvcap_4;ليس رأس المال بالفعل
+alice_mvcap_5;ليست استعمارية
+alice_mvcap_6;في نفس القارة التي يوجد بها رأس المال الحالي
+alice_mvcap_7;الثقافة المقبولة المهيمنة
+alice_mvcap_8;هذه المقاطعة ليست محاصرة
+alice_mvcap_9;العاصمة الحالية ليست محاصرة
+alice_mvcap_10;مملوكة لك
+alice_mvcap_11;يتم التحكم بها من قبلك
+alice_mvcap_12;هو جوهر المالك
+alice_pnt_pops;?Yالسكان:?! $x$
+alice_pnt_rpops;?Yالطبقات الغنية:?! $x$ ($y$)
+alice_pnt_mpops;?Yالطبقات الوسطى:?! $x$ ($y$)
+alice_pnt_ppops;?Yالطبقات الفقيرة:?! $x$ ($y$)
+alice_pnt_culture;?Yالثقافة:?! $x$
+alice_pnt_religion;?Yالدين:?! $x$
+alice_pnt_dominant_religion;?Yالدين المهيمن:?! $x$
+alice_pnt_dominant_ideology;?Yالأيديولوجية المهيمنة:?! $x$
+ledger_ppp_gdp;الناتج المحلي الإجمالي (تعادل القوة الشرائية)
+ledger_ppp_gdp_per_capita;الناتج المحلي الإجمالي (تعادل القوة الشرائية) لكل مليون شخص

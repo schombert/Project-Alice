@@ -5,7 +5,7 @@ namespace parsers {
 
 void make_good(std::string_view name, token_generator& gen, error_handler& err, good_group_context& context) {
 	dcon::commodity_id new_id = context.outer_context.state.world.create_commodity();
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 	context.outer_context.state.world.commodity_set_name(new_id, name_id);
 	context.outer_context.state.world.commodity_set_commodity_group(new_id, uint8_t(context.group));
 	context.outer_context.state.world.commodity_set_is_available_from_start(new_id, true);
@@ -71,9 +71,9 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		auto factory_id = context.state.world.create_factory_type();
 		context.map_of_factory_names.insert_or_assign(std::string(name), factory_id);
 
-		auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc");
+		auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc", false);
 
-		context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name));
+		context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name, false));
 		context.state.world.factory_type_set_description(factory_id, desc_id);
 		context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
 		context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
@@ -129,7 +129,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.economy_definitions.building_definitions[int32_t(t)].infrastructure = res.infrastructure;
 		context.state.economy_definitions.building_definitions[int32_t(t)].max_level = res.max_level;
 		context.state.economy_definitions.building_definitions[int32_t(t)].time = res.time;
-		context.state.economy_definitions.building_definitions[int32_t(t)].name = text::find_or_add_key(context.state, name);
+		context.state.economy_definitions.building_definitions[int32_t(t)].name = text::find_or_add_key(context.state, name, false);
 		if(res.next_to_add_p != 0) {
 			context.state.economy_definitions.building_definitions[int32_t(t)].province_modifier = context.state.world.create_modifier();
 			context.state.world.modifier_set_province_values(context.state.economy_definitions.building_definitions[int32_t(t)].province_modifier,

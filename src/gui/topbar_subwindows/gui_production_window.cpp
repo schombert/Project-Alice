@@ -42,31 +42,8 @@ void populate_production_states_list(sys::state& state, std::vector<dcon::state_
 		return a_name < b_name;
 	};
 	auto sort_by_factories = [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-		size_t acount = 0;
-		province::for_each_province_in_state_instance(state, a, [&](dcon::province_id pid) {
-			auto ffact_id = dcon::fatten(state.world, pid);
-			ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-				auto fid = state.world.factory_location_get_factory(flid);
-				Cyto::Any payload = commodity_filter_query_data{
-						state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
-				state.ui_state.production_subwindow->impl_get(state, payload);
-				auto content = any_cast<commodity_filter_query_data>(payload);
-				acount += content.filter ? 1 : 0;
-			});
-		});
-
-		size_t bcount = 0;
-		province::for_each_province_in_state_instance(state, b, [&](dcon::province_id pid) {
-			auto ffact_id = dcon::fatten(state.world, pid);
-			ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-				auto fid = state.world.factory_location_get_factory(flid);
-				Cyto::Any payload = commodity_filter_query_data{
-						state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
-				state.ui_state.production_subwindow->impl_get(state, payload);
-				auto content = any_cast<commodity_filter_query_data>(payload);
-				bcount += content.filter ? 1 : 0;
-			});
-		});
+		auto acount = economy::state_factory_count(state, a, state.world.state_instance_get_nation_from_state_ownership(a));
+		auto bcount = economy::state_factory_count(state, b, state.world.state_instance_get_nation_from_state_ownership(b));
 		return acount > bcount;
 	};
 	auto sort_by_primary_workers = [&](dcon::state_instance_id a, dcon::state_instance_id b) {

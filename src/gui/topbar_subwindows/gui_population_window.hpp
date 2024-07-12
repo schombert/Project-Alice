@@ -197,8 +197,10 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			if(rebel_fact) {
 				text::add_to_layout_box(state, contents, box, rebel_fact.get_name());
-				text::add_divider_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, rebel_fact.get_description());
+				if(auto desc = rebel_fact.get_description(); state.key_is_localized(desc)) {
+					text::add_divider_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, desc);
+				}
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -971,17 +973,17 @@ public:
 		listbox_row_element_base<pop_left_side_data>::on_create(state);
 
 		auto ptr1 = make_element_by_type<pop_left_side_country_window>(state,
-				state.ui_state.defs_by_name.find("poplistitem_country")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("poplistitem_country"))->second.definition);
 		country_window = ptr1.get();
 		add_child_to_back(std::move(ptr1));
 
 		auto ptr2 = make_element_by_type<pop_left_side_state_window>(state,
-				state.ui_state.defs_by_name.find("poplistitem_state")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("poplistitem_state"))->second.definition);
 		state_window = ptr2.get();
 		add_child_to_back(std::move(ptr2));
 
 		auto ptr3 = make_element_by_type<pop_left_side_province_window>(state,
-				state.ui_state.defs_by_name.find("poplistitem_province")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("poplistitem_province"))->second.definition);
 		province_window = ptr3.get();
 		add_child_to_back(std::move(ptr3));
 		// After this, the widget will be immediately set by the parent
@@ -1814,7 +1816,7 @@ public:
 			text::substitution_map sub;
 
 			auto nation = state.world.rebel_faction_get_ruler_from_rebellion_within(faction);
-			text::add_to_substitution_map(sub, text::variable_type::country, state.world.nation_get_adjective(nation));
+			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective(state, nation));
 			auto culture = state.world.rebel_faction_get_primary_culture(faction);
 			auto defection_target = state.world.rebel_faction_get_defection_target(faction);
 			if(culture) {
@@ -1853,11 +1855,11 @@ public:
 	}
 };
 
-class pop_details_window : public generic_settable_element<main_window_element_base, pop_details_data> {
+class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
-	simple_text_element_base* income_text = nullptr;
+	invisible_element* income_text = nullptr;
 	simple_text_element_base* expenses_text = nullptr;
 	simple_text_element_base* savings_text = nullptr;
 	std::vector<element_base*> promotion_windows;
@@ -1871,7 +1873,7 @@ class pop_details_window : public generic_settable_element<main_window_element_b
 		const xy_pair cell_offset{312, 153};
 		(([&] {
 			auto win = make_element_by_type<pop_details_promotion_window<Targs>>(state,
-					state.ui_state.defs_by_name.find("pop_promotion_item")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("pop_promotion_item"))->second.definition);
 			win->base_data.position.x = cell_offset.x + (Targs * win->base_data.size.x);
 			win->base_data.position.y = cell_offset.y;
 			promotion_windows.push_back(win.get());
@@ -1882,26 +1884,26 @@ class pop_details_window : public generic_settable_element<main_window_element_b
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		main_window_element_base::on_create(state);
+		window_element_base::on_create(state);
 		set_visible(state, false);
 
 		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
 		{
-			auto win = make_element_by_type<pop_detailed_ideology_distribution>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win = make_element_by_type<pop_detailed_ideology_distribution>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win.get());
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<pop_detailed_issue_distribution>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win = make_element_by_type<pop_detailed_issue_distribution>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win.get());
 			add_child_to_front(std::move(win));
 		}
 
 		// It should be proper to reposition the windows now
 		const xy_pair cell_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_start")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("popdetaildistribution_start"))->second.definition].position;
 		const xy_pair cell_size =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_offset")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("popdetaildistribution_offset"))->second.definition].position;
 		xy_pair offset = cell_offset;
 		for(auto const win : dist_windows) {
 			win->base_data.position = offset;
@@ -1958,9 +1960,19 @@ public:
 			return make_element_by_type<pop_literacy_text>(state, id);
 		} else if(name == "icon_religion") {
 			return make_element_by_type<popwin_religion_type>(state, id);
+		} else if(name == "money_value") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
+			//income_text = ptr.get();
+			return ptr;
 		} else if(name == "income_value") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<invisible_element>(state, id);
 			income_text = ptr.get();
+			return ptr;
+		} else if(name == "money_label") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
+			return ptr;
+		} else if(name == "income_label") {
+			auto ptr = make_element_by_type<invisible_element>(state, id);
 			return ptr;
 		} else if(name == "expenses_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -2056,13 +2068,22 @@ public:
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
 			auto kf = state.world.commodity_get_key_factory(cid);
 			if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(nat_id, kf))) {
-				auto lfn = state.world.pop_type_get_life_needs(fat_id.get_poptype(), cid);
+				auto lfn = state.world.pop_type_get_life_needs(fat_id.get_poptype(), cid)
+					* fat_id.get_size()
+					/ state.defines.alice_needs_scaling_factor
+					* state.defines.alice_lf_needs_scale;
 				if(lfn > 0.f)
 					life_needs_list->row_contents.emplace_back(cid, lfn);
-				auto evn = state.world.pop_type_get_everyday_needs(fat_id.get_poptype(), cid);
+				auto evn = state.world.pop_type_get_everyday_needs(fat_id.get_poptype(), cid)
+					* fat_id.get_size()
+					/ state.defines.alice_needs_scaling_factor
+					* state.defines.alice_ev_needs_scale;
 				if(evn > 0.f)
 					everyday_needs_list->row_contents.emplace_back(cid, evn);
-				auto lxn = state.world.pop_type_get_luxury_needs(fat_id.get_poptype(), cid);
+				auto lxn = state.world.pop_type_get_luxury_needs(fat_id.get_poptype(), cid)
+					* fat_id.get_size()
+					/ state.defines.alice_needs_scaling_factor
+					* state.defines.alice_lx_needs_scale;
 				if(lxn > 0.f)
 					luxury_needs_list->row_contents.emplace_back(cid, lxn);
 			}
@@ -2093,6 +2114,10 @@ public:
 		}
 		return message_result::unseen;
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
+	}
 };
 
 class pop_details_icon : public image_element_base {
@@ -2110,11 +2135,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::pop_id>(state, parent);
 		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, name);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -2224,9 +2247,10 @@ public:
 			if(gfx_def.primary_texture_handle) {
 				assert(gfx_def.number_of_frames > 1);
 				ogl::render_subsprite(state, get_color_modification(this == state.ui_state.under_mouse, is_gray, interactable), frame,
-						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
-						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-						base_data.get_rotation(), gfx_def.is_vertically_flipped());
+					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 			}
 		}
 	}
@@ -2237,26 +2261,19 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::substitution_map sub;
-		text::substitution_map sub2;
 		auto pop_fat_id = dcon::fatten(state.world, content);
 		auto nation_fat = dcon::fatten(state.world, state.local_player_nation);
-
 		float pop_growth = demographics::get_effective_estimation_type_change(state, state.local_player_nation, pop_fat_id.id);
 
 		//check if the pop is growing or not and change the text accordingly
-		text::add_to_substitution_map(sub2, text::variable_type::val,
-				text::pretty_integer{
-						int32_t(pop_growth) });
-		text::add_to_substitution_map(sub, text::variable_type::val,
-				text::pretty_integer{
-						int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
-
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::val, text::pretty_integer{ int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
 		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
-		text::add_to_substitution_map(sub, text::variable_type::where, nation_fat.get_name());
-
+		text::add_to_substitution_map(sub, text::variable_type::where, state.local_player_nation);
+		text::substitution_map sub2;
+		text::add_to_substitution_map(sub2, text::variable_type::val, text::pretty_integer{ int32_t(pop_growth) });
 		text::add_to_substitution_map(sub2, text::variable_type::who, pop_fat_id.get_name());
-		text::add_to_substitution_map(sub2, text::variable_type::where, nation_fat.get_name());
+		text::add_to_substitution_map(sub2, text::variable_type::where, state.local_player_nation);
 		
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
@@ -2576,35 +2593,35 @@ public:
 		set_visible(state, false);
 
 		{
-			auto win1 = make_element_by_type<pop_distribution_window<dcon::pop_type_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win1 = make_element_by_type<pop_distribution_window<dcon::pop_type_id, true>>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win1.get());
 			add_child_to_front(std::move(win1));
 
-			auto win2 = make_element_by_type<pop_distribution_window<dcon::religion_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win2 = make_element_by_type<pop_distribution_window<dcon::religion_id, true>>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win2.get());
 			add_child_to_front(std::move(win2));
 
-			auto win3 = make_element_by_type<pop_distribution_window<dcon::ideology_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win3 = make_element_by_type<pop_distribution_window<dcon::ideology_id, true>>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win3.get());
 			add_child_to_front(std::move(win3));
 
-			auto win4 = make_element_by_type<pop_distribution_window<dcon::culture_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win4 = make_element_by_type<pop_distribution_window<dcon::culture_id, true>>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win4.get());
 			add_child_to_front(std::move(win4));
 
-			auto win5 = make_element_by_type<pop_distribution_window<dcon::issue_option_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win5 = make_element_by_type<pop_distribution_window<dcon::issue_option_id, true>>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win5.get());
 			add_child_to_front(std::move(win5));
 
-			auto win6 = make_element_by_type<pop_distribution_window<dcon::political_party_id, true>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+			auto win6 = make_element_by_type<pop_distribution_window<dcon::political_party_id, true>>(state, state.ui_state.defs_by_name.find(state.lookup_key("distribution_window"))->second.definition);
 			dist_windows.push_back(win6.get());
 			add_child_to_front(std::move(win6));
 
 			// It should be proper to reposition the windows now
 			const xy_pair cell_offset =
-					state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_start")->second.definition].position;
+					state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("popdistribution_start"))->second.definition].position;
 			const xy_pair cell_size =
-					state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_offset")->second.definition].position;
+					state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("popdistribution_offset"))->second.definition].position;
 			xy_pair offset = cell_offset;
 			for(auto const win : dist_windows) {
 				win->base_data.position = offset;
@@ -2619,14 +2636,14 @@ public:
 		{
 			// Now add the filtering windows
 			const xy_pair cell_offset =
-					state.ui_defs.gui[state.ui_state.defs_by_name.find("popfilter_start")->second.definition].position;
+					state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("popfilter_start"))->second.definition].position;
 			const xy_pair cell_size =
-					state.ui_defs.gui[state.ui_state.defs_by_name.find("popfilter_offset")->second.definition].position;
+					state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("popfilter_offset"))->second.definition].position;
 			xy_pair offset = cell_offset;
 
 			state.world.for_each_pop_type([&](dcon::pop_type_id id) {
 				auto win = make_element_by_type<pop_filter_button>(state,
-						state.ui_state.defs_by_name.find("pop_filter_button")->second.definition);
+						state.ui_state.defs_by_name.find(state.lookup_key("pop_filter_button"))->second.definition);
 				Cyto::Any payload = id;
 				win->base_data.position = offset;
 				win->impl_set(state, payload);
@@ -2637,7 +2654,7 @@ public:
 		}
 
 		auto win7 =
-				make_element_by_type<pop_details_window>(state, state.ui_state.defs_by_name.find("pop_details_win")->second.definition);
+				make_element_by_type<pop_details_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("pop_details_win"))->second.definition);
 		details_win = win7.get();
 		add_child_to_front(std::move(win7));
 

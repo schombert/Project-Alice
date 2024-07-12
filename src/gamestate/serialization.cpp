@@ -107,7 +107,7 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 	uint32_t decompressed_length = uncompressed_size;
 
 	uint32_t section_length = uint32_t(ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size), ptr_in,
-			uncompressed_size, 0)); // write compressed data
+		uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
@@ -298,22 +298,15 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = deserialize(ptr_in, state.effect_data_indices);
 	ptr_in = deserialize(ptr_in, state.value_modifier_segments);
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
-	ptr_in = deserialize(ptr_in, state.text_data);
-	ptr_in = deserialize(ptr_in, state.text_components);
-	for(uint32_t i = 0; i < sys::max_languages; i++) {
-		ptr_in = deserialize(ptr_in, state.languages[i].iso_code);
-		ptr_in = deserialize(ptr_in, state.languages[i].text_sequences);
-		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].encoding);
-		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].rtl);
-		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].no_spacing);
-		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].script);
-	}
-	ptr_in = deserialize(ptr_in, state.key_to_text_sequence);
+	ptr_in = deserialize(ptr_in, state.key_data);
+	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
+
 	{ // ui definitions
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
 		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
 		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
+		ptr_in = deserialize(ptr_in, state.ui_defs.extensions);
 	}
 
 	// data container
@@ -488,22 +481,15 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.effect_data_indices);
 	ptr_in = serialize(ptr_in, state.value_modifier_segments);
 	ptr_in = serialize(ptr_in, state.value_modifiers);
-	ptr_in = serialize(ptr_in, state.text_data);
-	ptr_in = serialize(ptr_in, state.text_components);
-	for(uint32_t i = 0; i < sys::max_languages; i++) {
-		ptr_in = serialize(ptr_in, state.languages[i].iso_code);
-		ptr_in = serialize(ptr_in, state.languages[i].text_sequences);
-		ptr_in = memcpy_serialize(ptr_in, state.languages[i].encoding);
-		ptr_in = memcpy_serialize(ptr_in, state.languages[i].rtl);
-		ptr_in = memcpy_serialize(ptr_in, state.languages[i].no_spacing);
-		ptr_in = memcpy_serialize(ptr_in, state.languages[i].script);
-	}
-	ptr_in = serialize(ptr_in, state.key_to_text_sequence);
+	ptr_in = serialize(ptr_in, state.key_data);
+	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
+
 	{ // ui definitions
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = serialize(ptr_in, state.ui_defs.textures);
 		ptr_in = serialize(ptr_in, state.ui_defs.gui);
 		ptr_in = serialize(ptr_in, state.font_collection.font_names);
+		ptr_in = serialize(ptr_in, state.ui_defs.extensions);
 	}
 
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
@@ -512,7 +498,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 
 	return reinterpret_cast<uint8_t*>(start);
 }
-size_t sizeof_scenario_section(sys::state& state) {
+scenario_size sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
@@ -672,30 +658,23 @@ size_t sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.effect_data_indices);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);
-	sz += serialize_size(state.text_data);
-	sz += serialize_size(state.text_components);
-	for(uint32_t i = 0; i < sys::max_languages; i++) {
-		sz += serialize_size(state.languages[i].iso_code);
-		sz += serialize_size(state.languages[i].text_sequences);
-		sz += sizeof(state.languages[i].encoding);
-		sz += sizeof(state.languages[i].rtl);
-		sz += sizeof(state.languages[i].no_spacing);
-		sz += sizeof(state.languages[i].script);
-	}
-	sz += serialize_size(state.key_to_text_sequence);
+	sz += serialize_size(state.key_data);
+	sz += serialize_size(state.untrans_key_to_text_sequence);
+
 	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);
 		sz += serialize_size(state.ui_defs.textures);
 		sz += serialize_size(state.ui_defs.gui);
 		sz += serialize_size(state.font_collection.font_names);
+		sz += serialize_size(state.ui_defs.extensions);
 	}
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
 	// dcon::load_record loaded;
-	sz += state.world.serialize_size(loaded);
+	auto szb = state.world.serialize_size(loaded);
 
-	return sz;
+	return scenario_size{ sz + szb, sz };
 }
 
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
@@ -844,7 +823,7 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
 
-	size_t scenario_space = sizeof_scenario_section(state);
+	auto scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
 
 	state.scenario_counter = count;
@@ -853,7 +832,7 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =
-			sizeof_scenario_header(header) + sizeof_mod_path(simple_fs::extract_state(state.common_fs)) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
+			sizeof_scenario_header(header) + sizeof_mod_path(simple_fs::extract_state(state.common_fs)) + ZSTD_compressBound(scenario_space.total_size) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
 
 	uint8_t* temp_buffer = new uint8_t[total_size];
 	uint8_t* buffer_position = temp_buffer;
@@ -861,16 +840,16 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	buffer_position = write_scenario_header(buffer_position, header);
 	buffer_position = write_mod_path(buffer_position, simple_fs::extract_state(state.common_fs));
 
-	uint8_t* temp_scenario_buffer = new uint8_t[scenario_space];
+	uint8_t* temp_scenario_buffer = new uint8_t[scenario_space.total_size];
 	auto last_written = write_scenario_section(temp_scenario_buffer, state);
 	auto last_written_count = last_written - temp_scenario_buffer;
-	assert(size_t(last_written_count) == scenario_space);
+	assert(size_t(last_written_count) == scenario_space.total_size);
 	// calculate checksum
 	checksum_key* checksum = &reinterpret_cast<scenario_header*>(temp_buffer + sizeof(uint32_t))->checksum;
-	blake2b(checksum, sizeof(*checksum), temp_scenario_buffer, scenario_space, nullptr, 0);
+	blake2b(checksum, sizeof(*checksum), temp_scenario_buffer + scenario_space.checksum_offset, scenario_space.total_size - scenario_space.checksum_offset, nullptr, 0);
 	state.scenario_checksum = *checksum;
 
-	buffer_position = write_compressed_section(buffer_position, temp_scenario_buffer, uint32_t(scenario_space));
+	buffer_position = write_compressed_section(buffer_position, temp_scenario_buffer, uint32_t(scenario_space.total_size));
 	delete[] temp_scenario_buffer;
 
 	uint8_t* temp_save_buffer = new uint8_t[save_space];

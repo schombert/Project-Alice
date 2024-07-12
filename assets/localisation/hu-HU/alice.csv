@@ -1,0 +1,1196 @@
+support_for_blank;$text$ támogatása
+uh_support_for_blank;$text$ felsőházi támogatása
+up_to;ig
+scaled_support;arányos a $text$ támogatásával
+scaled_unemployment;arányos a munkanélküliséggel
+stockpile_of;a $text$ nemzeti készletére
+create_general;Létrejön egy új tábornok
+create_admiral;Új admirális jön létre
+add_war_goal;$text$ háborús célt adunk $nation$ ellen
+blank_loyalty;$text$ hűség
+in_blank;$text$-ban
+no_effect;Hatástalan
+move_capital_to;Tőke áthelyezése ide
+add_x_core;Adj hozzá $adj$ magot
+add_core_to;Adja hozzá a magot
+remove_x_core;Távolítsa el a $adj$ magot
+remove_core_from;Távolítsa el a magot
+change_name_to;Módosítsa a nevet a következőre: $text$
+change_terrain_to;Terep módosítása $text$ értékre
+change_rgo_production_to;Módosítsa az RGO-termelést a következőre: $text$
+make_accepted_culture;A $text$ elfogadott kultúrává válik
+primary_culture_changes_to;Az elsődleges kultúra a következőre változik: $text$
+union_culture_accepted;Az ország elsődleges kulturális csoportjába tartozó összes kultúra elfogadottá válik
+remove_accepted_culture;A $text$ megszűnik elfogadott kultúra lenni
+increase_national_variable_by;A $text$ nemzeti változó növelése $értékkel$
+decrease_national_variable_by;A $text$ nemzeti változó csökkentése $értékkel$
+life_rating;Élettartam-besorolás
+make_national_religion;A $text$ nemzeti vallássá válik
+make_slave_state;Rabszolga állammá válik
+make_slave_pop;Rabszolga lesz
+research_points;Kutatási pontok
+change_tech_school;A technológiai iskola a következőre változik: $text$
+change_government_to;A kormány módosítása a következőre: $text$
+add_to_treasury;Hozzáadva a kincstárhoz
+war_exhaustion;Háborús kimerültség
+become_blank;$text$ lesz
+player_control_change;A lejátszó vezérlése a következőre változik: $text$
+set_national_flag;$text$ ehhez a nemzethez van beállítva
+remove_national_flag;A $text$ nincs beállítva ehhez a nemzethez
+infamy;Aljasság
+change_province_owner;Módosítsa a tartomány tulajdonosát a következőre: $text$
+annex_effect;$text$ melléklet
+annexed_by_effect;A $text$ melléklete
+core_return;Az $adj$ magok visszakerülnek a $text$-ba
+core_return_short;$adj$ magok visszakerülnek
+change_province_controller;módosítsa a tartományvezérlőt a következőre: $text$
+change_state_controller;módosítsa az állapotvezérlőt $text$-ra
+pop_savings;Pop megtakarítás
+leadership_points;Vezetői pontok
+release_as_vassal;Engedd el a $text$-t vazallusként
+end_alliance;Fejezze be a szövetséget a következővel: $text$
+end_war_with;Fejezd be a háborút a $text$-al
+enable_ideology;Ideológia engedélyezése ?Y$text$?!
+enable_technology;Adj technológia ?Y$text$?!
+enable_invention;Adj találmányt ?Y$text$?!
+change_ruling_party;A kormánypárt módosítása $text$-ra
+remove_prov_mod;Távolítsa el a $text$ tartománymódosítót
+remove_nat_mod;Távolítsa el a $text$ nemzeti módosítót
+make_alliance;Köss szövetséget a $text$-val
+becomes_independent;$text$ független nemzetté válik
+release_as_independent;Engedje el a $text$-t független nemzetként
+set_global_flag;$text$ globális beállítása
+remove_global_flag;Globálisan szüntesse meg a $text$ beállítását
+change_national_value;Módosítsa a nemzeti értéket $text$-ra
+become_civ;Civilizált nemzetté válik
+become_unciv;Civilizálatlan nemzetté válik
+free_slave_state;Szabad állammá válik
+free_slave_pop;Megszabadul a rabszolgaságtól
+hold_election;Tartsa meg a választást
+issue_change;A $issue$ a következőre változik: $text$
+add_relative_income;A pénztárhoz hozzáadott utolsó bevétel szorzata
+make_neutral;Minden szövetség véget ért, és az összes vazallus elengedett
+pop_size;Pop méret
+move_pop_to;A pop áthelyezése ide: $text$
+change_pop_type;Módosítsa a pop típusát $text$-ra
+years_of_research;Több éves kutatás
+remove_mil_reforms;Távolítsa el a $value$ katonai reformokat
+remove_econ_reforms;Távolítsa el a $value$ gazdasági reformokat
+add_crime;Krimi $text$ hozzáadása
+remove_crime;Távolítsa el az aktív bűnözést
+perform_nationalization;Végezze el az államosítást
+build_factory_in_capital;Build $text$ nagybetűs állapotban
+enable_great_wars;A nagy háborúk engedélyezve vannak
+enable_world_wars;Világháborúk engedélyezettek
+disable_great_wars;Nagy háborúk már nem lehetségesek
+disable_world_wars;Világháború már nem lehetséges
+assimilate_pop;Módosítsa a kultúrát a következőre: $text$
+assimilate_province;Módosítsa az összes előugró szöveg kultúráját $text$ értékre
+owner_primary_culture;tulajdonosának elsődleges kultúrája
+literacy;műveltség
+add_crisis_interest;Érdekelni kezd a jelenlegi válság
+crisis_temperature_plain;válságos hőmérséklet
+militancy;harciasság
+consciousness;öntudat
+rgo_size;RGO méret
+trigger_every_revolt;Valamennyi lázadó frakció lázadását váltja ki
+call_allies;Hívjon szövetségeseket jelenlegi háborúikba
+truce_with;Fegyverszünet $text$-al ?Y$y$-ig?!
+diplomatic_influence_with;diplomáciai befolyás $szöveggel$
+relations_with;kapcsolat a $text$-szal
+add_modifier_until;$text$ a következő időpontig: $date$
+add_modifier;$text$ lesz
+add_cb_months;Kap egy $name$ casus belli-t $text$ ellenében $date$-ig
+add_cb_no_months;Kap egy $name$ casus belli-t a $text$ ellenében
+add_cb_reversed_months;$text$ $name$ casus belli-t kap a $date$-ig hatályos nemzet ellen
+add_cb_reversed_no_months;$text$ $name$ casus belli-t kap a nemzet ellen
+remove_cb_reversed;Elveszít minden $name$ casus bellist a $text$ ellen
+remove_cb;$text$ elveszít minden $name$ casus bellist a nemzettel szemben
+set_national_variable_to;Állítsa be a $text$ nemzeti változót $value$ értékre
+event_fires;A(z) $text$ esemény aktiválódik
+event_fires_in_days;A $text$ esemény $value$ napon belül aktiválódik
+railroad_in_capital;?G+1?! vasúti szint a fővárosban
+railroad_in_capital_state;?G+1?! vasúti szint fővárosi államban
+fort_in_capital;?G+1?! erődszint a fővárosban
+fort_in_capital_state;?G+1?! erődszint fővárosi államban
+fort_in_capital;?G+1?! erődszint a fővárosban
+fort_in_capital_state;?G+1?! erődszint fővárosi államban
+university_in_capital;?G+1?! egyetemi szintű fővárosban
+university_in_capital_state;?G+1?! egyetemi szintű fővárosi állam
+bank_in_capital;?G+1?! banki tőkeszint
+bank_in_capital_state;?G+1?! banki szint tőkeállapotban
+railroad_level;Vasúti szint
+fort_level;Erőd Szint
+naval_base_level;haditengerészeti bázis szintje
+university_base_level;haditengerészeti bázis szintje
+bank_base_level;haditengerészeti bázis szintje
+apply;Alkalmaz
+ok;rendben
+close;Bezárás
+delete;Töröl
+new;Új
+reset;Visszaállítás
+every;Minden
+ready;Kész
+any;Bármi
+none;Egyik sem
+random;Egy véletlen
+neighboring_province;szomszédos tartomány
+where;ahol:
+neighboring_nation;szomszédos nemzet
+nation;nemzet
+continent;kontinens
+same_continent;ugyanazon a kontinensen, mint
+empty_neighboring_province;Üres szomszéd tartomány
+poor_strata_pop;szegény réteg pop
+middle_strata_pop;középréteg pop
+rich_strata_pop;gazdag réteg pop
+pop;Pop
+owned_province;tartományhoz tartozó
+singular_nation;azt a nemzetet
+singular_state;azt az állapotot
+singular_province;azt a tartományt
+singular_pop;hogy pop
+one_of_the_following;az alábbi hatások egyike:
+this_nation;ezt a nemzetet
+this_state;ezt az állapotot
+this_province;ezt a tartományt
+this_pop;ez a pop
+from_nation;nemzettől
+from_state;államtól
+from_province;tartományból
+from_pop;popból
+province_in;tartományban
+this_nation_culture;Ennek a nemzetnek az elsődleges kultúrája
+from_nation_culture;A nemzettől származó elsődleges kultúra
+cultural_union_nation;A kulturális unió nemzet elsődleges kultúrája miatt
+core_of;magja
+state_of;állapota
+chance_of;esélye:
+owner_of;tulajdonosa
+controller_of;vezérlője
+location_of_pop;a pop helye
+nation_of_pop;ezt a popot tartalmazó nemzet
+capital_of;fővárosa
+containing_state;állapotot tartalmazó
+adjacent_sea;szomszédos tengeri övezet
+cultural_union_of;kulturális uniója
+overlord_of;felettese
+sphere_leader_of;szféra vezetője
+crisis_state;válságos állapot
+reb_independence_nation;lázadó független nemzet
+flashpoint_nation;lobbanáspontú nemzet
+rebel;Lázadó
+flashpoint_tension_label;Lobbanásponti feszültség
+for_text;$text$ért
+where_ideology_is;Ahol az ideológiája $text$
+where_culture_is;Ahol a kultúrája $text$
+where_religion_is;Ahol a vallása $text$
+of_type;$text$ típusú
+no_nation;nincs nemzet
+declare_war_on;Üzenj háborút $text$-nak
+attacker_wg_label;Támadó háborús cél: $text$
+defender_wg_label;Defender háborús cél: $text$
+attacker_no_allies;A támadó szövetségeseit nem hívják be
+attacker_yes_allies;A támadó szövetségeseit be fogják hívni
+war_start_date_desc;háború kezdődött ?Y$date$?!
+cmp_ge;az legalább
+cmp_le;legfeljebb az
+cmp_gt;nagyobb, mint
+cmp_lt;kevesebb mint
+cmp_eq;van
+cmp_ne;nem
+cmp_has_eq;van
+cmp_has_ne;nem rendelkezik
+cmp_has_lt;kevesebb van mint
+cmp_has_gt;több mint
+cmp_has_ge;legalább van
+cmp_has_le;legfeljebb rendelkezik
+all_of_the_following;Az alábbiak mindegyike:
+any_of_the_following;Az alábbiak bármelyike:
+nation_at_war_against;ellen harcoló nemzet
+core_in;mag be
+colonial_pop;gyarmati tartományban található
+substate_of;alállapota
+nation_in_sphere;nemzet a szférában
+year;év
+month;hónap
+a_port;egy kikötő
+national_rank;országos rangot
+att_technology;technológia
+strata;rétegek
+rich;gazdag
+poor;szegény
+middle;középső
+minimum_state_life_raing;minimális élettartam az államban
+an_empy_adj_prov;egy üres szomszédos tartomány
+belongs_to_same_state;ugyanabba az állapotba tartozik, mint a $text$
+does_not_belong_to_same_state;nem tartozik ugyanabba az állapotba, mint a $text$
+contains_blank;tartalmaz $text$
+does_not_contain_blank;nem tartalmaz $text$
+times_target_needs_spending;a kívánt alkalommal költést igényel
+unemployment;munkanélküliség
+slavery;rabszolgaság
+allowed;megengedett
+a_slave_state;rabszolga állam
+a_slave;rabszolga
+an_independent_nation;független nemzet
+non_prim_culture_pops;nem elsődleges kultúrájú popok
+government;kormány
+capital;főváros
+technology_school;technológiai iskola
+primary_culture;elsődleges kultúra
+primary_culture_pop;annak a nemzetnek az elsődleges kultúrája, amelyben a pop található
+an_accepted_culture;elfogadott kultúra
+culture;Kultúra
+dominant_culture;uralkodó kultúra
+a_primary_or_accepted;elsődleges vagy elfogadott kultúra
+rebel_culture;lázadó kultúra
+this_nation_prim_culture;ennek a nemzetnek az elsődleges vagy elfogadott kultúrája
+from_nation_prim_culture;a nemzet elsődleges kultúrája vagy elfogadott kultúrája
+culture_group;kulturális csoport
+dominant_culture_group;meghatározó kulturális csoport
+primary_culture_group;alapkultúra csoport
+a_core_ob;tulajdonában lévő mag
+rebel_culture_group;lázadó kulturális csoport
+this_nation_culture_group;ugyanaz, mint ennek a nemzetnek a kultúrcsoportja
+from_nation_culture_group;ugyanaz, mint a nemzettől származó kultúracsoport
+rebel_religion;a lázadó vallás
+this_nation_religion;ennek a nemzetnek a nemzeti vallása
+from_nation_religion;a nemzettől való nemzeti vallás
+province_terrain;tartományi terep
+rgo_production;RGO gyártás
+a_secondary_power;gyarmati hatalom
+owner;tulajdonos
+an_active_rebel;aktív lázadó frakció
+a_member_of;tagja
+unclaimed_cores;nem igényelt magok
+a_cultural_union;kulturális unió
+union_for_pop;a pop kulturális uniója
+union_for_nation;a kulturális unió a nemzetért
+the_rebel_ind_nation;a lázadó független nemzet
+capitalists_can_build;a kapitalisták gyárakat építhetnek
+capitalists_cannot_build;a kapitalisták nem építhetnek gyárakat
+at_war;háborúban
+total_blockade;teljes blokád
+owns;birtokolja
+does_not_own;nem birtokolja
+controls;vezérlők
+does_not_control;nem irányítja
+a_core_in;egy mag benne
+a_core_of;egy magja
+a_core_of_owner;tulajdonosának magja
+located_in_a_core_of;magjában található
+percentage_reb_control;a lázadók által ellenőrzött tartományok százaléka
+num_of_reb_control;a lázadók által ellenőrzött tartományok száma
+num_owned_provinces;tulajdonú tartományok száma
+num_provinces_owned_by;által birtokolt tartományok száma
+num_of_ports;portok száma
+num_of_allies;szövetségesek száma
+num_of_vassals;vazallusok száma
+owned_by;tulajdonában lévő
+exists;létezik
+does_not_exist;nem létezik
+att_set;készlet
+in;ban ben
+located_in;található
+the_owner_of_region;minden tartomány tulajdonosa
+a_casus_belli_against;egy casus belli ellen
+military_access_with;katonai hozzáférést
+prestige_of;a presztízse
+prestige;Presztízs
+a_railroad;egy vasút
+a_fort;egy erődöt
+a_naval_base;haditengerészeti bázis
+a_factory;egy gyár
+empty;gazdátlan
+blockaded;blokád alá
+national_modifier;nemzeti módosító
+provincial_modifier;tartományi módosító
+part_of;része
+a_border_with;egy határt
+units_in_province;egységek a tartományban
+units_in_the_province;egységek a tartományban
+units_in_the_state;egységek az államban
+at_war_against;elleni háborúban
+num_of_divisions;számos hadosztály
+an_ongoing_battle;egy folyamatban lévő csata
+an_assigned_leader;kijelölt vezető
+treasury;kincstár
+o_treasury;tulajdonosi kincstár
+o_of_prov;a tartomány tulajdonosa
+percentage_unowned_cores;a nem birtokolt magok százaléka
+a_vassal;egy vazallus
+ruling_party_ideology;kormánypárti ideológia
+ruling_party;kormánypárt
+enabled;engedélyezve van
+political_reform_desire;politikai reformvágy
+social_reform_desire;társadalmi reform vágy
+num_of_ships;hajók száma
+crime_percent;a tartományok aránya a bűnözéssel
+national_religion;a nemzeti_vallás
+member_of_nat_religion;a nemzeti vallás tagja
+dominant_religion;az uralkodó vallás
+same_rel_as_this;ugyanaz a vallás, mint ez a nemzet
+this_pop_culture;ennek a popnak a kultúrája
+this_nation_primary_culture;ennek a nemzetnek az elsődleges kultúrája
+this_nation_accepted_culture;ennek a nemzetnek elfogadott kultúrája
+coastal;parti
+in_sphere_of;szférájában
+a_producer_of;producere
+next_reform;következő reform
+always;mindig
+never;soha
+percentage_recruited;a toborzott popok százaléka
+in_cultural_core_prov;egy tartományban, amelynek magja ugyanaz a kultúra
+nationalism;nacionalizmus
+overseas;tengerentúli
+overseas_pop;tengerentúli tartományban található
+controlled_by_rebel;lázadók irányítják
+controlled_by;által irányított
+state_capital;az állam fővárosa
+loc_state_capital;az állam fővárosában található
+a_truce_with;fegyverszünetet
+att_population;népesség
+size;méret
+pops_of_type;típusú popok
+of_type_plain;típusú
+ai_controlled;AI vezérelt
+a_leader_named;nevű vezető
+a_possible_vassal;egy lehetséges vazallus
+a_vassal_of;vazallusa
+a_substate_of;egy alállapota
+allied_to;szövetségese
+has_recently_lost_war;nemrég elvesztett egy háborút
+has_not_recently_lost_war;mostanában nem vesztett háborút
+mobilized;mozgósított
+mobilization_size;mobilizációs méret
+admin_spending;adminisztrációs kiadások
+greater_than_edu_spending;nagyobb, mint az oktatási kiadások
+support_for_rp;a kormánypárt támogatása
+colonial;gyarmati
+in_default_to;alapértelmezés szerint
+in_bnkrpt;csődbe jutott
+num_of_ports_connected;a tőkéhez kapcsolódó portok száma
+holding_an_election;választást tartani
+set_globally;globálisan beállítva
+national_value;nemzeti érték
+industrial_score;ipari pontszám
+industrial_score_of;ipari pontszáma
+military_score;katonai pontszám
+military_score_of;a katonai pontszámot
+civilized;civilizált
+percent_occupied;a megszállt tartományok százaléka
+rich_tax;gazdag adó
+middle_tax;középadó
+poor_tax;szegény adó
+soc_spending;szociális kiadások
+edu_spending;oktatási kiadások
+mil_spending;katonai kiadások
+colonies;kolóniák
+dominant_ideology;uralkodó ideológia
+dominant_issue;domináns kérdés
+poor_militancy;szegény réteg harciassága
+middle_militancy;középrétegek harciassága
+rich_militancy;gazdag réteg harciassága
+gt_poor_tax;nagyobb, mint a szegény adó
+cultural_union;kulturális unió
+same_cultural_union;ugyanaz, mint a kulturális unió
+non_accepted_pops;nem elfogadott popok
+crime;bűn
+num_substates;alállapotok száma
+num_vassals_no_substates;az állam alatti vazallusok száma
+num_regiments;ezredek száma
+owner_num_regiments;tulajdonos ezredszáma
+num_regiments_of;a hozzá tartozó ezredek száma
+times_num_regiments_of;a hozzá tartozó ezredek számának $x$-szorosa
+fabricating_on;casus belli gyártása
+cb_discovered;casus belli gyártmányt fedeztek fel
+cb_not_discovered;casus belli gyártmányát nem fedezték fel
+cb_progress;casus belli gyártási folyamat
+civ_progress;civilizációs fejlődés
+constructing_a;gyártás a
+casus_belli;casus belli
+nation_in_scope;hatálya alá tartozó nemzet
+a_substate;egy alállapot
+gw_enabled;nagy háborúk engedélyezettek
+gw_not_enabled;a nagy háborúk nem engedélyezettek
+ww_enabled;világháború engedélyezve van
+ww_not_enabled;világháborút nem engedélyezik
+can_perform_nationalization;államosítható
+cannot_perform_nationalization;nem lehet államosítani
+in_sphere;befolyási övezetben
+num_states;államok száma
+a_releasable_vassal;elengedhető vazallus
+recent_immigration;közelmúltbeli bevándorlás
+num_control_days;napok száma jelenlegi ellenőrzés alatt
+disarmed;leszerelve
+social_mov_support;társadalmi mozgalom támogatása
+political_mov_support;a politikai mozgalom támogatása
+a_member_of_social_mov;társadalmi mozgalom tagja
+a_member_of_political_mov;egy politikai mozgalom tagja
+cultural_sphere_members;a szféra tagjai ugyanabban a kulturális csoportban
+pops;felpattan
+this_pop_religion;ennek a popnak a vallása
+pops_with;felpattan vele
+life_needs_satisfaction;az élet kielégítése
+everyday_needs_satisfaction;mindennapi szükségletek kielégítése
+luxury_needs_satisfaction;luxus-szükségletek kielégítése
+present_in_state;állapotban jelen van
+flashpoint;Lobbanáspont
+plurality_pop;a nemzet pluralitása, amelyben a pop él
+an_ongoing_crisis;egy folyamatban lévő válság
+there;Ott
+current_crisis;jelenlegi válság
+liberation_crisis;felszabadulási válság
+claim_crisis;követeléskrízis
+involved_in_crisis;válságba keveredett
+poor_life_needs_satisfaction;szegény rétegek élete kielégítésére van szüksége
+poor_everyday_needs_satisfaction;szegény réteg mindennapi kielégítést igényel
+poor_luxury_needs_satisfaction;szegény réteg luxus-kielégítésre szorul
+middle_life_needs_satisfaction;középrétegek élete-kielégülést igényel
+middle_everyday_needs_satisfaction;középső réteg mindennapi-kielégítési igénye
+middle_luxury_needs_satisfaction;középrétegű luxus-kielégítést igényel
+rich_life_needs_satisfaction;gazdag rétegek életének kielégítésére van szüksége
+rich_everyday_needs_satisfaction;gazdag rétegek mindennapi kielégítését igénylik
+rich_luxury_needs_satisfaction;gazdag rétegek luxus-szükségletei kielégítése
+dip_influence_over;diplomáciai befolyás felett
+relationship_with;kapcsolatban
+this_pop_type;ez a pop típus
+nat_variable;nemzeti változó
+support_in_uh;támogatás a felsőházban
+support_in;hűség benne
+scope_province;hatálya alá tartozó tartomány
+able_build_rr;képes vasutat építeni ebben a tartományban
+able_build_fort;képes erődöt építeni ebben a tartományban
+able_build_naval_base;képes haditengerészeti bázist építeni ebben a tartományban
+work;munka
+available_for;elérhető:
+support;támogatás
+percentage;százalék
+stockpile;raktárkészlet
+this_nat_religion;ennek az országnak a nemzeti vallása
+from_nat_religion;az ország nemzeti vallása
+event_show_requirements;Az eseménnyel szemben támasztott követelmények
+event_only_other_requirements;Ezt az eseményt csak más események váltják ki
+event_show_odds;Az esemény esélyei
+value_mod_product;A $val$ érték a következő szorzata:
+value_mod_sum;A $val$ érték a következők összege:
+value_mod_sum_factor;A $val$ érték a következők összegének $x$-szorosa:
+admin_explain_1;$val$ adminisztratív hatékonyság módosító
+admin_explain_2;A nem gyarmati bürokraták arányára vonatkoztatva: $val$
+admin_explain_3;A szükséges százalékhoz: $val$ (alap $x$ + $y$ reformokból)
+factory_condition_1;A nemzet civilizált
+factory_condition_2;Ez nem gyarmati állam
+factory_condition_3;A kormánypárt engedélyezi a gyárak építését
+factory_condition_4;Az államban kevesebb, mint $val$ gyár található
+cant_subsidize_explanation;A kormánypárt nem engedi, hogy gyárakat támogassunk
+percent_of_pop_strata;rétegeik lakosságának $val$
+cant_prioritize_explanation;A kormánypárt nem engedi, hogy módosítsuk a gyári prioritást
+factory_upgrade_condition_1;A nemzet civilizált
+factory_upgrade_condition_2;Ez nem gyarmati állam
+factory_upgrade_condition_3;A gyár felépítéséhez szükséges technológiai követelmények teljesülnek
+factory_upgrade_condition_4;A te nemzeted nagyhatalom, míg a célnemzet nem az
+factory_upgrade_condition_5;A befektetési cél civilizált
+factory_upgrade_condition_6;A befektetési célország kormánypártja engedélyezi a külföldi befektetéseket
+factory_upgrade_condition_7;A befektetési célpont nem áll háborúban Önnel
+factory_upgrade_condition_8;A kormánypárt engedélyezi a gyárak korszerűsítését
+factory_upgrade_condition_9;A gyárat még nem korszerűsítik
+factory_upgrade_condition_10;A gyár nincs max szinten
+factory_delete_header;Gyár törlése
+factory_delete_not_allowed;A kormánypárt nem engedi, hogy gyárakat töröljünk
+factory_stats_1;Ez a gyár jelenleg $val$ kapacitással működik
+factory_stats_2;Ez a gyár $val$ kapacitást céloz meg
+factory_stats_3;Az előző napon $val$ $x$ egységeket termelt
+factory_stats_4;Az előző napon $val$ nyereséget ért el
+factory_stats_5;Bemenetek elérhetősége:
+factory_stats_6;Hatékonysági bemenetek elérhetősége:
+factory_stats_wage;Bér:
+factory_stats_expenses;Összes kiadás
+factory_stats_desired_income;A kívánt nyers haszon
+speed;$val$ km/h
+shift_to_hold_open;Tartsa lenyomva a ?YSHIFT-et?! hogy ez az ablak nyitva maradjon, ?YSHIFT-Jobb kattintás?! ezt minden állapotban megépíteni (de nem bővíteni)
+factory_upgrade_shortcuts;?YSHIFT-Bal kattintás?W frissítés ?Gall?!S gyárak állapotában\n?YSHIFT-Jobb gombbal?W frissítés ?Gall nyereséges?W gyár állapotában\n?YCTRL-Bal kattintás?W frissítés ? Gall?W gyár egy nemzetben\n?YCTRL-Jobb kattintás?W frissítés ?Gall nyereséges?W gyár egy nemzetben\n?YCTRL-SHIFT-Bal kattintás?W frissítés ?Gyereséges teljes foglalkoztatottsággal?W gyár egy állam\n?YCTRL-SHIFT-Jobb kattintás?W frissítés ?Epenyereséges teljes foglalkoztatottsággal?W gyár egy államban
+blank_org_gain;szervezeti nyereség
+plurality_change_reason;(átlagos tudatosság alapján)
+revanchism_reason;A nem birtokolt magok száma alapján (az elsődleges kultúrával rendelkező magok többnek számítanak)
+allow_reform_cond;Követelmények:
+reform_effect_if_desc;Ha aktiválva van, ha
+reform_effect_then_desc;Akkor:
+reform_effect_desc;Amikor aktiválva van:
+special_rules;Különleges szabályok:
+voting_rules;Szavazási szabályok:
+hide_decision;A döntésről szóló értesítés elrejtése
+sup_point_gain;Havi elnyomási pont növekedés: ?G+$val$
+sup_point_explain;Feladó: alapkamat $x$ x $y$ bürokratáktól x $val$ a módosítónktól az elnyomási pont nyereségig
+pop_size_1;A következő hónapban ennek a popnak a mérete várhatóan a következőképpen fog változni:
+pop_size_2;A növekedéstől:
+pop_size_3;Előléptetésből és lefokozásból:
+pop_size_4;Az asszimilációból:
+pop_size_5;Belső migrációból:
+pop_size_6;A gyarmati migrációból:
+pop_size_7;Az emigrációból:
+pop_size_8;Az átalakításból:
+pop_l_migration_header;?YElvándorlás: $val$
+pop_l_c_migration_header;?YGarmati elvándorlás: $val$
+pop_l_emigration_header;?YKivándorlás el: $val$
+pop_mig_1;Nincs belső migráció a gyarmati tartományokból
+pop_mig_2;A rabszolgák nem vándorolnak belsőleg
+pop_mig_3;A belső vándorlók száma megegyezik a pop méretének és a bevándorlási skála ($x$) szorzatának a tartomány bevándorlási nyomás módosítójának ($y$) és a migrációs tényező ($val$) szorzatával.
+pop_mig_4;?YMigrációs tényező:
+pop_cmig_1;A nemzetnek nincsenek gyarmatai
+pop_cmig_2;A gyarmati tartományokból nincs gyarmati migráció
+pop_cmig_3;A rabszolgák nem vándorolnak gyarmati úton
+pop_cmig_4;A gazdag rétegű popok nem vándorolnak gyarmati úton
+pop_cmig_5;A gyári munkások nem vándorolnak gyarmatosan
+pop_cmig_6;A gyarmati úton vándorló emberek száma megegyezik a pop méretének szorzata a bevándorlási skála ($x$) szorzata a tartomány bevándorlási módosítójának ($y$) és a tartomány gyarmati migráció módosítójának ($num$) szorzatával. a gyarmati migrációs tényező ($val$)
+pop_cmig_7;Gyarmati migrációs tényező:
+pop_emg_1;A popok csak a civilizált nemzetekből tudnak kivándorolni
+pop_emg_2;A gyarmati tartományokból nincs kivándorlás
+pop_emg_3;A rabszolgák nem vándorolnak ki
+pop_emg_4;Popok egy ?Tengerentúl?! a kultúra nem vándorol ki
+pop_emg_5;A kivándorlók száma megegyezik a bevándorlási skála ($x$) és a tartomány bevándorlási mutatójának ($y$, négyzetével, ha nagyobb, mint 100%) szorzata a kivándorlási tényező ($) szorzatával. val$)
+pop_emg_6;?YKivándorlási tényező:
+pop_prom_1;?YPromóciós tényező:
+pop_prom_2;Országos fókuszból: ?G$val$
+pop_prom_3;0 (a nemzeti szempont miatt)
+pop_prom_4;?YLefojtási tényező:
+pop_prom_5;A pop jelenleg népszerűsít, mert a promóciós faktor nagyobb, mint a lefokozási faktor
+pop_prom_6;A pop jelenleg lefokozódik, mert a lefokozási tényező nagyobb, mint az előléptetési faktor
+pop_prom_7;Mivel mindkét tényező negatív, a pop jelenleg nem népszerűsít és nem is csökkent
+pop_prom_8;A promócióban részt vevő emberek száma megegyezik a pop méretének és a promóciós skála ($x$) és az előléptetési tényező ($val$) szorzatának az adminisztratív hatékonyságának ($y$) szorzatával.
+pop_prom_9;A lefokozandó emberek száma megegyezik a pop méretének és az előléptetési skála ($x$) és a lefokozási tényező ($val$) szorzatával.
+pop_con_1;Havi tudatváltozás:
+pop_con_2;Az összege:
+pop_con_3;A luxusigények kielégítéséből: ?G+$x$
+pop_con_4;A helyi lelkészek százalékából ($val$): ?R$x$
+pop_con_5;A pluralitás és a műveltség tényezője: ?G+$x$?!, ami a következő szorzata:
+pop_con_6;Többség: $x$
+pop_con_7;A műveltség-tudatosságra hatás nemzeti módosítója: $x$
+pop_con_8;A műveltség impakt faktora: $x$
+pop_con_9;A pop műveltsége: $x$
+pop_con_10;A gyarmati tudatfaktor: $x$
+pop_con_11;és 0,1
+pop_con_12;Helyi pop-tudatmódosító:
+pop_con_13;Nemzeti pop-tudatmódosító:
+pop_con_14;Nemzeti, nem gyarmati pop-tudatmódosító:
+pop_con_15;Nemzeti, nem elfogadott pop-tudatmódosító:
+pop_mil_1;Havi katonai változás:
+pop_mil_2;Az összege:
+pop_mil_3;Az életszükségletek kielégítéséből: ?R+$x$
+pop_mil_4;A mindennapi szükségletek kielégítéséből:
+pop_mil_5;A luxusigények kielégítéséből: ?G$x$
+pop_mil_6;Konzervativizmus támogatásából: ?G$x$
+pop_mil_7;A kormánypárti támogatásból: ?G$x$
+pop_mil_8;Reformvágyból: ?R+$x$
+pop_mil_9;Helyi pop harciasság módosító:
+pop_mil_10;Nemzeti pop harciasság módosító:
+pop_mil_11;Nemzeti, nem gyarmati pop harciasság módosító:
+pop_mil_12;A szeparatizmusból: ?R+$val$?! (?R+$x$?! a nemzeti szeparatizmus módosító ?R$y$-szorosa)
+pop_mil_13;A háborús kimerültségtől ?R+$val$?!
+pop_lit_1;Havi írás-olvasás változás:
+pop_lit_2;Ennek a terméke:
+pop_lit_3;A helyi lelkészek százalékából ($val$): $x$
+pop_lit_4;Hatékony oktatási kiadás: $x$
+pop_lit_5;A nemzeti oktatás-hatékonyság módosító: $x$
+pop_lit_6;A nemzeti oktatás-hatékonysági módosító módosítója: $x$
+pop_lit_7;Az alapműveltség változási aránya: $x$
+pop_lit_8;És 0,01
+pop_growth_topbar;Várhatóan ?G$x$?W-val fog növekedni a következő hónapban.
+pop_growth_topbar_2;a népesség ?G$x$?W-kal változott az elmúlt ?Y30?W napban.
+pop_growth_topbar_3;Felnőtt férfi népességünk ?Y$curr$?W. Felnőtt férfiunk
+pop_growth_topbar_4;Teljes népességünk ?Y$val$?W.
+pop_growth_1;Havi pop növekedés:
+pop_growth_2;A rabszolgák nem nőnek
+pop_growth_3;A pop növekedése arányos a pop méretének szorzatával:
+pop_growth_4;Az életminőségi tényező $x$, amely a következő szorzata:
+pop_growth_5;A $x$ tartománytényező, amely maga a következők összege:
+pop_growth_6;A tartomány $x$ élettartama mínusz a $y$ minimális élettartam besorolása, minden alkalommal $val$
+pop_growth_7;És az alap növekedési érték $x $
+pop_growth_8;A pop életének $x$ faktorra van szüksége (az életnek szüksége van elégedettségre $y$ - az éhezési határ $val$)
+pop_growth_9;És 4
+pop_growth_10;A helyi népességnövekedés módosítója $x$
+pop_growth_11;Az országos népességnövekedés módosító $x$
+pop_assim_1;Havi pop asszimiláció: $x$
+pop_assim_2;A rabszolgák nem asszimilálódnak
+pop_assim_3;Egy elfogadott kultúra popjai nem asszimilálódnak
+pop_assim_4;A gyarmati tartományok popjai nem asszimilálódnak
+pop_assim_5;A tengerentúli tartományokban élő popok nem asszimilálódnak
+pop_assim_6;Az asszimiláció arányos a pop méretével és a következő szorzatával:
+pop_assim_7;Az alap asszimilációs skála: $x$
+pop_assim_8;A nemzeti asszimilációs ráta módosító: $x$
+pop_assim_9;A helyi asszimilációs ráta módosító: $x$
+pop_assim_10;0,1 azért, mert nincs tengerentúli kultúra
+pop_assim_11;$x$ a tartományban jelenlévő magokból
+pop_assim_12;Változó asszimilációs tényezők: $x$
+pop_conver_1;Havi pop konverzió: $x $
+pop_conver_2;Az államvallás popjai nem térnek át
+pop_conver_3;A popok csak akkor térnek át, ha ugyanabban a tartományban vannak államvallású popok
+pop_conver_4;A konverzió arányos a pop méretének szorzatával:
+pop_conver_5;Az alap konverziós skála: $x$
+pop_conver_6;A nemzeti átváltási arány módosítója: $x$
+pop_conver_7;A helyi konverziós arány módosító: $x$
+pop_conver_8;Változó konverziós tényezők: $x$
+pop_issue_attraction_1;Kiadás attrakció: $x$
+pop_issue_attraction_2;Ez a reform jelenleg nem lehetséges
+pop_issue_attraction_3;A problémavonzás a következők eredménye:
+pop_issue_attraction_4;A szociális reformvágy nemzeti módosítója: $x$
+pop_issue_attraction_5;A politikai reformvágy nemzeti módosítója: $x$
+pop_issue_attraction_6;És a kérdés vonzereje: $x$
+pop_ideology_attraction_1;Ideológiai vonzerő: $x$
+pop_ideology_attraction_2;Ez az ideológia jelenleg nem elérhető
+trade_setting_drawing;Rajz a készletekre
+trade_setting_filling;A készletek feltöltése
+trade_setting_stable;Nincs készletezési tevékenység
+trade_commodity_report_1;Jelenlegi globális kereslet: $x$
+trade_commodity_report_2;Jelenlegi globális termelés: $x$
+trade_commodity_report_3;Jelenlegi globális fogyasztás: $x$
+trade_commodity_report_4;Világpiaci mennyiség: $x$
+trade_fill;Tölt
+trade_use;Meríts rá
+trade_stockpile_target;Készlet célmennyisége:
+trade_stockpile_current;Jelenlegi készlet:
+diplomacy_wx_1;Havi háborús kimerültség:
+influence_explain_1;Jelenleg betiltottak vagyunk, és semmilyen befolyást nem halmozunk fel ezzel a nemzettel
+influence_explain_2;Fegyverszünetet kötöttünk ezzel a nemzettel, és nem halmozunk fel rá befolyást
+influence_explain_3;Háborúban állunk ezzel a nemzettel, és semmilyen befolyást nem halmozunk fel vele
+influence_explain_4;Minden nemzettel együtt összesen $x$ befolyást halmozunk fel naponta.
+influence_explain_5;Ez az alap befolyáserősítési arány ($x$) szorzata a nemzeti befolyásmódosítónk ($y$) és a technológiai befolyásmódosító ($val$) szorzata.
+influence_explain_6;Nemzeti befolyásmódosító: $x$
+influence_explain_7;Technológiából származó hatásmódosító: $x$
+influence_explain_8;Ez fel van osztva az általunk befolyásolt nemzetek között, így a napi alap nyereség: $x$
+influence_explain_9;amelyet tovább szorozunk 1-gyel, plusz a következő tényezők összegével:
+influence_explain_10;$x$ hiteltelenségtől
+influence_explain_11;$x$ attól, hogy szomszédok
+influence_explain_12;$x$ attól, hogy egy vagy több szfératagunk legyen szomszédunk
+influence_explain_13;$x$ attól, hogy a fővárosa nem ugyanazon a kontinensen van, mint a miénk
+influence_explain_14;$x$ attól, hogy alanyunk legyen
+influence_explain_15;$x$ a kapcsolatunkból
+influence_explain_16;$x$ a nemzetbe való befektetésünkből
+influence_explain_17;$x$ a célország méretétől
+influence_explain_18;$x$ a relatív pontszámunkból
+until_date;Egészen $x$-ig
+add_wg_1;Nem tehetsz háborús célt magad ellen
+add_wg_2;Háborúban állsz
+add_wg_3;Legalább $x$ diplomáciai pontod van
+add_wg_4;A jelenlegi jingoizmus támogatás ($x$) eléri a háborús cél hozzáadásához szükséges küszöböt ($y$)
+add_wg_5;A status quo háborús cél nem került az Ön oldalára
+intervene_1;Beavatkozni a háborúba
+intervene_2;Beavatkozni a nagy háborúba
+intervene_3;Egy nagy hatalom
+intervene_4;Nem érintett válságban
+intervene_5;Legalább $x$ hónap telt el a háború kezdete óta
+intervene_6;Ha csatlakozol a háborúhoz, nem állsz háborúba kétszer ugyanazon nemzet ellen, vagy mindkettő ugyanazzal a nemzettel és ellene harcol
+intervene_7;Nem válságháború
+intervene_8;A csatlakozás megtörné a fegyverszünetet
+intervene_9;Támogatja a védőt
+intervene_10;A védőknek nincs más háborús célja, mint a status quo
+intervene_11;A támadó háborús pontszáma legalább $x$
+intervene_12;A háborús kimerültség kevesebb, mint $x$
+intervene_13;A háborús vezetővel való kapcsolat legalább $x$
+intervene_14;Egyik szfératagod sem áll az ellenkező oldalon
+intervene_15;Egyik szövetségese sem áll az ellenkező oldalon
+intervene_16;Egyik sereged sem található az ellenfél tulajdonában lévő tartományokban
+intervene_17;Az elsődleges védőnek barátságos véleménye van Önről
+military_score_explain_1;Tőkehajó pontszám: $x$
+military_score_explain_2;Toborozható ezredek: $x$
+military_score_explain_3;Aktív ezredek: $x$
+military_score_explain_4;Lefegyverzett? ($x$ büntetési tényező)
+military_score_explain_5;Ellátási fogyasztás módosító: $x$
+military_score_explain_6;Átlagos földegység pontszám: $x $
+military_score_explain_7;Vezetők száma összesen: $x$
+industry_score_explain_2;A következő külföldi befektetések is összeadódnak ($x$ súlytényező):
+industry_score_explain_3;$y$ $x$-ban
+war_goal_1;Hozzáadta: $x$
+war_goal_2;Célzás: $x$
+war_goal_3;Államhoz: $x$
+war_goal_4;Másodlagos nemzet: $x$
+war_goal_5;Háborús pontszám: $x$
+war_goal_6;Ha elfoglaljuk ?Y$x$?! a tartományok közül ?Y$y$?! ketyegő háborús pontszám (a megszállt tartományok hányadához viszonyítva)
+war_goal_7;?Y$x$?! napokat elfoglalni, különben elveszítjük ?Y$y$?! ketyegő háborús pontszám naponta
+war_goal_8;A háború ?Y$x$?!-ban kezdődött, ?Y$y$?!-ra kellene kitöltenünk, mielőtt a türelmi idő ?Kifogy?!
+war_goal_9;A türelmi idő ?Rhas elfogyott?! (az időszak ?Y$x$?! és ?Y$y$?!)
+war_goal_10;Másodlagos címke: $x$
+utt_unit;($ország$) - $egység$ ($vezető$)\n ($gyalogság$ / $lovasság$ / $különleges$)
+utt_noleader;nincs vezető
+war_score_1;Foglalkozásból: $x$
+war_score_2;Csatákból: $x$
+war_score_3;Háborús célokból: $x$
+war_score_4;Blokádokból: $x$
+dp_inf_tooltip_ban;A nagykövetséget $x$-ig kitiltották
+dp_inf_tooltip_discredit;$x$-ig diszkreditálva
+discredit_explain_1;Nem hiteltelenítheted magad
+discredit_explain_2;A célpont véleménye rólad jobb, mint ellenséges
+discredit_explain_3;A nagyhatalom nincs betiltva
+iaction_explain_1;Legalább $x$ befolyása van a célpontra
+iaction_explain_2;A nagykövetséged nincs betiltva
+iaction_explain_3;Nem állsz háborúban a célponttal
+iaction_explain_4;A célszemélynek a nagyhatalomról alkotott véleménye legfeljebb megegyezik a rólad alkotott véleményével
+expel_explain_1;A saját tanácsadóidat nem utasíthatod el
+expel_explain_2;A célpont véleménye rólad legalább semleges
+ban_explain_1;Nem tilthatod be a saját nagykövetségedet
+ban_explain_2;A célpont véleménye rólad legalább barátságos
+dec_op_explain_1;Nem csökkentheted egy nemzet véleményét rólad
+dec_op_explain_2;Nem csökkentheti egy nemzet véleményét a szféra vezetőjéről
+dec_op_explain_3;A célpont véleménye rólad jobb, mint ellenséges
+dec_op_explain_4;A célpont véleményét egy nagyhatalomról nem lehet ellenségesnél rosszabbá tenni
+iaction_explain_5;Nagy hatalom vagy
+iaction_explain_6;A cél nem nagy hatalom
+state_transfer_di;Állami átadás
+state_transfer_button;Állami átadás
+state_transfer_offer;$actor$ felajánlja, hogy megadja nekünk a következő állapotokat:
+state_transfer_desc;Egy állam tulajdonjogát egy másik nemzetre ruházza át, ami hasznos lehet a játék keretein kívüli tárgyalásokhoz
+state_transfer_explain_1;A célnemzet egy játékos
+state_transfer_explain_2;Jelenleg nincs válság
+state_transfer_explain_3;Nem vagyunk alanyok
+state_transfer_explain_4;Ők nem alanyok
+state_transfer_explain_5;Békében vagyunk
+state_transfer_explain_6;Több mint 1 államunk van
+cancel_ally_explain_1;Önmagaddal kötött szövetséget nem mondhatsz fel
+cancel_ally_explain_2;Legalább $x$ diplomáciai pontod van
+cancel_ally_explain_3;Jelenleg szövetséges vagy
+cancel_ally_explain_4;Jelenleg nem háborúztok együtt
+cancel_ally_explain_5;Nem vagy a célország vazallusa
+ally_explain_1;Önmagaddal nem köthetsz szövetséget
+ally_explain_2;Legalább $x$ diplomáciai pontod van
+ally_explain_3;Jelenleg nem vagy szövetséges
+ally_explain_4;Nem vagytok mindketten nagyhatalmak, amíg válság van
+ally_explain_5;Nem vagy alattvaló nemzet
+ally_explain_6;Jelenleg nem állsz háborúban a célponttal
+ally_explain_7;Az AI elfogadja
+ally_explain_8;A célpont nem egy alattvaló nemzet
+call_ally_explain_1;Szövetséged van ezzel a nemzettel
+call_ally_explain_2;Legalább $x$ diplomáciai pontod van
+call_ally_explain_3;Háborúban állsz
+call_ally_explain_4;Háborúba lehet hívni ezt a nemzetet
+call_ally_explain_5;Az AI elfogadja
+cancel_access_explain_1;Legalább $x$ diplomáciai pontod van
+ask_access_explain_1;Öntől nem kaphat katonai hozzáférést
+ask_access_explain_2;Legalább $x$ diplomáciai pontod van
+ask_access_explain_3;Az AI elfogadja
+ask_access_explain_4;Jelenleg nem állsz háborúban a célponttal
+cancel_given_access_explain_1;Legalább $x$ diplomáciai pontod van
+give_access_explain_1;Nem adhatsz katonai hozzáférést magadnak
+give_access_explain_2;Legalább $x$ diplomáciai pontod van
+give_access_explain_3;Jelenleg nem állsz háborúban a célponttal
+increase_rel_explain_1;Javítja kapcsolatainkat ?G+$x$-val
+increase_rel_explain_2;Önmagaddal való kapcsolatodat nem tudod növelni
+increase_rel_explain_3;Legalább $x$ diplomáciai pontod van
+increase_rel_explain_4;A jelenlegi kapcsolatok kevesebb mint 200
+increase_rel_explain_5;Jelenleg nem állsz háborúban a célponttal
+decrease_rel_explain_1;?R$x$-tal rontja kapcsolatainkat
+decrease_rel_explain_2;Önmagaddal való kapcsolatodat nem tudod csökkenteni
+decrease_rel_explain_3;Legalább $x$ diplomáciai pontod van
+decrease_rel_explain_4;A jelenlegi kapcsolatok nagyobbak, mint -200
+decrease_rel_explain_5;Jelenleg nem állsz háborúban a célponttal
+cancel_w_sub_explain_1;Jelenleg ezt a nemzetet támogatjuk ?Y$x$?! naponta
+cancel_w_sub_explain_2;Legalább $x$ diplomáciai pontod van
+w_sub_explain_1;Nem ajánlhat fel magának háborús támogatást
+w_sub_explain_2;Legalább $x$ diplomáciai pontod van
+w_sub_explain_3;Jelenleg nem állsz háborúban a célponttal
+w_sub_explain_4;A célpont háborúban áll
+invention_bulb_1;Ez a találmány jelenleg nem fedezhető fel
+invention_bulb_2;Lehetséges a találmány felfedezése
+invention_bulb_3;Ezt a találmányt felfedezték
+not_implemented;Ez a funkció jelenleg nincs megvalósítva
+inc_op_explain_1;A nemzet véleménye rólad kevésbé barátságos
+add_sphere_explain_1;A nemzetnek barátságos véleménye van rólad
+add_sphere_explain_2;A nemzetet jelenleg nem uralja más nagyhatalom
+rem_sphere_explain_1;A nemzetet jelenleg egy nagyhatalom uralja
+rem_sphere_explain_2;A nemzetnek barátságos véleménye van rólad
+rem_sphere_explain_3;A nemzet az ön befolyási övezetében van
+rem_sphere_explain_4;Egy nemzet eltávolítása a saját befolyási övezetéből ?R$x$-ral növeli a hírhedtségét
+rem_sphere_explain_5;Egy nemzet eltávolítása a saját befolyási övezetéből ?R$x$-tal csökkenti presztízsét
+fab_explain_1;Nem igazolhatod a háborút önmagad ellen
+fab_explain_2;Legalább $x$ diplomáciai pontod van
+fab_explain_3;Jelenleg nem casus bellit gyártasz
+fab_explain_4;Független nemzet vagy, vagy a célpont az urad
+fab_explain_5;A célpont nem tartozik az ön befolyási körébe
+fab_explain_6;Jelenleg nem állsz háborúban a célponttal
+fab_explain_7;Készíthet casus bellit
+peace_description;Tegyen békeajánlatot, hogy véget vessen az ellenségeskedésnek közted és e nemzet között
+peace_explain_1;Nem alattvaló nemzet
+peace_explain_2;A célpont nem egy alattvaló nemzet
+peace_explain_3;A tárgyaló felek közül legalább az egyik a saját oldalukon a háború vezetője
+peace_explain_4;Mindkét fél háborús vezető (válságháború)
+peace_explain_5;Nincs más békeajánlatod folyamatban
+war_explain_1;Nem üzenhetsz háborút magadnak
+war_explain_2;Van egy casus belli, amit fel kell használni ez ellen a nemzet ellen
+war_explain_3;Legalább $x$ diplomáciai pontod van
+war_explain_4;Még nem állsz háborúban ezzel a nemzettel
+wg_result_1;A háborús cél hozzáadásával:
+wg_result_2;E háborús cél eléréséről:
+wg_result_3;Ha nem sikerült elérni ezt a háborús célt:
+wg_not_ready;Be kell fejezned a háborús cél kiválasztását
+crisis_temperature_ex;A jelenlegi válság hőmérséklete ?R$érték$?W! A ?R100?W elérése válságháborút indít el a két fél között
+crisis_mode_no_crisis;Nincs válság
+crisis_mode_finding_attacker;Támadó keresése a támadó oldalra
+crisis_mode_finding_defender;Hátvédet találni a védő oldalon
+crisis_mode_heating_up;Felmelegszik a válság
+crisis_back_explain_1;Érdekel a válság (a kerítésen)
+crisis_back_explain_2;A válság vonzotta kezdeti támogatóit
+crisis_add_interest_button;Érdeklődjön ez a válság
+crisis_add_interest_button_ex_1;Nagy hatalom vagy
+crisis_add_interest_button_ex_2;A válság vonzotta kezdeti támogatóit
+crisis_add_interest_button_ex_3;Legalább 1 diplomáciai pontod van
+crisis_offer_button;Tegyen ajánlatot ennek a nemzetnek, hogy csatlakozzon a válsághoz
+crisis_offer_button_ex_1;Ön a válság egyik oldalának vezetője
+crisis_offer_button_ex_2;A válság vonzotta kezdeti támogatóit
+crisis_offer_button_ex_3;Legalább 1 diplomáciai pontod van
+multiunit_header;$x$ egység kiválasztva
+ai_alliance_1;Az AI jelenleg szövetségeseket keres
+ai_alliance_2;A nemzeted elég közel van ahhoz, hogy segítséget nyújtson egy háborúban
+ai_alliance_3;Nincsenek egymásnak ellentmondó ambíciók
+ai_alliance_4;A nemzeted hadserege kellően erős
+ai_alliance_5;Közös stratégiai érdekei vannak
+ai_access_1;Az AI úgy látja, hogy az egyik háborúd előnyös számukra
+col_start_title;Kezdje el kolonizálni ezt az államot
+col_start_1;Gyarmatosítók nincsenek jelen, vagy a kolonizáció még a kezdeti szakaszban van
+col_start_2;A nemzeted legalább $x$ rangú
+col_start_3;Az állam nem célpontja a gyarmati válságnak
+col_start_4;Ön nem vesz részt egy válságháborúban
+col_start_5;A kolonizálható minimális élettartam-besorolás ($x$) kisebb vagy egyenlő, mint az állam életkorhatára ($y$)
+col_start_6;Alap ?Y$x$
+col_start_7;Legfeljebb három másik gyarmatosító van jelen
+col_start_8;Ön szomszédos állammal vagy haditengerészeti hatótávolságon belül van
+col_start_9;Legalább $x$ ingyenes gyarmati pontja van
+col_invest_title;Fektessen be a kolóniájába
+col_invest_1;A nemzeted legalább $x$ rangú
+col_invest_2;Az állam nem célpontja a gyarmati válságnak
+col_invest_3;Ön nem vesz részt egy válságháborúban
+col_invest_4;Verseny nélkül ezt az államot kolóniává alakíthatod $x$-on
+col_invest_5;Az utolsó befektetése óta $x$ nap telt el (a következő befektetés a következő napon lehetséges: $y$)
+col_invest_6;Legalább $x$ ingyenes gyarmati pontja van
+activated_by_with_a_chance_of;?Y$x$?! aktiválta, a következő eséllyel:
+unit_max_speed;Max sebesség ?G$x$?! KPH
+unit_attack;Támadás ?G$x$
+unit_hull;Hajótest ?G$x$
+unit_fire_range;Lőtáv ?G$x$
+unit_supply_consumption;Ellátási fogyasztás ?R$x$
+unit_supply_load;Kellékek súlya ?R$x$
+unit_defence;Védelem ?G$x$
+unit_discipline;Fegyelem ?G$x$
+unit_maneuver;Manőver ?G$x$
+unit_recon;Felderítés ?G$x$
+unit_support;Támogatás ?G$x$
+unit_evasion;Kijátszás ?G$x$
+unit_siege;Ostrom ?G$x$
+unit_torpedo_attack;Torpedótámadás ?G$x$
+unit_build_time;$x$ nap
+unit_build_unit_pop_size;$x$k
+unit_build_unit_brigades;$x$/$y$
+uv_sort_a;Att
+uv_sort_b;Def
+uv_sort_c;Org
+uv_sort_d;Mor
+uv_sort_e;Spd
+uv_sort_f;Rec
+uv_sort_g;Rel
+uv_sort_h;Exp
+alice_condition_diplo_points;Legalább $x$ diplomáciai pontja van
+alice_retreat;Visszavonulni a csatából
+alice_retreat_1;Legalább $x$ nap telt el a csata kezdete óta
+alice_retreat_2;Te vagy a vezető támadó vagy védő
+alice_province_select;Kiválasztja a tartományt
+alice_province_deselect;Megszünteti a tartomány kijelölését
+alice_province_selector_on;TOVÁBB
+alice_province_selector_off;KI
+province_selector;Választó
+province_immigrator;Bevándorló
+tt_a_bank;Bank
+tt_a_university;egyetemi
+et_add_selector;engedélyezze a tartományválasztót
+et_remove_selector;tartományválasztó letiltása
+et_add_immigrator;engedélyezze a tartományi bevándorlót
+et_remove_immigrator;letiltja a tartományi bevándorlót
+et_if;Ha
+et_else_if;Más
+modifier_province_selector;Tartományválasztó
+modifier_province_immigrator;Tartományi bevándorló
+modifier_conversion_rate;Konverziós arány
+modifier_attrition;Kopás
+chat_player_joins;$playername$ csatlakozott
+chat_player_leaves;$playername$ maradt
+chat_player_ban;$playername$ kitiltva lett
+chat_player_kick;$playername$ rúgott
+chat_player_switch;$playername$ a $country$ lehetőséget választotta
+chat_player_oos;$playername$ OOS-t kapott!
+alice_status_stream;A folyamat mentése $érték$
+alice_play_pending_client;$playername$ még nincs kész
+alice_stockpile_button_0_0;"A nemzeti készletek az Ön szokásos gazdasági-üzleti tevékenységeinek fűszereként funkcionálnak, ahol az emberek azt látják, hogy a ""Ggreen"" W vonalak felfelé, a ""Rred"" W vonalak pedig lefelé haladnak, a szokásos módon én nem vagyok vonaldiagram, így többnyire észrevétlen marad :)"
+alice_stockpile_button_1_0;Ha 10-szer kattintasz, semmit nem kapsz cserébe, csak bízz bennem, ne kattints rám... ?ROR MÁS?W
+alice_stockpile_button_1_1;Értem, nos, most nem mondok semmit, mert tudom, hogy addig fogsz kattintgatni, amíg nem mondok egy „Másképpen” párbeszédet, és ez egyszerűen unalmas.
+alice_stockpile_button_1_2;Rendben, nem tudlak abbahagyni, talán így lesz?
+alice_stockpile_button_2_0;Én egy lélektelen gomb vagyok, lépj tovább
+alice_stockpile_button_3_0;Barátokkal játszunk, nem? ?RWELL SOK SZERENCSÉT SZÜKSÉGE LESZ?W
+a_alert_reb;Egy vagy több szfératagunknak van aktív lázadója:
+event_auto;Automatikusan válassza ezt a lehetőséget a munkamenet hátralévő részében.
+event_taken_auto;Ez az opció automatikusan megtörténik a következő napon: ?Y$date$?W.
+alice_load_unload_1;Az itt kikötött haditengerészet elegendő kapacitással rendelkezik
+alice_load_unload_2;A hadsereget szállítják
+alice_load_unload_3;A szállító flotta dokkolt
+alice_load_unload_4;Egy vagy több hadsereget szállítanak
+alice_load_unload_5;A flotta kikötve
+alice_unload_fleet;Rakd ki a flotta által szállított összes hadsereget
+auto_save_lb;Automatikus mentési frekvencia
+auto_save_1;Napi
+auto_save_2;Havi
+auto_save_3;Évi
+auto_save_0;Egyik sem
+monthly_emigration_lab;Havi kivándorlás ide (első 10)
+monthly_immigration_lab;Havi bevándorlás innen: (10 legjobb)
+im_em_header;Előre jelzett bevándorlás/kivándorlás a számára
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W kopás
+ol_unit_standing_text;$m$ $n$/$x$/$y$
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($dátum$) - ?R$cost$?W ($attunit$/$defunit$)
+unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
+disarmed_pop;lefegyverzett nemzet tagja
+cancel_fac_construction;Törölje a gyár építését
+cancel_fac_upgrade;Törölje a gyári frissítést
+kierkegaard_1;Bármelyik
+kierkegaard_2;Vagy
+open_and_sub;Támogatás és a gyár újranyitása
+o_set_national_flag;Állítsa be a $text$ nemzeti zászlót a tulajdonos számára
+o_add_modifier_until;A tartomány tulajdonosa $text$-t kap $date$-ig
+o_add_modifier;A tartomány tulajdonosa $text$-t kap
+o_relations_with;A tartomány és a $text$ kapcsolat tulajdonosa
+o_add_to_treasury;a tartomány tulajdonosa számára
+w_rgo_prod;Globális RGO gyártás: $x$
+w_artisan_prod;Globális kézműves termelés: $x$
+w_artisan_profit;Országos kézműves haszon: $x$
+w_artisan_distribution;Országos kézműves terjesztés: $x$
+w_fac_prod;Globális gyári termelés: $x$
+alice_lose_gp;Elveszítjük a ?Nagy Erőt?! állapot!
+alice_state_select_title;Válassza ki az állapotot
+press_esc_to_cancel;Nyomja meg a ?YESC?! lemond
+fort_build_tt_1;A tartomány az ön irányítása alatt áll
+fort_build_tt_2;A tartomány nincs ostrom alatt
+fort_build_tt_3;A jelenlegi $x$, plusz a tartomány nehézségi szintje, $n$ alacsonyabb, mint a jelenlegi maximális szint, $y$
+nb_build_tt_1;A tartomány tengerparti
+nb_build_tt_2;Az államban más haditengerészeti bázis nem épült és nem is épül
+rr_build_tt_1;Kormánypártunk megengedi a kormánynak, hogy vasúti utakat építsen
+tech_ol_tt;?G$x$?! az ön uradtól, aki rendelkezik ezzel a technológiával
+tech_year_tt;?G$x$?! a folyó évtől
+disband_all;Szerelje fel az összes kiválasztott egységet
+alice_play_checksum_host;Ellenőrzőösszeg nem egyezik a gazdagéppel, győződjön meg róla, hogy ugyanazok a modok és mentési fájlok vannak
+alice_play_save_stream;A gazdagép mentést küld Önnek, várjon, amíg befejeződik
+ai_will_accept_po;Elfogadják ezt az ajánlatot
+ai_will_not_accept_po;NEM fogadják el ezt az ajánlatot
+close_and_del;Gyár bezárása és törlése
+cb_conditions_header;Használat feltételei:
+as_a_vassal;vazallusként
+change_state_name_to;módosítsa az állam nevét $text$-ra
+alice_join_crisis_offer;$ACTOR$ a következőket adja nekünk, ha csatlakozunk az ő oldalukhoz a jelenlegi válságban:
+alice_unit_disable_rebel_hunt;Hagyd abba a lázadókra való vadászatot
+alice_regiment_battle_info;$m$ $név$ ?Y$típus$?!\nSzervezet: ?Y$szervezet$?W\nErősség: ?Y$erő$?W
+understaffed_regiment;?REz az ezred létszámhiányos és csak $value$ katonái lesznek!?W
+tech_queue_explain;Nyomja meg az ?YSHIFT?W billentyűt a sorhoz való hozzáadáshoz, a ?Yjobb gombbal kattintson a?W-re az eltávolításhoz
+alice_province_building_build;?YSHIFT?W a teljes ?Gstate?W-ra építeni.\n?YSHIFT-Kattintson jobb gombbal?W a teljes ?Gcountry?W-re építeni.
+commodity_shortage;?Rhiány van ebből az áruból
+commodity_surplus;?Gebből az áruból többlet van
+alice_trade_flow_produced;?Hazai termelés:
+alice_trade_flow_consumed;?Hazai fogyasztás:
+alice_trade_flow_label;Piaci áttekintés:
+alice_trade_flow_piechart_producers;Producerek
+alice_trade_flow_piechart_consumers;Fogyasztók
+alice_trade_flow_piechart_workforce;Befektetők
+alice_diplo_release_subject;Kiadás tárgya
+alice_diplo_release_subject_desc;Kiadja az egyik alanyunkat, így többé nem témánk, a szövetségeket külön kell felbontani
+alice_diplo_release_subject_0;A mi témánk
+kill_leader;Öld meg a vezetőt
+annex_null;gazdátlanná válik
+meets_the_conditions_of;feltételeinek megfelel
+does_not_meet_the_conditions_of;feltételeinek nem felel meg
+fab_finish_date;A CB gyártása várhatóan $date$-on fejeződik be
+fab_is_paused;A CB gyártás jelenleg szünetel
+macro_builder;Makroépítő
+macro_total_desc;Teljes egységstatisztikák:
+macro_new_template;Új
+macro_switch_type_land;Építs hadsereget
+macro_switch_type_naval;Építs haditengerészetet
+macro_warn_overseas;?Ezt az egységet nem lehet megépíteni külföldön!?!
+macro_warn_culture;?Csak elsődleges kultúra POP-ok felhasználásával lehet építeni!?!
+macro_warn_unlocked;?Rusing egységek még nincsenek feloldva!?!
+macro_select_province;Kérjük, válasszon egy tartományt a térképen
+macro_warn_insuff;?Rnem lehet $x$ $name$ (csak $y$) építeni?!
+macro_warn_invalid_province;?Rtartomány nem része egy régiónak?!
+shortcut_tooltip;Parancsikon: ?Y$x$?!
+filter_all;Mutasd ?Yall?! érintett nemzetek.
+filter_allies;Szűrés nemzetek szerint van ?Yalliance?! with.\n?Yjobb gombbal?! hogy kiszűrjük azokat a nemzeteket, amelyek szövetségesek akarnak lenni velünk.
+filter_enemies;Szűrés olyan nemzetek szerint, amelyek vagy ?Ellenségek vagy háborúban állnak velünk?!.
+filter_sphere;Szűrés a ?Befolyási övezetünkben?!.\n?Jobb gombbal?! szűrni azokat a nemzeteket, amelyekre hatással vagyunk, de nem a mi szféránkon.
+filter_neighbors;Szűrés nemzetek szerint, amelyeken osztozunk ?Yhatár?! with.\n?Yjobb gombbal?! nemzetek szerint szűrni osztozunk egy ?Yhatáron?! és nem ?Yvasals?!.
+filter_best_guess;Szűrés ?Ybest guess?! relevancia szerint ide tartozik az összes ?Yallies?!, ?Yenemies?!, ?Ysphereling?! és nemzetek közös ?Yhatár?! val vel.
+alice_warn_war_ends_for_us;?REz véget vet a háborúnak mindenki számára a mi oldalunkon?!.
+alice_invention_chance;Az esély ennek a ?Találmány?! a következő:
+is_primary_culture;?Y$NAME$?! az elsődleges kultúra.
+is_primary_religion;?Y$NAME$?! az elsődleges vallás.
+tt_can_use_nation;A hadicél használatához szükséges feltételek:
+et_on_add;Ennek a hadicélnak a háborúhoz való hozzáadásának hatásai:
+et_on_po_accepted;Az ezzel a hadicéllal tett békeajánlat elfogadásának következményei:
+alice_no_possible_units;Egyetlen lehetséges egységet sem lehet építeni, és nincsenek is építés alatt.
+alice_debt_spending;Adósságköltés engedélyezése/letiltása
+alice_loan_size;Jelenlegi maximális hitelünk $x$. Az ennél nagyobb adósság csődöt fog okozni
+alice_currently_bankrupt;Csődben vagyunk ($x$-ig)
+alice_no_loans_possible;Jelenleg nem áll módunkban hitelt felvenni
+alice_rf_demands_enforced_trigger;A lázadók csak akkor érvényesítik követeléseiket, ha:
+alice_rf_demands_enforced_effect;Amint a lázadók érvényesítik követeléseiket, a következő hatást alkalmazzák:
+alice_rf_siege_won_trigger;Ha egy lázadó nyer egy ostromot, a következőket kell ellenőrizni, például a fővárosban, $x$-ban:
+alice_rf_siege_won_effect;És ha a fentiek mindegyike igaz, akkor a következő hatások érvényesek, például a nagybetűvel $x$:
+may_month_name;Lehet
+alice_ca_cant_influence;Jelenleg nem tudjuk növelni vagy csökkenteni más nemzetek véleményét
+alice_gp_status_regain_expiration;Ha nem leszünk ?Y$x$?W vagy magasabb rangúak, akkor ?Y$dátum?W-ig elveszítjük a ?Ynagy teljesítmény?W státuszt?
+alice_mil_decay_description;Természetes bomlás ?G-$x$
+alice_con_decay_description;Természetes bomlás ?R-$x$
+x_from_y;$x$ $y$-tól
+reinforce_rate;Ez az ezred havonta akár $x$ katonát is megerősíthet.
+reinforce_rate_none;Ezt az ezredet jelenleg nem lehet megerősíteni.
+alice_domestic_investment_button;"Az egyedi projektekbe való befektetés „elévült”; használja helyette a költségvetés képernyőn a „Hazai beruházás” csúszkát."
+alice_domestic_investment_pops;Vannak $x$ tőkéseink, akiknek közvetve nagylelkű adományokat tudunk adni
+alice_domestic_investment_needs;Minden nap $x$-ra van szükségük, hogy kielégítsék fényűző életmódjukat
+alice_budget_scaled_inc;Jövedelem: ?G$érték$
+alice_budget_scaled_1;Szegény adó: ?G$érték$
+alice_budget_scaled_2;Közepes adó: ?G$érték$
+alice_budget_scaled_3;Gazdag adó: ?G$érték$
+alice_budget_scaled_4;Tarifák: ?G$érték$
+alice_budget_scaled_exp;Költségek: ?R$érték$
+alice_budget_scaled_5;A hadsereg karbantartása: ?R$érték$
+alice_budget_scaled_6;Haditengerészeti karbantartás: ?R$érték$
+alice_budget_scaled_7;Konstrukció: ?R$érték$
+alice_budget_scaled_8;Iskolai végzettség: ?R$érték$
+alice_budget_scaled_9;Adminisztráció: ?R$érték$
+alice_budget_scaled_10;Szociális kiadások: ?R$érték$
+alice_budget_scaled_11;Katonai kiadások: ?R$érték$
+alice_budget_scaled_12;Belföldi befektetések: ?R$érték$
+alice_budget_scaled_13;Tengerentúli kiadások: ?R$value$
+alice_budget_scaled_14;Készletfeltöltés: ?R$érték$
+alice_budget_scaled_15;Háborús támogatások: ?R$érték$
+alice_budget_scaled_16;Diplomáciai érdek: ?G$érték$
+alice_budget_scaled_17;Aranytermelés: ?G$érték$
+alice_budget_scaled_net;Nettó bevétel: ?Y$value$
+alice_budget_setting_percent;Állítsa be: $perc$.
+alice_spending_land_construction;Teleképítés $név$-ban: ?R$költség$?W
+alice_spending_naval_construction;Haditengerészeti építés $név$-ban: ?R$költség$?W
+alice_spending_building_construction;Épületépítés $name$-ban: ?R$költség$?W
+alice_spending_factory_construction;Gyári építés $név$-ban: ?R$költség$?W
+alice_spending_unit;Az egységre költött teljes összeg $name$-ban: ?R$cost$?W
+alice_spending_unit_1;Az egységre költött teljes összeg: ?R$költség$?W
+alice_spending_total;?Összesen elköltött:?W
+alice_spending_commodity;?R$cost$?W – $need$ szükséges $name$ ($val$)
+alice_spending_commodity_2;?R$cost$?W - $need$ vásárlása $name$ ($érték$ x egységnél). Haladás: $x$/$y$
+alice_recommended_build;?GEzt a gyárat ajánlott megépíteni?W
+alice_factory_bonus;?Y$x$?W bónuszt kapunk, ha:
+alice_factory_inputs;Szükséges bemenetek:
+alice_factory_input_item;?R$cost$?W – $need$ szükséges $name$ ($val$)
+alice_factory_base_workforce;Alapmunkaerő ?Y$x$?W
+alice_factory_total_bonus;Ez körülbelül ?Y$x$?W
+alice_slider_controls;?YBal kattintás?W az ?Y$érték$ értékkel történő növeléshez?W\n?YSHIFT-Bal kattintás?W ?Y$x$-val történő növeléshez?W\n?YSHIFT-Jobb-kattintás?W a maximális érték növeléséhez
+alice_slider_controls_2;?YBal kattintás?W ?Y$érték$-val csökkentéséhez?W\n?YSHIFT-Bal kattintás?W ?Y$x$-val csökkentéséhez
+explain_colonial_points;A másodlagos és nagyhatalmak gyarmati pontokat halmoznak fel.
+alice_lobby_back;Vissza az előcsarnokba
+alice_lobby_back_tt_1;Már a kibaszott előcsarnokban vagy
+alice_lobby_back_tt_2;Csak a házigazda mehet vissza az előcsarnokba
+reopen_with_tab;Ezt az ablakot újra megnyithatja az ?YTAB?W segítségével
+alice_topbar_tab_1;Nyissa meg vagy zárja be ezt a lapot
+alice_topbar_tab_2;Nyissa meg vagy zárja be a népesség lapot
+colonial_points_from_technology;A technológiákból:
+colonial_points_from_naval_bases;Haditengerészeti bázisokról:
+colonial_points_from_ships;Hajókról:
+used_colonial_maintenance;A meglévő kolóniák fenntartása:
+topbar_pause_speed;Szünetelteti a játékot, kattintson újra a szüneteltetés feloldásához
+att_call_will_accept;$x$ csatlakozik a háborúdhoz
+att_call_will_decline;$x$ nem csatlakozik a háborúdhoz
+att_call_is_human;$x$ csatlakozhat a háborúdhoz
+att_call_no_allies;Nincsenek szövetségesei!
+domestic_investment_label;Belföldi befektetés:
+modifier_min_domestic_investment;Minimális hazai beruházási ráta
+modifier_max_domestic_investment;Max hazai beruházási ráta
+mouse_left_click_mode_label;Kattintson a felfüggesztés feloldására
+alice_supply_limit_desc;Ellátási korlát: $x$
+alice_factory_worker_1;Alkalmazott: ?G$x$?W
+alice_factory_worker_2;Munkanélküli: ?R$x$?W
+alice_rgo_unemployment_country_alert;A következő államokban vannak munkanélküli RGO-k:
+pop_promote_info_on_sel_2;$val$ várható változás a $who$-ban a $where$-ban a következő hónapban.
+alice_readme;?GÜdvözlünk a Project Alice-ben!?W\nA Project Alice a kedvenc viktoriánus kori videojátékod emulációja (nem szimulátora!), más szóval néhány mechanikát módosítunk, hogy az újabb játékosok számára könnyebben érthető legyen. a világ dinamikusabbá és szórakoztatóbbá tétele, a régi hibák kijavítása (például válságok esetén) és új életminőségi funkciók bevezetése.\n?GÚj funkciók!?W\n?YGlobe?W: ?Sokan szeretik?W, ?Rhated? W egyesek, kapcsolják ki, ha zavar!\n?YTech queue:?W SHIFT-Kattintson a jobb gombbal, hogy technológiákat adjon a tech sorhoz! (Jobb kattintás a sorból való kilépéshez)\n?YHazai befektetés:?W Ahelyett, hogy egyedi projektekre fektetne be, tegye meg egy lépésben\n?YTeljesítmény:?W A másodpercenkénti ketyegés (nem FPS) legalább x10-szer gyorsabb\n? YLinter:?W Lefedettségi hibákat és figyelmeztetéseket kaphat a modjaiban, könnyen elkaphatja a hibákat és az elírási hibákat\n?YMakróépítő:?W Építhet különböző összetételű egységeket makrókészítőnkkel\n?Y11 új térképmódjai:?W Vallás, erőd, foglalkoztatás, stb\n?YBuild az egész országban:?W SHIFT Kattintson a jobb gombbal az egész országban való építkezéshez!\n?GControls:?W\n?YTAB?W: Csevegőablak megnyitása\n?YESC?W: Nyissa meg a főmenüt és beállítások menü\n?YTilde (`)?W vagy ?YTilde (~)?W: Nyissa meg a konzolt\n?Élvezzétek a játékot! =^w^=?W
+alice_nf_controls;?Ybal gombbal?W kijelöléséhez vagy cseréjéhez\n?Yjobb gombbal?W eltávolításához
+unit_controls_tooltip_1;?YBal kattintás?W kijelölés (minden más kijelölésének törlése)\n?YSHIFT-Bal kattintás?W hozzáadás a kijelöléshez
+unit_controls_tooltip_2;?Y jobb gombbal kattintson egy tartományra? R részleges visszavonulás (? Kerékpározás/forgás? W) tartományba
+unit_control_group_tooltip;Nyomja meg az ?YCTRL-1?W - ?YCTRL-9?W gombot az egység vezérlőcsoporthoz való hozzárendeléséhez, illetve hozzárendelésének megszüntetéséhez, majd nyomja meg az ?Y1?W - ?Y9?W gombot a kiválasztásához.
+console_button_tooltip;Nyissa meg a parancskonzolt
+demobilize;Leszerelés
+mobilize;Mobilizálni
+alice_cb_creation_detail_none;Kérjük, válasszon egy casus bellit, hogy elkezdhesse a gyártást $country$ ellenében.
+alice_cb_creation_detail;Készíthetünk casus bellit $ország$ ellen ?Y$type$?W indoklással. Ez a folyamat nagyjából ?Y$napot$?W eltarthat, és a felfedezésből eredő lehetséges költségek ?R$badboy$?W hírhedtséget okoznak nekünk.
+alice_mob_controls;?Yjobb gombbal?W az újramobilizáláshoz
+alice_mw_create_1;Általános hozzáadása
+alice_mw_create_2;Add hozzá admirálist
+alice_mw_create_lpb;?YVezetői pont?
+alice_mw_create_lp;?R$x$?W ?Yleadership pont?W kell hozzá
+alice_mw_controls_1;?YJobb kattintás?W létrehozhat? Gall?W lehetséges tábornokként
+alice_mw_controls_2;?YJobb kattintás?W létrehozhat? Gall?W lehetséges admirálisként
+alice_daily_leadership_tt;A $poptype$ ?G$value$?W vezetőpontot biztosít (?Y$töredék$?W a populációból, ?Y$optimális$?W az optimális). Az extra vezetői pontokat automatikusan új tábornokok létrehozására fordítjuk.
+unit_current_supply;Ez az egység ?Y$val$%?W-ot kapott az elmúlt napon szükséges készletekből.\nA jelenlegi fogyasztási mennyiségünkből a következő volt:
+unit_current_supply_high;$mi $: ?Y$val$?W/?Y$value$?! ?l(?W?G$összesen$%?W?l kereslet kielégítése)
+unit_current_supply_mid;$mi $: ?Y$val$?!/?Y$value$?! ?l(?O$összesen$%?W?l kereslet kielégítése)
+unit_current_supply_low;$mi $: ?Y$val$?!/?Y$value$?! ?l(?R$összesen$%?W?l kereslet kielégítése)
+alice_crisis_inactive;Jelenleg nincs aktív válság
+alice_crisis_finding_attacker;Támadó keresése a jelenlegi válságra
+alice_crisis_finding_defender;Védőt találni a jelenlegi válságra
+alice_crisis_heating_up;A válság felmelegszik, jelenleg ?R$hőmérséklet$?W
+alice_last_crisis;A legutóbbi válság $date$-ban következett be (a válságok között $time$ hónapos lehűlés van)
+alice_crisis_par_1;?RAttackers?W:
+alice_crisis_par_2;?BDefenders?W:
+alice_crisis_par_3;?YCsak érdekel (nincs oldal)?W:
+alice_commodity_cprice;Jelenlegi ára: $x $
+alice_commodity_cost;Költség: $x $
+alice_commodity_eprice;Érvényes ár: $x$
+alice_trade_top_producers;Legjobb ?Y$érték$?W gyártók:
+alice_trade_no_producers;?Senki sem gyártja ezt az árut?W
+alice_political_party_trigger;Csak ?Y$date_long_0$?W és ?Y$date_long_1$?W között érhető el, és teljesíti a következő triggert:
+alice_political_party_no_trigger;Csak ?Y$date_long_0$?W és ?Y$date_long_1$?W között érhető el
+alice_ai_decision;Az AI esélye, hogy ezt a döntést választja, a következőktől függ:
+alice_mobilized_is_ai_controlled;Függetlenül attól, hogy a mozgósított egységek automatikusan mesterséges intelligencia által irányítottakká válnak
+alice_ai_controlled_unit;Engedélyezi/letiltja az egység mesterséges intelligenciájú vezérlését, az egység:\n- Automatikusan megerősíti a frontvonalakat\n- Automatikusan ostromolja, amikor biztonságosan megteheti\n- Lázadókra vadászik\n- Védelmi pozíciót alakít ki azokkal a nemzetekkel szemben, amelyeket valószínűleg megtámadunk. (ezt a mesterséges intelligencia dönti el, és csak békeidőben)\nHa azt szeretné, hogy ez az egység egy adott nemzetet vagy régiót célozzon meg, először vigye közel ahhoz a régióhoz vagy nemzethez, majd kapcsolja be az AI-vezérlést – mert az AI felülírja az összes parancsot, amíg újra ki nem kapcsolja
+alice_navy_allocation_tt;Az ?Y$curr$?W hajókkal ?Y$tot$?W összteljesítményt halmozunk fel, ami ?Y$req$?W-t igényel flottánk számára. Az egyes haditengerészeti flották fogyasztásának részletes összefoglalása:
+alice_navy_allocation_2;$name$: ?Y$value$?W (?Y$perc$?W)
+alice_wg_condition_1;Védőként nincs status quo
+alice_wg_condition_2;Háborúban áll velünk
+alice_wg_condition_3;Egyedi hadicél (nem egy másik hadicél másolata)
+alice_wg_condition_4;Nem ugyanazon az oldalon, mint mi
+alice_wg_condition_5;Kielégíti a hadicél kiváltó okait
+alice_wg_condition_6;Elég dzsingoizmus ($need$ kell, $értéke$ van)
+alice_wg_condition_7;Konstruálható hadicél
+alice_tt_wg_infamy_limit;?REz a hadicél túllépi a hírhedt határt?W
+alice_wg_usage_trigger;Csak akkor használható, ha a következő trigger teljesül:
+province_id;Tartomány Id
+nation_tag;Nemzet címke
+alice_rgo_trade_prod_1;RGO mezőgazdasági termelés: $x$ ($y$)
+alice_rgo_trade_prod_2;RGO bányászati ​​termelés: $x$ ($y$)
+alice_rgo_trade_prod_3;RGO pénzverés gyártás: $x$ ($y$)
+alice_artisan_trade_prod;Kézműves gyártás: $x$ ($y$)
+alice_factory_trade_prod;Gyári gyártás: $x$ ($y$)
+alice_all_trade_prod;Teljes termelés: $x $
+alice_interested_in_alliance;(Csak mesterséges intelligencia nemzetekre vonatkozik) Jelölje meg, hogy szövetségre vagyunk kíváncsiak ezzel az országgal, és azonnal elfogadjuk a szövetségi ajánlatokat
+alice_merge_rally_point_why;A gyülekezési pontok összevonása elavult, a gyülekezési pontok mostantól automatikusan egyesülnek
+alice_mvcap_1;A fővárost ebbe a tartományba költözteti
+alice_mvcap_2;Nincs folyamatos válság
+alice_mvcap_3;Békében
+alice_mvcap_4;Már nem a főváros
+alice_mvcap_5;Nem gyarmati
+alice_mvcap_6;Ugyanazon a kontinensen, mint a jelenlegi főváros
+alice_mvcap_7;Domináns elfogadott kultúra
+alice_mvcap_8;Ezt a tartományt nem ostromolják
+alice_mvcap_9;A jelenlegi fővárost nem ostromolják
+alice_mvcap_10;Az Ön tulajdonában van
+alice_mvcap_11;Te irányítod
+alice_mvcap_12;A tulajdonos magja
+alice_pnt_pops;?YNépesség:?! $x$
+alice_pnt_rpops;?Gazdag rétegek:?! $x$ ($y$)
+alice_pnt_mpops;?YKözépső rétegek:?! $x$ ($y$)
+alice_pnt_ppops;?YSzegény réteg:?! $x$ ($y$)
+alice_pnt_culture;?YKultúra:?! $x$
+alice_pnt_religion;?Y Vallás:?! $x$
+alice_pnt_dominant_religion;?YDománs vallás:?! $x$
+alice_pnt_dominant_ideology;?YDománs ideológia:?! $x$
+ledger_ppp_gdp;GDP (PPP)
+ledger_ppp_gdp_per_capita;1 millió főre jutó GDP (PPP).

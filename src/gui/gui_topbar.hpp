@@ -255,11 +255,9 @@ public:
 		if(pop_change == 0)
 			color = text::text_color::white;
 
-		auto layout = text::create_endless_layout(internal_layout,
+		auto layout = text::create_endless_layout(state, internal_layout,
 		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
 		auto box = text::open_layout_box(layout, 0);
-
-
 		text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
 		text::add_to_layout_box(state, layout, box, std::string(" ("));
 		if(pop_change > 0) {
@@ -267,11 +265,7 @@ public:
 		}
 		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(pop_change)}, color);
 		text::add_to_layout_box(state, layout, box, std::string(")"));
-
 		text::close_layout_box(layout, box);
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type != mouse_probe_type::tooltip ? message_result::unseen : message_result::consumed;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -300,7 +294,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 
-		auto layout = text::create_endless_layout(internal_layout,
+		auto layout = text::create_endless_layout(state, internal_layout,
 		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black, false });
 		auto box = text::open_layout_box(layout, 0);
 
@@ -740,13 +734,10 @@ public:
 		base_data.size.x = int16_t(ui_width(state));
 		base_data.size.y = int16_t(ui_height(state));
 		opaque_element_base::render(state, x, y);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
-		if(is_visible()) {
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		//Put it far away!
+		if(base_data.position.x >= 256 || base_data.position.y >= 256) {
+			base_data.position.x = int16_t(8192 * 2);
+			base_data.position.y = int16_t(8192 * 2);
 		}
 	}
 };
@@ -1535,6 +1526,22 @@ public:
 				provinces.push_back(si.get_state().get_capital());
 			}
 		}
+
+		state.world.for_each_state_definition([&](dcon::state_definition_id sdef) {
+			if(province::can_start_colony(state, nation_id, sdef)) {
+				dcon::province_id province;
+				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
+					if(!p.get_province().get_nation_from_province_ownership()) {
+						province = p.get_province().id;
+						break;
+					}
+				}
+				if(province) {
+					provinces.push_back(province);
+				}
+			}
+		});
+
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
 			if(state.world.state_definition_get_colonization_stage(sdef) == 3) { //make protectorate
@@ -1575,6 +1582,11 @@ public:
 				break;
 			}
 		}
+		state.world.for_each_state_definition([&](dcon::state_definition_id sdef) {
+			if(province::can_start_colony(state, nation_id, sdef)) {
+				any_integratable = true;
+			}
+		});
 		if(nations::can_expand_colony(state, nation_id) || any_integratable) {
 			return 0;
 		} else if(nations::is_losing_colonial_race(state, nation_id)) {
@@ -1602,6 +1614,13 @@ public:
 				is_empty = false;
 			}
 		}
+
+		state.world.for_each_state_definition([&](dcon::state_definition_id sdef) {
+			if(province::can_start_colony(state, nation_id, sdef)) {
+				text::add_line(state, contents, "alice_countryalert_colonialgood_start", text::variable_type::region, sdef);
+				is_empty = false;
+			}
+		});
 
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
@@ -1670,21 +1689,21 @@ public:
 			text::add_line(state, contents, std::string_view("alice_crisis_par_1"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && par.supports_attacker) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 			//defenders
 			text::add_line(state, contents, std::string_view("alice_crisis_par_2"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && !par.supports_attacker) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 			//merely interested
 			text::add_line(state, contents, std::string_view("alice_crisis_par_3"));
 			for(const auto par : state.crisis_participants) {
 				if(par.merely_interested) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 		}

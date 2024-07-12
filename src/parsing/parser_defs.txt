@@ -235,12 +235,16 @@ modifier_base
 	pop_growth                                value      float            member_fn
 	global_pop_growth                                value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
-	seperatism                                value      float            member_fn (non_accepted_pop_militancy_modifier)
+	seperatism                                value      float            member_fn
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 	unit_recruitment_time        value        float        discard
 	conversion_rate                     	  value      float            member_fn
 	global_conversion_rate                    value      float            member_fn
+	military_theory_tech_research_bonus              value      float            member_fn
+	diplomacy_tech_research_bonus              value      float            member_fn
+	population_tech_research_bonus              value      float            member_fn
+	flavor_tech_research_bonus              value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -1174,6 +1178,7 @@ country_history_file
 	#any                            value      text                              member_fn
 	primary_culture                 value      text                              member_fn
 	culture                         value      text                              member_fn
+	remove_culture					value	   text								 member_fn
 	religion                        value      text                              member_fn
 	government                      value      text                              member_fn
 	plurality                       value      float                             member_fn
@@ -1304,3 +1309,16 @@ bookmark_definition
 
 bookmark_file
 	bookmark			group	bookmark_definition		member_fn
+
+locale_parser
+	rtl				value	bool					member
+	prevent_map_letterspacing				value	bool					member
+	display_name				value	text					member
+	script				value	text					member
+	body_font				value	text					member
+	header_font				value	text					member
+	map_font				value	text					member
+	body_feature     value      text      member_fn
+	header_feature     value      text      member_fn
+	map_feature     value      text      member_fn
+	fallback     value      text      member

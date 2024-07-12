@@ -218,7 +218,7 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 	auto ol = state.world.overlord_get_ruler(olr);
 	auto ol_temp = n;
 
-	while(ol && state.world.nation_get_name(ol)) {
+	while(ol && state.world.nation_get_owned_province_count(ol) > 0) {
 		olr = state.world.nation_get_overlord_as_subject(ol);
 		ol_temp = ol;
 		ol = state.world.overlord_get_ruler(olr);
@@ -228,8 +228,7 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
-	assert(f.loaded);
+	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
 
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
@@ -323,10 +322,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
-		if(!n || !n.get_name())
+		if(!n || n.get_owned_province_count() == 0)
 			continue;
 
-		auto nation_name = text::produce_simple_string(state, n.get_name());
+		auto nation_name = text::produce_simple_string(state, text::get_name(state, n));
 		auto prefix_remove = text::produce_simple_string(state, "map_remove_prefix");
 		if(nation_name.starts_with(prefix_remove)) {
 			nation_name.erase(0, prefix_remove.size());
@@ -346,7 +345,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 		text::substitution_map sub{};
-		text::add_to_substitution_map(sub, text::variable_type::adj, n.get_adjective());
+		text::add_to_substitution_map(sub, text::variable_type::adj, text::get_adjective(state, n));
 		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(nation_name));
 		text::add_to_substitution_map(sub, text::variable_type::province, p);
 		text::add_to_substitution_map(sub, text::variable_type::state, p.get_state_membership());
@@ -365,9 +364,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					if(candidate.get_connected_region_id() == visited_region) {
 						if(candidate.get_state_membership() != p.get_state_membership())
 							in_same_state = false;
-
-						last_province = candidate;
-						total_provinces++;
+						++total_provinces;
 						for(const auto core : candidate.get_core_as_province()) {
 							uint32_t v = 1;
 							if(auto const it = map.find(core.get_identity().id.index()); it != map.end()) {
@@ -381,7 +378,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			if(in_same_state == true) {
 				name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
 			}
-			if(total_provinces == 1) {
+			if(total_provinces <= 2) {
 				// Adjective + Province name
 				name = text::resolve_string_substitution(state, "map_label_adj_province", sub);
 			} else {
@@ -389,36 +386,37 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					if(float(e.second) / float(total_provinces) >= 0.75f) {
 						// Adjective + " " + National identity
 						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-						if(state.world.national_identity_get_name(nid)) {
-							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
-							|| nid == n.get_identity_from_identity_holder()) {
-								if(n.get_capital().get_continent() == state.world.province_get_continent(last_province)) {
-									//cultural union tag -> use our name
-									name = text::produce_simple_string(state, n.get_name());
-									//Get cardinality
-									auto p1 = n.get_capital().get_mid_point();
-									auto p2 = state.world.province_get_mid_point(last_province);
-									auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
-									auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
-									if(degrees < 0.f) {
-										degrees = 360.f + degrees;
-									}
-									assert(degrees >= 0.f && degrees <= 360.f);
-									if(degrees >= 0.f && degrees < 90.f) {
-										name = text::resolve_string_substitution(state, "map_label_east_country", sub);
-									} else if(degrees >= 90.f && degrees < 180.f) {
-										name = text::resolve_string_substitution(state, "map_label_south_country", sub);
-									} else if(degrees >= 180.f && degrees < 270.f) {
-										name = text::resolve_string_substitution(state, "map_label_west_country", sub);
-									} else if(degrees >= 270.f && degrees < 360.f) {
-										name = text::resolve_string_substitution(state, "map_label_north_country", sub);
-									}
+						if(auto k = state.world.national_identity_get_name(nid); state.key_is_localized(k)) {
+							if((nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
+							|| nid == n.get_identity_from_identity_holder())
+							&& n.get_capital().get_continent() == p.get_continent()) {
+								//cultural union tag -> use our name
+								name = text::produce_simple_string(state, text::get_name(state, n));
+								//Get cardinality
+								auto p1 = n.get_capital().get_mid_point();
+								auto p2 = p.get_mid_point();
+								auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
+								auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
+								if(degrees < 0.f) {
+									degrees = 360.f + degrees;
 								}
+								assert(degrees >= 0.f && degrees <= 360.f);
+								//fallback just in the very unlikely case
+								name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
+								if(degrees >= 0.f && degrees < 90.f) {
+									name = text::resolve_string_substitution(state, "map_label_east_country", sub);
+								} else if(degrees >= 90.f && degrees < 180.f) {
+									name = text::resolve_string_substitution(state, "map_label_south_country", sub);
+								} else if(degrees >= 180.f && degrees < 270.f) {
+									name = text::resolve_string_substitution(state, "map_label_west_country", sub);
+								} else if(degrees >= 270.f && degrees < 360.f) {
+									name = text::resolve_string_substitution(state, "map_label_north_country", sub);
+								}
+								break;
 							} else {
 								text::add_to_substitution_map(sub, text::variable_type::tag, state.world.national_identity_get_name(nid));
 								name = text::resolve_string_substitution(state, "map_label_adj_tag", sub);
 							}
-							break;
 						}
 					}
 				}
@@ -775,9 +773,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
-
-		auto prepared_name = text::stored_glyphs(name, f);
-		float name_extent = f.text_extent(state, prepared_name, 0, prepared_name.glyph_count, 1);
+		auto prepared_name = text::stored_glyphs(state, text::font_selection::map_font, name);
+		float name_extent = f.text_extent(state, prepared_name, 0, uint32_t(prepared_name.glyph_info.size()), 1);
 
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
@@ -959,7 +956,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		for(auto p : state.world.in_province) {
 			if(p.get_name()) {
 				std::string name = text::produce_simple_string(state, p.get_name());
-				p_text_data.emplace_back(text::stored_glyphs(name, f), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+				p_text_data.emplace_back(text::stored_glyphs(state, text::font_selection::map_font, name), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
 			}
 		}
 		map_data.set_province_text_lines(state, p_text_data);

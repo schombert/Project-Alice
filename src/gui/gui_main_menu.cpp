@@ -104,12 +104,34 @@ void autosave_display::on_update(sys::state& state) noexcept {
 }
 
 void language_left::button_action(sys::state& state) noexcept {
-	uint32_t i = state.user_settings.current_language - 1;
-	while(state.languages[i % sys::max_languages].encoding == text::language_encoding::none && i != state.user_settings.current_language) {
-		--i;
-		i %= sys::max_languages;
+	window::change_cursor(state, window::cursor_type::busy);
+	dcon::locale_id new_locale;
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) == false) {
+		int32_t i = state.font_collection.get_current_locale().index() - 1;
+		if(i < 0) {
+			i = int32_t(state.world.locale_size()) - 1;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
+	} else {
+		int32_t i = state.font_collection.get_current_locale().index() + 1;
+		if(i >= int32_t(state.world.locale_size())) {
+			i = 0;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 	}
-	state.user_settings.current_language = i;
+
+	if(state.user_settings.use_classic_fonts
+	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
+		state.user_settings.use_classic_fonts = false;
+		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
+	}
+	//
+
+	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
+	std::memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), length);
+	state.user_settings.locale[length] = 0;
+	state.font_collection.change_locale(state, new_locale);
+
 	//
 	if(state.ui_state.units_root)
 		state.ui_state.units_root->impl_on_reset_text(state);
@@ -127,17 +149,39 @@ void language_left::button_action(sys::state& state) noexcept {
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	//
 	send(state, parent, notify_setting_update{});
+	window::change_cursor(state, window::cursor_type::normal);
 }
 void language_left::on_update(sys::state& state) noexcept {
 
 }
 void language_right::button_action(sys::state& state) noexcept {
-	uint32_t i = state.user_settings.current_language + 1;
-	while(state.languages[i % sys::max_languages].encoding == text::language_encoding::none && i != state.user_settings.current_language) {
-		++i;
-		i %= sys::max_languages;
+	window::change_cursor(state, window::cursor_type::busy);
+	dcon::locale_id new_locale;
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) == false) {
+		int32_t i = state.font_collection.get_current_locale().index() + 1;
+		if(i >= int32_t(state.world.locale_size())) {
+			i = 0;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
+	} else {
+		int32_t i = state.font_collection.get_current_locale().index() - 1;
+		if(i < 0) {
+			i = int32_t(state.world.locale_size()) - 1;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 	}
-	state.user_settings.current_language = i;
+
+	if(state.user_settings.use_classic_fonts
+	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
+		state.user_settings.use_classic_fonts = false;
+		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
+	}
+
+	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
+	std::memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), length);
+	state.user_settings.locale[length] = 0;
+	state.font_collection.change_locale(state, new_locale);
+
 	//
 	if(state.ui_state.units_root)
 		state.ui_state.units_root->impl_on_reset_text(state);
@@ -155,16 +199,15 @@ void language_right::button_action(sys::state& state) noexcept {
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	//
 	send(state, parent, notify_setting_update{});
+	window::change_cursor(state, window::cursor_type::normal);
 }
 void language_right::on_update(sys::state& state) noexcept {
 
 }
 void language_display::on_update(sys::state& state) noexcept {
-	auto const& code = state.languages[state.user_settings.current_language].iso_code;
-	std::string str;
-	str.resize(code.size());
-	std::copy(code.begin(), code.end(), str.begin());
-	set_text(state, text::produce_simple_string(state, "language_" + str));
+	auto ln = state.world.locale_get_display_name(state.font_collection.get_current_locale());
+	auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
+	set_text(state, std::string{ ln_sv });
 }
 
 void map_zoom_mode_left::button_action(sys::state& state) noexcept {
@@ -571,6 +614,37 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 	}
 
 	set_text(state, text::produce_simple_string(state, it));
+}
+
+void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
+	state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
+	//
+	window::change_cursor(state, window::cursor_type::busy);
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.province_ownership_changed.store(true, std::memory_order::release); //update map
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
+	state.ui_state.tooltip->set_visible(state, false);
+	state.ui_state.last_tooltip = nullptr;
+	send(state, parent, notify_setting_update{});
+	window::change_cursor(state, window::cursor_type::normal);
+}
+bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.use_classic_fonts;
+}
+void fonts_mode_checkbox::on_update(sys::state& state) noexcept {
+	disabled = state.world.locale_get_hb_script(state.font_collection.get_current_locale()) != HB_SCRIPT_LATIN;
 }
 
 void left_mouse_click_mode_checkbox::button_action(sys::state& state) noexcept {

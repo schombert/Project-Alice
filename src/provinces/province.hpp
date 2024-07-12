@@ -64,6 +64,8 @@ bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_inst
 
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
+float land_maximum_employment(sys::state& state, dcon::province_id id);
+float land_employment(sys::state& state, dcon::province_id id);
 float rgo_maximum_employment(sys::state& state, dcon::province_id id);
 float rgo_employment(sys::state& state, dcon::province_id id);
 float rgo_income(sys::state& state, dcon::province_id id);

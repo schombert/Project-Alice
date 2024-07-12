@@ -47,8 +47,8 @@ struct trigger_gp_choice {
 class diplomacy_action_discredit_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("discredit_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "discredit_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -110,8 +110,8 @@ public:
 class diplomacy_action_expel_advisors_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("expeladvisors_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "expeladvisors_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -172,8 +172,8 @@ public:
 class diplomacy_action_ban_embassy_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("banembassy_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "banembassy_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -235,8 +235,8 @@ public:
 class diplomacy_action_decrease_opinion_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("decreaseopinion_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "decreaseopinion_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -388,8 +388,8 @@ public:
 class diplomacy_action_call_ally_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("callally_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "callally_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -634,8 +634,8 @@ public:
 class diplomacy_action_increase_relations_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("increaserelation_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "increaserelation_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -677,8 +677,8 @@ public:
 class diplomacy_action_decrease_relations_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("decreaserelation_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "decreaserelation_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -860,8 +860,8 @@ public:
 class diplomacy_action_release_subject_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("alice_diplo_release_subject");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_diplo_release_subject"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -888,8 +888,8 @@ public:
 class diplomacy_action_increase_opinion_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("increaseopinion_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "increaseopinion_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -933,8 +933,8 @@ public:
 class diplomacy_action_add_to_sphere_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("addtosphere_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "addtosphere_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -979,8 +979,8 @@ public:
 class diplomacy_action_remove_from_sphere_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("removefromsphere_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "removefromsphere_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1100,8 +1100,8 @@ class diplomacy_action_justify_war_button : public button_element_base {
 	}
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("make_cb_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "make_cb_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1256,7 +1256,7 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto contents = text::create_endless_layout(internal_layout,
+		auto contents = text::create_endless_layout(state, internal_layout,
 				text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false });
 		auto box = text::open_layout_box(contents);
@@ -1326,8 +1326,8 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("agree");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "agree"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1406,8 +1406,8 @@ public:
 class diplomacy_action_dialog_decline_button : public generic_close_button {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("decline");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "decline"));
 	}
 };
 
@@ -1467,7 +1467,7 @@ class select_gp_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = nations::get_nth_great_power(state, uint16_t(retrieve<gp_choice_num>(state, parent).value));
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(n)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n)));
 	}
 };
 
@@ -1635,16 +1635,16 @@ public:
 class gp_action_choice_cancel_button : public generic_close_button {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("cancel");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "cancel"));
 	}
 };
 
 class gp_action_choice_accept_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("ok");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "ok"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1804,11 +1804,11 @@ public:
 		window_element_base::on_create(state);
 
 		xy_pair gp_base_select_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("gpselectoptionpos")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("gpselectoptionpos"))->second.definition].position;
 		xy_pair gp_select_offset = gp_base_select_offset;
 		for(uint8_t i = 0; i < uint8_t(state.defines.great_nations_count); i++) {
 			auto ptr = make_element_by_type<diplomacy_action_gp_dialog_select_window>(state,
-					state.ui_state.defs_by_name.find("gpselectoption")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("gpselectoption"))->second.definition);
 			ptr->base_data.position = gp_select_offset;
 			ptr->rank = i;
 			// Arrange in columns of 2 elements each...
@@ -1865,8 +1865,8 @@ public:
 class diplomacy_action_state_transfer_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.data.button.txt = state.lookup_key("state_transfer_button");
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "state_transfer_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {

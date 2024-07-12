@@ -2819,6 +2819,29 @@ TRIGGER_FUNCTION(tf_war_with_this_pop) {
 TRIGGER_FUNCTION(tf_unit_in_battle) {
 	return compare_to_true(tval[0], military::battle_is_ongoing_in_province(ws, to_prov(primary_slot)));
 }
+TRIGGER_FUNCTION(tf_unit_has_leader) {
+	auto result = ve::apply([&ws](dcon::province_id p) {
+		for(const auto ar : ws.world.province_get_army_location(p)) {
+			if(ws.world.army_leadership_get_general(ws.world.army_get_army_leadership(ws.world.army_location_get_army(ar)))) {
+				return true;
+			}
+		}
+		return false;
+	}, to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_has_national_focus_state) {
+	auto result = ve::apply([&ws, tval](dcon::state_instance_id p) {
+		return ws.world.state_instance_get_owner_focus(p) == trigger::payload(tval[1]).nf_id;
+	}, to_state(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_has_national_focus_province) {
+	auto result = ve::apply([&ws, tval](dcon::province_id p) {
+		return ws.world.state_instance_get_owner_focus(ws.world.province_get_state_membership(p)) == trigger::payload(tval[1]).nf_id;
+	}, to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
+}
 TRIGGER_FUNCTION(tf_total_amount_of_divisions) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n) {
@@ -2864,7 +2887,7 @@ TRIGGER_FUNCTION(tf_ruling_party_ideology_province) {
 }
 TRIGGER_FUNCTION(tf_ruling_party) {
 	auto rp = ws.world.nation_get_ruling_party(to_nation(primary_slot));
-	dcon::text_sequence_id name{dcon::text_sequence_id::value_base_t(read_int32_t_from_payload(tval + 1)) };
+	dcon::text_key name{dcon::text_key::value_base_t(read_int32_t_from_payload(tval + 1)) };
 	return compare_values_eq(tval[0], ws.world.political_party_get_name(rp), name);
 }
 TRIGGER_FUNCTION(tf_is_ideology_enabled) {

@@ -55,6 +55,18 @@ public:
 		case culture::tech_category::navy:
 			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
 			break;
+		case culture::tech_category::military_theory:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::military_theory_tech_research_bonus, true);
+			break;
+		case culture::tech_category::population:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::population_tech_research_bonus, true);
+			break;
+		case culture::tech_category::diplomacy:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomacy_tech_research_bonus, true);
+			break;
+		case culture::tech_category::flavor:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::flavor_tech_research_bonus, true);
+			break;
 		case culture::tech_category::unknown:
 			break;
 		}
@@ -75,9 +87,6 @@ public:
 			}
 		});
 		progress = bool(total) && bool(discovered) ? float(discovered) / float(total) : 0.f;
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
 	}
 };
 
@@ -115,28 +124,7 @@ public:
 		folder_button->category = category = new_category;
 
 		folder_icon->frame = static_cast<int32_t>(category);
-
-		std::string str{};
-		switch(category) {
-		case culture::tech_category::army:
-			str += text::produce_simple_string(state, "army_tech");
-			break;
-		case culture::tech_category::navy:
-			str += text::produce_simple_string(state, "navy_tech");
-			break;
-		case culture::tech_category::commerce:
-			str += text::produce_simple_string(state, "commerce_tech");
-			break;
-		case culture::tech_category::culture:
-			str += text::produce_simple_string(state, "culture_tech");
-			break;
-		case culture::tech_category::industry:
-			str += text::produce_simple_string(state, "industry_tech");
-			break;
-		default:
-			break;
-		}
-		folder_name->set_text(state, str);
+		folder_name->set_text(state, text::produce_simple_string(state, culture::get_tech_category_name(category)));
 
 		folder_num_discovered->category = folder_progress->category = category;
 		folder_progress->on_update(state);
@@ -176,29 +164,10 @@ class technology_research_progress_category_text : public simple_text_element_ba
 		if(tech_id) {
 			auto tech = dcon::fatten(state.world, tech_id);
 			auto const& folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
-
 			std::string str{};
 			str += text::produce_simple_string(state, folder.name);
 			str += ", ";
-			switch(folder.category) {
-			case culture::tech_category::army:
-				str += text::produce_simple_string(state, "army_tech");
-				break;
-			case culture::tech_category::navy:
-				str += text::produce_simple_string(state, "navy_tech");
-				break;
-			case culture::tech_category::commerce:
-				str += text::produce_simple_string(state, "commerce_tech");
-				break;
-			case culture::tech_category::culture:
-				str += text::produce_simple_string(state, "culture_tech");
-				break;
-			case culture::tech_category::industry:
-				str += text::produce_simple_string(state, "industry_tech");
-				break;
-			default:
-				break;
-			}
+			str += text::produce_simple_string(state, culture::get_tech_category_name(folder.category));
 			return str;
 		} else {
 			return "";
@@ -258,12 +227,12 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, content);
-		if(auto name = fat_id.get_name(); name) {
+		if(auto name = fat_id.get_name(); state.key_is_localized(name)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
-		if(auto desc = fat_id.get_desc(); desc) {
+		if(auto desc = fat_id.get_desc(); state.key_is_localized(desc)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, desc);
 			text::close_layout_box(contents, box);
@@ -356,28 +325,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::invention_id>(state, parent);
 		auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
-		std::string category_name{};
-		switch(category) {
-		case culture::tech_category::army:
-			category_name = "army_tech";
-			break;
-		case culture::tech_category::navy:
-			category_name = "navy_tech";
-			break;
-		case culture::tech_category::commerce:
-			category_name = "commerce_tech";
-			break;
-		case culture::tech_category::culture:
-			category_name = "culture_tech";
-			break;
-		case culture::tech_category::industry:
-			category_name = "industry_tech";
-			break;
-		default:
-			break;
-		}
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, category_name), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, culture::get_tech_category_name(category)), text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -646,6 +595,19 @@ public:
 			case culture::tech_category::industry:
 				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
 				break;
+			//non vanilla
+			case culture::tech_category::military_theory:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::military_theory_tech_research_bonus, true);
+				break;
+			case culture::tech_category::population:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::population_tech_research_bonus, true);
+				break;
+			case culture::tech_category::diplomacy:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomacy_tech_research_bonus, true);
+				break;
+			case culture::tech_category::flavor:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::flavor_tech_research_bonus, true);
+				break;
 			default:
 				break;
 		}
@@ -671,19 +633,14 @@ public:
 		base_data.size.x -= 10;
 		scrollable_text::on_create(state);
 	}
-
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
-		auto layout = text::create_endless_layout(delegate->internal_layout,
+		auto layout = text::create_endless_layout(state, delegate->internal_layout,
 				text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false});
 		technology_description(state, layout, content);
 		calibrate_scrollbar(state);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
 	}
 };
 
@@ -813,41 +770,6 @@ public:
 	}
 };
 
-class tech_window_tech_school : public simple_body_text {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto mod_id = state.world.nation_get_tech_school(n);
-		if(bool(mod_id)) {
-			set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(mod_id)));
-		} else {
-			set_text(state, text::produce_simple_string(state, "traditional_academic"));
-		}
-	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto mod_id = state.world.nation_get_tech_school(retrieve<dcon::nation_id>(state, parent));
-		if(bool(mod_id)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
-			if(state.world.modifier_get_desc(mod_id)) {
-				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::country, n);
-				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
-				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
-				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
-				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod_id), sub);
-			}
-			text::close_layout_box(contents, box);
-			modifier_description(state, contents, mod_id);
-		}
-	}
-};
-
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 	dcon::technology_id tech_id{};
@@ -856,11 +778,11 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
-		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("folder_offset")->second.definition].position;
+		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("folder_offset"))->second.definition].position;
 		for(auto curr_folder = culture::tech_category::army; curr_folder != culture::tech_category(5);
 				curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
 			auto ptr = make_element_by_type<technology_folder_tab_button>(state,
-					state.ui_state.defs_by_name.find("folder_window")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("folder_window"))->second.definition);
 			ptr->set_category(state, curr_folder);
 			ptr->base_data.position = folder_offset;
 			folder_offset.x += ptr->base_data.size.x;
@@ -889,8 +811,8 @@ public:
 		std::vector<size_t> items_per_folder(state.culture_definitions.tech_folders.size(), 0);
 
 		xy_pair base_group_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
-		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_group_offset"))->second.definition].position;
+		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_offset"))->second.definition].position;
 
 		for(auto cat = culture::tech_category::army; cat != culture::tech_category(5);
 				cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
@@ -901,7 +823,7 @@ public:
 					continue;
 
 				auto ptr = make_element_by_type<technology_tech_group_window>(state,
-						state.ui_state.defs_by_name.find("tech_group")->second.definition);
+						state.ui_state.defs_by_name.find(state.lookup_key("tech_group"))->second.definition);
 
 				ptr->category = cat;
 				Cyto::Any payload = culture::folder_info(folder);
@@ -922,7 +844,7 @@ public:
 					return;
 
 				auto ptr = make_element_by_type<technology_item_window>(state,
-						state.ui_state.defs_by_name.find("tech_window")->second.definition);
+						state.ui_state.defs_by_name.find(state.lookup_key("tech_window"))->second.definition);
 
 				Cyto::Any payload = tid;
 				ptr->impl_set(state, payload);
@@ -957,7 +879,7 @@ public:
 		} else if(name == "current_research") {
 			return make_element_by_type<simple_body_text>(state, id);
 		} else if(name == "administration_type") {
-			return make_element_by_type<tech_window_tech_school>(state, id);
+			return make_element_by_type<national_tech_school>(state, id);
 		} else if(name == "research_progress") {
 			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "research_progress_name") {

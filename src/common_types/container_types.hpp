@@ -113,7 +113,7 @@ static_assert(sizeof(value_modifier_description) ==
 	+ sizeof(value_modifier_description::segments_count));
 
 struct event_option {
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 	dcon::value_modifier_key ai_chance;
 	dcon::effect_key effect;
 };
@@ -139,15 +139,13 @@ struct crisis_join_offer {
 	dcon::national_identity_id wargoal_tag;
 	dcon::nation_id wargoal_secondary_nation;
 	dcon::cb_type_id wargoal_type;
-	uint8_t padding = 0;
 };
 static_assert(sizeof(crisis_join_offer) ==
 	sizeof(crisis_join_offer::target)
 	+ sizeof(crisis_join_offer::wargoal_type)
 	+ sizeof(crisis_join_offer::wargoal_state)
 	+ sizeof(crisis_join_offer::wargoal_tag)
-	+ sizeof(crisis_join_offer::wargoal_secondary_nation)
-	+ sizeof(crisis_join_offer::padding));
+	+ sizeof(crisis_join_offer::wargoal_secondary_nation));
 
 } // namespace sys
 
@@ -176,9 +174,11 @@ public:
 		return *this;
 	}
 	value_type const& operator[](tag_type t) const {
+		assert(size_t(t.index()) < storage.size());
 		return *(storage.data() + t.index());
 	}
 	value_type& operator[](tag_type t) {
+		assert(size_t(t.index()) < storage.size());
 		return *(storage.data() + t.index());
 	}
 	template<typename... T>

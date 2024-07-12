@@ -119,6 +119,22 @@ guiTypes = {
 				position = { 51 99 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Use classic fonts (Y/N)
+			instantTextBoxType = {
+				name = "fonts_label"
+				position = { 194 100 }
+				text = "fonts_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "fonts_checkbox"
+				position = { 167 99 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Fog of War (Y/N)
 			instantTextBoxType = {
 				name = "fow_label"
@@ -3070,6 +3086,32 @@ guiTypes = {
 	}
 
 	windowType = {
+		name = "alice_console_window"
+		position = { 5 135 }
+		size = { 500 600 }
+		moveable = 0
+		iconType =  {
+			name = "background"
+			size = { 500 565 }
+			spriteType = "console_background"
+		}
+		instantTextBoxType = {
+			name = "console_list"
+			font = "Arial16"
+			maxsize = { 500 565 }
+			format = left
+		}
+		editBoxType = {
+			name = "console_edit"
+			font = "FPS_Font"
+			position = { 0 560 }
+			size = { 500 40 }
+			borderSize = { 10 10 }
+			textureFile = "gfx\\interface\\small_tiles_dialog.dds"
+		}
+	}
+
+	windowType = {
 		name = "alice_select_legend_entry"
 		position = { 0 0 }
 		size = { 172 24 }
@@ -3852,6 +3894,83 @@ guiTypes = {
 			format = left
 		}
 	}
+    
+    iconType = {
+        name ="gdp_ledger_linegraph_bg"
+        spriteType = "GFX_ledger_linegraph_bg"
+        position = { x= 63 y = 151 }
+        Orientation = "UPPER_LEFT"
+    }
+    
+    windowType = {
+			name = "gdp_ledger_linegraphs"
+			backGround =""
+			position = { x = 80 y = 130 }
+			size = { x=690 y = 540 }
+			moveable = 0
+			dontRender = ""
+			horizontalBorder = "0"
+			verticalBorder = ""
+			fullScreen = no
+		}
+		
+    windowType = {
+        name = "gdp_ledger_linegraph_legend"
+        backGround =""
+        position = { x = 830 y = 153 }
+        size = { x=200 y = 540 }
+        moveable = 0
+        dontRender = ""
+        horizontalBorder = "0"
+        verticalBorder = ""
+        fullScreen = no
+        
+        listboxType = {
+            name ="legend_nations_list"
+            position = { x = 0 y = 0 }
+            backGround=""
+            size = { x=208 y = 528 }
+            Orientation = "UPPER_LEFT"
+            spacing = 2
+            scrollbartype = "standardlistbox_slider"
+            borderSize = {x = 1 y = 1}
+        }
+    }
+    
+    windowType = {
+		name = "ledger_nations_legend_entry"
+		backGround=""
+		position = { x=0 y=-0 }	
+		size = { x=200 y=24 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no
+		Orientation = "UPPER_LEFT"
+		
+		checkboxType = {
+			name = "nation_ledger_legend_checkbox"	
+			position = {x = 24 y = 1 }
+			quadTextureSprite ="GFX_checkbox_default"
+		}
+		
+		iconType = {
+			name ="nation_ledger_legend_plupp"
+			spriteType = "GFX_politics_party_plupp"
+			position = { x= 0 y = 0 }
+		}
+		
+		instantTextBoxType = { 
+			name = "nation_ledger_default_textbox"
+			position = { x = 47 y = 5 }
+			font = "Arial12_bold_black"
+			text = " "	
+			maxWidth = 160
+			maxHeight = 16
+			fixedsize = yes
+		}
+	}
 
 	checkboxType = {
 		name = "alice_debt_checkbox"
@@ -3862,7 +3981,7 @@ guiTypes = {
 	instantTextBoxType = {
 		name = "alice_domestic_investment_label"
 		text = "domestic_investment_label"
-		position = { 38 588 }
+		position = { 38 580 }
 		font = "vic_18_black"
 		borderSize = { 0 0 }
 		maxsize = { 146 18 }
@@ -3872,7 +3991,7 @@ guiTypes = {
 	instantTextBoxType = {
 		name = "alice_domestic_investment_value"
 		text = "0.0"
-		position = { 418 588 }
+		position = { 418 580 }
 		font = "vic_18_black"
 		borderSize = { 0 0 }
 		maxsize = { 60 18 }
@@ -3886,7 +4005,79 @@ guiTypes = {
 		leftbutton = "up"
 		rightbutton = "down"
 		size = { 220 20 }
-		position = { 198 588 }
+		position = { 198 580 }
+		priority = 100			
+		minValue = 0
+		maxValue = 100
+		stepSize = 1
+		startValue = 0
+		horizontal = 1
+		useRangeLimit = yes
+		rangeLimitMin = 0
+		rangeLimitMax = 100
+		rangeLimitMinIcon = "min"
+		rangeLimitMaxIcon = "max"
+		guiButtonType = {
+			name = "slider"	
+			quadTextureSprite = "GFX_slider_circle"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "track"
+			quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "up"
+			quadTextureSprite = "GFX_slider_left"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "down"
+			quadTextureSprite = "GFX_slider_right"
+			position = { 0 220 }
+		}
+		iconType = {
+			name = "min"
+			spriteType = "GFX_scroll_limit"
+			position = { 0 0 }
+		}
+		iconType = {
+			name = "max"
+			spriteType = "GFX_scroll_limit2"
+			position = { 0 0 }
+		}
+	}
+    
+    
+    instantTextBoxType = {
+		name = "alice_overseas_maintenance_label"
+		text = "BUDGET_OVERSEAS"
+		position = { 38 598 }
+		font = "vic_18_black"
+		borderSize = { 0 0 }
+		maxsize = { 146 18 }
+		orientation = "UPPER_LEFT"
+		format = left
+	}
+	instantTextBoxType = {
+		name = "alice_overseas_maintenance_value"
+		text = "0.0"
+		position = { 418 598 }
+		font = "vic_18_black"
+		borderSize = { 0 0 }
+		maxsize = { 60 18 }
+		orientation = "UPPER_LEFT"
+		format = right
+	}
+	scrollbarType = {
+		name = "alice_overseas_maintenance_slider"	
+		slider = "slider"
+		track = "track"
+		leftbutton = "up"
+		rightbutton = "down"
+		size = { 220 20 }
+		position = { 198 598 }
 		priority = 100			
 		minValue = 0
 		maxValue = 100
@@ -3974,7 +4165,7 @@ guiTypes = {
 			position = { 2 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "new"
+			buttonText = "macro_new_template"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -4136,7 +4327,8 @@ guiTypes = {
 	}
 	guiButtonType = {
 		name = "alice_move_capital"
-		position = { 0 0 }
+		extends = "province_view_header"
+		position = { x= 180 y = 3 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
 }

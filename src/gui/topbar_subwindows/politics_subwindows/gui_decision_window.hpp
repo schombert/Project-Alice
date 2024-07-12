@@ -9,12 +9,12 @@
 namespace ui {
 
 inline void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
-	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+	text::add_to_substitution_map(m, text::variable_type::country_adj, text::get_adjective(state, n));
 	text::add_to_substitution_map(m, text::variable_type::country, n);
 	text::add_to_substitution_map(m, text::variable_type::countryname, n);
 	text::add_to_substitution_map(m, text::variable_type::thiscountry, n);
 	text::add_to_substitution_map(m, text::variable_type::capital, state.world.nation_get_capital(n));
-	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(n), state.world.nation_get_government_type(n)));
+	text::add_to_substitution_map(m, text::variable_type::monarchtitle, text::get_ruler_title(state, n));
 	text::add_to_substitution_map(m, text::variable_type::continentname, state.world.nation_get_capital(n).get_continent().get_name());
 	// Date
 	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
@@ -22,7 +22,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::day, int32_t(state.current_date.to_ymd(state.start_date).day));
 	auto sm = state.world.nation_get_in_sphere_of(n);
 	text::add_to_substitution_map(m, text::variable_type::spheremaster, sm);
-	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, text::get_adjective(state, sm));
 	auto smpc = state.world.nation_get_primary_culture(sm);
 	text::add_to_substitution_map(m, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
@@ -48,7 +48,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_capital, state.world.nation_get_capital(state.primary_crisis_defender));
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(m, text::variable_type::crisistarget, state.primary_crisis_defender);
-	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
 	text::add_to_substitution_map(m, text::variable_type::crisisarea, state.crisis_state);
 	text::add_to_substitution_map(m, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// TODO: Is this correct? I remember in vanilla it could vary
@@ -167,7 +167,7 @@ class decision_name : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
-		auto contents = text::create_endless_layout(internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
 		auto box = text::open_layout_box(contents);
 		text::substitution_map m;
 		produce_decision_substitutions(state, m, state.local_player_nation);
@@ -181,7 +181,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto const id = retrieve<dcon::decision_id>(state, parent);
-		auto const description = state.world.decision_get_description(id);
 		if(state.cheat_data.show_province_id_tooltip) {
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, std::string_view("Decision ID:"));
@@ -189,11 +188,14 @@ public:
 			text::add_to_layout_box(state, contents, box, std::to_string(id.value));
 			text::close_layout_box(contents, box);
 		}
-		auto box = text::open_layout_box(contents);
-		text::substitution_map m;
-		produce_decision_substitutions(state, m, state.local_player_nation);
-		text::add_to_layout_box(state, contents, box, description, m);
-		text::close_layout_box(contents, box);
+		auto const desc = state.world.decision_get_description(id);
+		if(state.key_is_localized(desc)) {
+			auto box = text::open_layout_box(contents);
+			text::substitution_map m;
+			produce_decision_substitutions(state, m, state.local_player_nation);
+			text::add_to_layout_box(state, contents, box, desc, m);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -203,6 +205,9 @@ public:
 
 class decision_image : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, id);
@@ -216,7 +221,7 @@ public:
 
 class decision_desc : public scrollable_text {
 private:
-	dcon::text_sequence_id description;
+	dcon::text_key description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map m;
@@ -235,7 +240,7 @@ public:
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, id);
 		description = fat_id.get_description();
-		auto container = text::create_endless_layout(delegate->internal_layout,
+		auto container = text::create_endless_layout(state, delegate->internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 				base_data.data.text.font_handle, 0, text::alignment::left,
 				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
@@ -243,7 +248,6 @@ public:
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
-
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		// Ignore mouse wheel scrolls so people DO NOT get confused!
 		if(type == mouse_probe_type::scroll)

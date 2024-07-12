@@ -48,6 +48,7 @@ gui_element_common
 	size				group		gfx_xy_pair		member_fn
 	rotation			value		text			member_fn
 	name				value		text			member_fn
+	extends				value		text			member_fn
 	orientation			value		text			member_fn
 	maxheight			value		int				member_fn
 	maxwidth			value		int				member_fn
@@ -69,6 +70,16 @@ button
 	format                value     text     member_fn
 	clicksound            value     text     member_fn
 	parent                value     none     discard
+
+province_script_button
+	#base          button
+	allow         extern          province_button_allow       member_fn
+	effect         extern          province_button_effect       member_fn
+
+nation_script_button
+	#base          button
+	allow         extern          nation_button_allow       member_fn
+	effect         extern          nation_button_effect       member_fn
 
 image
 	#base           gui_element_common
@@ -149,6 +160,8 @@ window
 	overlappingelementsboxtype group       overlapping        member_fn
 	editboxtype                group       textbox            member_fn
 	textboxtype                group       textbox            member_fn
+	provincescriptbuttontype    group   province_script_button   member_fn
+	nationscriptbuttontype    group   nation_script_button   member_fn
 
 guitypes
 	guibuttontype              group       button             member_fn
@@ -164,6 +177,8 @@ guitypes
 	overlappingelementsboxtype group       overlapping        member_fn
 	editboxtype                group       textbox            member_fn
 	textboxtype                group       textbox            member_fn
+	provincescriptbuttontype    group   province_script_button   member_fn
+	nationscriptbuttontype    group   nation_script_button   member_fn
 
 gui_files
 	guitypes     extern     parse_guitypes     discard

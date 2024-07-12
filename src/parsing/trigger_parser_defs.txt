@@ -156,6 +156,7 @@ trigger_body
 	num_of_vassals   value           int                member_fn
 	part_of_sphere   value           bool               member_fn
 	unit_in_battle   value           bool               member_fn
+	unit_has_leader  value			 bool				member_fn
 	war_exhaustion   value           float              member_fn
 	can_nationalize       value      bool               member_fn
 	colonial_nation       value      bool               member_fn

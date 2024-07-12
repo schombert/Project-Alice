@@ -47,6 +47,9 @@ public:
 };
 class event_image : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
 	void on_update(sys::state& state) noexcept override;
 };
 class event_desc_text : public scrollable_text {
@@ -57,10 +60,16 @@ public:
 class event_name_text : public multiline_text_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
+		multiline_text_element_base::on_create(state);
+		black_text = true;
+		on_reset_text(state);
+	}
+	void on_reset_text(sys::state& state) noexcept override {
+		//TODO: Adapt to classic fonts too!
 		auto fh = base_data.data.text.font_handle;
 		auto font_index = text::font_index_from_font_id(state, fh);
 		auto font_size = text::size_from_font_id(fh);
-		auto& font = state.font_collection.fonts[font_index - 1];
+		auto& font = state.font_collection.get_font(state, font_index);
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 		base_data.size.y = int16_t((text_height - 15) * 2);
 	}

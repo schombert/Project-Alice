@@ -24,7 +24,7 @@ void default_map_file::finish(scenario_building_context& context) {
 		context.original_id_to_prov_id_map[old_id] = id;
 
 		auto name = std::string("PROV") + std::to_string(old_id);
-		auto name_id = text::find_or_add_key(context.state, name);
+		auto name_id = text::find_or_add_key(context.state, name, false);
 
 		context.state.world.province_set_name(id, name_id);
 	}
@@ -135,7 +135,7 @@ void palette_definition::finish(scenario_building_context& context) {
 }
 
 void make_terrain_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	auto parsed_modifier = parse_terrain_modifier(gen, err, context);
 
@@ -148,7 +148,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
+	context.state.world.modifier_set_desc(new_modifier, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
@@ -158,7 +158,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 }
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	state_def_building_context new_context{ context, std::vector<dcon::province_id>{} };
 	parsers::parse_state_definition(gen, err, new_context);
 	if(new_context.provinces.empty())
@@ -187,25 +187,27 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_region_membership(prov, rdef);
 		}
+		context.state.world.region_set_name(rdef, name_id);
 	} else {
 		auto sdef = context.state.world.create_state_definition();
 		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_abstract_state_membership(prov, sdef);
 		}
+		context.state.world.state_definition_set_name(sdef, name_id);
 	}
 }
 
 void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err,
 		scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 
 	continent_building_context new_context{context, new_modifier};
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
+	context.state.world.modifier_set_desc(new_modifier, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
 
 	auto continent = parse_continent_definition(gen, err, new_context);
 
@@ -232,7 +234,7 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 
 void make_climate_definition(std::string_view name, token_generator& gen, error_handler& err,
 		scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_or_add_key(context.state, name, false);
 
 	auto new_modifier = [&]() {
 		if(auto it = context.map_of_modifiers.find(std::string(name)); it != context.map_of_modifiers.end())
@@ -241,7 +243,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 		auto new_id = context.state.world.create_modifier();
 		context.map_of_modifiers.insert_or_assign(std::string(name), new_id);
 		context.state.world.modifier_set_name(new_id, name_id);
-		context.state.world.modifier_set_desc(new_id, text::find_key(context.state, std::string(name) + "_desc"));
+		context.state.world.modifier_set_desc(new_id, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
 		return new_id;
 	}();
 
@@ -260,7 +262,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context) {
 	auto ymd = parse_date(name, 0, err);
-	if(sys::date(ymd, context.outer_context.state.start_date) >= context.outer_context.state.current_date) { // is after the start date
+	if(sys::date(ymd, context.outer_context.state.start_date) > context.outer_context.state.current_date) { // is after the start date
 		gen.discard_group();
 	} else {
 		parse_province_history_file(gen, err, context);
@@ -308,9 +310,6 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
-		if(context.outer_context.state.world.province_ownership_get_nation(context.outer_context.state.world.province_get_province_ownership(context.id))) {
-			err.accumulated_warnings += "Duplicate owner statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		}
 		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -320,9 +319,6 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
-		if(context.outer_context.state.world.province_control_get_nation(context.outer_context.state.world.province_get_province_control(context.id))) {
-			err.accumulated_warnings += "Duplicate controller statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		}
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";

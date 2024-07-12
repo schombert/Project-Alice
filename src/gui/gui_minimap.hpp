@@ -296,7 +296,7 @@ public:
 class macro_builder_details : public scrollable_text {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto contents = text::create_endless_layout(delegate->internal_layout,
+		auto contents = text::create_endless_layout(state, delegate->internal_layout,
 				text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
@@ -431,10 +431,6 @@ public:
 		}
 		calibrate_scrollbar(state);
 	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
 };
 class macro_builder_apply_button : public button_element_base {
 	std::vector<dcon::province_id> provinces;
@@ -464,7 +460,14 @@ public:
 		button_element_base::on_create(state);
 	}
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.map_state.selected_province == dcon::province_id{});
+		disabled = true;
+		for(auto const amount : state.ui_state.current_template.amounts) {
+			if(amount != 0) {
+				disabled = false;
+				break;
+			}
+		}
+		disabled = disabled || (state.map_state.selected_province == dcon::province_id{});
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
@@ -515,7 +518,6 @@ public:
 			for(const auto& build : build_queue) {
 				command::start_land_unit_construction(state, state.local_player_nation, build.p, build.c, build.u, template_province);
 			}
-			state.game_state_updated.store(true, std::memory_order::release);
 		} else {
 			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
 				auto ab = state.world.province_get_province_naval_construction_as_province(a);
@@ -553,8 +555,8 @@ public:
 					});
 				}
 			}
-			state.game_state_updated.store(true, std::memory_order::release);
 		}
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -1004,6 +1006,10 @@ public:
 
 class minimap_picture_window : public opaque_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		opaque_element_base::render(state, x, y);
 		// TODO draw white box to represent window borders

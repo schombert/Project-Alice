@@ -1,0 +1,14 @@
+#Powered_by_ParaTranz
+badboy;恶名
+EVTNAME60150;妇女选举权取消
+EVTDESC60150;在最近的选举改革中，妇女失去了投票权。
+EVTOPTA60150;滚回厨房去！
+EVTNAME31102;从伊斯坦布尔迁走
+EVTDESC31102;伊斯坦布尔不再安全了。我们应该将政府迁往更安全的地方。
+EVTOPTA31102;我们终于被赶出欧洲大陆了……
+OL_REBEL_OCCUPATIONS;叛军占领
+OL_REBEL_OCCUPATIONS_TOOLTIP;?Y$PROVINCE$?W正被叛军占领！
+OL_VIEW_REBEL_OCCUPATIONS;打开?Y叛军占领?W界面
+POP_MIL_CHANGE_REBEL;这个人群生活在叛军占领下的?Y$PROV$?W\n斗争性变化无法估计
+POP_CON_CHANGE_REBEL;这个人群生活在叛军占领下的?Y$PROV$?W\n觉醒度变化无法估计
+PROJECT_STATE_NAME_DESC;计划在?Y$PROV$?W建造

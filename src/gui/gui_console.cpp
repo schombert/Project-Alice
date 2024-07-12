@@ -63,6 +63,7 @@ struct command_info {
 		instant_army,
 		instant_navy,
 		instant_industry,
+		add_year,
 		innovate,
 		daily_oos_check,
 		dump_map,
@@ -237,6 +238,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "add_year", command_info::type::add_year, "Add year",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
@@ -371,13 +375,13 @@ dcon::national_identity_id smart_get_national_identity_from_tag(sys::state& stat
 		if(tag.size() == 3) {
 			auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 			log_to_console(state, parent,
-			"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
+			"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"?Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "?W\" (?Y" + text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "?W) Id #" + std::to_string(closest_tag_match.second.value));
 		} else {
 			auto fat_id = dcon::fatten(state.world, closest_name_match.second);
-			log_to_console(state, parent, "Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
+			log_to_console(state, parent, "Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"?Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "?W\" (?Y" + text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "?W) Id #" + std::to_string(closest_name_match.second.value));
 		}
 		if(tag.size() != 3)
-			log_to_console(state, parent, "You need to use \xA7Ytags\xA7W (3-letters) instead of the full name");
+			log_to_console(state, parent, "You need to use ?Ytags?W (3-letters) instead of the full name");
 		else
 			log_to_console(state, parent, "Is this what you meant?");
 	}
@@ -453,34 +457,40 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	ui::edit_box_element_base::render(state, x, y);
 
 	auto font_handle = base_data.data.text.font_handle;
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
 	// Render the suggestions given (after the inputted text obv)
-	float x_offs = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
-	if(lhs_suggestion.glyph_count > 0) {
-		ogl::render_text(state, lhs_suggestion, ogl::color_modification::none,
-			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
-		x_offs += font.text_extent(state, lhs_suggestion, 0, lhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
+
+	float x_offs = 0;
+	for(auto& t : internal_layout.contents) {
+		x_offs = std::max(x_offs, t.x + t.width);
 	}
-	if(rhs_suggestion.glyph_count > 0) {
+
+	if(lhs_suggestion.glyph_info.size() > 0) {
+		ogl::render_text(state, lhs_suggestion, ogl::color_modification::none,
+			float(x + base_data.data.text.border_size.x) + x_offs, float(y + base_data.data.text.border_size.y),
+			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
+		x_offs += state.font_collection.text_extent(state, lhs_suggestion, 0, uint32_t(lhs_suggestion.glyph_info.size()), font_handle);
+	}
+	if(rhs_suggestion.glyph_info.size() > 0) {
 		// Place text right before it ends (centered right)
 		x_offs = float(base_data.size.x);
 		x_offs -= 24.f;
-		x_offs -= font.text_extent(state, rhs_suggestion, 0, rhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
+		x_offs -= state.font_collection.text_extent(state, rhs_suggestion, 0, uint32_t(rhs_suggestion.glyph_info.size()), font_handle);
 		ogl::render_text(state, rhs_suggestion, ogl::color_modification::none,
-			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+			float(x + base_data.data.text.border_size.x) + x_offs, float(y + base_data.data.text.border_size.y),
 			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 	}
+	
 }
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
-	lhs_suggestion.base_text.clear();
-	rhs_suggestion.base_text.clear();
+	lhs_suggestion.glyph_info.clear();
+	rhs_suggestion.glyph_info.clear();
 	if(s.empty())
 		return;
 
 	auto font_handle = base_data.data.text.font_handle;
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
 
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
@@ -501,8 +511,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 		}
 		// Only suggest the "unfinished" part of the command and provide a brief description of it
 		if(closest_match.second->name.length() > s.length())
-			lhs_suggestion.set_text(std::string(closest_match.second->name.substr(s.length())), font);
-		rhs_suggestion.set_text(std::string(closest_match.second->desc), font);
+			lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(closest_match.second->name.substr(s.length())));
+		rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(closest_match.second->desc));
 	} else {
 		// Specific suggestions for each command
 		if(s.starts_with("tag") && pos + 1 < s.size()) {
@@ -529,14 +539,14 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 				if(tag.size() < name.size()) {
-					lhs_suggestion.set_text(name.substr(tag.size()), font);
+					lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), name.substr(tag.size()));
 				}
-				rhs_suggestion.set_text(std::string(name) + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid)), font);
+				rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(name) + "-" + text::produce_simple_string(state, text::get_name(state, nid)));
 			} else {
 				if(tag.size() == 1)
-					rhs_suggestion.set_text(tag + "?? - ???", font);
+					rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), tag + "?? - ???");
 				else if(tag.size() == 2)
-					rhs_suggestion.set_text(tag + "? - ???", font);
+					rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), tag + "? - ???");
 			}
 		} else if(s.starts_with("innovate") && pos + 1 < s.size()) {
 			std::string inputted = std::string(s.substr(pos + 1));
@@ -563,9 +573,9 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				if(inputted.size() < name.size()) {
 					std::string canon_name = name;
 					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return char(c == ' ' ? '_' : c); });
-					lhs_suggestion.set_text(std::string(canon_name.substr(inputted.size())), font);
+					lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(canon_name.substr(inputted.size())));
 				}
-				rhs_suggestion.set_text(name, font);
+				rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), name);
 			}
 		}
 	}
@@ -623,7 +633,7 @@ void ui::console_edit::edit_box_down(sys::state& state) noexcept {
 template<typename F>
 void write_single_component(sys::state& state, native_string_view filename, F&& func) {
 	auto sdir = simple_fs::get_or_create_oos_directory();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(state)]);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(state).total_size]);
 	auto buffer_position = func(buffer.get(), state);
 	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
 	simple_fs::write_file(sdir, filename, reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
@@ -647,7 +657,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			continue;
 		if(pstate.cmd.args[i].mode == command_info::argument_info::type::text) {
 			if(!std::holds_alternative<std::string>(pstate.arg_slots[i])) {
-				log_to_console(state, parent, "Command requires a \xA7Ytext\xA7W argument at " + std::to_string(i));
+				log_to_console(state, parent, "Command requires a ?Ytext?W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
 				edit_box_update(state, s);
@@ -655,7 +665,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::tag) {
 			if(!std::holds_alternative<std::string>(pstate.arg_slots[i])) {
-				log_to_console(state, parent, "Command requires a \xA7Ytag\xA7W argument at " + std::to_string(i));
+				log_to_console(state, parent, "Command requires a ?Ytag?W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
 				edit_box_update(state, s);
@@ -663,7 +673,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric) {
 			if(!std::holds_alternative<int32_t>(pstate.arg_slots[i])) {
-				log_to_console(state, parent, "Command requires a \xA7Ynumeric\xA7W argument at " + std::to_string(i));
+				log_to_console(state, parent, "Command requires a ?Ynumeric?W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
 				edit_box_update(state, s);
@@ -725,26 +735,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			if(tag.size() == 3) {
 				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 				log_to_console(state, parent,
-						"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
-								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
+						"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"?Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "?W\" (?Y" +
+								text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "?W) Id #" +
 								std::to_string(closest_tag_match.second.value));
 			} else {
 				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
 				log_to_console(state, parent,
-						"Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
-								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
+						"Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"?Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "?W\" (?Y" +
+								text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "?W) Id #" +
 								std::to_string(closest_name_match.second.value));
 			}
 
 			if(tag.size() != 3)
-				log_to_console(state, parent, "You need to use \xA7Ytags\xA7W (3-letters) instead of the full name");
+				log_to_console(state, parent, "You need to use ?Ytags?W (3-letters) instead of the full name");
 			else
 				log_to_console(state, parent, "Is this what you meant?");
 		} else {
 			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 			if(bool(nid)) {
 				command::c_switch_nation(state, state.local_player_nation, nid);
-				log_to_console(state, parent, "Switching to @" + std::string(tag) + " \xA7Y" + std::string(tag) + "\xA7W");
+				log_to_console(state, parent, "Switching to @" + std::string(tag) + " ?Y" + std::string(tag) + "?W");
 				state.game_state_updated.store(true, std::memory_order::release);
 			}
 		}
@@ -753,19 +763,18 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::help:
 	{
 		auto log_command_info = [&](auto cmd) {
-			std::string text = "\x95"
-				"\xA7Y" +
-				std::string(cmd.name) + "\xA7W ";
+			std::string text = 
+				"• ?Y" + std::string(cmd.name) + "?! ";
 			for(const auto& arg : cmd.args)
 				if(arg.mode != command_info::argument_info::type::none) {
 					if(arg.optional)
-						text += "\xA7Y[(optional)\xA7W" + std::string(arg.name) + "] ";
+						text += "?Y[(optional)?!" + std::string(arg.name) + "] ";
 					else
-						text += "\xA7G(" + std::string(arg.name) + ")\xA7W ";
+						text += "?G(" + std::string(arg.name) + ")?! ";
 				}
 			text += "- " + std::string(cmd.desc);
 			log_to_console(state, parent, text);
-			};
+		};
 		if(std::holds_alternative<std::string>(pstate.arg_slots[0])) {
 			auto cmd_name = std::get<std::string>(pstate.arg_slots[0]);
 			bool found = false;
@@ -787,10 +796,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 						closest_match.second = cmd;
 					}
 				}
-				log_to_console(state, parent,
-						"Did you mean \xA7Y" + std::string(closest_match.second.name) + "\xA7W (" + std::string(closest_match.second.desc) +
-								")"
-								"?");
+				log_to_console(state, parent, "Did you mean ?Y" + std::string(closest_match.second.name) + "?! (" + std::string(closest_match.second.desc) + ")?");
 			}
 		} else {
 			log_to_console(state, parent, "Here's some helpful commands ^-^");
@@ -838,380 +844,233 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			v |= uint8_t(flags::all);
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"National Identities\xA7W: " +
-							std::to_string(state.world.national_identity_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Political Parties\xA7W: " +
-							std::to_string(state.world.political_party_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Religions\xA7W: " +
-							std::to_string(state.world.religion_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Culture Groups\xA7W: " +
-							std::to_string(state.world.culture_group_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Cultures\xA7W: " +
-							std::to_string(state.world.culture_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Culture Group Memberships\xA7W: " +
-							std::to_string(state.world.culture_group_membership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Cultural Unions (Of)\xA7W: " +
-							std::to_string(state.world.cultural_union_of_size()));
+			log_to_console(state, parent, "?YNational Identities?W: " + std::to_string(state.world.national_identity_size()));
+			log_to_console(state, parent, "?YPolitical Parties?W: " + std::to_string(state.world.political_party_size()));
+			log_to_console(state, parent, "?YReligions?W: " + std::to_string(state.world.religion_size()));
+			log_to_console(state, parent, "?YCulture Groups?W: " + std::to_string(state.world.culture_group_size()));
+			log_to_console(state, parent, "?YCultures?W: " + std::to_string(state.world.culture_size()));
+			log_to_console(state, parent, "?YCulture Group Memberships?W: " + std::to_string(state.world.culture_group_membership_size()));
+			log_to_console(state, parent, "?YCultural Unions (Of)?W: " + std::to_string(state.world.cultural_union_of_size()));
 		}
 		if((v & uint8_t(flags::economy)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Commodities\xA7W: " +
-							std::to_string(state.world.commodity_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Modifiers\xA7W: " +
-							std::to_string(state.world.modifier_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Factory Types\xA7W: " +
-							std::to_string(state.world.factory_type_size()));
+			log_to_console(state, parent, "?YCommodities?W: " + std::to_string(state.world.commodity_size()));
+			log_to_console(state, parent, "?YModifiers?W: " + std::to_string(state.world.modifier_size()));
+			log_to_console(state, parent, "?YFactory Types?W: " + std::to_string(state.world.factory_type_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Ideology Groups\xA7W: " +
-							std::to_string(state.world.ideology_group_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Ideologies\xA7W: " +
-							std::to_string(state.world.ideology_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Ideology Group Memberships\xA7W: " +
-							std::to_string(state.world.ideology_group_membership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Issues\xA7W: " +
-							std::to_string(state.world.issue_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Issue Options\xA7W: " +
-							std::to_string(state.world.issue_option_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Reforms\xA7W: " +
-							std::to_string(state.world.reform_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Reform Options\xA7W: " +
-							std::to_string(state.world.reform_option_size()));
+			log_to_console(state, parent, "?YIdeology Groups?W: " + std::to_string(state.world.ideology_group_size()));
+			log_to_console(state, parent, "?YIdeologies?W: " + std::to_string(state.world.ideology_size()));
+			log_to_console(state, parent, "?YIdeology Group Memberships?W: " + std::to_string(state.world.ideology_group_membership_size()));
+			log_to_console(state, parent, "?YIssues?W: " + std::to_string(state.world.issue_size()));
+			log_to_console(state, parent, "?YIssue Options?W: " + std::to_string(state.world.issue_option_size()));
+			log_to_console(state, parent, "?YReforms?W: " + std::to_string(state.world.reform_size()));
+			log_to_console(state, parent, "?YReform Options?W: " + std::to_string(state.world.reform_option_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"CB Types\xA7W: " +
-							std::to_string(state.world.cb_type_size()));
+			log_to_console(state, parent, "?YCB Types?W: " + std::to_string(state.world.cb_type_size()));
 		}
 		if((v & uint8_t(flags::military)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Leader Traits\xA7W: " +
-							std::to_string(state.world.leader_trait_size()));
+			log_to_console(state, parent, "?YLeader Traits?W: " + std::to_string(state.world.leader_trait_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Pop Types\xA7W: " +
-							std::to_string(state.world.pop_type_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Rebel Types\xA7W: " +
-							std::to_string(state.world.rebel_type_size()));
+			log_to_console(state, parent, "?YPop Types?W: " + std::to_string(state.world.pop_type_size()));
+			log_to_console(state, parent, "?YRebel Types?W: " + std::to_string(state.world.rebel_type_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Provinces\xA7W: " +
-							std::to_string(state.world.province_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Province Adjacenciess\xA7W: " +
-							std::to_string(state.world.province_adjacency_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Nation Adjacencies\xA7W: " +
-							std::to_string(state.world.nation_adjacency_size()));
+			log_to_console(state, parent, "?YProvinces?W: " + std::to_string(state.world.province_size()));
+			log_to_console(state, parent, "?YProvince Adjacenciess?W: " + std::to_string(state.world.province_adjacency_size()));
+			log_to_console(state, parent, "?YNation Adjacencies?W: " + std::to_string(state.world.nation_adjacency_size()));
 		}
 		if((v & uint8_t(flags::military)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Regiments\xA7W: " +
-							std::to_string(state.world.regiment_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Ships\xA7W: " +
-							std::to_string(state.world.ship_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Armies\xA7W: " +
-							std::to_string(state.world.army_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Navies\xA7W: " +
-							std::to_string(state.world.navy_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Army Controls\xA7W: " +
-							std::to_string(state.world.army_control_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Army Locations\xA7W: " +
-							std::to_string(state.world.army_location_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Army Memberships\xA7W: " +
-							std::to_string(state.world.army_membership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Regiment Sources\xA7W: " +
-							std::to_string(state.world.regiment_source_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Navy Controls\xA7W: " +
-							std::to_string(state.world.navy_control_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Navy Locations\xA7W: " +
-							std::to_string(state.world.navy_location_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Navy Memberships\xA7W: " +
-							std::to_string(state.world.navy_membership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Leaders\xA7W: " +
-							std::to_string(state.world.leader_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Army Leadership (leader<->army)\xA7W: " +
-							std::to_string(state.world.army_leadership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Navy Leadership (leader<->navy)\xA7W: " +
-							std::to_string(state.world.navy_leadership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Leader Loyalties (leader<->nation membership)\xA7W: " +
-							std::to_string(state.world.leader_loyalty_size()));
+			log_to_console(state, parent, "?YRegiments?W: " + std::to_string(state.world.regiment_size()));
+			log_to_console(state, parent, "?YShips?W: " + std::to_string(state.world.ship_size()));
+			log_to_console(state, parent, "?YArmies?W: " + std::to_string(state.world.army_size()));
+			log_to_console(state, parent, "?YNavies?W: " + std::to_string(state.world.navy_size()));
+			log_to_console(state, parent, "?YArmy Controls?W: " + std::to_string(state.world.army_control_size()));
+			log_to_console(state, parent, "?YArmy Locations?W: " + std::to_string(state.world.army_location_size()));
+			log_to_console(state, parent, "?YArmy Memberships?W: " + std::to_string(state.world.army_membership_size()));
+			log_to_console(state, parent, "?YRegiment Sources?W: " + std::to_string(state.world.regiment_source_size()));
+			log_to_console(state, parent, "?YNavy Controls?W: " + std::to_string(state.world.navy_control_size()));
+			log_to_console(state, parent, "?YNavy Locations?W: " + std::to_string(state.world.navy_location_size()));
+			log_to_console(state, parent, "?YNavy Memberships?W: " + std::to_string(state.world.navy_membership_size()));
+			log_to_console(state, parent, "?YLeaders?W: " + std::to_string(state.world.leader_size()));
+			log_to_console(state, parent, "?YArmy Leadership (leader<->army)?W: " + std::to_string(state.world.army_leadership_size()));
+			log_to_console(state, parent, "?YNavy Leadership (leader<->navy)?W: " + std::to_string(state.world.navy_leadership_size()));
+			log_to_console(state, parent, "?YLeader Loyalties (leader<->nation membership)?W: " + std::to_string(state.world.leader_loyalty_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Wars\xA7W: " +
-							std::to_string(state.world.war_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Wargoals\xA7W: " +
-							std::to_string(state.world.wargoal_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"War Participants\xA7W: " +
-							std::to_string(state.world.war_participant_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Wargoals Attached (wargoal<->war)\xA7W: " +
-							std::to_string(state.world.wargoals_attached_size()));
+			log_to_console(state, parent, "?YWars?W: " + std::to_string(state.world.war_size()));
+			log_to_console(state, parent, "?YWargoals?W: " + std::to_string(state.world.wargoal_size()));
+			log_to_console(state, parent, "?YWar Participants?W: " + std::to_string(state.world.war_participant_size()));
+			log_to_console(state, parent, "?YWargoals Attached (wargoal<->war)?W: " + std::to_string(state.world.wargoals_attached_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"State Definitions\xA7W: " +
+					"?Y"
+					"State Definitions?W: " +
 							std::to_string(state.world.state_definition_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"State Instances\xA7W: " +
+					"?Y"
+					"State Instances?W: " +
 							std::to_string(state.world.state_instance_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Colonizations\xA7W: " +
+					"?Y"
+					"Colonizations?W: " +
 							std::to_string(state.world.colonization_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"State Ownerships\xA7W: " +
-							std::to_string(state.world.state_ownership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Abstract State Memberships\xA7W: " +
-							std::to_string(state.world.abstract_state_membership_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Cores\xA7W: " +
-							std::to_string(state.world.core_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Identity Holders\xA7W: " +
-							std::to_string(state.world.identity_holder_size()));
+			log_to_console(state, parent, "?YState Ownerships?W: " + std::to_string(state.world.state_ownership_size()));
+			log_to_console(state, parent, "?YAbstract State Memberships?W: " + std::to_string(state.world.abstract_state_membership_size()));
+			log_to_console(state, parent, "?YCores?W: " + std::to_string(state.world.core_size()));
+			log_to_console(state, parent, "?YIdentity Holders?W: " + std::to_string(state.world.identity_holder_size()));
 		}
 		if((v & uint8_t(flags::technology)) != 0) {
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Technologies\xA7W: " +
-							std::to_string(state.world.technology_size()));
-			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Inventions\xA7W: " +
-							std::to_string(state.world.invention_size()));
+			log_to_console(state, parent, "?YTechnologies?W: " + std::to_string(state.world.technology_size()));
+			log_to_console(state, parent, "?YInventions?W: " + std::to_string(state.world.invention_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Nations\xA7W: " +
+					"?Y"
+					"Nations?W: " +
 							std::to_string(state.world.nation_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Diplomatic Relations\xA7W: " +
+					"?Y"
+					"Diplomatic Relations?W: " +
 							std::to_string(state.world.diplomatic_relation_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Unilateral Relationships\xA7W: " +
+					"?Y"
+					"Unilateral Relationships?W: " +
 							std::to_string(state.world.unilateral_relationship_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"GP Relationships\xA7W: " +
+					"?Y"
+					"GP Relationships?W: " +
 							std::to_string(state.world.gp_relationship_size()));
 		}
 		if((v & uint8_t(flags::economy)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Factories\xA7W: " +
+					"?Y"
+					"Factories?W: " +
 							std::to_string(state.world.factory_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Factory Locations\xA7W: " +
+					"?Y"
+					"Factory Locations?W: " +
 							std::to_string(state.world.factory_location_size()));
 		}
 		if((v & uint8_t(flags::politics)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Province Ownerships\xA7W: " +
+					"?Y"
+					"Province Ownerships?W: " +
 							std::to_string(state.world.province_ownership_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Province Controls\xA7W: " +
+					"?Y"
+					"Province Controls?W: " +
 							std::to_string(state.world.province_control_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Province Rebel Controls\xA7W: " +
+					"?Y"
+					"Province Rebel Controls?W: " +
 							std::to_string(state.world.province_rebel_control_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Overlords\xA7W: " +
+					"?Y"
+					"Overlords?W: " +
 							std::to_string(state.world.overlord_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Rebel Factions\xA7W: " +
+					"?Y"
+					"Rebel Factions?W: " +
 							std::to_string(state.world.rebel_faction_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Rebellions Within\xA7W: " +
+					"?Y"
+					"Rebellions Within?W: " +
 							std::to_string(state.world.rebellion_within_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Movements\xA7W: " +
+					"?Y"
+					"Movements?W: " +
 							std::to_string(state.world.movement_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Movements Within\xA7W: " +
+					"?Y"
+					"Movements Within?W: " +
 							std::to_string(state.world.movement_within_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Pop Movement Memberships\xA7W: " +
+					"?Y"
+					"Pop Movement Memberships?W: " +
 							std::to_string(state.world.pop_movement_membership_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Pop Rebellion Memberships\xA7W: " +
+					"?Y"
+					"Pop Rebellion Memberships?W: " +
 							std::to_string(state.world.pop_rebellion_membership_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Pops\xA7W: " +
+					"?Y"
+					"Pops?W: " +
 							std::to_string(state.world.pop_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Pop Locations\xA7W: " +
+					"?Y"
+					"Pop Locations?W: " +
 							std::to_string(state.world.pop_location_size()));
 		}
 		if((v & uint8_t(flags::events)) != 0) {
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"National Events\xA7W: " +
+					"?Y"
+					"National Events?W: " +
 							std::to_string(state.world.national_event_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Provincial Events\xA7W: " +
+					"?Y"
+					"Provincial Events?W: " +
 							std::to_string(state.world.provincial_event_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Free National Events\xA7W: " +
+					"?Y"
+					"Free National Events?W: " +
 							std::to_string(state.world.free_national_event_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Free Provincial Events\xA7W: " +
+					"?Y"
+					"Free Provincial Events?W: " +
 							std::to_string(state.world.free_provincial_event_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"National Focuses\xA7W: " +
+					"?Y"
+					"National Focuses?W: " +
 							std::to_string(state.world.national_focus_size()));
 			log_to_console(state, parent,
-					"\x95\xA7Y"
-					"Decisions\xA7W: " +
+					"?Y"
+					"Decisions?W: " +
 							std::to_string(state.world.decision_size()));
 		}
 	} break;
 	case command_info::type::colour_guide:
 		log_to_console(state, parent,
-				"\xA7G"
-				"\\xA7Y for Green.");
+				"?G"
+				"\?Y for Green.");
 		log_to_console(state, parent,
-				"\xA7R"
-				"\\xA7Y for Red.");
+				"?R"
+				"\?Y for Red.");
 		log_to_console(state, parent,
-				"\xA7Y"
-				"\\xA7Y for Yellow.");
+				"?Y"
+				"\?Y for Yellow.");
 		log_to_console(state, parent,
-				"\xA7O"
-				"\\xA7Y for Orange.");
+				"?O"
+				"\?Y for Orange.");
 		log_to_console(state, parent,
-				"\xA7"
+				"?"
 				"B"
-				"\\xA7B for Blue.");
+				"\?B for Blue.");
 		log_to_console(state, parent,
-				"\xA7g"
-				"\\xA7g for Dark blue (*originally grey).");
+				"?g"
+				"\?g for Dark blue (*originally grey).");
 		log_to_console(state, parent,
-				"\xA7!"
-				"\\xA7! for reseting to default.");
+				"?!"
+				"\?! for reseting to default.");
 		log_to_console(state, parent,
-				"\xA7W"
-				"\\xA7b for Black.");
+				"?W"
+				"\?b for Black.");
 		log_to_console(state, parent,
-				"\xA7W"
-				"\\xA7W for White.");
+				"?W"
+				"\?W for White.");
 		log_to_console(state, parent,
-				"\xA7L"
-				"\\xA7L for Lilac.");
+				"?L"
+				"\?L for Lilac.");
 		log_to_console(state, parent,
-				"\xA7RRed\xA7GGreen\xA7"
+				"?RRed?GGreen?"
 				"B"
 				"Blue");
 		break;
@@ -1279,9 +1138,10 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	break;
 	case command_info::type::dump_tooltip:
 	{
+		/*
 		std::string out_text = "#Tooltip data\n";
 		if(state.ui_state.last_tooltip) {
-			auto container = text::create_columnar_layout(state.ui_state.tooltip->internal_layout,
+			auto container = text::create_columnar_layout(state, state.ui_state.tooltip->internal_layout,
 				text::layout_parameters{ 16, 16, 32762, 32762, state.ui_state.tooltip_font, 0,
 				text::alignment::left, text::text_color::white, true }, 10);
 			state.ui_state.last_tooltip->update_tooltip(state, 0, 0, container);
@@ -1299,6 +1159,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
+		*/
 	}
 	break;
 	case command_info::type::dump_tags_and_provinces_csv:
@@ -1310,180 +1171,180 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			out_text += tag + "_ADJ" + ";" + text::produce_simple_string(state, nid.get_adjective()) + "\n";
 		}
 		for(const auto p : state.world.in_province) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == p.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == p.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("pandn_localisations.txt"), out_text.c_str(), uint32_t(out_text.size()));
 		//reset csv
 		out_text = "\n";
 		for(const auto t : state.world.in_technology) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("technologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_invention) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("inventions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_ideology) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("ideologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_issue_option) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
-					out_text += "movement_" + std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_movement_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+			//		out_text += "movement_" + std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_movement_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("issue_options.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_issue) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("issues.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_culture) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("cultures.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_religion) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("religions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_government_type) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("government_type.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_decision) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_description()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("decisions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_national_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		for(const auto t : state.world.in_free_national_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		for(const auto t : state.world.in_provincial_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		for(const auto t : state.world.in_free_provincial_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("events.csv"), out_text.c_str(), uint32_t(out_text.size()));
 	}
@@ -1728,7 +1589,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto const n = state.local_player_nation;
 		log_to_console(state, parent, "Owned provinces: " + std::to_string(state.world.nation_get_owned_province_count(n)));
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(state.world.nation_get_owned_province_count(n) != 0));
+		log_to_console(state, parent, state.world.nation_get_owned_province_count(n) != 0 ? "@(T)" : "@(F)");
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
@@ -1948,18 +1809,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			ptr_in = sys::serialize(ptr_in, state.value_modifiers);
 			return ptr_in;
 		});
-		write_single_component(state, NATIVE("text_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.text_data);
-			return ptr_in;
-		});
-		write_single_component(state, NATIVE("text_components.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.text_components);
-			return ptr_in;
-		});
-		write_single_component(state, NATIVE("key_to_text_sequence.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.key_to_text_sequence);
-			return ptr_in;
-		});
 		write_single_component(state, NATIVE("ui_defs_gfx.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.ui_defs.gfx);
 			return ptr_in;
@@ -1990,23 +1839,23 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			command::c_toggle_ai(state, state.local_player_nation, n);
 		break;
 	case command_info::type::always_allow_wargoals:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_wargoals));
+		log_to_console(state, parent, state.cheat_data.always_allow_wargoals ? "@(T)" : "@(F)");
 		command::c_always_allow_wargoals(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_reforms:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_reforms));
+		log_to_console(state, parent, state.cheat_data.always_allow_reforms ? "@(T)" : "@(F)");
 		command::c_always_allow_reforms(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_decisions:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_decisions));
+		log_to_console(state, parent, state.cheat_data.always_allow_decisions? "@(T)" : "@(F)" );
 		command::c_always_allow_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_potential_decisions:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_potential_decisions));
+		log_to_console(state, parent, state.cheat_data.always_potential_decisions ? "@(T)" : "@(F)");
 		command::c_always_potential_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_accept_deals));
+		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "@(T)" : "@(F)");
 		command::c_always_accept_deals(state, state.local_player_nation);
 		break;
 	case command_info::type::set_auto_choice_all:
@@ -2025,16 +1874,16 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				has_us = true;
 				break;
 			}
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!has_us));
+		log_to_console(state, parent, has_us ? "@(T)" : "@(F)");
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
 		log_to_console(state, parent, std::string("Great Wars: "));
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.military_definitions.great_wars_enabled));
+		log_to_console(state, parent, state.military_definitions.great_wars_enabled ? "@(T)" : "@(F)");
 		log_to_console(state, parent, std::string("World Wars: "));
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.military_definitions.world_wars_enabled));
+		log_to_console(state, parent, state.military_definitions.world_wars_enabled ? "@(T)" : "@(F)");
 		break;
 	case command_info::type::spectate:
 		command::c_switch_nation(state, state.local_player_nation, state.national_definitions.rebel_id);
@@ -2130,6 +1979,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		log_to_console(state, parent, !state.cheat_data.instant_industry ? "✔" : "✘");
 		command::c_instant_industry(state, state.local_player_nation);
+		break;
+	}
+	case command_info::type::add_year:
+	{
+		auto years = std::get<std::int32_t>(pstate.arg_slots[0]);
+		command::c_add_year(state, state.local_player_nation, years);
 		break;
 	}
 	case command_info::type::daily_oos_check:
@@ -2347,35 +2202,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	Cyto::Any payload = this;
 	impl_get(state, payload);
 	edit_box_update(state, s);
-}
-
-void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ui::simple_text_element_base::render(state, x, y);
-	/*
-	float x_offs = 0.f;
-	if(stored_text.glyph_count > 0) {
-		auto text_color = text::text_color::white;
-		for(char const* start_text = stored_text.data(); start_text < stored_text.data() + stored_text.length();) {
-			char const* end_text = start_text;
-			for(; *end_text && *end_text != '\xA7'; ++end_text)
-				;
-			std::string_view text(start_text, end_text);
-			if(!text.empty()) {
-				std::string tmp_text{ text };
-				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none,
-						float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(state, text_color),
-						base_data.data.button.font_handle);
-				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()),
-						base_data.data.text.font_handle);
-			}
-			if(uint8_t(*end_text) == 0xA7) {
-				text_color = text::char_to_color(*++end_text); // Skip escape, then read colour
-				++end_text;																		 // Skip colour
-			}
-			start_text = end_text;
-		}
-	}
-	*/
 }
 
 void ui::console_edit::edit_box_esc(sys::state& state) noexcept {

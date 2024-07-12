@@ -190,6 +190,7 @@ struct data {
 	tagged_vector<texture, dcon::texture_id> asset_textures;
 
 	void* context = nullptr;
+	bool legacy_mode = false;
 	GLuint ui_shader_program = 0;
 
 	GLuint global_square_vao = 0;
@@ -199,6 +200,13 @@ struct data {
 	GLuint global_square_flipped_buffer = 0;
 	GLuint global_square_right_flipped_buffer = 0;
 	GLuint global_square_left_flipped_buffer = 0;
+
+	GLuint global_rtl_square_buffer = 0;
+	GLuint global_rtl_square_right_buffer = 0;
+	GLuint global_rtl_square_left_buffer = 0;
+	GLuint global_rtl_square_flipped_buffer = 0;
+	GLuint global_rtl_square_right_flipped_buffer = 0;
+	GLuint global_rtl_square_left_flipped_buffer = 0;
 
 	GLuint sub_square_buffers[64] = {0};
 
@@ -266,31 +274,33 @@ public:
 	void set_y(float* v);
 	void bind_buffer();
 };
-
+void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped);
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		GLuint texture_handle, ui::rotation r, bool flipped);
+		GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, lines& l);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, lines& l);
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		data_texture& t, ui::rotation r, bool flipped);
+		data_texture& t, ui::rotation r, bool flipped, bool rtl);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
-		float height, GLuint texture_handle, ui::rotation r, bool flipped);
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped);
+		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width,
-		float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped);
+		float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b,
-		GLuint texture_handle, ui::rotation rot, bool flipped);
+		GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
 void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y,
-		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
+		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
-		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped);
+		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
 void render_new_text(sys::state const& state, text::stored_glyphs const& txt, color_modification enabled, float x,
 		float y, float size, color3f const& c, text::font& f);
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id);
+void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
+void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 
 bool msaa_enabled(sys::state const& state);
 void initialize_msaa(sys::state& state, int32_t x, int32_t y);

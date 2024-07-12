@@ -42,19 +42,18 @@ namespace ui {
 void create_in_game_windows(sys::state& state) {
 	state.ui_state.lazy_load_in_game = true;
 
-	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
+	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_grid_panel"))->second.definition);
 	state.ui_state.unit_details_box->set_visible(state, false);
 	//
-	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find("alice_select_legend_window")->second.definition);
+	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
 	state.ui_state.end_screen = std::make_unique<ui::container_base>();
 	{
-		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find("back_end")->second.definition);
+		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("back_end"))->second.definition);
 		state.ui_state.end_screen->add_child_to_front(std::move(ewin));
 	}
 	{
-		auto window = ui::make_element_by_type<ui::console_window>(state, "console_wnd");
+		auto window = ui::make_element_by_type<ui::console_window>(state, "alice_console_window");
 		state.ui_state.console_window = window.get();
-		window->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(window));
 	}
 	state.world.for_each_province([&](dcon::province_id id) {
@@ -270,6 +269,20 @@ void state::state_select(dcon::state_definition_id sdef) {
 		}
 	}
 	map_state.update(*this);
+}
+
+ui::element_base* state::get_root_element() {
+	switch(mode) {
+	case sys::game_mode_type::end_screen:
+	default:
+		return ui_state.end_screen.get();
+	case sys::game_mode_type::pick_nation:
+		return ui_state.nation_picker.get();
+	case sys::game_mode_type::select_states:
+		return ui_state.select_states_legend.get();
+	case sys::game_mode_type::in_game:
+		return ui_state.root.get();
+	}
 }
 
 //
@@ -569,8 +582,8 @@ void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called w
 	is_dragging = true;
 	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
-				int32_t(y / user_settings.ui_scale), mod);
+			int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
+			int32_t(y / user_settings.ui_scale), mod);
 	}
 }
 void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
@@ -591,7 +604,14 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		}
 	}
 }
+
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
+	//update en demand
+	ui::element_base* root_elm = get_root_element();
+	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
+		int32_t(mouse_x_position / user_settings.ui_scale),
+		int32_t(mouse_y_position / user_settings.ui_scale),
+		ui::mouse_probe_type::scroll).under_mouse;
 
 	auto belongs_on_map = [&](ui::element_base* b) {
 		while(b != nullptr) {
@@ -602,11 +622,10 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 			b = b->parent;
 		}
 		return false;
-		};
+	};
 
 	if(ui_state.scroll_target != nullptr) {
-		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
-				amount, mod);
+		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 	} else if(ui_state.under_mouse == nullptr || belongs_on_map(ui_state.under_mouse)) {
 		map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 
@@ -639,8 +658,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			if(keycode == virtual_key::ESCAPE) {
 				ui::show_main_menu(*this);
 			} else if(keycode == virtual_key::TAB) {
-				ui_state.r_chat_window->set_visible(*this, !ui_state.r_chat_window->is_visible());
-				ui_state.root->move_child_to_front(ui_state.r_chat_window);
+				ui::open_chat_window(*this);
 			}
 
 			map_state.on_key_down(keycode, mod);
@@ -683,8 +701,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 					map_state.center_map_on_province(*this, cap);
 				}
 			} else if(keycode == virtual_key::TAB) {
-				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
-				ui_state.root->move_child_to_front(ui_state.chat_window);
+				ui::open_chat_window(*this);
 			} else if(keycode == virtual_key::NUMPAD1 || keycode == virtual_key::NUM_1) {
 				ctrl_group = 1;
 			} else if(keycode == virtual_key::NUMPAD2 || keycode == virtual_key::NUM_2) {
@@ -859,21 +876,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	ui::element_base* root_elm = nullptr;
-	switch(mode) {
-	case sys::game_mode_type::end_screen:
-		root_elm = ui_state.end_screen.get();
-		break;
-	case sys::game_mode_type::pick_nation:
-		root_elm = ui_state.nation_picker.get();
-		break;
-	case sys::game_mode_type::select_states:
-		root_elm = ui_state.select_states_legend.get();
-		break;
-	case sys::game_mode_type::in_game:
-		root_elm = ui_state.root.get();
-		break;
-	}
+	ui::element_base* root_elm = get_root_element();
 
 	root_elm->base_data.size.x = ui_state.root->base_data.size.x;
 	root_elm->base_data.size.y = ui_state.root->base_data.size.y;
@@ -886,7 +889,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
-			if(ui_state.unit_details_box->is_visible()) {
+			if(ui_state.unit_details_box && ui_state.unit_details_box->is_visible()) {
 				mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 					int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
 					int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
@@ -1168,7 +1171,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c7) {
 				if(ui_state.endof_navalcombat_windows.size() == 0) {
 					ui_state.endof_navalcombat_windows.push_back(ui::make_element_by_type<ui::naval_combat_end_popup>(*this,
-						ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition));
+						ui_state.defs_by_name.find(lookup_key("endofnavalcombatpopup"))->second.definition));
 				}
 				//static_cast<ui::naval_combat_window*>(ui_state.navalcombat_windows.back().get())->messages.push_back(*c7);
 				static_cast<ui::naval_combat_end_popup*>(ui_state.endof_navalcombat_windows.back().get())->report = *c7;
@@ -1236,16 +1239,28 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
 								text::text_color::white, true },
 							10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+					container.used_width = -container.used_width;
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16 + container.used_width;
+						t.y += 16;
+					}
+				} else {
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16;
+						t.y += 16;
+					}
+				}
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1263,14 +1278,26 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
-				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 0, 0, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 					text::alignment::left, text::text_color::white, true }, 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+					container.used_width = -container.used_width;
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16 + container.used_width;
+						t.y += 16;
+					}
+				} else {
+					for(auto& t : container.base_layout.contents) {
+						t.x += 16;
+						t.y += 16;
+					}
+				}
+				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1282,13 +1309,25 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, false);
 		}
 	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-			text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+		auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+			text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 			text::alignment::left, text::text_color::white, true }, 10);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+		if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+			container.used_width = -container.used_width;
+			for(auto& t : container.base_layout.contents) {
+				t.x += 16 + container.used_width;
+				t.y += 16;
+			}
+		} else {
+			for(auto& t : container.base_layout.contents) {
+				t.x += 16;
+				t.y += 16;
+			}
+		}
+		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 		if(container.used_width > 0)
 			ui_state.tooltip->set_visible(*this, true);
 		else
@@ -1297,7 +1336,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
-		auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+		auto target_location = ui::get_absolute_location(*this, *ui_state.last_tooltip);
 		if(ui_state.tooltip->base_data.size.y <= root_elm->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
@@ -1369,12 +1408,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		}
 		if(prov) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
+			auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 0, 0, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
 				20);
 			ui::populate_map_tooltip(*this, container, prov);
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.native_rtl == text::layout_base::rtl_status::rtl) {
+				container.used_width = -container.used_width;
+				for(auto& t : container.base_layout.contents) {
+					t.x += 16 + container.used_width;
+					t.y += 16;
+				}
+			} else {
+				for(auto& t : container.base_layout.contents) {
+					t.x += 16;
+					t.y += 16;
+				}
+			}
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
 			if(container.used_width > 0) {
 				// This block positions the tooltip somewhat under the province centroid
 				auto mid_point = world.province_get_mid_point(prov);
@@ -1404,18 +1455,19 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(ui_state.bg_gfx_id) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_width, float(x_size));
+		glUniform1f(ogl::parameters::screen_height, float(y_size));
 		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
-		auto& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
+		auto const& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
 				ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-				ui::rotation::upright, gfx_def.is_vertically_flipped());
+				ui::rotation::upright, gfx_def.is_vertically_flipped(),
+				false);
 		}
 	}
 
@@ -1434,15 +1486,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glDepthRange(-1.0f, 1.0f);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
-	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
-		int32_t(mouse_x_position / user_settings.ui_scale),
-		int32_t(mouse_y_position / user_settings.ui_scale),
-		ui::mouse_probe_type::scroll).under_mouse;
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 	if(mode == sys::game_mode_type::in_game) {
-		if(ui_state.tl_chat_list) {
-			ui_state.root->move_child_to_front(ui_state.tl_chat_list);
-		}
 		if(map_state.get_zoom() > map::zoom_close) {
 			if(!ui_state.ctrl_held_down) {
 				if(ui_state.rgos_root && map_state.active_map_mode == map_mode::mode::rgo_output) {
@@ -1510,56 +1555,60 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 void state::on_create() {
 	// Clear "center" property so they don't look messed up!
-	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &=
-		~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("new_factory_option")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	// Allow mobility of those windows who can be moved, and shall be moved
-	ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these
-	// windows are moveable
-	ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("declarewardialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("endoflandcombatpopup")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("ingame_lobby_window")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
+	{
+		static const std::string_view elem_names[] = {
+			"state_info",
+			"production_goods_name",
+			"factory_info",
+			"new_factory_option",
+			"ledger_legend_entry",
+			"project_info",
+		};
+		for(const auto& elem_name : elem_names) {
+			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
+			if(it != ui_state.defs_by_name.end()) {
+				auto& gfx_def = ui_defs.gui[it->second.definition];
+				gfx_def.flags &= ~ui::element_data::orientation_mask;
+			}
+		}
+	}
+	// Allow user to drag some windows, and only the ones that make sense
+	{
+		static const std::string_view elem_names[] = {
+			"pop_details_win",
+			"trade_flow",
+			"event_election_window",
+			"invest_project_window",
+			"ledger",
+			"province_view",
+			"releaseconfirm",
+			"build_factory",
+			"defaultdiplomacydialog",
+			"gpselectdiplomacydialog",
+			"makecbdialog",
+			"declarewardialog",
+			"setuppeacedialog",
+			"setupcrisisbackdowndialog",
+			"endofnavalcombatpopup",
+			"endoflandcombatpopup",
+			"ingame_lobby_window",
+		};
+		for(const auto& elem_name : elem_names) {
+			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
+			if(it != ui_state.defs_by_name.end()) {
+				auto& gfx_def = ui_defs.gui[it->second.definition];
+				if(gfx_def.get_element_type() == ui::element_type::window) {
+					gfx_def.data.window.flags |= ui::window_data::is_moveable_mask;
+				}
+			}
+		}
+	}
 	// Nudge, overriden by V2 to be 0 always
-	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.x = 0;
-	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.y = 0;
-	//}
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
 	// Find the object id for the main_bg displayed (so we display it before the map)
-	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
+	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
 
-	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
+	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find(lookup_key("lobby"))->second.definition);
 	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
 		ui_state.console_window_r = window.get();
@@ -1583,72 +1632,213 @@ void state::on_create() {
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
-	auto start_position = text_data.data() + tag.index();
-	auto data_size = text_data.size();
+	assert(size_t(tag.index()) < key_data.size());
+	auto start_position = key_data.data() + tag.index();
+	auto data_size = key_data.size();
 	auto end_position = start_position;
-	for(; end_position < text_data.data() + data_size; ++end_position) {
+	for(; end_position < key_data.data() + data_size; ++end_position) {
 		if(*end_position == 0)
 			break;
 	}
-	return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
+	return std::string_view(key_data.data() + tag.index(), size_t(end_position - start_position));
 }
 
-dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
-	auto res = add_to_pool(new_text);
-	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+std::string_view state::locale_string_view(uint32_t tag) const {
+	assert(size_t(tag) < locale_text_data.size());
+	auto start_position = locale_text_data.data() + tag;
+	auto data_size = locale_text_data.size();
+	auto end_position = start_position;
+	for(; end_position < locale_text_data.data() + data_size; ++end_position) {
+		if(*end_position == 0)
+			break;
 	}
-	return res;
+	return std::string_view(locale_text_data.data() + tag, size_t(end_position - start_position));
 }
-dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
-	auto res = add_to_pool(new_text);
-	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+
+void state::reset_locale_pool() {
+	locale_text_data.clear();
+	locale_key_to_text_sequence.clear();
+	locale_text_data.push_back(0);
+}
+
+void state::load_locale_strings(std::string_view locale_name) {
+	auto root_dir = get_root(common_fs);
+	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
+
+	auto load_base_files = [&](int32_t column) {
+		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+		for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				text::consume_csv_file(*this, content.data, content.file_size, column, false);
+			}
+		}
+		for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				text::consume_csv_file(*this, content.data, content.file_size, column, false);
+			}
+		}
+	};
+
+	if(locale_name.starts_with("en")) {
+		load_base_files(1);
+	} else if(locale_name.starts_with("fr")) {
+		load_base_files(2);
+	} else if(locale_name.starts_with("de")) {
+		load_base_files(3);
+	} else if(locale_name.starts_with("pl")) {
+		load_base_files(4);
+	} else if(locale_name.starts_with("es")) {
+		load_base_files(5);
+	} else if(locale_name.starts_with("it")) {
+		load_base_files(6);
+	} else if(locale_name.starts_with("sv")) {
+		load_base_files(7);
+	} else if(locale_name.starts_with("cs")) {
+		load_base_files(8);
+	} else if(locale_name.starts_with("hu")) {
+		load_base_files(9);
+	} else if(locale_name.starts_with("nl")) {
+		load_base_files(10);
+	} else if(locale_name.starts_with("pt")) {
+		load_base_files(11);
+	} else if(locale_name.starts_with("ru")) {
+		load_base_files(12);
+	} else if(locale_name.starts_with("fi")) {
+		load_base_files(13);
 	}
-	return res;
+
+	auto locale_dir = open_directory(assets_dir, simple_fs::utf8_to_native(locale_name));
+	for(auto& file : list_files(locale_dir, NATIVE(".csv"))) {
+		if(auto ofile = open_file(file); ofile) {
+			auto content = view_contents(*ofile);
+			text::consume_csv_file(*this, content.data, content.file_size, 1, true);
+		}
+	}
 }
-dcon::text_key state::add_to_pool(std::string const& new_text) {
-	auto start = text_data.size();
-	auto size = new_text.length();
-	if(size == 0)
-		return dcon::text_key();
-	text_data.resize(start + size + 1, char(0));
-	std::copy_n(new_text.c_str(), size + 1, text_data.data() + start);
-	return dcon::text_key(uint32_t(start));
+
+bool state::key_is_localized(dcon::text_key tag) const {
+	if(!tag)
+		return false;
+	assert(size_t(tag.index()) < key_data.size());
+	return locale_key_to_text_sequence.find(tag) != locale_key_to_text_sequence.end();
 }
-dcon::text_key state::add_to_pool(std::string_view new_text) {
-	auto start = text_data.size();
+bool state::key_is_localized(std::string_view key) const {
+	return locale_key_to_text_sequence.find(key) != locale_key_to_text_sequence.end();
+}
+dcon::text_key state::lookup_key(std::string_view text) const {
+	if(auto it = untrans_key_to_text_sequence.find(text); it != untrans_key_to_text_sequence.end()) {
+		return *it;
+	}
+	return dcon::text_key{};
+}
+
+dcon::text_key state::add_key_win1252(std::string const& text) {
+	return add_key_win1252(std::string_view(text));
+}
+dcon::text_key state::add_key_win1252(std::string_view text) {
+	std::string temp;
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+		if(unicode <= 0x007F) {
+			temp.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		}
+	}
+	assert(temp[temp.size()] == '\0');
+	return add_key_utf8(temp);
+}
+dcon::text_key state::add_key_utf8(std::string const& new_text) {
+	return add_key_utf8(std::string_view(new_text.data()));
+}
+dcon::text_key state::add_key_utf8(std::string_view new_text) {
+	auto ekey = lookup_key(new_text);
+	if(ekey)
+		return ekey;
+
+	auto start = key_data.size();
 	auto length = new_text.length();
 	if(length == 0)
 		return dcon::text_key();
-	text_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, text_data.data() + start);
-	text_data.back() = 0;
-	return dcon::text_key(uint32_t(start));
-}
+	key_data.resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, key_data.data() + start);
+	key_data.back() = 0;
 
-dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
-	if(new_text.length() > 0) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
-				std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
-		} else {
-			return add_to_pool(new_text);
+	auto ret = dcon::text_key(dcon::text_key::value_base_t(start));
+	untrans_key_to_text_sequence.insert(ret);
+	return ret;
+}
+uint32_t state::add_locale_data_win1252(std::string const& text) {
+	return add_locale_data_win1252(std::string_view(text));
+}
+uint32_t state::add_locale_data_win1252(std::string_view text) {
+	auto start = locale_text_data.size();
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+		if(unicode <= 0x007F) {
+			locale_text_data.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			locale_text_data.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			locale_text_data.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & unicode)));
 		}
-	} else {
-		return dcon::text_key();
 	}
+	locale_text_data.push_back(0);
+	return uint32_t(start);
+}
+uint32_t state::add_locale_data_utf8(std::string const& new_text) {
+	return add_locale_data_utf8(std::string_view(new_text));
+}
+uint32_t state::add_locale_data_utf8(std::string_view new_text) {
+	auto start = locale_text_data.size();
+	auto length = new_text.length();
+	if(length == 0)
+		return 0;
+	locale_text_data.resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, locale_text_data.data() + start);
+	locale_text_data.back() = 0;
+	return uint32_t(start);
 }
 
 dcon::unit_name_id state::add_unit_name(std::string_view text) {
-	auto start = unit_names.size();
-	auto length = text.length();
-	if(length == 0)
+	if(text.empty())
 		return dcon::unit_name_id();
 
-	unit_names.resize(start + length + 1, char(0));
-	std::copy_n(text.data(), length, unit_names.data() + start);
+	std::string temp;
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+		if(unicode <= 0x007F) {
+			temp.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		}
+	}
+	assert(temp.size() > 0);
+	assert(temp[temp.size()] == '\0');
+	auto start = unit_names.size();
+	unit_names.resize(start + temp.length() + 1, char(0));
+	std::copy_n(temp.data(), temp.length(), unit_names.data() + start);
 	unit_names.back() = 0;
 	unit_names_indices.push_back(int32_t(start));
 	return dcon::unit_name_id(dcon::unit_name_id::value_base_t(unit_names_indices.size() - 1));
@@ -1656,6 +1846,7 @@ dcon::unit_name_id state::add_unit_name(std::string_view text) {
 std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 	if(!tag)
 		return std::string_view();
+	assert(size_t(tag.index()) < unit_names_indices.size());
 	auto start_position = unit_names.data() + unit_names_indices[tag.index()];
 	auto data_size = unit_names.size();
 	auto end_position = start_position;
@@ -1752,7 +1943,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_is_globe);
 	US_SAVE(autosaves);
 	US_SAVE(bind_tooltip_mouse);
-	US_SAVE(UNUSED_BOOL);
+	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
 	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
@@ -1788,7 +1979,8 @@ void state::save_user_settings() const {
 	US_SAVE(wasd_for_map_movement);
 	US_SAVE(notify_rebels_defeat);
 	US_SAVE(color_blind_mode);
-	US_SAVE(current_language);
+	US_SAVE(UNUSED_UINT32_T);
+	US_SAVE(locale);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1815,7 +2007,7 @@ void state::load_user_settings() {
 			US_LOAD(map_is_globe);
 			US_LOAD(autosaves);
 			US_LOAD(bind_tooltip_mouse);
-			US_LOAD(UNUSED_BOOL);
+			US_LOAD(use_classic_fonts);
 			US_LOAD(outliner_views);
 			constexpr size_t lower_half_count = 98;
 
@@ -1855,7 +2047,8 @@ void state::load_user_settings() {
 			US_LOAD(wasd_for_map_movement);
 			US_LOAD(notify_rebels_defeat);
 			US_LOAD(color_blind_mode);
-			US_LOAD(current_language);
+			US_LOAD(UNUSED_UINT32_T);
+			US_LOAD(locale);
 #undef US_LOAD
 		} while(false);
 
@@ -1902,13 +2095,57 @@ void state::load_user_settings() {
 			}
 		}
 	}
+
+	user_settings.locale[15] = 0;
+	std::string lname(user_settings.locale);
+	bool locale_loaded = false;
+
+	auto rt = get_root(common_fs);
+	auto assets = simple_fs::open_directory(rt, NATIVE("assets"));
+	auto loc = simple_fs::open_directory(assets, NATIVE("localisation"));
+	for(auto& ld : simple_fs::list_subdirectories(loc)) {
+		auto def_file = simple_fs::open_file(ld, NATIVE("locale.txt"));
+		if(def_file) {
+			auto contents = simple_fs::view_contents(*def_file);
+			auto ld_name = simple_fs::get_full_name(ld);
+			auto dir_lname = ld_name.substr(ld_name.find_last_of(NATIVE_DIR_SEPARATOR) + 1);
+			parsers::add_locale(*this, simple_fs::native_to_utf8(dir_lname), contents.data, contents.data + contents.file_size);
+		}
+	}
+
+	for(auto l : world.in_locale) {
+		auto ln = l.get_locale_name();
+		auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
+		if(ln_sv == lname) {
+			font_collection.change_locale(*this, l);
+			locale_loaded = true;
+			break;
+		}
+	}
+
+	if(!locale_loaded) {
+		for(auto l : world.in_locale) {
+			auto ln = l.get_locale_name();
+			auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
+			if(ln_sv == "en-US") {
+				font_collection.change_locale(*this, l);
+				locale_loaded = true;
+				break;
+			}
+		}
+	}
+
+	if(!locale_loaded) {
+		font_collection.change_locale(*this, dcon::locale_id{ 0 });
+	}
 }
 
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
 	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
 	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
-	ui_state.outliner_window->impl_on_update(*this);
+	if(ui_state.outliner_window)
+		ui_state.outliner_window->impl_on_update(*this);
 	// TODO move windows
 }
 
@@ -1933,7 +2170,7 @@ void list_pop_types(sys::state& state, parsers::scenario_building_context& conte
 		}
 		auto utf8typename = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
-		auto name_id = text::find_or_add_key(context.state, utf8typename);
+		auto name_id = text::find_or_add_key(context.state, utf8typename, true);
 		auto type_id = state.world.create_pop_type();
 		state.world.pop_type_set_name(type_id, name_id);
 		context.map_of_poptypes.insert_or_assign(std::string(utf8typename), type_id);
@@ -1958,8 +2195,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, err);
-	text::name_into_font_id(*this, "garamond_14");
+	//text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
 	auto map = open_directory(root, NATIVE("map"));
@@ -2387,6 +2623,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				cat = culture::tech_category::culture;
 			} else if(simple_fs::get_file_name(invf) == NATIVE("industry_inventions.txt")) {
 				cat = culture::tech_category::industry;
+				//non vanilla
+			} else if(simple_fs::get_file_name(invf) == NATIVE("military_theory_inventions.txt")) {
+				cat = culture::tech_category::military_theory;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("diplomacy_inventions.txt")) {
+				cat = culture::tech_category::diplomacy;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("population_inventions.txt")) {
+				cat = culture::tech_category::population;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("flavor_inventions.txt")) {
+				cat = culture::tech_category::flavor;
 			}
 
 			parsers::tech_group_context invention_context{ context, cat };
@@ -2462,6 +2707,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	world.national_identity_resize_government_flag_type(world.government_type_size());
 	world.national_identity_resize_government_name(world.government_type_size());
+	world.national_identity_resize_government_adjective(world.government_type_size());
 	world.national_identity_resize_government_ruler_name(world.government_type_size());
 	world.national_identity_resize_government_color(world.government_type_size());
 
@@ -2470,10 +2716,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto const tag = nations::int_to_tag(ident.get_identifying_int());
 		for(auto const& named_gov : context.map_of_governments) {
 			auto const name = tag + "_" + named_gov.first;
-			auto name_k = text::find_or_use_default_key(*this, name, ident.get_name());
+			auto name_k = add_key_win1252(name);
 			ident.set_government_name(named_gov.second, name_k);
+			auto const adj = tag + "_" + named_gov.first + "_ADJ";
+			auto adj_k = add_key_win1252(adj);
+			ident.set_government_adjective(named_gov.second, adj_k);
 			auto const ruler = tag + "_" + named_gov.first + "_ruler";
-			auto ruler_k = text::find_or_use_default_key(*this, ruler, world.government_type_get_ruler_name(named_gov.second));
+			auto ruler_k = add_key_win1252(ruler);
 			ident.set_government_ruler_name(named_gov.second, ruler_k);
 		}
 	}
@@ -3044,6 +3293,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_luxury_needs_weights(world.commodity_size());
 	world.nation_resize_effective_prices(world.commodity_size());
 	world.commodity_resize_price_record(economy::price_history_length);
+	world.nation_resize_gdp_record(economy::gdp_history_length);
 
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
@@ -3218,6 +3468,52 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	if(gov_error)
 		return;
 
+	//
+	// make ui scripts
+	//
+	for(auto& s : context.gfx_context.nation_buttons_allow) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			ui_defs.gui[s.button_element].data.button.scriptable_enable = make_trigger(s.generator_state, err, t_context);
+			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.nation_buttons_effect) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			parsers::effect_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
+			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_allow) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				ui_defs.gui[s.button_element].data.button.scriptable_enable = make_trigger(s.generator_state, err, t_context);
+				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_effect) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::effect_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
+				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
+		}
+	}
+
 	// Sanity checking navies & armies
 	for(auto n : world.in_navy) {
 		auto p = n.get_navy_location().get_location();
@@ -3265,7 +3561,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
 		if(!(n.get_owned_province_count() == 0 || world.government_type_is_valid(g))) {
-			err.accumulated_errors += "Government for '" + text::produce_simple_string(*this, n.get_name()) + "' (" + name + ") is not valid\n";
+			err.accumulated_errors += "Government for '" + text::produce_simple_string(*this, text::get_name(*this, n)) + "' (" + name + ") is not valid\n";
 		}
 	}
 	for(auto g : world.in_government_type) {
@@ -3335,8 +3631,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
-
-	text::finish_text_data(*this);
 }
 
 void state::preload() {
@@ -3906,6 +4200,12 @@ void state::single_game_tick() {
 		ai::update_ai_colonial_investment(*this);
 	}
 
+	if(defines.alice_eval_ai_mil_everyday) {
+		ai::make_defense(*this);
+		ai::make_attacks(*this);
+		ai::update_ships(*this);
+	}
+
 	// Once per month updates, spread out over the month
 	switch(ymd_date.day) {
 		case 1:
@@ -3922,7 +4222,9 @@ void state::single_game_tick() {
 			break;
 		case 4:
 			military::reinforce_regiments(*this);
-			ai::make_defense(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_defense(*this);
+			}
 			break;
 		case 5:
 			rebel::update_movements(*this);
@@ -3930,7 +4232,9 @@ void state::single_game_tick() {
 			break;
 		case 6:
 			ai::form_alliances(*this);
-			ai::make_attacks(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_attacks(*this);
+			}
 			break;
 		case 7:
 			ai::update_ai_general_status(*this);
@@ -3976,7 +4280,9 @@ void state::single_game_tick() {
 			break;
 		case 20:
 			nations::monthly_flashpoint_update(*this);
-			ai::make_defense(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_defense(*this);
+			}
 			break;
 		case 21:
 			ai::update_ai_colony_starting(*this);
@@ -3990,7 +4296,9 @@ void state::single_game_tick() {
 			break;
 		case 24:
 			rebel::execute_rebel_victories(*this);
-			ai::make_attacks(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_attacks(*this);
+			}
 			rebel::update_armies(*this);
 			rebel::rebel_hunting_check(*this);
 			break;
@@ -4010,7 +4318,9 @@ void state::single_game_tick() {
 			ai::update_war_intervention(*this);
 			break;
 		case 30:
-			ai::update_ships(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::update_ships(*this);
+			}
 			rebel::update_armies(*this);
 			rebel::rebel_hunting_check(*this);
 			break;
@@ -4109,6 +4419,13 @@ void state::single_game_tick() {
 		}
 	}
 
+	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
+		auto index = economy::most_recent_gdp_record_index(*this);
+		for(auto n : world.in_nation) {
+			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
+		}
+	}
+
 	ui_date = current_date;
 
 	game_state_updated.store(true, std::memory_order::release);
@@ -4177,7 +4494,7 @@ void state::debug_scenario_oos_dump() {
 		simple_fs::write_file(sdir, NATIVE("scen.bin"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 	}
 	{
-		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this)]);
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this).total_size]);
 		auto buffer_position = sys::write_scenario_section(buffer.get(), *this);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
 		simple_fs::write_file(sdir, NATIVE("all_scen.bin"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));

@@ -356,6 +356,13 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 
 	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
+	auto o_spending = state.world.nation_get_overseas_penalty(owner);
+	auto spending_level = state.world.nation_get_spending_level(owner);
+	auto overseas_mil = 0.f;
+	if(province::is_overseas(state, loc)) {
+		overseas_mil = 2.f * state.defines.alice_overseas_mil * (0.5f - (o_spending * spending_level));
+	}
+
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_militancy_modifier);
 	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_militancy_modifier);
 	float cmod = (state.world.province_get_is_colonial(loc) ? 0.0f :
@@ -452,6 +459,18 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	if(war_exhaustion > 0) {
 		text::add_line(state, contents, "pop_mil_13", text::variable_type::val, text::fp_three_places{war_exhaustion});
 	}
+
+	auto box = text::open_layout_box(contents);
+	text::localised_format_box(state, contents, box, "alice_overseas_mil_description");
+	text::add_space_to_layout_box(state, contents, box);
+	if(overseas_mil <= 0) {
+		text::add_to_layout_box(state, contents, box, text::fp_two_places{ overseas_mil }, text::text_color::green);
+	} else {
+		text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::red);
+		text::add_to_layout_box(state, contents, box, text::fp_two_places{ overseas_mil }, text::text_color::red);
+	}
+	text::close_layout_box(contents, box);
+
 	text::add_line(state, contents, "alice_mil_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_militancy(ids) * 0.01f });
 }
 

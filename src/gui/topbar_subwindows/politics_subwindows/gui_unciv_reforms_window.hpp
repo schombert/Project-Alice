@@ -19,13 +19,13 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 		text::add_to_layout_box(state, contents, box, reform.get_name(), text::text_color::yellow);
 		text::close_layout_box(contents, box);
 	}
-	if(reform.get_desc()) {
+	if(auto desc = reform.get_desc();  state.key_is_localized(desc)) {
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
-		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(state.local_player_nation));
+		text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, state.local_player_nation));
 		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(state.local_player_nation));
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, reform.get_desc(), sub);
+		text::add_to_layout_box(state, contents, box, desc, sub);
 		text::close_layout_box(contents, box);
 	}
 
@@ -179,16 +179,13 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::reform_id>(state, parent);
 		auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
+		auto container = text::create_endless_layout(state, multiline_text_element_base::internal_layout,
 				text::layout_parameters{ 0, 0, multiline_text_element_base::base_data.size.x,
 						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, -4, text::alignment::left, color, false });
 		auto fat_id = dcon::fatten(state.world, content);
 		auto box = text::open_layout_box(container);
 		text::add_to_layout_box(state, container, box, fat_id.get_name(), text::substitution_map{});
 		text::close_layout_box(container, box);
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::unseen;
 	}
 };
 

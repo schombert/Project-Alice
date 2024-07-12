@@ -24,11 +24,22 @@ namespace parsers {
 //
 std::string lowercase_str(std::string_view sv);
 
+struct pending_button_script {
+	std::string original_file;
+	token_generator generator_state;
+	dcon::gui_def_id button_element;
+};
+
 struct building_gfx_context {
 	sys::state& full_state;
 	ui::definitions& ui_defs;
+	std::vector<simple_fs::file> gui_files;
 	ankerl::unordered_dense::map<std::string, dcon::gfx_object_id> map_of_names;
 	ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_texture_names;
+	std::vector<pending_button_script> province_buttons_allow;
+	std::vector<pending_button_script> nation_buttons_allow;
+	std::vector<pending_button_script> province_buttons_effect;
+	std::vector<pending_button_script> nation_buttons_effect;
 	bool on_second_pair_y = false;
 	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) { }
 };
@@ -103,12 +114,14 @@ struct gfx_files {
 
 struct gui_element_common {
 	ui::element_data target;
+	dcon::text_key extension;
 
 	gui_element_common() { }
 	void size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void orientation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
+	void extends(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
@@ -128,6 +141,25 @@ struct button : public gui_element_common {
 	void format(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void clicksound(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 };
+
+struct nation_script_button : public button {
+	int32_t added_allow = -1;
+	int32_t added_effect = -1;
+	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
+};
+
+struct province_script_button : public button {
+	int32_t added_allow = -1;
+	int32_t added_effect = -1;
+	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
+};
+
+bool province_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool province_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
 
 struct image : public gui_element_common {
 	image();
@@ -188,7 +220,15 @@ struct scrollbar : public gui_element_common {
 };
 
 struct window : public gui_element_common {
+	struct scripted_children {
+		uint32_t child_number;
+		int32_t pallow = -1;
+		int32_t peffect = -1;
+		int32_t nallow = -1;
+		int32_t neffect = -1;
+	};
 	std::vector<ui::element_data> children;
+	std::vector<scripted_children> sc;
 	window();
 	void fullscreen(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
 	void moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
@@ -205,6 +245,8 @@ struct window : public gui_element_common {
 	void overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void finish(building_gfx_context& context);
 };
 
@@ -223,6 +265,8 @@ struct guitypes {
 	void overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 };
 struct gui_files {
 	void finish(building_gfx_context& context) { }
@@ -368,6 +412,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
 	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
 	ankerl::unordered_dense::map<std::string, std::vector<saved_stored_condition>> map_of_stored_triggers;
+	ankerl::unordered_dense::map<std::string, dcon::national_focus_id> map_of_national_focuses;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -756,6 +801,7 @@ public:
 	MOD_NAT_FUNCTION(core_pop_militancy_modifier)
 	MOD_NAT_FUNCTION(core_pop_consciousness_modifier)
 	MOD_NAT_FUNCTION(non_accepted_pop_militancy_modifier)
+	MOD_NAT_FUNCTION(seperatism)
 	MOD_NAT_FUNCTION(non_accepted_pop_consciousness_modifier)
 	MOD_NAT_FUNCTION(cb_generation_speed_modifier)
 	MOD_NAT_FUNCTION(mobilization_impact)
@@ -812,6 +858,11 @@ public:
 		land_unit_start_experience(type, v, err, line, context);
 		naval_unit_start_experience(type, v, err, line, context);
 	}
+
+	MOD_NAT_FUNCTION(military_theory_tech_research_bonus)
+	MOD_NAT_FUNCTION(diplomacy_tech_research_bonus)
+	MOD_NAT_FUNCTION(population_tech_research_bonus)
+	MOD_NAT_FUNCTION(flavor_tech_research_bonus)
 
 	template<typename T>
 	void finish(T& context) { }
@@ -2241,8 +2292,8 @@ struct generic_event {
 	bool fire_only_once = false;
 	bool allow_multiple_instances = false;
 	dcon::gfx_object_id picture_;
-	dcon::text_sequence_id title_;
-	dcon::text_sequence_id desc_;
+	dcon::text_key title_;
+	dcon::text_key desc_;
 	dcon::issue_id issue_group_;
 
 	void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
@@ -2548,6 +2599,7 @@ struct country_history_file {
 	void primary_culture(association_type, std::string_view value, error_handler& err, int32_t line,
 			country_history_context& context);
 	void culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void remove_culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void religion(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void government(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void plurality(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
@@ -2808,6 +2860,28 @@ struct bookmark_file {
 		}
 	}
 };
+
+struct locale_parser {
+	bool rtl = false;
+	bool prevent_map_letterspacing = false;
+	std::string display_name;
+	std::string script = "Latn";
+	std::string body_font;
+	std::string header_font;
+	std::string map_font;
+	std::string fallback;
+	std::vector<uint32_t> body_features;
+	std::vector<uint32_t> header_features;
+	std::vector<uint32_t> map_features;
+
+	void body_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+	void header_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+	void map_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+
+	void finish(sys::state& context) { }
+};
+
+void add_locale(sys::state& state, std::string_view locale_name, char const* data_start, char const* data_end);
 
 } // namespace parsers
 

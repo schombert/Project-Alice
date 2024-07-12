@@ -315,6 +315,7 @@ units_in_the_state;unidades en el estado
 at_war_against;en guerra contra
 num_of_divisions;un numero de divisiones
 an_ongoing_battle;una batalla en marcha
+an_assigned_leader;an assigned leader
 treasury;tesoro
 o_treasury;el tesoro del duenio
 o_of_prov;el duenio de la provincia
@@ -908,12 +909,12 @@ modifier_province_selector;Selector provincial
 modifier_province_immigrator;Inmigrador provincial
 modifier_conversion_rate;
 modifier_attrition;
-chat_player_joins;@$x$ $playername$ se unio
-chat_player_leaves;@$x$ $playername$ se fue
-chat_player_ban;@$x$ $playername$ fue baneado
-chat_player_kick;@$x$ $playername$ fue vetado
-chat_player_switch;@$x$ $playername$ ahora es $country$
-chat_player_oos;
+chat_player_joins;$playername$ se unio
+chat_player_leaves;$playername$ se fue
+chat_player_ban;$playername$ fue baneado
+chat_player_kick;$playername$ fue vetado
+chat_player_switch;$playername$ ahora es $country$
+chat_player_oos;$playername$ se ha OOSeado
 alice_status_stream;Progreso $value$
 alice_play_pending_client;$playername$ no esta listo/a todavia
 alice_stockpile_button_0_0;

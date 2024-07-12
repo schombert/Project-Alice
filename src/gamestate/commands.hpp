@@ -104,6 +104,8 @@ enum class command_type : uint8_t {
 	toggle_unit_ai_control = 95,
 	toggle_mobilized_is_ai_controlled = 96,
 	toggle_interested_in_alliance = 97,
+	pbutton_script = 98,
+	nbutton_script = 99,
 
 	// network
 	notify_player_ban = 106,
@@ -154,6 +156,16 @@ enum class command_type : uint8_t {
 	c_instant_navy = 158,
 	c_always_allow_decisions = 159,
 	c_always_potential_decisions = 160,
+	c_add_year = 161,
+};
+
+struct pbutton_data {
+	dcon::gui_def_id button;
+	dcon::province_id id;
+};
+struct nbutton_data {
+	dcon::gui_def_id button;
+	dcon::nation_id id;
 };
 
 struct national_focus_data {
@@ -267,6 +279,7 @@ struct budget_settings_data {
 	int8_t rich_tax;
 	int8_t tariffs;
 	int8_t domestic_investment;
+	int8_t overseas;
 };
 
 struct war_target_data {
@@ -532,6 +545,8 @@ struct payload {
 		sys::player_name player_name;
 		cheat_location_data cheat_location;
 		notify_leaves_data notify_leave;
+		nbutton_data nbutton;
+		pbutton_data pbutton;
 		cheat_invention_data_t cheat_invention_data;
 		dtype() { }
 	} data;
@@ -603,7 +618,7 @@ bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nat
 
 inline budget_settings_data make_empty_budget_settings() {
 	return budget_settings_data{ int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127),
-			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
+			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
 }
 // when sending new budget settings, leaving any value as int8_t(-127) will cause it to be ignored, leaving the setting the same
 // You can use the function above to easily make an instance of the settings struct that will change no values
@@ -812,6 +827,12 @@ void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled
 
 void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);
+bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);
+
+void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
+bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
 
 /*
 PEACE OFFER COMMANDS:

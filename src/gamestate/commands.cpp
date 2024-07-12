@@ -985,6 +985,9 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 	if(values.domestic_investment != int8_t(-127)) {
 		state.world.nation_set_domestic_investment_spending(source, std::clamp(values.domestic_investment, int8_t(0), int8_t(100)));
 	}
+	if(values.overseas != int8_t(-127)) {
+		state.world.nation_set_overseas_spending(source, std::clamp(values.overseas, int8_t(0), int8_t(100)));
+	}
 	economy::bound_budget_settings(state, source);
 }
 
@@ -3848,8 +3851,10 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 			state.world.regiment_set_army_from_army_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
+		if(source == state.local_player_nation && state.is_selected(a)) {
+			state.deselect(a);
 			state.select(new_u);
+		}
 	}
 }
 
@@ -3901,8 +3906,10 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
+		if(source == state.local_player_nation && state.is_selected(a)) {
+			state.deselect(a);
 			state.select(new_u);
+		}
 	}
 }
 
@@ -4334,6 +4341,56 @@ void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::provi
 	state.world.nation_set_capital(source, p);
 }
 
+void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id i) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::pbutton_script;
+	p.source = source;
+	p.data.pbutton.button = d;
+	p.data.pbutton.id = i;
+	add_to_command_queue(state, p);
+}
+bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
+	auto& def = state.ui_defs.gui[d];
+	if(def.get_element_type() != ui::element_type::button)
+		return false;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::province)
+		return false;
+	if(!def.data.button.scriptable_enable)
+		return true;
+	return trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
+}
+void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
+	auto & def = state.ui_defs.gui[d];
+	if(def.data.button.scriptable_effect)
+		effect::execute(state, def.data.button.scriptable_effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(p.index() ^ (d.index() << 4)));
+}
+
+void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::nbutton_script;
+	p.source = source;
+	p.data.nbutton.button = d;
+	p.data.nbutton.id = n;
+	add_to_command_queue(state, p);
+}
+bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
+	auto& def = state.ui_defs.gui[d];
+	if(def.get_element_type() != ui::element_type::button)
+		return false;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
+		return false;
+	if(!def.data.button.scriptable_enable)
+		return true;
+	return trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
+}
+void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
+	auto& def = state.ui_defs.gui[d];
+	if(def.data.button.scriptable_effect)
+		effect::execute(state, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(n.index() ^ (d.index() << 4)));
+}
+
 static void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
@@ -4397,8 +4454,6 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
@@ -4427,8 +4482,6 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
@@ -4460,8 +4513,6 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	post_chat_message(state, m);
@@ -4493,8 +4544,6 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	post_chat_message(state, m);
@@ -4545,8 +4594,6 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
-	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);
@@ -4985,6 +5032,10 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::toggle_interested_in_alliance:
 		return can_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
+	case command_type::pbutton_script:
+		return can_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
+	case command_type::nbutton_script:
+		return can_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
 
 		// common mp commands
 	case command_type::chat_message:
@@ -5065,6 +5116,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_clear_auto_choice_all:
 	case command_type::c_always_allow_decisions:
 	case command_type::c_always_potential_decisions:
+	case command_type::c_add_year:
 		return true;
 	}
 	return false;
@@ -5377,7 +5429,12 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::toggle_interested_in_alliance:
 		execute_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
 		break;
-
+	case command_type::pbutton_script:
+		execute_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
+		break;
+	case command_type::nbutton_script:
+		execute_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
+		break;
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -5525,6 +5582,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_always_potential_decisions:
 		execute_c_always_potential_decisions(state, c.source);
+		break;
+	case command_type::c_add_year:
+		execute_c_add_year(state, c.source, c.data.cheat_int.value);
 		break;
 	}
 }

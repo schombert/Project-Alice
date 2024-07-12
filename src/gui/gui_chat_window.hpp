@@ -11,7 +11,7 @@ public:
 		auto content = retrieve<chat_message>(state, parent);
 		auto border = base_data.data.text.border_size;
 		auto color = IsShadow ? text::text_color::black : (content.target ? text::text_color::orange : text::text_color::white);
-		auto container = text::create_endless_layout(
+		auto container = text::create_endless_layout(state, 
 			internal_layout,
 			text::layout_parameters{
 				border.x,
@@ -239,6 +239,8 @@ public:
 		Cyto::Any payload = this;
 		impl_get(state, payload);
 	}
+
+	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
 };
 
 class chat_return_to_lobby_button : public button_element_base {
@@ -285,6 +287,7 @@ class chat_window : public window_element_base {
 private:
 	chat_message_listbox<true>* chat_message_box = nullptr;
 public:
+	chat_edit_box* chat_edit = nullptr;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_button") {
 			return make_element_by_type<chat_close_button>(state, id);
@@ -297,7 +300,9 @@ public:
 		} else if(name == "multiplayer_list") {
 			return make_element_by_type<chat_player_listbox>(state, id);
 		} else if(name == "lobby_chat_edit") {
-			return make_element_by_type<chat_edit_box>(state, id);
+			auto ptr = make_element_by_type<chat_edit_box>(state, id);
+			chat_edit = ptr.get();
+			return ptr;
 		} else if(name == "back_button") {
 			return make_element_by_type<chat_return_to_lobby_button>(state, id);
 		} else {
@@ -313,5 +318,21 @@ public:
 		}
 	}
 };
+
+void open_chat_window(sys::state& state) {
+	if(state.mode == sys::game_mode_type::in_game) {
+		state.ui_state.chat_window->set_visible(state, !state.ui_state.chat_window->is_visible());
+		state.ui_state.edit_target = static_cast<chat_window*>(state.ui_state.chat_window)->chat_edit;
+		state.ui_state.root->move_child_to_front(state.ui_state.chat_window);
+	} else if(state.mode == sys::game_mode_type::pick_nation) {
+		state.ui_state.r_chat_window->set_visible(state, !state.ui_state.r_chat_window->is_visible());
+		state.ui_state.edit_target = static_cast<chat_window*>(state.ui_state.r_chat_window)->chat_edit;
+		state.ui_state.root->move_child_to_front(state.ui_state.r_chat_window);
+	}
+}
+
+void chat_edit_box::edit_box_tab(sys::state& state, std::string_view s) noexcept {
+	ui::open_chat_window(state); //close/open like if tab was pressed!
+}
 
 }

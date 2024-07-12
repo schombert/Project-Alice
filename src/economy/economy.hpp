@@ -19,7 +19,7 @@ struct building_information {
 	int32_t max_level = 6;
 	int32_t time = 1080;
 	float infrastructure = 0.16f;
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 	dcon::modifier_id province_modifier;
 	uint16_t padding2 = 0;
 	bool defined = false;
@@ -89,10 +89,10 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 float get_artisan_distribution_slow(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 // base subsistence
-inline constexpr float subsistence_factor = 5.0f;
-inline constexpr float subsistence_score_life = 20.0f;
-inline constexpr float subsistence_score_everyday = 30.0f;
-inline constexpr float subsistence_score_luxury = 40.0f;
+inline constexpr float subsistence_factor = 10.0f;
+inline constexpr float subsistence_score_life = 30.0f;
+inline constexpr float subsistence_score_everyday = 50.0f;
+inline constexpr float subsistence_score_luxury = 80.0f;
 inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday + subsistence_score_luxury;
 
 struct global_economy_state {
@@ -120,7 +120,8 @@ constexpr inline dcon::commodity_id money(0);
 inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
-inline constexpr float rgo_owners_cut = 0.20f;
+inline constexpr uint32_t gdp_history_length = 128;
+inline constexpr float rgo_owners_cut = 0.05f;
 
 void presimulate(sys::state& state);
 
@@ -132,6 +133,8 @@ float rgo_total_employment(sys::state& state, dcon::nation_id n, dcon::province_
 float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
 float rgo_max_employment(sys::state & state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
 float rgo_total_max_employment(sys::state& state, dcon::nation_id n, dcon::province_id p);
+
+float subsistence_max_pseudoemployment(sys::state& state, dcon::nation_id n, dcon::province_id p);
 
 float factory_max_employment(sys::state const& state, dcon::factory_id f);
 
@@ -147,7 +150,7 @@ float factory_e_input_total_cost(sys::state& state, dcon::nation_id n, dcon::fac
 float factory_input_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
 float factory_throughput_multiplier(sys::state& state, dcon::factory_type_fat_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
 float factory_output_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p);
-float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied, bool overseas);
+float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied);
 float factory_desired_raw_profit(dcon::factory_fat_id fac, float spendings);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
@@ -248,6 +251,10 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
 int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
+int32_t most_recent_gdp_record_index(sys::state& state);
+int32_t previous_gdp_record_index(sys::state& state);
+
+float gdp_adjusted(sys::state& state, dcon::nation_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);

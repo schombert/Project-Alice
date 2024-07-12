@@ -15,6 +15,7 @@
 
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
+#pragma comment(lib, "icu.lib")
 
 static sys::state game_state; // too big for the stack
 static CRITICAL_SECTION guard_abort_handler;
@@ -146,6 +147,9 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		int headless_speed = 6;
 		bool headless_repeat = false;
 		bool headless = false;
+
+		network::port_forwarder forwarding_apparatus;
+
 		if(num_params < 2) {
 #ifdef NDEBUG
 			auto msg = std::string("Start Alice.exe using the launcher");
@@ -241,6 +245,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		} else {
 			for(int i = 1; i < num_params; ++i) {
 				if(native_string(parsed_cmd[i]) == NATIVE("-host")) {
+					forwarding_apparatus.start_forwarding();
 					game_state.network_mode = sys::network_mode_type::host;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-join")) {
 					game_state.network_mode = sys::network_mode_type::client;
@@ -293,7 +298,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		// scenario loading functions (would have to run these even when scenario is pre-built)
 		game_state.load_user_settings();
-		text::load_standard_fonts(game_state);
 		ui::populate_definitions_map(game_state);
 
 		if(headless) {

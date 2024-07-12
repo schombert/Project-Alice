@@ -13,7 +13,7 @@ class player_investement_text : public multiline_text_element_base {
 		auto ul = state.world.get_unilateral_relationship_by_unilateral_pair(to_nation, state.local_player_nation);
 		auto player_investment = state.world.unilateral_relationship_get_foreign_investment(ul);
 		float total_investment = nations::get_foreign_investment(state, to_nation);
-		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
+		auto container = text::create_endless_layout(state, multiline_text_element_base::internal_layout,
 				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
 						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
 						text::alignment::left, black_text ? text::text_color::black : text::text_color::white, true});
@@ -165,12 +165,12 @@ public:
 
 
 		xy_pair base_sort_template_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template_offset"))->second.definition].position;
 		xy_pair sort_template_offset = base_sort_template_offset;
 		sort_template_offset.y += 233;
 
 		auto ptr = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template"))->second.definition);
 		ptr->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 0;
@@ -178,7 +178,7 @@ public:
 		add_child_to_back(std::move(ptr));
 
 		auto ptr2 = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template"))->second.definition);
 		ptr2->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 1;
@@ -186,7 +186,7 @@ public:
 		add_child_to_back(std::move(ptr2));
 
 		auto ptr3 = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template"))->second.definition);
 		ptr3->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 2;

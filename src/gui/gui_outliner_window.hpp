@@ -335,7 +335,7 @@ public:
 			unitamounts amounts = calc_amounts_from_army(state, army);
 
 			text::substitution_map sub;
-			auto tag_str = std::string("@") + nations::int_to_tag(army.get_controller_from_army_control().get_identity_from_identity_holder().get_identifying_int()) + "\x03";
+			auto tag_str = std::string("@") + nations::int_to_tag(army.get_controller_from_army_control().get_identity_from_identity_holder().get_identifying_int()) + "@(A)";
 			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
@@ -361,7 +361,7 @@ public:
 			unitamounts amounts = calc_amounts_from_navy(state, navy);
 
 			text::substitution_map sub;
-			auto tag_str = std::string("@") + nations::int_to_tag(navy.get_controller_from_navy_control().get_identity_from_identity_holder().get_identifying_int()) + "\x04";
+			auto tag_str = std::string("@") + nations::int_to_tag(navy.get_controller_from_navy_control().get_identity_from_identity_holder().get_identifying_int()) + "@(N)";
 			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
@@ -385,7 +385,7 @@ public:
 			auto status = state.world.gp_relationship_get_status(grid);
 			auto influence = state.world.gp_relationship_get_influence(grid);
 
-			auto full_str = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")";
+			auto full_str = text::produce_simple_string(state, text::get_name(state, nid)) + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")";
 
 			color = text::text_color::white;
 			set_text(state, full_str);
@@ -425,7 +425,7 @@ public:
 		} else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 			auto plcid = std::get<dcon::province_land_construction_id>(content);
 			auto utid = state.world.province_land_construction_get_type(plcid);
-			auto name = utid ? state.military_definitions.unit_base_definitions[utid].name : dcon::text_sequence_id{};
+			auto name = utid ? state.military_definitions.unit_base_definitions[utid].name : dcon::text_key{};
 			float progress = economy::unit_construction_progress(state, plcid);
 
 			auto full_str = text::produce_simple_string(state, name) + " (" + text::format_percentage(progress, 0) + ")";
@@ -557,7 +557,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		listbox2_base<outliner_data>::on_create(state);
 
-		auto ptr = make_element_by_type<image_element_base>(state, state.ui_state.defs_by_name.find("outliner_bottom")->second.definition);
+		auto ptr = make_element_by_type<image_element_base>(state, state.ui_state.defs_by_name.find(state.lookup_key("outliner_bottom"))->second.definition);
 		ptr->set_visible(state, true);
 		bottom_image = ptr.get();
 		add_child_to_back(std::move(ptr));
@@ -735,7 +735,7 @@ public:
 
 		auto rsz = row_windows[0]->base_data.size.y + row_windows[0]->base_data.position.y;
 		auto max_size = int32_t(rsz * row_contents.size());
-		auto space = (state.ui_state.root->base_data.size.y - 330) - ui::get_absolute_location(*this).y;
+		auto space = (state.ui_state.root->base_data.size.y - 200) - ui::get_absolute_location(state, *this).y;
 		auto max_rows = space / rsz;
 
 		if(max_size < space) {

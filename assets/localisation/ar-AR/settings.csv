@@ -1,0 +1,56 @@
+save_and_exit;حفظ وخروج
+save;يحفظ
+exit;مخرج
+graphics_options;خيارات الرسومات
+sound_options;خيارات الصوت
+controls_options;متنوعات. خيارات
+message_settings_options;إعدادات الرسالة
+window_mode_label;تكبير الشاشة
+map_projection;تنبؤ
+map_projection_globe;إملائي
+map_projection_flat;متساوي المستطيلات
+map_projection_globe_perspective;رَأسِيّ
+dm_popup_label;الرسالة الدبلوماسية كالنوافذ المنبثقة
+ui_scale;مقياس واجهة المستخدم
+zoom_mode_label;أسلوب التكبير
+zoom_mode_panning;بالغسل
+zoom_mode_inverted;معكوسة
+zoom_mode_centered;توسيط
+zoom_mode_to_cursor;إلى المؤشر
+zoom_mode_away_from_cursor;بعيدا عن المؤشر
+zoom_speed_label;تسريع التكبير
+river_label;الأنهار
+mute_on_focus_lost_label;كتم الصوت على التركيز المفقود
+wasd_for_map_movement_label;WASD للحركة
+vassal_color_label;تلوين فاسال
+vassal_color_inherit;يرث
+vassal_color_same;نفس
+vassal_color_none;لا أحد
+black_map_font_label;خط الخريطة باللون الأسود
+edge_scrolling_label;التمرير الحافة
+color_blind_mode_label;عمى الالوان
+color_blind_mode_none;لا أحد
+color_blind_mode_deutan;ديوتان
+color_blind_mode_protan;بروتان
+color_blind_mode_tritan;تريتان
+color_blind_mode_achroma;أكروما
+render_models_label;تقديم النماذج
+language_label;لغة
+fow_label;ضباب الحرب
+railroad_label;شبكات السكك الحديدية
+master_volume_label;الحجم الرئيسي
+music_volume_label;طبقة صوت الموسيقا
+interface_volume_label;حجم الواجهة
+effect_volume_label;حجم التأثير الصوتي
+fonts_label;الخطوط الكلاسيكية
+tooltip_mode_label;تلميح الأدوات العائمة
+music_player_label;مشغل الموسيقى
+gaussianblur_label;التمويه الضبابي
+gamma_label;جاما
+map_label;نص الخريطة
+map_label_0;لا أحد
+map_label_1;خطي
+map_label_2;تربيعي
+map_label_3;مكعب
+antialiasing_label;الحواف
+spoilers_label;المفسدين

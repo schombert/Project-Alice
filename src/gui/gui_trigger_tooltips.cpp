@@ -150,12 +150,11 @@ void tf_unused_1(TRIGGER_DISPLAY_PARAMS) { }
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 		auto r = trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot);
-		auto str = ws.font_collection.fonts[text::font_index_from_font_id(ws, layout.fixed_parameters.font_id) - 1].get_conditional_indicator(r);
 		if(r) {
-			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::green);
+			text::add_to_layout_box(ws, layout, box, text::embedded_icon::check);
 			text::add_space_to_layout_box(ws, layout, box);
 		} else {
-			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::red);
+			text::add_to_layout_box(ws, layout, box, text::embedded_icon::xmark);
 			text::add_space_to_layout_box(ws, layout, box);
 		}
 	} else {
@@ -351,7 +350,7 @@ void tf_x_owned_province_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -395,7 +394,7 @@ void tf_x_core_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "core_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -417,7 +416,7 @@ void tf_x_state_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "state_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -439,7 +438,7 @@ void tf_x_substate_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "substate_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -461,7 +460,7 @@ void tf_x_sphere_member_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation_in_sphere"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -711,7 +710,7 @@ void tf_capital_scope_province(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))) : text::produce_simple_string(ws, "singular_nation"));
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))) : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -731,7 +730,7 @@ void tf_capital_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(nations::owner_of_pop(ws, trigger::to_pop(primary_slot)))) : text::produce_simple_string(ws, "singular_nation"));
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, nations::owner_of_pop(ws, trigger::to_pop(primary_slot)))) : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -751,7 +750,7 @@ void tf_capital_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -771,7 +770,7 @@ void tf_this_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 		text::add_to_layout_box(ws, layout, box,
-				this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot)))
+				this_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(this_slot)))
 												: text::produce_simple_string(ws, "this_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -841,7 +840,7 @@ void tf_from_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 		text::add_to_layout_box(ws, layout, box,
-				from_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(from_slot)))
+				from_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(from_slot)))
 												: text::produce_simple_string(ws, "from_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -975,7 +974,7 @@ void tf_overlord_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "overlord_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -997,7 +996,7 @@ void tf_sphere_owner_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "sphere_leader_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(primary_slot)))
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
 													 : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -1127,7 +1126,7 @@ void tf_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 		text::add_to_layout_box(ws, layout, box,
 				text::produce_simple_string(ws,
-						tag_holder ? ws.world.nation_get_name(tag_holder) : ws.world.national_identity_get_name(tag)));
+						tag_holder ? text::get_name(ws, tag_holder) : ws.world.national_identity_get_name(tag)));
 		text::close_layout_box(layout, box);
 	}
 
@@ -1327,29 +1326,29 @@ void tf_has_empty_adjacent_state_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_state_id_province(TRIGGER_DISPLAY_PARAMS) {
 	auto it = (tval[0] & trigger::association_mask) == trigger::association_eq
-								? ws.key_to_text_sequence.find(std::string_view("belongs_to_same_state"))
-								: ws.key_to_text_sequence.find(std::string_view("does_not_belong_to_same_state"));
-	if(it != ws.key_to_text_sequence.end()) {
+								? ws.lookup_key(std::string_view("belongs_to_same_state"))
+								: ws.lookup_key(std::string_view("does_not_belong_to_same_state"));
+	if(it) {
 		text::substitution_map map;
 		text::add_to_substitution_map(map, text::variable_type::text, trigger::payload(tval[1]).prov_id);
 
 		auto box = text::open_layout_box(layout, indentation);
 		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-		text::add_to_layout_box(ws, layout, box, it->second, map);
+		text::add_to_layout_box(ws, layout, box, it, map);
 		text::close_layout_box(layout, box);
 	}
 }
 void tf_state_id_state(TRIGGER_DISPLAY_PARAMS) {
 	auto it = (tval[0] & trigger::association_mask) == trigger::association_eq
-								? ws.key_to_text_sequence.find(std::string_view("contains_blank"))
-								: ws.key_to_text_sequence.find(std::string_view("does_not_contain_blank"));
-	if(it != ws.key_to_text_sequence.end()) {
+								? ws.lookup_key(std::string_view("contains_blank"))
+								: ws.lookup_key(std::string_view("does_not_contain_blank"));
+	if(it) {
 		text::substitution_map map;
 		text::add_to_substitution_map(map, text::variable_type::text, trigger::payload(tval[1]).prov_id);
 
 		auto box = text::open_layout_box(layout, indentation);
 		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-		text::add_to_layout_box(ws, layout, box, it->second, map);
+		text::add_to_layout_box(ws, layout, box, it, map);
 		text::close_layout_box(layout, box);
 	}
 }
@@ -2006,7 +2005,7 @@ void tf_is_cultural_union_tag_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
-			text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)), ws,
+			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -2016,7 +2015,7 @@ void tf_is_cultural_union_tag_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
-			text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)), ws,
+			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -2026,7 +2025,7 @@ void tf_is_cultural_union_tag_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
-			text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)), ws,
+			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -2036,7 +2035,7 @@ void tf_is_cultural_union_tag_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
-			text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)), ws,
+			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -2046,7 +2045,7 @@ void tf_is_cultural_union_tag_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
-			text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)), ws,
+			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -2056,21 +2055,21 @@ void tf_have_core_in_nation_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_ob"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, holder ? ws.world.nation_get_name(holder) : ws.world.national_identity_get_name(tag)));
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)));
 	text::close_layout_box(layout, box);
 }
 void tf_have_core_in_nation_this(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_ob"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot))) : text::produce_simple_string(ws, "this_nation"));
+	text::add_to_layout_box(ws, layout, box, this_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(this_slot))) : text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
 }
 void tf_have_core_in_nation_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_ob"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, from_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(from_slot))) : text::produce_simple_string(ws, "from_nation"));
+	text::add_to_layout_box(ws, layout, box, from_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(from_slot))) : text::produce_simple_string(ws, "from_nation"));
 	text::close_layout_box(layout, box);
 }
 
@@ -2180,7 +2179,7 @@ void tf_is_core_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
-		text::add_to_layout_box(ws, layout, box, ws.world.nation_get_name(trigger::to_nation(this_slot)));
+		text::add_to_layout_box(ws, layout, box, text::get_name(ws, trigger::to_nation(this_slot)));
 	else
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
@@ -2192,7 +2191,7 @@ void tf_is_core_this_state(TRIGGER_DISPLAY_PARAMS) {
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box,
-				ws.world.nation_get_name(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))));
+				text::get_name(ws, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))));
 	else
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
@@ -2204,7 +2203,7 @@ void tf_is_core_this_province(TRIGGER_DISPLAY_PARAMS) {
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box,
-				ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))));
+				text::get_name(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))));
 	else
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
@@ -2215,7 +2214,7 @@ void tf_is_core_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
-		text::add_to_layout_box(ws, layout, box, ws.world.nation_get_name(nations::owner_of_pop(ws, trigger::to_pop(this_slot))));
+		text::add_to_layout_box(ws, layout, box, text::get_name(ws, nations::owner_of_pop(ws, trigger::to_pop(this_slot))));
 	else
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
@@ -2226,7 +2225,7 @@ void tf_is_core_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
-		text::add_to_layout_box(ws, layout, box, ws.world.nation_get_name(trigger::to_nation(from_slot)));
+		text::add_to_layout_box(ws, layout, box, text::get_name(ws, trigger::to_nation(from_slot)));
 	else
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_nation"));
 	text::close_layout_box(layout, box);
@@ -2239,7 +2238,7 @@ void tf_is_core_reb(TRIGGER_DISPLAY_PARAMS) {
 	if(from_slot != -1) {
 		auto tg = ws.world.rebel_faction_get_defection_target(trigger::to_rebel(from_slot));
 		auto h = ws.world.national_identity_get_nation_from_identity_holder(tg);
-		text::add_to_layout_box(ws, layout, box, h ? ws.world.nation_get_name(h) : ws.world.national_identity_get_name(tg));
+		text::add_to_layout_box(ws, layout, box, h ? text::get_name(ws, h) : ws.world.national_identity_get_name(tg));
 	} else
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "the_rebel_ind_nation"));
 	text::close_layout_box(layout, box);
@@ -2252,7 +2251,7 @@ void tf_is_core_tag(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, h ? ws.world.nation_get_name(h) : ws.world.national_identity_get_name(tg));
+	text::add_to_layout_box(ws, layout, box, h ? text::get_name(ws,h) : ws.world.national_identity_get_name(tg));
 	text::close_layout_box(layout, box);
 }
 void tf_is_core_pop_tag(TRIGGER_DISPLAY_PARAMS) {
@@ -2263,7 +2262,7 @@ void tf_is_core_pop_tag(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in_a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, h ? ws.world.nation_get_name(h) : ws.world.national_identity_get_name(tg));
+	text::add_to_layout_box(ws, layout, box, h ? text::get_name(ws, h) : ws.world.national_identity_get_name(tg));
 	text::close_layout_box(layout, box);
 }
 void tf_is_core_boolean(TRIGGER_DISPLAY_PARAMS) {
@@ -2298,7 +2297,7 @@ void tf_num_of_cities_from_nation(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box,
-			from_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(from_slot)))
+			from_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(from_slot)))
 											: text::produce_simple_string(ws, "from_nation"));
 	text::close_layout_box(layout, box);
 }
@@ -2309,7 +2308,7 @@ void tf_num_of_cities_this_nation(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box,
-			this_slot != -1 ? text::produce_simple_string(ws, ws.world.nation_get_name(trigger::to_nation(this_slot)))
+			this_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(this_slot)))
 											: text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
 }
@@ -2322,7 +2321,7 @@ void tf_num_of_cities_this_state(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
-								ws.world.nation_get_name(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))
+								text::get_name(ws, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
 }
@@ -2335,7 +2334,7 @@ void tf_num_of_cities_this_province(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
 					? text::produce_simple_string(ws,
-								ws.world.nation_get_name(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
+								text::get_name(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
 }
@@ -2347,7 +2346,7 @@ void tf_num_of_cities_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box,
 			this_slot != -1
-					? text::produce_simple_string(ws, ws.world.nation_get_name(nations::owner_of_pop(ws, trigger::to_pop(this_slot))))
+					? text::produce_simple_string(ws, text::get_name(ws, nations::owner_of_pop(ws, trigger::to_pop(this_slot))))
 					: text::produce_simple_string(ws, "this_nation"));
 	text::close_layout_box(layout, box);
 }
@@ -3219,6 +3218,26 @@ void tf_unit_in_battle(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_ongoing_battle"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_unit_has_leader(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_assigned_leader"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_has_national_focus_state(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "has_national_focus"),
+		text::produce_simple_string(ws, ws.world.national_focus_get_name(trigger::payload(tval[1]).nf_id)), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+void tf_has_national_focus_province(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "has_national_focus"),
+		text::produce_simple_string(ws, ws.world.national_focus_get_name(trigger::payload(tval[1]).nf_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_total_amount_of_divisions(TRIGGER_DISPLAY_PARAMS) {
@@ -8382,6 +8401,9 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_has_building_bank, // constexpr inline uint16_t has_building_bank = 0x02DB;
 		tf_has_building_university, // constexpr inline uint16_t has_building_university = 0x02DC;
 		tf_test, // constexpr inline uint16_t test = 0x02DD;
+		tf_unit_has_leader, //constexpr inline uint16_t unit_has_leader = 0x02DF
+		tf_has_national_focus_state, //constexpr inline uint16_t has_national_focus_state = 0x02E0
+		tf_has_national_focus_province, //constexpr inline uint16_t has_national_focus_province = 0x02E1
 
 		//
 		// scopes
@@ -8467,7 +8489,7 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 
-	{
+	if(primary_slot != -1) {
 		text::substitution_map map{};
 		text::add_to_substitution_map(map, text::variable_type::val,
 				text::fp_two_places{trigger::evaluate_multiplicative_modifier(state, modifier, primary_slot, this_slot, from_slot)});
@@ -8488,24 +8510,14 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
+			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, box);
 
-			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
-			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, layout.fixed_parameters.font_id) - 1].get_conditional_indicator(r);
-			if(r) {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
-				text::add_space_to_layout_box(state, layout, box);
-			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
-				text::add_space_to_layout_box(state, layout, box);
-			}
-
-			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor},
-					seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
+			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor}, seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
-					trigger_tooltip::indentation_amount * 2, true);
+				state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
+				trigger_tooltip::indentation_amount * 2, primary_slot != -1);
 		}
 	}
 }
@@ -8544,24 +8556,15 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
-
-			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
-			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, layout.fixed_parameters.font_id) - 1].get_conditional_indicator(r);
-			if(r) {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
-				text::add_space_to_layout_box(state, layout, box);
-			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
-				text::add_space_to_layout_box(state, layout, box);
-			}
+			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, box);
 
 			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor},
 					seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
-					trigger_tooltip::indentation_amount * 2, true);
+				state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
+				trigger_tooltip::indentation_amount * 2, primary_slot != -1);
 		}
 	}
 }

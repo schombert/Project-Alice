@@ -296,7 +296,7 @@ public:
 		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
 		text::add_space_to_layout_box(state, contents, box);
 		if(controller) {
-			text::add_to_layout_box(state, contents, box, controller.get_name());
+			text::add_to_layout_box(state, contents, box, text::get_name(state, controller));
 		} else {
 			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction));
 		}
@@ -393,14 +393,14 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
 			text::add_line_break_to_layout_box(state, contents, box);
-			if(state.world.modifier_get_desc(mod.mod_id)) {
+			if(auto desc = state.world.modifier_get_desc(mod.mod_id); state.key_is_localized(desc)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
-				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
 				text::add_to_substitution_map(sub, text::variable_type::provincename, p);
-				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod.mod_id), sub);
+				text::add_to_layout_box(state, contents, box, desc, sub);
 			}
 			text::close_layout_box(contents, box);
 			modifier_description(state, contents, mod.mod_id, 15);
@@ -527,15 +527,11 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
-			auto ptr = make_element_by_type<province_colony_button>(state, id);
-			colony_button = ptr.get();
-			//...
-			auto btn = make_element_by_type<province_move_capital_button>(state, "alice_move_capital");
-			btn->base_data.position = colony_button->base_data.position;
-			btn->base_data.position.y -= 3;
-			btn->base_data.position.x -= colony_button->base_data.size.x * 2;
-			add_child_to_front(std::move(btn));
-			return ptr;
+			auto btn = make_element_by_type<province_colony_button>(state, id);
+			colony_button = btn.get();
+			return btn;
+		} else if(name == "alice_move_capital") {
+			return make_element_by_type<province_move_capital_button>(state, id);
 		} else if(name == "national_focus") {
 			return make_element_by_type<province_national_focus_button>(state, id);
 		} else if(name == "admin_efficiency") {
@@ -1252,7 +1248,8 @@ class province_rgo_employment_progress_icon : public opaque_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province = retrieve<dcon::province_id>(state, parent);
-		auto employment_ratio = state.world.province_get_rgo_employment(province);
+		auto max_emp = province::land_maximum_employment(state, province);
+		auto employment_ratio = province::land_employment(state, province) / (max_emp + 1.f);
 		frame = int32_t(10.f * employment_ratio);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1261,8 +1258,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
-		auto max_emp = economy::rgo_total_max_employment(state, owner, prov_id);
-		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
+		auto max_emp = province::land_maximum_employment(state, prov_id);
+		auto employment_ratio = province::land_employment(state, prov_id) / (max_emp + 1.f);
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
 		float const min_wage_factor = economy::pop_min_wage_factor(state, owner);
@@ -1274,9 +1271,6 @@ public:
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
-		
-		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
-		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
 
 		text::close_layout_box(contents, box);
 	}

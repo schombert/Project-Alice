@@ -126,11 +126,11 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::countryname, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::thiscountry, target_nation);
-	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
+	text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
-	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, text::get_adjective(state, state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
-	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(target_nation), state.world.nation_get_government_type(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, text::get_ruler_title(state, target_nation));
 	// TODO: Is this correct? I remember in vanilla it could vary
 	auto pc = state.world.nation_get_primary_culture(target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(pc));
@@ -139,13 +139,13 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::countryculture, state.world.culture_get_name(pc));
 	auto sm = state.world.nation_get_in_sphere_of(target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::spheremaster, sm);
-	text::add_to_substitution_map(sub, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	text::add_to_substitution_map(sub, text::variable_type::spheremaster_adj, text::get_adjective(state, sm));
 	auto smpc = state.world.nation_get_primary_culture(sm);
 	text::add_to_substitution_map(sub, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
-	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
+	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, text::get_adjective(state, from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
 
 	// Global crisis stuff
@@ -160,7 +160,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_capital, state.world.nation_get_capital(state.primary_crisis_defender));
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.primary_crisis_defender);
-	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
 	text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_state);
 	text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// Dates
@@ -185,7 +185,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::resource, state.world.province_get_rgo(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::terrain, state.world.province_get_terrain(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::numfactories, text::pretty_integer{ economy::state_factory_count(state, target_state, target_nation) });
-	text::add_to_substitution_map(sub, text::variable_type::fromruler, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(from_nation), state.world.nation_get_government_type(from_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::fromruler, text::get_ruler_title(state, from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::focus, state.world.state_instance_get_owner_focus(target_state).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::nf, state.world.state_instance_get_owner_focus(target_state).get_name());
 	auto names_pair = rng::get_random_pair(state, uint32_t(target_nation.index()) << 6, uint32_t(event_date.value));
@@ -343,13 +343,12 @@ void event_desc_text::on_create(sys::state& state) noexcept {
 void event_desc_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 
-	auto contents = text::create_endless_layout(delegate->internal_layout,
+	auto contents = text::create_endless_layout(state, delegate->internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 					delegate->base_data.data.text.font_handle, 0, text::alignment::left, delegate->black_text ? text::text_color::black : text::text_color::white, false});
 
-	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
-	dcon::text_sequence_id description{};
+	dcon::text_key description{};
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
 		description = state.world.national_event_get_description(phe.e);
@@ -367,6 +366,8 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		description = state.world.free_provincial_event_get_description(phe.e);
 		populate_event_submap(state, sub, phe);
 	}
+	
+	auto box = text::open_layout_box(contents);
 	text::add_to_layout_box(state, contents, box, description, sub);
 	text::close_layout_box(contents, box);
 
@@ -418,13 +419,13 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 void event_name_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 
-	auto contents = text::create_endless_layout(internal_layout,
+	auto contents = text::create_endless_layout(state, internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 					base_data.data.text.font_handle, -15, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, false});
 
 	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
-	dcon::text_sequence_id name{};
+	dcon::text_key name{};
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
 		name = state.world.national_event_get_name(phe.e);
@@ -536,18 +537,18 @@ void event_state_name_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto n = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).n);
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto n = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).n);
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto p = dcon::fatten(state.world, std::get<event::pending_human_p_event>(content).p);
 		auto n = p.get_nation_from_province_ownership();
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto p = dcon::fatten(state.world, std::get<event::pending_human_f_p_event>(content).p);
 		auto n = p.get_nation_from_province_ownership();
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	}
 }
 
@@ -576,28 +577,28 @@ void base_event_option_listbox::on_update(sys::state& state) noexcept {
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto e = std::get<event::pending_human_n_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.national_event_get_options(e)[i].effect && !state.world.national_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.national_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto e = std::get<event::pending_human_f_n_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.free_national_event_get_options(e)[i].effect && !state.world.free_national_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.free_national_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto e = std::get<event::pending_human_p_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.provincial_event_get_options(e)[i].effect && !state.world.provincial_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.provincial_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto e = std::get<event::pending_human_f_p_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.free_provincial_event_get_options(e)[i].effect && !state.world.free_provincial_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.free_provincial_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
@@ -613,46 +614,46 @@ void base_event_window::on_create(sys::state& state) noexcept {
 	if(get_pool_slot() == event_pool_slot::province) {
 		image->set_visible(state, false);
 		{
-			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_requirements"))->second.definition);
 			ptr->base_data.position.y = int16_t(355);
 			ptr->base_data.position.x += int16_t(ptr->base_data.size.x + 140);
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_odds"))->second.definition);
 			ptr->base_data.position.y = int16_t(355);
 			ptr->base_data.position.x += int16_t(ptr->base_data.size.x * 2 + 140);
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(get_option_start_element_name())->second.definition].position;
+			xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key(get_option_start_element_name()))->second.definition].position;
 			cur_offset.y += 22;
-			auto ptr = make_element_by_type<provincial_event_listbox>(state, state.ui_state.defs_by_name.find("alice_povince_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<provincial_event_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_povince_event_opts_list"))->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y -= 150; // Omega nudge??
 			add_child_to_front(std::move(ptr));
 		}
 	} else {
 		{
-			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_requirements"))->second.definition);
 			ptr->base_data.position.y = 20;
 			ptr->base_data.position.x += ptr->base_data.size.x;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_odds"))->second.definition);
 			ptr->base_data.position.y = 20;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(get_option_start_element_name())->second.definition].position;
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key(get_option_start_element_name()))->second.definition].position;
 		if(get_pool_slot() == event_pool_slot::country_election) {
-			auto ptr = make_element_by_type<national_election_event_listbox>(state, state.ui_state.defs_by_name.find("alice_election_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<national_election_event_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_election_event_opts_list"))->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y += 5;
 			add_child_to_front(std::move(ptr));
 		} else {
-			auto ptr = make_element_by_type<national_event_listbox>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<national_event_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_nation_event_opts_list"))->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y += 5;
 			add_child_to_front(std::move(ptr));
@@ -690,8 +691,9 @@ public:
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
-					float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
-					gfx_def.is_vertically_flipped());
+				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(),
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 		}
 		image_element_base::render(state, x, y);
 	}
@@ -723,14 +725,14 @@ public:
 			auto& gfx_def = state.ui_defs.gfx[gid];
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			//auto rotation = 0.f;
 			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x),
 				float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, mask_handle,
-				ui::rotation::r90_right, false);
-
+				ui::rotation::r90_right, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 			ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-				ui::rotation::r90_right, false);
+				ui::rotation::r90_right, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 		}
 	}
 	void on_create(sys::state& state) noexcept override {
@@ -863,10 +865,6 @@ public:
 		}
 		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
 	}
-
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent->impl_on_scroll(state, x, y, amount, mods);
-	}
 };
 
 class election_parties_listbox : public listbox_element_base<election_party_entry, dcon::political_party_id> {
@@ -877,7 +875,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		nations::get_active_political_parties(state, n).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, n, row_contents);
 		update(state);
 	}
 };
@@ -930,7 +929,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		nations::get_active_political_parties(state, n).swap(row_contents);
+		row_contents.clear();
+		nations::get_active_political_parties(state, n, row_contents);
 		update(state);
 	}
 };
@@ -952,7 +952,8 @@ public:
 		distribution.clear();
 		auto total = state.world.nation_get_demographics(n, demographics::total);
 		if(total > 0.f) {
-			auto parties = nations::get_active_political_parties(state, n);
+			std::vector<dcon::political_party_id> parties;
+			nations::get_active_political_parties(state, n, parties);
 			for(auto ppid : state.world.in_political_party) {
 				distribution.emplace_back(ppid.id, 0.0f);
 			}
@@ -1007,7 +1008,7 @@ std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, s
 		return ptr;
 	} else if(name == "event_separator_image") {
 		auto ptr = make_element_by_type<image_element_base>(state, id);
-		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("event_province_option_start"))->second.definition].position;
 		ptr->base_data.position.y = cur_offset.y;
 		ptr->base_data.position.y -= 150; // Omega nudge??
 		return ptr;
@@ -1179,7 +1180,7 @@ void new_event_window_1(sys::state& state, event_data_wrapper& dat, event_pool_s
 		event_pool[slot].pop_back();
 		ptr->event_data = dat;
 		if(!ptr->is_visible())
-			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(T::window_element_name)->second.definition].position;
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key(T::window_element_name))->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}

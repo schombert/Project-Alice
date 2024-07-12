@@ -315,6 +315,7 @@ units_in_the_state;units in the state
 at_war_against;at war against
 num_of_divisions;a number of divisions
 an_ongoing_battle;an ongoing battle
+an_assigned_leader;an assigned leader
 treasury;treasury
 o_treasury;owner's treasury
 o_of_prov;the owner of the province
@@ -906,12 +907,12 @@ modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
 modifier_conversion_rate;Conversion Rate
 modifier_attrition;Attrition
-chat_player_joins;@$x$ $playername$ joined
-chat_player_leaves;@$x$ $playername$ left
-chat_player_ban;@$x$ $playername$ was banned
-chat_player_kick;@$x$ $playername$ was kicked
-chat_player_switch;@$x$ $playername$ has choosen $country$
-chat_player_oos;@$x$ $playername$ has OOSed!
+chat_player_joins;$playername$ joined
+chat_player_leaves;$playername$ left
+chat_player_ban;$playername$ was banned
+chat_player_kick;$playername$ was kicked
+chat_player_switch;$playername$ has choosen $country$
+chat_player_oos;$playername$ has OOSed!
 alice_status_stream;Save progress $value$
 alice_play_pending_client;$playername$ is not ready yet
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see ?Ggreen?W lines go up, and ?Rred?W lines go down, as per usual I'm ?Ynot?W a line graph so I mostly go unnoticed :)
@@ -997,6 +998,7 @@ fab_finish_date;Ожидается, что изготовление CB заве�
 fab_is_paused;Изготовление CB в настоящее время приостановлено
 macro_builder;Макростроитель
 macro_total_desc;Общая статистика юнита:
+macro_new_template;Новый
 macro_switch_type_land;Создать армию
 macro_switch_type_naval;Построить флот
 macro_warn_overseas;?RCНевозможно построить этот юнит за рубежом!?!
