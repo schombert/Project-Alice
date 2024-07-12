@@ -597,11 +597,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 	}
-	if(state.map_state.selected_province || (state.local_player_nation && state.mode == sys::game_mode_type::pick_nation)) {
+	if(state.map_state.selected_province || (state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation)) {
 		glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-		if(state.local_player_nation && state.mode == sys::game_mode_type::pick_nation) {
+		if(state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation) {
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
@@ -611,7 +611,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 				}
 			}
-		} else if(state.mode == sys::game_mode_type::select_states) {
+		} else if(state.current_scene.borders == game_scene::borders_granularity::state) {
 			auto owner = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
 			if(owner) {
 				auto siid = state.world.province_get_state_membership(state.map_state.selected_province);
@@ -626,7 +626,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					}
 				}
 			}
-		} else {
+		} else if(state.current_scene.borders == game_scene::borders_granularity::province) {
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
@@ -648,7 +648,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
-			if(owner && state.mode == sys::game_mode_type::pick_nation) {
+			if(owner && state.current_scene.borders == game_scene::borders_granularity::nation) {
 				//per nation
 				for(auto b : borders) {
 					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
@@ -659,7 +659,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 					}
 				}
-			} else if(owner && state.mode == sys::game_mode_type::select_states) {
+			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::state) {
 				auto siid = state.world.province_get_state_membership(prov);
 				//per state
 				for(auto b : borders) {
@@ -671,7 +671,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 					}
 				}
-			} else {
+			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::province)  {
 				//per province
 				for(auto b : borders) {
 					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
@@ -1174,15 +1174,7 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 
 void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1, 0);
-	if(state.mode == sys::game_mode_type::pick_nation) {
-		for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-			province_highlights[province::to_map_id(pc.get_province())] = 0x2B2B2B2B;
-		}
-	} else {
-		if(prov_id) {
-			province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
-		}
-	}
+	state.current_scene.update_highlight_texture(state, province_highlights, prov_id);
 	gen_prov_color_texture(textures[texture_province_highlight], province_highlights);
 }
 

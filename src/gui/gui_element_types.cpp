@@ -1109,6 +1109,7 @@ state::state() {
 	rgos_root = std::make_unique<container_base>();
 	province_details_root = std::make_unique<container_base>();
 	root = std::make_unique<container_base>();
+	military_root = std::make_unique<container_base>();
 	tooltip = std::make_unique<tool_tip>();
 	tooltip->flags |= element_base::is_invisible_mask;
 }

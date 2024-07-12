@@ -580,7 +580,7 @@ bool client_data::is_banned(sys::state& state) const {
 static void send_post_handshake_commands(sys::state& state, network::client_data& client) {
 	std::vector<char> tmp = client.send_buffer;
 	client.send_buffer.clear();
-	if(state.mode == sys::game_mode_type::pick_nation) {
+	if(state.current_scene.starting_scene) {
 		/* Send the savefile to the newly connected client (if not a new game) */
 		if(!state.network_state.is_new_game) {
 			command::payload c;
@@ -616,7 +616,7 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				}
 			}
 		}
-	} else if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states) {
+	} else if(state.current_scene.game_in_progress) {
 		{ /* Tell this client about every other client */
 			command::payload c;
 			memset(&c, 0, sizeof(c));
@@ -828,7 +828,7 @@ static void accept_new_clients(sys::state& state) {
 			disconnect_client(state, client, false);
 			break;
 		}
-		if(state.mode == sys::game_mode_type::end_screen) {
+		if(state.current_scene.final_scene) {
 			disconnect_client(state, client, false);
 			break;
 		}

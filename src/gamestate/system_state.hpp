@@ -10,6 +10,7 @@
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
+#include "game_scene.hpp"
 #include "simple_fs.hpp"
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
@@ -418,6 +419,30 @@ struct cheat_data_s {
 	bool always_potential_decisions = false;
 };
 
+enum class army_group_regiment_status : uint8_t {
+	idle, awaiting_orders, defend_position, awaiting_naval_travel, moving
+};
+
+enum class army_group_ship_status : uint8_t {
+	idle, port, 
+};
+
+struct army_group {
+	dcon::province_id hq;
+	std::vector<dcon::army_id> land_forces;
+	std::vector<dcon::regiment_id> land_regiments;
+	std::array<army_group_regiment_status, 32000> regiment_status;
+
+	std::vector<dcon::navy_id> naval_forces;
+	std::vector<dcon::ship_id> ships;
+	std::array<army_group_ship_status, 32000> ship_status;
+
+	std::vector<dcon::province_id> defensive_line;
+
+	std::vector<dcon::province_id> naval_travel_origin;
+	std::vector<dcon::province_id> naval_travel_target;
+};
+
 struct crisis_member_def {
 	dcon::nation_id id;
 
@@ -570,7 +595,6 @@ struct alignas(64) state {
 	// current program / ui state
 	//
 
-	game_mode_type mode = game_mode_type::pick_nation;
 	network_mode_type network_mode = network_mode_type::single_player;
 	dcon::nation_id local_player_nation;
 	sys::date current_date = sys::date{0};
@@ -584,6 +608,13 @@ struct alignas(64) state {
 	//control groups
 	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;
 	std::array<std::vector<dcon::navy_id>, 10> ctrl_navies;
+
+	//army group
+	std::vector<army_group> army_groups;
+	army_group * selected_army_group = nullptr;
+
+	//current ui
+	game_scene::scene_properties current_scene = game_scene::nation_picker;
 
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
@@ -760,5 +791,27 @@ struct alignas(64) state {
 			}
 		}
 	}
+
+	void new_army_group(dcon::province_id hq);
+	void new_defensive_position(army_group* group, dcon::province_id position);
+	void update_regiments_and_ships(army_group* group);
+	void update_armies_and_fleets(army_group* group);
+	void remove_army_from_army_group(army_group* selected_group, dcon::army_id selected_army);
+	void remove_navy_from_army_group(army_group* selected_group, dcon::navy_id navy_to_delete);
+	void remove_regiment_from_army_group(army_group* selected_group, dcon::regiment_id selected_regiment);
+	void remove_ship_from_army_group(army_group* selected_group, dcon::ship_id ship_to_delete);
+	void remove_regiment_from_all_army_groups(dcon::regiment_id regiment_to_delete);
+	void remove_ship_from_all_army_groups(dcon::ship_id ship_to_delete);
+	void remove_army_from_all_army_groups_clean(dcon::army_id army_to_delete);
+	void remove_navy_from_all_army_groups_clean(dcon::navy_id navy_to_delete);
+	void remove_army_from_all_army_groups_dirty(dcon::army_id army_to_delete);
+	void remove_navy_from_all_army_groups_dirty(dcon::navy_id navy_to_delete);
+	void add_army_to_army_group(army_group* selected_group, dcon::army_id selected_army);
+	void add_navy_to_army_group(army_group* selected_group, dcon::navy_id selected_navy);
+	void smart_select_army_group(army_group* selected_group);
+	void select_army_group(army_group* selected_group);
+	void deselect_army_group();
+	bool fill_province_up_to_supply_limit(army_group* group, dcon::province_id target, std::vector<float>& regiments_distribution, army_group_regiment_status final_status);
+	bool fill_province(army_group* group, dcon::province_id target, std::vector<float>& regiments_expectation_ideal);
 };
 } // namespace sys

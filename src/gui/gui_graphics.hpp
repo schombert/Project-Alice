@@ -422,6 +422,7 @@ struct state {
 	std::unique_ptr<element_base> rgos_root;
 	std::unique_ptr<element_base> province_details_root;
 	std::unique_ptr<element_base> root;
+	std::unique_ptr<element_base> military_root;
 	std::unique_ptr<element_base> nation_picker;
 	std::unique_ptr<element_base> end_screen;
 	std::unique_ptr<element_base> select_states_legend;
@@ -456,6 +457,7 @@ struct state {
 	element_base* request_window = nullptr;
 	unit_details_window<dcon::army_id>* army_status_window = nullptr;
 	unit_details_window<dcon::navy_id>* navy_status_window = nullptr;
+	element_base* army_group_window = nullptr;
 	element_base* multi_unit_selection_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
@@ -515,9 +517,12 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat);
 std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
 
-void show_main_menu(sys::state& state);
+void show_main_menu_nation_basic(sys::state& state);
+void show_main_menu_nation_picker(sys::state& state);
+
 int32_t ui_width(sys::state const& state);
 int32_t ui_height(sys::state const& state);
+
 void create_in_game_windows(sys::state& state);
 
 } // namespace ui

@@ -74,6 +74,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/text/text.cpp"
 	"src/zstd/zstd.cpp"
 	"src/network/pcp.cpp"
+	"src/gamestate/game_scene.cpp"
 )
 
 if(WIN32)

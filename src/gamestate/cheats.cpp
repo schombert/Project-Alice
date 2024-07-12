@@ -121,7 +121,7 @@ void c_end_game(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_c_end_game(sys::state& state, dcon::nation_id source) {
-	state.mode = sys::game_mode_type::end_screen;
+	game_scene::switch_scene(state, game_scene::scene_id::end_screen);
 }
 
 void c_complete_constructions(sys::state& state, dcon::nation_id source) {

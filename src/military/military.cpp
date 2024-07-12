@@ -4857,6 +4857,32 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov) {
 	return 0.0f;
 }
+
+float local_army_weight(sys::state& state, dcon::province_id prov) {
+	float total_army_weight = 0;
+	for(auto ar : state.world.province_get_army_location(prov)) {
+		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
+				!bool(ar.get_army().get_navy_from_army_transport())) {
+			for(auto rg : ar.get_army().get_army_membership()) {
+				total_army_weight += 3.0f * rg.get_regiment().get_strength();
+			}
+		}
+	}
+	return total_army_weight;
+}
+float local_army_weight_max(sys::state& state, dcon::province_id prov) {
+	float total_army_weight = 0;
+	for(auto ar : state.world.province_get_army_location(prov)) {
+		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
+				!bool(ar.get_army().get_navy_from_army_transport())) {
+			for(auto rg : ar.get_army().get_army_membership()) {
+				total_army_weight += 3.0f;
+			}
+		}
+	}
+	return total_army_weight;
+}
+
 float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov) {
 	float total_army_weight = 0;
 	for(auto ar : state.world.province_get_army_location(prov)) {

@@ -248,7 +248,7 @@ public:
 		set_button_text(state, text::produce_simple_string(state, "alice_lobby_back"));
 	}
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode == sys::network_mode_type::client) || (state.mode == sys::game_mode_type::pick_nation);
+		disabled = (state.network_mode == sys::network_mode_type::client) || (state.current_scene.is_lobby);
 	}
 	void button_action(sys::state& state) noexcept override {
 		map_mode::set_map_mode(state, map_mode::mode::political);
@@ -258,7 +258,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.mode == sys::game_mode_type::pick_nation) {
+		if(state.current_scene.is_lobby) {
 			text::add_line(state, contents, "alice_lobby_back_tt_1");
 		}
 		if(state.network_mode == sys::network_mode_type::client) {
@@ -317,16 +317,20 @@ public:
 	}
 };
 
-void open_chat_window(sys::state& state) {
-	if(state.mode == sys::game_mode_type::in_game) {
-		state.ui_state.chat_window->set_visible(state, !state.ui_state.chat_window->is_visible());
-		state.ui_state.edit_target = static_cast<chat_window*>(state.ui_state.chat_window)->chat_edit;
-		state.ui_state.root->move_child_to_front(state.ui_state.chat_window);
-	} else if(state.mode == sys::game_mode_type::pick_nation) {
-		state.ui_state.r_chat_window->set_visible(state, !state.ui_state.r_chat_window->is_visible());
-		state.ui_state.edit_target = static_cast<chat_window*>(state.ui_state.r_chat_window)->chat_edit;
-		state.ui_state.root->move_child_to_front(state.ui_state.r_chat_window);
-	}
+inline void open_chat_before_game(sys::state& state) {
+	state.ui_state.r_chat_window->set_visible(state, !state.ui_state.r_chat_window->is_visible());
+	state.ui_state.edit_target = static_cast<ui::chat_window*>(state.ui_state.r_chat_window)->chat_edit;
+	state.ui_state.root->move_child_to_front(state.ui_state.r_chat_window);
+}
+
+inline void open_chat_during_game(sys::state& state) {
+	state.ui_state.chat_window->set_visible(state, !state.ui_state.chat_window->is_visible());
+	state.ui_state.edit_target = static_cast<ui::chat_window*>(state.ui_state.chat_window)->chat_edit;
+	state.ui_state.root->move_child_to_front(state.ui_state.chat_window);
+}
+
+inline void open_chat_window(sys::state& state) {
+	state.current_scene.open_chat(state);
 }
 
 }

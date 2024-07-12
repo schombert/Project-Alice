@@ -1323,7 +1323,7 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 
 	if(n == state.local_player_nation) {
 		// Player was defeated, show end screen
-		state.mode = sys::game_mode_type::end_screen;
+		game_scene::switch_scene(state, game_scene::scene_id::end_screen);
 	}
 }
 
