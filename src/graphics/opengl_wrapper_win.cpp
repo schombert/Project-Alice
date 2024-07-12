@@ -41,10 +41,10 @@ void create_opengl_context(sys::state& state) {
 		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
-	// Explicitly request for OpenGL 4.2
-	static const int attribs_4_2[] = {
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+	// Explicitly request for OpenGL 3.3
+	static const int attribs_3_3[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
 		WGL_CONTEXT_FLAGS_ARB,
 #ifndef NDEBUG
 		WGL_CONTEXT_DEBUG_BIT_ARB |
@@ -54,25 +54,9 @@ void create_opengl_context(sys::state& state) {
 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		0
 	};
-	state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_4_2);
+	state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_3_3);
 	if(state.open_gl.context == nullptr) {
-		static const int attribs_3_3[] = {
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-			WGL_CONTEXT_FLAGS_ARB,
-	#ifndef NDEBUG
-			WGL_CONTEXT_DEBUG_BIT_ARB |
-	#endif
-			0,
-			WGL_CONTEXT_PROFILE_MASK_ARB,
-			WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-		state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_3_3);
-		state.open_gl.legacy_mode = true;
-		if(state.open_gl.context == nullptr) {
-			window::emit_error_message("Unable to create WGL context", true);
-		}
+		window::emit_error_message("Unable to create WGL context", true);
 	}
 
 	wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
