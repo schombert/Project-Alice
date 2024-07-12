@@ -33,8 +33,6 @@ void create_opengl_context(sys::state& state) {
 	auto handle_to_ogl_dc = wglCreateContext(window_dc);
 	wglMakeCurrent(window_dc, handle_to_ogl_dc);
 
-	glewExperimental = GL_TRUE;
-
 	if(glewInit() != 0) {
 		window::emit_error_message("GLEW failed to initialize", true);
 	}
