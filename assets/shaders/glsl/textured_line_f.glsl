@@ -1,22 +1,33 @@
-in float tex_coord;
-in float o_dist;
-in vec2 map_coord;
+in float opacity;
+in float text_size;
+in vec3 tex_coord;
+out vec4 frag_color;
 
-layout (location = 0) out vec4 frag_color;
+uniform float is_black;
+uniform float gamma;
 
-layout (binding = 0) uniform sampler2D provinces_texture_sampler;
-layout (binding = 5) uniform sampler2D colormap_water;
-layout (binding = 13) uniform sampler2D province_fow;
-layout (binding = 14) uniform sampler2D line_texture;
-layout (location = 11) uniform float gamma;
+uniform sampler2D texture_sampler;
 
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
 }
 
 void main() {
-	vec4 out_color = texture(colormap_water, map_coord) * texture( line_texture, vec2(tex_coord, o_dist));
-	vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
-	out_color.rgb *= texture(province_fow, prov_id).rgb;
-	frag_color = gamma_correct(out_color);
+	float border_size = 0.022f;
+	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
+	vec3 outer_color = vec3(0.27 * is_black, 0.27 * is_black, 0.27 * is_black);
+	outer_color = mix(inner_color, outer_color, text_size * 40.f);
+	
+	vec4 color_in = texture(texture_sampler, vec2(tex_coord.rg));
+	if(color_in.r > 0.5) {
+		frag_color = vec4(inner_color, 1.0f);
+	} else if(color_in.r > 0.495) {
+		frag_color = vec4(mix(inner_color, outer_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
+	} else {
+		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
+		frag_color = vec4(outer_color, pow(t, 5.f));
+	}
+
+	frag_color.a *= opacity;
+	frag_color = gamma_correct(frag_color);
 }

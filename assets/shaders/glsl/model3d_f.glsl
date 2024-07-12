@@ -1,8 +1,9 @@
 in vec2 tex_coord;
-layout (location = 0) out vec4 frag_color;
-layout (binding = 14) uniform sampler2D diffuse_texture;
+out vec4 frag_color;
 
-layout (location = 11) uniform float gamma;
+uniform float gamma;
+
+uniform sampler2D diffuse_texture;
 
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);

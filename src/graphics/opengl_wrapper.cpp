@@ -46,15 +46,15 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 420 core\r\n",
-		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
-		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
-		"#extension GL_ARB_shader_subroutine : enable\r\n",
+		"#version 330 core\r\n",
+		//"#extension GL_ARB_explicit_uniform_location : enable\r\n",
+		//"#extension GL_ARB_explicit_attrib_location : enable\r\n",
+		//"#extension GL_ARB_shader_subroutine : enable\r\n",
 		"#define M_PI 3.1415926535897932384626433832795\r\n",
 		"#define PI 3.1415926535897932384626433832795\r\n",
 		s_source.c_str()
 	};
-	glShaderSource(return_value, 7, texts, nullptr);
+	glShaderSource(return_value, 4, texts, nullptr);
 	glCompileShader(return_value);
 
 	GLint result;
@@ -528,11 +528,12 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 	bind_vertices_by_rotation(state, r, flipped, rtl);
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::linegraph_color };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 	glLineWidth(2.0f);
-	glUniform3f(parameters::inner_color, 1.f, 0.f, 0.f);
+	glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 1.f, 0.f, 0.f);
 	glDrawArrays(GL_LINE_STRIP, 0, 4);
 }
 
@@ -542,14 +543,15 @@ void render_textured_rect(sys::state const& state, color_modification enabled, f
 
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	// glUniform4f(parameters::drawing_rectangle, 0, 0, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
+	// glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), 0, 0, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -559,13 +561,14 @@ void render_textured_rect_direct(sys::state const& state, float x, float y, floa
 
 	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, handle);
 
 	GLuint subroutines[2] = {parameters::enabled, parameters::no_filter};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -576,25 +579,26 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 
 	l.bind_buffer();
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
 	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
 		glLineWidth(4.0f);
-		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 0.f, 0.f, 0.f);
 		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 	}
 	glLineWidth(2.0f);
 	if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
-		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 0.f, 0.f, 0.f);
 	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
-		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 1.f, 1.f, 0.f);
 	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
-		glUniform3f(parameters::inner_color, 1.f, 1.f, 1.f);
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 1.f, 1.f, 1.f);
 	} else {
-		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 1.f, 1.f, 0.f);
 	}
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
@@ -605,18 +609,19 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 
 	l.bind_buffer();
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph_color };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
 	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
 		glLineWidth(4.0f);
-		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), 0.f, 0.f, 0.f);
 		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 	}
 	glLineWidth(2.0f);
-	glUniform3f(parameters::inner_color, r, g, b);
+	glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), r, g, b);
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
@@ -626,13 +631,14 @@ void render_barchart(sys::state const& state, color_modification enabled, float 
 
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::barchart};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -642,13 +648,14 @@ void render_piechart(sys::state const& state, color_modification enabled, float 
 
 	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, size, size);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::piechart};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -659,14 +666,15 @@ void render_bordered_rect(sys::state const& state, color_modification enabled, f
 
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	glUniform1f(parameters::border_size, border_size);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
+	glUniform1f(glGetUniformLocation(state.open_gl.ui_shader_program, "border_size"), border_size);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::frame_stretch};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -677,7 +685,7 @@ void render_masked_rect(sys::state const& state, color_modification enabled, flo
 
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
@@ -685,7 +693,8 @@ void render_masked_rect(sys::state const& state, color_modification enabled, flo
 	glBindTexture(GL_TEXTURE_2D, mask_texture_handle);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::use_mask};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -696,8 +705,8 @@ void render_progress_bar(sys::state const& state, color_modification enabled, fl
 
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	glUniform1f(parameters::border_size, progress);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
+	glUniform1f(glGetUniformLocation(state.open_gl.ui_shader_program, "border_size"), progress);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, left_texture_handle);
@@ -705,7 +714,8 @@ void render_progress_bar(sys::state const& state, color_modification enabled, fl
 	glBindTexture(GL_TEXTURE_2D, right_texture_handle);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::progress_bar};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -716,14 +726,15 @@ void render_tinted_textured_rect(sys::state const& state, float x, float y, floa
 
 	bind_vertices_by_rotation(state, rot, flipped, rtl);
 
-	glUniform3f(parameters::inner_color, r, g, b);
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), r, g, b);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = {parameters::tint, parameters::no_filter};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -736,15 +747,16 @@ void render_tinted_subsprite(sys::state const& state, int frame, int total_frame
 	bind_vertices_by_rotation(state, rot, flipped, rtl);
 
 	auto const scale = 1.0f / static_cast<float>(total_frames);
-	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
-	glUniform4f(parameters::subrect, r, g, b, 0);
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), static_cast<float>(frame) * scale, scale, 0.0f);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "subrect"), r, g, b, 0);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = { parameters::alternate_tint, parameters::sub_sprite };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -756,14 +768,15 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	auto const scale = 1.0f / static_cast<float>(total_frames);
-	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), static_cast<float>(frame) * scale, scale, 0.0f);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::sub_sprite};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -841,9 +854,10 @@ void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float
 	}
 
 	GLuint icon_subroutines[2] = { map_color_modification_to_index(cmod), parameters::no_filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
-	glUniform4f(parameters::drawing_rectangle, x, icon_baseline, scale * font_size, scale * font_size);
-	glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), icon_subroutines[0], icon_subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines); // must set all subroutines in one call
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, icon_baseline, scale * font_size, scale * font_size);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "subrect"), 0.f, 1.f, 0.f, 1.f);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
@@ -861,19 +875,21 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 	GLuint flag_texture_handle = ogl::get_flag_handle(state, ico.tag, flag_type);
 
 	GLuint icon_subroutines[2] = { map_color_modification_to_index(cmod), parameters::no_filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), icon_subroutines[0], icon_subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines); // must set all subroutines in one call
 	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-	glUniform4f(parameters::drawing_rectangle, x, icon_baseline + font_size * 0.15f, 1.5f * font_size * 0.9f,  font_size * 0.9f);
-	glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x, icon_baseline + font_size * 0.15f, 1.5f * font_size * 0.9f,  font_size * 0.9f);
+	glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "subrect"), 0.f, 1.f, 0.f, 1.f);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 
 void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
 	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
 	for(unsigned int i = 0; i < glyph_count; i++) {
@@ -883,13 +899,11 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		float x_offset = float(txt.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 		float y_offset = float(gso.y) - float(txt.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
-		glActiveTexture(GL_TEXTURE0);
-
 		assert(uint32_t(gso.texture_slot >> 6) < f.textures.size());
 		assert(f.textures[gso.texture_slot >> 6]);
-
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
-		glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
+		glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		x += x_advance * size / 64.f;
 		baseline_y -= (float(txt.glyph_info[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
@@ -906,7 +920,8 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 	float adv = 1.0f / font.width; // Font texture atlas spacing.
 	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::subsprite_b };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+	glUniform2ui(glGetUniformLocation(state.open_gl.ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	// Set Text Color, all one color for now.
 	//------ FOR SCHOMBERT ------//
@@ -934,9 +949,9 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 		auto const& f = font.chars[ch];
 		float CurX = x + f.x_offset;
 		float CurY = y + f.y_offset;
-		glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width), float(f.height));
-		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-		glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
+		glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "d_rect"), CurX, CurY, float(f.width), float(f.height));
+		glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), c.r, c.g, c.b);
+		glUniform4f(glGetUniformLocation(state.open_gl.ui_shader_program, "subrect"), float(f.x) / float(font.width) /* x offset */,
 				float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
 				float(f.height) / float(font.width) /* y height */
 		);
@@ -947,8 +962,8 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 }
 
 void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
-	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
+	glUniform3f(glGetUniformLocation(state.open_gl.ui_shader_program, "inner_color"), c.r, c.g, c.b);
+	glUniform1f(glGetUniformLocation(state.open_gl.ui_shader_program, "border_size"), 0.08f * 16.0f / size);
 	internal_text_render(state, txt, x, y + size, size, f);
 }
 

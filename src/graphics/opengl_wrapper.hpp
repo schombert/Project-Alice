@@ -41,7 +41,6 @@ inline constexpr GLuint interactable_disabled = 14;
 inline constexpr GLuint subsprite_b = 15;
 inline constexpr GLuint alternate_tint = 16;
 inline constexpr GLuint linegraph_color = 17;
-inline constexpr GLuint atlas_index = 18;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };

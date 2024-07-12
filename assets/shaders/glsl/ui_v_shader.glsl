@@ -1,15 +1,15 @@
-layout (location = 0) in vec2 vertex_position;
-layout (location = 1) in vec2 v_tex_coord;
-
+layout (location = 0) in vec2 vertex_position; //0
+layout (location = 1) in vec2 v_tex_coord; //1
 out vec2 tex_coord;
-layout (location = 0) uniform float screen_width;
-layout (location = 1) uniform float screen_height;
+
+uniform float screen_width;
+uniform float screen_height;
 // The 2d coordinates on the screen
-// d_rect.x - x cooridinate
-// d_rect.y - y cooridinate
+// d_rect.x - x coordinate
+// d_rect.y - y coordinate
 // d_rect.z - width
 // d_rect.w - height
-layout (location = 2) uniform vec4 d_rect;
+uniform vec4 d_rect;
 
 void main() {
 	// Transform the d_rect rectangle to screen space coordinates

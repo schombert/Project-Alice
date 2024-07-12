@@ -1452,14 +1452,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	if(ui_state.bg_gfx_id) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size));
-		glUniform1f(ogl::parameters::screen_height, float(y_size));
-		glUniform1f(11, user_settings.gamma);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(open_gl.ui_shader_program, "texture_sampler"), 0);
+		glUniform1i(glGetUniformLocation(open_gl.ui_shader_program, "secondary_texture_sampler"), 1);
+		glUniform1f(glGetUniformLocation(open_gl.ui_shader_program, "screen_width"), float(x_size));
+		glUniform1f(glGetUniformLocation(open_gl.ui_shader_program, "screen_height"), float(y_size));
+		glUniform1f(glGetUniformLocation(open_gl.ui_shader_program, "gamma"), user_settings.gamma);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
 		auto const& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
@@ -1476,12 +1479,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	//UI rendering
-	glUseProgram(open_gl.ui_shader_program);
-	glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-	glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-	glUniform1f(11, user_settings.gamma);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glUseProgram(open_gl.ui_shader_program);
+	glUniform1i(glGetUniformLocation(open_gl.ui_shader_program, "texture_sampler"), 0);
+	glUniform1i(glGetUniformLocation(open_gl.ui_shader_program, "secondary_texture_sampler"), 1);
+	glUniform1f(glGetUniformLocation(open_gl.ui_shader_program, "screen_width"), float(x_size) / user_settings.ui_scale);
+	glUniform1f(glGetUniformLocation(open_gl.ui_shader_program, "screen_height"), float(y_size) / user_settings.ui_scale);
+	glUniform1f(glGetUniformLocation(open_gl.ui_shader_program, "gamma"), user_settings.gamma);
 	glViewport(0, 0, x_size, y_size);
 	glDepthRange(-1.0f, 1.0f);
 
