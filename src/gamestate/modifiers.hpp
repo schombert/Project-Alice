@@ -194,8 +194,9 @@ namespace sys {
 	MOD_LIST_ELEMENT(121, military_theory_tech_research_bonus, true, modifier_display_type::percent, "military_theory_tech_research_bonus") \
 	MOD_LIST_ELEMENT(122, population_tech_research_bonus, true, modifier_display_type::percent, "population_tech_research_bonus") \
 	MOD_LIST_ELEMENT(123, diplomacy_tech_research_bonus, true, modifier_display_type::percent, "diplomacy_theory_tech_research_bonus") \
-	MOD_LIST_ELEMENT(124, flavor_tech_research_bonus, true, modifier_display_type::percent, "flavor_theory_tech_research_bonus")
-#define MOD_NAT_LIST_COUNT 125
+	MOD_LIST_ELEMENT(124, flavor_tech_research_bonus, true, modifier_display_type::percent, "flavor_theory_tech_research_bonus") \
+	MOD_LIST_ELEMENT(125, seperatism, false, modifier_display_type::fp_two_places, "seperatism") \
+#define MOD_NAT_LIST_COUNT 126
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \
