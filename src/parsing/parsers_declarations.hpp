@@ -801,6 +801,7 @@ public:
 	MOD_NAT_FUNCTION(core_pop_militancy_modifier)
 	MOD_NAT_FUNCTION(core_pop_consciousness_modifier)
 	MOD_NAT_FUNCTION(non_accepted_pop_militancy_modifier)
+	MOD_NAT_FUNCTION(seperatism)
 	MOD_NAT_FUNCTION(non_accepted_pop_consciousness_modifier)
 	MOD_NAT_FUNCTION(cb_generation_speed_modifier)
 	MOD_NAT_FUNCTION(mobilization_impact)
