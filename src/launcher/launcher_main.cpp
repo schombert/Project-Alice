@@ -1311,12 +1311,15 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 140 core\r\n",
+		"#version 140\r\n",
+		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
+		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
+		"#extension GL_ARB_shader_subroutine : enable\r\n",
 		"#define M_PI 3.1415926535897932384626433832795\r\n",
 		"#define PI 3.1415926535897932384626433832795\r\n",
 		s_source.c_str()
 	};
-	glShaderSource(return_value, 4, texts, nullptr);
+	glShaderSource(return_value, 7, texts, nullptr);
 	glCompileShader(return_value);
 
 	GLint result;
