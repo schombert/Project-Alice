@@ -54,7 +54,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 		"#define PI 3.1415926535897932384626433832795\r\n",
 		s_source.c_str()
 	};
-	glShaderSource(return_value, 4, texts, nullptr);
+	glShaderSource(return_value, 7, texts, nullptr);
 	glCompileShader(return_value);
 
 	GLint result;
