@@ -46,7 +46,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 330 core\r\n",
+		"#version 310 core\r\n",
 		//"#extension GL_ARB_explicit_uniform_location : enable\r\n",
 		//"#extension GL_ARB_explicit_attrib_location : enable\r\n",
 		//"#extension GL_ARB_shader_subroutine : enable\r\n",

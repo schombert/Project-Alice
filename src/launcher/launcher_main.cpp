@@ -815,16 +815,16 @@ void create_opengl_context() {
 		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
-	// Explicitly request for OpenGL 3.3
-	static const int attribs_4_2[] = {
+	// Explicitly request for OpenGL 3.1
+	static const int attribs_3_1[] = {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
 		WGL_CONTEXT_FLAGS_ARB, 0,
 		WGL_CONTEXT_PROFILE_MASK_ARB,
 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		0
 	};
-	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_4_2);
+	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_3_1);
 	if(opengl_context == nullptr) {
 		window::emit_error_message("Unable to create WGL context", true);
 	}
