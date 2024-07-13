@@ -1311,7 +1311,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 330 core\r\n",
+		"#version 310 core\r\n",
 		"#define M_PI 3.1415926535897932384626433832795\r\n",
 		"#define PI 3.1415926535897932384626433832795\r\n",
 		s_source.c_str()
