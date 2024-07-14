@@ -374,6 +374,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
 
 	for(uint32_t i = 0; i < shader_count; i++) {
+		if(shaders[i] == 0)
+			continue;
 		shader_uniforms[i][uniform_offset] = glGetUniformLocation(shaders[i], "offset");
 		shader_uniforms[i][uniform_aspect_ratio] = glGetUniformLocation(shaders[i], "aspect_ratio");
 		shader_uniforms[i][uniform_zoom] = glGetUniformLocation(shaders[i], "zoom");
@@ -446,8 +448,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
-		glUseProgram(program);
-
+		glUseProgram(shaders[program]);
 		glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
 		glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
 		glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
@@ -462,7 +463,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	//glDisable(GL_CULL_FACE);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 
-	load_shader(shaders[shader_terrain]);
+	load_shader(shader_terrain);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_provinces_texture_sampler], 0);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_texture_sampler], 1);
 	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_2], 2);
@@ -498,7 +499,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	//glEnable(GL_CULL_FACE);
 	// Draw the rivers
 	if(state.user_settings.rivers_enabled) {
-		load_shader(shaders[shader_textured_line]);
+		load_shader(shader_textured_line);
 		glUniform1f(4, 0.00008f);
 		glUniform1f(6, time_counter);
 		glBindVertexArray(vao_array[vo_river]);
@@ -510,7 +511,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	if(zoom > map::zoom_close && !railroad_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
-		load_shader(shaders[shader_railroad_line]);
+		load_shader(shader_railroad_line);
 		glUniform1f(4, 0.0001f);
 		glUniform1f(6, 0.0f);
 		glBindVertexArray(vao_array[vo_railroad]);
@@ -525,7 +526,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	constexpr float border_type_coastal = 3.f;
 
 	// NORMAL BORDERS
-	load_shader(shaders[shader_borders]);
+	load_shader(shader_borders);
 	glUniform1i(shader_uniforms[shader_borders][uniform_provinces_texture_sampler], 0);
 	glUniform1i(shader_uniforms[shader_borders][uniform_province_fow], 1);
 	glUniform1i(shader_uniforms[shader_borders][uniform_line_texture], 2);
@@ -663,7 +664,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(state.map_state.map_data.province_id_map[idx]));
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
-			glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
@@ -715,7 +716,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	if(zoom > map::zoom_close) { //only render if close enough
 		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()
 		|| !strategy_unit_arrow_vertices.empty() || !objective_unit_arrow_vertices.empty() || !other_objective_unit_arrow_vertices.empty()) {
-			load_shader(shaders[shader_line_unit_arrow]);
+			load_shader(shader_line_unit_arrow);
 			glUniform1f(shader_uniforms[shader_line_unit_arrow][uniform_border_width], 0.005f); //width
 			glUniform1i(shader_uniforms[shader_line_unit_arrow][uniform_unit_arrow], 0);
 		}
@@ -773,7 +774,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
 		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
-		load_shader(shaders[shader_text_line]);
+		load_shader(shader_text_line);
 		glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
 		glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
@@ -806,7 +807,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glClearDepth(-1.f);
 		glDepthFunc(GL_GREATER);
-		load_shader(shaders[shader_map_standing_object]);
+		load_shader(shader_map_standing_object);
 		glUniform1f(4, time_counter);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
