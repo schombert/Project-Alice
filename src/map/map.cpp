@@ -372,6 +372,37 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_text_line] = create_program(*text_line_vshader, *text_line_fshader);
 	shaders[shader_drag_box] = create_program(*screen_vshader, *white_color_fshader);
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
+
+	for(uint32_t i = 0; i < shader_count; i++) {
+		shader_uniforms[i][uniform_offset] = glGetUniformLocation(shaders[i], "offset");
+		shader_uniforms[i][uniform_aspect_ratio] = glGetUniformLocation(shaders[i], "aspect_ratio");
+		shader_uniforms[i][uniform_zoom] = glGetUniformLocation(shaders[i], "zoom");
+		shader_uniforms[i][uniform_map_size] = glGetUniformLocation(shaders[i], "map_size");
+		shader_uniforms[i][uniform_rotation] = glGetUniformLocation(shaders[i], "rotation");
+		shader_uniforms[i][uniform_gamma] = glGetUniformLocation(shaders[i], "gamma");
+		shader_uniforms[i][uniform_subroutines_index] = glGetUniformLocation(shaders[i], "subroutines_index");
+		shader_uniforms[i][uniform_time] = glGetUniformLocation(shaders[i], "time");
+		shader_uniforms[i][uniform_terrain_texture_sampler] = glGetUniformLocation(shaders[i], "terrain_texture_sampler");
+		shader_uniforms[i][uniform_terrainsheet_texture_sampler] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler");
+		shader_uniforms[i][uniform_water_normal] = glGetUniformLocation(shaders[i], "water_normal");
+		shader_uniforms[i][uniform_colormap_water] = glGetUniformLocation(shaders[i], "colormap_water");
+		shader_uniforms[i][uniform_colormap_terrain] = glGetUniformLocation(shaders[i], "colormap_terrain");
+		shader_uniforms[i][uniform_overlay] = glGetUniformLocation(shaders[i], "overlay");
+		shader_uniforms[i][uniform_province_color] = glGetUniformLocation(shaders[i], "province_color");
+		shader_uniforms[i][uniform_colormap_political] = glGetUniformLocation(shaders[i], "colormap_political");
+		shader_uniforms[i][uniform_province_highlight] = glGetUniformLocation(shaders[i], "province_highlight");
+		shader_uniforms[i][uniform_stripes_texture] = glGetUniformLocation(shaders[i], "stripes_texture");
+		shader_uniforms[i][uniform_province_fow] = glGetUniformLocation(shaders[i], "province_fow");
+		shader_uniforms[i][uniform_diag_border_identifier] = glGetUniformLocation(shaders[i], "diag_border_identifier");
+		shader_uniforms[i][uniform_subroutines_index_2] = glGetUniformLocation(shaders[i], "subroutines_index_2");
+		shader_uniforms[i][uniform_line_texture] = glGetUniformLocation(shaders[i], "line_texture");
+		shader_uniforms[i][uniform_texture_sampler] = glGetUniformLocation(shaders[i], "texture_sampler");
+		shader_uniforms[i][uniform_opaque] = glGetUniformLocation(shaders[i], "opaque");
+		shader_uniforms[i][uniform_is_black] = glGetUniformLocation(shaders[i], "is_black");
+		shader_uniforms[i][uniform_border_width] = glGetUniformLocation(shaders[i], "border_width");
+		shader_uniforms[i][uniform_unit_arrow] = glGetUniformLocation(shaders[i], "unit_arrow");
+		shader_uniforms[i][uniform_width] = glGetUniformLocation(shaders[i], "width");
+	}
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
@@ -417,13 +448,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	auto load_shader = [&](GLuint program) {
 		glUseProgram(program);
 
-		glUniform2f(glGetUniformLocation(program, "offset"), offset.x + 0.f, offset.y);
-		glUniform1f(glGetUniformLocation(program, "aspect_ratio"), screen_size.x / screen_size.y);
-		glUniform1f(glGetUniformLocation(program, "zoom"), zoom);
-		glUniform2f(glGetUniformLocation(program, "map_size"), GLfloat(size_x), GLfloat(size_y));
-		glUniformMatrix3fv(glGetUniformLocation(program, "rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
-		glUniform1f(glGetUniformLocation(program, "gamma"), state.user_settings.gamma);
-		glUniform1ui(glGetUniformLocation(program, "subroutines_index"), GLuint(map_view_mode));
+		glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
+		glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
+		glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
+		glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
+		glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
+		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
+		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
 	};
 
 	glEnable(GL_PRIMITIVE_RESTART);
@@ -431,24 +463,23 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 
 	load_shader(shaders[shader_terrain]);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "provinces_texture_sampler"), 0);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "terrain_texture_sampler"), 1);
-	//glUniform1i(glGetUniformLocation(shaders[shader_terrain], "unused_texture_2"), 2);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "terrainsheet_texture_sampler"), 3);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "water_normal"), 4);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "colormap_water"), 5);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "colormap_terrain"), 6);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "overlay"), 7);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "province_color"), 8);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "colormap_political"), 9);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "province_highlight"), 10);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "stripes_texture"), 11);
-	//glUniform1i(glGetUniformLocation(shaders[shader_terrain], "unused_texture_12"), 12);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "province_fow"), 13);
-	//glUniform1i(glGetUniformLocation(shaders[shader_terrain], "unused_texture_14"), 14);
-	glUniform1i(glGetUniformLocation(shaders[shader_terrain], "diag_border_identifier"), 15);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_provinces_texture_sampler], 0);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_texture_sampler], 1);
+	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_2], 2);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler], 3);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_water_normal], 4);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_water], 5);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_terrain], 6);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_overlay], 7);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_province_color], 8);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_political], 9);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_province_highlight], 10);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_stripes_texture], 11);
+	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_12], 12);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_province_fow], 13);
+	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_14], 14);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_diag_border_identifier], 15);
 	{ // Land specific shader uniform
-		glUniform1f(glGetUniformLocation(shaders[shader_terrain], "time"), time_counter);
 		// get_land()
 		GLuint fragment_subroutines = 0;
 		if(active_map_mode == map_mode::mode::terrain)
@@ -457,7 +488,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			fragment_subroutines = 1; // get_land_political_close/get_water_terrain()
 		else
 			fragment_subroutines = 2; // get_land_political_far/get_water_political()
-		glUniform1ui(glGetUniformLocation(shaders[shader_terrain], "subroutines_index_2"), fragment_subroutines);
+		glUniform1ui(shader_uniforms[shader_terrain][uniform_subroutines_index_2], fragment_subroutines);
 	}
 	glBindVertexArray(vao_array[vo_land]);
 	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
@@ -494,19 +525,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	constexpr float border_type_coastal = 3.f;
 
 	// NORMAL BORDERS
-	glUseProgram(shaders[shader_borders]);
-	glUniform1i(glGetUniformLocation(shaders[shader_borders], "provinces_texture_sampler"), 0);
-	glUniform1i(glGetUniformLocation(shaders[shader_borders], "province_fow"), 1);
-	glUniform1i(glGetUniformLocation(shaders[shader_borders], "line_texture"), 2);
-	glUniform2f(glGetUniformLocation(shaders[shader_borders], "offset"), offset.x + 0.f, offset.y);
-	glUniform1f(glGetUniformLocation(shaders[shader_borders], "aspect_ratio"), screen_size.x / screen_size.y);
-	glUniform1f(glGetUniformLocation(shaders[shader_borders], "zoom"), zoom);
-	glUniform2f(glGetUniformLocation(shaders[shader_borders], "map_size"), GLfloat(size_x), GLfloat(size_y));
-	glUniformMatrix3fv(glGetUniformLocation(shaders[shader_borders], "rotation"), 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
-	glUniform1f(glGetUniformLocation(shaders[shader_borders], "gamma"), state.user_settings.gamma);
-
-	glUniform1ui(glGetUniformLocation(shaders[shader_borders], "subroutines_index"), GLuint(map_view_mode));
-	//glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, vertex_subroutines);
+	load_shader(shaders[shader_borders]);
+	glUniform1i(shader_uniforms[shader_borders][uniform_provinces_texture_sampler], 0);
+	glUniform1i(shader_uniforms[shader_borders][uniform_province_fow], 1);
+	glUniform1i(shader_uniforms[shader_borders][uniform_line_texture], 2);
 
 	glBindVertexArray(vao_array[vo_border]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
@@ -520,7 +542,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	if(zoom > map::zoom_close) {
 		if(zoom > map::zoom_very_close) { // Render province borders
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0001f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
 
@@ -531,7 +553,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		{ // Render state borders
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0002f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
@@ -541,7 +563,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		{
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.00085f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00085f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 			for(auto b : borders) {
@@ -552,7 +574,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 		// national borders
 		{
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0003f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 			for(auto b : borders) {
@@ -563,7 +585,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	} else {
 		if(zoom > map::zoom_very_close) { // Render province borders
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0001f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
 			for(auto b : borders) {
@@ -573,7 +595,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		if(zoom > map::zoom_close) { // Render state borders
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0002f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
@@ -584,7 +606,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 		// national borders
 		{
-			glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0003f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
@@ -595,7 +617,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 	if(state.map_state.selected_province || (state.local_player_nation && state.mode == sys::game_mode_type::pick_nation)) {
-		glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+		glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 		if(state.local_player_nation && state.mode == sys::game_mode_type::pick_nation) {
@@ -682,7 +704,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 	// coasts
 	{
-		glUniform1f(glGetUniformLocation(shaders[shader_borders], "width"), 0.0004f); // width
+		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0004f); // width
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_coastal_border]);
 		glBindVertexArray(vao_array[vo_coastal]);
@@ -694,8 +716,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()
 		|| !strategy_unit_arrow_vertices.empty() || !objective_unit_arrow_vertices.empty() || !other_objective_unit_arrow_vertices.empty()) {
 			load_shader(shaders[shader_line_unit_arrow]);
-			glUniform1f(glGetUniformLocation(shaders[shader_line_unit_arrow], "border_width"), 0.005f); //width
-			glUniform1i(glGetUniformLocation(shaders[shader_line_unit_arrow], "unit_arrow"), 0);
+			glUniform1f(shader_uniforms[shader_line_unit_arrow][uniform_border_width], 0.005f); //width
+			glUniform1i(shader_uniforms[shader_line_unit_arrow][uniform_unit_arrow], 0);
 		}
 		if(!unit_arrow_vertices.empty()) {
 			glActiveTexture(GL_TEXTURE0);
@@ -743,7 +765,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(!drag_box_vertices.empty()) {
 		glUseProgram(shaders[shader_drag_box]);
-		glUniform1f(glGetUniformLocation(shaders[shader_drag_box], "gamma"), state.user_settings.gamma);
+		glUniform1f(shader_uniforms[shader_drag_box][uniform_gamma], state.user_settings.gamma);
 		glBindVertexArray(vao_array[vo_drag_box]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_drag_box]);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
@@ -752,10 +774,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
 		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
 		load_shader(shaders[shader_text_line]);
-		glUniform1i(glGetUniformLocation(shaders[shader_text_line], "texture_sampler"), 0);
-		glUniform1f(glGetUniformLocation(shaders[shader_text_line], "is_black"), state.user_settings.black_map_font ? 1.f : 0.f);
+		glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
+		glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-			glUniform1f(glGetUniformLocation(shaders[shader_text_line], "opaque"), 0.f);
+			glUniform1f(shader_uniforms[shader_text_line][uniform_opaque], 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 			for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
