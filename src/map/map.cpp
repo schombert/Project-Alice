@@ -366,7 +366,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
-	//shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
+	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
 	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
 	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	shaders[shader_text_line] = create_program(*text_line_vshader, *text_line_fshader);
@@ -499,9 +499,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	//glEnable(GL_CULL_FACE);
 	// Draw the rivers
 	if(state.user_settings.rivers_enabled) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_river_body]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
+
 		load_shader(shader_textured_line);
-		glUniform1f(4, 0.00008f);
-		glUniform1f(6, time_counter);
+		glUniform1i(shader_uniforms[shader_textured_line][uniform_line_texture], 0);
+		glUniform1i(shader_uniforms[shader_textured_line][uniform_colormap_water], 1);
+		glUniform1f(shader_uniforms[shader_textured_line][uniform_width], 0.00008f);
+
 		glBindVertexArray(vao_array[vo_river]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_river]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
@@ -509,11 +516,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// Draw the railroads
 	if(zoom > map::zoom_close && !railroad_vertices.empty()) {
-		glActiveTexture(GL_TEXTURE14);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
+
 		load_shader(shader_railroad_line);
-		glUniform1f(4, 0.0001f);
-		glUniform1f(6, 0.0f);
+		glUniform1i(shader_uniforms[shader_railroad_line][uniform_line_texture], 0);
+		glUniform1i(shader_uniforms[shader_railroad_line][uniform_colormap_water], 1);
+		glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.0001f);
+
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));

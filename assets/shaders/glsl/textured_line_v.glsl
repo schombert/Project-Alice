@@ -1,23 +1,20 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
-layout (location = 2) in vec2 direction;
-layout (location = 3) in vec3 texture_coord;
-layout (location = 4) in float thickness;
+layout (location = 2) in float texture_coord;
+layout (location = 3) in float distance;
 
-out float opacity;
-out float text_size;
-out vec3 tex_coord;
+out float tex_coord;
+out float o_dist;
+out vec2 map_coord;
 
-// Camera position
 uniform vec2 offset;
 uniform float aspect_ratio;
-// Zoom: big numbers = close
 uniform float zoom;
-// The size of the map in pixels
 uniform vec2 map_size;
+uniform float width;
 uniform mat3 rotation;
-uniform float opaque;
+uniform float time;
 uniform uint subroutines_index;
 
 vec4 globe_coords(vec2 world_pos) {
@@ -42,7 +39,7 @@ vec4 globe_coords(vec2 world_pos) {
 	new_world_pos.xyz += 0.5; 	// Move the globe to the center
 
 	return vec4(
-		(2. * new_world_pos.x - 1.f) * zoom / aspect_ratio,
+		(2. * new_world_pos.x - 1.f) / aspect_ratio  * zoom,
 		(2. * new_world_pos.z - 1.f) * zoom,
 		(2. * new_world_pos.y - 1.f), 1.0);
 }
@@ -73,12 +70,10 @@ vec4 perspective_coords(vec2 world_pos) {
 	new_world_pos.zy = new_world_pos.yz;
 
 	new_world_pos.x /= aspect_ratio;
-	new_world_pos *= 1.001;
 	new_world_pos.z -= 1.2;
 	float near = 0.1;
 	float tangent_length_square = 1.2f * 1.2f - 1 / PI / PI;
 	float far = tangent_length_square / 1.2f;
-
 	float right = near * tan(PI / 6) / zoom;
 	float top = near * tan(PI / 6) / zoom;
 	new_world_pos.x *= near / right;
@@ -98,34 +93,17 @@ default: break;
 	return vec4(0.f);
 }
 
-// The borders are drawn by seperate quads.
-// Each triangle in the quad is made up by two vertices on the same position and
-// another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	//vec2 rot_direction = vec2(-direction.y, direction.x);
-	//vec2 normal_vector = normalize(normal_direction) * thickness;
-	//vec2 extend_vector = -normalize(direction) * thickness;
+	vec2 normal_vector = normalize(normal_direction) * width;
+	vec2 world_pos = vertex_position;
 
-	//vec2 world_pos = vertex_position;
+	world_pos.x *= map_size.x / map_size.y;
+	world_pos += normal_vector;
+	world_pos.x /= map_size.x / map_size.y;
 
-	vec2 unadj_direction = vec2(direction.x / 2.0f, direction.y);
-	vec2 unadj_normal = vec2(-direction.y / 2.0f, direction.x);
-
-	vec4 center_point = calc_gl_position(vertex_position);
-	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_direction * 0.0001) - center_point);
-
-	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_normal * 0.0001) - center_point);
-
-	//vec2 offset = normal_vector + extend_vector;
-	//world_pos += offset * scale;
-
-	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
-	opacity = 1.f;    
-	if (opaque < 0.5f)
-		opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f / thickness) * 0.000001f);        
-	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
-
-	gl_Position = temp_result;
-	text_size = thickness * zoom;
+	map_coord = world_pos;
+	gl_Position = calc_gl_position(world_pos);
 	tex_coord = texture_coord;
+	o_dist = time + distance / (2.0f * width);
+	map_coord = vertex_position;
 }
