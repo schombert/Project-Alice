@@ -1143,8 +1143,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// draw Screen quad
 		glUseProgram(state.open_gl.msaa_shader_program);
-		glUniform1f(glGetUniformLocation(state.open_gl.msaa_shader_program, "gaussian_radius"), state.user_settings.gaussianblur_level);
-		glUniform2f(glGetUniformLocation(state.open_gl.msaa_shader_program, "screen_size"), screen_size.x, screen_size.y);
+		glUniform1f(state.open_gl.msaa_uniform_gaussian_blur, state.user_settings.gaussianblur_level);
+		glUniform2f(state.open_gl.msaa_uniform_screen_size, screen_size.x, screen_size.y);
 		//
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, state.open_gl.msaa_texture); // use the now resolved color attachment as the quad's texture

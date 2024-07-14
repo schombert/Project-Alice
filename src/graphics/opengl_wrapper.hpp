@@ -197,6 +197,11 @@ struct data {
 	GLuint ui_shader_inner_color_uniform = 0;
 	GLuint ui_shader_subrect_uniform = 0;
 	GLuint ui_shader_border_size_uniform = 0;
+	GLuint ui_shader_texture_sampler_uniform = 0;
+	GLuint ui_shader_secondary_texture_sampler_uniform = 0;
+	GLuint ui_shader_screen_width_uniform = 0;
+	GLuint ui_shader_screen_height_uniform = 0;
+	GLuint ui_shader_gamma_uniform = 0;
 
 	GLuint global_square_vao = 0;
 	GLuint global_square_buffer = 0;
@@ -230,6 +235,8 @@ struct data {
 	GLuint msaa_vao = 0;
 	GLuint msaa_vbo = 0;
 	GLuint msaa_shader_program = 0;
+	GLuint msaa_uniform_screen_size = 0;
+	GLuint msaa_uniform_gaussian_blur = 0;
 	bool msaa_enabled = false;
 };
 
