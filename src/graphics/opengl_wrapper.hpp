@@ -192,6 +192,12 @@ struct data {
 	bool legacy_mode = false;
 	GLuint ui_shader_program = 0;
 
+	GLuint ui_shader_d_rect_uniform = 0;
+	GLuint ui_shader_subroutines_index_uniform = 0;
+	GLuint ui_shader_inner_color_uniform = 0;
+	GLuint ui_shader_subrect_uniform = 0;
+	GLuint ui_shader_border_size_uniform = 0;
+
 	GLuint global_square_vao = 0;
 	GLuint global_square_buffer = 0;
 	GLuint global_square_right_buffer = 0;
