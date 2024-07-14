@@ -163,7 +163,7 @@ class statswin_combatwidth : public simple_text_element_base {
 protected:
 	std::string get_text(sys::state& state, dcon::nation_id n) noexcept {
 		return std::to_string(int16_t(state.defines.base_combat_width +
-																	int16_t(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::combat_width))));
+			int16_t(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::combat_width))));
 	}
 
 public:
