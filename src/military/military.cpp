@@ -4020,9 +4020,9 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 					flags |= defender_bonus_crossing_sea;
 				new_battle.set_defender_bonus(flags);
 
-				auto cw_a = state.defines.base_combat_width -
+				auto cw_a = state.defines.base_combat_width +
 					state.world.nation_get_modifier_values(owner_nation, sys::national_mod_offsets::combat_width);
-				auto cw_b = state.defines.base_combat_width -
+				auto cw_b = state.defines.base_combat_width +
 					state.world.nation_get_modifier_values(other_nation, sys::national_mod_offsets::combat_width);
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
@@ -4049,9 +4049,9 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 					flags |= defender_bonus_crossing_sea;
 				new_battle.set_defender_bonus(flags);
 
-				auto cw_a = state.defines.base_combat_width -
+				auto cw_a = state.defines.base_combat_width +
 					state.world.nation_get_modifier_values(owner_nation, sys::national_mod_offsets::combat_width);
-				auto cw_b = state.defines.base_combat_width -
+				auto cw_b = state.defines.base_combat_width +
 					state.world.nation_get_modifier_values(other_nation, sys::national_mod_offsets::combat_width);
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
