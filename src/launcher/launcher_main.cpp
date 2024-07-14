@@ -807,8 +807,6 @@ void create_opengl_context() {
 	auto handle_to_ogl_dc = wglCreateContext(window_dc);
 	wglMakeCurrent(window_dc, handle_to_ogl_dc);
 
-	glewExperimental = GL_TRUE;
-
 	if(glewInit() != 0) {
 		window::emit_error_message("GLEW failed to initialize", true);
 	}
@@ -817,16 +815,16 @@ void create_opengl_context() {
 		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
-	// Explicitly request for OpenGL 4.2
-	static const int attribs[] = {
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+	// Explicitly request for OpenGL 3.1
+	static const int attribs_3_1[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
 		WGL_CONTEXT_FLAGS_ARB, 0,
 		WGL_CONTEXT_PROFILE_MASK_ARB,
 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		0
 	};
-	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
+	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_3_1);
 	if(opengl_context == nullptr) {
 		window::emit_error_message("Unable to create WGL context", true);
 	}
@@ -1313,7 +1311,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 420 core\r\n",
+		"#version 140\r\n",
 		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
 		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
 		"#extension GL_ARB_shader_subroutine : enable\r\n",
@@ -1386,143 +1384,68 @@ void load_shaders() {
 	auto root = get_root(fs);
 
 	std::string_view fx_str =
-		"subroutine vec4 color_function_class(vec4 color_in);\n"
-		"layout(location = 0) subroutine uniform color_function_class coloring_function;\n"
-		"subroutine vec4 font_function_class(vec2 tc);\n"
-		"layout(location = 1) subroutine uniform font_function_class font_function;\n"
 		"in vec2 tex_coord;\n"
-		"layout (location = 0) out vec4 frag_color;\n"
-		"layout (binding = 0) uniform sampler2D texture_sampler;\n"
-		"layout (binding = 1) uniform sampler2D secondary_texture_sampler;\n"
-		"layout (location = 2) uniform vec4 d_rect;\n"
-		"layout (location = 6) uniform float border_size;\n"
-		"layout (location = 7) uniform vec3 inner_color;\n"
-		"layout (location = 10) uniform vec4 subrect;\n"
-		"layout (location = 11) uniform float gamma;\n"
-		"layout (location = 18) uniform float atlas_index;\n"
-		"vec4 gamma_correct(vec4 colour) {\n"
-		"\treturn vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);\n"
-		"}\n"
-		"layout(index = 0) subroutine(font_function_class)\n"
-		"vec4 border_filter(vec2 tc) {\n"
-		"\tvec4 color_in = texture(texture_sampler, tc);\n"
-		"\tif(color_in.r > 0.5) {\n"
-		"\t\treturn vec4(inner_color, 1.0);\n"
-		"\t} else if(color_in.r > 0.5 - border_size) {\n"
-		"\t\tfloat sm_val = smoothstep(0.5 - border_size / 2.0, 0.5, color_in.r);\n"
-		"\t\treturn vec4(mix(vec3(1.0, 1.0, 1.0) - inner_color, inner_color, sm_val), 1.0);\n"
-		"\t} else {\n"
-		"\t\tfloat sm_val = smoothstep(0.5 - border_size * 1.5, 0.5 - border_size, color_in.r);\n"
-		"\t\treturn vec4(vec3(1.0, 1.0, 1.0) - inner_color, sm_val);\n"
-		"\t}\n"
-		"}\n"
-		"layout(index = 1) subroutine(font_function_class)\n"
+		"out vec4 frag_color;\n"
+		"uniform sampler2D texture_sampler;\n"
+		"uniform vec4 d_rect;\n"
+		"uniform float border_size;\n"
+		"uniform vec3 inner_color;\n"
+		"uniform vec4 subrect;\n"
+		"uniform uvec2 subroutines_index;\n"
 		"vec4 color_filter(vec2 tc) {\n"
 		"\tvec4 color_in = texture(texture_sampler, tc);\n"
 		"\tfloat sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);\n"
 		"\treturn vec4(inner_color, sm_val);\n"
 		"}\n"
-		"layout(index = 2) subroutine(font_function_class)\n"
 		"vec4 no_filter(vec2 tc) {\n"
 		"\treturn texture(texture_sampler, tc);\n"
 		"}\n"
-		"layout(index = 5) subroutine(font_function_class)\n"
-		"vec4 subsprite(vec2 tc) {\n"
-		"\treturn texture(texture_sampler, vec2(tc.x * inner_color.y + inner_color.x, tc.y));\n"
-		"}\n"
-		"layout(index = 15) subroutine(font_function_class)\n"
-		"vec4 subsprite_b(vec2 tc) {\n"
-		"\treturn vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);\n"
-		"}\n"
-		"layout(index = 6) subroutine(font_function_class)\n"
-		"vec4 use_mask(vec2 tc) {\n"
-		"\treturn vec4(texture(texture_sampler, tc).rgb, texture(secondary_texture_sampler, tc).a);\n"
-		"}\n"
-		"layout(index = 7) subroutine(font_function_class)\n"
-		"vec4 progress_bar(vec2 tc) {\n"
-		"\treturn mix( texture(texture_sampler, tc), texture(secondary_texture_sampler, tc), step(border_size, tc.x));\n"
-		"}\n"
-		"layout(index = 8) subroutine(font_function_class)\n"
-		"vec4 frame_stretch(vec2 tc) {\n"
-		"\tconst float realx = tc.x * d_rect.z;\n"
-		"\tconst float realy = tc.y * d_rect.w;\n"
-		"\tconst vec2 tsize = textureSize(texture_sampler, 0);\n"
-		"\tfloat xout = 0.0;\n"
-		"\tfloat yout = 0.0;\n"
-		"\tif(realx <= border_size)\n"
-		"\t\txout = realx / tsize.x;\n"
-		"\telse if(realx >= (d_rect.z - border_size))\n"
-		"\t\txout = (1.0 - border_size / tsize.x) + (border_size - (d_rect.z - realx))  / tsize.x;\n"
-		"\telse\n"
-		"\t\txout = border_size / tsize.x + (1.0 - 2.0 * border_size / tsize.x) * (realx - border_size) / (d_rect.z * 2.0 * border_size);\n"
-		"\tif(realy <= border_size)\n"
-		"\t\tyout = realy / tsize.y;\n"
-		"\telse if(realy >= (d_rect.w - border_size))\n"
-		"\t\tyout = (1.0 - border_size / tsize.y) + (border_size - (d_rect.w - realy))  / tsize.y;\n"
-		"\telse\n"
-		"\t\tyout = border_size / tsize.y + (1.0 - 2.0 * border_size / tsize.y) * (realy - border_size) / (d_rect.w * 2.0 * border_size);\n"
-		"\treturn texture(texture_sampler, vec2(xout, yout));\n"
-		"}\n"
-		"layout(index = 9) subroutine(font_function_class)\n"
-		"vec4 piechart(vec2 tc) {\n"
-		"\tif(((tc.x - 0.5) * (tc.x - 0.5) + (tc.y - 0.5) * (tc.y - 0.5)) > 0.25)\n"
-		"\t\treturn vec4(0.0, 0.0, 0.0, 0.0);\n"
-		"\telse\n"
-		"\t\treturn texture(texture_sampler, vec2((atan((tc.y - 0.5), (tc.x - 0.5) ) + M_PI) / (2.0 * M_PI), 0.5));\n"
-		"}\n"
-		"layout(index = 10) subroutine(font_function_class)\n"
-		"vec4 barchart(vec2 tc) {\n"
-		"\tvec4 color_in = texture(texture_sampler, vec2(tc.x, 0.5));\n"
-		"\treturn vec4(color_in.rgb, step(1.0 - color_in.a, tc.y));\n"
-		"}\n"
-		"layout(index = 11) subroutine(font_function_class)\n"
-		"vec4 linegraph(vec2 tc) {\n"
-		"\treturn mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0), tc.y);\n"
-		"}\n"
-		"layout(index = 3) subroutine(color_function_class)\n"
 		"vec4 disabled_color(vec4 color_in) {\n"
-		"\tconst float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
+		"\tfloat amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
 		"\treturn vec4(amount, amount, amount, color_in.a);\n"
 		"}\n"
-		"layout(index = 13) subroutine(color_function_class)\n"
 		"vec4 interactable_color(vec4 color_in) {\n"
 		"\treturn vec4(color_in.r + 0.1, color_in.g + 0.1, color_in.b + 0.1, color_in.a);\n"
 		"}\n"
-		"layout(index = 14) subroutine(color_function_class)\n"
 		"vec4 interactable_disabled_color(vec4 color_in) {\n"
-		"\tconst float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
+		"\tfloat amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
 		"\treturn vec4(amount + 0.1, amount + 0.1, amount + 0.1, color_in.a);\n"
 		"}\n"
-		"layout(index = 12) subroutine(color_function_class)\n"
 		"vec4 tint_color(vec4 color_in) {\n"
 		"\treturn vec4(color_in.r * inner_color.r, color_in.g * inner_color.g, color_in.b * inner_color.b, color_in.a);\n"
 		"}\n"
-		"layout(index = 4) subroutine(color_function_class)\n"
 		"vec4 enabled_color(vec4 color_in) {\n"
 		"\treturn color_in;\n"
 		"}\n"
-		"layout(index = 16) subroutine(color_function_class)\n"
 		"vec4 alt_tint_color(vec4 color_in) {\n"
 		"\treturn vec4(color_in.r * subrect.r, color_in.g * subrect.g, color_in.b * subrect.b, color_in.a);\n"
 		"}\n"
+		"vec4 font_function(vec2 tc) {\n"
+		"\treturn int(subroutines_index.y) == 1 ? color_filter(tc) : no_filter(tc);\n"
+		"}\n"
+		"vec4 coloring_function(vec4 tc) {\n"
+		"\tswitch(int(subroutines_index.x)) {\n"
+		"\tcase 3: return disabled_color(tc);\n"
+		"\tcase 4: return enabled_color(tc);\n"
+		"\tcase 12: return tint_color(tc);\n"
+		"\tcase 13: return interactable_color(tc);\n"
+		"\tcase 14: return interactable_disabled_color(tc);\n"
+		"\tcase 16: return alt_tint_color(tc);\n"
+		"\tdefault: break;\n"
+		"\t}\n"
+		"\treturn tc;\n"
+		"}\n"
 		"void main() {\n"
-		"\tfrag_color = gamma_correct(coloring_function(font_function(tex_coord)));\n"
+		"\tfrag_color = coloring_function(font_function(tex_coord));\n"
 		"}";
 	std::string_view vx_str =
 		"layout (location = 0) in vec2 vertex_position;\n"
 		"layout (location = 1) in vec2 v_tex_coord;\n"
 		"out vec2 tex_coord;\n"
-		"layout (location = 0) uniform float screen_width;\n"
-		"layout (location = 1) uniform float screen_height;\n"
-		// The 2d coordinates on the screen
-		// d_rect.x - x cooridinate
-		// d_rect.y - y cooridinate
-		// d_rect.z - width
-		// d_rect.w - height
-		"layout (location = 2) uniform vec4 d_rect;\n"
+		"uniform float screen_width;\n"
+		"uniform float screen_height;\n"
+		"uniform vec4 d_rect;\n"
 		"void main() {\n"
-		// Transform the d_rect rectangle to screen space coordinates
-		// vertex_position is used to flip and/or rotate the coordinates
 		"\tgl_Position = vec4(\n"
 		"\t\t-1.0 + (2.0 * ((vertex_position.x * d_rect.z)  + d_rect.x) / screen_width),\n"
 		"\t\t 1.0 - (2.0 * ((vertex_position.y * d_rect.w)  + d_rect.y) / screen_height),\n"
@@ -1685,14 +1608,15 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 
 	bind_vertices_by_rotation(r, flipped);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	// glUniform4f(parameters::drawing_rectangle, 0, 0, width, height);
+	glUniform4f(glGetUniformLocation(ui_shader_program, "d_rect"), x, y, width, height);
+	// glUniform4f(glGetUniformLocation(ui_shader_program, "d_rect"), 0, 0, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glUniform2ui(glGetUniformLocation(ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -1719,7 +1643,7 @@ void internal_text_render(std::string_view str, float baseline_x, float baseline
 			glBindVertexBuffer(0, sub_square_buffers[f.glyph_positions[glyphid].texture_slot & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, f.textures[f.glyph_positions[glyphid].texture_slot >> 6]);
-			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
+			glUniform4f(glGetUniformLocation(ui_shader_program, "d_rect"), x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		x += x_advance * size / 64.f;
@@ -1727,11 +1651,12 @@ void internal_text_render(std::string_view str, float baseline_x, float baseline
 }
 
 void render_new_text(std::string_view sv, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
-	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
+	glUniform3f(glGetUniformLocation(ui_shader_program, "inner_color"), c.r, c.g, c.b);
+	glUniform1f(glGetUniformLocation(ui_shader_program, "border_size"), 0.08f * 16.0f / size);
 
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+	glUniform2ui(glGetUniformLocation(ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 	internal_text_render(sv, x, y + size, size, f);
 }
 
@@ -1785,9 +1710,9 @@ void render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glUseProgram(ui_shader_program);
-	glUniform1f(ogl::parameters::screen_width, float(base_width));
-	glUniform1f(ogl::parameters::screen_height, float(base_height));
-	glUniform1f(11, 1.f);
+	glUniform1i(glGetUniformLocation(ui_shader_program, "texture_sampler"), 0);
+	glUniform1f(glGetUniformLocation(ui_shader_program, "screen_width"), float(base_width));
+	glUniform1f(glGetUniformLocation(ui_shader_program, "screen_height"), float(base_height));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

@@ -9,7 +9,6 @@ void create_opengl_context(sys::state& state) {
 	glfwMakeContextCurrent(state.win_ptr->window);
 	glfwSwapInterval(1); // Vsync option
 
-	glewExperimental = GL_TRUE;
 	if(glewInit() != GLEW_OK) {
 		window::emit_error_message("GLEW failed to initialize", true);
 	}

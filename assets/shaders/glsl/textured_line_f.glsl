@@ -1,22 +1,20 @@
 in float tex_coord;
 in float o_dist;
 in vec2 map_coord;
+out vec4 frag_color;
 
-layout (location = 0) out vec4 frag_color;
+uniform float gamma;
 
-layout (binding = 0) uniform sampler2D provinces_texture_sampler;
-layout (binding = 5) uniform sampler2D colormap_water;
-layout (binding = 13) uniform sampler2D province_fow;
-layout (binding = 14) uniform sampler2D line_texture;
-layout (location = 11) uniform float gamma;
+uniform sampler2D line_texture;
+uniform sampler2D colormap_water;
+uniform sampler2D province_fow;
+uniform sampler2D provinces_texture_sampler;
 
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
 }
 
 void main() {
-	vec4 out_color = texture(colormap_water, map_coord) * texture( line_texture, vec2(tex_coord, o_dist));
-	vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
-	out_color.rgb *= texture(province_fow, prov_id).rgb;
+	vec4 out_color = texture(colormap_water, map_coord) * texture(line_texture, vec2(tex_coord, o_dist));
 	frag_color = gamma_correct(out_color);
 }

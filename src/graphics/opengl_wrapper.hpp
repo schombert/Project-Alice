@@ -41,7 +41,6 @@ inline constexpr GLuint interactable_disabled = 14;
 inline constexpr GLuint subsprite_b = 15;
 inline constexpr GLuint alternate_tint = 16;
 inline constexpr GLuint linegraph_color = 17;
-inline constexpr GLuint atlas_index = 18;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -193,6 +192,17 @@ struct data {
 	bool legacy_mode = false;
 	GLuint ui_shader_program = 0;
 
+	GLuint ui_shader_d_rect_uniform = 0;
+	GLuint ui_shader_subroutines_index_uniform = 0;
+	GLuint ui_shader_inner_color_uniform = 0;
+	GLuint ui_shader_subrect_uniform = 0;
+	GLuint ui_shader_border_size_uniform = 0;
+	GLuint ui_shader_texture_sampler_uniform = 0;
+	GLuint ui_shader_secondary_texture_sampler_uniform = 0;
+	GLuint ui_shader_screen_width_uniform = 0;
+	GLuint ui_shader_screen_height_uniform = 0;
+	GLuint ui_shader_gamma_uniform = 0;
+
 	GLuint global_square_vao = 0;
 	GLuint global_square_buffer = 0;
 	GLuint global_square_right_buffer = 0;
@@ -225,6 +235,8 @@ struct data {
 	GLuint msaa_vao = 0;
 	GLuint msaa_vbo = 0;
 	GLuint msaa_shader_program = 0;
+	GLuint msaa_uniform_screen_size = 0;
+	GLuint msaa_uniform_gaussian_blur = 0;
 	bool msaa_enabled = false;
 };
 

@@ -1,8 +1,9 @@
-out vec4 out_color;
 in vec2 texcoord;
-layout (binding = 0) uniform sampler2D screen_texture;
-layout (location = 0) uniform float gaussian_radius;
-layout (location = 1) uniform vec2 screen_size;
+out vec4 out_color;
+
+uniform sampler2D screen_texture;
+uniform float gaussian_radius;
+uniform vec2 screen_size;
 
 float gaussian_blur(vec2 p, float std) {
 	float r = 2.0 * std * std;
