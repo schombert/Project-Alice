@@ -99,16 +99,20 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 
 						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
 
-						if(context.state.province_definitions.canals.size() < canal_id) {
-							context.state.province_definitions.canals.resize(canal_id);
-						}
-						context.state.province_definitions.canals[canal_id - 1] = new_rel;
+						if(canal_id > 0) {
+							if(context.state.province_definitions.canals.size() < canal_id) {
+								context.state.province_definitions.canals.resize(canal_id);
+							}
+							context.state.province_definitions.canals[canal_id - 1] = new_rel;
 
-						auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-						if(context.state.province_definitions.canal_provinces.size() < canal_id) {
-							context.state.province_definitions.canal_provinces.resize(canal_id);
+							auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+							if(context.state.province_definitions.canal_provinces.size() < canal_id) {
+								context.state.province_definitions.canal_provinces.resize(canal_id);
+							}
+							context.state.province_definitions.canal_provinces[canal_id - 1] = context.original_id_to_prov_id_map[canal_province_id];
+						} else {
+							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid (" + err.file_name + ")\n";
 						}
-						context.state.province_definitions.canal_provinces[canal_id - 1] = context.original_id_to_prov_id_map[canal_province_id];
 					}
 				}
 			}
