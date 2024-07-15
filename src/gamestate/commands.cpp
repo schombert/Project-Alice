@@ -40,7 +40,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 		break;
 	default:
 		// Normal commands are discarded iff we are not in the game
-		if(state.mode != sys::game_mode_type::in_game && state.mode != sys::game_mode_type::select_states)
+		if(!state.current_scene.game_in_progress)
 			return;
 		state.network_state.is_new_game = false;
 		break;
@@ -4459,7 +4459,7 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	post_chat_message(state, m);
 
 	/* Hotjoin */
-	if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states)
+	if(state.current_scene.game_in_progress)
 		ai::remove_ai_data(state, source);
 }
 
@@ -4694,7 +4694,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
 			ai::remove_ai_data(state, n);
-	state.mode = sys::game_mode_type::in_game;
+	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
 }
@@ -4708,7 +4708,7 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
-	state.mode = sys::game_mode_type::pick_nation;
+	game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
 }

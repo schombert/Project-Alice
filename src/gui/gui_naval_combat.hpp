@@ -1114,9 +1114,9 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 };
 
-std::vector<std::unique_ptr<ui::naval_combat_end_popup>> naval_combat_end_popup::naval_reports_pool;
+inline std::vector<std::unique_ptr<ui::naval_combat_end_popup>> naval_combat_end_popup::naval_reports_pool;
 
-message_result naval_combat_end_popup::get(sys::state& state, Cyto::Any& payload) noexcept {
+inline message_result naval_combat_end_popup::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<military::naval_battle_report*>()) {
 		payload.emplace<military::naval_battle_report*>(&report);
 		return message_result::consumed;
@@ -1124,7 +1124,7 @@ message_result naval_combat_end_popup::get(sys::state& state, Cyto::Any& payload
 	return window_element_base::get(state, payload);
 }
 
-void naval_combat_end_popup::make_new_report(sys::state& state, military::naval_battle_report const& r) {
+inline void naval_combat_end_popup::make_new_report(sys::state& state, military::naval_battle_report const& r) {
 	if(naval_reports_pool.empty()) {
 		auto new_elm = ui::make_element_by_type<ui::naval_combat_end_popup>(state, "endofnavalcombatpopup");
 		auto ptr = new_elm.get();
@@ -1141,7 +1141,7 @@ void naval_combat_end_popup::make_new_report(sys::state& state, military::naval_
 	}
 }
 
-std::unique_ptr<element_base> naval_combat_end_popup::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+inline std::unique_ptr<element_base> naval_combat_end_popup::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "background") {
 		return make_element_by_type<draggable_target>(state, id);
 	} else if(name == "combat_end_naval_lost") {
@@ -1246,7 +1246,7 @@ std::unique_ptr<element_base> naval_combat_end_popup::make_child(sys::state& sta
 	}
 }
 
-void nc_close_button::button_action(sys::state& state) noexcept {
+inline void nc_close_button::button_action(sys::state& state) noexcept {
 	parent->set_visible(state, false);
 	auto uptr = state.ui_state.root->remove_child(parent);
 	assert(uptr);

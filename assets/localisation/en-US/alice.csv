@@ -1197,3 +1197,12 @@ ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
 alice_ledger_header_gdp_history;GDP(PPP) over time
 alice_countryalert_colonialgood_start;You can colonize $region$
 alice_overseas_mil_description;Overseas militancy
+alice_armygroup_go_to_selection;Add armies
+alice_battleplanner_travel_destination_order;Toggle ferry target
+alice_battleplanner_travel_origin_order;Toggle ferry origin
+alice_battleplanner_defend_order;Toggle defence status
+alice_exit_battleplanner_deselection;Exit deselection mode
+alice_exit_battleplanner_selection;Exit selection mode
+alice_exit_battleplanner;Exit battle planner
+alice_battleplanner_add_selected;Add selected
+alice_battleplanner_remove_selected;Remove selected

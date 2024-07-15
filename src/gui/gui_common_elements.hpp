@@ -2283,4 +2283,154 @@ public:
 	}
 };
 
+class go_to_battleplanner_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_military);
+	}
+};
+
+class go_to_battleplanner_selection_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_military_selector);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		disabled = state.selected_army_group == nullptr;
+	}
+};
+
+class go_to_base_game_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
+	}
+};
+
+class toggle_defend_order_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		state.toggle_defensive_position(state.selected_army_group, state.map_state.selected_province);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group == nullptr) {
+			disabled = true;
+			return;
+		}
+		if(state.map_state.selected_province) {
+			disabled = false;
+			return;
+		}
+		disabled = true;
+	}
+};
+
+class toggle_ferry_origin_order_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		state.toggle_ferry_origin_position(state.selected_army_group, state.map_state.selected_province);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group == nullptr) {
+			disabled = true;
+			return;
+		}
+
+		if(state.map_state.selected_province) {
+			disabled = false;
+			return;
+		}
+
+		disabled = true;
+	}
+};
+
+class toggle_ferry_target_order_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		state.toggle_ferry_target_position(state.selected_army_group, state.map_state.selected_province);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group == nullptr) {
+			disabled = true;
+			return;
+		}
+
+		if(state.map_state.selected_province) {
+			disabled = false;
+			return;
+		}
+
+		disabled = true;
+	}
+};
+
+class add_selected_units_to_army_group_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		for(auto item : state.selected_armies) {
+			state.remove_army_from_all_army_groups_clean(item);
+			state.add_army_to_army_group(state.selected_army_group, item);
+		}
+		for(auto item : state.selected_navies) {
+			state.remove_navy_from_all_army_groups_clean(item);
+			state.add_navy_to_army_group(state.selected_army_group, item);
+		}
+		state.update_regiments_and_ships(state.selected_army_group);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group == nullptr) {
+			disabled = true;
+			return;
+		}
+		disabled = false;
+	}
+};
+
+class remove_selected_units_from_army_group_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		for(auto item : state.selected_armies) {
+			state.remove_army_from_all_army_groups_clean(item);
+		}
+		for(auto item : state.selected_navies) {
+			state.remove_navy_from_all_army_groups_clean(item);
+		}
+		state.update_regiments_and_ships(state.selected_army_group);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group == nullptr) {
+			disabled = true;
+			return;
+		}
+		disabled = false;
+	}
+};
+
+class battleplanner_control : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "alice_armygroup_defend_button") {
+			return make_element_by_type<toggle_defend_order_button>(state, id);
+		} if(name == "alice_armygroup_naval_travel_origin_button") {
+			return make_element_by_type<toggle_ferry_origin_order_button>(state, id);
+		} if(name == "alice_armygroup_naval_travel_destination_button") {
+			return make_element_by_type<toggle_ferry_target_order_button>(state, id);
+		} if(name == "alice_armygroup_go_to_selection") {
+			return make_element_by_type<go_to_battleplanner_selection_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class battleplanner_selection_control : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "alice_battleplanner_add_selected") {
+			return make_element_by_type<add_selected_units_to_army_group_button>(state, id);
+		} if(name == "alice_battleplanner_remove_selected") {
+			return make_element_by_type<remove_selected_units_from_army_group_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 } // namespace ui

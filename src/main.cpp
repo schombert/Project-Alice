@@ -38,6 +38,7 @@
 #include "gui_budget_window.cpp"
 #include "gui_technology_window.cpp"
 #include "gui_error_window.cpp"
+#include "game_scene.cpp"
 #include "commands.cpp"
 #include "network.cpp"
 #include "diplomatic_messages.cpp"

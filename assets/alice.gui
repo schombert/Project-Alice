@@ -1688,6 +1688,176 @@ guiTypes = {
 			}
 		}
 	}
+    
+    
+    ##############################################
+	# Unit status
+	##############################################
+	windowType = {
+		name = "alice_army_group_panel"
+		backGround=""
+		position = { x=0 y=0 }	
+		size = { x=254 y=44 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no	
+		
+		
+		iconType =
+		{
+			name ="unit_bottom_bg"
+			spriteType = "GFX_unit_bottom_bg"
+			position = { x= -1 y = -18 }
+			Orientation = "UPPER_LEFT"
+		}
+			
+		iconType =
+		{
+			name ="icon_speed"
+			spriteType = "GFX_icon_speed"
+			position = { x= 109 y = -13}
+			Orientation = "UPPER_LEFT"
+			
+		}
+			
+		instantTextBoxType = {
+			name = "speed"
+			position = { x = 118 y = -11 }
+			textureFile = ""
+			font = "Arial12_bold_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 40
+			maxHeight = 16
+
+			fixedsize = yes	
+
+			format = right
+		}	
+		
+		iconType =
+		{
+			name ="icon_recon"
+			spriteType = "GFX_icon_recon"
+			position = { x= 185 y = -13}
+			Orientation = "UPPER_LEFT"
+			
+		}
+		
+		instantTextBoxType = {
+			name = "recon"
+			position = { x = 194 y = -10 }
+			textureFile = ""
+			font = "Arial12_bold_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 40
+			maxHeight = 16
+
+			fixedsize = yes	
+
+			format = right
+		}		
+
+		iconType =
+		{
+			name ="icon_engineer"
+			spriteType = "GFX_icon_attack_efficiency"
+			position = { x= 261 y = -13}
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "engineer"
+			position = { x = 270 y = -10 }
+			textureFile = ""
+			font = "Arial12_bold_black"
+			borderSize = {x = 0 y = 0}
+			text = ""	
+			maxWidth = 40
+			maxHeight = 16
+
+			fixedsize = yes	
+
+			format = right
+		}		
+
+		iconType =
+		{
+			name ="icon_supplies_small"
+			spriteType = "GFX_unit_supplies_icon"
+			position = { x= 7 y = -13}
+			Orientation = "UPPER_LEFT"
+			
+		}		
+		
+		iconType =
+		{
+			name ="supply_status"
+			spriteType = "supply_progress"
+			position = { x= 36 y = -10 }
+			Orientation = "UPPER_LEFT"
+		}
+						
+		
+		iconType =
+		{
+			name ="unitstatus_dugin"
+			spriteType = "GFX_military_dugin_icon"
+			position = { x= 78 y = -16  }
+			Orientation = "UPPER_LEFT"
+		}		
+	}
+    
+    listboxType = 	{
+        name ="alice_unit_listbox"
+        position = { 0 28 }
+        size = { 332 408 }
+        Orientation = "UPPER_LEFT"
+        spacing = 0
+        scrollbartype = "standardlistbox_slider"
+        borderSize = { 0 0 }
+    }
+    
+    windowType={
+		name = "alice_army_group_on_map"
+		position = {  0 0 }
+		size = { 1 1 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+        
+        windowType = {
+			name = "main_army_group_icon"
+			position = {  -50 -50 }
+			size = { 1 1 }
+			moveable = 0
+			Orientation = "UPPER_LEFT"
+
+			iconType = {
+				name ="frame_bg"
+				spriteType = "GFX_alice_unit_frames"
+				position = { 4 0 }
+			}
+			instantTextBoxType={
+				position = { 8 40 }
+				name = "label"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
+                text = "HQ"
+			}
+			iconType = {
+				name = "controller_flag"
+				spriteType = "GFX_alice_unit_flag"
+				position = { 12 6 }
+			}
+		}
+        
+    }
 
 	windowType = {
 		name = "alice_leader_selection_panel"
@@ -4331,4 +4501,108 @@ guiTypes = {
 		position = { x= 180 y = 3 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
+    
+    
+    
+    guiButtonType = {
+        name = "alice_exit_battleplanner"
+        position = { 800 50 }
+        quadTextureSprite ="GFX_frontend_button_236"
+        buttonText = "alice_exit_battleplanner"
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_armygroup_add_selected_units"
+        position = { 800 100 }
+        quadTextureSprite ="GFX_frontend_button_236"
+        buttonText = "alice_exit_battleplanner_selection"
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_armygroup_exit_units_selection"
+        position = { 800 50 }
+        quadTextureSprite ="GFX_frontend_button_236"
+        buttonText = "alice_exit_battleplanner_selection"
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_exit_deselection"
+        position = { 800 50 }
+        quadTextureSprite ="GFX_frontend_button_236"
+        buttonText = "alice_exit_battleplanner_deselection"
+        buttonFont = "vic_22_black"
+    }
+    
+    windowType = {
+		name = "alice_armygroup_order_panel"
+		position = { 500 950 }
+		size = { 600 100 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+        
+        guiButtonType = {
+            name = "alice_armygroup_defend_button"
+            position = { 0 0 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_defend_order"
+            buttonFont = "vic_22_black"
+        }
+        
+        
+        
+        guiButtonType = {
+            name = "alice_armygroup_naval_travel_origin_button"
+            position = { 250 0 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_travel_origin_order"
+            buttonFont = "vic_22_black"
+        }
+        
+        guiButtonType = {
+            name = "alice_armygroup_new_button"
+            position = { 250 75 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_new_army_group"
+            buttonFont = "vic_22_black"
+        }
+        
+        guiButtonType = {
+            name = "alice_armygroup_naval_travel_destination_button"
+            position = { 500 0 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_travel_destination_order"
+            buttonFont = "vic_22_black"
+        }
+        
+        guiButtonType = {
+            name = "alice_armygroup_go_to_selection"
+            position = { 960 0 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_armygroup_go_to_selection"
+            buttonFont = "vic_22_black"
+        }
+	}
+    
+    windowType = {
+        name = "alice_armygroup_selection_control_panel"
+		position = { 500 950 }
+		size = { 600 100 }
+		moveable = 0
+		Orientation = "UPPER_LEFT"
+        
+        guiButtonType = {
+            name = "alice_battleplanner_add_selected"
+            position = { 250 0 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_add_selected"
+            buttonFont = "vic_22_black"
+        }
+        guiButtonType = {
+            name = "alice_battleplanner_remove_selected"
+            position = { 500 0 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_remove_selected"
+            buttonFont = "vic_22_black"
+        }
+    }
 }

@@ -282,12 +282,12 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		if(headless) {
 			game_state.actual_game_speed = headless_speed;
 			game_state.ui_pause.store(false, std::memory_order::release);
-			game_state.mode = sys::game_mode_type::in_game;
+			game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 			game_state.local_player_nation = dcon::nation_id{};
 			if(headless_repeat) {
 				std::thread update_thread([&]() { game_state.game_loop(); });
 				while(!game_state.quit_signaled.load(std::memory_order::acquire)) {
-					while(game_state.mode == sys::game_mode_type::in_game) {
+					while(game_state.current_scene.game_in_progress) {
 						std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					}
 					//Reload savefile
@@ -303,7 +303,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					}
 					//
 					network::init(game_state);
-					game_state.mode = sys::game_mode_type::in_game;
+					game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 					game_state.actual_game_speed = headless_speed;
 				};
 				update_thread.join();
