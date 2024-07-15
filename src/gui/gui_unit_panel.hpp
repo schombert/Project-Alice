@@ -626,31 +626,33 @@ public:
 			uint16_t totalunits = 0;
 			uint32_t totalpops = 0;
 
-			for(dcon::army_id & current_army_id : army_group->land_forces) {
-				auto fat = dcon::fatten(state.world, current_army_id);
-				unitstrength_text->set_visible(state, true);
+			if(army_group != nullptr) {			
+				for(dcon::army_id & current_army_id : army_group->land_forces) {
+					auto fat = dcon::fatten(state.world, current_army_id);
+					unitstrength_text->set_visible(state, true);
 				
-				for(auto n : fat.get_army_membership()) {
-					dcon::unit_type_id utid = n.get_regiment().get_type();
-					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
-					if constexpr(N == 0) {
-						if(result == military::unit_type::infantry) {
-							totalunits++;
-							totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-						}
-					} else if constexpr(N == 1) {
-						if(result == military::unit_type::cavalry) {
-							totalunits++;
-							totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-						}
-					} else if constexpr(N == 2) {
-						if(result == military::unit_type::support || result == military::unit_type::special) {
-							totalunits++;
-							totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
+					for(auto n : fat.get_army_membership()) {
+						dcon::unit_type_id utid = n.get_regiment().get_type();
+						auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
+						if constexpr(N == 0) {
+							if(result == military::unit_type::infantry) {
+								totalunits++;
+								totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
+							}
+						} else if constexpr(N == 1) {
+							if(result == military::unit_type::cavalry) {
+								totalunits++;
+								totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
+							}
+						} else if constexpr(N == 2) {
+							if(result == military::unit_type::support || result == military::unit_type::special) {
+								totalunits++;
+								totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
+							}
 						}
 					}
-				}
 				
+				}
 			}
 			unitamount_text->set_text(state, text::format_float(totalunits, 0));
 			unitstrength_text->set_text(state, text::format_wholenum(totalpops));
@@ -675,7 +677,7 @@ public:
 			return ptr;
 		} else if(name == "unit_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = N;
+			ptr->frame = 3 + N;
 			return ptr;
 		} else {
 			return nullptr;
@@ -685,33 +687,35 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			auto army_group = state.selected_army_group;
-			uint16_t totalunits = 0;
-			uint32_t totalpops = 0;
 
-			for(dcon::navy_id& current_navy_id : army_group->naval_forces) {
-				auto fat = dcon::fatten(state.world, current_navy_id);
+			unitstrength_text->set_visible(state, false);
+			uint16_t total = 0;
 
-				unitstrength_text->set_visible(state, false);
-				uint16_t total = 0;
-				for(auto n : fat.get_navy_membership()) {
-					dcon::unit_type_id utid = n.get_ship().get_type();
-					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
-					if constexpr(N == 0) {
-						if(result == military::unit_type::big_ship) {
-							total++;
-						}
-					} else if constexpr(N == 1) {
-						if(result == military::unit_type::light_ship) {
-							total++;
-						}
-					} else if constexpr(N == 2) {
-						if(result == military::unit_type::transport) {
-							total++;
+			if(army_group != nullptr) {			
+				for(dcon::navy_id& current_navy_id : army_group->naval_forces) {
+					auto fat = dcon::fatten(state.world, current_navy_id);
+
+					for(auto n : fat.get_navy_membership()) {
+						dcon::unit_type_id utid = n.get_ship().get_type();
+						auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
+						if constexpr(N == 0) {
+							if(result == military::unit_type::big_ship) {
+								total++;
+							}
+						} else if constexpr(N == 1) {
+							if(result == military::unit_type::light_ship) {
+								total++;
+							}
+						} else if constexpr(N == 2) {
+							if(result == military::unit_type::transport) {
+								total++;
+							}
 						}
 					}
 				}
-				unitamount_text->set_text(state, text::format_float(total, 0));
 			}
+
+			unitamount_text->set_text(state, text::format_float(total, 0));
 		}
 	}
 };
@@ -2155,8 +2159,10 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto i : state.selected_army_group->land_forces)
-			row_contents.push_back(i);
+		if(state.selected_army_group != nullptr) {
+			for(auto i : state.selected_army_group->land_forces)
+				row_contents.push_back(i);
+		}
 		update(state);
 	}
 };
@@ -2168,8 +2174,10 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto i : state.selected_army_group->naval_forces)
-			row_contents.push_back(i);
+		if(state.selected_army_group != nullptr) {
+			for(auto i : state.selected_army_group->naval_forces)
+				row_contents.push_back(i);
+		}
 		update(state);
 	}
 };
@@ -2225,7 +2233,7 @@ class army_group_details_window_sea : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		base_data.position.y = 650;
+		base_data.position.y = 550;
 		base_data.position.x = 50;
 
 		xy_pair base_position = { 20,

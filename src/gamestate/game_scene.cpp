@@ -11,7 +11,7 @@
 namespace game_scene {
 
 void switch_scene(sys::state& state, scene_id ui_scene) {
-
+	/*
 	if (state.ui_state.end_screen)
 		state.ui_state.end_screen->set_visible(state, false);
 	if(state.ui_state.nation_picker)
@@ -24,6 +24,8 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		state.ui_state.military_root->set_visible(state, false);
 
 	state.get_root_element()->set_visible(state, true);
+	*/
+	state.game_state_updated.store(true, std::memory_order_release);
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
@@ -33,7 +35,6 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
 		state.map_state.set_selected_province(dcon::province_id{});
 
-
 		return;
 
 	case scene_id::in_game_basic:
@@ -42,19 +43,12 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 			map_mode::set_map_mode(state, state.stored_map_mode);
 		}
 
-		state.current_scene = basic_game;		
-
-		state.ui_state.military_root->set_visible(state, false);
-		state.ui_state.root->set_visible(state, true);
-
+		state.current_scene = basic_game;
 
 		return;
 
 	case scene_id::in_game_military:
 		state.current_scene = battleplan_editor;
-
-		state.ui_state.military_root->set_visible(state, true);
-		state.ui_state.root->set_visible(state, false);
 
 		return;
 
@@ -67,7 +61,13 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		state.current_scene = nation_picker;
 
 		return;
+
+	case scene_id::in_game_military_selector:
+		state.current_scene = battleplan_editor_add_army;
+
+		return;
 	}
+	
 }
 
 void do_nothing_province_target(sys::state& state,
@@ -579,6 +579,8 @@ void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::k
 					state.add_navy_to_army_group(state.selected_army_group, item);
 				}
 				state.update_regiments_and_ships(state.selected_army_group);
+			} else if(keycode == sys::virtual_key::N) {
+				switch_scene(state, scene_id::in_game_military_selector);
 			}
 		}
 	}
@@ -614,6 +616,8 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 			center_on_capital(state, state.local_player_nation);
 		} else if(keycode == sys::virtual_key::TAB) {
 			ui::open_chat_window(state);
+		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
+			switch_scene(state, scene_id::in_game_military);
 		} else if(keycode == sys::virtual_key::NUMPAD1 || keycode == sys::virtual_key::NUM_1) {
 			ctrl_group = 1;
 		} else if(keycode == sys::virtual_key::NUMPAD2 || keycode == sys::virtual_key::NUM_2) {
@@ -716,6 +720,28 @@ void console_log_other(sys::state& state, std::string_view message) {
 	}
 }
 
+
+void render_units(sys::state& state) {
+	if(state.ui_state.units_root) {
+		state.ui_state.units_root->impl_render(state, 0, 0);
+	}
+}
+
+void render_units_info_box(sys::state& state) {
+	if(state.ui_state.unit_details_box && state.ui_state.unit_details_box->is_visible()) {
+		state.ui_state.unit_details_box->impl_render(state, state.ui_state.unit_details_box->base_data.position.x, state.ui_state.unit_details_box->base_data.position.y);
+	}
+}
+
+void render_ui_military(sys::state& state) {
+	render_units(state);
+}
+
+void render_ui_selection_screen(sys::state& state) {
+	render_units(state);
+	render_units_info_box(state);
+}
+
 void render_ui_ingame(sys::state& state) {
 	if(state.ui_state.tl_chat_list) {
 		state.ui_state.root->move_child_to_front(state.ui_state.tl_chat_list);
@@ -725,12 +751,8 @@ void render_ui_ingame(sys::state& state) {
 			if(state.ui_state.rgos_root && state.map_state.active_map_mode == map_mode::mode::rgo_output) {
 				state.ui_state.rgos_root->impl_render(state, 0, 0);
 			} else {
-				if(state.ui_state.units_root) {
-					state.ui_state.units_root->impl_render(state, 0, 0);
-				}
-				if(state.ui_state.unit_details_box && state.ui_state.unit_details_box->is_visible()) {
-					state.ui_state.unit_details_box->impl_render(state, state.ui_state.unit_details_box->base_data.position.x, state.ui_state.unit_details_box->base_data.position.y);
-				}
+				render_units(state);
+				render_units_info_box(state);
 			}
 		} else if(state.map_state.get_zoom() >= ui::big_counter_cutoff && state.ui_state.province_details_root) {
 			state.ui_state.province_details_root->impl_render(state, 0, 0);
@@ -742,6 +764,44 @@ ui::mouse_probe recalculate_mouse_probe_identity(sys::state& state, ui::mouse_pr
 	return mouse_probe;
 }
 
+ui::mouse_probe recalculate_mouse_probe_units_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
+	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
+	float pos_x = state.ui_state.unit_details_box->base_data.position.x;
+	float pos_y = state.ui_state.unit_details_box->base_data.position.y;
+
+	return state.ui_state.unit_details_box->impl_probe_mouse(
+			state,
+			int32_t(scaled_mouse_x - pos_x),
+			int32_t(scaled_mouse_y - pos_y),
+			ui::mouse_probe_type::click
+	);
+}
+
+ui::mouse_probe recalculate_mouse_probe_units(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
+	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
+
+	return state.ui_state.units_root->impl_probe_mouse(
+			state,
+			int32_t(scaled_mouse_x),
+			int32_t(scaled_mouse_y),
+			ui::mouse_probe_type::click
+	);
+}
+
+ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	if(state.ui_state.unit_details_box && state.ui_state.unit_details_box->is_visible()) {
+		mouse_probe = recalculate_mouse_probe_units_details(state, mouse_probe, tooltip_probe);
+	}
+	if(!mouse_probe.under_mouse) {
+		mouse_probe = recalculate_mouse_probe_units(state, mouse_probe, tooltip_probe);
+	}
+
+	return mouse_probe;
+}
+
+
 ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
 		return mouse_probe;
@@ -750,45 +810,26 @@ ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe
 		// RGO doesn't need clicks... yet
 		return mouse_probe;
 	}
+	return recalculate_mouse_probe_units_and_details(state, mouse_probe, tooltip_probe);
+}
+
+ui::mouse_probe recalculate_mouse_probe_military(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	if(!state.ui_state.military_root) {
+		return mouse_probe;
+	}
 
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
 	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
-	float pos_x = state.ui_state.unit_details_box->base_data.position.x;
-	float pos_y = state.ui_state.unit_details_box->base_data.position.y;
 
-	if(state.ui_state.unit_details_box && state.ui_state.unit_details_box->is_visible()) {
-		mouse_probe = state.ui_state.unit_details_box->impl_probe_mouse(
-			state,
-			int32_t(scaled_mouse_x - pos_x),
-			int32_t(scaled_mouse_y - pos_y),
-			ui::mouse_probe_type::click
-		);
-	}
-	if(!mouse_probe.under_mouse) {
-		mouse_probe = state.ui_state.units_root->impl_probe_mouse(
-			state,
-			int32_t(scaled_mouse_x),
-			int32_t(scaled_mouse_y),
-			ui::mouse_probe_type::click
-		);
-	}
-
-	return mouse_probe;
+	return state.ui_state.military_root->impl_probe_mouse(
+		state,
+		int32_t(scaled_mouse_x),
+		int32_t(scaled_mouse_y),
+		ui::mouse_probe_type::click
+	);
 }
 
-ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
-	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
-		return tooltip_probe;
-	}
-	if(state.map_state.active_map_mode == map_mode::mode::rgo_output) {
-		// RGO doesn't need clicks... yet
-		return tooltip_probe;
-	}
-
-	if(tooltip_probe.under_mouse) {
-		return tooltip_probe;
-	}
-
+ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
 	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
 	float pos_x = state.ui_state.unit_details_box->base_data.position.x;
@@ -815,6 +856,20 @@ ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_pro
 	}
 
 	return tooltip_probe;
+}
+
+ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
+		return tooltip_probe;
+	}
+	if(state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+		// RGO doesn't need clicks... yet
+		return tooltip_probe;
+	}
+	if(tooltip_probe.under_mouse) {
+		return tooltip_probe;
+	}
+	return recalculate_tooltip_probe_units_and_details(state, mouse_probe, tooltip_probe);
 }
 
 void clean_up_basic_game_scene(sys::state& state) {
@@ -860,9 +915,11 @@ void clean_up_basic_game_scene(sys::state& state) {
 
 void update_army_group_selection_ui(sys::state& state) {
 	if(state.selected_army_group != nullptr) {
-		state.ui_state.army_group_window->set_visible(state, true);
+		state.ui_state.army_group_window_sea->set_visible(state, true);
+		state.ui_state.army_group_window_land->set_visible(state, true);
 	} else {
-		state.ui_state.army_group_window->set_visible(state, false);
+		state.ui_state.army_group_window_sea->set_visible(state, false);
+		state.ui_state.army_group_window_land->set_visible(state, false);
 	}
 }
 
@@ -898,18 +955,23 @@ void update_unit_selection_ui(sys::state& state) {
 	}
 }
 
-void update_ui_state_basic(sys::state& state) {
-	map_mode::update_map_mode(state);
+void update_ui_unit_details(sys::state& state) {
 	if(state.ui_state.unit_details_box && state.ui_state.unit_details_box->is_visible()) {
 		state.ui_state.unit_details_box->impl_on_update(state);
-	}
-	ui::close_expired_event_windows(state);
-	if(state.ui_state.rgos_root) {
-		state.ui_state.rgos_root->impl_on_update(state);
 	}
 	if(state.ui_state.units_root) {
 		state.ui_state.units_root->impl_on_update(state);
 	}
+}
+
+void update_ui_state_basic(sys::state& state) {
+	map_mode::update_map_mode(state);
+	ui::close_expired_event_windows(state);
+	if(state.ui_state.rgos_root) {
+		state.ui_state.rgos_root->impl_on_update(state);
+	}
+	update_ui_unit_details(state);
+	
 	if(state.ui_state.ctrl_held_down && state.map_state.get_zoom() >= ui::big_counter_cutoff && state.ui_state.province_details_root) {
 		state.ui_state.province_details_root->impl_on_update(state);
 	}	
@@ -928,6 +990,11 @@ void update_basic_game_scene(sys::state& state) {
 
 void update_military_game_scene(sys::state& state) {
 	update_army_group_selection_ui(state);
+	state.map_state.map_data.update_borders(state);
+}
+
+void update_add_units_game_scene(sys::state& state) {
+	update_unit_selection_ui(state);
 	state.map_state.map_data.update_borders(state);
 }
 
@@ -952,6 +1019,50 @@ void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dc
 	if(selected_province) {
 		data[province::to_map_id(selected_province)] = 0x2B2B2B2B;
 	}
+}
+
+void highlight_defensive_positions(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
+	if(state.selected_army_group != nullptr) {
+		for(auto position : state.selected_army_group->defensive_line) {
+			data[province::to_map_id(position)] = 0x2B2B2B2B;
+		}
+
+		for(auto position : state.selected_army_group->naval_travel_origin) {
+			data[province::to_map_id(position)] = 0x2B2B2B2B;
+		}
+
+		for(auto position : state.selected_army_group->naval_travel_target) {
+			data[province::to_map_id(position)] = 0x2B2B2B2B;
+		}
+	}
+}
+
+ui::element_base* root_end_screen(sys::state& state){
+	return state.ui_state.end_screen.get();
+}
+
+ui::element_base* root_pick_nation(sys::state& state) {
+	return state.ui_state.nation_picker.get();
+}
+
+ui::element_base* root_game_basic(sys::state& state) {
+	return state.ui_state.root.get();
+}
+
+ui::element_base* root_game_battleplanner(sys::state& state) {
+	return state.ui_state.military_root.get();
+}
+
+ui::element_base* root_game_battleplanner_add_army(sys::state& state) {
+	return state.ui_state.army_group_selector_root.get();
+}
+
+ui::element_base* root_game_battleplanner_unit_selection(sys::state& state) {
+	return state.ui_state.army_group_selector_root.get();
+}
+
+ui::element_base* root_game_wargoal_state_selection(sys::state& state) {
+	return state.ui_state.select_states_legend.get();
 }
 
 }

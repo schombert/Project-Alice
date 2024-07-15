@@ -47,6 +47,60 @@ void create_in_game_windows(sys::state& state) {
 	state.ui_state.unit_details_box->set_visible(state, false);
 	//
 	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
+
+	// create ui for army selector
+	{
+		{
+			auto key = state.lookup_key("alice_armygroup_selection_control_panel");
+			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+			auto window = ui::make_element_by_type<ui::battleplanner_selection_control>(state, def);
+			state.ui_state.army_group_selector_root->add_child_to_front(std::move(window));
+		}
+		{
+			auto key = state.lookup_key("alice_armygroup_exit_units_selection");
+			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+			auto button = ui::make_element_by_type<ui::go_to_battleplanner_button>(state, def);
+			state.ui_state.army_group_selector_root->add_child_to_front(std::move(button));
+		}
+	}
+
+	// create ui for battleplanner
+	{
+		state.world.for_each_province([&](dcon::province_id id) {
+			auto ptr = ui::make_element_by_type<ui::army_group_counter_window>(state, "alice_army_group_on_map");
+			static_cast<ui::army_group_counter_window*>(ptr.get())->prov = id;
+			state.ui_state.military_root->add_child_to_front(std::move(ptr));
+		});
+
+		{
+			auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window_sea>(state, "alice_army_group_panel");
+			state.ui_state.army_group_window_sea = static_cast<ui::army_group_details_window_sea*>(new_elm_army_group.get());
+			new_elm_army_group->set_visible(state, true);
+			state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
+		}
+		{
+			auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window_land>(state, "alice_army_group_panel");
+			state.ui_state.army_group_window_land = static_cast<ui::army_group_details_window_land*>(new_elm_army_group.get());
+			new_elm_army_group->set_visible(state, true);
+			state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
+		}
+
+		{
+			auto key = state.lookup_key("alice_exit_battleplanner");
+			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+			auto button = ui::make_element_by_type<ui::go_to_base_game_button>(state, def);
+			state.ui_state.military_root->add_child_to_front(std::move(button));
+		}
+
+		{
+			auto key = state.lookup_key("alice_armygroup_order_panel");
+			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+			auto window = ui::make_element_by_type<ui::battleplanner_control>(state, def);
+			state.ui_state.military_root->add_child_to_front(std::move(window));
+		}
+	}
+
+
 	state.ui_state.end_screen = std::make_unique<ui::container_base>();
 	{
 		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("back_end"))->second.definition);
@@ -64,11 +118,7 @@ void create_in_game_windows(sys::state& state) {
 			state.ui_state.units_root->add_child_to_front(std::move(ptr));
 		}
 	});
-	state.world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::army_group_counter_window>(state, "alice_army_group_on_map");
-		static_cast<ui::army_group_counter_window*>(ptr.get())->prov = id;
-		state.ui_state.military_root->add_child_to_front(std::move(ptr));
-	});
+	
 	state.world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(state, "alice_map_unit");
 		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
@@ -144,18 +194,7 @@ void create_in_game_windows(sys::state& state) {
 		new_elm_navy->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(new_elm_navy));
 	}
-	{
-		auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window_sea>(state, "alice_army_group_panel");
-		state.ui_state.army_group_window = static_cast<ui::army_group_details_window_sea*>(new_elm_army_group.get());
-		new_elm_army_group->set_visible(state, false);
-		state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
-	}
-	{
-		auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window_land>(state, "alice_army_group_panel");
-		state.ui_state.army_group_window = static_cast<ui::army_group_details_window_land*>(new_elm_army_group.get());
-		new_elm_army_group->set_visible(state, false);
-		state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
-	}
+	
 	{
 		auto mselection = ui::make_element_by_type<ui::mulit_unit_selection_panel>(state, "alice_multi_unitpanel");
 		state.ui_state.multi_unit_selection_window = mselection.get();
@@ -256,7 +295,7 @@ void state::start_state_selection(state_selection_data& data) {
 	}	
 	state_selection = data;
 
-	game_scene::switch_scene(*this, game_scene::scene_id::pick_nation);
+	game_scene::switch_scene(*this, game_scene::scene_id::in_game_state_selector);
 
 	if(ui_state.select_states_legend) {
 		ui_state.select_states_legend->impl_on_update(*this);
@@ -283,22 +322,6 @@ void state::state_select(dcon::state_definition_id sdef) {
 		}
 	}
 	map_state.update(*this);
-}
-
-ui::element_base* state::get_root_element() {
-	switch(current_scene.id) {
-	case game_scene::scene_id::end_screen:
-	default:
-		return ui_state.end_screen.get();
-	case game_scene::scene_id::pick_nation:
-		return ui_state.nation_picker.get();
-	case game_scene::scene_id::in_game_basic:
-		return ui_state.root.get();
-	case game_scene::scene_id::in_game_state_selector:
-		return ui_state.select_states_legend.get();
-	case game_scene::scene_id::in_game_military:
-		return ui_state.military_root.get();
-	}
 }
 
 //
@@ -376,7 +399,7 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 	//update en demand
-	ui::element_base* root_elm = get_root_element();
+	ui::element_base* root_elm = current_scene.get_root(*this);
 	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale),
@@ -481,7 +504,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	current_scene.clean_up(*this);
 
-	ui::element_base* root_elm = get_root_element();
+	ui::element_base* root_elm = current_scene.get_root(*this);
 
 	root_elm->base_data.size.x = ui_state.root->base_data.size.x;
 	root_elm->base_data.size.y = ui_state.root->base_data.size.y;
@@ -552,7 +575,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					dcon::province_id candidate{};
 					float supply_limit = 0.f;
 					for(dcon::province_id defensive_position : army_group.defensive_line) {
-						if(fill_province_up_to_supply_limit(&army_group, defensive_position, regiments_distribution, army_group_regiment_status::defend_position)) {
+						if(fill_province_up_to_supply_limit(&army_group, defensive_position, regiments_distribution, army_group_regiment_status::awaiting_orders, army_group_regiment_status::defend_position)) {
 							break;
 						}
 					}
@@ -587,13 +610,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 					float supply_limit = 0.f;
 					for(dcon::province_id travel_origin : army_group.naval_travel_origin) {
-						if(fill_province_up_to_supply_limit(&army_group, travel_origin, regiments_distribution, army_group_regiment_status::awaiting_naval_travel)) {
+						if(fill_province_up_to_supply_limit(&army_group, travel_origin, regiments_distribution, army_group_regiment_status::awaiting_orders, army_group_regiment_status::awaiting_naval_travel)) {
 							break;
 						}
 					}
 				} else {
 					for(dcon::province_id travel_origin : army_group.naval_travel_origin) {
-						if(fill_province_up_to_supply_limit(&army_group, travel_origin, regiments_distribution, army_group_regiment_status::awaiting_naval_travel)) {
+						if(fill_province_up_to_supply_limit(&army_group, travel_origin, regiments_distribution, army_group_regiment_status::awaiting_orders, army_group_regiment_status::awaiting_naval_travel)) {
 							break;
 						}
 					}
@@ -624,6 +647,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 			// find first destination with available supply
 			dcon::province_id current_travel_target{};
+			float required_target_regiments = 0.f;
 			for(dcon::province_id travel_target : army_group.naval_travel_target) {
 				// check our land forces:
 				float max_supply = float(military::supply_limit_in_province(*this, local_player_nation, travel_target));
@@ -639,6 +663,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 				if(current_weight + 3.f < max_supply) {
 					current_travel_target = travel_target;
+					required_target_regiments = max_supply - current_weight;
 					break;
 				}
 			}
@@ -728,7 +753,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 								size += 1;
 							}
 
-							if(amount_of_transports >= size) {
+							if((amount_of_transports >= size) && (size <= required_target_regiments / 3.f + 0.1f)) {
 								//embark the army
 								auto path_army = command::can_move_army(*this, local_player_nation, army, valid_sea_origin);
 								if(path_army.size() > 0) {
@@ -845,7 +870,29 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// if l < r then there is a vacant province and we had stopped early
 			// so try to fill the vacant location
 			if(l < r) {
-				auto target_location = province_queue[l];			
+				auto target_location = province_queue[l];
+
+				/*
+				for(uint32_t i = 0; i < military_definitions.unit_base_definitions.size(); ++i) {
+					regiments_distribution[i] = 0.f;
+				}
+
+				//recalculate distribution
+				float total = 0.f;
+				for(dcon::regiment_id regiment : army_group.land_regiments) {
+					auto regiment_type = world.regiment_get_type(regiment);
+					auto status = army_group.regiment_status[regiment.index()];
+					if(status == army_group_regiment_status::idle) {
+						regiments_distribution[regiment_type.index()] += 1.f;
+						total += 1.f;
+					}
+				}
+
+				bool success = fill_province_up_to_supply_limit(&army_group, target_location, regiments_distribution, army_group_regiment_status::idle, army_group_regiment_status::awaiting_orders);
+				if(success) {
+					break;
+				}
+				*/
 
 				for(auto current_regiment : army_group.land_regiments) {
 					auto army = world.regiment_get_army_from_army_membership(current_regiment);
@@ -4456,6 +4503,40 @@ void state::new_army_group(dcon::province_id hq) {
 	};
 
 	army_groups.push_back(new_group);
+
+	game_state_updated.store(true, std::memory_order_release);
+}
+
+void state::toggle_defensive_position(army_group* group, dcon::province_id position) {
+	auto index = std::find(group->defensive_line.begin(), group->defensive_line.end(), position);
+	if(index != group->defensive_line.end()) {
+		group->defensive_line.erase(index);
+		return;
+	}
+	group->defensive_line.push_back(position);
+
+	game_state_updated.store(true, std::memory_order_release);
+}
+
+void state::toggle_ferry_origin_position(army_group* group, dcon::province_id position) {
+	auto index = std::find(group->naval_travel_origin.begin(), group->naval_travel_origin.end(), position);
+	if(index != group->naval_travel_origin.end()) {
+		group->naval_travel_origin.erase(index);
+		return;
+	}
+	group->naval_travel_origin.push_back(position);
+
+	game_state_updated.store(true, std::memory_order_release);
+}
+
+void state::toggle_ferry_target_position(army_group* group, dcon::province_id position) {
+	auto index = std::find(group->naval_travel_target.begin(), group->naval_travel_target.end(), position);
+	if(index != group->naval_travel_target.end()) {
+		group->naval_travel_target.erase(index);
+		return;
+	}
+	group->naval_travel_target.push_back(position);
+
 	game_state_updated.store(true, std::memory_order_release);
 }
 
@@ -4465,6 +4546,8 @@ void state::new_defensive_position(army_group* group, dcon::province_id position
 		return;
 	}
 	group->defensive_line.push_back(position);
+
+	game_state_updated.store(true, std::memory_order_release);
 }
 
 
@@ -4602,17 +4685,21 @@ void state::smart_select_army_group(army_group* selected_group) {
 
 void state::select_army_group(army_group* selected_group) {
 	selected_army_group = selected_group;
-	ui_state.army_group_window->set_visible(*this, true);
+
+	game_state_updated.store(true, std::memory_order_release);
 }
+
 void state::deselect_army_group() {
 	selected_army_group = nullptr;
-	ui_state.army_group_window->set_visible(*this, false);
+
+	game_state_updated.store(true, std::memory_order_release);
 }
 
 bool state::fill_province_up_to_supply_limit(
 	army_group* group,
 	dcon::province_id target,
 	std::vector<float>& regiments_distribution,
+	army_group_regiment_status initial_status,
 	army_group_regiment_status final_status
 ) {
 	static std::vector<float> regiments_expectation_ideal;
@@ -4668,7 +4755,7 @@ bool state::fill_province_up_to_supply_limit(
 	}
 
 	if(current_weight + 3.f < ideal) {
-		if(fill_province(group, target, regiments_expectation_ideal))
+		if(fill_province(group, target, regiments_expectation_ideal, initial_status))
 			return true;
 	}
 
@@ -4678,7 +4765,8 @@ bool state::fill_province_up_to_supply_limit(
 bool state::fill_province(
 	army_group* group,
 	dcon::province_id target,
-	std::vector<float> & regiments_expectation_ideal
+	std::vector<float> & regiments_expectation_ideal,
+	army_group_regiment_status initial_status
 ) {
 	static std::vector<float> regiments_expectation_current;
 	static std::vector<float> regiments_in_candidate_army;
@@ -4722,7 +4810,7 @@ bool state::fill_province(
 
 	// now find a unit to move there
 	for(auto regiment : group->land_regiments) {
-		if(group->regiment_status[regiment.index()] != army_group_regiment_status::awaiting_orders) {
+		if(group->regiment_status[regiment.index()] != initial_status) {
 			continue;
 		}
 

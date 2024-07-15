@@ -63,7 +63,7 @@ void popup_error_window(sys::state& state, std::string_view title, std::string_v
 	if(state.ui_state.error_win == nullptr) {
 		auto new_elm = ui::make_element_by_type<ui::error_dialog_window>(state, "defaultinfodialog");
 		state.ui_state.error_win = new_elm.get();
-		state.get_root_element()->add_child_to_front(std::move(new_elm));
+		state.current_scene.get_root(state)->add_child_to_front(std::move(new_elm));
 	}
 
 	auto win = static_cast<ui::error_dialog_window*>(state.ui_state.error_win);

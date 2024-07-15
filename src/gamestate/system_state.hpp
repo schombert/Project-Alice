@@ -706,7 +706,6 @@ struct alignas(64) state {
 	void start_state_selection(state_selection_data& data);
 	void finish_state_selection();
 	void state_select(dcon::state_definition_id sdef);
-	ui::element_base* get_root_element();
 
 	// the following function are for interacting with the string pool
 
@@ -793,6 +792,9 @@ struct alignas(64) state {
 	}
 
 	void new_army_group(dcon::province_id hq);
+	void toggle_ferry_origin_position(army_group* group, dcon::province_id position);
+	void toggle_ferry_target_position(army_group* group, dcon::province_id position);
+	void toggle_defensive_position(army_group* group, dcon::province_id position);
 	void new_defensive_position(army_group* group, dcon::province_id position);
 	void update_regiments_and_ships(army_group* group);
 	void update_armies_and_fleets(army_group* group);
@@ -811,7 +813,7 @@ struct alignas(64) state {
 	void smart_select_army_group(army_group* selected_group);
 	void select_army_group(army_group* selected_group);
 	void deselect_army_group();
-	bool fill_province_up_to_supply_limit(army_group* group, dcon::province_id target, std::vector<float>& regiments_distribution, army_group_regiment_status final_status);
-	bool fill_province(army_group* group, dcon::province_id target, std::vector<float>& regiments_expectation_ideal);
+	bool fill_province_up_to_supply_limit(army_group* group, dcon::province_id target, std::vector<float>& regiments_distribution, army_group_regiment_status initial_status, army_group_regiment_status final_status);
+	bool fill_province(army_group* group, dcon::province_id target, std::vector<float>& regiments_expectation_ideal, army_group_regiment_status initial_status);
 };
 } // namespace sys

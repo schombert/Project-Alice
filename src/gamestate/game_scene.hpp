@@ -8,6 +8,7 @@ enum class scene_id : uint8_t {
 	in_game_basic,
 	in_game_military,
 	in_game_state_selector,
+	in_game_military_selector,
 	end_screen,
 	count
 };
@@ -63,6 +64,10 @@ void console_log_pick_nation(sys::state& state, std::string_view message);
 void console_log_other(sys::state& state, std::string_view message);
 
 void render_ui_ingame(sys::state& state);
+void render_ui_military(sys::state& state);
+void render_ui_selection_screen(sys::state& state);
+
+
 void render_map_generic(sys::state& state);
 
 void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
@@ -70,22 +75,39 @@ void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers
 ui::mouse_probe recalculate_mouse_probe_identity(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
 ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
 ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+ui::mouse_probe recalculate_mouse_probe_military(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
 
 void clean_up_basic_game_scene(sys::state& state);
 
 void update_basic_game_scene(sys::state& state);
 void generic_map_scene_update(sys::state& state);
 void update_ui_state_basic(sys::state& state);
+void update_ui_unit_details(sys::state& state);
 void update_military_game_scene(sys::state& state);
+void update_add_units_game_scene(sys::state& state);
 
 void open_chat_during_game(sys::state& state);
 void open_chat_before_game(sys::state& state);
 
 void highlight_player_nation(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
+void highlight_defensive_positions(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
+
+ui::element_base* root_end_screen(sys::state& state);
+ui::element_base* root_pick_nation(sys::state& state);
+ui::element_base* root_game_basic(sys::state& state);
+ui::element_base* root_game_battleplanner(sys::state& state);
+ui::element_base* root_game_battleplanner_unit_selection(sys::state& state);
+ui::element_base* root_game_wargoal_state_selection(sys::state& state);
+ui::element_base* root_game_battleplanner_add_army(sys::state& state);
 
 struct scene_properties {
 	scene_id id;
+
+	std::function<ui::element_base* (sys::state& state)> get_root;
+
 	bool starting_scene = false;
 	bool final_scene = false;
 	bool enforced_pause = false;
@@ -155,6 +177,9 @@ struct scene_properties {
 
 inline scene_properties nation_picker{
 	.id = scene_id::pick_nation,
+
+	.get_root = root_pick_nation,
+
 	.starting_scene = true,
 	.enforced_pause = true,
 	.overwrite_map_tooltip = true,
@@ -169,17 +194,16 @@ inline scene_properties nation_picker{
 	.lbutton_up = select_player_nation_from_selected_province,
 	.keycode_mapping = replace_keycodes_map_movement,
 	.handle_hotkeys = nation_picker_hotkeys,
-	.console_log = console_log_pick_nation,
-
-	.render_ui = render_ui_ingame,
+	.console_log = console_log_pick_nation,	
 	.open_chat = open_chat_before_game,
-
-
 	.update_highlight_texture = highlight_player_nation,
 };
 
 inline scene_properties basic_game{
 	.id = scene_id::in_game_basic,
+
+	.get_root = root_game_basic,
+
 	.accept_events = true,
 
 	.rbutton_selected_units = selected_units_control,
@@ -192,6 +216,8 @@ inline scene_properties basic_game{
 	.handle_hotkeys = in_game_hotkeys,
 	.console_log = console_log_other,
 
+	.render_ui = render_ui_ingame,
+
 	.recalculate_mouse_probe = recalculate_mouse_probe_basic,
 	.recalculate_tooltip_probe = recalculate_tooltip_probe_basic,
 
@@ -201,7 +227,9 @@ inline scene_properties basic_game{
 };
 
 inline scene_properties battleplan_editor{
-	.id = scene_id::in_game_basic,
+	.id = scene_id::in_game_military,
+
+	.get_root = root_game_battleplanner,
 
 	.rbutton_selected_units = do_nothing_province_target,
 	.rbutton_province = do_nothing_province_target,
@@ -213,11 +241,44 @@ inline scene_properties battleplan_editor{
 	.handle_hotkeys = military_screen_hotkeys,
 	.console_log = console_log_other,
 
-	.on_game_state_update = update_military_game_scene
+	.render_ui = render_ui_military,
+
+	.recalculate_mouse_probe = recalculate_mouse_probe_military,
+
+	.on_game_state_update = update_military_game_scene,
+	.update_highlight_texture = highlight_defensive_positions
+};
+
+inline scene_properties battleplan_editor_add_army{
+	.id = scene_id::in_game_military_selector,
+
+	.get_root = root_game_battleplanner_add_army,
+
+	.rbutton_selected_units = do_nothing_province_target,
+	.rbutton_province = do_nothing_province_target,
+	.allow_drag_selection = true,
+	.on_drag_start = start_dragging,
+	.drag_selection = select_units,
+	.lbutton_up = do_nothing,
+	.keycode_mapping = replace_keycodes_map_movement,
+	.handle_hotkeys = military_screen_hotkeys,
+	.console_log = console_log_other,
+
+	.render_ui = render_ui_selection_screen,
+
+	.recalculate_mouse_probe = recalculate_mouse_probe_units_and_details,
+	.recalculate_tooltip_probe = recalculate_tooltip_probe_units_and_details,
+
+	.on_game_state_update = update_add_units_game_scene,
+	.on_game_state_update_update_ui = update_ui_unit_details,
+	.update_highlight_texture = highlight_defensive_positions
 };
 
 inline scene_properties state_wargoal_selector{
 	.id = scene_id::in_game_state_selector,
+
+	.get_root = root_game_wargoal_state_selection,
+
 	.borders = borders_granularity::state,
 
 	.rbutton_selected_units = do_nothing_province_target,
