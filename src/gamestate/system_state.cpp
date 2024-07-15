@@ -886,7 +886,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close && ui_state.units_root && !ui_state.ctrl_held_down) {
-		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+		if(map_state.active_map_mode == map_mode::mode::rgo_output
+		|| map_state.active_map_mode == map_mode::mode::colonial
+		|| map_state.active_map_mode == map_mode::mode::infrastructure) {
 			// RGO doesn't need clicks... yet
 		} else {
 			if(ui_state.unit_details_box && ui_state.unit_details_box->is_visible()) {
@@ -1495,7 +1497,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(mode == sys::game_mode_type::in_game) {
 		if(map_state.get_zoom() > map::zoom_close) {
 			if(!ui_state.ctrl_held_down) {
-				if(ui_state.rgos_root && map_state.active_map_mode == map_mode::mode::rgo_output) {
+				if(ui_state.rgos_root && (map_state.active_map_mode == map_mode::mode::rgo_output
+				|| map_state.active_map_mode == map_mode::mode::colonial
+				|| map_state.active_map_mode == map_mode::mode::infrastructure)) {
 					ui_state.rgos_root->impl_render(*this, 0, 0);
 				} else {
 					if(ui_state.units_root) {
