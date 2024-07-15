@@ -156,6 +156,7 @@ enum class command_type : uint8_t {
 	c_instant_navy = 158,
 	c_always_allow_decisions = 159,
 	c_always_potential_decisions = 160,
+	c_add_year = 161,
 };
 
 struct pbutton_data {

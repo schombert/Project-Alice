@@ -171,6 +171,22 @@ bm_font const& get_bm_font(sys::state& state, uint16_t font_handle) {
 				return std::string("garamond_14");
 			if(sv == "Main_14_plain")
 				return std::string("garamond_14");
+			if(sv == "Main_14_grey")
+				return std::string("garamond_14_bold");
+			if(sv == "Main_14_black")
+				return std::string("garamond_14_bold");
+			if(sv == "Main_14_red")
+				return std::string("garamond_14_bold");
+			if(sv == "Main_14_bold")
+				return std::string("garamond_14_bold");
+			if(sv == "Main_14_orange")
+				return std::string("garamond_14_bold");
+			if(sv == "Main_14_eu")
+				return std::string("garamond_14");
+			if(sv == "tahoma_60")
+				return std::string("mapfont_56");
+			if(sv == "mapfont_56_small")
+				return std::string("vic_22_bl");
 			if(sv == "ToolTip_Font")
 				return std::string("garamond_16");
 			if(sv == "FPS_Font")

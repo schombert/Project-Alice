@@ -5,20 +5,17 @@ layout (location = 2) in vec2 texture_coord;
 
 out vec2 tex_coord;
 
-layout (location = 0) uniform vec2 offset;
-layout (location = 1) uniform float aspect_ratio;
-layout (location = 2) uniform float zoom;
-layout (location = 3) uniform vec2 map_size;
-layout (location = 4) uniform float time;
-layout (location = 5) uniform mat3 rotation;
-layout (location = 12) uniform vec2 model_offset;
-layout (location = 13) uniform float target_facing;
-layout (location = 14) uniform float target_topview_fixup;
+uniform vec2 offset;
+uniform float aspect_ratio;
+uniform float zoom;
+uniform vec2 map_size;
+uniform float time;
+uniform mat3 rotation;
+uniform vec2 model_offset;
+uniform float target_facing;
+uniform float target_topview_fixup;
+uniform uint subroutines_index;
 
-subroutine vec4 calc_gl_position_class(vec3 world_pos);
-subroutine uniform calc_gl_position_class calc_gl_position;
-
-layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords(vec3 world_pos) {
     vec3 new_world_pos;
     float angle_x = 2 * world_pos.x * PI;
@@ -41,7 +38,6 @@ vec4 globe_coords(vec3 world_pos) {
         (2.f * new_world_pos.y - 1.f), 1.0);
 }
 
-layout(index = 1) subroutine(calc_gl_position_class)
 vec4 flat_coords(vec3 world_pos) {
 	world_pos -= vec3(offset.x, 0.f, -offset.y);
 	world_pos.x = mod(world_pos.x, 1.0f);
@@ -51,6 +47,16 @@ vec4 flat_coords(vec3 world_pos) {
 		(-2.f * world_pos.y),
 		1.0f
 	);
+}
+
+vec4 calc_gl_position(vec3 world_pos) {
+	switch(int(subroutines_index)) {
+case 0: return globe_coords(world_pos);
+//TODO: case 1: return perspective_coords(world_pos);
+case 2: return flat_coords(world_pos);
+default: break;
+	}
+	return vec4(0.f);
 }
 
 // A rotation so units can face were they are going

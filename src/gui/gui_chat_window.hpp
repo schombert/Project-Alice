@@ -239,6 +239,8 @@ public:
 		Cyto::Any payload = this;
 		impl_get(state, payload);
 	}
+
+	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
 };
 
 class chat_return_to_lobby_button : public button_element_base {
@@ -331,6 +333,10 @@ inline void open_chat_during_game(sys::state& state) {
 
 inline void open_chat_window(sys::state& state) {
 	state.current_scene.open_chat(state);
+}
+
+void chat_edit_box::edit_box_tab(sys::state& state, std::string_view s) noexcept {
+	ui::open_chat_window(state); //close/open like if tab was pressed!
 }
 
 }

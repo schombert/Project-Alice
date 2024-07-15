@@ -403,6 +403,16 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 	}
 
 	auto file = open_file(root, native_name);
+	if(!file && name_length > 4) {
+		auto png_name = native_name;
+		if(auto pos = png_name.find_last_of('.'); pos != native_string::npos) {
+			png_name[pos + 1] = NATIVE('p');
+			png_name[pos + 2] = NATIVE('n');
+			png_name[pos + 3] = NATIVE('g');
+			png_name.resize(pos + 4);
+		}
+		file = open_file(root, png_name);
+	}
 	if(file) {
 		auto content = simple_fs::view_contents(*file);
 
@@ -453,7 +463,7 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		file_str += NATIVE("flags");
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
-		native_string default_file_str = file_str + NATIVE(".tga");
+		native_string default_file_str = file_str;
 		switch(type) {
 		case culture::flag_type::communist:
 			file_str += NATIVE("_communist");
@@ -574,10 +584,15 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 			file_str += NATIVE("_ultranationalist");
 			break;
 		}
-		file_str += NATIVE(".tga");
-		GLuint p_tex = load_file_and_return_handle(file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+		GLuint p_tex = load_file_and_return_handle(file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
 		if(!p_tex) {
-			return load_file_and_return_handle(default_file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+			p_tex = load_file_and_return_handle(file_str + NATIVE(".tga"), state.common_fs, state.open_gl.asset_textures[id], false);
+			if(!p_tex) {
+				p_tex = load_file_and_return_handle(default_file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
+				if(!p_tex) {
+					return load_file_and_return_handle(default_file_str + NATIVE(".tga"), state.common_fs, state.open_gl.asset_textures[id], false);
+				}
+			}
 		}
 		return p_tex;
 	}

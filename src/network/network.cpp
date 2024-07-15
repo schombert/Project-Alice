@@ -981,6 +981,10 @@ void send_and_receive_commands(sys::state& state) {
 				std::memcpy(hshake.password, state.network_state.password, sizeof(hshake.password));
 				socket_add_to_send_queue(state.network_state.send_buffer, &hshake, sizeof(hshake));
 				state.network_state.handshake = false;
+
+				//update map
+				state.map_state.set_selected_province(dcon::province_id{});
+				state.map_state.unhandled_province_selection = true;
 			});
 			if(r != 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client handshake receive error: " + get_last_error_msg());

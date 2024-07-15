@@ -223,6 +223,42 @@ public:
 	static constexpr uint32_t shader_count = 9;
 	GLuint shaders[shader_count] = { 0 };
 
+	static constexpr uint32_t uniform_offset = 0;
+	static constexpr uint32_t uniform_aspect_ratio = 1;
+	static constexpr uint32_t uniform_zoom = 2;
+	static constexpr uint32_t uniform_map_size = 3;
+	static constexpr uint32_t uniform_rotation = 4;
+	static constexpr uint32_t uniform_gamma = 5;
+	static constexpr uint32_t uniform_subroutines_index = 6;
+	static constexpr uint32_t uniform_time = 7;
+	//
+	static constexpr uint32_t uniform_provinces_texture_sampler = 8;
+	static constexpr uint32_t uniform_terrain_texture_sampler = 9;
+	static constexpr uint32_t uniform_terrainsheet_texture_sampler = 10;
+	static constexpr uint32_t uniform_water_normal = 11;
+	static constexpr uint32_t uniform_colormap_water = 12;
+	static constexpr uint32_t uniform_colormap_terrain = 13;
+	static constexpr uint32_t uniform_overlay = 14;
+	static constexpr uint32_t uniform_province_color = 15;
+	static constexpr uint32_t uniform_colormap_political = 16;
+	static constexpr uint32_t uniform_province_highlight = 17;
+	static constexpr uint32_t uniform_stripes_texture = 18;
+	static constexpr uint32_t uniform_province_fow = 19;
+	static constexpr uint32_t uniform_diag_border_identifier = 20;
+	static constexpr uint32_t uniform_width = 21;
+	static constexpr uint32_t uniform_subroutines_index_2 = 22;
+	static constexpr uint32_t uniform_line_texture = 23;
+	static constexpr uint32_t uniform_texture_sampler = 24;
+	static constexpr uint32_t uniform_opaque = 25;
+	static constexpr uint32_t uniform_is_black = 26;
+	static constexpr uint32_t uniform_border_width = 27;
+	static constexpr uint32_t uniform_unit_arrow = 28;
+	static constexpr uint32_t uniform_29 = 29;
+	static constexpr uint32_t uniform_30 = 30;
+	static constexpr uint32_t uniform_31 = 31;
+	static constexpr uint32_t uniform_count = 32;
+	GLuint shader_uniforms[shader_count][uniform_count] = { };
+
 	// models: Textures for static meshes
 	// static constexpr uint32_t max_static_meshes = 42;
 	// GLuint static_mesh_textures[max_static_meshes] = { 0 };

@@ -1038,7 +1038,7 @@ alice_rf_siege_won_trigger;如果叛军赢得了一场围城战,以下将会被�
 alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响将会产生，比如你首都$x$：
 may_month_name;5月
 alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
-alice_gp_status_regain_expiration;我们如果不提升排名 ?Y$x$?W 或者提升分数, 我们将会失去 ?Y列强?W 地位在 ?Y$date?W!
+alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date?W，我们将失去?Y列强?W地位！
 alice_mil_decay_description;自然衰减?G-$x$
 alice_con_decay_description;自然衰减?R-$x$
 x_from_y;$x$来自$y$
@@ -1192,7 +1192,9 @@ alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;GDP(PPP)
-ledger_ppp_gdp_per_capita;每100万人的GDP（PPP）
+ledger_ppp_gdp_per_capita;每百万人 GDP（PPP）
 an_assigned_leader;an assigned leader
 macro_new_template;新建
 invention;发明
+alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
+alice_overseas_mil_description;海外部队

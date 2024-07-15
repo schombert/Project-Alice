@@ -1418,14 +1418,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	if(ui_state.bg_gfx_id) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-		glUniform1f(11, user_settings.gamma);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(open_gl.ui_shader_screen_width_uniform, float(x_size));
+		glUniform1f(open_gl.ui_shader_screen_height_uniform, float(y_size));
+		glUniform1f(open_gl.ui_shader_gamma_uniform, user_settings.gamma);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
 		auto const& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
@@ -1440,12 +1443,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 	current_scene.render_map(*this);
 
 	//UI rendering
-	glUseProgram(open_gl.ui_shader_program);
-	glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-	glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-	glUniform1f(11, user_settings.gamma);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glUseProgram(open_gl.ui_shader_program);
+	glUniform1i(open_gl.ui_shader_texture_sampler_uniform, 0);
+	glUniform1i(open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+	glUniform1f(open_gl.ui_shader_screen_width_uniform, float(x_size) / user_settings.ui_scale);
+	glUniform1f(open_gl.ui_shader_screen_height_uniform, float(y_size) / user_settings.ui_scale);
+	glUniform1f(open_gl.ui_shader_gamma_uniform, user_settings.gamma);
 	glViewport(0, 0, x_size, y_size);
 	glDepthRange(-1.0f, 1.0f);
 
@@ -4149,6 +4154,12 @@ void state::single_game_tick() {
 		ai::update_ai_colonial_investment(*this);
 	}
 
+	if(defines.alice_eval_ai_mil_everyday) {
+		ai::make_defense(*this);
+		ai::make_attacks(*this);
+		ai::update_ships(*this);
+	}
+
 	// Once per month updates, spread out over the month
 	switch(ymd_date.day) {
 		case 1:
@@ -4165,7 +4176,9 @@ void state::single_game_tick() {
 			break;
 		case 4:
 			military::reinforce_regiments(*this);
-			ai::make_defense(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_defense(*this);
+			}
 			break;
 		case 5:
 			rebel::update_movements(*this);
@@ -4173,7 +4186,9 @@ void state::single_game_tick() {
 			break;
 		case 6:
 			ai::form_alliances(*this);
-			ai::make_attacks(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_attacks(*this);
+			}
 			break;
 		case 7:
 			ai::update_ai_general_status(*this);
@@ -4219,7 +4234,9 @@ void state::single_game_tick() {
 			break;
 		case 20:
 			nations::monthly_flashpoint_update(*this);
-			ai::make_defense(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_defense(*this);
+			}
 			break;
 		case 21:
 			ai::update_ai_colony_starting(*this);
@@ -4233,7 +4250,9 @@ void state::single_game_tick() {
 			break;
 		case 24:
 			rebel::execute_rebel_victories(*this);
-			ai::make_attacks(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_attacks(*this);
+			}
 			rebel::update_armies(*this);
 			rebel::rebel_hunting_check(*this);
 			break;
@@ -4253,7 +4272,9 @@ void state::single_game_tick() {
 			ai::update_war_intervention(*this);
 			break;
 		case 30:
-			ai::update_ships(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::update_ships(*this);
+			}
 			rebel::update_armies(*this);
 			rebel::rebel_hunting_check(*this);
 			break;

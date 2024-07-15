@@ -144,4 +144,5 @@ void parsing::defines::parse_file(sys::state& state, std::string_view data, pars
 
 	/* Fixups and nudges */
 	state.defines.investment_score_factor *= 0.05f;
+	state.defines.base_truce_months = std::max(0.f, state.defines.base_truce_months); //some mods try to be funny
 }

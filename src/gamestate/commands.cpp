@@ -3851,8 +3851,10 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 			state.world.regiment_set_army_from_army_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
+		if(source == state.local_player_nation && state.is_selected(a)) {
+			state.deselect(a);
 			state.select(new_u);
+		}
 	}
 }
 
@@ -3904,8 +3906,10 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
+		if(source == state.local_player_nation && state.is_selected(a)) {
+			state.deselect(a);
 			state.select(new_u);
+		}
 	}
 }
 
@@ -5112,6 +5116,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_clear_auto_choice_all:
 	case command_type::c_always_allow_decisions:
 	case command_type::c_always_potential_decisions:
+	case command_type::c_add_year:
 		return true;
 	}
 	return false;
@@ -5577,6 +5582,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_always_potential_decisions:
 		execute_c_always_potential_decisions(state, c.source);
+		break;
+	case command_type::c_add_year:
+		execute_c_add_year(state, c.source, c.data.cheat_int.value);
 		break;
 	}
 }

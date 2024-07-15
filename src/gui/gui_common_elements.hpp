@@ -158,17 +158,15 @@ public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		
-			auto old_handle = base_data.data.text_common.font_handle;
+		auto old_handle = base_data.data.text_common.font_handle;
+		if(!state.user_settings.use_classic_fonts) {
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
 			base_data.data.text_common.font_handle &= ~(0x003F);
 			base_data.data.text_common.font_handle |= (old_value - 2);
-
-			multiline_text_element_base::render(state, x, y);
-
-			base_data.data.text_common.font_handle = old_handle;
-		
+		}
+		multiline_text_element_base::render(state, x, y);
+		base_data.data.text_common.font_handle = old_handle;
 	}
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
@@ -186,29 +184,27 @@ public:
 
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 
-		
-			auto old_handle = base_data.data.text_common.font_handle;
+		auto old_handle = base_data.data.text_common.font_handle;
+		if(!state.user_settings.use_classic_fonts) {
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
 			base_data.data.text_common.font_handle &= ~(0x003F);
 			base_data.data.text_common.font_handle |= (old_value - 2);
-
-			auto container = text::create_endless_layout(state,
-				internal_layout,
-				text::layout_parameters{
-				border.x,
-					border.y,
-					int16_t(base_data.size.x - border.x * 2),
-					int16_t(base_data.size.y - border.y * 2),
-					base_data.data.text.font_handle,
-					0,
-					align,
-					color,
-					false});
-			populate_layout(state, container);
-
-			base_data.data.text_common.font_handle = old_handle;
-		
+		}
+		auto container = text::create_endless_layout(state,
+			internal_layout,
+			text::layout_parameters{
+			border.x,
+				border.y,
+				int16_t(base_data.size.x - border.x * 2),
+				int16_t(base_data.size.y - border.y * 2),
+				base_data.data.text.font_handle,
+				0,
+				align,
+				color,
+				false});
+		populate_layout(state, container);
+		base_data.data.text_common.font_handle = old_handle;
 	}
 };
 
@@ -1184,16 +1180,6 @@ public:
 		} else {
 			text::add_line(state, contents, "technologyview_no_research_tooltip");
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return image_element_base::test_mouse(state, x, y, type);
-	}
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return image_element_base::on_lbutton_down(state, x, y, mods);
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return image_element_base::on_rbutton_down(state, x, y, mods);
 	}
 };
 

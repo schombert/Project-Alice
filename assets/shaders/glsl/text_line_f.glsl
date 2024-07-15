@@ -1,10 +1,13 @@
 in vec3 tex_coord;
 in float opacity;
 in float text_size;
-layout (binding = 0) uniform sampler2D texture_sampler;
-layout (location = 0) out vec4 frag_color;
-layout (location = 12) uniform float is_black;
-layout (location = 11) uniform float gamma;
+out vec4 frag_color;
+
+uniform float is_black;
+uniform float gamma;
+
+uniform sampler2D texture_sampler;
+
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
 }

@@ -905,7 +905,7 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 			} else if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
 				return std::string(name) + ".tga";
 			} else if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".png"))) {
-				return std::string(name) + ".png";
+				return std::string(name) + ".tga";
 			} else {
 				return std::string("noimage.tga");
 			}

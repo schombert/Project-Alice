@@ -7,20 +7,17 @@ layout (location = 4) in float type;
 
 out vec2 tex_coord;
 // Camera position
-layout (location = 0) uniform vec2 offset;
-layout (location = 1) uniform float aspect_ratio;
+uniform vec2 offset;
+uniform float aspect_ratio;
 // Zoom: big numbers = close
-layout (location = 2) uniform float zoom;
+uniform float zoom;
 // The size of the map in pixels
-layout (location = 3) uniform vec2 map_size;
+uniform vec2 map_size;
 // The scaling factor for the width
-layout (location = 4) uniform float border_width;
-layout (location = 5) uniform mat3 rotation;
+uniform float border_width;
+uniform mat3 rotation;
+uniform uint subroutines_index;
 
-subroutine vec4 calc_gl_position_class(vec2 world_pos);
-subroutine uniform calc_gl_position_class calc_gl_position;
-
-layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords(vec2 world_pos) {
 
 	vec3 new_world_pos;
@@ -48,8 +45,6 @@ vec4 globe_coords(vec2 world_pos) {
 		(2. * new_world_pos.y - 1.f), 1.0);
 }
 
-
-layout(index = 1) subroutine(calc_gl_position_class)
 vec4 flat_coords(vec2 world_pos) {
 	world_pos += vec2(-offset.x, offset.y);
 	world_pos.x = mod(world_pos.x, 1.0f);
@@ -60,7 +55,6 @@ vec4 flat_coords(vec2 world_pos) {
 		1.0);
 }
 
-layout(index = 2) subroutine(calc_gl_position_class)
 vec4 perspective_coords(vec2 world_pos) {
 	vec3 new_world_pos;
 	float angle_x = 2 * world_pos.x * PI;
@@ -90,6 +84,15 @@ vec4 perspective_coords(vec2 world_pos) {
 	return vec4(new_world_pos, w);
 }
 
+vec4 calc_gl_position(vec2 world_pos) {
+	switch(int(subroutines_index)) {
+case 0: return globe_coords(world_pos);
+case 1: return perspective_coords(world_pos);
+case 2: return flat_coords(world_pos);
+default: break;
+	}
+	return vec4(0.f);
+}
 
 // The borders are drawn by seperate quads.
 // Each triangle in the quad is made up by two vertices on the same position and
@@ -102,7 +105,6 @@ void main() {
 	vec2 extend_vector = -normalize(direction) * thickness;
 	extend_vector *= round(type) == 3.f ? 2.f : 0.f;
 	vec2 world_pos = vertex_position;
-
 
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += normal_vector;
