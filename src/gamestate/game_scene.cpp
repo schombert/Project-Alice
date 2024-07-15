@@ -506,15 +506,11 @@ sys::virtual_key replace_keycodes(sys::state& state, sys::virtual_key keycode, s
 
 
 void nation_picker_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
-	bool consumed = true;
-
 	if(state.ui_state.nation_picker->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		if(keycode == sys::virtual_key::ESCAPE) {
 			ui::show_main_menu_nation_picker(state);
-			consumed = true;
 		} else if(keycode == sys::virtual_key::TAB) {
 			ui::open_chat_window(state);
-			consumed = true;
 		}
 		state.map_state.on_key_down(keycode, mod);
 	}
