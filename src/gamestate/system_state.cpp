@@ -1421,7 +1421,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(ui_state.bg_gfx_id) {
+	if(ui_state.bg_gfx_id && state.current_scene.based_on_map) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1i(open_gl.ui_shader_texture_sampler_uniform, 0);
