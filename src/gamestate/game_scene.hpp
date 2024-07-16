@@ -294,6 +294,9 @@ inline scene_properties state_wargoal_selector{
 
 inline scene_properties end_screen{
 	.id = scene_id::end_screen,
+
+	.get_root = root_end_screen,
+
 	.final_scene = true,
 	.enforced_pause = true,
 	.based_on_map = false,
