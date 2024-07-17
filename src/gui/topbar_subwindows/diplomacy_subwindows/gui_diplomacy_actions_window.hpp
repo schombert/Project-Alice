@@ -1154,6 +1154,7 @@ public:
 		text::add_line_with_condition(state, contents, "fab_explain_5", state.world.nation_get_in_sphere_of(target) != source);
 		text::add_line_with_condition(state, contents, "fab_explain_6", !military::are_at_war(state, target, source));
 		text::add_line_with_condition(state, contents, "fab_explain_7", has_any_usable_cb(state, target));
+		text::add_line_with_condition(state, contents, "fab_explain_8", !military::has_truce_with(state, target, source));
 	}
 };
 
