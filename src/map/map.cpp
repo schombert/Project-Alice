@@ -525,6 +525,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1i(shader_uniforms[shader_railroad_line][uniform_line_texture], 0);
 		glUniform1i(shader_uniforms[shader_railroad_line][uniform_colormap_water], 1);
 		glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.0001f);
+		glUniform1f(shader_uniforms[shader_railroad_line][uniform_time], 0.f);
 
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
