@@ -3488,6 +3488,31 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+	//sanity flags, but only as a warning
+	{
+		auto gfx_dir = open_directory(root, NATIVE("gfx"));
+		auto flags_dir = open_directory(gfx_dir, NATIVE("flags"));
+		for(auto nid : world.in_national_identity) {
+			native_string tag_native = simple_fs::win1250_to_native(nations::int_to_tag(nid.get_identifying_int()));
+			if(auto f = simple_fs::peek_file(flags_dir, tag_native + NATIVE(".tga")); !f) {
+				err.accumulated_warnings += "Flag missing " + simple_fs::native_to_utf8(tag_native) + ".tga\n";
+			}
+			std::array<bool, size_t(culture::flag_type::count)> has_reported;
+			std::fill(has_reported.begin(), has_reported.end(), false);
+			for(auto g : world.in_government_type) {
+				if(!has_reported[g.get_flag()]) {
+					native_string file_str = tag_native;
+					file_str += ogl::flag_type_to_name(*this, culture::flag_type(g.get_flag()));
+					file_str += NATIVE(".tga");
+					if(auto f = simple_fs::peek_file(flags_dir, file_str); !f) {
+						err.accumulated_warnings += "Flag missing " + simple_fs::native_to_utf8(file_str) + "\n";
+					}
+					has_reported[g.get_flag()] = true;
+				}
+			}
+		}
+	}
+
 	//Fixup armies defined on a different place
 	for(auto p : world.in_pop_location) {
 		for(const auto src : p.get_pop().get_regiment_source()) {
