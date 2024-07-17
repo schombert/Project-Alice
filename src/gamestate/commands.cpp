@@ -2167,6 +2167,9 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(military::are_at_war(state, target, source))
 		return false;
 
+	if(military::has_truce_with(state, source, target))
+		return false;
+
 	/*
 	must be able to fabricate cb
 	*/

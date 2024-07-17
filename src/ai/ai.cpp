@@ -2117,6 +2117,8 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	if(military::are_at_war(state, target, from))
 		return false;
+	if(military::has_truce_with(state, target, from))
+		return false;
 	auto sl = state.world.nation_get_in_sphere_of(target);
 	if(sl == from)
 		return false;

@@ -1206,3 +1206,4 @@ alice_exit_battleplanner_selection;Exit selection mode
 alice_exit_battleplanner;Exit battle planner
 alice_battleplanner_add_selected;Add selected
 alice_battleplanner_remove_selected;Remove selected
+fab_explain_8;Doesn't have a truce
