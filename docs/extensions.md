@@ -74,6 +74,7 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `else = { ... }`: See below.
 - `add_country_modifier = modifier`: Shorthand for `add_country_modifier = { name = modifier duration = -1 }`
 - `add_province_modifier = modifier`: Shorthand for `add_province_modifier = { name = modifier duration = -1 }`
+- `masquerade_as_nation = THIS/FROM`: Use the visual flag of `THIS/FROM` as the flag of the nation, most useful for dynamic rebellions for example.
 
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 

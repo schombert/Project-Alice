@@ -3126,6 +3126,11 @@ object {
 		type{ uint32_t }
 	}
 	property{
+		name{ masquerade_identity }
+		type{ national_identity_id }
+		tag{ save }
+	}
+	property{
 		name{ primary_culture }
 		type{ culture_id }
 		tag{ save }

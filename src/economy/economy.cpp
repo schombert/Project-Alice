@@ -1909,8 +1909,7 @@ void populate_army_consumption(sys::state& state) {
 		auto reg = fatten(state.world, r);
 		auto type = state.world.regiment_get_type(r);
 		auto owner = reg.get_army_from_army_membership().get_controller_from_army_control();
-
-		if(owner) {
+		if(owner && type) {
 			auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
 			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -1937,8 +1936,7 @@ void populate_navy_consumption(sys::state& state) {
 		auto shp = fatten(state.world, r);
 		auto type = state.world.ship_get_type(r);
 		auto owner = shp.get_navy_from_navy_membership().get_controller_from_navy_control();
-
-		if(owner) {
+		if(owner && type) {
 			auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
 			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {

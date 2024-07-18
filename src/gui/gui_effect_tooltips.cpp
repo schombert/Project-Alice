@@ -6656,6 +6656,22 @@ uint32_t ef_change_terrain_province(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_masquerade_as_nation_this(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "masquerade_as_nation"));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::get_name(ws, trigger::to_nation(this_slot)));
+	text::close_layout_box(layout, box);
+	return 0;
+}
+uint32_t ef_masquerade_as_nation_from(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "masquerade_as_nation"));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::get_name(ws, trigger::to_nation(from_slot)));
+	text::close_layout_box(layout, box);
+	return 0;
+}
 
 inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
@@ -7102,6 +7118,8 @@ ef_fop_clr_global_flag_12, //constexpr inline uint16_t fop_clr_global_flag_12 = 
 ef_fop_change_province_name, //constexpr inline uint16_t fop_change_province_name = 0x01B5;
 ef_change_terrain_province, //constexpr inline uint16_t change_terrain_province = 0x01B6;
 ef_change_terrain_pop, //constexpr inline uint16_t change_terrain_pop = 0x01B7;
+ef_masquerade_as_nation_this, //constexpr inline uint16_t ef_masquerade_as_nation_this = 0x01B8;
+ef_masquerade_as_nation_from, //constexpr inline uint16_t ef_masquerade_as_nation_from = 0x01B9;
 
 //
 // SCOPES
