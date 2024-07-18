@@ -212,6 +212,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variable_names);
 		ptr_in = deserialize(ptr_in, state.national_definitions.variable_names);
+		ptr_in = deserialize(ptr_in, state.national_definitions.masquerade_flag_of);
 		ptr_in = deserialize(ptr_in, state.national_definitions.triggered_modifiers);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.rebel_id);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.very_easy_player);
@@ -395,6 +396,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variable_names);
 		ptr_in = serialize(ptr_in, state.national_definitions.variable_names);
+		ptr_in = serialize(ptr_in, state.national_definitions.masquerade_flag_of);
 		ptr_in = serialize(ptr_in, state.national_definitions.triggered_modifiers);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.rebel_id);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
@@ -572,6 +574,7 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.national_definitions.flag_variable_names);
 		sz += serialize_size(state.national_definitions.global_flag_variable_names);
 		sz += serialize_size(state.national_definitions.variable_names);
+		sz += serialize_size(state.national_definitions.masquerade_flag_of);
 		sz += serialize_size(state.national_definitions.triggered_modifiers);
 		sz += sizeof(state.national_definitions.rebel_id);
 		sz += sizeof(state.national_definitions.very_easy_player);

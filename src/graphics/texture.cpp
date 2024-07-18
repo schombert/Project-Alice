@@ -576,12 +576,17 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
+		auto masq_nat_id = state.national_definitions.masquerade_flag_of.safe_get(nat_id);
+		if(!masq_nat_id) {
+			masq_nat_id = nat_id;
+		}
+
 		native_string file_str;
 		file_str += NATIVE("gfx");
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += NATIVE("flags");
 		file_str += NATIVE_DIR_SEPARATOR;
-		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
+		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(masq_nat_id)));
 		native_string default_file_str = file_str;
 		file_str += flag_type_to_name(state, type);
 		GLuint p_tex = load_file_and_return_handle(file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);

@@ -71,6 +71,7 @@ struct global_national_state {
 	tagged_vector<dcon::text_key, dcon::national_flag_id> flag_variable_names;
 	tagged_vector<dcon::text_key, dcon::global_flag_id> global_flag_variable_names;
 	tagged_vector<dcon::text_key, dcon::national_variable_id> variable_names;
+	tagged_vector<dcon::national_identity_id, dcon::national_identity_id> masquerade_flag_of;
 
 	dcon::national_identity_id rebel_id;
 

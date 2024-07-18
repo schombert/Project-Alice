@@ -5062,6 +5062,18 @@ uint32_t ef_change_terrain_pop(EFFECT_PARAMTERS) {
 	ws.world.province_set_terrain(p, trigger::payload(tval[1]).mod_id);
 	return 0;
 }
+uint32_t ef_masquerade_as_nation_this(EFFECT_PARAMTERS) {
+	auto snid = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
+	auto dnid = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot));
+	ws.national_definitions.masquerade_flag_of[snid] = dnid;
+	return 0;
+}
+uint32_t ef_masquerade_as_nation_from(EFFECT_PARAMTERS) {
+	auto snid = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
+	auto dnid = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(from_slot));
+	ws.national_definitions.masquerade_flag_of[snid] = dnid;
+	return 0;
+}
 
 inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
