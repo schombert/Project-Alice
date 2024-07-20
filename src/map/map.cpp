@@ -312,8 +312,10 @@ display_data::~display_data() {
 		glDeleteTextures(texture_count, textures);
 	if(texture_arrays[0])
 		glDeleteTextures(texture_count, texture_arrays);
+#if 0
 	if(static_mesh_textures[0])
 		glDeleteTextures(max_static_meshes, static_mesh_textures);
+#endif
 	if(vao_array[0])
 		glDeleteVertexArrays(vo_count, vao_array);
 	if(vbo_array[0])
