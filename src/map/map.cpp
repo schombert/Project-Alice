@@ -312,8 +312,8 @@ display_data::~display_data() {
 		glDeleteTextures(texture_count, textures);
 	if(texture_arrays[0])
 		glDeleteTextures(texture_count, texture_arrays);
-	//if(static_mesh_textures[0])
-	//	glDeleteTextures(max_static_meshes, static_mesh_textures);
+	if(static_mesh_textures[0])
+		glDeleteTextures(max_static_meshes, static_mesh_textures);
 	if(vao_array[0])
 		glDeleteVertexArrays(vo_count, vao_array);
 	if(vbo_array[0])
@@ -403,6 +403,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_is_black] = glGetUniformLocation(shaders[i], "is_black");
 		shader_uniforms[i][uniform_border_width] = glGetUniformLocation(shaders[i], "border_width");
 		shader_uniforms[i][uniform_unit_arrow] = glGetUniformLocation(shaders[i], "unit_arrow");
+		shader_uniforms[i][uniform_model_offset] = glGetUniformLocation(shaders[i], "model_offset");
+		shader_uniforms[i][uniform_target_facing] = glGetUniformLocation(shaders[i], "target_facing");
+		shader_uniforms[i][uniform_target_topview_fixup] = glGetUniformLocation(shaders[i], "target_topview_fixup");
 		shader_uniforms[i][uniform_width] = glGetUniformLocation(shaders[i], "width");
 	}
 }
@@ -809,10 +812,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
 		}
-		
 	}*/
 
-	/*
+#if 0
 	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
 		constexpr float dist_step = 1.77777f;
 		// Render standing objects
@@ -821,12 +823,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glClearDepth(-1.f);
 		glDepthFunc(GL_GREATER);
 		load_shader(shader_map_standing_object);
-		glUniform1f(4, time_counter);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
 		
 		//for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
-		//	glActiveTexture(GL_TEXTURE14);
+		//	glActiveTexture(GL_TEXTURE0);
 		//	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
 		//	glUniform2f(12, 0.f, float(i * 8));
 		//	glUniform1f(13, 0.f);
@@ -835,7 +836,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		//}
 
 		// Train stations
-		glActiveTexture(GL_TEXTURE14);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
 		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -843,9 +844,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			if(level > 0) {
 				auto center = state.world.province_get_mid_point(p);
 				auto pos = center + glm::vec2(-dist_step, dist_step); //top right (from center)
-				glUniform2f(12, pos.x, pos.y);
-				glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() * level, 1000)) / 1000.f));
-				glUniform1f(14, -0.75f);
+				glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], pos.x, pos.y);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], 2.f * glm::pi<float>() * (float(rng::reduce(p.index() * level, 1000)) / 1000.f));
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
 			}
 		}
@@ -861,7 +862,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			{ 6, 5, 6 } //late
 		};
 		for(const auto& tier : nbe_tiers) {
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[tier.index]);
 			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -870,10 +871,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				if(level >= tier.min && level <= tier.max && units.begin() == units.end()) {
 					auto p1 = duplicates::get_navy_location(state, p);
 					auto p2 = state.world.province_get_mid_point(p);
-					glUniform2f(12, p1.x, p1.y);
+					glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.y);
 					auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-					glUniform1f(13, -theta);
-					glUniform1f(14, -0.75f);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
@@ -885,7 +886,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			{ 7, 5, 6 } //late
 		};
 		for(const auto& tier : nbf_tiers) {
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[tier.index]);
 			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -894,10 +895,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				if(level >= tier.min && level <= tier.max && units.begin() != units.end()) {
 					auto p1 = duplicates::get_navy_location(state, p);
 					auto p2 = state.world.province_get_mid_point(p);
-					glUniform2f(12, p1.x, p1.y);
+					glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.y);
 					auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-					glUniform1f(13, -theta);
-					glUniform1f(14, -0.75f);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
@@ -909,7 +910,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			{ 29, 5, 6 } //late
 		};
 		for(const auto& tier : fort_tiers) {
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[tier.index]);
 			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -917,9 +918,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				if(level >= tier.min && level <= tier.max) {
 					auto center = state.world.province_get_mid_point(p);
 					auto pos = center + glm::vec2(dist_step, -dist_step); //bottom left (from center)
-					glUniform2f(12, pos.x, pos.y);
-					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
-					glUniform1f(14, -0.75f);
+					glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], pos.x, pos.y);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
@@ -931,19 +932,19 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			auto const adj = state.province_definitions.canals[canal_id];
 			if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0)
 				return;
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
 			glm::vec2 pos = state.world.province_get_mid_point(state.province_definitions.canal_provinces[canal_id]);
-			glUniform2f(12, pos.x, pos.y);
-			glUniform1f(13, theta);
-			glUniform1f(14, 0.f);
+			glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], pos.x, pos.y);
+			glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], theta);
+			glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 		};
 		render_canal(3, 0, 0.f); //Kiel
 		render_canal(4, 1, glm::pi<float>() / 2.f), //Suez
 		render_canal(2, 2, 0.f); //Panama
 		// Factory
-		glActiveTexture(GL_TEXTURE14);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[9]);
 		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -951,30 +952,30 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			if(factories.begin() != factories.end()) {
 				auto center = state.world.province_get_mid_point(p);
 				auto pos = center + glm::vec2(-dist_step, -dist_step); //top left (from center)
-				glUniform2f(12, pos.x, pos.y);
-				glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
-				glUniform1f(14, -0.75f);
+				glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], pos.x, pos.y);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[9], static_mesh_counts[9]);
 			}
 		}
 		// Blockaded
-		glActiveTexture(GL_TEXTURE14);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[10]);
 		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
 			if(military::province_is_blockaded(state, p)) {
 				auto p1 = duplicates::get_navy_location(state, p);
 				auto p2 = state.world.province_get_mid_point(p);
-				glUniform2f(12, p1.x, p1.y);
+				glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.y);
 				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-				glUniform1f(13, -theta);
-				glUniform1f(14, -0.75f);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[10], static_mesh_counts[10]);
 			}
 		}
 		// Render armies
 		auto render_regiment = [&](uint32_t index, military::unit_type type, float space) {
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
 			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -1000,10 +1001,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						}
 					}
 					if(has_unit) {
-						glUniform2f(12, p1.x, p1.y + space + dist_step);
+						glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.y + space + dist_step);
 						auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-						glUniform1f(13, -theta);
-						glUniform1f(14, -0.75f);
+						glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+						glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 						glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					}
 				}
@@ -1017,7 +1018,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		render_regiment(18, military::unit_type::support, -dist_step); //artillery
 		// Render navies
 		auto render_ship = [&](uint32_t index, military::unit_type type, int32_t min_port, float space) {
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
 			for(uint32_t i = uint32_t(state.province_definitions.first_sea_province.index()); i < state.world.province_size(); i++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -1043,10 +1044,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						}
 					}
 					if(has_unit) {
-						glUniform2f(12, p1.x, p1.y + space + dist_step);
+						glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.y + space + dist_step);
 						auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-						glUniform1f(13, -theta);
-						glUniform1f(14, -0.75f);
+						glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+						glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 						glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					}
 				}
@@ -1071,7 +1072,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		render_ship(36, military::unit_type::big_ship, 3, -3.f * dist_step); //ironclad
 
 		// Floating flags
-		glActiveTexture(GL_TEXTURE14);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[38]);
 		for(uint32_t i = 0; i < state.world.province_size(); i++) {
 			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -1079,14 +1080,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			if(state.map_state.visible_provinces[province::to_map_id(p)]
 			&& units.begin() != units.end()) {
 				auto p1 = state.world.province_get_mid_point(p);
-				glUniform2f(12, p1.x, p1.x);
+				glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.x);
 				auto theta = glm::atan(0.f, 0.f);
-				glUniform1f(13, -theta);
-				glUniform1f(14, -0.75f);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[38], static_mesh_counts[38]);
 			}
 		}
-		glActiveTexture(GL_TEXTURE14);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[39]);
 		for(uint32_t i = 0; i < state.world.province_size(); i++) {
 			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
@@ -1094,17 +1095,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			if(state.map_state.visible_provinces[province::to_map_id(p)]
 			&& units.begin() != units.end()) {
 				auto p1 = state.world.province_get_mid_point(p);
-				glUniform2f(12, p1.x, p1.x);
+				glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], p1.x, p1.x);
 				auto theta = glm::atan(0.f, 0.f);
-				glUniform1f(13, -theta);
-				glUniform1f(14, -0.75f);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], -theta);
+				glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[39], static_mesh_counts[39]);
 			}
 		}
 
 		for(uint32_t i = 0; i < 3 * 3; i++) {
 			auto index = 19 + i;
-			glActiveTexture(GL_TEXTURE14);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
 			for(uint32_t j = 0; j < uint32_t(state.province_definitions.first_sea_province.index()); j++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(j));
@@ -1118,20 +1119,20 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					pos.y += i == 0 ? 0.f : float(i / 3) * 2.5f;
 					pos.x -= 2.5f;
 					pos.y -= 2.5f;
-					glUniform2f(12, pos.x, pos.y);
-					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j + i, 1000)) / 1000.f));
-					glUniform1f(14, -0.75f);
+					glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], pos.x, pos.y);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j + i, 1000)) / 1000.f));
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
-					glUniform2f(12, pos.x, pos.y);
-					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j * i, 1000)) / 1000.f));
-					glUniform1f(14, -0.75f);
+					glUniform2f(shader_uniforms[shader_map_standing_object][uniform_model_offset], pos.x, pos.y);
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j * i, 1000)) / 1000.f));
+					glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 				}
 			}
 		}
 		glDisable(GL_DEPTH_TEST);
 	}
-	*/
+#endif
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -2028,7 +2029,7 @@ emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material 
 }
 
 void load_static_meshes(sys::state& state) {
-	/*
+#if 0
 	struct static_mesh_vertex {
 		glm::vec3 position_;
 		glm::vec2 normal_;
@@ -2293,7 +2294,7 @@ void load_static_meshes(sys::state& state) {
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glBindVertexArray(0);
-	*/
+#endif
 }
 
 void display_data::load_map(sys::state& state) {
