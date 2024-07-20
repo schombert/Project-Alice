@@ -2511,6 +2511,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_errors += "File map/region.txt could not be opened\n";
 		}
 	}
+	// parse region_sea.txt
+	{
+		auto region_file = open_file(map, NATIVE("region_sea.txt"));
+		if(region_file) {
+			auto content = view_contents(*region_file);
+			err.file_name = "region_sea.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_region_file(gen, err, context);
+		} else {
+			// OK for this file to be missing
+		}
+	}
 	// parse super_region.txt
 	{
 		auto super_region_file = open_file(map, NATIVE("super_region.txt"));
