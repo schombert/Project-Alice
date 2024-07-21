@@ -431,11 +431,11 @@ struct army_group {
 	dcon::province_id hq;
 	std::vector<dcon::army_id> land_forces;
 	std::vector<dcon::regiment_id> land_regiments;
-	std::array<army_group_regiment_status, 32000> regiment_status;
+	//std::array<army_group_regiment_status, 32000> regiment_status;
 
 	std::vector<dcon::navy_id> naval_forces;
 	std::vector<dcon::ship_id> ships;
-	std::array<army_group_ship_status, 32000> ship_status;
+	//std::array<army_group_ship_status, 32000> ship_status;
 
 	std::vector<dcon::province_id> defensive_line;
 
@@ -614,7 +614,7 @@ struct alignas(64) state {
 	army_group * selected_army_group = nullptr;
 
 	//current ui
-	game_scene::scene_properties current_scene = game_scene::nation_picker;
+	game_scene::scene_properties current_scene;
 
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
@@ -733,7 +733,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
 
 		key_data.push_back(0);
 	}

@@ -461,6 +461,9 @@ inline constexpr int32_t tooltip_width = 400;
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
+	if(!current_scene.get_root)
+		return;
+
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
 		window::change_cursor(*this, window::cursor_type::busy);
@@ -557,13 +560,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 				float total = 0.f;
 				for(dcon::regiment_id regiment : army_group.land_regiments) {
 					auto regiment_type = world.regiment_get_type(regiment);
-					auto status = army_group.regiment_status[regiment.index()];
-					if(status == army_group_regiment_status::awaiting_orders
-						|| status == army_group_regiment_status::idle
-					) {
-						regiments_distribution[regiment_type.index()] += 1.f;
-						total += 1.f;
-					}
+					//auto status = army_group.regiment_status[regiment.index()];
+					//if(status == army_group_regiment_status::awaiting_orders
+					//	|| status == army_group_regiment_status::idle
+					//) {
+					//	regiments_distribution[regiment_type.index()] += 1.f;
+					//	total += 1.f;
+					//}
 				}
 
 				if(total > 0.5f) {
@@ -593,14 +596,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 				//recalculate distribution
 				float total = 0.f;
 				for(dcon::regiment_id regiment : army_group.land_regiments) {
-					auto regiment_type = world.regiment_get_type(regiment);
-					auto status = army_group.regiment_status[regiment.index()];
-					if(status == army_group_regiment_status::awaiting_orders
-						|| status == army_group_regiment_status::idle
-					) {
-						regiments_distribution[regiment_type.index()] += 1.f;
-						total += 1.f;
-					}
+					//auto regiment_type = world.regiment_get_type(regiment);
+					//auto status = army_group.regiment_status[regiment.index()];
+					//if(status == army_group_regiment_status::awaiting_orders
+					//	|| status == army_group_regiment_status::idle
+					//) {
+					//	regiments_distribution[regiment_type.index()] += 1.f;
+					//	total += 1.f;
+					//}
 				}
 
 				if(total > 0.5f) {
@@ -738,9 +741,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 						}
 
 						for(dcon::regiment_id regiment : army_group.land_regiments) {
-							if(army_group.regiment_status[regiment.index()] != army_group_regiment_status::awaiting_naval_travel) {
-								continue;
-							}
+							//if(army_group.regiment_status[regiment.index()] != army_group_regiment_status::awaiting_naval_travel) {
+							//	continue;
+							//}
 
 							auto army = world.regiment_get_army_from_army_membership(regiment);
 
@@ -835,9 +838,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 						if(world.army_get_location_from_army_location(army) == current_location) {
 							for(auto rg : world.army_get_army_membership(army)) {
 								current_weight += 3.0f;
-								if(army_group.regiment_status[rg.get_regiment().id.index()] == army_group_regiment_status::idle) {
-									army_group.regiment_status[rg.get_regiment().id.index()] = army_group_regiment_status::awaiting_orders;
-								}
+								//if(army_group.regiment_status[rg.get_regiment().id.index()] == army_group_regiment_status::idle) {
+								//	army_group.regiment_status[rg.get_regiment().id.index()] = army_group_regiment_status::awaiting_orders;
+								//}
 							}
 						}
 					} else if(current_path[0] == current_location) {
@@ -898,10 +901,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 					auto army = world.regiment_get_army_from_army_membership(current_regiment);
 					auto current_location = world.army_get_location_from_army_location(army);
 					auto current_path = world.army_get_path(army);
-					auto status = army_group.regiment_status[current_regiment.index()];
-					if(status != army_group_regiment_status::idle) {
-						continue;
-					}
+					//auto status = army_group.regiment_status[current_regiment.index()];
+					//if(status != army_group_regiment_status::idle) {
+					//	continue;
+					//}
 
 					if(current_location == target_location) {
 						continue;
@@ -4179,7 +4182,7 @@ void state::single_game_tick() {
 		ai::update_ai_colonial_investment(*this);
 	}
 
-	if(defines.alice_eval_ai_mil_everyday) {
+	if(defines.alice_eval_ai_mil_everyday != 0.0f) {
 		ai::make_defense(*this);
 		ai::make_attacks(*this);
 		ai::update_ships(*this);
@@ -4637,7 +4640,7 @@ void state::remove_regiment_from_army_group(army_group* selected_group, dcon::re
 		return;
 	}
 	selected_group->land_regiments.erase(index_of);
-	selected_group->regiment_status[regiment_to_delete.index()] = army_group_regiment_status::idle;
+	//selected_group->regiment_status[regiment_to_delete.index()] = army_group_regiment_status::idle;
 }
 void state::remove_ship_from_army_group(army_group* selected_group, dcon::ship_id ship_to_delete) {
 	auto index_of = std::find(selected_group->ships.begin(), selected_group->ships.end(), ship_to_delete);
@@ -4645,7 +4648,7 @@ void state::remove_ship_from_army_group(army_group* selected_group, dcon::ship_i
 		return;
 	}
 	selected_group->ships.erase(index_of);
-	selected_group->ship_status[ship_to_delete.index()] = army_group_ship_status::idle;
+	//selected_group->ship_status[ship_to_delete.index()] = army_group_ship_status::idle;
 }
 
 void state::remove_regiment_from_all_army_groups(dcon::regiment_id regiment_to_delete) {
@@ -4762,8 +4765,8 @@ bool state::fill_province_up_to_supply_limit(
 		) {
 			for(auto rg : world.army_get_army_membership(army)) {
 				auto regiment = rg.get_regiment().id;
-				if(group->regiment_status[regiment.index()] == army_group_regiment_status::moving)
-					group->regiment_status[regiment.index()] = final_status;
+				//if(group->regiment_status[regiment.index()] == army_group_regiment_status::moving)
+				//	group->regiment_status[regiment.index()] = final_status;
 			}
 		}
 	}
@@ -4856,9 +4859,9 @@ bool state::fill_province(
 
 	// now find a unit to move there
 	for(auto regiment : group->land_regiments) {
-		if(group->regiment_status[regiment.index()] != initial_status) {
-			continue;
-		}
+		//if(group->regiment_status[regiment.index()] != initial_status) {
+		//	continue;
+		//}
 
 		auto regiment_type = world.regiment_get_type(regiment);
 
@@ -4889,10 +4892,10 @@ bool state::fill_province(
 				}
 
 				if(fitting) {
-					for(auto m : world.army_get_army_membership(army)) {
-						auto army_regiment = m.get_regiment().id;
-						group->regiment_status[army_regiment.index()] = army_group_regiment_status::moving;
-					}
+					//for(auto m : world.army_get_army_membership(army)) {
+					//	auto army_regiment = m.get_regiment().id;
+					//	group->regiment_status[army_regiment.index()] = army_group_regiment_status::moving;
+					//}
 					command::move_army(*this, local_player_nation, army, target, false);
 				} else {
 					std::array<dcon::regiment_id, command::num_packed_units> data;

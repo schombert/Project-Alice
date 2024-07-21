@@ -29,7 +29,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
-		state.current_scene = state_wargoal_selector;
+		state.current_scene = state_wargoal_selector();
 
 		state.stored_map_mode = state.map_state.active_map_mode;
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
@@ -43,30 +43,34 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 			map_mode::set_map_mode(state, state.stored_map_mode);
 		}
 
-		state.current_scene = basic_game;
+		state.current_scene = basic_game();
 
 		return;
 
 	case scene_id::in_game_military:
-		state.current_scene = battleplan_editor;
+		state.current_scene = battleplan_editor();
 
 		return;
 
 	case scene_id::end_screen:
-		state.current_scene = end_screen;
+		state.current_scene = end_screen();
 
 		return;
 
 	case scene_id::pick_nation:
-		state.current_scene = nation_picker;
+		state.current_scene = nation_picker();
 
 		return;
 
 	case scene_id::in_game_military_selector:
-		state.current_scene = battleplan_editor_add_army;
+		state.current_scene = battleplan_editor_add_army();
 
 		return;
+	case scene_id::count: // this should never happen
+		assert(false);
+		return;
 	}
+	
 	
 }
 
