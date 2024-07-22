@@ -748,7 +748,10 @@ void render_ui_ingame(sys::state& state) {
 	}
 	if(state.map_state.get_zoom() > map::zoom_close) {
 		if(!state.ui_state.ctrl_held_down) {
-			if(state.ui_state.rgos_root && state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+			if(state.ui_state.rgos_root
+			&& (state.map_state.active_map_mode == map_mode::mode::rgo_output
+			|| state.map_state.active_map_mode == map_mode::mode::infrastructure
+			|| state.map_state.active_map_mode == map_mode::mode::naval)) {
 				state.ui_state.rgos_root->impl_render(state, 0, 0);
 			} else {
 				render_units(state);
@@ -806,7 +809,9 @@ ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
 		return mouse_probe;
 	}
-	if(state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+	if(state.map_state.active_map_mode == map_mode::mode::rgo_output
+	|| state.map_state.active_map_mode == map_mode::mode::infrastructure
+	|| state.map_state.active_map_mode == map_mode::mode::naval) {
 		// RGO doesn't need clicks... yet
 		return mouse_probe;
 	}
@@ -862,7 +867,9 @@ ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_pro
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
 		return tooltip_probe;
 	}
-	if(state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+	if(state.map_state.active_map_mode == map_mode::mode::rgo_output
+	|| state.map_state.active_map_mode == map_mode::mode::infrastructure
+	|| state.map_state.active_map_mode == map_mode::mode::naval) {
 		// RGO doesn't need clicks... yet
 		return tooltip_probe;
 	}
