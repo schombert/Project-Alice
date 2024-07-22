@@ -577,7 +577,7 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 	}
 
 	auto const offset = culture::get_remapped_flag_type(state, type);
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + masq_nat_id.index()) * state.flag_types.size() + offset) };
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + masq_nat_id.id.index()) * state.flag_types.size() + offset) };
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
