@@ -571,16 +571,16 @@ native_string flag_type_to_name(sys::state& state, culture::flag_type type) {
 }
 
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
+	auto masq_nat_id = state.world.nation_get_masquerade_identity(state.world.national_identity_get_nation_from_identity_holder(nat_id));
+	if(!masq_nat_id) {
+		masq_nat_id = nat_id;
+	}
+
 	auto const offset = culture::get_remapped_flag_type(state, type);
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset) };
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + masq_nat_id.index()) * state.flag_types.size() + offset) };
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
-		auto masq_nat_id = state.world.nation_get_masquerade_identity(state.world.national_identity_get_nation_from_identity_holder(nat_id));
-		if(!masq_nat_id) {
-			masq_nat_id = nat_id;
-		}
-
 		native_string file_str;
 		file_str += NATIVE("gfx");
 		file_str += NATIVE_DIR_SEPARATOR;
