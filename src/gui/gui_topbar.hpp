@@ -415,7 +415,12 @@ public:
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto available = nations::max_national_focuses(state, nation_id);
 		auto in_use = nations::national_focuses_in_use(state, nation_id);
-		set_text(state, text::format_ratio(in_use, available));
+
+		if(in_use < available) {
+			set_text(state, "?R" + text::format_ratio(in_use, available));
+		} else {
+			set_text(state, text::format_ratio(in_use, available));
+		}
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
