@@ -471,7 +471,7 @@ Alice adds a handful of new defines:
 
 ### Political party triggers
 
-Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
+Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries, and that like other template types, tags you want this to apply to need an 'template = "test.txt"'- entry in their countries file.
 
 ```
 party = {
