@@ -272,7 +272,7 @@ public:
 
 	bool is_active(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
-		return state.world.decision_get_hide_notification(id);
+		return !state.world.decision_get_hide_notification(id);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
