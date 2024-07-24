@@ -5878,8 +5878,7 @@ return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, 
 #undef CALLTYPE
 #undef TRIGGER_FUNCTION
 
-float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot,
-		int32_t from_slot) {
+float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	float product = base.factor;
 	for(uint32_t i = 0; i < base.segments_count && product != 0; ++i) {
@@ -5893,8 +5892,7 @@ float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_k
 	}
 	return product;
 }
-float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot,
-		int32_t from_slot) {
+float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	float sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5909,8 +5907,7 @@ float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key mod
 	return sum * base.factor;
 }
 
-ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector product = base.factor;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5923,8 +5920,7 @@ ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_mo
 	}
 	return product;
 }
-ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5938,8 +5934,7 @@ ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier
 	return sum * base.factor;
 }
 
-ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector product = base.factor;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5952,8 +5947,7 @@ ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_mo
 	}
 	return product;
 }
-ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {

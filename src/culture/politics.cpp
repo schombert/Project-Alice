@@ -142,7 +142,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 						auto opt_mod = state.world.issue_option_get_support_modifiers(popt, issue_option);
 
 						if(opt_mod) {
-							party_special_issues_support_total += upperhouse_weight* trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0);
+							party_special_issues_support_total += upperhouse_weight* trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(nation), trigger::to_generic(nation), 0);
 							count_found += 1.0f;
 						}
 					}
@@ -152,7 +152,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 			}
 
 			if(count_found > 0.0f)
-				total += upperhouse_weight * std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
+				total += std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
 			else if(condition && upperhouse_weight > 0.0f)
 				total += upperhouse_weight * std::clamp(trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0), -1.0f, 1.0f);
 			if(total > 0.5f)
@@ -200,7 +200,7 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 						auto opt_mod = state.world.issue_option_get_support_modifiers(popt, o);
 
 						if(opt_mod) {
-							party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+							party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(n), trigger::to_generic(n), 0);
 							count_found += 1.0f;
 						}
 					}
@@ -210,7 +210,7 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 			}
 
 			if(count_found > 0.0f)
-				total += upperhouse_weight * std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
+				total += std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
 			else if(condition && upperhouse_weight > 0.0f)
 				total += upperhouse_weight * std::clamp(trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0), -1.0f, 1.0f);
 			if(total > 0.5f)

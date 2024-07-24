@@ -194,7 +194,7 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 					auto opt_mod = state.world.issue_option_get_support_modifiers(popt, ref);
 
 					if(opt_mod) {
-						party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+						party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 						count_found += 1.0f;
 					}
 				}
@@ -204,7 +204,7 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 		}
 
 		if(count_found > 0.0f) {
-			auto result = upperhouse_weight * std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
+			auto result = std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
 			if(abs(result) >= 0.01) {
 				auto box = text::open_layout_box(contents, 10);
 				text::add_to_layout_box(state, contents, box, state.world.ideology_get_name(iid));
