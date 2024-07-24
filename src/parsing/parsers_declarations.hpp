@@ -1882,6 +1882,14 @@ struct on_execute_body {
 	void finish(individual_roption_context&) { }
 };
 
+struct vote_modifiers_body {
+	void finish(individual_option_context&) { }
+	void finish(individual_roption_context&) { }
+};
+
+void make_issue_vote_modifier(std::string_view name, token_generator& gen, error_handler& err, individual_option_context& context);
+void make_issue_vote_modifier(std::string_view name, token_generator& gen, error_handler& err, individual_roption_context& context);
+
 struct issue_option_body : public modifier_base {
 	void technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context);
 	void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
@@ -1897,6 +1905,8 @@ struct issue_option_body : public modifier_base {
 			individual_roption_context& context);
 	void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context);
 	void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) { }
+	void vote_modifiers(vote_modifiers_body const& value, error_handler& err, int32_t line, individual_option_context& context) { }
+	void vote_modifiers(vote_modifiers_body const& value, error_handler& err, int32_t line, individual_roption_context& context) { }
 	option_rules rules;
 };
 

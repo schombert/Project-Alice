@@ -754,6 +754,12 @@ object {
 		name{ parent_issue }
 		type{ issue_id }
 	}
+
+	property{
+		name{ support_modifiers }
+		type{ array{issue_option_id}{value_modifier_key} }
+		tag{ scenario }
+	}
 }
 
 object {

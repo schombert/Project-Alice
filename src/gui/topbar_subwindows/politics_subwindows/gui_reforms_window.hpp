@@ -157,6 +157,78 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 				uint32_t((ref.index() << 2) ^ state.local_player_nation.index()));
 	}
 	reform_rules_description(state, contents, reform.get_rules());
+	text::add_line_break_to_layout(state, contents);
+	auto current = state.world.nation_get_issues(state.local_player_nation, reform.get_parent_issue()).id;
+
+	if(current == ref)
+		return;
+
+	bool some_support_shown = false;
+	text::add_line(state, contents, "alice_reform_support_header");
+	auto tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+	auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+	auto end = start + state.world.national_identity_get_political_party_count(tag);
+	auto count_party_issues = state.world.political_party_get_party_issues_size();
+
+	for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+		dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+		dcon::value_modifier_key condition;
+		if(parent.get_issue_type() == uint8_t(culture::issue_type::political)) {
+			condition = ref.index() > current.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
+		} else if(parent.get_issue_type() == uint8_t(culture::issue_type::social)) {
+			condition = ref.index() > current.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
+		}
+		auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(state.local_player_nation, iid);
+
+		float party_special_issues_support_total = 0.0f;
+		float count_found = 0.0f;
+
+		for(int32_t i = start; i < end; i++) {
+			auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+			if(politics::political_party_is_active(state, state.local_player_nation, pid)
+				&& (state.world.nation_get_government_type(state.local_player_nation).get_ideologies_allowed() & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0
+				&& state.world.political_party_get_ideology(pid) == iid) {
+
+				for(uint32_t j = 0; j < count_party_issues; ++j) {
+					auto popt = state.world.political_party_get_party_issues(pid, dcon::issue_id{ dcon::issue_id::value_base_t(j) });
+					auto opt_mod = state.world.issue_option_get_support_modifiers(popt, ref);
+
+					if(opt_mod) {
+						party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+						count_found += 1.0f;
+					}
+				}
+
+				break; // only look at one active party per ideology
+			}
+		}
+
+		if(count_found > 0.0f) {
+			auto result = upperhouse_weight * std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
+			if(abs(result) >= 0.01) {
+				auto box = text::open_layout_box(contents, 10);
+				text::add_to_layout_box(state, contents, box, state.world.ideology_get_name(iid));
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage{ result }, result > 0 ? text::text_color::green : text::text_color::red);
+				text::close_layout_box(contents, box);
+				some_support_shown = true;
+			}
+		} else if(condition && upperhouse_weight > 0.0f) {
+			auto result = upperhouse_weight * std::clamp(trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0), -1.0f, 1.0f);
+			if(abs(result) >= 0.01) {
+				auto box = text::open_layout_box(contents, 10);
+				text::add_to_layout_box(state, contents, box, state.world.ideology_get_name(iid));
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage{ result }, result > 0 ? text::text_color::green : text::text_color::red);
+				text::close_layout_box(contents, box);
+				some_support_shown = true;
+			}
+		}
+	}
+
+	if(!some_support_shown) {
+		text::add_line(state, contents, "alice_no_current_support");
+	}
 }
 
 class reforms_reform_button : public button_element_base {

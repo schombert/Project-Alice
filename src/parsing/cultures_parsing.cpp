@@ -434,6 +434,26 @@ dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler&
 	return make_value_modifier(gen, err, t_context);
 }
 
+void make_issue_vote_modifier(std::string_view name, token_generator& gen, error_handler& err, individual_option_context& context) {
+	if(auto it = context.outer_context.map_of_ioptions.find(std::string(name)); it != context.outer_context.map_of_ioptions.end()) {
+		auto opt = it->second.id;
+		auto parent = context.outer_context.state.world.issue_option_get_parent_issue(context.id);
+		if(parent.get_issue_type() != uint8_t(::culture::issue_type::party)) {
+			err.accumulated_errors += "attempted to set a vote modifier for a non-party issue " + std::string(context.outer_context.state.to_string_view(parent.get_name())) + " in file " + err.file_name + "\n";
+		} else {
+			trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
+			trigger::slot_contents::empty };
+			auto vmod = make_value_modifier(gen, err, t_context);
+			context.outer_context.state.world.issue_option_set_support_modifiers(context.id, opt, vmod);
+		}
+	} else {
+		err.accumulated_errors += "attempted to set a vote modifier for unkown issue option " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+}
+void make_issue_vote_modifier(std::string_view name, token_generator& gen, error_handler& err, individual_roption_context& context) {
+	err.accumulated_errors += "attempted to set a vote modifier for an uncivilized reform in file " + err.file_name + "\n";
+}
+
 dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, party_context& context) {
 	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty };

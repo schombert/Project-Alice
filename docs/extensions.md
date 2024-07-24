@@ -469,6 +469,28 @@ Alice adds a handful of new defines:
 - `alice_spherelings_only_ally_sphere`: Spherelings will only ally their spherelord.
 - `alice_overseas_mil`: Militancy increase in overseas provinces when overseas maintenance is at zero.
 
+### Support for reforms based on party issues
+
+In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:
+```
+party_issues = {
+	trade_policy = {
+		protectionism = {
+			vote_modifiers = { ... }
+		...
+```
+Inside the `vote_modifiers` section one or more modifiers can be defined for reform options belonging to social or political issues. (These modifiers share the same format with the `add_political_reform` modifiers in the ideology file. Like those modifiers, they are computed additively, and like those modifiers they contain the nation in their primary and THIS scopes.) For example, you could add something like the following (not that it makes much sense as an example, but whatever).
+```
+		trinket_health_care = {
+			base = 1
+			modifier = {
+				factor = -1
+				NOT = { ruling_party_ideology = fascist }
+			}
+		}
+```
+When these modifiers are present, instead of using the generic add/remove political/social reform modifiers for an ideology to determine reform support the support for a particular reform option, the game will first attempt to use the modifier(s) associated with the active issue options of the active party associated with that ideology (if there is more than one such party, one will be picked arbitrarily for this). This will completely override the generic add/remove reform modifiers, allowing a party-ideology combination to support (or oppose) particular reforms in a category even when it would otherwise generically oppose (or support) all such reforms.
+
 ### Political party triggers
 
 Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries, and that like other template types, tags you want this to apply to need an 'template = "test.txt"'- entry in their countries file.

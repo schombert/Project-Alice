@@ -2851,6 +2851,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
 		}
 	}
+	world.issue_option_resize_support_modifiers(world.issue_option_size());
 	// pending issue options
 	{
 		err.file_name = "issues.txt";

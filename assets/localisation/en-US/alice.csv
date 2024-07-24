@@ -1207,3 +1207,5 @@ alice_exit_battleplanner;Exit battle planner
 alice_battleplanner_add_selected;Add selected
 alice_battleplanner_remove_selected;Remove selected
 fab_explain_8;Doesn't have a truce
+alice_reform_support_header;Political support for this reform (a total of 50% or greater is required to choose the reform)
+alice_no_current_support;Currently there is no political support for this reform
