@@ -1208,3 +1208,5 @@ alice_exit_battleplanner;退出战斗计划
 alice_battleplanner_add_selected;添加选中
 alice_battleplanner_remove_selected;删除选中
 fab_explain_8;没有休战
+alice_reform_support_header;该改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
+alice_no_current_support;目前这项改革尚未得到政治支持
