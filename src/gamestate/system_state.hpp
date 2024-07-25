@@ -704,7 +704,6 @@ struct alignas(64) state {
 	void debug_scenario_oos_dump();
 
 	void start_state_selection(state_selection_data& data);
-	void finish_state_selection();
 	void state_select(dcon::state_definition_id sdef);
 
 	// the following function are for interacting with the string pool

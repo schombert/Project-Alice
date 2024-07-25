@@ -524,10 +524,9 @@ void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		state.map_state.on_key_down(keycode, mod);
 		if(keycode == sys::virtual_key::ESCAPE) {
-			switch_scene(state, scene_id::in_game_basic);
 			state.state_selection->on_cancel(state);
-			state.finish_state_selection();
 			state.ui_state.root->impl_on_update(state);
+			switch_scene(state, scene_id::in_game_basic);
 		}
 	}
 }

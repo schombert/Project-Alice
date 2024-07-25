@@ -941,7 +941,7 @@ public:
 		if(parent) {
 			parent->set_visible(state, false);
 		}
-		state.finish_state_selection();
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	}
 };
 

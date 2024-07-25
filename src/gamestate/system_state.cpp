@@ -301,16 +301,13 @@ void state::start_state_selection(state_selection_data& data) {
 		ui_state.select_states_legend->impl_on_update(*this);
 	}
 }
-void state::finish_state_selection() {
-	game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
-}
 
 void state::state_select(dcon::state_definition_id sdef) {
 	assert(state_selection);
 	if(std::find(state_selection->selectable_states.begin(), state_selection->selectable_states.end(), sdef) != state_selection->selectable_states.end()) {
 		if(state_selection->single_state_select) {
 			state_selection->on_select(*this, sdef);
-			finish_state_selection();
+			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 		} else {
 			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
 			if(it == state.selected_states.end()) {
