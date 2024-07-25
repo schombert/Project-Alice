@@ -4166,11 +4166,11 @@ uint32_t ef_ideology(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	auto& s = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i));
+	float new_total = 1.0f  - s + std::max(0.0f, s + factor);
 	s = std::max(0.0f, s + factor);
-	float new_total = 1.0f + s;
 
 	for(auto j : ws.world.in_ideology) {
-		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j)) /= (new_total);
+		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j)) /= new_total;
 	}
 
 	return 0;
@@ -4181,10 +4181,14 @@ uint32_t ef_upper_house(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 
 	auto& u = ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), i);
+	float new_total = 100.0f - u + std::max(0.0f, u + 100.0f * amount);
 	u = std::max(0.0f, u + 100.0f * amount);
-	float new_total = 100.0f + u;
+	
 
 	for(auto j : ws.world.in_ideology) {
+		//auto prior_value = ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), j);
+		//auto new_value = prior_value * 100.0f / (new_total);
+		//ws.world.nation_set_upper_house(trigger::to_nation(primary_slot), j, prior_value);
 		ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), j) *= 100.0f / (new_total);
 	}
 
@@ -4595,10 +4599,11 @@ uint32_t ef_dominant_issue(EFFECT_PARAMTERS) {
 	auto factor = trigger::read_float_from_payload(tval + 2);
 
 	auto& s = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, t));
+	auto new_total = 1.0f - s + std::max(0.0f, s + factor);
 	s = std::max(0.0f, s + factor);
 
 	for(auto i : ws.world.in_issue_option) {
-		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i)) /= (1.0f + factor);
+		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i)) /= new_total;
 	}
 
 	return 0;
@@ -4610,10 +4615,11 @@ uint32_t ef_dominant_issue_nation(EFFECT_PARAMTERS) {
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
 			auto& s = pop.get_pop().get_demographics(demo_tag);
+			auto new_total = 1.0f - s + std::max(0.0f, s + factor);
 			s = std::max(0.0f, s + factor);
 
 			for(auto i : ws.world.in_issue_option) {
-				pop.get_pop().get_demographics(pop_demographics::to_key(ws, i)) /= (1.0f + factor);
+				pop.get_pop().get_demographics(pop_demographics::to_key(ws, i)) /= new_total;
 			}
 		}
 	}
