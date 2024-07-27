@@ -1617,7 +1617,7 @@ void state::reset_locale_pool() {
 
 void state::load_locale_strings(std::string_view locale_name) {
 	auto root_dir = get_root(common_fs);
-	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
+    auto assets_dir = open_directory(root_dir, NATIVE("assets/localisation"));
 
 	auto load_base_files = [&](int32_t column) {
 		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
