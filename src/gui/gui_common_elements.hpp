@@ -2323,6 +2323,24 @@ class toggle_defend_order_button : public button_element_base {
 	}
 };
 
+class toggle_enforce_control_order_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		state.toggle_enforce_control_position(state.selected_army_group, state.map_state.selected_province);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group == nullptr) {
+			disabled = true;
+			return;
+		}
+		if(state.map_state.selected_province) {
+			disabled = false;
+			return;
+		}
+		disabled = true;
+	}
+};
+
 class toggle_ferry_origin_order_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
 		state.toggle_ferry_origin_position(state.selected_army_group, state.map_state.selected_province);
@@ -2409,11 +2427,13 @@ class battleplanner_control : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "alice_armygroup_defend_button") {
 			return make_element_by_type<toggle_defend_order_button>(state, id);
-		} if(name == "alice_armygroup_naval_travel_origin_button") {
+		} else if(name == "alice_armygroup_enforce_control_button") {
+			return make_element_by_type<toggle_enforce_control_order_button>(state, id);
+		} else if(name == "alice_armygroup_naval_travel_origin_button") {
 			return make_element_by_type<toggle_ferry_origin_order_button>(state, id);
-		} if(name == "alice_armygroup_naval_travel_destination_button") {
+		} else if(name == "alice_armygroup_naval_travel_destination_button") {
 			return make_element_by_type<toggle_ferry_target_order_button>(state, id);
-		} if(name == "alice_armygroup_go_to_selection") {
+		} else if(name == "alice_armygroup_go_to_selection") {
 			return make_element_by_type<go_to_battleplanner_selection_button>(state, id);
 		} else {
 			return nullptr;

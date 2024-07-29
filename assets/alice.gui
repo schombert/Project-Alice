@@ -4502,32 +4502,26 @@ guiTypes = {
 		quadTextureSprite = "GFX_move_capital"	
 	}
     
-    
-    
     guiButtonType = {
         name = "alice_exit_battleplanner"
-        position = { 800 50 }
+        position = { -100 50 }
+        Orientation = "CENTER_UP"
         quadTextureSprite ="GFX_frontend_button_236"
         buttonText = "alice_exit_battleplanner"
         buttonFont = "vic_22_black"
-    }
-    guiButtonType = {
-        name = "alice_armygroup_add_selected_units"
-        position = { 800 100 }
-        quadTextureSprite ="GFX_frontend_button_236"
-        buttonText = "alice_exit_battleplanner_selection"
-        buttonFont = "vic_22_black"
-    }
+    }    
     guiButtonType = {
         name = "alice_armygroup_exit_units_selection"
-        position = { 800 50 }
+        position = { -100 50 }
+        Orientation = "CENTER_UP"
         quadTextureSprite ="GFX_frontend_button_236"
         buttonText = "alice_exit_battleplanner_selection"
         buttonFont = "vic_22_black"
     }
     guiButtonType = {
         name = "alice_exit_deselection"
-        position = { 800 50 }
+        position = { -100 50 }
+        Orientation = "CENTER_UP"
         quadTextureSprite ="GFX_frontend_button_236"
         buttonText = "alice_exit_battleplanner_deselection"
         buttonFont = "vic_22_black"
@@ -4535,10 +4529,10 @@ guiTypes = {
     
     windowType = {
 		name = "alice_armygroup_order_panel"
-		position = { 500 950 }
+		position = { -300 -100 }
 		size = { 600 100 }
 		moveable = 0
-		Orientation = "UPPER_LEFT"
+		Orientation = "CENTER_DOWN"
         
         guiButtonType = {
             name = "alice_armygroup_defend_button"
@@ -4546,9 +4540,15 @@ guiTypes = {
             quadTextureSprite ="GFX_frontend_button_236"
             buttonText = "alice_battleplanner_defend_order"
             buttonFont = "vic_22_black"
-        }
+        }      
         
-        
+        guiButtonType = {
+            name = "alice_armygroup_enforce_control_button"
+            position = { 0 40 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_enforce_control_order"
+            buttonFont = "vic_22_black"
+        }      
         
         guiButtonType = {
             name = "alice_armygroup_naval_travel_origin_button"
@@ -4560,7 +4560,7 @@ guiTypes = {
         
         guiButtonType = {
             name = "alice_armygroup_new_button"
-            position = { 250 75 }
+            position = { 250 40 }
             quadTextureSprite ="GFX_frontend_button_236"
             buttonText = "alice_battleplanner_new_army_group"
             buttonFont = "vic_22_black"
@@ -4575,6 +4575,14 @@ guiTypes = {
         }
         
         guiButtonType = {
+            name = "alice_armygroup_new_button"
+            position = { 500 40 }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_delete_army_group"
+            buttonFont = "vic_22_black"
+        }
+        
+        guiButtonType = {
             name = "alice_armygroup_go_to_selection"
             position = { 960 0 }
             quadTextureSprite ="GFX_frontend_button_236"
@@ -4585,10 +4593,10 @@ guiTypes = {
     
     windowType = {
         name = "alice_armygroup_selection_control_panel"
-		position = { 500 950 }
+		position = { -300 -100 }
 		size = { 600 100 }
 		moveable = 0
-		Orientation = "UPPER_LEFT"
+		Orientation = "CENTER_DOWN"
         
         guiButtonType = {
             name = "alice_battleplanner_add_selected"

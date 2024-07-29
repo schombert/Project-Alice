@@ -95,6 +95,8 @@ void highlight_player_nation(sys::state& state, std::vector<uint32_t>& data, dco
 void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 void highlight_defensive_positions(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 
+void clean_up_selected_armies_and_navies(sys::state& state);
+
 ui::element_base* root_end_screen(sys::state& state);
 ui::element_base* root_pick_nation(sys::state& state);
 ui::element_base* root_game_basic(sys::state& state);

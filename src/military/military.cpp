@@ -4882,6 +4882,22 @@ float local_army_weight_max(sys::state& state, dcon::province_id prov) {
 	}
 	return total_army_weight;
 }
+float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+	float total_army_weight = 0;
+	for(auto ar : state.world.province_get_army_location(prov)) {
+		if(
+			ar.get_army().get_black_flag() == false
+			&& ar.get_army().get_is_retreating() == false
+			&& !bool(ar.get_army().get_navy_from_army_transport())
+			&& are_at_war(state, nation, ar.get_army().get_controller_from_army_control())
+		) {
+			for(auto rg : ar.get_army().get_army_membership()) {
+				total_army_weight += 3.0f;
+			}
+		}
+	}
+	return total_army_weight;
+}
 
 float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov) {
 	float total_army_weight = 0;
@@ -6289,6 +6305,21 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 	}
 }
 
+bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller) {
+	bool will_siege = false;
+	if(!army_controller) {					 // rebel army
+		will_siege = bool(province_controller); // siege anything not rebel controlled
+	} else {
+		if(!province_controller) {
+			will_siege = true; // siege anything rebel controlled
+		} else if(are_at_war(state, province_controller, army_controller)) {
+			will_siege = true;
+		}
+	}
+
+	return will_siege;
+}
+
 void update_siege_progress(sys::state& state) {
 	static auto new_nation_controller = ve::vectorizable_buffer<dcon::nation_id, dcon::province_id>(state.world.province_size());
 	static auto new_rebel_controller = ve::vectorizable_buffer<dcon::rebel_faction_id, dcon::province_id>(state.world.province_size());
@@ -6324,20 +6355,9 @@ void update_siege_progress(sys::state& state) {
 
 				// skip -- blackflag or embarked or moving or fighting
 			} else {
-				bool will_siege = false;
-
 				auto army_controller = ar.get_army().get_controller_from_army_control();
-				if(!army_controller) {					 // rebel army
-					will_siege = bool(controller); // siege anything not rebel controlled
-				} else {
-					if(!controller) {
-						will_siege = true; // siege anything rebel controlled
-					} else if(are_at_war(state, controller, army_controller)) {
-						will_siege = true;
-					}
-				}
 
-				if(will_siege) {
+				if(siege_potential(state, army_controller, controller)) {
 					if(!first_army)
 						first_army = ar.get_army();
 

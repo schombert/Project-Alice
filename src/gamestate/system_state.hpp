@@ -420,25 +420,55 @@ struct cheat_data_s {
 };
 
 enum class army_group_regiment_status : uint8_t {
-	idle, awaiting_orders, defend_position, awaiting_naval_travel, moving
+	move_to_target,
+	move_to_port,
+	standby,
+	await_transport,
+	is_transported,
+	disembark,
+	embark
+};
+
+enum class army_group_regiment_task : uint8_t {
+	idle,
+	gather_at_hq,
+	defend_position,
+	ferry,
+	siege,
 };
 
 enum class army_group_ship_status : uint8_t {
 	idle, port, 
 };
 
+struct army_group_regiment_data {
+	dcon::regiment_id id;
+	army_group_regiment_status status;
+	army_group_regiment_task task;
+	dcon::province_id target;
+	dcon::province_id ferry_target;
+};
+
+struct army_group_ship_data {
+	dcon::ship_id id;
+	army_group_ship_status status;
+};
+
 struct army_group {
+	//main province
 	dcon::province_id hq;
+
+	// land data
 	std::vector<dcon::army_id> land_forces;
-	std::vector<dcon::regiment_id> land_regiments;
-	std::array<army_group_regiment_status, 32000> regiment_status;
+	std::vector<army_group_regiment_data> land_regiments;
 
+	// sea data
 	std::vector<dcon::navy_id> naval_forces;
-	std::vector<dcon::ship_id> ships;
-	std::array<army_group_ship_status, 32000> ship_status;
+	std::vector<army_group_ship_data> ships;
 
+	//orders
 	std::vector<dcon::province_id> defensive_line;
-
+	std::vector<dcon::province_id> enforce_control;
 	std::vector<dcon::province_id> naval_travel_origin;
 	std::vector<dcon::province_id> naval_travel_target;
 };
@@ -795,11 +825,23 @@ struct alignas(64) state {
 	void toggle_ferry_origin_position(army_group* group, dcon::province_id position);
 	void toggle_ferry_target_position(army_group* group, dcon::province_id position);
 	void toggle_defensive_position(army_group* group, dcon::province_id position);
+	void toggle_enforce_control_position(army_group* group, dcon::province_id position);
 	void new_defensive_position(army_group* group, dcon::province_id position);
 	void update_regiments_and_ships(army_group* group);
 	void update_armies_and_fleets(army_group* group);
+	void regiment_reset_order(army_group_regiment_data& regiment);
+	bool army_group_recalculate_distribution(army_group* group, std::vector<float>& regiments_distribution);
+	void army_group_update_tasks(army_group* group);
+	void army_group_distribute_tasks(army_group* group);
+	float army_group_available_supply(army_group* group, dcon::province_id province);
+	bool move_to_available_port(army_group* group, army_group_regiment_data& regiment);
 	void remove_army_from_army_group(army_group* selected_group, dcon::army_id selected_army);
 	void remove_navy_from_army_group(army_group* selected_group, dcon::navy_id navy_to_delete);
+	std::vector<army_group_regiment_data>::iterator army_group_regiment_array_iterator(army_group* group, dcon::regiment_id id);
+	std::vector<army_group_ship_data>::iterator army_group_ship_array_iterator(army_group* group, dcon::ship_id id);
+	void army_group_update_regiment_status(army_group* group);
+	void army_group_add_regiment(army_group* group, dcon::regiment_id id);
+	void army_group_add_ship(army_group* group, dcon::ship_id id);
 	void remove_regiment_from_army_group(army_group* selected_group, dcon::regiment_id selected_regiment);
 	void remove_ship_from_army_group(army_group* selected_group, dcon::ship_id ship_to_delete);
 	void remove_regiment_from_all_army_groups(dcon::regiment_id regiment_to_delete);
@@ -813,7 +855,21 @@ struct alignas(64) state {
 	void smart_select_army_group(army_group* selected_group);
 	void select_army_group(army_group* selected_group);
 	void deselect_army_group();
-	bool fill_province_up_to_supply_limit(army_group* group, dcon::province_id target, std::vector<float>& regiments_distribution, army_group_regiment_status initial_status, army_group_regiment_status final_status);
-	bool fill_province(army_group* group, dcon::province_id target, std::vector<float>& regiments_expectation_ideal, army_group_regiment_status initial_status);
+	bool fill_province_up_to_supply_limit(
+		army_group* group,
+		dcon::province_id target,
+		std::vector<float>& regiments_distribution,
+		army_group_regiment_task initial_task,
+		army_group_regiment_task target_task,
+		float overestimate_supply_limit,
+		bool ignore_enemy_regiments_in_supply_calculations
+	);
+	bool fill_province(
+		army_group* group,
+		dcon::province_id target,
+		std::vector<float>& regiments_expectation_ideal,
+		army_group_regiment_task initial_task,
+		army_group_regiment_task target_task
+	);
 };
 } // namespace sys

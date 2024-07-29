@@ -868,16 +868,7 @@ ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_pro
 	return recalculate_tooltip_probe_units_and_details(state, mouse_probe, tooltip_probe);
 }
 
-void clean_up_basic_game_scene(sys::state& state) {
-	if(state.ui_state.change_leader_window && state.ui_state.change_leader_window->is_visible()) {
-		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(state.ui_state.change_leader_window);
-		if(state.ui_state.military_subwindow->is_visible() == false
-			&& std::find(state.selected_armies.begin(), state.selected_armies.end(), win->a) == state.selected_armies.end()
-			&& std::find(state.selected_navies.begin(), state.selected_navies.end(), win->v) == state.selected_navies.end()
-		) {
-			state.ui_state.change_leader_window->set_visible(state, false);
-		}
-	}
+void clean_up_selected_armies_and_navies(sys::state& state) {
 	for(auto i = state.selected_armies.size(); i-- > 0; ) {
 		if(!state.world.army_is_valid(state.selected_armies[i]) || state.world.army_get_controller_from_army_control(state.selected_armies[i]) != state.local_player_nation) {
 			state.selected_armies[i] = state.selected_armies.back();
@@ -890,6 +881,19 @@ void clean_up_basic_game_scene(sys::state& state) {
 			state.selected_navies.pop_back();
 		}
 	}
+}
+
+void clean_up_basic_game_scene(sys::state& state) {
+	if(state.ui_state.change_leader_window && state.ui_state.change_leader_window->is_visible()) {
+		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(state.ui_state.change_leader_window);
+		if(state.ui_state.military_subwindow->is_visible() == false
+			&& std::find(state.selected_armies.begin(), state.selected_armies.end(), win->a) == state.selected_armies.end()
+			&& std::find(state.selected_navies.begin(), state.selected_navies.end(), win->v) == state.selected_navies.end()
+		) {
+			state.ui_state.change_leader_window->set_visible(state, false);
+		}
+	}
+	clean_up_selected_armies_and_navies(state);
 	// clear up control groups too
 	for(auto& v : state.ctrl_armies) {
 		for(auto i = v.size(); i-- > 0; ) {
