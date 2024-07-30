@@ -4128,8 +4128,7 @@ void state::new_army_group(dcon::province_id hq) {
 		.ships = { },
 
 		.defensive_line = { },
-		.naval_travel_origin = { },
-		.naval_travel_target = { }
+		.designated_ports = { },
 	};
 
 	army_groups.push_back(new_group);
@@ -4159,24 +4158,13 @@ void state::toggle_enforce_control_position(army_group* group, dcon::province_id
 	game_state_updated.store(true, std::memory_order_release);
 }
 
-void state::toggle_ferry_origin_position(army_group* group, dcon::province_id position) {
-	auto index = std::find(group->naval_travel_origin.begin(), group->naval_travel_origin.end(), position);
-	if(index != group->naval_travel_origin.end()) {
-		group->naval_travel_origin.erase(index);
+void state::toggle_designated_port(army_group* group, dcon::province_id position) {
+	auto index = std::find(group->designated_ports.begin(), group->designated_ports.end(), position);
+	if(index != group->designated_ports.end()) {
+		group->designated_ports.erase(index);
 		return;
 	}
-	group->naval_travel_origin.push_back(position);
-
-	game_state_updated.store(true, std::memory_order_release);
-}
-
-void state::toggle_ferry_target_position(army_group* group, dcon::province_id position) {
-	auto index = std::find(group->naval_travel_target.begin(), group->naval_travel_target.end(), position);
-	if(index != group->naval_travel_target.end()) {
-		group->naval_travel_target.erase(index);
-		return;
-	}
-	group->naval_travel_target.push_back(position);
+	group->designated_ports.push_back(position);
 
 	game_state_updated.store(true, std::memory_order_release);
 }
@@ -4226,7 +4214,10 @@ void state::army_group_add_regiment(army_group* group, dcon::regiment_id id) {
 		.id = id,
 		.status = army_group_regiment_status::standby,
 		.task = army_group_regiment_task::idle,
-		.target = location
+		.target = location,
+		.ferry_target = dcon::province_id{ },
+		.ferry_origin = dcon::province_id{ },
+		.await_command_execution_flag = false,
 	};
 
 	group->land_regiments.push_back(regiment_data);
@@ -4356,18 +4347,38 @@ void state::add_navy_to_army_group(army_group* selected_group, dcon::navy_id sel
 }
 
 void state::update_armies_and_fleets(army_group* group) {
+	static std::vector<army_group_regiment_data> valid_regiments;
+	valid_regiments.clear();
 	group->land_forces.clear();
 	for(auto & regiment : group->land_regiments) {
-		auto army = world.regiment_get_army_from_army_membership(regiment.id);
-		remove_army_from_all_army_groups_dirty(army);
-		add_army_to_army_group(group, army);
+		if(world.regiment_is_valid(regiment.id)) {
+			auto army = world.regiment_get_army_from_army_membership(regiment.id);
+			remove_army_from_all_army_groups_dirty(army);
+			add_army_to_army_group(group, army);
+			valid_regiments.push_back(regiment);
+		}
 	}
 
+	group->land_regiments.clear();
+	for(auto& regiment : valid_regiments) {
+		group->land_regiments.push_back(regiment);
+	}
+
+	static std::vector<army_group_ship_data> valid_ships;
+	valid_ships.clear();
 	group->naval_forces.clear();
 	for(auto & ship : group->ships) {
-		auto navy = world.ship_get_navy_from_navy_membership(ship.id);
-		remove_navy_from_all_army_groups_dirty(navy);
-		add_navy_to_army_group(group, navy);
+		if(world.ship_is_valid(ship.id)) {
+			auto navy = world.ship_get_navy_from_navy_membership(ship.id);
+			remove_navy_from_all_army_groups_dirty(navy);
+			add_navy_to_army_group(group, navy);
+			valid_ships.push_back(ship);
+		}
+	}
+
+	group->ships.clear();
+	for(auto& ship : valid_ships) {
+		group->ships.push_back(ship);
 	}
 }
 
@@ -4397,12 +4408,11 @@ void state::deselect_army_group() {
 	game_state_updated.store(true, std::memory_order_release);
 }
 
-bool state::fill_province_up_to_supply_limit(
+army_group_regiment_data* state::fill_province_up_to_supply_limit(
 	army_group* group,
 	dcon::province_id target,
 	std::vector<float>& regiments_distribution,
 	army_group_regiment_task initial_task,
-	army_group_regiment_task target_task,
 	float overestimate_supply_limit,
 	bool ignore_enemy_regiments_in_supply_calculations
 ) {
@@ -4446,11 +4456,10 @@ bool state::fill_province_up_to_supply_limit(
 	}
 
 	if(current_weight + 3.f < ideal) {
-		if(fill_province(group, target, regiments_expectation_ideal, initial_task, target_task))
-			return true;
+		return fill_province(group, target, regiments_expectation_ideal, initial_task);
 	}
 
-	return false;
+	return nullptr;
 }
 
 float state::army_group_available_supply(army_group* group, dcon::province_id province) {
@@ -4459,7 +4468,23 @@ float state::army_group_available_supply(army_group* group, dcon::province_id pr
 	for(auto& regiment : group->land_regiments) {
 		if(regiment.target == province) {
 			current_weight += 3.f;
-		} else if(regiment.ferry_target == province) {
+		} else if(
+			regiment.ferry_target == province
+			&& (
+				regiment.status == army_group_regiment_status::move_to_port
+				|| regiment.status == army_group_regiment_status::await_transport
+				|| regiment.status == army_group_regiment_status::is_transported
+				|| regiment.status == army_group_regiment_status::disembark
+			)
+		) {
+			current_weight += 3.f;
+		} else if(
+			regiment.ferry_origin == province
+			&& (
+				regiment.status == army_group_regiment_status::move_to_port
+				|| regiment.status == army_group_regiment_status::await_transport
+			)
+		) {
 			current_weight += 3.f;
 		}
 	}
@@ -4472,21 +4497,35 @@ void state::regiment_reset_order(army_group_regiment_data& regiment) {
 	regiment.task = army_group_regiment_task::idle;
 }
 
-bool state::move_to_available_port(army_group* group, army_group_regiment_data& regiment) {
+dcon::province_id state::find_available_ferry_origin(army_group* group, army_group_regiment_data& regiment) {
 	auto army = world.regiment_get_army_from_army_membership(regiment.id);
-	for(auto& item : group->naval_travel_origin) {
+	for(auto& item : group->designated_ports) {
 		// check available supply first:
 		if(army_group_available_supply(group, item) < 3.f) {
 			continue;
 		}
-
 		auto path = command::can_move_army(*this, local_player_nation, army, item);
 		if(!path.empty()) {
-			command::move_army(*this, local_player_nation, army, item, false);
-			regiment.status = army_group_regiment_status::move_to_port;
-			return true;
+			return item;
 		}
 	}
+
+	dcon::province_id invalid_province{};
+	return invalid_province;
+}
+
+bool state::move_to_available_port(army_group* group, army_group_regiment_data& regiment) {
+	dcon::province_id target = find_available_ferry_origin(group, regiment);
+	auto army = world.regiment_get_army_from_army_membership(regiment.id);
+
+	if(target) {
+		command::move_army(*this, local_player_nation, army, target, false);
+		regiment.status = army_group_regiment_status::move_to_port;
+		regiment.ferry_origin = target;
+		regiment.await_command_execution_flag = true;
+		return true;
+	}
+
 	return false;
 }
 
@@ -4525,7 +4564,7 @@ void state::army_group_update_tasks(army_group* group) {
 	// look for ferry targets:
 	dcon::province_id potential_ferry_target{};
 	float ferry_supply_budget = 0.f;
-	for(dcon::province_id travel_target : group->naval_travel_target) {
+	for(dcon::province_id travel_target : group->designated_ports) {
 		// check our land forces:
 		float supply = army_group_available_supply(group, travel_target);
 		if(supply >= 3.f) {
@@ -4557,15 +4596,6 @@ void state::army_group_update_tasks(army_group* group) {
 			break;
 		case army_group_regiment_task::defend_position:
 			break;
-		case army_group_regiment_task::ferry:
-			//we are not moving and we are at standby, which means that we have arrived to the port
-			if(potential_ferry_target && ferry_supply_budget >= 3.f) {
-				ferry_supply_budget -= 3.f;
-				regiment.ferry_target = potential_ferry_target;
-				regiment.target = potential_ferry_target;
-				regiment.status = army_group_regiment_status::await_transport;
-			}
-			break;
 		case army_group_regiment_task::siege:
 			if(regiment.target != province) {
 				continue;
@@ -4579,6 +4609,18 @@ void state::army_group_update_tasks(army_group* group) {
 			break;
 		}		
 	}
+}
+
+dcon::province_id state::get_port_for_landing(army_group* group, dcon::province_id target) {
+	dcon::province_id potential_target_port{};
+	for(auto target_port : group->designated_ports) {
+		auto path = province::make_safe_land_path(*this, target_port, target, local_player_nation);
+		if(path.size() > 0) {
+			potential_target_port = target_port;
+		}
+	}
+
+	return potential_target_port;
 }
 
 void state::army_group_distribute_tasks(army_group* group) {
@@ -4596,14 +4638,16 @@ void state::army_group_distribute_tasks(army_group* group) {
 			dcon::province_id candidate{};
 			float supply_limit = 0.f;
 			for(dcon::province_id defensive_position : group->defensive_line) {
-				if(fill_province_up_to_supply_limit(
+				auto regiment = fill_province_up_to_supply_limit(
 					group,
 					defensive_position,
 					regiments_distribution,
 					army_group_regiment_task::gather_at_hq,
-					army_group_regiment_task::defend_position,
 					1.f, true
-				)) {
+				);
+
+				if(regiment != nullptr) {
+					regiment->task = army_group_regiment_task::defend_position;
 					break;
 				}
 			}
@@ -4619,14 +4663,16 @@ void state::army_group_distribute_tasks(army_group* group) {
 				if(!military::siege_potential(*this, local_player_nation, controller)) {
 					continue;
 				}
-				if(fill_province_up_to_supply_limit(
+				auto regiment = fill_province_up_to_supply_limit(
 					group,
 					province_to_siege,
 					regiments_distribution,
 					army_group_regiment_task::gather_at_hq,
-					army_group_regiment_task::siege,
 					3.f, true
-				)) {
+				);
+
+				if(regiment != nullptr) {
+					regiment->task = army_group_regiment_task::siege;
 					break;
 				}
 			}
@@ -4634,25 +4680,6 @@ void state::army_group_distribute_tasks(army_group* group) {
 	}
 
 	// handle naval travels
-
-	// fill travel origin provinces with army
-	{
-		if(army_group_recalculate_distribution(group, regiments_distribution)) {
-			float supply_limit = 0.f;
-			for(dcon::province_id travel_origin : group->naval_travel_origin) {
-				if(fill_province_up_to_supply_limit(
-					group,
-					travel_origin,
-					regiments_distribution,
-					army_group_regiment_task::gather_at_hq,
-					army_group_regiment_task::ferry,
-					1.f, true
-				)) {
-					break;
-				}
-			}
-		}
-	}
 
 	// send orders to fleets:
 
@@ -4732,7 +4759,7 @@ void state::army_group_distribute_tasks(army_group* group) {
 	size_t l = 0;
 	size_t r = 1;
 
-	while(r > l) {
+	while(l < r) {
 		auto current_location = province_queue[l];
 
 
@@ -4761,7 +4788,7 @@ void state::army_group_distribute_tasks(army_group* group) {
 
 		auto ownership = world.province_get_province_ownership_as_province(current_location);
 		auto owner = world.province_ownership_get_nation(ownership);
-		if(owner != local_player_nation) {
+		if(owner != local_player_nation && !military::are_at_war(*this, owner, local_player_nation)) {
 			l += 1;
 			continue;
 		}
@@ -4813,6 +4840,8 @@ void state::army_group_distribute_tasks(army_group* group) {
 	// so try to fill the vacant location
 	if(l < r) {
 		auto target_location = province_queue[l];
+		dcon::province_id potential_target_port = get_port_for_landing(group, group->hq);
+
 		for(auto& current_regiment : group->land_regiments) {
 			auto army = world.regiment_get_army_from_army_membership(current_regiment.id);
 			auto current_location = world.army_get_location_from_army_location(army);
@@ -4832,7 +4861,15 @@ void state::army_group_distribute_tasks(army_group* group) {
 
 			auto path = command::can_move_army(*this, local_player_nation, army, target_location);
 			if(path.empty()) {
-				// handle the case when there is no land path later
+				// handle the case when there is no land path
+				if(potential_target_port) {
+					if(move_to_available_port(group, current_regiment)) {
+						current_regiment.task = army_group_regiment_task::gather_at_hq;
+						current_regiment.target = target_location;
+						current_regiment.ferry_target = potential_target_port;
+						break;
+					}
+				}
 			} else {
 				current_regiment.task = army_group_regiment_task::gather_at_hq;
 				current_regiment.status = army_group_regiment_status::move_to_target;
@@ -4851,6 +4888,11 @@ void state::army_group_update_regiment_status(army_group* group) {
 		// mostly to avoid commands spam
 		auto current_path = world.army_get_path(army);
 		if(current_path.size() > 0) {
+			regiment.await_command_execution_flag = false;
+			continue;
+		}
+
+		if(regiment.await_command_execution_flag) {
 			continue;
 		}
 
@@ -4867,6 +4909,7 @@ void state::army_group_update_regiment_status(army_group* group) {
 				auto path = command::can_move_army(*this, local_player_nation, army, target);
 				if(!path.empty()) {
 					command::move_army(*this, local_player_nation, army, target, false);
+					regiment.await_command_execution_flag = true;
 				} else {
 					regiment_reset_order(regiment);
 				}
@@ -4875,15 +4918,12 @@ void state::army_group_update_regiment_status(army_group* group) {
 		case army_group_regiment_status::move_to_port:
 		{
 			bool at_port = false;
-			for(auto& item : group->naval_travel_origin) {
+			for(auto& item : group->designated_ports) {
 				if(item == location) {
 					regiment.status = army_group_regiment_status::await_transport;
 					at_port = true;
 					break;
 				}
-			}
-			if(!at_port) {
-				regiment_reset_order(regiment);
 			}
 			break;
 		}
@@ -4902,7 +4942,7 @@ void state::army_group_update_regiment_status(army_group* group) {
 
 			// check that we are still at port
 			bool at_ferry_origin = false;
-			for(auto& item : group->naval_travel_origin) {
+			for(auto& item : group->designated_ports) {
 				if(item == location) {
 					at_ferry_origin = true;
 					break;
@@ -4928,6 +4968,7 @@ void state::army_group_update_regiment_status(army_group* group) {
 						if(path_army.size() > 0) {
 							command::move_army(*this, local_player_nation, army, fleet_location, false);
 							regiment.status = army_group_regiment_status::embark;
+							regiment.await_command_execution_flag = true;
 							break;
 						}
 					}
@@ -4950,6 +4991,7 @@ void state::army_group_update_regiment_status(army_group* group) {
 					auto path_army = command::can_move_army(*this, local_player_nation, army, ferry_target);
 					if(path_army.size() > 0) {
 						command::move_army(*this, local_player_nation, army, ferry_target, false);
+						regiment.await_command_execution_flag = true;
 						regiment.status = army_group_regiment_status::disembark;
 						break;
 					}
@@ -4981,12 +5023,11 @@ void state::army_group_update_regiment_status(army_group* group) {
 	}
 }
 
-bool state::fill_province(
+army_group_regiment_data* state::fill_province(
 	army_group* group,
 	dcon::province_id target,
 	std::vector<float> & regiments_expectation_ideal,
-	army_group_regiment_task initial_task,
-	army_group_regiment_task target_task
+	army_group_regiment_task initial_task
 ) {
 	static std::vector<float> regiments_expectation_current;
 	static std::vector<float> regiments_in_candidate_army;
@@ -5003,32 +5044,18 @@ bool state::fill_province(
 	bool success = false;
 	// calculate current regiment expectation
 
-	// regiments currently there
-	for(auto ar : world.province_get_army_location(target)) {
-		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
-				!bool(ar.get_army().get_navy_from_army_transport())) {
-			for(auto rg : ar.get_army().get_army_membership()) {
-				regiments_expectation_current[rg.get_regiment().get_type().index()] += 3.f;
-			}
+	//regiments with this province as a target
+	for(auto regiment : group->land_regiments) {
+		if(regiment.target == target) {
+			auto regiment_type = world.regiment_get_type(regiment.id);
+			regiments_expectation_current[regiment_type.index()] += 3.f;
 		}
 	}
 
-	//regiments moving there
-	for(auto army : group->land_forces) {
-		auto current_path = world.army_get_path(army);
-
-		if(current_path.size() == 0) {
-			continue;
-		}
-
-		if(current_path[0] == target) {
-			for(auto rg : world.army_get_army_membership(army)) {
-				regiments_expectation_current[rg.get_regiment().get_type().index()] += 3.f;
-			}
-		}
-	}
+	army_group_regiment_data* final_regiment = nullptr;
 
 	// now find a unit to move there
+	auto target_port = get_port_for_landing(group, target);
 	for(auto & regiment : group->land_regiments) {
 		if(regiment.task != initial_task) {
 			continue;
@@ -5043,17 +5070,23 @@ bool state::fill_province(
 		if(required >= 2.9f) {
 			auto army = world.regiment_get_army_from_army_membership(regiment.id);
 			auto path = command::can_move_army(*this, local_player_nation, army, target);
-			if(!path.empty()) {
+			if(path.empty()) {
+				//naval route
+				if(target_port && move_to_available_port(group, regiment)) {
+					regiment.ferry_target = target_port;
+					regiment.target = target;
+					return &regiment;
+				}
+			} else {
+				//land route
 				regiment.status = army_group_regiment_status::move_to_target;
 				regiment.target = target;
-				regiment.task = target_task;
-				success = true;
-				break;
+				return &regiment;
 			}
 		}
 	}
 
-	return success;
+	return nullptr;
 }
 
 } // namespace sys

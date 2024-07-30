@@ -2343,7 +2343,7 @@ class toggle_enforce_control_order_button : public button_element_base {
 
 class toggle_ferry_origin_order_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
-		state.toggle_ferry_origin_position(state.selected_army_group, state.map_state.selected_province);
+		state.toggle_designated_port(state.selected_army_group, state.map_state.selected_province);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -2363,7 +2363,7 @@ class toggle_ferry_origin_order_button : public button_element_base {
 
 class toggle_ferry_target_order_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
-		state.toggle_ferry_target_position(state.selected_army_group, state.map_state.selected_province);
+		state.toggle_designated_port(state.selected_army_group, state.map_state.selected_province);
 	}
 
 	void on_update(sys::state& state) noexcept override {

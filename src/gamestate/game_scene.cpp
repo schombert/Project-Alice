@@ -549,15 +549,9 @@ void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::k
 		} else if(selected_group != nullptr) {
 			if(keycode == sys::virtual_key::X) {
 				if(state.ui_state.ctrl_held_down) {
-					selected_group->naval_travel_origin.clear();
+					selected_group->designated_ports.clear();
 				} else {
-					selected_group->naval_travel_origin.push_back(selected_province);
-				}
-			} else if(keycode == sys::virtual_key::C) {
-				if(state.ui_state.ctrl_held_down) {
-					selected_group->naval_travel_target.clear();
-				} else {
-					selected_group->naval_travel_target.push_back(selected_province);
+					selected_group->designated_ports.push_back(selected_province);
 				}
 			} else if(keycode == sys::virtual_key::V) {
 				if(state.ui_state.ctrl_held_down) {
@@ -1027,11 +1021,11 @@ void highlight_defensive_positions(sys::state& state, std::vector<uint32_t>& dat
 			data[province::to_map_id(position)] = 0x2B2B2B2B;
 		}
 
-		for(auto position : state.selected_army_group->naval_travel_origin) {
+		for(auto position : state.selected_army_group->designated_ports) {
 			data[province::to_map_id(position)] = 0x2B2B2B2B;
 		}
 
-		for(auto position : state.selected_army_group->naval_travel_target) {
+		for(auto position : state.selected_army_group->enforce_control) {
 			data[province::to_map_id(position)] = 0x2B2B2B2B;
 		}
 	}
