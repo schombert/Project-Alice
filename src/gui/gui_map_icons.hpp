@@ -979,11 +979,28 @@ class small_top_unit_icon : public window_element_base {
 	}
 };
 
+/*
 class select_army_group_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
-		send(state, parent, int32_t(1));
+		auto info = retrieve<sys::army_group*>(state, parent);
+		state.select_army_group(info);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto info = retrieve<sys::army_group*>(state, parent);
+
+		if(state.selected_army_group != nullptr) {
+			if(info != nullptr) {
+				if(info->hq == state.selected_army_group->hq) {
+					frame = 1;
+					return;
+				}
+			}
+		}
+		frame = 0;
 	}
 };
+*/
 
 class army_group_icon : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -994,20 +1011,16 @@ class army_group_icon : public window_element_base {
 		}
 	}
 
-	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(state.map_state.get_zoom() >= big_counter_cutoff)
-			return window_element_base::impl_probe_mouse(state, x, y, type);
-		else
-			return mouse_probe{ nullptr, ui::xy_pair{0,0} };
-	}
-	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.map_state.get_zoom() >= big_counter_cutoff)
-			window_element_base::impl_render(state, x, y);
-	}
+	//mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+	//	return window_element_base::impl_probe_mouse(state, x, y, type);
+	//}
+	//void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+	//	window_element_base::impl_render(state, x, y);
+	//}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<int32_t>()) {
-			send(state, parent, 1);
+		if(payload.holds_type<sys::army_group*>()) {
+			payload.emplace<sys::army_group*>(retrieve<sys::army_group*>(state, parent));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -1016,10 +1029,12 @@ class army_group_icon : public window_element_base {
 
 class army_group_counter_window : public window_element_base {
 public:
-	sys::army_group* data = nullptr;
-	element_base* main_icon = nullptr;
 	bool populated = false;
 	bool visible = true;
+
+	sys::army_group* info = nullptr;
+	
+	element_base* main_icon = nullptr;
 	dcon::province_id prov;
 	outline_color color;
 
@@ -1054,20 +1069,10 @@ public:
 		populated = false;
 		for(auto & item : state.army_groups) {
 			if(item.hq == prov) {
-				data = &item;
+				info = &item;
 				populated = true;
 			}
 		}
-
-		if(state.selected_army_group != nullptr) {
-			if(populated) {
-				if(state.selected_army_group->hq == data->hq) {
-					// make it distinct from the others in some way
-				} else {
-					// set it back to default
-				}
-			}
-		}			
 	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -1093,8 +1098,8 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<int32_t>()) {
-			if (populated) state.smart_select_army_group(data);
+		if(payload.holds_type<sys::army_group*>()) {
+			if(populated) payload.emplace<sys::army_group*>(info);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

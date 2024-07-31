@@ -463,7 +463,6 @@ struct state {
 	unit_details_window<dcon::army_id>* army_status_window = nullptr;
 	unit_details_window<dcon::navy_id>* navy_status_window = nullptr;
 	element_base* army_group_window_land = nullptr;
-	element_base* army_group_window_sea = nullptr;
 	element_base* multi_unit_selection_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;

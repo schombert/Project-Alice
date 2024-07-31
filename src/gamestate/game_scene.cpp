@@ -909,10 +909,8 @@ void clean_up_basic_game_scene(sys::state& state) {
 
 void update_army_group_selection_ui(sys::state& state) {
 	if(state.selected_army_group != nullptr) {
-		state.ui_state.army_group_window_sea->set_visible(state, true);
 		state.ui_state.army_group_window_land->set_visible(state, true);
 	} else {
-		state.ui_state.army_group_window_sea->set_visible(state, false);
 		state.ui_state.army_group_window_land->set_visible(state, false);
 	}
 }

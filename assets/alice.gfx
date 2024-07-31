@@ -473,4 +473,31 @@ spriteTypes = {
 		name = "GFX_move_capital"
 		texturefile = "assets\\move_cap.png"
 	}
+    
+    spriteType = {
+        name = "bg-310-410-border-gold-paper"
+        texturefile = "assets\\bg-310-410.png"
+    }
+    
+    spriteType = {
+        name = "bg-90-50-border-bronze-paper"
+        texturefile = "assets\\bg-90-50-bronze.png"
+    }
+    spriteType = {
+        name = "bg-90-50-border-gold-paper"
+        texturefile = "assets\\bg-90-50-gold.png"
+    }
+    spriteType = {
+        name = "shadow-90-50"
+        texturefile = "assets\\bg-90-50-shadow.png"
+    }    
+    spriteType = {
+        name = "bg-280-50-border-gold-paper"
+        texturefile = "assets\\bg-280-50.png"
+    }
+    spriteType = {
+        name = "button-280-50-border-gold-paper"
+        texturefile = "assets\\button-280-50.png"
+        noOfFrames = 2
+    }    
 }

@@ -73,14 +73,10 @@ void create_in_game_windows(sys::state& state) {
 		});
 
 		{
-			auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window_sea>(state, "alice_army_group_panel");
-			state.ui_state.army_group_window_sea = static_cast<ui::army_group_details_window_sea*>(new_elm_army_group.get());
-			new_elm_army_group->set_visible(state, true);
-			state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
-		}
-		{
-			auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window_land>(state, "alice_army_group_panel");
-			state.ui_state.army_group_window_land = static_cast<ui::army_group_details_window_land*>(new_elm_army_group.get());
+			auto key = state.lookup_key("alice_army_group_regiments_list");
+			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+			auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window>(state, def);
+			state.ui_state.army_group_window_land = static_cast<ui::army_group_details_window*>(new_elm_army_group.get());
 			new_elm_army_group->set_visible(state, true);
 			state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
 		}
@@ -93,7 +89,7 @@ void create_in_game_windows(sys::state& state) {
 		}
 
 		{
-			auto key = state.lookup_key("alice_armygroup_order_panel");
+			auto key = state.lookup_key("alice_battleplanner_control_panel");
 			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
 			auto window = ui::make_element_by_type<ui::battleplanner_control>(state, def);
 			state.ui_state.military_root->add_child_to_front(std::move(window));
