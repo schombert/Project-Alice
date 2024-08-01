@@ -184,15 +184,28 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 				err.accumulated_warnings += "Province " + std::to_string(context.prov_id_to_original_id_map[prov].id) + " on state " + std::string(name) + " is already assigned to a state (" + err.file_name + ")\n";
 			}
 		}
-	}
-	if(is_region) {
+
+		//mixed - state and region
+		auto sdef = context.state.world.create_state_definition();
+		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
+		auto rdef = context.state.world.create_region();
+		context.map_of_region_names.insert_or_assign(std::string(name), rdef);
+		for(const auto prov : new_context.provinces) {
+			context.state.world.force_create_region_membership(prov, rdef); //include first, regions take priority over states!
+			if(!context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+				context.state.world.force_create_abstract_state_membership(prov, sdef); //new assignment
+			}
+		}
+		context.state.world.state_definition_set_name(sdef, name_id);
+		context.state.world.region_set_name(rdef, name_id);
+	} else if(is_region) {
 		auto rdef = context.state.world.create_region();
 		context.map_of_region_names.insert_or_assign(std::string(name), rdef);
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_region_membership(prov, rdef);
 		}
 		context.state.world.region_set_name(rdef, name_id);
-	} else {
+	} else if(is_state) {
 		auto sdef = context.state.world.create_state_definition();
 		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
 		for(const auto prov : new_context.provinces) {
