@@ -25,7 +25,6 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	state.get_root_element()->set_visible(state, true);
 	*/
-	state.game_state_updated.store(true, std::memory_order_release);
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
@@ -71,7 +70,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		return;
 	}
 	
-	
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 
 void do_nothing_province_target(sys::state& state,
@@ -525,8 +524,8 @@ void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 		state.map_state.on_key_down(keycode, mod);
 		if(keycode == sys::virtual_key::ESCAPE) {
 			state.state_selection->on_cancel(state);
-			state.ui_state.root->impl_on_update(state);
 			switch_scene(state, scene_id::in_game_basic);
+			state.ui_state.root->impl_on_update(state);
 		}
 	}
 }

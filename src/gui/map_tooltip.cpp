@@ -1208,6 +1208,7 @@ void crime_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 		text::add_to_substitution_map(sub, text::variable_type::x, state.culture_definitions.crimes[state.world.province_get_crime(prov)].name);
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_41"), sub);
 		text::close_layout_box(contents, box);
+		ui::modifier_description(state, contents, state.culture_definitions.crimes[state.world.province_get_crime(prov)].modifier);
 	}
 }
 void rally_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {

@@ -2618,7 +2618,7 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	static std::vector<possible_cb> result;
 	result.clear();
 	place_instance_in_result_war(state, result, n, target, w, cb, target_states);
-	if(result[0].target) {
+	if(!result.empty() && result[0].target) {
 		military::add_wargoal(state, w, n, target, cb, result[0].state_def, result[0].associated_tag, result[0].secondary_nation);
 		nations::adjust_relationship(state, n, target, state.defines.addwargoal_relation_on_accept);
 		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb) * state.defines.gw_justify_cb_badboy_impact;
