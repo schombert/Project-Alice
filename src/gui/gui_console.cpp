@@ -1089,6 +1089,65 @@ int32_t* f_dump_econ(fif::state_stack& s, int32_t* p, fif::environment* e) {
 
 	return p + 2;
 }
+int32_t* f_fire_event(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main();
+		s.pop_main();
+		return p + 2;
+	}
+
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	auto id = int32_t(s.main_data_back(0));
+	s.pop_main();
+
+	dcon::nation_id to_nation_b;
+	to_nation_b.value = dcon::nation_id::value_base_t(s.main_data_back(0));
+	s.pop_main();
+
+	dcon::free_national_event_id ev;
+	for(auto v : state->world.in_free_national_event) {
+		if(v.get_legacy_id() == uint32_t(id)) {
+			ev = v;
+			break;
+		}
+	}
+	if(!ev) {
+		e->report_error("no free national event found with that id");
+		e->mode = fif::fif_mode::error;
+	} else {
+		event::trigger_national_event(*state, ev, to_nation_b, state->current_date.value, id ^ to_nation_b.index());
+	}
+
+	return p + 2;
+}
+int32_t* f_nation_name(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main();
+		s.push_back_main(state->type_text_key, 0, nullptr);
+		return p + 2;
+	}
+
+	
+
+	dcon::nation_id to_nation_b;
+	to_nation_b.value = dcon::nation_id::value_base_t(s.main_data_back(0));
+	s.pop_main();
+
+	auto name = text::get_name(*state, to_nation_b);
+
+	s.push_back_main(state->type_text_key, int64_t(name.value), nullptr);
+
+	return p + 2;
+}
 
 void ui::initialize_console_fif_environment(sys::state& state) {
 	if(state.fif_environment)
@@ -1124,7 +1183,14 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 		"ptr(nil) global state-ptr state-ptr ! ",
 		values);
 
+	fif::run_fif_interpreter(*state.fif_environment,
+		" :struct localized i32 value ; "
+		" :s localize text_key s: >index make localized .value! ; ",
+		values);
+
+
 	state.type_text_key = state.fif_environment->dict.types.find("text_key")->second;
+	state.type_localized_key = state.fif_environment->dict.types.find("localized")->second;
 
 	//
 	// Add predefined names and tags
@@ -1279,9 +1345,14 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("add-days", nullptr, f_add_days, { fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("save-map", nullptr, f_save_map, { fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("dump-econ", nullptr, f_dump_econ, {  }, {}, * state.fif_environment);
+	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
+	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
 
 	fif::run_fif_interpreter(*state.fif_environment,
 		" : no-sea-line 0 ; : no-blend 1 ; : no-sea-line-2 2 ; : blend-no-sea 3 ; : vanilla 4 ; ",
+		values);
+	fif::run_fif_interpreter(*state.fif_environment,
+		" :s name nation_id s: nation-name ; ",
 		values);
 	
 	fif::run_fif_interpreter(*state.fif_environment,
@@ -1314,6 +1385,18 @@ std::string ui::format_fif_value(sys::state& state, int64_t data, int32_t type) 
 		dcon::text_key k;
 		k.value = dcon::text_key::value_base_t(data);
 		return std::string("\"") + std::string(state.to_string_view(k)) + "\"";
+	} else if(type == state.type_localized_key) {
+		uint32_t localized_index = uint32_t(data);
+		dcon::text_key k{ localized_index };
+		if(!k)
+			return "\"\"";
+
+		std::string_view sv;
+		if(auto it = state.locale_key_to_text_sequence.find(k); it != state.locale_key_to_text_sequence.end()) {
+			return std::string("\"") + std::string{ state.locale_string_view(it->second) } + "\"";
+		} else {
+			return std::string("\"") + std::string{ state.to_string_view(k) } + "\"";
+		}
 	} else if(type == -1) {
 		return "#nil";
 	} else if(type == fif::fif_type) {

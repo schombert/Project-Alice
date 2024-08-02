@@ -11,6 +11,8 @@
 #include "province_templates.hpp"
 #include "rebels.hpp"
 #include "triggers.hpp"
+#include "ai.hpp"
+#include "gui_console.hpp"
 
 namespace command {
 

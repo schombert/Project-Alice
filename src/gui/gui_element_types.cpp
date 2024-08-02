@@ -509,6 +509,34 @@ void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 			edit_index++;
 			set_text(state, s);
 			edit_box_update(state, s);
+		} else if(ch == 0x16) { // this is ctrl+v on windows
+#ifdef _WIN64
+			std::wstring return_value;
+			if(OpenClipboard(state.win_ptr->hwnd)) {
+				HGLOBAL hClipboardData = GetClipboardData(CF_UNICODETEXT);
+
+				if(hClipboardData != NULL) {
+					size_t byteSize = GlobalSize(hClipboardData);
+					void* memory = GlobalLock(hClipboardData);
+					if(memory != NULL) {
+						const wchar_t* text = reinterpret_cast<const wchar_t*>(memory);
+						return_value = std::wstring(text, text + byteSize / sizeof(wchar_t));
+						GlobalUnlock(hClipboardData);
+						if(return_value.length() > 0 && return_value.back() == 0) {
+							return_value.pop_back();
+						}
+					}
+				}
+				CloseClipboard();
+			}
+			if(return_value.size() > 0) {
+				auto utf8_val = simple_fs::native_to_utf8(return_value);
+				auto new_text = std::string(get_text(state)) + utf8_val;
+				edit_index += int32_t(utf8_val.length());
+				set_text(state, new_text);
+				edit_box_update(state, new_text);
+			}
+#endif
 		}
 	}
 }

@@ -684,6 +684,7 @@ struct alignas(64) state {
 	std::string console_command_error;
 	std::unique_ptr<fif::environment> fif_environment;
 	int32_t type_text_key = -1;
+	int32_t type_localized_key = -1;
 
 	// the following functions will be invoked by the window subsystem
 
