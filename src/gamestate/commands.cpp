@@ -12,12 +12,10 @@
 #include "rebels.hpp"
 #include "triggers.hpp"
 
-#include "cheats.cpp"
-
 namespace command {
 
 bool is_console_command(command_type t) {
-	return uint8_t(t) >= 0x80;
+	return uint8_t(t) == 255;
 }
 
 void add_to_command_queue(sys::state& state, payload& p) {
@@ -55,6 +53,8 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case sys::network_mode_type::client:
 	case sys::network_mode_type::host:
 	{
+		if(is_console_command(p.type))
+			break;
 		state.network_state.outgoing_commands.push(p);
 		break;
 	}
@@ -3805,6 +3805,65 @@ void execute_release_subject(sys::state& state, dcon::nation_id source, dcon::na
 	nations::release_vassal(state, state.world.nation_get_overlord_as_subject(target));
 }
 
+void notify_console_command(sys::state& state) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::console_command;
+	p.source = state.local_player_nation;
+	add_to_command_queue(state, p);
+}
+
+void execute_console_command(sys::state& state) {
+	std::string command;
+	{
+		std::lock_guard lg{ state.lock_console_strings };
+		command = state.console_command_pending;
+		state.console_command_pending.clear();
+	}
+	if(command.length() > 0) {
+		ui::initialize_console_fif_environment(state);
+		fif::interpreter_stack stack;
+		fif::run_fif_interpreter(*state.fif_environment, command, stack);
+		if(state.fif_environment->mode == fif::fif_mode::error) {
+			state.fif_environment->mode = fif::fif_mode::interpreting;
+			std::lock_guard lg{ state.lock_console_strings };
+			state.console_command_result += state.console_command_error;
+			state.console_command_error.clear();
+		} else {
+			std::string temp_result;
+			for(uint32_t i = 0; i < stack.main_size(); ++i) {
+				temp_result += ui::format_fif_value(state, stack.main_data(i), stack.main_type(i));
+				temp_result += " ";
+			}
+			if(stack.main_size() > 0) {
+				state.fif_environment->source_stack.push_back("drop");
+				state.fif_environment->compiler_stack.emplace_back(std::make_unique<fif::outer_interpreter>(*state.fif_environment));
+				fif::outer_interpreter* o = static_cast<fif::outer_interpreter*>(state.fif_environment->compiler_stack.back().get());
+				static_cast<fif::interpreter_stack*>(o->interpreter_state.get())->move_into(std::move(stack));
+
+				switch_compiler_stack_mode(*state.fif_environment, fif::fif_mode::interpreting);
+				fif::mode_switch_scope* m = static_cast<fif::mode_switch_scope*>(state.fif_environment->compiler_stack.back().get());
+				m->interpreted_link = o;
+
+				while(o->interpreter_state->main_size() > 0) {
+					fif::execute_fif_word(fif::parse_result{ "drop", false }, *state.fif_environment, false);
+				}
+
+				state.fif_environment->source_stack.pop_back();
+				restore_compiler_stack_mode(*state.fif_environment);
+
+				state.fif_environment->compiler_stack.pop_back();
+			}
+			temp_result += "?Gok.?W\\n";
+			{
+				std::lock_guard lg{ state.lock_console_strings };
+				state.console_command_result += temp_result;
+			}
+			state.fif_environment->mode = fif::fif_mode::interpreting;
+		}
+	}
+}
+
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5082,44 +5141,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_pause_game(state, c.source);
 	case command_type::release_subject:
 		return can_release_subject(state, c.source, c.data.diplo_action.target);
-
-		// console commands
-	case command_type::c_switch_nation:
-		return can_c_switch_nation(state, c.source, c.data.tag_target.ident);
-
-	case command_type::c_change_diplo_points:
-	case command_type::c_change_money:
-	case command_type::c_westernize:
-	case command_type::c_unwesternize:
-	case command_type::c_change_controller:
-	case command_type::c_change_owner:
-	case command_type::c_change_research_points:
-	case command_type::c_change_cb_progress:
-	case command_type::c_change_infamy:
-	case command_type::c_force_crisis:
-	case command_type::c_change_national_militancy:
-	case command_type::c_change_prestige:
-	case command_type::c_end_game:
-	case command_type::c_event:
-	case command_type::c_event_as:
-	case command_type::c_force_ally:
-	case command_type::c_toggle_ai:
-	case command_type::c_complete_constructions:
-	case command_type::c_instant_research:
-	case command_type::c_add_population:
-	case command_type::c_instant_army:
-	case command_type::c_instant_navy:
-	case command_type::c_instant_industry:
-	case command_type::c_innovate:
-	case command_type::c_toggle_core:
-	case command_type::c_always_accept_deals:
-	case command_type::c_always_allow_reforms:
-	case command_type::c_always_allow_wargoals:
-	case command_type::c_set_auto_choice_all:
-	case command_type::c_clear_auto_choice_all:
-	case command_type::c_always_allow_decisions:
-	case command_type::c_always_potential_decisions:
-	case command_type::c_add_year:
+	case command_type::console_command:
 		return true;
 	}
 	return false;
@@ -5485,109 +5507,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::notify_pause_game:
 		execute_notify_pause_game(state, c.source);
 		break;
-
-		// console commands
-	case command_type::c_switch_nation:
-		execute_c_switch_nation(state, c.source, c.data.tag_target.ident);
-		break;
-	case command_type::c_change_diplo_points:
-		execute_c_change_diplo_points(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_change_money:
-		execute_c_change_money(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_westernize:
-		execute_c_westernize(state, c.source);
-		break;
-	case command_type::c_unwesternize:
-		execute_c_unwesternize(state, c.source);
-		break;
-	case command_type::c_change_owner:
-		execute_c_change_owner(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
-		break;
-	case command_type::c_change_controller:
-		execute_c_change_controller(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
-		break;
-	case command_type::c_change_research_points:
-		execute_c_change_research_points(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_change_cb_progress:
-		execute_c_change_cb_progress(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_change_infamy:
-		execute_c_change_infamy(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_force_crisis:
-		execute_c_force_crisis(state, c.source);
-		break;
-	case command_type::c_change_national_militancy:
-		execute_c_change_national_militancy(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_change_prestige:
-		execute_c_change_prestige(state, c.source, c.data.cheat.value);
-		break;
-	case command_type::c_end_game:
-		execute_c_end_game(state, c.source);
-		break;
-	case command_type::c_event:
-		execute_c_event(state, c.source, c.data.cheat_int.value);
-		break;
-	case command_type::c_event_as:
-		execute_c_event_as(state, c.source, c.data.cheat_event.as, c.data.cheat_event.value);
-		break;
-	case command_type::c_force_ally:
-		execute_c_force_ally(state, c.source, c.data.nation_pick.target);
-		break;
-	case command_type::c_toggle_ai:
-		execute_c_toggle_ai(state, c.source, c.data.nation_pick.target);
-		break;
-	case command_type::c_complete_constructions:
-		execute_c_complete_constructions(state, c.source);
-		break;
-	case command_type::c_instant_research:
-		execute_c_instant_research(state, c.source);
-		break;
-	case command_type::c_add_population:
-		execute_c_add_population(state, c.source, c.data.cheat_int.value);
-		break;
-	case command_type::c_instant_army:
-		execute_c_instant_army(state, c.source);
-		break;
-	case command_type::c_instant_navy:
-		execute_c_instant_navy(state, c.source);
-		break;
-	case command_type::c_instant_industry:
-		execute_c_instant_industry(state, c.source);
-		break;
-	case command_type::c_innovate:
-		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
-		break;
-	case command_type::c_toggle_core:
-		execute_c_toggle_core(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
-		break;
-	case command_type::c_always_accept_deals:
-		execute_c_always_accept_deals(state, c.source);
-		break;
-	case command_type::c_always_allow_reforms:
-		execute_c_always_allow_reforms(state, c.source);
-		break;
-	case command_type::c_always_allow_wargoals:
-		execute_c_always_allow_wargoals(state, c.source);
-		break;
-	case command_type::c_set_auto_choice_all:
-		execute_c_set_auto_choice_all(state, c.source);
-		break;
-	case command_type::c_clear_auto_choice_all:
-		execute_c_clear_auto_choice_all(state, c.source);
-		break;
-	case command_type::c_always_allow_decisions:
-		execute_c_always_allow_decisions(state, c.source);
-		break;
-	case command_type::c_always_potential_decisions:
-		execute_c_always_potential_decisions(state, c.source);
-		break;
-	case command_type::c_add_year:
-		execute_c_add_year(state, c.source, c.data.cheat_int.value);
+	case command_type::console_command:
+		execute_console_command(state);
 		break;
 	}
 }

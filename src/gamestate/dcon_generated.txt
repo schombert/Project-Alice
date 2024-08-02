@@ -667,7 +667,7 @@ object {
 	}
 	property{
 		name{ options }
-		type{ std::array<issue_option_id,culture::max_issue_options> }
+		type{ std::array<dcon::issue_option_id,culture::max_issue_options> }
 		tag{ scenario }
 	}
 	property{
@@ -780,7 +780,7 @@ object {
 	}
 	property{
 		name{ options }
-		type{ std::array<reform_option_id,culture::max_issue_options> }
+		type{ std::array<dcon::reform_option_id,culture::max_issue_options> }
 		tag{ scenario }
 	}
 	property{
@@ -2246,22 +2246,22 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 

@@ -123,40 +123,7 @@ enum class command_type : uint8_t {
 	chat_message = 121,
 
 	// console cheats
-	c_switch_nation = 128,
-	c_change_diplo_points = 129,
-	c_change_money = 130,
-	c_westernize = 131,
-	c_unwesternize = 132,
-	c_change_research_points = 133,
-	c_change_cb_progress = 134,
-	c_change_infamy = 135,
-	c_force_crisis = 136,
-	c_change_national_militancy = 137,
-	c_end_game = 138,
-	c_event = 139,
-	c_event_as = 140,
-	c_change_prestige = 141,
-	c_force_ally = 142,
-	c_toggle_ai = 143,
-	c_complete_constructions = 144,
-	c_change_owner = 145,
-	c_change_controller = 146,
-	c_instant_research = 147,
-	c_add_population = 148,
-	c_instant_army = 149,
-	c_instant_industry = 150,
-	c_innovate = 151,
-	c_toggle_core = 152,
-	c_always_allow_wargoals = 153,
-	c_always_allow_reforms = 154,
-	c_always_accept_deals = 155,
-	c_set_auto_choice_all = 156,
-	c_clear_auto_choice_all = 157,
-	c_instant_navy = 158,
-	c_always_allow_decisions = 159,
-	c_always_potential_decisions = 160,
-	c_add_year = 161,
+	console_command = 255,
 };
 
 struct pbutton_data {
@@ -907,6 +874,7 @@ void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, payload& c);
 
+void notify_console_command(sys::state& state);
+
 } // namespace command
 
-#include "cheats.hpp"

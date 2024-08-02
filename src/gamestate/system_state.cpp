@@ -427,6 +427,8 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = true;
+	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+		ui_state.shift_held_down = true;
 
 	game_scene::on_key_down(*this, keycode, mod);
 }
@@ -434,6 +436,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = false;
+	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+		ui_state.shift_held_down = false;
 
 	//TODO: move to according scenes
 	if(user_settings.wasd_for_map_movement) {

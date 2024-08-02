@@ -104,6 +104,7 @@ endif()
 # Include sub-projects.
 add_subdirectory(dependencies)
 add_subdirectory(ParserGenerator)
+add_subdirectory(FifInterfaceGenerator)
 
 add_library(AliceCommon INTERFACE)
 target_compile_definitions(AliceCommon INTERFACE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
@@ -226,6 +227,11 @@ target_include_directories(AliceCommon INTERFACE
 
 target_link_libraries(Alice PRIVATE AliceCommon)
 target_link_libraries(AliceIncremental PRIVATE AliceCommon)
+
+if (WIN32)
+	target_link_libraries(Alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+	target_link_libraries(AliceIncremental PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+endif()
 
 # System headers
 target_precompile_headers(Alice
@@ -352,10 +358,20 @@ add_custom_command(
 	DEPENDS ${CONTAINER_PATH}.txt
 	VERBATIM)
 
+add_custom_command(
+	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp
+	COMMAND DCONINTERFACEGEN ${CONTAINER_PATH}.txt
+	DEPENDS ${CONTAINER_PATH}.txt
+	VERBATIM)
+
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
 add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
+
+add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp)
+add_dependencies(Alice GENERATE_CONTAINERIFACE)
+add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
 
 # The command to build the generated parsers file
 add_custom_command(

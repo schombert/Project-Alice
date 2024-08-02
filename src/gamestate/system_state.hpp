@@ -31,6 +31,7 @@
 #include "events.hpp"
 #include "notifications.hpp"
 #include "network.hpp"
+#include "fif.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -675,6 +676,14 @@ struct alignas(64) state {
 
 	// network data
 	network::network_state network_state;
+
+	// console interpreter
+	std::mutex lock_console_strings;
+	std::string console_command_pending;
+	std::string console_command_result;
+	std::string console_command_error;
+	std::unique_ptr<fif::environment> fif_environment;
+	int32_t type_text_key = -1;
 
 	// the following functions will be invoked by the window subsystem
 

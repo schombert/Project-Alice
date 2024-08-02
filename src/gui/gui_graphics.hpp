@@ -503,6 +503,7 @@ struct state {
 	std::vector<sys::macro_builder_template> templates;
 	uint16_t tooltip_font = 0;
 	bool ctrl_held_down = false;
+	bool shift_held_down = false;
 
 	state();
 	~state();
