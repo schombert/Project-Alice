@@ -2420,9 +2420,9 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 				}
 			}
 		}
-		if(targets.size() == 0)
+		bool is_colonial_claim = state.world.cb_type_get_type_bits(type) & cb_flag::po_colony; //doesn't require an owned state
+		if(targets.empty() && !is_colonial_claim)
 			return; // wargoal not added
-
 	} else {
 		auto new_wg = fatten(state.world, state.world.create_wargoal());
 		new_wg.set_added_by(added_by);
@@ -5027,8 +5027,8 @@ void apply_regiment_damage(sys::state& state) {
 					}
 				}
 
-#ifndef NDEBUG
 				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
+#ifndef NDEBUG
 					for(auto e : state.world.land_battle_get_attacker_back_line(b))
 						assert(e != s);
 					for(auto e : state.world.land_battle_get_attacker_front_line(b))
@@ -5037,11 +5037,21 @@ void apply_regiment_damage(sys::state& state) {
 						assert(e != s);
 					for(auto e : state.world.land_battle_get_defender_front_line(b))
 						assert(e != s);
-					auto reserves = state.world.land_battle_get_reserves(b);
-					for(uint32_t j = 0; j < reserves.size(); j++)
-						assert(reserves[j].regiment != s);
-				}
 #endif
+					auto reserves = state.world.land_battle_get_reserves(b);
+					// failsafe, some conditions can lead to this invalid state
+					// where a rebel stack/stack has 0 strength but is still on a battle
+					// (damage could've been dealt by attrition for ex.)
+					// so prevent OOS by removing them from reserves!
+					for(uint32_t j = reserves.size(); j-- > 0;) {
+						assert(reserves[j].regiment != s);
+						if(reserves[j].regiment == s) {
+							std::swap(reserves[j], reserves[reserves.size() - 1]);
+							reserves.pop_back();
+							break;
+						}
+					}
+				}
 				if(!controller || state.world.pop_get_size(pop_backer) < 1000.0f)
 					state.world.delete_regiment(s);
 				else
