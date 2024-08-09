@@ -2419,9 +2419,21 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 				}
 			}
 		}
-		bool is_colonial_claim = state.world.cb_type_get_type_bits(type) & cb_flag::po_colony; //doesn't require an owned state
-		if(targets.empty() && !is_colonial_claim)
+		bool is_colonial_claim = (state.world.cb_type_get_type_bits(type) & cb_flag::po_colony) != 0; //doesn't require an owned state
+		if(targets.empty()) {
+		    if(!is_colonial_claim) {
 			return; // wargoal not added
+		    } else {
+			auto new_wg = fatten(state.world, state.world.create_wargoal());
+			new_wg.set_added_by(added_by);
+			new_wg.set_associated_state(sd);
+			new_wg.set_associated_tag(tag);
+			new_wg.set_secondary_nation(secondary_nation);
+			new_wg.set_target_nation(target);
+			new_wg.set_type(type);
+			new_wg.set_war_from_wargoals_attached(wfor);
+		    }
+		}
 	} else {
 		auto new_wg = fatten(state.world, state.world.create_wargoal());
 		new_wg.set_added_by(added_by);
