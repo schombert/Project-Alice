@@ -455,8 +455,9 @@ bool province_is_under_siege(sys::state const& state, dcon::province_id ids) {
 }
 
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n) {
-	// TODO: implement function
-	return 0.0f;
+	auto current = float(state.world.nation_get_active_regiments(n));
+	auto maximum = float(state.world.nation_get_recruitable_regiments(n));
+	return maximum > 0.0f ? current / maximum : 1.0;
 }
 
 bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si) {

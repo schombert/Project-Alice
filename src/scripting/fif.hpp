@@ -6384,6 +6384,43 @@ inline int32_t* f64ne(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	}
 	return p + 2;
 }
+
+inline int32_t* f_select(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(e->mode == fif::fif_mode::compiling_llvm) {
+		s.mark_used_from_main(3);
+		auto result = LLVMBuildSelect(e->llvm_builder, s.main_ex_back(0), s.main_ex_back(1), s.main_ex_back(2), "");
+
+		if(e->dict.type_array[s.main_type_back(1)].flags != 0) {
+			auto drop_result = LLVMBuildSelect(e->llvm_builder, s.main_ex_back(0), s.main_ex_back(2), s.main_ex_back(1), "");
+			s.push_back_main(s.main_type_back(1), 0, drop_result);
+			execute_fif_word(fif::parse_result{ "drop", false }, *e, false);
+		}
+
+		s.pop_main();
+		s.pop_main();
+		s.set_main_ex_back(0, result);
+	} else if(e->mode == fif::fif_mode::interpreting) {
+		s.mark_used_from_main(3);
+		auto ib = s.main_data_back(2);
+		auto ia = s.main_data_back(1);
+		auto ex = s.main_data_back(0);
+
+		if(e->dict.type_array[s.main_type_back(1)].flags != 0) {
+			s.push_back_main(s.main_type_back(1), ex != 0 ? ib : ia, nullptr);
+			execute_fif_word(fif::parse_result{ "drop", false }, *e, false);
+		}
+
+		s.pop_main();
+		s.pop_main();
+		s.set_main_data_back(0, ex != 0 ? ia : ib);
+	} else if(fif::typechecking_mode(e->mode) && !fif::typechecking_failed(e->mode)) {
+		s.mark_used_from_main(3);
+		s.pop_main();
+		s.pop_main();
+	}
+	return p + 2;
+}
+
 inline int32_t* make_immediate(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(e->mode == fif::fif_mode::compiling_llvm) {
 		e->report_error("cannot turn a word immediate in compiled code");
@@ -8963,7 +9000,10 @@ inline int32_t* bit_not(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	} else if(e->mode == fif::fif_mode::interpreting) {
 		s.mark_used_from_main(1);
 		auto a = s.main_data_back(0);
-		s.set_main_data_back(0, ~a);
+		if(s.main_type_back(0) == fif_bool)
+			s.set_main_data_back(0, a == 0);
+		else
+			s.set_main_data_back(0, ~a);
 	} else if(fif::typechecking_mode(e->mode) && !fif::typechecking_failed(e->mode)) {
 		s.mark_used_from_main(1);
 	}
@@ -9464,12 +9504,14 @@ inline void initialize_standard_vocab(environment& fif_env) {
 	add_precompiled(fif_env, ":struct", struct_definition, { });
 	add_precompiled(fif_env, ":export", export_definition, { });
 	add_precompiled(fif_env, "use-base", do_use_base, { }, true);
+	add_precompiled(fif_env, "select", f_select, { fif_bool, -2, -2, -1, -2 });
 
 	auto preinterpreted =
 		": r@ r> dup >r ; "
 		": over >r dup r> swap ; "
 		": nip >r drop r> ; "
 		": tuck swap over ; "
+		": 2dup >r dup r> dup >r swap r> ; "
 		": buf-resize " // ptr old new -> ptr
 		"	buf-alloc swap >r >r dup r> r> buf-copy swap buf-free "
 		" ; "

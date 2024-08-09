@@ -1359,6 +1359,14 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 		" : player " + std::to_string(offsetof(sys::state, local_player_nation)) + " state-ptr @ buf-add ptr-cast ptr(nation_id) ; ",
 		values);
 
+	fif::run_fif_interpreter(*state.fif_environment,
+		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "
+		" : crisis-state " + std::to_string(offsetof(sys::state, crisis_state)) + " state-ptr @ buf-add ptr-cast ptr(state_instance_id) ; "
+		" : sea-province? >index first-sea-province @ >index >= ; "
+		" : nth-adjacent index @ connected_provinces .wrapped dup ptr-cast ptr(nil) 2 swap buf-add ptr-cast ptr(province_id) @ swap @ dup r@ = not select ; "	
+		,
+		values);
+
 	assert(state.fif_environment->mode != fif::fif_mode::error);
 }
 

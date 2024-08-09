@@ -69,6 +69,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/scripting/effects.cpp"
 	"src/scripting/events.cpp"
 	"src/scripting/triggers.cpp"
+	"src/scripting/fif_triggers.cpp"
 	"src/text/bmfont.cpp"
 	"src/text/fonts.cpp"
 	"src/text/text.cpp"

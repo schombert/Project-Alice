@@ -421,7 +421,7 @@ int main(int argc, char* argv[]) {
 
 					output += "\" :s " + p.name + " " + ob.name + "_id " + index_typeb + " s: >index swap >index swap " + offset_of_array_member_container(ob.name, p.name) + " data-container @ buf-add ptr-cast ptr(ptr(nil)) @ swap 1 + " + array_member_row_size(property_type, ob.size, false) + " * " + array_member_leading_padding(property_type, ob.size, false) + " + swap buf-add swap \" + std::to_string(sizeof(" + property_type + ")) + \" * swap buf-add ptr-cast ptr(" + (known ? d_type : std::string("nil")) + ") ; \"\n";
 				} else {
-					output += "\" :s " + p.name + " " + ob.name + "_id s: >index \" + std::to_string(sizeof(" + property_type + ")) + \" * " + offset_of_member_container(ob.name, p.name) + " + data-container @ buf-add ptr-cast ptr(" + d_type + ") ; \"\n";
+					output += "\" :s " + p.name + " " + ob.name + "_id s: >index \" + std::to_string(sizeof(" + property_type + ")) + \" * " + offset_of_member_container(ob.name, p.name) + " + data-container @ buf-add ptr-cast ptr(" + (known ? d_type : std::string("nil")) + ") ; \"\n";
 				}
 			} //end non relationship members
 
@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
 						output += "\" :s " + ob.name + "-" + i.property_name + " " + i.type_name + "_id s: >index >" + ob.name + "_id ; \"\n";
 					} else {
 						auto d_type = i.type_name + "_id";
-						output += "\" :s " + ob.name + "-" + i.property_name + " " + i.type_name + "_id s: >index \" + std::to_string(sizeof(dcon::" + ob.name + "_id)) + \" * " + offset_of_member_container(ob.name, std::string("link_back_") + i.property_name) + " + data-container @ buf-add ptr-cast ptr(" + d_type + ") make-index-view ; \"\n";
+						output += "\" :s " + ob.name + "-" + i.property_name + " " + i.type_name + "_id s: >index \" + std::to_string(sizeof(dcon::" + ob.name + "_id)) + \" * " + offset_of_member_container(ob.name, std::string("link_back_") + i.property_name) + " + data-container @ buf-add ptr-cast ptr(" + ob.name + "_id) make-index-view ; \"\n";
 					}
 				}
 			} // end relationship members

@@ -1385,7 +1385,7 @@ object {
 	}
 	property{
 		name{ building_level }
-		type{ array{economy::province_building_type}{uint8_t} }
+		type{ array{uint8_t}{uint8_t} }
 		tag{ save }
 	}
 	property{
@@ -1428,7 +1428,7 @@ object {
 
 	property{
 		name{ port_to }
-		type{ dcon::province_id }
+		type{ province_id }
 		tag{ scenario }
 	}
 

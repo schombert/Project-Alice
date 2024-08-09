@@ -531,7 +531,7 @@ struct trigger_body {
 						uint16_t(trigger::is_releasable_vassal_from | trigger::no_payload | association_to_bool_code(a)));
 			else {
 				err.accumulated_errors += "is_releasable_vassal trigger used in an incorrect scope type " +
-																	slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+																	slot_contents_to_string(context.from_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -541,7 +541,7 @@ struct trigger_body {
 																										association_to_bool_code(a, parse_bool(value, line, err))));
 			else {
 				err.accumulated_errors += "is_releasable_vassal trigger used in an incorrect scope type " +
-																	slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+																	slot_contents_to_string(context.from_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
