@@ -2419,9 +2419,9 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 				}
 			}
 		}
-		if(targets.size() == 0)
+		bool is_colonial_claim = state.world.cb_type_get_type_bits(type) & cb_flag::po_colony; //doesn't require an owned state
+		if(targets.empty() && !is_colonial_claim)
 			return; // wargoal not added
-
 	} else {
 		auto new_wg = fatten(state.world, state.world.create_wargoal());
 		new_wg.set_added_by(added_by);
