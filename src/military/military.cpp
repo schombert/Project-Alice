@@ -72,7 +72,7 @@ void invalidate_unowned_wargoals(sys::state& state) {
 						break;
 					}
 				}
-				if(!found_state) {
+				if(!found_state && (wg.get_type().get_type_bits() & cb_flag::po_colony) == 0) {
 					state.world.delete_wargoal(wg);
 				}
 			}
