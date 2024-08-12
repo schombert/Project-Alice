@@ -10,6 +10,7 @@ include{"hb.h"}
 make_index{text_key}{uint32_t}
 make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}
+make_index{emfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
 make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
@@ -24,6 +25,7 @@ make_index{pop_demographics_key}{uint16_t}
 make_index{demographics_key}{uint16_t}
 make_index{provincial_modifier_value}{uint8_t}
 make_index{national_modifier_value}{uint8_t}
+make_index{provincial_flag_id}{uint16_t}
 
 object{
 	name{ national_identity }
@@ -116,6 +118,11 @@ object{
 	property{
 		name{ is_not_releasable }
 		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ graphical_culture }
+		type{ uint8_t }
 		tag{ scenario }
 	}
 }
@@ -304,6 +311,7 @@ object {
 	size{ 126 }
 	tag{ scenario }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -374,6 +382,7 @@ object {
 	property{
 		name{ key_factory }
 		type{ factory_type_id }
+		tag{ unsaved }
 	}
 	property{
 		name{ current_price }
@@ -398,6 +407,7 @@ object {
 	property{
 		name{ demand_by_category }
 		type{ array{int32_t}{float} }
+		tag{ save }
 	}
 	property{
 		name{ total_consumption }
@@ -407,6 +417,7 @@ object {
 	property{
 		name{ producer_payout_fraction }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{
 		name{ price_record }
@@ -416,14 +427,17 @@ object {
 	property{
 		name{ is_life_need }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ is_everyday_need }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ is_luxury_need }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 }
 
@@ -522,33 +536,13 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ bonus_1_trigger }
-		type{ trigger_key }
+		name{ bonus_trigger }
+		type{ std::array<trigger_key,sys::max_factory_bonuses> }
 		tag{ scenario }
 	}
 	property{
-		name{ bonus_1_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_amount }
-		type{ float }
+		name{ bonus_amount }
+		type{ std::array<float,sys::max_factory_bonuses> }
 		tag{ scenario }
 	}
 }
@@ -654,6 +648,7 @@ object {
 	storage_type{ contiguous }
 	size{ 120 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -683,6 +678,7 @@ object {
 	property{
 		name{ issue_type }
 		type{ uint8_t }
+		tag{ unsaved }
 	}
 }
 
@@ -691,6 +687,7 @@ object {
 	storage_type{ contiguous }
 	size{ 720 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -753,6 +750,7 @@ object {
 	property{
 		name{ parent_issue }
 		type{ issue_id }
+		tag{ unsaved }
 	}
 
 	property{
@@ -767,6 +765,7 @@ object {
 	storage_type{ contiguous }
 	size{ 120 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -791,6 +790,7 @@ object {
 	property{
 		name{ reform_type }
 		type{ uint8_t }
+		tag{ unsaved }
 	}
 }
 
@@ -799,6 +799,7 @@ object {
 	storage_type{ contiguous }
 	size{ 720 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -855,6 +856,7 @@ object {
 	property{
 		name{ parent_reform }
 		type{ reform_id }
+		tag{ unsaved }
 	}
 }
 
@@ -1351,6 +1353,7 @@ object {
 	size{ 17000 }
 	tag{ scenario }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -1424,6 +1427,7 @@ object {
 	property{
 		name{ mid_point_b }
 		type{ glm::vec3 }
+		tag{ unsaved }
 	}
 
 	property{
@@ -1441,6 +1445,7 @@ object {
 	property{
 		name{ modifier_values }
 		type{ array{provincial_modifier_value}{float} }
+		tag{ unsaved }
 	}
 
 	property {
@@ -1456,38 +1461,47 @@ object {
 	property {
 		name{ connected_region_id }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ state_membership }
 		type{ state_instance_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ is_coast }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_accepted_culture }
 		type{ culture_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ last_control_change }
@@ -1502,10 +1516,12 @@ object {
 	property{
 		name{ is_owner_core }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property {
 		name{ rgo_full_profit }
 		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ rgo_employment }
@@ -1515,15 +1531,17 @@ object {
 	property{
 		name{ rgo_size }
 		type{ float }
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ subsistence_score }
 		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ rgo_was_set_during_scenario_creation }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ rgo_max_size_per_good }
@@ -1563,14 +1581,17 @@ object {
 	property{
 		name{ rgo_actual_production_per_good }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property{
 		name{ daily_net_migration }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{
 		name{ daily_net_immigration }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{
 		name{ siege_progress }
@@ -1580,14 +1601,22 @@ object {
 	property{
 		name{ is_blockaded }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ former_controller }
 		type{ dcon::nation_id }
+		tag{ save }
 	}
 	property{
 		name{ former_rebel_controller }
 		type{ dcon::rebel_faction_id }
+		tag{ save }
+	}
+	property{
+		name{ flag_variables }
+		type{array{provincial_flag_id}{bitfield}}
+		tag{ save }
 	}
 }
 
@@ -1597,6 +1626,7 @@ relationship{
 	size{ 28000 }
 	tag{ scenario }
 	tag{ save }
+	tag{ unsaved }
 
 	link{
 		object{province}
@@ -1605,7 +1635,7 @@ relationship{
 		index_storage{array}
 		multiple{2}
 	}
-	
+
 	composite_key{
 		name{province_pair}
 		index{connected_provinces}
@@ -1614,8 +1644,8 @@ relationship{
 	property{
 		name{ distance }
 		type{ float }
+		tag{ unsaved }
 	}
-
 	property{
 		name{ type }
 		type{ uint8_t }
@@ -1647,6 +1677,7 @@ object {
 	storage_type{ erasable }
 	size{ 32000 }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -1666,6 +1697,7 @@ object {
 	property{	
 		name{ pending_damage }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{	
 		name{ org }
@@ -1675,6 +1707,7 @@ object {
 	property{
 		name{ pending_split }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 }
 
@@ -1683,6 +1716,7 @@ object {
 	storage_type{ erasable }
 	size{ 16000 }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -1707,6 +1741,7 @@ object {
 	property{
 		name{ pending_split }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 }
 
@@ -2264,21 +2299,20 @@ object {
 		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
-
 	property{
 		name{ reserves }
 		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
-	
 	property{
 		name{ defender_casualties }
 		type{ float }
+		tag{ save }
 	}
-	
 	property{
 		name{ attacker_casualties }
 		type{ float }
+		tag{ save }
 	}
 }
 
@@ -2698,6 +2732,7 @@ object {
 	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ definition }
@@ -2727,26 +2762,32 @@ object {
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ naval_base_is_taken }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 }
 relationship{
@@ -2915,6 +2956,7 @@ object {
 	storage_type{ contiguous }
 	size{ 400 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -2959,6 +3001,7 @@ object {
 	property{
 		name{ ai_weight }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{
 		name{cost}
@@ -3126,10 +3169,12 @@ object {
 	storage_type{ erasable }
 	size{ 2000 }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ unsaved }
 	}
 	property{
 		name{ masquerade_identity }
@@ -3165,10 +3210,12 @@ object {
 	property{
 		name{ marked_for_gc }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ is_great_power }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ national_value }
@@ -3248,6 +3295,7 @@ object {
 	property{
 		name{ combined_issue_rules }
 		type{ uint32_t }
+		tag{ unsaved }
 	}
 	property{
 		name{ upper_house }
@@ -3272,50 +3320,62 @@ object {
 	property{
 		name{ modifier_values }
 		type{ array{national_modifier_value}{float} }
+		tag{ unsaved }
 	}
 	property{
 		name{ rgo_goods_output }
 		type{ array{commodity_id}{float} }
+		tag{ unsaved }
 	}
 	property{
 		name{ factory_goods_output }
 		type{ array{commodity_id}{float} }
+		tag{ unsaved }
 	}
 	property{
 		name{ rgo_size }
 		type{ array{commodity_id}{float} }
+		tag{ unsaved }
 	}
 	property{
 		name{ factory_goods_throughput }
 		type{ array{commodity_id}{float} }
+		tag{ unsaved }
 	}
 	property{
 		name{ rebel_org_modifier }
 		type{ array{rebel_type_id}{float} }
+		tag{ unsaved }
 	}
 	property{
 		name{ unit_stats }
 		type{array{unit_type_id}{sys::unit_variable_stats}}
+		tag{ unsaved }
 	}
 	property{
 		name{ active_unit }
 		type{array{unit_type_id}{bitfield}}
+		tag{ unsaved }
 	}
 	property{
 		name{ active_crime }
 		type{array{crime_id}{bitfield}}
+		tag{ unsaved }
 	}
 	property{
 		name{ active_building }
 		type{array{factory_type_id}{bitfield}}
+		tag{ unsaved }
 	}
 	property{
 		name{ has_gas_attack }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ has_gas_defense }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property {
 		name{ max_building_level }
@@ -3329,26 +3389,32 @@ object {
 	property {
 		name{ in_sphere_of }
 		type{ nation_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ rank }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ industrial_rank }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ military_rank }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ prestige_rank }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
+		tag{ unsaved }
 	}
 	property {
 		name{ war_exhaustion }
@@ -3358,6 +3424,7 @@ object {
 	property {
 		name{ is_at_war }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property {
 		name{ is_mobilized }
@@ -3482,14 +3549,17 @@ object {
 	property {
 		name{ private_investment_effective_fraction }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ private_investment_education }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ private_investment_administration }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ total_rich_income }
@@ -3529,80 +3599,93 @@ object {
 	property {
 		name{ last_treasury }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ industrial_score }
 		type{ uint16_t }
+		tag{ save }
 	}
 	property {
 		name{ military_score }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ central_blockaded }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ central_rebel_controlled }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ owned_province_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ owned_state_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ central_province_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ rebel_controlled_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ occupied_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ central_ports }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ total_ports }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ central_crime_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ allies_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ vassals_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ substates_count }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
-
 	property {
 		name{ gdp }
 		type{ float }
 		tag{ save }
 	}
-
 	property {
 		name { gdp_record }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
-
 	property {
 		name{ effective_prices }
 		type{ array{commodity_id}{float} }
@@ -3636,6 +3719,7 @@ object {
 	property {
 		name{ intermediate_demand }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ imports }
@@ -3710,6 +3794,7 @@ object {
 	property {
 		name{ artisan_profit }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ overseas_penalty }
@@ -3733,22 +3818,27 @@ object {
 	property{
 		name{ is_colonial_nation }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ constructing_cb_target }
@@ -3778,14 +3868,17 @@ object {
 	property {
 		name{ non_colonial_population }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ non_colonial_bureaucrats }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ administrative_efficiency }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ research_points }
@@ -3800,18 +3893,22 @@ object {
 	property {
 		name{ active_regiments }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ recruitable_regiments }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ averge_land_unit_score }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ capital_ship_score }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ suppression_points }
@@ -3831,18 +3928,22 @@ object {
 	property {
 		name{ naval_supply_points }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property {
 		name{ used_naval_supply_points }
 		type{ uint16_t }
+		tag{ unsaved }
 	}
 	property{
 		name{ has_flash_point_state }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ is_target_of_some_cb }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ is_interesting }
@@ -3853,6 +3954,7 @@ object {
 	property{
 		name{ ai_is_threatened }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 	property{
 		name{ ai_rival }
@@ -3862,6 +3964,7 @@ object {
 	property{
 		name{ ai_home_port }
 		type{ province_id }
+		tag{ unsaved }
 	}
 	property{
 		name{ mobilized_is_ai_controlled }
@@ -4040,6 +4143,7 @@ object {
 	property {
 		name{ actual_production }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ primary_employment }
@@ -4054,10 +4158,12 @@ object {
 	property {
 		name{ triggered_modifiers }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ full_profit }
 		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ subsidized }
@@ -4371,6 +4477,7 @@ object {
 	storage_type{ compactable }
 	size{ 8000 }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ associated_issue_option }
@@ -4385,10 +4492,12 @@ object {
 	property{
 		name{ pop_support }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{
 		name{ radicalism }
 		type{ float }
+		tag{ unsaved }
 	}
 	property{
 		name{ transient_radicalism }
@@ -4453,6 +4562,7 @@ object {
 	storage_type{ compactable }
 	size{ 300000 }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ poptype }
@@ -4517,10 +4627,12 @@ object {
 	property {
 		name{ political_reform_desire }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ social_reform_desire }
 		type{ float }
+		tag{ unsaved }
 	}
 	property {
 		name{ demographics }
@@ -4530,14 +4642,17 @@ object {
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		tag{ unsaved }
 	}
 	property {
 		name{ is_primary_or_accepted_culture }
 		type{ bitfield }
+		tag{ unsaved }
 	}
 }
 
@@ -4563,6 +4678,7 @@ object {
 	storage_type{ contiguous }
 	size{ 4000 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -4597,6 +4713,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ unsaved }
 	}
 	property{
 		name{ allow_multiple_instances }
@@ -4610,6 +4727,7 @@ object {
 	storage_type{ contiguous }
 	size{ 2000 }
 	tag{ scenario }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -4634,6 +4752,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ unsaved }
 	}
 }
 
@@ -4643,6 +4762,7 @@ object {
 	size{ 8000 }
 	tag{ scenario }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -4702,6 +4822,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ unsaved }
 	}
 }
 
@@ -4711,6 +4832,7 @@ object {
 	size{ 8000 }
 	tag{ scenario }
 	tag{ save }
+	tag{ unsaved }
 
 	property{
 		name{ name }
@@ -4755,6 +4877,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ unsaved }
 	}
 }
 
@@ -4969,4 +5092,10 @@ load_save{
 	name{store_save}
 	only_objects{save}
 	only_properties{save}
+}
+
+load_save{
+	name{store_unsaved}
+	only_objects{unsaved}
+	only_properties{unsaved}
 }
