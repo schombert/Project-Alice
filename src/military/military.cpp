@@ -2420,6 +2420,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 				}
 			}
 		}
+
 		bool is_colonial_claim = (state.world.cb_type_get_type_bits(type) & cb_flag::po_colony) != 0; //doesn't require an owned state
 		if(targets.empty()) {
 			if(!is_colonial_claim) {
