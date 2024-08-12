@@ -185,11 +185,51 @@ int32_t* f_empty_adjacent_state_b(fif::state_stack& s, int32_t* p, fif::environm
 	return p + 2;
 }
 
+
+template<typename F>
+class  f_true_accumulator : public F {
+private:
+	ve::tagged_vector<int32_t> value;
+	uint32_t index = 0;
+	int32_t accumulated_mask = 0;
+
+public:
+	bool result = false;
+
+	f_true_accumulator(F&& f) : F(std::move(f)) { }
+
+	void add_value(int32_t v) {
+		if(!result) {
+			accumulated_mask |= (int32_t(v != -1) << index);
+			value.set(index++, v);
+
+			if(index == ve::vector_size) {
+				result = (ve::compress_mask(F::operator()(value)).v & accumulated_mask) != 0;
+				value = ve::tagged_vector<int32_t>();
+				index = 0;
+				accumulated_mask = 0;
+			}
+		}
+	}
+	void flush() {
+		if(index != 0 && !result) {
+			result = (ve::compress_mask(F::operator()(value)).v & accumulated_mask) != 0;
+			index = 0;
+		}
+	}
+};
+
+template<typename F>
+auto f_make_true_accumulator(F&& f) -> f_true_accumulator<F> {
+	return f_true_accumulator<F>(std::forward<F>(f));
+}
+
+
 bool f_unowned_core(sys::state* state, int32_t n_index) {
 	dcon::nation_id n{ dcon::nation_id::value_base_t(n_index) };
 	auto nation_tag = state->world.nation_get_identity_from_identity_holder(n);
 
-	auto acc = trigger::make_true_accumulator([state, n](ve::tagged_vector<int32_t> v) {
+	auto acc = f_make_true_accumulator([state, n](ve::tagged_vector<int32_t> v) {
 		auto owners = state->world.province_get_nation_from_province_ownership(trigger::to_prov(v));
 		return owners != n;
 	});
