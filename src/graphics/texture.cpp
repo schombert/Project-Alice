@@ -192,6 +192,8 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			s3tc_format = SOIL_RGBA_S3TC_DXT5;
 			block_size = 16;
 			break;
+		default:
+			break;
 		}
 		dds_main_size = ((width + 3) >> 2) * ((height + 3) >> 2) * block_size;
 	}
@@ -467,107 +469,76 @@ native_string flag_type_to_name(sys::state& state, culture::flag_type type) {
 		// Non-vanilla
 	case culture::flag_type::theocracy:
 		return NATIVE("_theocracy");
-		break;
 	case culture::flag_type::special:
 		return NATIVE("_special");
-		break;
 	case culture::flag_type::spare:
 		return NATIVE("_spare");
-		break;
 	case culture::flag_type::populist:
 		return NATIVE("_populist");
-		break;
 	case culture::flag_type::realm:
 		return NATIVE("_realm");
-		break;
 	case culture::flag_type::other:
 		return NATIVE("_other");
-		break;
 	case culture::flag_type::monarchy2:
 		return NATIVE("_monarchy2");
-		break;
 	case culture::flag_type::monarchy3:
 		return NATIVE("_monarchy3");
-		break;
 	case culture::flag_type::republic2:
 		return NATIVE("_republic2");
-		break;
 	case culture::flag_type::republic3:
 		return NATIVE("_republic3");
-		break;
 	case culture::flag_type::communist2:
 		return NATIVE("_communist2");
-		break;
 	case culture::flag_type::communist3:
 		return NATIVE("_communist3");
-		break;
 	case culture::flag_type::fascist2:
 		return NATIVE("_fascist2");
-		break;
 	case culture::flag_type::fascist3:
 		return NATIVE("_fascist3");
-		break;
 	case culture::flag_type::theocracy2:
 		return NATIVE("_theocracy2");
-		break;
 	case culture::flag_type::theocracy3:
 		return NATIVE("_theocracy3");
-		break;
 	case culture::flag_type::cosmetic_1:
 		return NATIVE("_cosmetic_1");
-		break;
 	case culture::flag_type::cosmetic_2:
 		return NATIVE("_cosmetic_2");
-		break;
 	case culture::flag_type::colonial:
 		return NATIVE("_colonial");
-		break;
 	case culture::flag_type::nationalist:
 		return NATIVE("_nationalist");
-		break;
 	case culture::flag_type::sectarian:
 		return NATIVE("_sectarian");
-		break;
 	case culture::flag_type::socialist:
 		return NATIVE("_socialist");
-		break;
 	case culture::flag_type::dominion:
 		return NATIVE("_dominion");
-		break;
 	case culture::flag_type::agrarism:
 		return NATIVE("_agrarism");
-		break;
 	case culture::flag_type::national_syndicalist:
 		return NATIVE("_national_syndicalist");
-		break;
 	case culture::flag_type::theocratic:
 		return NATIVE("_theocratic");
-		break;
 	case culture::flag_type::slot1:
 		return NATIVE("_slot1");
-		break;
 	case culture::flag_type::slot2:
 		return NATIVE("_slot2");
-		break;
 	case culture::flag_type::slot3:
 		return NATIVE("_slot3");
-		break;
 	case culture::flag_type::slot4:
 		return NATIVE("_slot4");
-		break;
 	case culture::flag_type::anarcho_liberal:
 		return NATIVE("_anarcho_liberal");
-		break;
 	case culture::flag_type::green:
 		return NATIVE("_green");
-		break;
 	case culture::flag_type::traditionalist:
 		return NATIVE("_traditionalist");
-		break;
 	case culture::flag_type::ultranationalist:
 		return NATIVE("_ultranationalist");
+	default:
+		return NATIVE("");
+
 	}
-	return NATIVE("");
 }
 
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {

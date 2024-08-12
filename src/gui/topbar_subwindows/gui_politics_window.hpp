@@ -737,6 +737,8 @@ public:
 			case politics_window_tab::releasables:
 				release_nation_win->set_visible(state, true);
 				break;
+			default:
+				break;
 			}
 			active_tab = enum_val;
 			return message_result::consumed;
@@ -780,6 +782,8 @@ public:
 							return a_support > b_support;
 						});
 				issues_listbox->update(state);
+				break;
+			default:
 				break;
 			}
 			return message_result::consumed;

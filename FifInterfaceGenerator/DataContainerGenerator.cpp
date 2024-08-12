@@ -319,7 +319,8 @@ int main(int argc, char* argv[]) {
 		//
 
 		output += "std::string container_interface() {\n";
-		output += "return std::string("") + \"\" \n";
+		output += "std::string result;\n";
+		output += "result += \"\" \n";
 
 		output += "\" ptr(nil) global data-container \"\n";
 		output += "\" : set-container data-container ! ; \"\n";
@@ -334,13 +335,13 @@ int main(int argc, char* argv[]) {
 		output += "\" :s ! bool bit-proxy s: .byte@ let byte .bit let bit let arg 1 bit shl not byte @ >i32 and arg >i32 bit shl or >i8 byte ! ; \"\n";
 		output += "\" :s @ bit-proxy s: .byte@ let byte .bit let bit byte @ >i32 bit shr 1 and >bool ; \"\n";
 		output += "\" :s >index i32 s:  ; \"\n"; // nop
-		output += "\" :s >index ui32 s: >i32 ; \"\n";
+		output += "\" :s >index u32 s: >i32 ; \"\n";
 		output += "\" :s >index i16 s: >i32 ; \"\n";
-		output += "\" :s >index ui16 s: >i32 ; \"\n";
+		output += "\" :s >index u16 s: >i32 ; \"\n";
 		output += "\" :s >index i8 s: >i32 ; \"\n";
-		output += "\" :s >index ui8 s: >i32 ; \"\n";
+		output += "\" :s >index u8 s: >i32 ; \"\n";
 		output += "\" :s >index i64 s: >i32 ; \"\n";
-		output += "\" :s >index ui64 s: >i32 ; \"\n";
+		output += "\" :s >index u64 s: >i32 ; \"\n";
 
 		//
 		//
@@ -350,12 +351,14 @@ int main(int argc, char* argv[]) {
 
 		//id types definitions
 		for(auto& ob : parsed_file.relationship_objects) {
+			output += "; result += \"\" \n";
 			const auto underlying_type = ob.is_expandable ? std::string("uint32_t") : size_to_tag_type(ob.size);
 			//id class begin
 			output += make_id_definition(ob.name + "_id", underlying_type);
 			made_types.insert(ob.name + "_id");
 		}
 		for(auto& mi : parsed_file.extra_ids) {
+			output += "; result += \"\" \n";
 			output += make_id_definition(mi.name, mi.base_type);
 			made_types.insert(mi.name);
 		}
@@ -371,6 +374,7 @@ int main(int argc, char* argv[]) {
 		for(auto& ob : parsed_file.relationship_objects) {
 			//predeclare helpers
 
+			output += "; result += \"\" \n";
 
 			//begin members declaration
 			auto base_index_type = ob.is_expandable ? std::string("uint32_t") : size_to_tag_type(ob.size);
@@ -552,6 +556,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		output += ";\n"; //end line
+		output += "return result;\n";
 		output += "} \n"; // end function
 
 		//close new namespace

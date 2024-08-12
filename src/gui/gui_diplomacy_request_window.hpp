@@ -56,8 +56,9 @@ public:
 			return text::produce_simple_string(state, "crisis_offer_di");
 		case diplomatic_message::type_t::state_transfer:
 			return text::produce_simple_string(state, "state_transfer_di");
+		default:
+			return std::string("???");
 		}
-		return std::string("???");
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto diplomacy_request = retrieve< diplomatic_message::message>(state, parent);
@@ -189,10 +190,14 @@ class diplomacy_request_desc_text : public scrollable_text {
 			}
 		} break;
 		case diplomatic_message::type_t::state_transfer:
+		{
 			text::add_line(state, contents, "state_transfer_offer", text::variable_type::actor, diplomacy_request.from);
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, diplomacy_request.data.state);
 			text::close_layout_box(contents, box);
+		}
+			break;
+		default:
 			break;
 		}
 	}

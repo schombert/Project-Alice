@@ -3980,6 +3980,8 @@ void state::single_game_tick() {
 			demographics::update_conversion(*this, o, days_in_month, rbuf);
 			break;
 		}
+		default:
+			break;
 		}
 	});
 
@@ -4041,6 +4043,8 @@ void state::single_game_tick() {
 		case 7:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+			break;
+		default:
 			break;
 		}
 	});

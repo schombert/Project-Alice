@@ -159,6 +159,8 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 		reform_context new_context{context.outer_context, new_id};
 		parse_issue(gen, err, new_context);
 	} break;
+	default:
+		break;
 	}
 }
 void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context) {

@@ -108,7 +108,11 @@ public:
 		min_return_depth = std::min(std::max(return_types.size(), count) - count, min_return_depth);
 	}
 
+	state_stack() = default;
+	state_stack(state_stack&&) = default;
+	state_stack(const state_stack&) = default;
 	virtual ~state_stack() = default;
+
 	virtual void pop_main() = 0;
 	virtual void pop_return() = 0;
 	virtual int64_t main_data(size_t index) const = 0;
@@ -176,23 +180,21 @@ public:
 	std::vector<LLVMValueRef> main_exs;
 	std::vector<LLVMValueRef> return_exs;
 
-	virtual ~llvm_stack() {
-	}
-	virtual void pop_main() {
+	virtual void pop_main() override {
 		if(main_exs.empty())
 			return;
 		main_exs.pop_back();
 		main_types.pop_back();
 		min_main_depth = std::min(min_main_depth, main_types.size());
 	}
-	virtual void pop_return() {
+	virtual void pop_return() override {
 		if(return_exs.empty())
 			return;
 		return_exs.pop_back();
 		return_types.pop_back();
 		min_return_depth = std::min(min_return_depth, return_types.size());
 	}
-	virtual void resize(size_t main_sz, size_t return_sz) {
+	virtual void resize(size_t main_sz, size_t return_sz) override {
 		min_return_depth = std::min(min_return_depth, return_sz);
 		min_main_depth = std::min(min_main_depth, main_sz);
 		return_types.resize(return_sz);
@@ -200,62 +202,62 @@ public:
 		main_types.resize(main_sz);
 		main_exs.resize(main_sz);
 	}
-	virtual int64_t main_data(size_t index) const {
+	virtual int64_t main_data(size_t index) const  override {
 		return 0;
 	}
-	virtual int64_t return_data(size_t index) const {
+	virtual int64_t return_data(size_t index) const override {
 		return 0;
 	}
-	virtual LLVMValueRef main_ex(size_t index) const {
+	virtual LLVMValueRef main_ex(size_t index) const override {
 		return main_exs[index];
 	}
-	virtual LLVMValueRef return_ex(size_t index) const {
+	virtual LLVMValueRef return_ex(size_t index) const override {
 		return return_exs[index];
 	}
-	virtual int64_t main_data_back(size_t index)const {
+	virtual int64_t main_data_back(size_t index)const override {
 		return 0;
 	}
-	virtual int64_t return_data_back(size_t index)const {
+	virtual int64_t return_data_back(size_t index)const override {
 		return 0;
 	}
-	virtual LLVMValueRef main_ex_back(size_t index)const {
+	virtual LLVMValueRef main_ex_back(size_t index)const override {
 		return main_exs[main_exs.size() - (index + 1)];
 	}
-	virtual LLVMValueRef return_ex_back(size_t index) const {
+	virtual LLVMValueRef return_ex_back(size_t index) const override {
 		return return_exs[return_exs.size() - (index + 1)];
 	}
-	virtual void set_main_data(size_t index, int64_t value) {
+	virtual void set_main_data(size_t index, int64_t value) override {
 		min_main_depth = std::min(min_main_depth, index);
 	}
-	virtual void set_return_data(size_t index, int64_t value) {
+	virtual void set_return_data(size_t index, int64_t value)override {
 		min_return_depth = std::min(min_return_depth, index);
 	}
-	virtual void set_main_ex(size_t index, LLVMValueRef value) {
+	virtual void set_main_ex(size_t index, LLVMValueRef value) override {
 		main_exs[index] = value;
 		min_main_depth = std::min(min_main_depth, index);
 	}
-	virtual void set_return_ex(size_t index, LLVMValueRef value) {
+	virtual void set_return_ex(size_t index, LLVMValueRef value) override {
 		return_exs[index] = value;
 		min_return_depth = std::min(min_return_depth, index);
 	}
-	virtual void set_main_data_back(size_t index, int64_t value) {
+	virtual void set_main_data_back(size_t index, int64_t value)override {
 		min_main_depth = std::min(min_main_depth, main_types.size() - (index + 1));
 	}
-	virtual void set_return_data_back(size_t index, int64_t value) {
+	virtual void set_return_data_back(size_t index, int64_t value) override {
 		min_return_depth = std::min(min_return_depth, return_types.size() - (index + 1));
 	}
-	virtual void set_main_ex_back(size_t index, LLVMValueRef value) {
+	virtual void set_main_ex_back(size_t index, LLVMValueRef value)override {
 		main_exs[main_exs.size() - (index + 1)] = value;
 		min_main_depth = std::min(min_main_depth, main_types.size() - (index + 1));
 	}
-	virtual void set_return_ex_back(size_t index, LLVMValueRef value) {
+	virtual void set_return_ex_back(size_t index, LLVMValueRef value)override {
 		return_exs[return_exs.size() - (index + 1)] = value;
 		min_return_depth = std::min(min_return_depth, return_types.size() - (index + 1));
 	}
-	virtual stack_type get_type() const {
+	virtual stack_type get_type() const override {
 		return stack_type::llvm_compiler;
 	}
-	virtual void move_into(state_stack&& other) {
+	virtual void move_into(state_stack&& other)override {
 		if(other.get_type() != stack_type::llvm_compiler)
 			std::abort();
 
@@ -267,7 +269,7 @@ public:
 		min_main_depth = std::min(min_main_depth, o.min_main_depth);
 		min_return_depth = std::min(min_return_depth, o.min_return_depth);
 	}
-	virtual void copy_into(state_stack const& other) {
+	virtual void copy_into(state_stack const& other)override {
 		if(other.get_type() != stack_type::llvm_compiler)
 			std::abort();
 
@@ -279,15 +281,15 @@ public:
 		min_main_depth = std::min(min_main_depth, o.min_main_depth);
 		min_return_depth = std::min(min_return_depth, o.min_return_depth);
 	}
-	virtual void push_back_main(int32_t type, int64_t data, LLVMValueRef expr) {
+	virtual void push_back_main(int32_t type, int64_t data, LLVMValueRef expr)override {
 		main_exs.push_back(expr);
 		main_types.push_back(type);
 	}
-	virtual void push_back_return(int32_t type, int64_t data, LLVMValueRef expr) {
+	virtual void push_back_return(int32_t type, int64_t data, LLVMValueRef expr)override {
 		return_exs.push_back(expr);
 		return_types.push_back(type);
 	}
-	virtual std::unique_ptr<state_stack> copy() const {
+	virtual std::unique_ptr<state_stack> copy() const override {
 		auto temp_new = std::make_unique<llvm_stack>(*this);
 		temp_new->min_main_depth = main_types.size();
 		temp_new->min_return_depth = return_types.size();
@@ -297,79 +299,76 @@ public:
 
 class type_stack : public state_stack {
 public:
-
-	virtual ~type_stack() {
-	}
-	virtual void pop_main() {
+	virtual void pop_main() override {
 		if(main_types.empty())
 			return;
 		main_types.pop_back();
 		min_main_depth = std::min(min_main_depth, main_types.size());
 	}
-	virtual void pop_return() {
+	virtual void pop_return()override {
 		if(return_types.empty())
 			return;
 		return_types.pop_back();
 		min_return_depth = std::min(min_return_depth, return_types.size());
 	}
-	virtual void resize(size_t main_sz, size_t return_sz) {
+	virtual void resize(size_t main_sz, size_t return_sz) override {
 		min_return_depth = std::min(min_return_depth, return_sz);
 		min_main_depth = std::min(min_main_depth, main_sz);
 		return_types.resize(return_sz);
 		main_types.resize(main_sz);
 	}
-	virtual int64_t main_data(size_t index) const {
+	virtual int64_t main_data(size_t index) const override {
 		return 0;
 	}
-	virtual int64_t return_data(size_t index) const {
+	virtual int64_t return_data(size_t index) const override {
 		return 0;
 	}
-	virtual LLVMValueRef main_ex(size_t index) const {
+	virtual LLVMValueRef main_ex(size_t index) const override {
 		return nullptr;
 	}
-	virtual LLVMValueRef return_ex(size_t index) const {
+	virtual LLVMValueRef return_ex(size_t index) const override {
 		return nullptr;
 	}
-	virtual int64_t main_data_back(size_t index)const {
+	virtual int64_t main_data_back(size_t index)const override {
 		return 0;
 	}
-	virtual int64_t return_data_back(size_t index)const {
+	virtual int64_t return_data_back(size_t index)const override {
 		return 0;
 	}
-	virtual LLVMValueRef main_ex_back(size_t index)const {
+	virtual LLVMValueRef main_ex_back(size_t index)const override {
 		return nullptr;
 	}
-	virtual LLVMValueRef return_ex_back(size_t index) const {
+	virtual LLVMValueRef return_ex_back(size_t index) const override {
 		return nullptr;
 	}
-	virtual stack_type get_type() const {
+	virtual stack_type get_type() const override {
 		return stack_type::bytecode_compiler;
 	}
-	virtual void set_main_data(size_t index, int64_t value) {
+	virtual void set_main_data(size_t index, int64_t value)override {
 		min_main_depth = std::min(min_main_depth, index);
 	}
-	virtual void set_return_data(size_t index, int64_t value) {
+	virtual void set_return_data(size_t index, int64_t value) override {
 		min_return_depth = std::min(min_return_depth, index);
 	}
-	virtual void set_main_ex(size_t index, LLVMValueRef value) {
+	virtual void set_main_ex(size_t index, LLVMValueRef value) override {
 		min_main_depth = std::min(min_main_depth, index);
 	}
-	virtual void set_return_ex(size_t index, LLVMValueRef value) {
+	virtual void set_return_ex(size_t index, LLVMValueRef value)override {
 		min_return_depth = std::min(min_return_depth, index);
 	}
-	virtual void set_main_data_back(size_t index, int64_t value) {
+	virtual void set_main_data_back(size_t index, int64_t value) override {
 		min_main_depth = std::min(min_main_depth, main_types.size() - (index + 1));
 	}
-	virtual void set_return_data_back(size_t index, int64_t value) {
+	virtual void set_return_data_back(size_t index, int64_t value) override {
 		min_return_depth = std::min(min_return_depth, return_types.size() - (index + 1));
 	}
-	virtual void set_main_ex_back(size_t index, LLVMValueRef value) {
+	virtual void set_main_ex_back(size_t index, LLVMValueRef value) override {
 		min_main_depth = std::min(min_main_depth, main_types.size() - (index + 1));
 	}
-	virtual void set_return_ex_back(size_t index, LLVMValueRef value) {
+	virtual void set_return_ex_back(size_t index, LLVMValueRef value) override {
 		min_return_depth = std::min(min_return_depth, return_types.size() - (index + 1));
 	}
-	virtual void move_into(state_stack&& other) {
+	virtual void move_into(state_stack&& other) override {
 		if(other.get_type() != stack_type::bytecode_compiler)
 			std::abort();
 
@@ -379,7 +378,7 @@ public:
 		min_main_depth = std::min(min_main_depth, o.min_main_depth);
 		min_return_depth = std::min(min_return_depth, o.min_return_depth);
 	}
-	virtual void copy_into(state_stack const& other) {
+	virtual void copy_into(state_stack const& other) override {
 		if(other.get_type() != stack_type::bytecode_compiler)
 			std::abort();
 
@@ -389,13 +388,13 @@ public:
 		min_main_depth = std::min(min_main_depth, o.min_main_depth);
 		min_return_depth = std::min(min_return_depth, o.min_return_depth);
 	}
-	virtual void push_back_main(int32_t type, int64_t data, LLVMValueRef expr) {
+	virtual void push_back_main(int32_t type, int64_t data, LLVMValueRef expr) override {
 		main_types.push_back(type);
 	}
-	virtual void push_back_return(int32_t type, int64_t data, LLVMValueRef expr) {
+	virtual void push_back_return(int32_t type, int64_t data, LLVMValueRef expr) override {
 		return_types.push_back(type);
 	}
-	virtual std::unique_ptr<state_stack> copy() const {
+	virtual std::unique_ptr<state_stack> copy() const override {
 		auto temp_new = std::make_unique<type_stack>(*this);
 		temp_new->min_main_depth = main_types.size();
 		temp_new->min_return_depth = return_types.size();
@@ -808,10 +807,10 @@ public:
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<var_data>> global_vars;
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<let_data>> global_lets;
 	environment& env;
-	compiler_globals_layer(opaque_compiler_data* parent, environment& env) : opaque_compiler_data(parent), env(env) {
+	compiler_globals_layer(opaque_compiler_data* p, environment& env) : opaque_compiler_data(p), env(env) {
 	}
 
-	virtual control_structure get_type() {
+	virtual control_structure get_type() override {
 		return control_structure::globals;
 	}
 
@@ -892,7 +891,7 @@ public:
 
 	interpreter_stack() { }
 
-	virtual void pop_main() {
+	virtual void pop_main() override {
 		if(main_datas.empty())
 			return;
 
@@ -901,7 +900,7 @@ public:
 
 		min_main_depth = std::min(min_main_depth, main_types.size());
 	}
-	virtual void pop_return() {
+	virtual void pop_return() override {
 		if(return_datas.empty())
 			return;
 
@@ -910,7 +909,7 @@ public:
 
 		min_return_depth = std::min(min_return_depth, return_types.size());
 	}
-	virtual void resize(size_t main_sz, size_t return_sz) {
+	virtual void resize(size_t main_sz, size_t return_sz) override {
 		min_return_depth = std::min(min_return_depth, return_sz);
 		min_main_depth = std::min(min_main_depth, main_sz);
 
@@ -919,62 +918,62 @@ public:
 		main_types.resize(main_sz);
 		main_datas.resize(main_sz);
 	}
-	virtual int64_t main_data(size_t index) const {
+	virtual int64_t main_data(size_t index) const override {
 		return main_datas[index];
 	}
-	virtual int64_t return_data(size_t index) const {
+	virtual int64_t return_data(size_t index) const override {
 		return return_datas[index];
 	}
-	virtual LLVMValueRef main_ex(size_t index) const {
+	virtual LLVMValueRef main_ex(size_t index) const override {
 		return nullptr;
 	}
-	virtual LLVMValueRef return_ex(size_t index) const {
+	virtual LLVMValueRef return_ex(size_t index) const override {
 		return nullptr;
 	}
-	virtual int64_t main_data_back(size_t index)const {
+	virtual int64_t main_data_back(size_t index)const override {
 		return main_datas[main_datas.size() - (index + 1)];
 	}
-	virtual int64_t return_data_back(size_t index)const {
+	virtual int64_t return_data_back(size_t index)const override {
 		return return_datas[return_datas.size() - (index + 1)];
 	}
-	virtual LLVMValueRef main_ex_back(size_t index)const {
+	virtual LLVMValueRef main_ex_back(size_t index)const override {
 		return nullptr;
 	}
-	virtual LLVMValueRef return_ex_back(size_t index) const {
+	virtual LLVMValueRef return_ex_back(size_t index) const override {
 		return nullptr;
 	}
-	virtual void set_main_data(size_t index, int64_t value) {
+	virtual void set_main_data(size_t index, int64_t value) override {
 		main_datas[index] = value;
 		min_main_depth = std::min(min_main_depth, index);
 	}
-	virtual void set_return_data(size_t index, int64_t value) {
+	virtual void set_return_data(size_t index, int64_t value) override {
 		return_datas[index] = value;
 		min_return_depth = std::min(min_return_depth, index);
 	}
-	virtual void set_main_ex(size_t index, LLVMValueRef value) {
+	virtual void set_main_ex(size_t index, LLVMValueRef value)override {
 		min_main_depth = std::min(min_main_depth, index);
 	}
-	virtual void set_return_ex(size_t index, LLVMValueRef value) {
+	virtual void set_return_ex(size_t index, LLVMValueRef value)override {
 		min_return_depth = std::min(min_return_depth, index);
 	}
-	virtual void set_main_data_back(size_t index, int64_t value) {
+	virtual void set_main_data_back(size_t index, int64_t value) override {
 		main_datas[main_datas.size() - (index + 1)] = value;
 		min_main_depth = std::min(min_main_depth, main_datas.size() - (index + 1));
 	}
-	virtual void set_return_data_back(size_t index, int64_t value) {
+	virtual void set_return_data_back(size_t index, int64_t value) override {
 		return_datas[return_datas.size() - (index + 1)] = value;
 		min_return_depth = std::min(min_return_depth, return_datas.size() - (index + 1));
 	}
-	virtual void set_main_ex_back(size_t index, LLVMValueRef value) {
+	virtual void set_main_ex_back(size_t index, LLVMValueRef value) override {
 		min_main_depth = std::min(min_main_depth, main_datas.size() - (index + 1));
 	}
-	virtual void set_return_ex_back(size_t index, LLVMValueRef value) {
+	virtual void set_return_ex_back(size_t index, LLVMValueRef value) override {
 		min_return_depth = std::min(min_return_depth, return_datas.size() - (index + 1));
 	}
-	virtual stack_type get_type() const {
+	virtual stack_type get_type() const override {
 		return stack_type::interpreter_stack;
 	}
-	virtual void move_into(state_stack&& other) {
+	virtual void move_into(state_stack&& other) override {
 		if(other.get_type() != stack_type::interpreter_stack)
 			std::abort();
 
@@ -990,7 +989,7 @@ public:
 		o.main_types.clear();
 		o.return_types.clear();
 	}
-	virtual void copy_into(state_stack const& other) {
+	virtual void copy_into(state_stack const& other) override {
 		if(other.get_type() != stack_type::interpreter_stack)
 			std::abort();
 		interpreter_stack const& o = static_cast<interpreter_stack const&>(other);
@@ -1001,15 +1000,15 @@ public:
 		min_main_depth = std::min(min_main_depth, o.min_main_depth);
 		min_return_depth = std::min(min_return_depth, o.min_return_depth);
 	}
-	virtual void push_back_main(int32_t type, int64_t data, LLVMValueRef expr) {
+	virtual void push_back_main(int32_t type, int64_t data, LLVMValueRef expr) override {
 		main_datas.push_back(data);
 		main_types.push_back(type);
 	}
-	virtual void push_back_return(int32_t type, int64_t data, LLVMValueRef expr) {
+	virtual void push_back_return(int32_t type, int64_t data, LLVMValueRef expr) override {
 		return_datas.push_back(data);
 		return_types.push_back(type);
 	}
-	virtual std::unique_ptr<state_stack> copy() const {
+	virtual std::unique_ptr<state_stack> copy() const override {
 		auto temp_new = std::make_unique< interpreter_stack>(*this);
 		temp_new->min_main_depth = main_types.size();
 		temp_new->min_return_depth = return_types.size();
@@ -1960,10 +1959,10 @@ inline type_match_result match_stack_description(std::span<int32_t const> desc, 
 
 	// skip over output stack
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		match_position += next_encoded_stack_type(desc.subspan(match_position));
-		++output_stack_types;
+		//++output_stack_types;
 	}
 	//int32_t last_output_stack = match_position;
 	++match_position; // skip -1
@@ -1984,11 +1983,11 @@ inline type_match_result match_stack_description(std::span<int32_t const> desc, 
 	++match_position; // skip -1
 
 	// output ret stack
-	int32_t ret_added = 0;
+	//int32_t ret_added = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		auto result = resolve_span_type(desc.subspan(match_position), type_subs, env);
 		match_position += result.end_match_pos;
-		++ret_added;
+		//++ret_added;
 	}
 
 	return type_match_result{ true, consumed_stack_cells, consumed_rstack_cells };
@@ -2017,10 +2016,10 @@ inline void apply_stack_description(std::span<int32_t const> desc, state_stack& 
 
 	// skip over output stack
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		match_position += next_encoded_stack_type(desc.subspan(match_position));
-		++output_stack_types;
+		//++output_stack_types;
 	}
 	//int32_t last_output_stack = match_position;
 	++match_position; // skip -1
@@ -2052,12 +2051,12 @@ inline void apply_stack_description(std::span<int32_t const> desc, state_stack& 
 
 	// output ret stack
 	// add new types
-	int32_t ret_added = 0;
+	//int32_t ret_added = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		auto result = resolve_span_type(desc.subspan(match_position), type_subs, env);
 		ts.push_back_return(result.type, 0, nullptr);
 		match_position += result.end_match_pos;
-		++ret_added;
+		//++ret_added;
 	}
 }
 
@@ -2092,10 +2091,10 @@ inline stack_consumption get_stack_consumption(int32_t word, int32_t alternative
 
 	// skip over output stack
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		match_position += next_encoded_stack_type(desc.subspan(match_position));
-		++output_stack_types;
+		//++output_stack_types;
 	}
 
 	++match_position; // skip -1
@@ -2316,41 +2315,41 @@ inline LLVMTypeRef llvm_function_type_from_desc(environment& env, std::span<int3
 	int32_t match_position = 0;
 	// stack matching
 
-	int32_t consumed_stack_cells = 0;
+	//int32_t consumed_stack_cells = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		parameter_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 		++match_position;
-		++consumed_stack_cells;
+		//++consumed_stack_cells;
 	}
 
 	++match_position; // skip -1
 
 	// output stack
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		returns_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 		++match_position;
-		++output_stack_types;
+		//++output_stack_types;
 	}
 	++match_position; // skip -1
 
 	// return stack matching
-	int32_t consumed_rstack_cells = 0;
+	//int32_t consumed_rstack_cells = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		parameter_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 		++match_position;
-		++consumed_rstack_cells;
+		//++consumed_rstack_cells;
 	}
 
 	++match_position; // skip -1
 
 	// output ret stack
-	int32_t ret_added = 0;
+	//int32_t ret_added = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		returns_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 		++match_position;
-		++ret_added;
+		//++ret_added;
 	}
 
 	LLVMTypeRef ret_type = nullptr;
@@ -2384,10 +2383,10 @@ inline void llvm_make_function_parameters(environment& env, LLVMValueRef fn, sta
 
 	// output stack
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		++match_position;
-		++output_stack_types;
+		//++output_stack_types;
 	}
 	++match_position; // skip -1
 
@@ -2402,10 +2401,10 @@ inline void llvm_make_function_parameters(environment& env, LLVMValueRef fn, sta
 	++match_position; // skip -1
 
 	// output ret stack
-	int32_t ret_added = 0;
+	//int32_t ret_added = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		++match_position;
-		++ret_added;
+		//++ret_added;
 	}
 }
 
@@ -2426,11 +2425,11 @@ inline brief_fn_return llvm_function_return_type_from_desc(environment& env, std
 	int32_t match_position = 0;
 	// stack matching
 
-	int32_t consumed_stack_cells = 0;
+	//int32_t consumed_stack_cells = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		//parameter_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 		++match_position;
-		++consumed_stack_cells;
+		//++consumed_stack_cells;
 	}
 
 	++match_position; // skip -1
@@ -2446,11 +2445,11 @@ inline brief_fn_return llvm_function_return_type_from_desc(environment& env, std
 	++match_position; // skip -1
 
 	// return stack matching
-	int32_t consumed_rstack_cells = 0;
+	//int32_t consumed_rstack_cells = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		//parameter_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 		++match_position;
-		++consumed_rstack_cells;
+		//++consumed_rstack_cells;
 	}
 
 	++match_position; // skip -1
@@ -2515,33 +2514,33 @@ inline void llvm_make_function_call(environment& env, LLVMValueRef fn, std::span
 		int32_t match_position = 0;
 		// stack matching
 
-		int32_t consumed_stack_cells = 0;
+		//int32_t consumed_stack_cells = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			params.push_back(env.compiler_stack.back()->working_state()->main_ex_back(0));
 			env.compiler_stack.back()->working_state()->pop_main();
 			++match_position;
-			++consumed_stack_cells;
+			//++consumed_stack_cells;
 		}
 
 		++match_position; // skip -1
 
 		// output stack
 		int32_t first_output_stack = match_position;
-		int32_t output_stack_types = 0;
+		//int32_t output_stack_types = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			//returns_group.push_back(env.dict.type_array[desc[match_position]].llvm_type.llvm_type);
 			++match_position;
-			++output_stack_types;
+			//++output_stack_types;
 		}
 		++match_position; // skip -1
 
 		// return stack matching
-		int32_t consumed_rstack_cells = 0;
+		//int32_t consumed_rstack_cells = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			params.push_back(env.compiler_stack.back()->working_state()->return_ex_back(0));
 			env.compiler_stack.back()->working_state()->pop_return();
 			++match_position;
-			++consumed_rstack_cells;
+			//++consumed_rstack_cells;
 		}
 	}
 
@@ -2559,18 +2558,18 @@ inline void llvm_make_function_call(environment& env, LLVMValueRef fn, std::span
 		int32_t match_position = 0;
 		// stack matching
 
-		int32_t consumed_stack_cells = 0;
+		//int32_t consumed_stack_cells = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			//parameter_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 			++match_position;
-			++consumed_stack_cells;
+			//++consumed_stack_cells;
 		}
 
 		++match_position; // skip -1
 
 		// output stack
 		int32_t first_output_stack = match_position;
-		int32_t output_stack_types = 0;
+		//int32_t output_stack_types = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			if(rsummary.is_struct_type == false) { // single return value
 				env.compiler_stack.back()->working_state()->push_back_main(desc[match_position], 0, retvalue);
@@ -2579,22 +2578,22 @@ inline void llvm_make_function_call(environment& env, LLVMValueRef fn, std::span
 			}
 			++extract_index;
 			++match_position;
-			++output_stack_types;
+			//++output_stack_types;
 		}
 		++match_position; // skip -1
 
 		// return stack matching
-		int32_t consumed_rstack_cells = 0;
+		//int32_t consumed_rstack_cells = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			//parameter_group.push_back(env.dict.type_array[desc[match_position]].llvm_type);
 			++match_position;
-			++consumed_rstack_cells;
+			//++consumed_rstack_cells;
 		}
 
 		++match_position; // skip -1
 
 		// output ret stack
-		int32_t ret_added = 0;
+		//int32_t ret_added = 0;
 		while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 			if(rsummary.is_struct_type == false) { // single return value
 				env.compiler_stack.back()->working_state()->push_back_return(desc[match_position], 0, retvalue);
@@ -2603,7 +2602,7 @@ inline void llvm_make_function_call(environment& env, LLVMValueRef fn, std::span
 			}
 			++extract_index;
 			++match_position;
-			++ret_added;
+			//++ret_added;
 		}
 	}
 }
@@ -2619,16 +2618,16 @@ public:
 	environment& env;
 	const bool llvm_mode;
 
-	locals_holder(opaque_compiler_data* parent, environment& env) : opaque_compiler_data(parent), env(env), llvm_mode(env.mode == fif_mode::compiling_llvm) {
+	locals_holder(opaque_compiler_data* p, environment& env) : opaque_compiler_data(p), env(env), llvm_mode(env.mode == fif_mode::compiling_llvm) {
 	}
 
-	virtual var_data* get_var(std::string const& name) {
+	virtual var_data* get_var(std::string const& name)override {
 		if(auto it = vars.find(name); it != vars.end()) {
 			return it->second.get();
 		}
 		return parent->get_var(name);
 	}
-	virtual var_data* create_var(std::string const& name, int32_t type) {
+	virtual var_data* create_var(std::string const& name, int32_t type)override {
 		if(auto it = lets.find(name); it != lets.end()) {
 			return nullptr;
 		}
@@ -2644,13 +2643,13 @@ public:
 #endif
 		return added.first->second.get();
 	}
-	virtual let_data* get_let(std::string const& name) {
+	virtual let_data* get_let(std::string const& name) override {
 		if(auto it = lets.find(name); it != lets.end()) {
 			return it->second.get();
 		}
 		return parent->get_let(name);
 	}
-	virtual let_data* create_let(std::string const& name, int32_t type, int64_t data, LLVMValueRef expression) {
+	virtual let_data* create_let(std::string const& name, int32_t type, int64_t data, LLVMValueRef expression)override {
 		if(auto it = lets.find(name); it != lets.end()) {
 			return nullptr;
 		}
@@ -2703,7 +2702,7 @@ public:
 	int32_t for_instance = -1;
 
 
-	function_scope(opaque_compiler_data* parent, environment& env, state_stack& entry_state, int32_t for_word, int32_t for_instance) : locals_holder(parent, env), for_word(for_word), for_instance(for_instance) {
+	function_scope(opaque_compiler_data* p, environment& e, state_stack& entry_state, int32_t for_word, int32_t for_instance) : locals_holder(p, e), for_word(for_word), for_instance(for_instance) {
 		
 		initial_state = entry_state.copy();
 		iworking_state = entry_state.copy();
@@ -2752,37 +2751,37 @@ public:
 			}
 		
 	}
-	virtual std::vector<int32_t>* type_substitutions() {
+	virtual std::vector<int32_t>* type_substitutions()override {
 		return &type_subs;
 	}
-	virtual control_structure get_type() {
+	virtual control_structure get_type()override {
 		return control_structure::function;
 	}
-	virtual LLVMValueRef llvm_function() {
+	virtual LLVMValueRef llvm_function()override {
 		return llvm_fn;
 	}
-	virtual LLVMBasicBlockRef* llvm_block() {
+	virtual LLVMBasicBlockRef* llvm_block() override {
 		return &current_block;
 	}
-	virtual int32_t word_id() {
+	virtual int32_t word_id()override {
 		return for_word;
 	}
-	virtual int32_t instance_id() {
+	virtual int32_t instance_id()override {
 		return for_instance;
 	}
-	virtual std::vector<int32_t>* bytecode_compilation_progress() {
+	virtual std::vector<int32_t>* bytecode_compilation_progress()override {
 		return &compiled_bytes;
 	}
-	virtual ankerl::unordered_dense::map<uint64_t, typecheck_3_record>* typecheck_record() {
+	virtual ankerl::unordered_dense::map<uint64_t, typecheck_3_record>* typecheck_record()override {
 		return parent ? parent->typecheck_record() : nullptr;
 	}
-	virtual state_stack* working_state() {
+	virtual state_stack* working_state()override {
 		return iworking_state.get();
 	}
-	virtual void set_working_state(std::unique_ptr<state_stack> p) {
+	virtual void set_working_state(std::unique_ptr<state_stack> p) override {
 		iworking_state = std::move(p);
 	}
-	virtual bool finish(environment&) {
+	virtual bool finish(environment&)override {
 		int32_t stack_consumed = int32_t(initial_state->main_size()) - int32_t(iworking_state->min_main_depth);
 		int32_t rstack_consumed = int32_t(initial_state->return_size()) - int32_t(iworking_state->min_return_depth);
 		int32_t stack_added = int32_t(iworking_state->main_size()) - int32_t(iworking_state->min_main_depth);
@@ -2919,13 +2918,13 @@ public:
 
 class runtime_function_scope : public locals_holder {
 public:
-	runtime_function_scope(opaque_compiler_data* parent, environment& env) : locals_holder(parent, env) {
+	runtime_function_scope(opaque_compiler_data* p, environment& e) : locals_holder(p, e) {
 	}
-	virtual bool finish(environment&) {
+	virtual bool finish(environment&) override {
 		release_locals();
 		return true;
 	}
-	virtual control_structure get_type() {
+	virtual control_structure get_type() override {
 		return control_structure::function;
 	}
 };
@@ -2962,7 +2961,7 @@ public:
 	fif_mode entry_mode;
 	fif_mode running_mode;
 
-	mode_switch_scope(opaque_compiler_data* parent, environment& env, fif_mode running_mode) : opaque_compiler_data(parent), running_mode(running_mode) {
+	mode_switch_scope(opaque_compiler_data* p, environment& env, fif_mode running_mode) : opaque_compiler_data(p), running_mode(running_mode) {
 		[&]() {
 			for(auto i = env.compiler_stack.size(); i-- > 0; ) {
 				if(env.compiler_stack[i]->get_type() == control_structure::mode_switch) {
@@ -2985,32 +2984,32 @@ public:
 		env.mode = running_mode;
 	}
 
-	virtual control_structure get_type() {
+	virtual control_structure get_type()override {
 		return control_structure::mode_switch;
 	}
-	virtual ankerl::unordered_dense::map<uint64_t, typecheck_3_record>* typecheck_record() {
+	virtual ankerl::unordered_dense::map<uint64_t, typecheck_3_record>* typecheck_record() override {
 		return parent ? parent->typecheck_record() : nullptr;
 	}
-	virtual state_stack* working_state() {
+	virtual state_stack* working_state() override {
 		return interpreted_link ? interpreted_link->working_state() : nullptr;
 	}
-	virtual var_data* get_var(std::string const& name) {
+	virtual var_data* get_var(std::string const& name) override {
 		return interpreted_link ? interpreted_link->get_var(name) : nullptr;
 	}
-	virtual var_data* create_var(std::string const& name, int32_t type) {
+	virtual var_data* create_var(std::string const& name, int32_t type) override {
 		return interpreted_link ? interpreted_link->create_var(name, type) : nullptr;
 	}
-	virtual let_data* get_let(std::string const& name) {
+	virtual let_data* get_let(std::string const& name) override {
 		return interpreted_link ? interpreted_link->get_let(name) : nullptr;
 	}
-	virtual let_data* create_let(std::string const& name, int32_t type, int64_t data, LLVMValueRef expression) {
+	virtual let_data* create_let(std::string const& name, int32_t type, int64_t data, LLVMValueRef expression)override {
 		return interpreted_link ? interpreted_link->create_let(name, type, data, expression) : nullptr;
 	}
-	virtual void set_working_state(std::unique_ptr<state_stack> p) {
+	virtual void set_working_state(std::unique_ptr<state_stack> p)override {
 		if(interpreted_link)
 			interpreted_link->set_working_state(std::move(p));
 	}
-	virtual bool finish(environment& env) {
+	virtual bool finish(environment& env)override {
 		if(env.mode != fif_mode::error) {
 			env.mode = entry_mode;
 		}
@@ -3037,13 +3036,13 @@ public:
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<var_data>> global_vars;
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<let_data>> global_lets;
 
-	virtual var_data* get_var(std::string const& name) {
+	virtual var_data* get_var(std::string const& name) override {
 		if(auto it = global_vars.find(name); it != global_vars.end()) {
 			return it->second.get();
 		}
 		return nullptr;
 	}
-	virtual var_data* create_var(std::string const& name, int32_t type) {
+	virtual var_data* create_var(std::string const& name, int32_t type) override {
 		if(auto it = global_lets.find(name); it != global_lets.end()) {
 			return nullptr;
 		}
@@ -3056,13 +3055,13 @@ public:
 		added.first->second->alloc = nullptr;
 		return added.first->second.get();
 	}
-	virtual let_data* get_let(std::string const& name) {
+	virtual let_data* get_let(std::string const& name) override {
 		if(auto it = global_lets.find(name); it != global_lets.end()) {
 			return it->second.get();
 		}
 		return nullptr;
 	}
-	virtual let_data* create_let(std::string const& name, int32_t type, int64_t data, LLVMValueRef expression) {
+	virtual let_data* create_let(std::string const& name, int32_t type, int64_t data, LLVMValueRef expression) override {
 		if(auto it = global_lets.find(name); it != global_lets.end()) {
 			return nullptr;
 		}
@@ -3081,16 +3080,16 @@ public:
 
 	outer_interpreter(environment& env) : opaque_compiler_data(nullptr), interpreter_state(std::make_unique<interpreter_stack>()) {
 	}
-	virtual control_structure get_type() {
+	virtual control_structure get_type() override {
 		return control_structure::none;
 	}
-	virtual state_stack* working_state() {
+	virtual state_stack* working_state()override {
 		return interpreter_state.get();
 	}
-	virtual void set_working_state(std::unique_ptr<state_stack> p) {
+	virtual void set_working_state(std::unique_ptr<state_stack> p) override {
 		interpreter_state = std::move(p);
 	}
-	virtual bool finish(environment& env) {
+	virtual bool finish(environment& env)override {
 		return true;
 	}
 };
@@ -3098,16 +3097,16 @@ class typecheck3_record_holder : public opaque_compiler_data {
 public:
 	ankerl::unordered_dense::map<uint64_t, typecheck_3_record> tr;
 
-	typecheck3_record_holder(opaque_compiler_data* parent, environment& env) : opaque_compiler_data(parent) {
+	typecheck3_record_holder(opaque_compiler_data* p, environment& env) : opaque_compiler_data(p) {
 	}
 
-	virtual control_structure get_type() {
+	virtual control_structure get_type() override {
 		return control_structure::none;
 	}
-	virtual ankerl::unordered_dense::map<uint64_t, typecheck_3_record>* typecheck_record() {
+	virtual ankerl::unordered_dense::map<uint64_t, typecheck_3_record>* typecheck_record()override {
 		return &tr;
 	}
-	virtual bool finish(environment& env) {
+	virtual bool finish(environment& env)override {
 		return true;
 	}
 };
@@ -3144,12 +3143,12 @@ inline std::vector<int32_t> expand_stack_description(state_stack& initial_stack_
 	}
 
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		auto match_size = next_encoded_stack_type(desc.subspan(match_position));
 		result.insert(result.end(), desc.data() + match_position, desc.data() + match_position + match_size);
 		match_position += match_size;
-		++output_stack_types;
+		//++output_stack_types;
 	}
 
 	if(rstack_consumed > 0 || (match_position < int32_t(desc.size()) && desc[match_position] == -1)) {
@@ -3254,7 +3253,7 @@ public:
 	size_t bytecode_first_branch_point = 0;
 	size_t bytecode_second_branch_point = 0;
 
-	conditional_scope(opaque_compiler_data* parent, environment& env, state_stack& entry_state) : locals_holder(parent, env) {	
+	conditional_scope(opaque_compiler_data* p, environment& e, state_stack& entry_state) : locals_holder(p, e) {	
 		if(entry_state.main_size() == 0 || entry_state.main_type_back(0) != fif_bool) {
 			env.report_error("attempted to start an if without a boolean value on the stack");
 			env.mode = fif_mode::error;
@@ -3364,16 +3363,16 @@ public:
 			}
 		}
 	}
-	virtual control_structure get_type() {
+	virtual control_structure get_type()override {
 		return control_structure::str_if;
 	}
-	virtual state_stack* working_state() {
+	virtual state_stack* working_state() override {
 		return iworking_state.get();
 	}
-	virtual void set_working_state(std::unique_ptr<state_stack> p) {
+	virtual void set_working_state(std::unique_ptr<state_stack> p)override {
 		iworking_state = std::move(p);
 	}
-	virtual bool finish(environment&) {
+	virtual bool finish(environment&)override {
 		if(interpreter_skipped_second_branch) {
 			env.mode = fif_mode::interpreting;
 		}
@@ -3591,7 +3590,7 @@ public:
 	LLVMBasicBlockRef body_block = nullptr;
 	std::vector<LLVMValueRef> phinodes;
 
-	while_loop_scope(opaque_compiler_data* parent, environment& env, state_stack& entry_state) : locals_holder(parent, env) {
+	while_loop_scope(opaque_compiler_data* p, environment& e, state_stack& entry_state) : locals_holder(p, e) {
 		initial_state = entry_state.copy();
 		iworking_state = entry_state.copy();
 		initial_state->min_main_depth = entry_state.min_main_depth;
@@ -3622,13 +3621,13 @@ public:
 		}
 	}
 
-	virtual control_structure get_type() {
+	virtual control_structure get_type()override {
 		return control_structure::str_while_loop;
 	}
-	virtual state_stack* working_state() {
+	virtual state_stack* working_state() override {
 		return iworking_state.get();
 	}
-	virtual void set_working_state(std::unique_ptr<state_stack> p) {
+	virtual void set_working_state(std::unique_ptr<state_stack> p) override {
 		iworking_state = std::move(p);
 	}
 	void end_condition(environment&) {
@@ -3706,7 +3705,7 @@ public:
 			}
 		}
 	}
-	virtual bool finish(environment&) {
+	virtual bool finish(environment&) override {
 		if(env.mode == fif_mode::typechecking_lvl1_failed && intepreter_skip_body) {
 			env.mode = fif_mode::interpreting;
 			
@@ -3946,7 +3945,7 @@ public:
 	LLVMBasicBlockRef body_block = nullptr;
 	std::vector<LLVMValueRef> phinodes;
 
-	do_loop_scope(opaque_compiler_data* parent, environment& env, state_stack& entry_state) : locals_holder(parent, env) {
+	do_loop_scope(opaque_compiler_data* p, environment& e, state_stack& entry_state) : locals_holder(p, e) {
 		initial_state = entry_state.copy();
 		iworking_state = entry_state.copy();
 		initial_state->min_main_depth = entry_state.min_main_depth;
@@ -3977,19 +3976,19 @@ public:
 		}
 	}
 
-	virtual control_structure get_type() {
+	virtual control_structure get_type() override {
 		return control_structure::str_do_loop;
 	}
-	virtual state_stack* working_state() {
+	virtual state_stack* working_state() override {
 		return iworking_state.get();
 	}
-	virtual void set_working_state(std::unique_ptr<state_stack> p) {
+	virtual void set_working_state(std::unique_ptr<state_stack> p) override {
 		iworking_state = std::move(p);
 	}
 	void at_until(environment&) {
 		// don't actually need to do anything here ...
 	}
-	virtual bool finish(environment&) {
+	virtual bool finish(environment&)override {
 		release_locals();
 
 		if(env.mode == fif_mode::interpreting) {
@@ -5059,11 +5058,11 @@ inline LLVMValueRef make_exportable_function(std::string const& export_name, std
 
 	// output stack
 	int32_t first_output_stack = match_position;
-	int32_t output_stack_types = 0;
+	//int32_t output_stack_types = 0;
 	while(match_position < int32_t(desc.size()) && desc[match_position] != -1) {
 		//returns_group.push_back(env.dict.type_array[desc[match_position]].llvm_type.llvm_type);
 		++match_position;
-		++output_stack_types;
+		//++output_stack_types;
 	}
 	++match_position; // skip -1
 

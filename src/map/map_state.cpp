@@ -1077,6 +1077,8 @@ void map_state::update(sys::state& state) {
 		case sys::map_zoom_mode::centered:
 			//no pos change
 			break;
+		default:
+			break;
 		}
 	}
 

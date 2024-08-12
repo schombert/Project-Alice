@@ -82,6 +82,8 @@ public:
 		case 3:
 			command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -112,6 +114,8 @@ public:
 				break;
 			case 3:
 				text::add_line(state, contents, "diplomacy_prio_high");
+				break;
+			default:
 				break;
 			}
 		}
@@ -1683,6 +1687,8 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 					}
 				}
 			}
+			break;
+		default:
 			break;
 
 		}

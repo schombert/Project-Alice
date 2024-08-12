@@ -1604,6 +1604,8 @@ public:
 		case gp_choice_actions::decrease_opinion:
 			set_text(state, text::produce_simple_string(state, "decreaseopiniontitle"));
 			break;
+		default:
+			break;
 		}
 
 	}
@@ -1627,6 +1629,8 @@ public:
 			break;
 		case gp_choice_actions::decrease_opinion:
 			set_text(state, text::produce_simple_string(state, "decreaseopinion_desc"));
+			break;
+		default:
 			break;
 		}
 
@@ -1791,6 +1795,8 @@ public:
 
 		}
 		break;
+		default:
+			break;
 		}
 	}
 };
