@@ -1341,6 +1341,7 @@ void initialize_jit_fif_environment(sys::state& state, fif::environment& env) {
 	auto nation_id_type = env.dict.types.find("nation_id")->second;
 	auto prov_id_type = env.dict.types.find("province_id")->second;
 
+#ifdef USING_LLVM
 	fif::add_import("current-year", f_date_to_year, f_date_to_year_b, { fif::fif_i64 }, { fif::fif_i32 }, env);
 	fif::add_import("current-month", f_date_to_month, f_date_to_month_b, { fif::fif_i64 }, { fif::fif_i32 }, env);
 	fif::add_import("empty-a-province", f_empty_adjacent_province, f_empty_adjacent_province_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
@@ -1386,6 +1387,7 @@ void initialize_jit_fif_environment(sys::state& state, fif::environment& env) {
 	fif::add_import("relations", f_relations, f_relations_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
 	fif::add_import("can-build-naval-base?", f_can_build_naval_base, f_can_build_naval_base_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 	fif::add_import("ranked-nation-array", f_ranked_nations, f_ranked_nations_b, { fif::fif_opaque_ptr }, { fif::fif_opaque_ptr }, env);
+#endif
 
 	fif::run_fif_interpreter(env,
 		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "
