@@ -3127,7 +3127,7 @@ inline std::vector<int32_t> expand_stack_description(state_stack& initial_stack_
 		++consumed_stack_cells;
 	}
 	if(consumed_stack_cells < stack_consumed) {
-		for(int32_t i = consumed_stack_cells; consumed_stack_cells < stack_consumed; ++i) {
+		for(int32_t i = consumed_stack_cells; i < stack_consumed; ++i) {
 			result.push_back(initial_stack_state.main_type_back(i));
 		}
 	}
@@ -3166,7 +3166,7 @@ inline std::vector<int32_t> expand_stack_description(state_stack& initial_stack_
 		++consumed_rstack_cells;
 	}
 	if(consumed_rstack_cells < rstack_consumed) {
-		for(int32_t i = consumed_rstack_cells; consumed_rstack_cells < rstack_consumed; ++i) {
+		for(int32_t i = consumed_rstack_cells; i < rstack_consumed; ++i) {
 			result.push_back(initial_stack_state.return_type_back(i));
 		}
 	}
