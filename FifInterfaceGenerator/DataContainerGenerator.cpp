@@ -536,9 +536,9 @@ int main(int argc, char* argv[]) {
 		} // end creation / deletion reoutines creation loop
 
 		//iterate over all routines
-		for(auto& cob : parsed_file.relationship_objects) {
+		//for(auto& cob : parsed_file.relationship_objects) {
 			//output += make_iterate_over_objects(o, cob).to_string(2);
-		}
+		//}
 
 
 		for(auto& ob : parsed_file.relationship_objects) {
