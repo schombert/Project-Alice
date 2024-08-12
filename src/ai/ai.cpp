@@ -1152,11 +1152,11 @@ void update_ai_econ_construction(sys::state& state) {
 					max_projects -= 4;
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
-				if(o.get_province().get_building_level(economy::province_building_type::naval_base) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
+				if(o.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
 					continue;
 
-				int32_t current_lvl = o.get_province().get_building_level(economy::province_building_type::naval_base);
-				int32_t max_local_lvl = n.get_max_building_level(economy::province_building_type::naval_base);
+				int32_t current_lvl = o.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base));
+				int32_t max_local_lvl = n.get_max_building_level(uint8_t(economy::province_building_type::naval_base));
 				int32_t min_build = int32_t(o.get_province().get_modifier_values(sys::provincial_mod_offsets::min_build_naval_base));
 
 				if(max_local_lvl - current_lvl - min_build <= 0)
@@ -1204,8 +1204,8 @@ void update_ai_econ_construction(sys::state& state) {
 						continue;
 					if(military::province_is_under_siege(state, o.get_province()))
 						continue;
-					int32_t current_lvl = state.world.province_get_building_level(o.get_province(), econ_buildable[i].type);
-					int32_t max_local_lvl = state.world.nation_get_max_building_level(n, econ_buildable[i].type);
+					int32_t current_lvl = state.world.province_get_building_level(o.get_province(), uint8_t(econ_buildable[i].type));
+					int32_t max_local_lvl = state.world.nation_get_max_building_level(n, uint8_t(econ_buildable[i].type));
 					int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), econ_buildable[i].mod));
 					if(max_local_lvl - current_lvl - min_build <= 0)
 						continue;
@@ -1247,8 +1247,8 @@ void update_ai_econ_construction(sys::state& state) {
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 
-				int32_t current_lvl = state.world.province_get_building_level(o.get_province(), economy::province_building_type::fort);
-				int32_t max_local_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::fort);
+				int32_t current_lvl = state.world.province_get_building_level(o.get_province(), uint8_t(economy::province_building_type::fort));
+				int32_t max_local_lvl = state.world.nation_get_max_building_level(n, uint8_t(economy::province_building_type::fort));
 				int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), sys::provincial_mod_offsets::min_build_fort));
 
 				if(max_local_lvl - current_lvl - min_build <= 0)
@@ -3463,7 +3463,7 @@ void build_ships(sys::state& state) {
 
 					for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < n.get_naval_supply_points(); ++j) {
 						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-							&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
+							&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 							assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_transport));
 							auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 							c.set_type(best_transport);
@@ -3477,7 +3477,7 @@ void build_ships(sys::state& state) {
 
 					for(uint32_t j = 0; j < owned_ports.size() && num_transports < 10; ++j) {
 						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-							&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
+							&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 							assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_transport));
 							auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 							c.set_type(best_transport);
@@ -3503,7 +3503,7 @@ void build_ships(sys::state& state) {
 
 				for(uint32_t j = 0; j < owned_ports.size() && supply_pts <= free_small_points; ++j) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
+						&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 						assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_light));
 						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 						c.set_type(best_light);
@@ -3518,7 +3518,7 @@ void build_ships(sys::state& state) {
 
 				for(uint32_t j = 0; j < owned_ports.size() && supply_pts <= free_big_points; ++j) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
+						&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 						assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_big));
 						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
 						c.set_type(best_big);
@@ -3537,11 +3537,11 @@ dcon::province_id get_home_port(sys::state& state, dcon::nation_id n) {
 	float current_distance = 1.0f;
 	for(auto p : state.world.nation_get_province_ownership(n)) {
 		if(p.get_province().get_is_coast() && p.get_province().get_nation_from_province_control() == n) {
-			if(p.get_province().get_building_level(economy::province_building_type::naval_base) > max_level) {
-				max_level = p.get_province().get_building_level(economy::province_building_type::naval_base);
+			if(p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)) > max_level) {
+				max_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base));
 				result = p.get_province();
 				current_distance = province::sorting_distance(state, cap, p.get_province());
-			} else if(result && p.get_province().get_building_level(economy::province_building_type::naval_base) == max_level && province::sorting_distance(state, cap, p.get_province()) < current_distance) {
+			} else if(result && p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)) == max_level && province::sorting_distance(state, cap, p.get_province()) < current_distance) {
 				current_distance = province::sorting_distance(state, cap, p.get_province());
 				result = p.get_province();
 			}
@@ -4446,7 +4446,7 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	// terrain defensive bonus
 	float terrain_bonus = state.world.province_get_modifier_values(state.world.army_get_location_from_army_location(a), sys::provincial_mod_offsets::defense);
 	scale += terrain_bonus;
-	float defender_fort = 1.0f + 0.1f * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), economy::province_building_type::fort);
+	float defender_fort = 1.0f + 0.1f * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::fort));
 	scale += defender_fort;
 	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);

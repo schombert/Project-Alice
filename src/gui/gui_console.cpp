@@ -1373,7 +1373,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 std::string ui::format_fif_value(sys::state& state, int64_t data, int32_t type) {
 	if(type == fif::fif_i8 || type == fif::fif_i16 || type == fif::fif_i32 || type == fif::fif_i64) {
 		return std::to_string(data);
-	} else if(type == fif::fif_ui8 || type == fif::fif_ui16 || type == fif::fif_ui32 || type == fif::fif_ui64) {
+	} else if(type == fif::fif_u8 || type == fif::fif_u16 || type == fif::fif_u32 || type == fif::fif_u64) {
 		return std::to_string(uint64_t(data));
 	} else if(type == fif::fif_f32) {
 		float v = 0;

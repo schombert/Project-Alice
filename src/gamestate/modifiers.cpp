@@ -609,12 +609,12 @@ void recreate_province_modifiers(sys::state& state) {
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(state.economy_definitions.building_definitions[int32_t(t)].province_modifier) {
 			bulk_apply_scaled_modifier_to_provinces(state, state.economy_definitions.building_definitions[int32_t(t)].province_modifier,
-					[&](auto ids) { return ve::to_float(state.world.province_get_building_level(ids, t)); });
+					[&](auto ids) { return ve::to_float(state.world.province_get_building_level(ids, uint8_t(t))); });
 		}
 	}
 	if(state.national_definitions.infrastructure) {
 		bulk_apply_scaled_modifier_to_provinces(state, state.national_definitions.infrastructure, [&](auto ids) {
-			return ve::to_float(state.world.province_get_building_level(ids, economy::province_building_type::railroad)) *
+			return ve::to_float(state.world.province_get_building_level(ids, uint8_t(economy::province_building_type::railroad))) *
 						 state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure;
 		});
 	}

@@ -534,7 +534,7 @@ public:
 				&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
 				&& (state.military_definitions.unit_base_definitions[utid].active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
 					for(const auto prov : provinces) {
-						auto const port_level = state.world.province_get_building_level(prov, economy::province_building_type::naval_base);
+						auto const port_level = state.world.province_get_building_level(prov, uint8_t(economy::province_building_type::naval_base));
 						if(port_level >= state.military_definitions.unit_base_definitions[utid].min_port_level
 						&& command::can_start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province)) {
 							command::start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province);
@@ -621,7 +621,7 @@ public:
 				&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
 				&& (state.military_definitions.unit_base_definitions[utid].active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
 					for(const auto prov : provinces) {
-						auto const port_level = state.world.province_get_building_level(prov, economy::province_building_type::naval_base);
+						auto const port_level = state.world.province_get_building_level(prov, uint8_t(economy::province_building_type::naval_base));
 						if(port_level >= state.military_definitions.unit_base_definitions[utid].min_port_level
 						&& command::can_start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province)) {
 							rem_to_build[i]--;

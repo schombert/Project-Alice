@@ -956,6 +956,7 @@ bool f_nation_has_any_factory(sys::state* state, int32_t s_index) {
 		if(rng.begin() != rng.end())
 			return true;
 	}
+	return false;
 }
 int32_t* f_nation_has_any_factory_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(fif::typechecking_mode(e->mode)) {
@@ -1071,6 +1072,209 @@ int32_t* f_movement_str_b(fif::state_stack& s, int32_t* p, fif::environment* e) 
 	s.push_back_main(fif::fif_f32, data, nullptr);
 	return p + 2;
 }
+float f_influence_on(sys::state* state, int32_t t_index, int32_t n_index) {
+	dcon::nation_id gp{ dcon::nation_id::value_base_t(n_index) };
+	dcon::nation_id t{ dcon::nation_id::value_base_t(t_index) };
+
+	auto gpr = state->world.get_gp_relationship_by_gp_influence_pair(t, gp);
+	return state->world.gp_relationship_get_influence(gpr);
+}
+int32_t* f_influence_on_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_f32, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t sindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	auto fres = f_influence_on(state, sindex, nindex);
+	int64_t data = 0;
+	memcpy(&data, &fres, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+	return p + 2;
+}
+float f_relations(sys::state* state, int32_t t_index, int32_t n_index) {
+	dcon::nation_id n{ dcon::nation_id::value_base_t(n_index) };
+	dcon::nation_id t{ dcon::nation_id::value_base_t(t_index) };
+
+	auto rel = state->world.get_diplomatic_relation_by_diplomatic_pair(t, n);
+	return state->world.diplomatic_relation_get_value(rel);
+}
+int32_t* f_relations_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_f32, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t sindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	auto fres = f_relations(state, sindex, nindex);
+	int64_t data = 0;
+	memcpy(&data, &fres, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+	return p + 2;
+}
+bool f_has_union_sphere(sys::state* state, int32_t s_index) {
+	dcon::nation_id n{ dcon::nation_id::value_base_t(s_index) };
+	auto prim_culture = state->world.nation_get_primary_culture(n);
+	auto culture_group = state->world.culture_get_group_from_culture_group_membership(prim_culture);
+
+	for(auto s : state->world.nation_get_gp_relationship_as_great_power(n)) {
+		if((s.get_status() & nations::influence::level_mask) == nations::influence::level_in_sphere &&
+				s.get_influence_target().get_primary_culture().get_group_from_culture_group_membership() == culture_group) {
+				return true;
+		}
+	}
+	return false;
+}
+int32_t* f_has_union_sphere_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	s.push_back_main(fif::fif_bool, f_has_union_sphere(state, nindex), nullptr);
+	return p + 2;
+}
+bool f_state_rgo(sys::state* state, int32_t cindex, int32_t sindex) {
+	dcon::commodity_id c{ dcon::commodity_id::value_base_t(cindex) };
+	dcon::state_instance_id si{ dcon::state_instance_id::value_base_t(sindex) };
+
+	auto o = state->world.state_instance_get_nation_from_state_ownership(si);
+	auto d = state->world.state_instance_get_definition(si);
+	for(auto p : state->world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			if(p.get_province().get_rgo() == c)
+				return true;
+		}
+	}
+
+	return false;
+}
+int32_t* f_state_rgo_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t tindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	s.push_back_main(fif::fif_bool, f_state_rgo(state, nindex, tindex), nullptr);
+	return p + 2;
+}
+bool f_in_crisis(sys::state* state, int32_t nindex) {
+	dcon::nation_id n{ dcon::nation_id::value_base_t(nindex) };
+
+	auto sz = state->crisis_participants.size();
+	for(uint32_t i = 0; i < sz; ++i) {
+		if(!state->crisis_participants[i].id)
+			return false;
+		if(state->crisis_participants[i].id == n)
+			return true;
+	}
+	return false;
+}
+int32_t* f_in_crisis_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); 
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	s.push_back_main(fif::fif_bool, f_in_crisis(state, nindex), nullptr);
+	return p + 2;
+}
+bool f_can_build_naval_base(sys::state* state, int32_t cindex, int32_t sindex) {
+	dcon::province_id p{ dcon::province_id::value_base_t(cindex) };
+	dcon::nation_id n{ dcon::nation_id::value_base_t(sindex) };
+
+	return state->world.province_get_is_coast(p)
+		&& (state->world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) < state->world.nation_get_max_building_level(n, uint8_t(economy::province_building_type::naval_base)))
+		&& (state->world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) != 0 || !military::state_has_naval_base(*state, state->world.province_get_state_membership(p)));
+}
+int32_t* f_can_build_naval_base_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t tindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	s.push_back_main(fif::fif_bool, f_can_build_naval_base(state, nindex, tindex), nullptr);
+	return p + 2;
+}
+void* f_ranked_nations(sys::state* state) {
+	return state->nations_by_rank.data();
+}
+int32_t* f_ranked_nations_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main();
+		s.push_back_main(fif::fif_opaque_ptr, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int64_t res = (int64_t)(f_ranked_nations(state));
+
+	s.push_back_main(fif::fif_opaque_ptr, res, nullptr);
+	return p + 2;
+}
+
+std::string state_to_owner() {
+	return "state_ownership-state nation @ ";
+}
+std::string province_to_owner() {
+	return "province_ownership-province nation @ ";
+}
+std::string province_to_controller() {
+	return "province_control-province nation @ ";
+}
+std::string pop_to_location() {
+	return "pop_location-pop province @ ";
+}
+std::string pop_to_owner() {
+	return pop_to_location() + province_to_owner();
+}
+std::string nation_to_tag() {
+	return "identity_holder-nation @ identity ";
+}
+std::string tag_to_nation() {
+	return "identity_holder-identity nation @ ";
+}
+
 void initialize_jit_fif_environment(sys::state& state, fif::environment& env) {
 	fif::initialize_standard_vocab(env);
 
@@ -1135,14 +1339,92 @@ void initialize_jit_fif_environment(sys::state& state, fif::environment& env) {
 	fif::add_import("global-flag-set?", f_global_flag_set, f_global_flag_set_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 	fif::add_import("can-nationalize?", f_can_nationalize, f_can_nationalize_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 	fif::add_import("movement-str", f_movement_str, f_movement_str_b, { fif::fif_i32, fif::fif_bool, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
+	fif::add_import("has-union-sphere?", f_has_union_sphere, f_has_union_sphere_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("state-has-rgo?", f_state_rgo, f_state_rgo_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("in-crisis?", f_in_crisis, f_in_crisis_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("influence-on", f_influence_on, f_influence_on_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
+	fif::add_import("relations", f_relations, f_relations_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
+	fif::add_import("can-build-naval-base?", f_can_build_naval_base, f_can_build_naval_base_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("ranked-nation-array", f_ranked_nations, f_ranked_nations_b, { fif::fif_opaque_ptr }, { fif::fif_opaque_ptr }, env);
 
 	fif::run_fif_interpreter(env,
 		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "
 		" : start-date " + std::to_string(offsetof(sys::state, start_date)) + " state-ptr @ buf-add ptr-cast ptr(i64) ; "
-		" : current-date " + std::to_string(offsetof(sys::state, current_date)) + " state-ptr @ buf-add ptr-cast ptr(i16) ; "
+		" : current-date " + std::to_string(offsetof(sys::state, current_date)) + " state-ptr @ buf-add ptr-cast ptr(u16) ; "
 		" : crisis-state " + std::to_string(offsetof(sys::state, crisis_state)) + " state-ptr @ buf-add ptr-cast ptr(state_instance_id) ; "
 		" : sea-province? >index first-sea-province @ >index >= ; "
 		" : nth-adjacent index @ connected_provinces .wrapped dup ptr-cast ptr(nil) 2 swap buf-add ptr-cast ptr(province_id) @ swap @ dup r@ = not select ; "
+
+		":struct gp-iterator ptr(nil) base i32 count i32 size i32 gp-count ; "
+		":s next gp-iterator s: let it it .count " + std::to_string(sizeof(dcon::nation_id)) + " * it .base buf-add ptr-cast ptr(nation_id) @ it .count@ 1 + swap .count! swap ; "
+		":s more? gp-iterator s: let it it .count it .size < it .gp-count " + std::to_string(state.defines.great_nations_count) + " < and it swap ; "
+		":s inc-gp gp-iterator s: .gp-count@ 1 + swap .gp-count! ; "
+		": make-gp-it make gp-iterator state-ptr @ ranked-nation-array swap .base! nation-size swap .size! ; "
+
+		":struct state-prov-iterator vpool-abstract_state_membership-state base i32 count state_instance_id parent ; "
+		":s next state-prov-iterator s: let it it .base it .count index @ province it .count@ 1 - swap .count! swap dup state_membership @ it .parent = ; "
+		":s more? state-prov-iterator s: .count@ 0 >= ; "
+		": make-sp-it  dup definition @ abstract_state_membership-state make state-prov-iterator .base! .parent! .base@ size 1 - swap .count! ; "
+
+		":struct nation-prov-iterator vpool-province_ownership-nation base i32 count ; "
+		":s next nation-prov-iterator s: let it it .base it .count index @ province it .count@ 1 - swap .count! swap ; "
+		":s more? nation-prov-iterator s: .count@ 0 >= ; "
+		": make-n-it  province_ownership-nation make nation-prov-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct pcore-iterator vpool-core-province base i32 count ; "
+		":s next pcore-iterator s: let it it .base it .count index @ identity @ " + tag_to_nation() + " it .count@ 1 - swap .count! swap ; "
+		":s more? pcore-iterator s: .count@ 0 >= ; "
+		": make-pc-it  core-province make pcore-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct ncore-iterator vpool-core-identity base i32 count ; "
+		":s next ncore-iterator s: let it it .base it .count index @ province @ it .count@ 1 - swap .count! swap ; "
+		":s more? ncore-iterator s: .count@ 0 >= ; "
+		": make-nc-it  core-identity make ncore-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct nation-state-iterator vpool-state_ownership-nation base i32 count ; "
+		":s next nation-state-iterator s: let it it .base it .count index @ state it .count@ 1 - swap .count! swap ; "
+		":s more? nation-state-iterator s: .count@ 0 >= ; "
+		": make-ns-it  state_ownership-nation make nation-state-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct nation-vassal-iterator vpool-overlord-ruler base i32 count ; "
+		":s next nation-vassal-iterator s: let it it .base it .count index @ subject it .count@ 1 - swap .count! swap ; "
+		":s more? nation-vassal-iterator s: .count@ 0 >= ; "
+		": make-nv-it  overlord-ruler make nation-vassal-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct nation-gp-iterator vpool-gp_relationship-great_power base i32 count ; "
+		":s next nation-gp-iterator s: let it it .base it .count index @ dup influence_target @ swap status @ >i32 " + std::to_string(nations::influence::level_mask) + " and " + std::to_string(nations::influence::level_in_sphere) + " = >r it .count@ 1 - swap .count! swap r> ; "
+		":s more? nation-gp-iterator s: .count@ 0 >= ; "
+		": make-ngp-it  gp_relationship-great_power make nation-gp-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct prov-pop-iterator vpool-pop_location-province base i32 count ; "
+		":s next prov-pop-iterator s: let it it .base it .count index @ pop it .count@ 1 - swap .count! swap ; "
+		":s more? prov-pop-iterator s: .count@ 0 >= ; "
+		": make-pp-it  pop_location-province make prov-pop-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct astate-prov-iterator vpool-abstract_state_membership-state base i32 count ; "
+		":s next astate-prov-iterator s: let it it .base it .count index @ province it .count@ 1 - swap .count! swap ; "
+		":s more? astate-prov-iterator s: .count@ 0 >= ; "
+		": make-asp-it abstract_state_membership-state make astate-prov-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct aregion-prov-iterator vpool-region_membership-region base i32 count ; "
+		":s next aregion-prov-iterator s: let it it .base it .count index @ province @ it .count@ 1 - swap .count! swap ; "
+		":s more? aregion-prov-iterator s: .count@ 0 >= ; "
+		": make-arp-it region_membership-region make aregion-prov-iterator .base! .base@ size 1 - swap .count! ; "
+
+		":struct adj-prov-iterator vpool-province_adjacency-connected_provinces base i32 count province_id parent ; "
+		":s next adj-prov-iterator s: let it it .base it .count index @ dup >r "
+			"connected_provinces .wrapped dup ptr-cast ptr(nil) " + std::to_string(sizeof(dcon::province_id)) + " swap buf-add ptr-cast ptr(province_id) @ swap @ dup it .parent = not select "
+			"it .count@ 1 - swap .count! swap "
+			"r> type @ " + std::to_string(int32_t(province::border::impassible_bit)) + " >i8 and 0 >i8 = ; "
+		":s more? adj-prov-iterator s: .count@ 0 >= ; "
+		": make-ap-it  dup province_adjacency-connected_provinces make adj-prov-iterator .base! .parent! .base@ size 1 - swap .count! ; "
+
+		":struct adj-nation-iterator vpool-nation_adjacency-connected_nations base i32 count nation_id parent ; "
+		":s next adj-nation-iterator s: let it it .base it .count index @ "
+			"connected_nations .wrapped dup ptr-cast ptr(nil) " + std::to_string(sizeof(dcon::nation_id)) + " swap buf-add ptr-cast ptr(nation_id) @ swap @ dup it .parent = not select "
+			"it .count@ 1 - swap .count! swap ; "
+		":s more? adj-nation-iterator s: .count@ 0 >= ; "
+		": make-an-it  dup nation_adjacency-connected_nations make adj-nation-iterator .base! .parent! .base@ size 1 - swap .count! ; "
 		,
 		values);
 
@@ -1225,673 +1507,692 @@ TRIGGER_FUNCTION(tf_generic_scope) {
 	return apply_subtriggers(tval, ws);
 }
 
-/*
-auto existence_accumulator(sys::state& ws, uint16_t const* tval, int32_t this_slot, int32_t from_slot) {
-	return make_true_accumulator([&ws, tval, this_slot, from_slot](ve::tagged_vector<int32_t> v) {
-		return apply_subtriggers<ve::mask_vector, ve::tagged_vector<int32_t>, int32_t, int32_t>(tval, ws, v, this_slot, from_slot);
-	});
-}
-
-auto universal_accumulator(sys::state& ws, uint16_t const* tval, int32_t this_slot, int32_t from_slot) {
-	return make_false_accumulator([&ws, tval, this_slot, from_slot](ve::tagged_vector<int32_t> v) {
-		return apply_subtriggers<ve::mask_vector, ve::tagged_vector<int32_t>, int32_t, int32_t>(tval, ws, v, this_slot, from_slot);
-	});
-}
-*/
-
-/*
 TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
-	return ve::apply(
-			[&ws, tval](int32_t prov_id, int32_t t_slot, int32_t f_slot) {
-				auto prov_tag = to_prov(prov_id);
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
-						if((adj.get_type() & province::border::impassible_bit) == 0) {
-							auto other = adj.get_connected_provinces(prov_tag == adj.get_connected_provinces(0) ? 1 : 0).id;
-							accumulator.add_value(to_generic(other));
-						}
-					}
-					accumulator.flush();
-
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
-						if((adj.get_type() & province::border::impassible_bit) == 0) {
-							auto other = adj.get_connected_provinces(prov_tag == adj.get_connected_provinces(0) ? 1 : 0).id;
-							accumulator.add_value(to_generic(other));
-						}
-					}
-					accumulator.flush();
-
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-ap-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // ap on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-ap-it"
+			"while more? r@ and "
+			"loop "
+				"next " // ap on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
-	return ve::apply(
-		[&ws, tval](int32_t s_id, int32_t t_slot, int32_t f_slot) {
-			auto state_tag = to_state(s_id);
-
-			std::vector<dcon::province_id> vadj;
-			vadj.reserve(32);
-
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(state_tag))) {
-				if(p.get_province().get_state_membership() == state_tag) {
-					for(auto adj : p.get_province().get_province_adjacency()) {
-						if((adj.get_type() & province::border::impassible_bit) == 0) {
-							auto other = (p.get_province() == adj.get_connected_provinces(0)) ? adj.get_connected_provinces(1).id : adj.get_connected_provinces(0).id;
-							if(std::find(vadj.begin(), vadj.end(), other) == vadj.end())
-								vadj.push_back(other);
-						}
-					}
-				}
-			}
-
-			if(*tval & trigger::is_existence_scope) {
-				auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-				for(auto p : vadj)
-					accumulator.add_value(to_generic(p));
-
-				accumulator.flush();
-				return accumulator.result;
-			} else {
-				auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-				for(auto p : vadj)
-					accumulator.add_value(to_generic(p));
-
-				accumulator.flush();
-				return accumulator.result;
-			}
-			},
-	primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-sp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // it ap on top
+				"if " // [it ap] [SI bool]
+					"swap r> swap >r >r " // [p] [si it bool]
+					"make-ap-it " // [apit] [si it bool]
+					"while more? r@ not and "
+					"loop "
+						"next " // [apit p2] [si it bool]
+						"dup state_membership @ r> r> .parent@ swap >r swap >r = not "
+						"if "
+							"swap >r " // hide it
+							+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+							"r> drop >r "                                               // replace bool value with new bool
+						"else "
+							"drop "
+						"end-if "
+					"end-while "
+					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool]
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-sp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // it ap on top
+				"if " // [it ap] [SI bool]
+					"swap r> swap >r >r " // [p] [si it bool]
+					"make-ap-it " // [apit] [si it bool]
+					"while more? r@ and "
+					"loop "
+						"next " // [apit p2] [si it bool]
+						"dup state_membership @ r> r> .parent@ swap >r swap >r = not "
+						"if "
+							"swap >r " // hide it
+							+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+							"r> drop >r "                                               // replace bool value with new bool
+						"else "
+							"drop "
+						"end-if "
+					"end-while "
+					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool]
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_neighbor_country_scope_nation) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = to_nation(p_slot);
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto adj : ws.world.nation_get_nation_adjacency(nid)) {
-						auto iid = (nid == adj.get_connected_nations(0)) ? adj.get_connected_nations(1).id : adj.get_connected_nations(0).id;
-
-						accumulator.add_value(to_generic(iid));
-						if(accumulator.result)
-							return true;
-					}
-					accumulator.flush();
-
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-					for(auto adj : ws.world.nation_get_nation_adjacency(nid)) {
-						auto iid = (nid == adj.get_connected_nations(0)) ? adj.get_connected_nations(1).id : adj.get_connected_nations(0).id;
-
-						accumulator.add_value(to_generic(iid));
-						if(!accumulator.result)
-							return false;
-					}
-					accumulator.flush();
-
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-an-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // ap on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-an-it"
+			"while more? r@ and "
+			"loop "
+				"next " // ap on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_neighbor_country_scope_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto province_owner = ws.world.province_get_nation_from_province_ownership(location);
-
-	return tf_x_neighbor_country_scope_nation<return_type>(tval, ws, to_generic(province_owner), this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r " + pop_to_owner() + "false >r make-an-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // ap on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r " + pop_to_owner() + "true >r make-an-it"
+			"while more? r@ and "
+			"loop "
+				"next " // ap on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_war_countries_scope_nation) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = to_nation(p_slot);
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto wars_in : ws.world.nation_get_war_participant(nid)) {
-						auto is_attacker = wars_in.get_is_attacker();
-						for(auto o : wars_in.get_war().get_war_participant()) {
-							if(o.get_is_attacker() != is_attacker && o.get_nation() != nid) {
-								accumulator.add_value(to_generic(o.get_nation().id));
-								if(accumulator.result)
-									return true;
-							}
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto wars_in : ws.world.nation_get_war_participant(nid)) {
-						auto is_attacker = wars_in.get_is_attacker();
-						for(auto o : wars_in.get_war().get_war_participant()) {
-							if(o.get_is_attacker() != is_attacker && o.get_nation() != nid) {
-								accumulator.add_value(to_generic(o.get_nation().id));
-								if(!accumulator.result)
-									return false;
-							}
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "false >r dup >r " // note : removes nation from stack entirely
+			"nation_adjacency-connected_nations dup size "  // R bool, nation
+			"while 1 - dup 0 >= r> swap r@ not and swap >r " //war_participant_id
+			"loop "
+				"2dup index @ dup is_attacker @ >r " //war_participant_id on stack, R bool, nation, is attacker
+				"war @ war_participant-war dup size"
+				"while 1 - dup 0 >= r> swap r> swap r@ not and swap >r swap >r "
+				"loop "
+					"2dup index @ dup is_attacker @ r@ <> "
+					"if "
+						"nation @ "
+						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
+						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
+					"else "
+						"drop "
+					"end-if "
+				"end-while "
+				"drop drop r> drop " // drop array, index, is attacker
+			"end-while "
+			"drop drop r> r> " // drop array, index, move stored self nation to stack,  move bool to stack
+			;
+	} else {
+		return "true >r dup >r " // note : removes nation from stack entirely
+			"nation_adjacency-connected_nations dup size "  // R bool, nation
+			"while 1 - dup 0 >= r> swap r@ and swap >r " //war_participant_id
+			"loop "
+				"2dup index @ dup is_attacker @ >r " //war_participant_id on stack, R bool, nation, is attacker
+				"war @ war_participant-war dup size"
+				"while 1 - dup 0 >= r> swap r> swap r@ and swap >r swap >r "
+				"loop "
+					"2dup index @ dup is_attacker @ r@ <> "
+					"if "
+						"nation @ "
+						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
+						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
+					"else "
+						"drop "
+					"end-if "
+				"end-while "
+				"drop drop r> drop " // drop array, index, is attacker
+			"end-while "
+			"drop drop r> r> " // drop array, index, move stored self nation to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_war_countries_scope_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto province_owner = ws.world.province_get_nation_from_province_ownership(location);
-
-	return tf_x_war_countries_scope_nation<return_type>(tval, ws, to_generic(province_owner), this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return ">r r@ " + pop_to_owner() + "false >r dup >r " // note : removes nation from stack entirely
+			"nation_adjacency-connected_nations dup size "  // R bool, nation
+			"while 1 - dup 0 >= r> swap r@ not and swap >r " //war_participant_id
+			"loop "
+				"2dup index @ dup is_attacker @ >r " //war_participant_id on stack, R bool, nation, is attacker
+				"war @ war_participant-war dup size"
+				"while 1 - dup 0 >= r> swap r> swap r@ not and swap >r swap >r "
+				"loop "
+					"2dup index @ dup is_attacker @ r@ <> "
+					"if "
+						"nation @ "
+						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
+						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
+					"else "
+						"drop "
+					"end-if "
+				"end-while "
+				"drop drop r> drop " // drop array, index, is attacker
+			"end-while "
+			"drop drop r> drop r> r> swap "// drop array, index, move stored self nation to stack,  move bool to stack
+			;
+	} else {
+		return ">r r@ " + pop_to_owner() + "true >r dup >r " // note : removes nation from stack entirely
+			"nation_adjacency-connected_nations dup size "  // R bool, nation
+			"while 1 - dup 0 >= r> swap r@ and swap >r " //war_participant_id
+			"loop "
+				"2dup index @ dup is_attacker @ >r " //war_participant_id on stack, R bool, nation, is attacker
+				"war @ war_participant-war dup size"
+				"while 1 - dup 0 >= r> swap r> swap r@ and swap >r swap >r "
+				"loop "
+					"2dup index @ dup is_attacker @ r@ <> "
+					"if "
+						"nation @ "
+						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
+						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
+					"else "
+						"drop "
+					"end-if "
+				"end-while "
+				"drop drop r> drop " // drop array, index, is attacker
+			"end-while "
+			"drop drop r> drop r> r> swap " // drop array, index, move stored self nation to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_country_scope) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					uint32_t added = 0;
-					for(auto n : ws.world.in_nation) {
-						if(n.get_owned_province_count() != 0) {
-							accumulator.add_value(to_generic(n.id));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto n : ws.world.in_nation) {
-						if(n.get_owned_province_count() != 0) {
-							accumulator.add_value(to_generic(n.id));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-		primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return ">r false >r nation-size @" // note : removes nation from stack entirely
+			"while 1 - dup 0 >= r@ not and "
+			"loop "
+				"dup >nation_id " // adjacent nation on top
+				"swap >r "                                                            // hide index
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  index, move stored self nation to stack,  move bool to stack
+			;
+	} else {
+		return ">r true >r nation-size @" // note : removes nation from stack entirely
+			"while 1 - dup 0 >= r@ and "
+			"loop "
+				"dup >nation_id " // adjacent nation on top
+				"swap >r "                                                            // hide index
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  index, move stored self nation to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_greater_power_scope) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				uint32_t great_nations_count = uint32_t(ws.defines.great_nations_count);
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					uint32_t added = 0;
-					for(uint32_t i = 0; i < ws.nations_by_rank.size() && added < great_nations_count; ++i) {
-						if(nations::is_great_power(ws, ws.nations_by_rank[i])) {
-							++added;
-							accumulator.add_value(to_generic(ws.nations_by_rank[i]));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					uint32_t added = 0;
-					for(uint32_t i = 0; i < ws.nations_by_rank.size() && added < great_nations_count; ++i) {
-						if(nations::is_great_power(ws, ws.nations_by_rank[i])) {
-							++added;
-							accumulator.add_value(to_generic(ws.nations_by_rank[i]));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return ">r false >r make-gp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // nation on top
+				"dup is_great_power @ "
+				"if "
+					"swap inc-gp >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return ">r true >r make-gp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // nation on top
+				"dup is_great_power @ "
+				"if "
+					"swap inc-gp >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto sid = to_state(p_slot);
-				dcon::state_definition_fat_id state_def = fatten(ws.world, ws.world.state_instance_get_definition(sid));
-				auto owner = ws.world.state_instance_get_nation_from_state_ownership(sid);
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : state_def.get_abstract_state_membership()) {
-						if(p.get_province().get_nation_from_province_ownership() == owner) {
-							accumulator.add_value(to_generic(p.get_province().id));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : state_def.get_abstract_state_membership()) {
-						if(p.get_province().get_nation_from_province_ownership() == owner) {
-							accumulator.add_value(to_generic(p.get_province().id));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-sp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // prov + properly in state on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-sp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // prov + properly in state on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_owned_province_scope_nation) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = fatten(ws.world, to_nation(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : nid.get_province_ownership()) {
-						accumulator.add_value(to_generic(p.get_province().id));
-						if(accumulator.result)
-							return true;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : nid.get_province_ownership()) {
-						accumulator.add_value(to_generic(p.get_province().id));
-						if(!accumulator.result)
-							return false;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-n-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // prov on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-n-it"
+			"while more? r@ and "
+			"loop "
+				"next " // prov on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_core_scope_province) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				dcon::province_fat_id pid = fatten(ws.world, to_prov(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : pid.get_core()) {
-						auto holder = p.get_identity().get_nation_from_identity_holder();
-						if(holder) {
-							accumulator.add_value(to_generic(holder.id));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : pid.get_core()) {
-						auto holder = p.get_identity().get_nation_from_identity_holder();
-						if(holder) {
-							accumulator.add_value(to_generic(holder.id));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-pc-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-pc-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 TRIGGER_FUNCTION(tf_x_core_scope_nation) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = fatten(ws.world, to_nation(p_slot));
-				auto ident = nid.get_identity_holder_as_nation().get_identity();
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : ident.get_core()) {
-						accumulator.add_value(to_generic(p.get_province().id));
-						if(accumulator.result)
-							return true;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : ident.get_core()) {
-						accumulator.add_value(to_generic(p.get_province().id));
-						if(!accumulator.result)
-							return false;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-nc-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	} else {
+		return "dup >r true >r make-nc-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+			;
+	}
 }
 
 TRIGGER_FUNCTION(tf_x_state_scope) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = fatten(ws.world, to_nation(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto s : nid.get_state_ownership()) {
-						accumulator.add_value(to_generic(s.get_state().id));
-						if(accumulator.result)
-							return true;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto s : nid.get_state_ownership()) {
-						accumulator.add_value(to_generic(s.get_state().id));
-						if(!accumulator.result)
-							return false;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-ns-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return "dup >r true >r make-ns-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_substate_scope) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = fatten(ws.world, to_nation(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto v : nid.get_overlord_as_ruler()) {
-						if(v.get_subject().get_is_substate()) {
-							accumulator.add_value(to_generic(v.get_subject().id));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto v : nid.get_overlord_as_ruler()) {
-						if(v.get_subject().get_is_substate()) {
-							accumulator.add_value(to_generic(v.get_subject().id));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-nv-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"dup is_substate @ "
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return "dup >r true >r make-nv-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"dup is_substate @ "
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_sphere_member_scope) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = fatten(ws.world, to_nation(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto gpr : nid.get_gp_relationship_as_great_power()) {
-						if((nations::influence::level_mask & gpr.get_status()) == nations::influence::level_in_sphere) {
-							accumulator.add_value(to_generic(gpr.get_influence_target().id));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto gpr : nid.get_gp_relationship_as_great_power()) {
-						if((nations::influence::level_mask & gpr.get_status()) == nations::influence::level_in_sphere) {
-							accumulator.add_value(to_generic(gpr.get_influence_target().id));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-ngp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return "dup >r true >r make-ngp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"if "
+					"swap >r " // hide it                        
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_pop_scope_province) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				dcon::province_fat_id pid = fatten(ws.world, to_prov(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto i : pid.get_pop_location()) {
-						accumulator.add_value(to_generic(i.get_pop().id));
-						if(accumulator.result)
-							return true;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto i : pid.get_pop_location()) {
-						accumulator.add_value(to_generic(i.get_pop().id));
-						if(!accumulator.result)
-							return false;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-pp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return "dup >r true >r make-pp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_pop_scope_state) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto sid = to_state(p_slot);
-				dcon::state_definition_fat_id state_def = fatten(ws.world, ws.world.state_instance_get_definition(sid));
-				auto owner = ws.world.state_instance_get_nation_from_state_ownership(sid);
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : state_def.get_abstract_state_membership()) {
-						if(p.get_province().get_nation_from_province_ownership() == owner) {
-							for(auto i : p.get_province().get_pop_location()) {
-								accumulator.add_value(to_generic(i.get_pop().id));
-								if(accumulator.result)
-									return true;
-							}
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : state_def.get_abstract_state_membership()) {
-						if(p.get_province().get_nation_from_province_ownership() == owner) {
-							for(auto i : p.get_province().get_pop_location()) {
-								accumulator.add_value(to_generic(i.get_pop().id));
-								if(!accumulator.result)
-									return false;
-							}
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-sp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // v on top
+				"if "
+					"swap r> swap >r >r " // hide it [IT bool]
+					"make-pp-it " // state -> it
+					"while more? r@ not and "
+					"loop "
+						"next " // p on top
+						"swap >r " // hide it
+						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+						"r> drop >r "                                               // replace bool value with new bool
+					"end-while "
+					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return "dup >r true >r make-sp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // v on top
+				"if "
+					"swap r> swap >r >r " // hide it [IT bool]
+					"make-pp-it " // state -> it
+					"while more? r@ and "
+					"loop "
+						"next " // p on top
+						"swap >r " // hide it
+						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+						"r> drop >r "                                               // replace bool value with new bool
+					"end-while "
+					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_pop_scope_nation) {
-	return ve::apply(
-			[&ws, tval](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				auto nid = fatten(ws.world, to_nation(p_slot));
-
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : nid.get_province_ownership()) {
-						for(auto i : p.get_province().get_pop_location()) {
-							accumulator.add_value(to_generic(i.get_pop().id));
-							if(accumulator.result)
-								return true;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto p : nid.get_province_ownership()) {
-						for(auto i : p.get_province().get_pop_location()) {
-							accumulator.add_value(to_generic(i.get_pop().id));
-							if(!accumulator.result)
-								return false;
-						}
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-			primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return "dup >r false >r make-n-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // v on top
+				"if "
+					"swap r> swap >r >r " // hide it [IT bool]
+					"make-pp-it " // state -> it
+					"while more? r@ not and "
+					"loop "
+						"next " // p on top
+						"swap >r " // hide it
+						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+						"r> drop >r "                                               // replace bool value with new bool
+					"end-while "
+					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return "dup >r true >r make-n-it"
+			"while more? r@ and "
+			"loop "
+				"next " // v on top
+				"if "
+					"swap r> swap >r >r " // hide it [IT bool]
+					"make-pp-it " // state -> it
+					"while more? r@ and "
+					"loop "
+						"next " // p on top
+						"swap >r " // hide it
+						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+						"r> drop >r "                                               // replace bool value with new bool
+					"end-while "
+					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
+				"else "
+					"drop "
+				"end-if "
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_provinces_in_variable_region) {
-	auto state_def = trigger::payload(*(tval + 2)).state_id;
-
-	return ve::apply(
-			[&ws, tval, state_def](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto i : ws.world.state_definition_get_abstract_state_membership(state_def)) {
-						accumulator.add_value(to_generic(i.get_province().id));
-						if(accumulator.result)
-							return true;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto i : ws.world.state_definition_get_abstract_state_membership(state_def)) {
-						accumulator.add_value(to_generic(i.get_province().id));
-						if(!accumulator.result)
-							return false;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-		primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return ">r false >r " + std::to_string(trigger::payload(*(tval + 2)).state_id.index()) + " >state_definition_id make-asp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return ">r true >r " + std::to_string(trigger::payload(*(tval + 2)).state_id.index()) + " >state_definition_id make-asp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
 TRIGGER_FUNCTION(tf_x_provinces_in_variable_region_proper) {
-	auto state_def = trigger::payload(*(tval + 2)).reg_id;
-
-	return ve::apply(
-			[&ws, tval, state_def](int32_t p_slot, int32_t t_slot, int32_t f_slot) {
-				if(*tval & trigger::is_existence_scope) {
-					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto i : ws.world.region_get_region_membership(state_def)) {
-						accumulator.add_value(to_generic(i.get_province().id));
-						if(accumulator.result)
-							return true;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				} else {
-					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
-					for(auto i : ws.world.region_get_region_membership(state_def)) {
-						accumulator.add_value(to_generic(i.get_province().id));
-						if(!accumulator.result)
-							return false;
-					}
-
-					accumulator.flush();
-					return accumulator.result;
-				}
-			},
-		primary_slot, this_slot, from_slot);
+	if(*tval & trigger::is_existence_scope) {
+		return ">r false >r " + std::to_string(trigger::payload(*(tval + 2)).reg_id.index()) + " >region_id make-arp-it"
+			"while more? r@ not and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	} else {
+		return ">r true >r " + std::to_string(trigger::payload(*(tval + 2)).reg_id.index()) + " >region_id make-arp-it"
+			"while more? r@ and "
+			"loop "
+				"next " // n on top
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+			"end-while "
+			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
+		;
+	}
 }
-/**/
 
-std::string state_to_owner() {
-	return "state_ownership-state nation @ ";
-}
-std::string province_to_owner() {
-	return "province_ownership-province nation @ ";
-}
-std::string province_to_controller() {
-	return "province_control-province nation @ ";
-}
 
 TRIGGER_FUNCTION(tf_owner_scope_state) {
 	std::string result;
@@ -1914,12 +2215,7 @@ TRIGGER_FUNCTION(tf_controller_scope) {
 	result += "swap drop r> swap ";
 	return result;
 }
-std::string pop_to_location() {
-	return "pop_location-pop province @ ";
-}
-std::string pop_to_owner() {
-	return pop_to_location() + province_to_owner();
-}
+
 TRIGGER_FUNCTION(tf_location_scope) {
 	std::string result;
 	result += "dup >r " + pop_to_location();
@@ -2116,13 +2412,13 @@ TRIGGER_FUNCTION(tf_technology_pop) {
 	return "dup " + pop_to_owner() + std::to_string(trigger::payload(tval[1]).tech_id.index()) + " >technology_id active_technologies @ " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_strata_rich) {
-	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::rich)) + " >ui8 " + compare_values_eq(tval[0]);
+	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::rich)) + " >u8 " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_strata_middle) {
-	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::middle)) + " >ui8 " + compare_values_eq(tval[0]);
+	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::middle)) + " >u8 " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_strata_poor) {
-	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::poor)) + " >ui8 " + compare_values_eq(tval[0]);
+	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::poor)) + " >u8 " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_life_rating_province) {
 	return "dup life_rating @ " + std::to_string(trigger::payload(tval[1]).signed_value) + " >i8 " + compare_values(tval[0]);
@@ -2224,19 +2520,19 @@ TRIGGER_FUNCTION(tf_is_independant) {
 	return "dup overlord-subject ruler @ valid? not " + truth_inversion(tval[0]);
 }
 
-std::string demo_culture_key() {
-	return ">index " + std::to_string(demographics::count_special_keys) + " + pop_type-size 2 * + >demographics_key ";
+std::string demo_culture_key(sys::state& ws) {
+	return ">index " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " + >demographics_key ";
 }
 TRIGGER_FUNCTION(tf_has_national_minority_province) {
-	return "dup dup " + province_to_owner() + " primary_culture @ " + demo_culture_key() + "demographics @ >r"
+	return "dup dup " + province_to_owner() + " primary_culture @ " + demo_culture_key(ws) + "demographics @ >r"
 		"dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ r> <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_national_minority_state) {
-	return "dup dup " + state_to_owner() + " primary_culture @ " + demo_culture_key() + "demographics @ >r"
+	return "dup dup " + state_to_owner() + " primary_culture @ " + demo_culture_key(ws) + "demographics @ >r"
 		"dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ r> <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_national_minority_nation) {
-	return "dup dup primary_culture @ " + demo_culture_key() + "demographics @ >r"
+	return "dup dup primary_culture @ " + demo_culture_key(ws) + "demographics @ >r"
 		"dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ r> <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_government_nation) {
@@ -2407,14 +2703,6 @@ TRIGGER_FUNCTION(tf_has_faction_pop) {
 TRIGGER_FUNCTION(tf_has_unclaimed_cores) {
 	return "dup >index state-ptr @ unowned-core " + truth_inversion(tval[0]);
 }
-
-std::string nation_to_tag() {
-	return "identity_holder-nation @ identity ";
-}
-std::string tag_to_nation() {
-	return "identity_holder-identity nation @ ";
-}
-
 TRIGGER_FUNCTION(tf_have_core_in_nation_tag) {
 	return "dup identity_holder-nation @ identity >index " + std::to_string(trigger::payload(tval[1]).tag_id.index()) + " >national_identity_id identity_holder-identity nation @ >index state-ptr @ core-in-nation " + truth_inversion(tval[0]);
 }
@@ -3403,10 +3691,10 @@ TRIGGER_FUNCTION(tf_alliance_with_this_pop) {
 	return ">r dup " + pop_to_owner() + ">index r> swap >r dup >index r> state-ptr @ are-allied? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_recently_lost_war) {
-	return "dup last_war_loss ptr-cast ptr(ui16) @ >i32 dup 0 <> >r 365 5 * + current-date @ >i32 >= r> and " + truth_inversion(tval[0]);
+	return "dup last_war_loss ptr-cast ptr(u16) @ >i32 dup 0 <> >r 365 5 * + current-date @ >i32 >= r> and " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_recently_lost_war_pop) {
-	return "dup " + pop_to_owner() + "last_war_loss ptr-cast ptr(ui16) @ >i32 dup 0 <> >r 365 5 * + current-date @ >i32 >= r> and " + truth_inversion(tval[0]);
+	return "dup " + pop_to_owner() + "last_war_loss ptr-cast ptr(u16) @ >i32 dup 0 <> >r 365 5 * + current-date @ >i32 >= r> and " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_mobilised) {
 	return "dup is_mobilized @ " + truth_inversion(tval[0]);
@@ -3474,7 +3762,7 @@ TRIGGER_FUNCTION(tf_always) {
 	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_election) {
-	return "dup election_ends ptr-cast ptr(ui16) @ >i32 dup 0 <> swap current-date @ >i32 > and " + truth_inversion(tval[0]);
+	return "dup election_ends ptr-cast ptr(u16) @ >i32 dup 0 <> swap current-date @ >i32 > and " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_global_flag) {
 	return std::to_string(trigger::payload(tval[1]).glob_id.index()) + " state-ptr @ global-flag-set? " + truth_inversion(tval[0]);
@@ -3763,7 +4051,7 @@ TRIGGER_FUNCTION(tf_this_culture_union_this_union_pop) {
 }
 TRIGGER_FUNCTION(tf_minorities_nation) {
 	return "dup dup >r " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ "
-		"r@ " + std::to_string(demographics::count_special_keys) + " pop_type-size 2 * + r@ primary_culture @ >index + >demographics_key demographics @ - "
+		"r@ " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " r@ primary_culture @ >index + >demographics_key demographics @ - "
 		"0 "
 		"while "
 			"dup culture-size < "
@@ -3771,7 +4059,7 @@ TRIGGER_FUNCTION(tf_minorities_nation) {
 			"dup >culture_id r@ swap accepted_cultures @ "
 			"if "
 				"dup r@ swap >r "
-				+ std::to_string(demographics::count_special_keys) + " pop_type-size 2 * + r> + >demographics_key demographics @ "
+				+ std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " r> + >demographics_key demographics @ "
 				">r swap r> - swap "
 			"then "
 			"1 + "
@@ -3781,7 +4069,7 @@ TRIGGER_FUNCTION(tf_minorities_nation) {
 }
 TRIGGER_FUNCTION(tf_minorities_state) {
 	return "dup dup >r " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ "
-		"r@ " + std::to_string(demographics::count_special_keys) + " pop_type-size 2 * + r@ " + state_to_owner() + "primary_culture @ >index + >demographics_key demographics @ - "
+		"r@ " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " r@ " + state_to_owner() + "primary_culture @ >index + >demographics_key demographics @ - "
 		"0 "
 		"while "
 			"dup culture-size < "
@@ -3789,7 +4077,7 @@ TRIGGER_FUNCTION(tf_minorities_state) {
 			"dup >culture_id r@ " + state_to_owner() + "swap accepted_cultures @ "
 			"if "
 				"dup r@ swap >r "
-				+ std::to_string(demographics::count_special_keys) + " pop_type-size 2 * + r> + >demographics_key demographics @ "
+				+ std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " r> + >demographics_key demographics @ "
 				">r swap r> - swap "
 			"then "
 			"1 + "
@@ -3799,7 +4087,7 @@ TRIGGER_FUNCTION(tf_minorities_state) {
 }
 TRIGGER_FUNCTION(tf_minorities_province) {
 	return "dup dup >r " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ "
-		"r@ " + std::to_string(demographics::count_special_keys) + " pop_type-size 2 * + r@ " + province_to_owner() + "primary_culture @ >index + >demographics_key demographics @ - "
+		"r@ " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " r@ " + province_to_owner() + "primary_culture @ >index + >demographics_key demographics @ - "
 		"0 "
 		"while "
 			"dup culture-size < "
@@ -3807,7 +4095,7 @@ TRIGGER_FUNCTION(tf_minorities_province) {
 			"dup >culture_id r@ " + province_to_owner() + "swap accepted_cultures @ "
 			"if "
 				"dup r@ swap >r "
-				+ std::to_string(demographics::count_special_keys) + " pop_type-size 2 * + r> + >demographics_key demographics @ "
+				+ std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " r> + >demographics_key demographics @ "
 				">r swap r> - swap "
 			"then "
 			"1 + "
@@ -3951,16 +4239,16 @@ TRIGGER_FUNCTION(tf_is_releasable_vassal_other) {
 	return ">r >r dup " + nation_to_tag() + "is_not_releasable @ not r> swap r> swap" + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_recent_imigration) {
-	return "dup last_immigration ptr-cast ptr(ui16) @ >i32 " + std::to_string(tval[1]) + " + current-date @ >i32 " + compare_values(tval[0]);
+	return "dup last_immigration ptr-cast ptr(u16) @ >i32 " + std::to_string(tval[1]) + " + current-date @ >i32 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_province_control_days) {
-	return "dup last_control_change ptr-cast ptr(ui16) @ >i32 " + std::to_string(tval[1]) + " + current-date @ >i32 " + compare_values(tval[0]);
+	return "dup last_control_change ptr-cast ptr(u16) @ >i32 " + std::to_string(tval[1]) + " + current-date @ >i32 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_disarmed) {
-	return "dup disarmed_until ptr-cast ptr(ui16) @ >i32 dup 0 <> swap current-date @ >i32 > and " + truth_inversion(tval[0]);
+	return "dup disarmed_until ptr-cast ptr(u16) @ >i32 dup 0 <> swap current-date @ >i32 > and " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_disarmed_pop) {
-	return "dup " + pop_to_owner() + "disarmed_until ptr-cast ptr(ui16) @ >i32 dup 0 <> swap current-date @ >i32 > and " + truth_inversion(tval[0]);
+	return "dup " + pop_to_owner() + "disarmed_until ptr-cast ptr(u16) @ >i32 dup 0 <> swap current-date @ >i32 > and " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_big_producer) {
 	return "false " + truth_inversion(tval[0]);
@@ -3996,1160 +4284,648 @@ TRIGGER_FUNCTION(tf_political_movement_from_reb) {
 TRIGGER_FUNCTION(tf_social_movement_from_reb) {
 	return "false " + truth_inversion(tval[0]);
 }
-
 TRIGGER_FUNCTION(tf_has_cultural_sphere) {
-	auto prim_culture = ws.world.nation_get_primary_culture(to_nation(this_slot));
-	auto culture_group = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
-
-	auto result = ve::apply(
-			[&ws](dcon::nation_id n, dcon::culture_group_id g) {
-				for(auto s : ws.world.nation_get_gp_relationship_as_great_power(n)) {
-					if((s.get_status() & nations::influence::level_mask) == nations::influence::level_in_sphere &&
-							s.get_influence_target().get_primary_culture().get_group_from_culture_group_membership() == g) {
-						return true;
-					}
-				}
-				return false;
-			},
-			to_nation(primary_slot), culture_group);
-
-	return compare_to_true(tval[0], result);
+	return "dup >index state-ptr @ has-union-sphere? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_world_wars_enabled) {
 	return std::to_string(offsetof(sys::state, military_definitions) + offsetof(military::global_military_state, world_wars_enabled)) + " state-ptr @ buf-add ptr-cast ptr(i8) @ 0 >i8 <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_pop_this_pop) {
-	return compare_values_eq(tval[0], ws.world.pop_get_culture(to_pop(primary_slot)), ws.world.pop_get_culture(to_pop(this_slot)));
+	return ">r dup culture @ r> swap >r dup culture r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_state_this_pop) {
-	auto culture = ws.world.pop_get_culture(to_pop(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::state_instance_id s, dcon::culture_id c) {
-				return bool(c) ? ws.world.state_instance_get_demographics(s, demographics::to_key(ws, c)) > 0.0f : false;
-			},
-			to_state(primary_slot), culture);
-	return compare_to_true(tval[0], result);
+	return ">r dup culture @ >index r> swap >r dup r> " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " + >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_province_this_pop) {
-	auto culture = ws.world.pop_get_culture(to_pop(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::province_id s, dcon::culture_id c) {
-				return bool(c) ? ws.world.province_get_demographics(s, demographics::to_key(ws, c)) > 0.0f : false;
-			},
-			to_prov(primary_slot), culture);
-	return compare_to_true(tval[0], result);
+	return ">r dup culture @ >index r> swap >r dup r> " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " + >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_nation_this_pop) {
-	auto culture = ws.world.pop_get_culture(to_pop(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::nation_id s, dcon::culture_id c) {
-				return bool(c) ? ws.world.nation_get_demographics(s, demographics::to_key(ws, c)) > 0.0f : false;
-			},
-			to_nation(primary_slot), culture);
-	return compare_to_true(tval[0], result);
+	return ">r dup culture @ >index r> swap >r dup r> " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " + >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_pop) {
-	return compare_values_eq(tval[0], ws.world.pop_get_culture(to_pop(primary_slot)), payload(tval[1]).cul_id);
+	return "dup culture @ >index " + std::to_string(trigger::payload(tval[1]).cul_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_state) {
-	return compare_to_true(tval[0],
-			ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, payload(tval[1]).cul_id)) > 0.0f);
+	return "dup " + std::to_string(trigger::payload(tval[1]).cul_id.index() + demographics::count_special_keys + ws.world.pop_type_size() * 2) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_province) {
-	return compare_to_true(tval[0],
-			ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, payload(tval[1]).cul_id)) > 0.0f);
+	return "dup " + std::to_string(trigger::payload(tval[1]).cul_id.index() + demographics::count_special_keys + ws.world.pop_type_size() * 2) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_culture_nation) {
-	return compare_to_true(tval[0],
-			ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, payload(tval[1]).cul_id)) > 0.0f);
+	return "dup " + std::to_string(trigger::payload(tval[1]).cul_id.index() + demographics::count_special_keys + ws.world.pop_type_size() * 2) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_pop_this_pop) {
-	return compare_values_eq(tval[0], ws.world.pop_get_religion(to_pop(primary_slot)),
-			ws.world.pop_get_religion(to_pop(this_slot)));
+	return ">r dup religion @ r> swap >r dup religion r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_state_this_pop) {
-	auto rel = ws.world.pop_get_religion(to_pop(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::state_instance_id s, dcon::religion_id r) {
-				return bool(r) ? ws.world.state_instance_get_demographics(s, demographics::to_key(ws, r)) > 0.0f : false;
-			},
-			to_state(primary_slot), rel);
-	return compare_to_true(tval[0], result);
+	return ">r dup religion @ >index r> swap >r dup r> " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2 + ws.world.culture_size() + ws.world.ideology_size() + ws.world.issue_option_size()) + " + >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_province_this_pop) {
-	auto rel = ws.world.pop_get_religion(to_pop(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::province_id s, dcon::religion_id r) {
-				return bool(r) ? ws.world.province_get_demographics(s, demographics::to_key(ws, r)) > 0.0f : false;
-			},
-			to_prov(primary_slot), rel);
-	return compare_to_true(tval[0], result);
+	return ">r dup religion @ >index r> swap >r dup r> " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2 + ws.world.culture_size() + ws.world.ideology_size() + ws.world.issue_option_size()) + " + >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_nation_this_pop) {
-	auto rel = ws.world.pop_get_religion(to_pop(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::nation_id s, dcon::religion_id r) {
-				return bool(r) ? ws.world.nation_get_demographics(s, demographics::to_key(ws, r)) > 0.0f : false;
-			},
-			to_nation(primary_slot), rel);
-	return compare_to_true(tval[0], result);
+	return ">r dup religion @ >index r> swap >r dup r> " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2 + ws.world.culture_size() + ws.world.ideology_size() + ws.world.issue_option_size()) + " + >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_pop) {
-	return compare_values_eq(tval[0], ws.world.pop_get_religion(to_pop(primary_slot)), payload(tval[1]).rel_id);
+	return "dup religion @ >index " + std::to_string(trigger::payload(tval[1]).rel_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_state) {
-	return compare_to_true(tval[0],
-			ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, payload(tval[1]).rel_id)) > 0.0f);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).rel_id).index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_province) {
-	return compare_to_true(tval[0],
-			ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, payload(tval[1]).rel_id)) > 0.0f);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).rel_id).index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_religion_nation) {
-	return compare_to_true(tval[0],
-			ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, payload(tval[1]).rel_id)) > 0.0f);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).rel_id).index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_life_needs) {
-	return compare_values(tval[0], ws.world.pop_get_life_needs_satisfaction(to_pop(primary_slot)),
-			read_float_from_payload(tval + 1));
+	return "dup life_needs_satisfaction @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_everyday_needs) {
-	return compare_values(tval[0], ws.world.pop_get_everyday_needs_satisfaction(to_pop(primary_slot)),
-			read_float_from_payload(tval + 1));
+	return "dup everyday_needs_satisfaction @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_luxury_needs) {
-	return compare_values(tval[0], ws.world.pop_get_luxury_needs_satisfaction(to_pop(primary_slot)),
-			read_float_from_payload(tval + 1));
+	return "dup luxury_needs_satisfaction @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_consciousness_pop) {
-	return compare_values(tval[0], ws.world.pop_get_consciousness(to_pop(primary_slot)), read_float_from_payload(tval + 1));
+	return "dup consciousness @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_consciousness_province) {
-	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::consciousness) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::consciousness.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_consciousness_state) {
-	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::consciousness) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::consciousness.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_consciousness_nation) {
-	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::consciousness) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::consciousness.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_literacy_pop) {
-	return compare_values(tval[0], ws.world.pop_get_literacy(to_pop(primary_slot)), read_float_from_payload(tval + 1));
+	return "dup literacy @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_literacy_province) {
-	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::literacy) / total_pop,
-				0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::literacy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_literacy_state) {
-	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::literacy) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::literacy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_literacy_nation) {
-	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::literacy) / total_pop,
-				0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::literacy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_militancy_pop) {
-	return compare_values(tval[0], ws.world.pop_get_militancy(to_pop(primary_slot)), read_float_from_payload(tval + 1));
+	return "dup militancy @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_militancy_province) {
-	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::militancy) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::militancy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_militancy_state) {
-	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::militancy) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::militancy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_militancy_nation) {
-	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
-	return compare_values(tval[0],
-			ve::select(total_pop != 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::militancy) / total_pop, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::militancy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_trade_goods_in_state_state) {
-	auto g = payload(tval[1]).com_id;
-	auto sdef = ws.world.state_instance_get_definition(to_state(primary_slot));
-	auto sowner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	auto result = ve::apply(
-			[&ws, g](dcon::state_definition_id sd, dcon::nation_id o) {
-				for(auto p : ws.world.state_definition_get_abstract_state_membership(sd)) {
-					if(p.get_province().get_nation_from_province_ownership() == o) {
-						if(p.get_province().get_rgo() == g)
-							return true;
-					}
-				}
-				return false;
-			},
-			sdef, sowner);
-	return compare_to_true(tval[0], result);
+	return "dup >index " + std::to_string(trigger::payload(tval[1]).com_id.index()) + " state-ptr @ state-has-rgo? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_trade_goods_in_state_province) {
-	auto g = payload(tval[1]).com_id;
-	auto si = ws.world.province_get_state_membership(to_prov(primary_slot));
-	auto sdef = ws.world.state_instance_get_definition(si);
-	auto sowner = ws.world.state_instance_get_nation_from_state_ownership(si);
-	auto result = ve::apply(
-			[&ws, g](dcon::state_definition_id sd, dcon::nation_id o) {
-				for(auto p : ws.world.state_definition_get_abstract_state_membership(sd)) {
-					if(p.get_province().get_nation_from_province_ownership() == o) {
-						if(p.get_province().get_rgo() == g)
-							return true;
-					}
-				}
-				return false;
-			},
-			sdef, sowner);
-	return compare_to_true(tval[0], result);
+	return "dup state_membership @ >index " + std::to_string(trigger::payload(tval[1]).com_id.index()) + " state-ptr @ state-has-rgo? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_flashpoint) {
-	return compare_to_true(tval[0],
-			ws.world.state_instance_get_flashpoint_tag(to_state(primary_slot)) != dcon::national_identity_id());
+	return "dup flashpoint_tag @ valid? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_flashpoint_tension) {
-	return compare_values(tval[0], ws.world.state_instance_get_flashpoint_tension(to_state(primary_slot)),
-			read_float_from_payload(tval + 1));
+	return "dup flashpoint_tension @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_flashpoint_tension_province) {
-	return compare_values(tval[0], ws.world.state_instance_get_flashpoint_tension(ws.world.province_get_state_membership(to_prov(primary_slot))),
-			read_float_from_payload(tval + 1));
+	return "dup state_membership @ flashpoint_tension @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_crisis_exist) {
-	return compare_to_true(tval[0], ws.current_crisis != sys::crisis_type::none);
+	return std::to_string(offsetof(sys::state, current_crisis)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_type::none)) + " <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_liberation_crisis) {
-	return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::liberation);
+	return std::to_string(offsetof(sys::state, current_crisis)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_type::liberation)) + "  " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
-	return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::claim);
+	return std::to_string(offsetof(sys::state, current_crisis)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_type::claim)) + "  " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_crisis_temperature) {
-	return compare_values(tval[0], ws.crisis_temperature, read_float_from_payload(tval + 1));
+	return std::to_string(offsetof(sys::state, crisis_temperature)) + " state-ptr @ buf-add ptr-cast ptr(f32) @ " + std::to_string(read_float_from_payload(tval + 1)) + "  " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_involved_in_crisis_nation) {
-	auto result = ve::apply(
-			[&ws](dcon::nation_id n) {
-				auto sz = ws.crisis_participants.size();
-				for(uint32_t i = 0; i < sz; ++i) {
-					if(!ws.crisis_participants[i].id)
-						return false;
-					if(ws.crisis_participants[i].id == n)
-						return true;
-				}
-				return false;
-			},
-			to_nation(primary_slot));
-	return compare_to_true(tval[0], result);
+	return "dup >index state-ptr @ in-crisis? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_involved_in_crisis_pop) {
-	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	auto result = ve::apply(
-			[&ws](dcon::nation_id n) {
-				auto sz = ws.crisis_participants.size();
-				for(uint32_t i = 0; i < sz; ++i) {
-					if(!ws.crisis_participants[i].id)
-						return false;
-					if(ws.crisis_participants[i].id == n)
-						return true;
-				}
-				return false;
-			},
-			owner);
-	return compare_to_true(tval[0], result);
+	return "dup " + pop_to_owner() + ">index state-ptr @ in-crisis? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_life_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_life_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_life_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_life_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_rich_strata_life_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::rich_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_everyday_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_everyday_needs) / accumulator,
-				0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_everyday_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_rich_strata_everyday_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::rich_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::rich_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_rich_strata_luxury_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::rich_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_life_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_life_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_life_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_life_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_middle_strata_life_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::middle_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_everyday_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_everyday_needs) / accumulator,
-				0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_everyday_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_middle_strata_everyday_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::middle_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_luxury_needs) / accumulator,
-				0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::middle_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_middle_strata_luxury_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::middle_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_life_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_life_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_life_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_life_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_life_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_poor_strata_life_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::poor_life_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_everyday_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_everyday_needs) / accumulator,
-				0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_everyday_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_poor_strata_everyday_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::poor_everyday_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_nation) {
-	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_state) {
-	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_province) {
-	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
-	return compare_values(tval[0],
-			ve::select(accumulator > 0.0f,
-				ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_luxury_needs) / accumulator, 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::poor_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_poor_strata_luxury_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup " + std::to_string(demographics::poor_total.index()) + " >demographics_key demographics @ >r " + std::to_string(demographics::poor_luxury_needs.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_diplomatic_influence_tag) {
-	auto holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[2]).tag_id);
-	auto result = ve::apply(
-			[&ws, holder](dcon::nation_id a) {
-				auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(holder, a);
-				return ws.world.gp_relationship_get_influence(gpr);
-			},
-			to_nation(primary_slot));
-	return compare_values(tval[0], result, float(tval[1]));
+	return "dup >index " + std::to_string(trigger::payload(tval[2]).tag_id.index()) +" >national_identity_id " + tag_to_nation() + ">index state-ptr @ influence-on " + std::to_string(tval[1]) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_diplomatic_influence_this_nation) {
-	auto result = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
-				return ws.world.gp_relationship_get_influence(gpr);
-			},
-			to_nation(primary_slot), to_nation(this_slot));
-	return compare_values(tval[0], result, float(tval[1]));
+	return ">r dup r> swap >r dup >index r> >index state-ptr @ influence-on " + std::to_string(tval[1]) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_diplomatic_influence_this_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
-	auto result = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
-				return ws.world.gp_relationship_get_influence(gpr);
-			},
-			to_nation(primary_slot), owner);
-	return compare_values(tval[0], result, float(tval[1]));
+	return ">r dup " + province_to_owner() + "r> swap >r dup >index r> >index state-ptr @ influence-on " + std::to_string(tval[1]) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_diplomatic_influence_from_nation) {
-	auto result = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
-				return ws.world.gp_relationship_get_influence(gpr);
-			},
-			to_nation(primary_slot), to_nation(from_slot));
-	return compare_values(tval[0], result, float(tval[1]));
+	return ">r >r dup r> swap r> swap >r dup >index r> >index state-ptr @ influence-on " + std::to_string(tval[1]) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_diplomatic_influence_from_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
-	auto result = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
-				return ws.world.gp_relationship_get_influence(gpr);
-			},
-			to_nation(primary_slot), owner);
-	return compare_values(tval[0], result, float(tval[1]));
+	return ">r >r dup " + province_to_owner() + "r> swap r> swap >r dup >index r> >index state-ptr @ influence-on " + std::to_string(tval[1]) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_nation) {
-	auto type = payload(tval[3]).popt_id;
-	auto pop_size = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
-	auto employment = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type));
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_state) {
-	auto type = payload(tval[3]).popt_id;
-	auto pop_size = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
-	auto employment = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type));
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_province) {
-	auto type = payload(tval[3]).popt_id;
-	auto pop_size = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
-	auto employment = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type));
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_pop) {
-	auto pop_size = ws.world.pop_get_size(to_pop(primary_slot));
-	auto employment = ws.world.pop_get_employment(to_pop(primary_slot));
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return "dup size @ >r dup employment @ r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
-	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
-
-	auto pop_size = ve::apply(
-			[&](dcon::nation_id loc, dcon::pop_type_id t) {
-				if(t)
-					return ws.world.nation_get_demographics(loc, demographics::to_key(ws, t));
-				else
-					return 0.0f;
-			},
-			to_nation(primary_slot), type);
-
-	auto employment = ve::apply(
-			[&](dcon::nation_id loc, dcon::pop_type_id t) {
-				if(t)
-					return ws.world.nation_get_demographics(loc, demographics::to_employment_key(ws, t));
-				else
-					return 0.0f;
-			},
-			to_nation(primary_slot), type);
-
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return
+		">r dup poptype @ >index r> swap >r "
+		"dup " + std::to_string(demographics::count_special_keys) + " r@ + >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size()) + " r> r> swap >r + >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_state_this_pop) {
-	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
-
-	auto pop_size = ve::apply(
-			[&](dcon::state_instance_id loc, dcon::pop_type_id t) {
-				if(t)
-					return ws.world.state_instance_get_demographics(loc, demographics::to_key(ws, t));
-				else
-					return 0.0f;
-			},
-			to_state(primary_slot), type);
-
-	auto employment = ve::apply(
-			[&](dcon::state_instance_id loc, dcon::pop_type_id t) {
-				if(t)
-					return ws.world.state_instance_get_demographics(loc, demographics::to_employment_key(ws, t));
-				else
-					return 0.0f;
-			},
-			to_state(primary_slot), type);
-
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return
+		">r dup poptype @ >index r> swap >r "
+		"dup " + std::to_string(demographics::count_special_keys) + " r@ + >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size()) + " r> r> swap >r + >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_province_this_pop) {
-	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
-
-	auto pop_size = ve::apply(
-			[&](dcon::province_id loc, dcon::pop_type_id t) {
-				if(t)
-					return ws.world.province_get_demographics(loc, demographics::to_key(ws, t));
-				else
-					return 0.0f;
-			},
-			to_prov(primary_slot), type);
-
-	auto employment = ve::apply(
-			[&](dcon::province_id loc, dcon::pop_type_id t) {
-				if(t)
-					return ws.world.province_get_demographics(loc, demographics::to_employment_key(ws, t));
-				else
-					return 0.0f;
-			},
-			to_prov(primary_slot), type);
-
-	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f),
-			read_float_from_payload(tval + 1));
+	return
+		">r dup poptype @ >index r> swap >r "
+		"dup " + std::to_string(demographics::count_special_keys) + " r@ + >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size()) + " r> r> swap >r + >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_relation_tag) {
-	auto holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[2]).tag_id);
-	auto relation = ve::apply(
-			[&ws, holder](dcon::nation_id a) {
-				auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, holder);
-				return ws.world.diplomatic_relation_get_value(rel);
-			},
-			to_nation(primary_slot));
-	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
+	return "dup >index " +std::to_string(trigger::payload(tval[2]).tag_id.index()) + " >national_identity_id " + tag_to_nation() + ">index state-ptr @ relations " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_relation_this_nation) {
-	auto relation = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-				return ws.world.diplomatic_relation_get_value(rel);
-			},
-			to_nation(primary_slot), to_nation(this_slot));
-	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
+	return ">r dup >index r> swap >r dup >index r> state-ptr @ relations " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_relation_this_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
-	auto relation = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-				return ws.world.diplomatic_relation_get_value(rel);
-			},
-			to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
+	return ">r dup " + province_to_owner() + ">index r> swap >r dup >index r> state-ptr @ relations " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_relation_this_pop) {
-	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
-	auto relation = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-				return ws.world.diplomatic_relation_get_value(rel);
-			},
-			to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
+	return ">r dup " + pop_to_owner() + ">index r> swap >r dup >index r> state-ptr @ relations " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_relation_from_nation) {
-	auto relation = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-				return ws.world.diplomatic_relation_get_value(rel);
-			},
-			to_nation(primary_slot), to_nation(from_slot));
-	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
+	return ">r >r dup >index r> swap r> swap >r dup >index r> state-ptr @ relations " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_relation_from_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
-	auto relation = ve::apply(
-			[&ws](dcon::nation_id a, dcon::nation_id b) {
-				auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-				return ws.world.diplomatic_relation_get_value(rel);
-			},
-			to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
+	return ">r >r dup " + province_to_owner() + ">index r> swap r> swap >r dup >index r> state-ptr @ relations " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_check_variable) {
-	auto id = payload(tval[3]).natv_id;
-	return compare_values(tval[0], ws.world.nation_get_variables(to_nation(primary_slot), id), read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(trigger::payload(tval[3]).natv_id.index()) + " >national_variable_id variables @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_upper_house) {
-	auto id = payload(tval[3]).ideo_id;
-	return compare_values(tval[0], ws.world.nation_get_upper_house(to_nation(primary_slot), id), 100.0f * read_float_from_payload(tval + 1));
+	return "dup " + std::to_string(trigger::payload(tval[3]).ideo_id.index()) + " >ideology_id upper_house @ " + std::to_string(100.0f * read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_by_type_nation) {
-	return tf_pop_unemployment_nation<return_type>(tval, ws, primary_slot, int32_t(), int32_t());
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_by_type_state) {
-	return tf_pop_unemployment_state<return_type>(tval, ws, primary_slot, int32_t(), int32_t());
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_by_type_province) {
-	return tf_pop_unemployment_province<return_type>(tval, ws, primary_slot, int32_t(), int32_t());
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		"dup " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_by_type_pop) {
-	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto si = ws.world.province_get_state_membership(location);
-	return tf_unemployment_by_type_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+	return "dup " + pop_to_location() + "state_membership @ dup "
+		+ std::to_string(demographics::count_special_keys + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ >r "
+		+ std::to_string(demographics::count_special_keys + ws.world.pop_type_size() + trigger::payload(tval[3]).popt_id.index()) + " >demographics_key demographics @ "
+		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_nation_province_id) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
-			payload(tval[2]).signed_value);
+	return std::to_string(trigger::payload(tval[1]).prov_id.index()) + " >province_id " + std::to_string(trigger::payload(tval[3]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[2]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_from_nation_province_id) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
-			payload(tval[2]).signed_value);
+	return std::to_string(trigger::payload(tval[1]).prov_id.index()) + " >province_id " + std::to_string(trigger::payload(tval[3]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[2]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_province_province_id) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
-			payload(tval[2]).signed_value);
+	return std::to_string(trigger::payload(tval[1]).prov_id.index()) + " >province_id " + std::to_string(trigger::payload(tval[3]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[2]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_from_province_province_id) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
-			payload(tval[2]).signed_value);
+	return std::to_string(trigger::payload(tval[1]).prov_id.index()) + " >province_id " + std::to_string(trigger::payload(tval[3]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[2]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_nation_from_province) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(to_prov(from_slot), payload(tval[2]).ideo_id),
-			payload(tval[1]).signed_value);
+	return ">r >r dup r> swap r> swap " + std::to_string(trigger::payload(tval[2]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[1]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_generic) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(to_prov(primary_slot), payload(tval[2]).ideo_id),
-			payload(tval[1]).signed_value);
+	return "dup " + std::to_string(trigger::payload(tval[2]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[1]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_from_nation_scope_province) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(to_prov(primary_slot), payload(tval[2]).ideo_id),
-			payload(tval[1]).signed_value);
+	return "dup " + std::to_string(trigger::payload(tval[2]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[1]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_party_loyalty_from_province_scope_province) {
-	return compare_values(tval[0], ws.world.province_get_party_loyalty(to_prov(primary_slot), payload(tval[2]).ideo_id),
-			payload(tval[1]).signed_value);
+	return "dup " + std::to_string(trigger::payload(tval[2]).ideo_id.index()) + " >ideology_id party_loyalty @" + std::to_string(trigger::payload(tval[1]).signed_value) + ".0 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_from_nation) {
-	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
-							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::railroad)));
+	return ">r >r dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 max_building_level @ >f32 r> swap r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_railroad.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_from_nation) {
-	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
-							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::railroad)));
+	return ">r >r dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 max_building_level @ >f32 r> swap r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_railroad.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_this_nation) {
-	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
-							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::railroad)));
+	return ">r dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 max_building_level @ >f32 r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_railroad.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_this_nation) {
-	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
-							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::railroad)));
+	return ">r dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 max_building_level @ >f32 r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::railroad)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_railroad.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_from_nation) {
-	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::fort));
+	return ">r >r dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 max_building_level @ >f32 r> swap r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_fort.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_from_nation) {
-	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::fort));
+	return ">r >r dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 max_building_level @ >f32 r> swap r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_fort.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_this_nation) {
-	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::fort));
+	return ">r dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 max_building_level @ >f32 r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_fort.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_this_nation) {
-	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::fort));
+	return ">r dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 max_building_level @ >f32 r> swap >r "
+		"dup " + std::to_string(uint8_t(economy::province_building_type::fort)) + " >u8 building_level @ >f32 >r "
+		"dup " + std::to_string(sys::provincial_mod_offsets::min_build_fort.index()) + " >provincial_modifier_value modifier_values @ r> + r> < " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_from_nation) {
-	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-				ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::naval_base)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
-				ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
-					ws.world.province_get_state_membership(to_prov(primary_slot))));
-	return compare_to_true(tval[0], result);
+	return ">r >r dup >index r> swap r> swap >r dup >index r> state-ptr @ can-build-naval-base? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_from_nation) {
-	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-				ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::naval_base)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
-				ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
-					ws.world.province_get_state_membership(to_prov(primary_slot))));
-	return compare_to_true(tval[0], result);
+	return ">r >r dup >index r> swap r> swap >r dup >index r> state-ptr @ can-build-naval-base? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_this_nation) {
-	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-				ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::naval_base)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
-				ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
-					ws.world.province_get_state_membership(to_prov(primary_slot))));
-	return compare_to_true(tval[0], result);
+	return ">r dup >index r> swap >r dup >index r> state-ptr @ can-build-naval-base? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_this_nation) {
-	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-				ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::naval_base)) &&
-		(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
-				ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
-					ws.world.province_get_state_membership(to_prov(primary_slot))));
-	return compare_to_true(tval[0], result);
+	return ">r dup >index r> swap >r dup >index r> state-ptr @ can-build-naval-base? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_railway_in_capital_yes_whole_state_yes_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_railway_in_capital_yes_whole_state_no_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_railway_in_capital_no_whole_state_yes_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_railway_in_capital_no_whole_state_no_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_fort_in_capital_yes_whole_state_yes_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_fort_in_capital_yes_whole_state_no_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_yes_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_no_limit) {
-	// stub: virtually unused
-	return compare_to_true(tval[0], true);
+	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_nation) {
-	auto type = payload(tval[1]).popt_id;
-	auto result = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type)) >=
-		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
-	return compare_to_true(tval[0], result);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r> >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_state) {
-	auto type = payload(tval[1]).popt_id;
-	auto result = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type)) >=
-		ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
-	return compare_to_true(tval[0], result);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r> >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_province) {
-	auto type = payload(tval[1]).popt_id;
-	auto result = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type)) >=
-		ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
-	return compare_to_true(tval[0], result);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r> >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_nation) {
-	auto id = payload(tval[1]).ideo_id;
-	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
-	auto support_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_state) {
-	auto id = payload(tval[1]).ideo_id;
-	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
-	auto support_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_province) {
-	auto id = payload(tval[1]).ideo_id;
-	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
-	auto support_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_pop) {
-	auto id = payload(tval[1]).ideo_id;
-	auto total_pop = ws.world.pop_get_size(to_pop(primary_slot));
-	auto support_pop = ws.world.pop_get_demographics(to_pop(primary_slot), pop_demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup size @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >pop_demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_nation) {
-	auto id = payload(tval[1]).opt_id;
-	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
-	auto support_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_state) {
-	auto id = payload(tval[1]).opt_id;
-	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
-	auto support_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_province) {
-	auto id = payload(tval[1]).opt_id;
-	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
-	auto support_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_pop) {
-	auto id = payload(tval[1]).opt_id;
-	auto total_pop = ws.world.pop_get_size(to_pop(primary_slot));
-	auto support_pop = ws.world.pop_get_demographics(to_pop(primary_slot), pop_demographics::to_key(ws, id));
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup size @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >pop_demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_nation) {
-	auto option = payload(tval[2]).opt_id;
-	auto issue = payload(tval[1]).iss_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_issues(to_nation(primary_slot), issue), option);
+	return "dup " + std::to_string(trigger::payload(tval[1]).iss_id.index()) + " >issue_id issues @ >index " + std::to_string(trigger::payload(tval[2]).opt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_state) {
-	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	auto option = payload(tval[2]).opt_id;
-	auto issue = payload(tval[1]).iss_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_issues(owner, issue), option);
+	return "dup " + state_to_owner() + std::to_string(trigger::payload(tval[1]).iss_id.index()) + " >issue_id issues @ >index " + std::to_string(trigger::payload(tval[2]).opt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	auto option = payload(tval[2]).opt_id;
-	auto issue = payload(tval[1]).iss_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_issues(owner, issue), option);
+	return "dup " + province_to_owner() + std::to_string(trigger::payload(tval[1]).iss_id.index()) + " >issue_id issues @ >index " + std::to_string(trigger::payload(tval[2]).opt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_pop) {
-	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	auto option = payload(tval[2]).opt_id;
-	auto issue = payload(tval[1]).iss_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_issues(owner, issue), option);
+	return "dup " + pop_to_owner() + std::to_string(trigger::payload(tval[1]).iss_id.index()) + " >issue_id issues @ >index " + std::to_string(trigger::payload(tval[2]).opt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_reform_group_name_nation) {
-	auto option = payload(tval[2]).ropt_id;
-	auto issue = payload(tval[1]).ref_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms(to_nation(primary_slot), issue), option);
+	return "dup " + std::to_string(trigger::payload(tval[1]).ref_id.index()) + " >reform_id issues @ >index " + std::to_string(trigger::payload(tval[2]).ropt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_reform_group_name_state) {
-	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	auto option = payload(tval[2]).ropt_id;
-	auto issue = payload(tval[1]).ref_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms(owner, issue), option);
+	return "dup " + state_to_owner() + std::to_string(trigger::payload(tval[1]).ref_id.index()) + " >reform_id issues @ >index " + std::to_string(trigger::payload(tval[2]).ropt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_reform_group_name_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	auto option = payload(tval[2]).ropt_id;
-	auto issue = payload(tval[1]).ref_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms(owner, issue), option);
+	return "dup " + province_to_owner() + std::to_string(trigger::payload(tval[1]).ref_id.index()) + " >reform_id issues @ >index " + std::to_string(trigger::payload(tval[2]).ropt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_reform_group_name_pop) {
-	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	auto option = payload(tval[2]).ropt_id;
-	auto issue = payload(tval[1]).ref_id;
-	;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms(owner, issue), option);
+	return "dup " + pop_to_owner() + std::to_string(trigger::payload(tval[1]).ref_id.index()) + " >reform_id issues @ >index " + std::to_string(trigger::payload(tval[2]).ropt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_nation) {
-	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
-	auto type = demographics::to_key(ws, payload(tval[1]).popt_id);
-	auto size = ws.world.nation_get_demographics(to_nation(primary_slot), type);
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_state) {
-	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
-	auto type = demographics::to_key(ws, payload(tval[1]).popt_id);
-	auto size = ws.world.state_instance_get_demographics(to_state(primary_slot), type);
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_province) {
-	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
-	auto type = demographics::to_key(ws, payload(tval[1]).popt_id);
-	auto size = ws.world.province_get_demographics(to_prov(primary_slot), type);
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_pop) {
-	auto pop_location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	auto total_pop = ws.world.province_get_demographics(pop_location, demographics::total);
-	auto type = demographics::to_key(ws, payload(tval[1]).popt_id);
-	auto size = ws.world.province_get_demographics(pop_location, type);
-	return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 2));
+	return "dup " + pop_to_location() + "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+		+ std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
+		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_good_name) {
-	auto good = payload(tval[1]).com_id;
-	auto amount = ws.world.nation_get_stockpiles(to_nation(primary_slot), good);
-	return compare_values(tval[0], amount, read_float_from_payload(tval + 2));
+	return "dup " + std::to_string(trigger::payload(tval[1]).com_id.index()) + " >commodity_id stockpiles @ " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation) {
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)), payload(tval[1]).rel_id);
+	return "dup religion @ >index " + std::to_string(trigger::payload(tval[1]).rel_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation_reb) {
-	auto r = ws.world.rebel_faction_get_religion(to_rebel(from_slot));
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)), r);
+	return ">r >r dup religion @ r> swap r> swap >r dup religion @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation_from_nation) {
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)),
-			ws.world.nation_get_religion(to_nation(from_slot)));
+	return ">r >r dup religion @ r> swap r> swap >r dup religion @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation_this_nation) {
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)),
-			ws.world.nation_get_religion(to_nation(this_slot)));
+	return ">r dup religion @ r> swap >r dup religion @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation_this_state) {
-	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)), ws.world.nation_get_religion(owner));
+	return ">r dup " + state_to_owner() + "religion @ r> swap >r dup religion @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation_this_province) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)), ws.world.nation_get_religion(owner));
+	return ">r dup " + province_to_owner() + "religion @ r> swap >r dup religion @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation_this_pop) {
-	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
-	return compare_values_eq(tval[0], ws.world.nation_get_religion(to_nation(primary_slot)), ws.world.nation_get_religion(owner));
+	return ">r dup " + pop_to_owner() + "religion @ r> swap >r dup religion @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_invention) {
-	auto tid = trigger::payload(tval[1]).invt_id;
-	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(to_nation(primary_slot), tid));
+	return "dup " + std::to_string(trigger::payload(tval[1]).invt_id.index()) + " >invention_id active_inventions @ " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_invention_province) {
-	auto tid = trigger::payload(tval[1]).invt_id;
-	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)), tid));
+	return "dup " + province_to_owner() + std::to_string(trigger::payload(tval[1]).invt_id.index()) + " >invention_id active_inventions @ " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_invention_pop) {
-	auto tid = trigger::payload(tval[1]).invt_id;
-	return compare_to_true(tval[0], ws.world.nation_get_active_inventions(nations::owner_of_pop(ws, to_pop(primary_slot)), tid));
+	return "dup " + pop_to_owner() + std::to_string(trigger::payload(tval[1]).invt_id.index()) + " >invention_id active_inventions @ " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_test) {
 	auto sid = trigger::payload(tval[1]).str_id;
 	auto tid = ws.world.stored_trigger_get_function(sid);
-	auto test_result = test_trigger_generic<return_type>(ws.trigger_data.data() + ws.trigger_data_indices[tid.index() + 1], ws, primary_slot, this_slot, from_slot);
-	return compare_to_true(tval[0], test_result);
+	return test_trigger_generic(ws.trigger_data.data() + ws.trigger_data_indices[tid.index() + 1], ws) + truth_inversion(tval[0]);
 }
 
 TRIGGER_FUNCTION(tf_has_building_bank) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::bank) != 0);
+	return "dup " + std::to_string(int32_t(economy::province_building_type::bank)) + " >ui8 building_level 0 <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_building_university) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::university) != 0);
+	return "dup " + std::to_string(int32_t(economy::province_building_type::university)) + " >ui8 building_level 0 <> " + truth_inversion(tval[0]);
 }
 
-template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
-	constexpr static return_type(
-			CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&, primary_type, this_type, from_type) = {
-			tf_none<return_type, primary_type, this_type, from_type>,
-#define TRIGGER_BYTECODE_ELEMENT(code, name, arg) tf_##name <return_type, primary_type, this_type, from_type>,
+	constexpr static std::string (
+			CALLTYPE* trigger_functions[])(uint16_t const* tval, sys::state& ws) = {
+			tf_none,
+#define TRIGGER_BYTECODE_ELEMENT(code, name, arg) tf_##name ,
 			TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 			//
 			// scopes
 			//
-			tf_generic_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t generic_scope = 0x0000; // or & and
-			tf_x_neighbor_province_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_neighbor_province_scope = 0x0001;
-			tf_x_neighbor_country_scope_nation<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_neighbor_country_scope_nation = 0x0002;
-			tf_x_neighbor_country_scope_pop<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_neighbor_country_scope_pop = 0x0003;
-			tf_x_war_countries_scope_nation<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_war_countries_scope_nation = 0x0004;
-			tf_x_war_countries_scope_pop<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_war_countries_scope_pop = 0x0005;
-			tf_x_greater_power_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_greater_power_scope = 0x0006;
-			tf_x_owned_province_scope_state<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_owned_province_scope_state = 0x0007;
-			tf_x_owned_province_scope_nation<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_owned_province_scope_nation = 0x0008;
-			tf_x_core_scope_province<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_core_scope_province = 0x0009;
-			tf_x_core_scope_nation<return_type, primary_type, this_type, from_type>,	 // constexpr uint16_t x_core_scope_nation = 0x000A;
-			tf_x_state_scope<return_type, primary_type, this_type, from_type>,		// constexpr uint16_t x_state_scope = 0x000B;
-			tf_x_substate_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_substate_scope = 0x000C;
-			tf_x_sphere_member_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_sphere_member_scope = 0x000D;
-			tf_x_pop_scope_province<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_pop_scope_province = 0x000E;
-			tf_x_pop_scope_state<return_type, primary_type, this_type, from_type>,	// constexpr uint16_t x_pop_scope_state = 0x000F;
-			tf_x_pop_scope_nation<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_pop_scope_nation = 0x0010;
-			tf_x_provinces_in_variable_region<return_type, primary_type, this_type, from_type>, // constexpr uint16_t x_provinces_in_variable_region = 0x0011; // variable name
-			tf_owner_scope_state<return_type, primary_type, this_type, from_type>, // constexpr uint16_t owner_scope_state = 0x0012;
-			tf_owner_scope_province<return_type, primary_type, this_type, from_type>,  // constexpr uint16_t owner_scope_province = 0x0013;
-			tf_controller_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t controller_scope = 0x0014;
-			tf_location_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t location_scope = 0x0015;
-			tf_country_scope_state<return_type, primary_type, this_type, from_type>, // constexpr uint16_t country_scope_state = 0x0016;
-			tf_country_scope_pop<return_type, primary_type, this_type, from_type>, // constexpr uint16_t country_scope_pop = 0x0017;
-			tf_capital_scope<return_type, primary_type, this_type, from_type>,		 // constexpr uint16_t capital_scope = 0x0018;
-			tf_this_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t this_scope_pop = 0x0019;
-			tf_this_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t this_scope_nation = 0x001A;
-			tf_this_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t this_scope_state = 0x001B;
-			tf_this_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t this_scope_province = 0x001C;
-			tf_from_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t from_scope_pop = 0x001D;
-			tf_from_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t from_scope_nation = 0x001E;
-			tf_from_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t from_scope_state = 0x001F;
-			tf_from_scope<return_type, primary_type, this_type, from_type>,				 // constexpr uint16_t from_scope_province = 0x0020;
-			tf_sea_zone_scope<return_type, primary_type, this_type, from_type>,		 // constexpr uint16_t sea_zone_scope = 0x0021;
-			tf_cultural_union_scope<return_type, primary_type, this_type, from_type>,  // constexpr uint16_t cultural_union_scope = 0x0022;
-			tf_overlord_scope<return_type, primary_type, this_type, from_type>,			// constexpr uint16_t overlord_scope = 0x0023;
-			tf_sphere_owner_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t sphere_owner_scope = 0x0024;
-			tf_independence_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t independence_scope = 0x0025;
-			tf_flashpoint_tag_scope<return_type, primary_type, this_type, from_type>,	 // constexpr uint16_t flashpoint_tag_scope = 0x0026;
-			tf_crisis_state_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t crisis_state_scope = 0x0027;
-			tf_state_scope_pop<return_type, primary_type, this_type, from_type>,		// constexpr uint16_t state_scope_pop = 0x0028;
-			tf_state_scope_province<return_type, primary_type, this_type, from_type>,	 // constexpr uint16_t state_scope_province = 0x0029;
-			tf_tag_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t tag_scope = 0x002A; // variable name
-			tf_integer_scope<return_type, primary_type, this_type, from_type>, // constexpr uint16_t integer_scope = 0x002B; // variable name
-			tf_country_scope_nation<return_type, primary_type, this_type, from_type>, // constexpr uint16_t country_scope_nation = 0x002C;
-			tf_country_scope_province<return_type, primary_type, this_type, from_type>, // constexpr uint16_t country_scope_province = 0x002D;
-			tf_cultural_union_scope_pop<return_type, primary_type, this_type, from_type>, // constexpr uint16_t cultural_union_scope_pop = 0x002E;
-			tf_capital_scope_province<return_type, primary_type, this_type, from_type>, // constexpr uint16_t capital_scope_province = 0x002F;
+			tf_generic_scope, // constexpr uint16_t generic_scope = 0x0000; // or & and
+			tf_x_neighbor_province_scope, // constexpr uint16_t x_neighbor_province_scope = 0x0001;
+			tf_x_neighbor_country_scope_nation, // constexpr uint16_t x_neighbor_country_scope_nation = 0x0002;
+			tf_x_neighbor_country_scope_pop, // constexpr uint16_t x_neighbor_country_scope_pop = 0x0003;
+			tf_x_war_countries_scope_nation, // constexpr uint16_t x_war_countries_scope_nation = 0x0004;
+			tf_x_war_countries_scope_pop, // constexpr uint16_t x_war_countries_scope_pop = 0x0005;
+			tf_x_greater_power_scope, // constexpr uint16_t x_greater_power_scope = 0x0006;
+			tf_x_owned_province_scope_state, // constexpr uint16_t x_owned_province_scope_state = 0x0007;
+			tf_x_owned_province_scope_nation, // constexpr uint16_t x_owned_province_scope_nation = 0x0008;
+			tf_x_core_scope_province, // constexpr uint16_t x_core_scope_province = 0x0009;
+			tf_x_core_scope_nation,	 // constexpr uint16_t x_core_scope_nation = 0x000A;
+			tf_x_state_scope,		// constexpr uint16_t x_state_scope = 0x000B;
+			tf_x_substate_scope, // constexpr uint16_t x_substate_scope = 0x000C;
+			tf_x_sphere_member_scope, // constexpr uint16_t x_sphere_member_scope = 0x000D;
+			tf_x_pop_scope_province, // constexpr uint16_t x_pop_scope_province = 0x000E;
+			tf_x_pop_scope_state,	// constexpr uint16_t x_pop_scope_state = 0x000F;
+			tf_x_pop_scope_nation, // constexpr uint16_t x_pop_scope_nation = 0x0010;
+			tf_x_provinces_in_variable_region, // constexpr uint16_t x_provinces_in_variable_region = 0x0011; // variable name
+			tf_owner_scope_state, // constexpr uint16_t owner_scope_state = 0x0012;
+			tf_owner_scope_province,  // constexpr uint16_t owner_scope_province = 0x0013;
+			tf_controller_scope, // constexpr uint16_t controller_scope = 0x0014;
+			tf_location_scope, // constexpr uint16_t location_scope = 0x0015;
+			tf_country_scope_state, // constexpr uint16_t country_scope_state = 0x0016;
+			tf_country_scope_pop, // constexpr uint16_t country_scope_pop = 0x0017;
+			tf_capital_scope,		 // constexpr uint16_t capital_scope = 0x0018;
+			tf_this_scope,				 // constexpr uint16_t this_scope_pop = 0x0019;
+			tf_this_scope,				 // constexpr uint16_t this_scope_nation = 0x001A;
+			tf_this_scope,				 // constexpr uint16_t this_scope_state = 0x001B;
+			tf_this_scope,				 // constexpr uint16_t this_scope_province = 0x001C;
+			tf_from_scope,				 // constexpr uint16_t from_scope_pop = 0x001D;
+			tf_from_scope,				 // constexpr uint16_t from_scope_nation = 0x001E;
+			tf_from_scope,				 // constexpr uint16_t from_scope_state = 0x001F;
+			tf_from_scope,				 // constexpr uint16_t from_scope_province = 0x0020;
+			tf_sea_zone_scope,		 // constexpr uint16_t sea_zone_scope = 0x0021;
+			tf_cultural_union_scope,  // constexpr uint16_t cultural_union_scope = 0x0022;
+			tf_overlord_scope,			// constexpr uint16_t overlord_scope = 0x0023;
+			tf_sphere_owner_scope, // constexpr uint16_t sphere_owner_scope = 0x0024;
+			tf_independence_scope, // constexpr uint16_t independence_scope = 0x0025;
+			tf_flashpoint_tag_scope,	 // constexpr uint16_t flashpoint_tag_scope = 0x0026;
+			tf_crisis_state_scope, // constexpr uint16_t crisis_state_scope = 0x0027;
+			tf_state_scope_pop,		// constexpr uint16_t state_scope_pop = 0x0028;
+			tf_state_scope_province,	 // constexpr uint16_t state_scope_province = 0x0029;
+			tf_tag_scope, // constexpr uint16_t tag_scope = 0x002A; // variable name
+			tf_integer_scope, // constexpr uint16_t integer_scope = 0x002B; // variable name
+			tf_country_scope_nation, // constexpr uint16_t country_scope_nation = 0x002C;
+			tf_country_scope_province, // constexpr uint16_t country_scope_province = 0x002D;
+			tf_cultural_union_scope_pop, // constexpr uint16_t cultural_union_scope_pop = 0x002E;
+			tf_capital_scope_province, // constexpr uint16_t capital_scope_province = 0x002F;
 			tf_capital_scope_pop, //constexpr inline uint16_t capital_scope_pop = first_scope_code + 0x0030;
 			tf_x_country_scope, //constexpr inline uint16_t x_country_scope = first_scope_code + 0x0031;
 			tf_x_neighbor_province_scope_state, //constexpr inline uint16_t x_neighbor_province_scope_state = first_scope_code + 0x0032;
@@ -5157,138 +4933,43 @@ struct trigger_container {
 	};
 };
 
-template<typename return_type, typename primary_type, typename this_type, typename from_type>
-return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, primary_type primary_slot, this_type this_slot,
-		from_type from_slot) {
-	return trigger_container<return_type, primary_type, this_type, from_type>::trigger_functions[*tval & trigger::code_mask](tval,
-			ws, primary_slot, this_slot, from_slot);
-}
-
-float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
-	auto base = state.value_modifiers[modifier];
-	float product = base.factor;
-	for(uint32_t i = 0; i < base.segments_count && product != 0; ++i) {
-		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
-		if(seg.condition) {
-			if(test_trigger_generic<bool>(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, primary,
-				this_slot, from_slot)) {
-				product *= seg.factor;
-			}
-		}
-	}
-	return product;
-}
-float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
-	auto base = state.value_modifiers[modifier];
-	float sum = base.base;
-	for(uint32_t i = 0; i < base.segments_count; ++i) {
-		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
-		if(seg.condition) {
-			if(test_trigger_generic<bool>(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, primary,
-				this_slot, from_slot)) {
-				sum += seg.factor;
-			}
-		}
-	}
-	return sum * base.factor;
-}
-
-ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
-	auto base = state.value_modifiers[modifier];
-	ve::fp_vector product = base.factor;
-	for(uint32_t i = 0; i < base.segments_count; ++i) {
-		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
-		if(seg.condition) {
-			auto res = test_trigger_generic<ve::mask_vector>(
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, primary, this_slot, from_slot);
-			product = ve::select(res, product * seg.factor, product);
-		}
-	}
-	return product;
-}
-ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
-	auto base = state.value_modifiers[modifier];
-	ve::fp_vector sum = base.base;
-	for(uint32_t i = 0; i < base.segments_count; ++i) {
-		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
-		if(seg.condition) {
-			auto res = test_trigger_generic<ve::mask_vector>(
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, primary, this_slot, from_slot);
-			sum = ve::select(res, sum + seg.factor, sum);
-		}
-	}
-	return sum * base.factor;
-}
-
-ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
-	auto base = state.value_modifiers[modifier];
-	ve::fp_vector product = base.factor;
-	for(uint32_t i = 0; i < base.segments_count; ++i) {
-		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
-		if(seg.condition) {
-			auto res = test_trigger_generic<ve::mask_vector>(
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, primary, this_slot, from_slot);
-			product = ve::select(res, product * seg.factor, product);
-		}
-	}
-	return product;
-}
-ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
-	auto base = state.value_modifiers[modifier];
-	ve::fp_vector sum = base.base;
-	for(uint32_t i = 0; i < base.segments_count; ++i) {
-		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
-		if(seg.condition) {
-			auto res = test_trigger_generic<ve::mask_vector>(
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, primary, this_slot, from_slot);
-			sum = ve::select(res, sum + seg.factor, sum);
-		}
-	}
-	return sum * base.factor;
-}
-
-bool evaluate(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
-	return test_trigger_generic<bool>(state.trigger_data.data() + state.trigger_data_indices[key.index() + 1], state, primary,
-			this_slot, from_slot);
-}
-bool evaluate(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot) {
-	return test_trigger_generic<bool>(data, state, primary, this_slot, from_slot);
-}
-
-ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary,
-		ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
-	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + state.trigger_data_indices[key.index() + 1], state,
-			primary, this_slot, from_slot);
-}
-ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary,
-		ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
-	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
-}
-
-ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::tagged_vector<int32_t> primary,
-		ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
-	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + state.trigger_data_indices[key.index() + 1], state,
-			primary, this_slot, from_slot);
-}
-ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::tagged_vector<int32_t> primary,
-		ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
-	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
-}
-
-ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary,
-		ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
-	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + state.trigger_data_indices[key.index() + 1], state,
-			primary, this_slot, from_slot);
-}
-ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary,
-		ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
-	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
-}
-
-/**/
 
 std::string CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws) {
-	return "";
+	return trigger_container::trigger_functions[*tval & trigger::code_mask](tval, ws);
+}
+
+std::string multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier) {
+	auto base = state.value_modifiers[modifier];
+	std::string result;
+	result += std::to_string(base.factor) + " >r";
+
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			result += test_trigger_generic(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state);
+			result += "1.0 swap " + std::to_string(seg.factor) + " swap select r> * >r "; // multiply by either 1.0 or the segement factor depending on bool result
+		}
+	}
+	return result;
+}
+std::string additive_modifier(sys::state& state, dcon::value_modifier_key modifier) {
+	auto base = state.value_modifiers[modifier];
+	std::string result;
+	result += std::to_string(base.base) + " >r";
+
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			result += test_trigger_generic(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state);
+			result += "0.0 swap " + std::to_string(seg.factor) + " swap select r> + >r "; // multiply by either 1.0 or the segement factor depending on bool result
+		}
+	}
+	result += "r> " + std::to_string(base.factor) + " * >r ";
+	return result;
+}
+
+std::string evaluate(sys::state& state, dcon::trigger_key key) {
+	return test_trigger_generic(state.trigger_data.data() + state.trigger_data_indices[key.index() + 1], state);
 }
 
 #undef CALLTYPE

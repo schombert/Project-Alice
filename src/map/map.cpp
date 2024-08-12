@@ -1565,7 +1565,7 @@ void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railr
 }
 
 bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited_adj, std::vector<bool>& visited_prov, std::vector<dcon::province_id>& provinces, dcon::province_id p) {
-	if(state.world.province_get_building_level(p, economy::province_building_type::railroad) == 0)
+	if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad)) == 0)
 		return false;
 	if(visited_prov[p.index()])
 		return false;
@@ -1575,7 +1575,7 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 	std::vector<dcon::province_adjacency_id> valid_adj;
 	for(const auto adj : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
 		auto const pa = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
-		if(pa.get_building_level(economy::province_building_type::railroad) == 0
+		if(pa.get_building_level(uint8_t(economy::province_building_type::railroad)) == 0
 			|| visited_prov[pa.id.index()])
 			continue;
 		// Do not display railroads if it's a strait OR an impassable land border!
@@ -1626,7 +1626,7 @@ void display_data::update_railroad_paths(sys::state& state) {
 	// but not the adjacencies
 	for(const auto p1 : state.world.in_province) {
 		if(visited_prov[p1.id.index()]) {
-			auto const p1_level = p1.get_building_level(economy::province_building_type::railroad);
+			auto const p1_level = p1.get_building_level(uint8_t(economy::province_building_type::railroad));
 			auto admin_efficiency = province::state_admin_efficiency(state, p1.get_state_membership());
 			auto max_adj = std::max<uint32_t>(uint32_t(admin_efficiency * 2.75f), rr_ends[p1.id.index()] ? 3 : 1);
 			std::vector<dcon::province_adjacency_id> valid_adj;
@@ -1634,7 +1634,7 @@ void display_data::update_railroad_paths(sys::state& state) {
 				if(max_adj == 0)
 					break;
 				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1.id ? 1 : 0);
-				if(p2.get_building_level(economy::province_building_type::railroad) == 0)
+				if(p2.get_building_level(uint8_t(economy::province_building_type::railroad)) == 0)
 					continue;
 				max_adj--;
 				if(visited_adj[adj.id.index()])

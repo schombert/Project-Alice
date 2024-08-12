@@ -175,8 +175,8 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 	int32_t max_lvl = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::fort)].max_level;
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
-		int32_t current_lvl = state.world.province_get_building_level(prov_id, economy::province_building_type::fort);
-		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::fort);
+		int32_t current_lvl = state.world.province_get_building_level(prov_id, uint8_t(economy::province_building_type::fort));
+		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, uint8_t(economy::province_building_type::fort));
 		uint32_t color = 0x222222;
 		uint32_t stripe_color = 0x222222;
 

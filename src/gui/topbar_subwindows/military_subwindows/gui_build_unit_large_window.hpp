@@ -541,6 +541,9 @@ public:
 		} else if(payload.holds_type<dcon::modifier_id>()) {
 			payload.emplace<dcon::modifier_id>(content.continent);
 			return message_result::consumed;
+		} else if(payload.holds_type< dcon::unit_type_id>()) {
+			payload.emplace<dcon::unit_type_id>(content.utid);
+			return message_result::consumed;
 		}
 		return listbox_row_element_base<buildable_unit_entry_info>::get(state, payload);
 	}
@@ -564,6 +567,7 @@ public:
 			return;
 
 		buildable_unit_entry_info group_info;
+		group_info.utid = utid;
 		std::vector<dcon::modifier_const_fat_id> continent_list;
 		std::vector<buildable_unit_entry_info> list_of_possible_units;
 		if(is_navy == false) {
@@ -572,6 +576,7 @@ public:
 				state.world.for_each_culture([&](dcon::culture_id c) {
 					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
 						buildable_unit_entry_info info;
+						info.utid = utid;
 						info.is_navy = false;
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
@@ -632,6 +637,7 @@ public:
 				auto p = po.get_province();
 				if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid)) {
 					buildable_unit_entry_info info;
+					info.utid = utid;
 					info.is_navy = true;
 					info.continent = state.world.province_get_continent(p);
 					info.pop_info = dcon::pop_id{};
@@ -940,10 +946,9 @@ public:
 	bool is_navy = true; // false == army; true == navy
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+		for(uint8_t i = 2; i < state.military_definitions.unit_base_definitions.size(); i++) {
 			auto utid = dcon::unit_type_id(i);
-			if(!utid)
-				continue;
+
 			auto const& def = state.military_definitions.unit_base_definitions[utid];
 			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
 				continue;

@@ -4778,8 +4778,8 @@ void resolve_constructions(sys::state& state) {
 		}
 		
 		if(all_finished) {
-			if(state.world.province_get_building_level(for_province, t) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), t)) {
-				state.world.province_get_building_level(for_province, t) += 1;
+			if(state.world.province_get_building_level(for_province, uint8_t(t)) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), uint8_t(t))) {
+				state.world.province_get_building_level(for_province, uint8_t(t)) += 1;
 
 				if(t == province_building_type::railroad) {
 					/* Notify the railroad mesh builder to update the railroads! */

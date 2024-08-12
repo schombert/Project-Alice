@@ -397,7 +397,7 @@ void province_history_file::any_value(std::string_view name, association_type, u
 			province_file_context& context) {
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(name == economy::province_building_type_get_name(t)) {
-			context.outer_context.state.world.province_set_building_level(context.id, t, uint8_t(value));
+			context.outer_context.state.world.province_set_building_level(context.id, uint8_t(t), uint8_t(value));
 			return;
 		}
 	}
