@@ -2295,7 +2295,11 @@ class go_to_battleplanner_selection_button : public button_element_base {
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = state.selected_army_group == nullptr;
+		if(state.selected_army_group) {
+			disabled = false;
+		} else {
+			disabled = true;
+		}
 	}
 };
 

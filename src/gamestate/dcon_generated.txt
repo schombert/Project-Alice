@@ -1673,6 +1673,130 @@ object {
 }
 
 object {
+	name { automated_army_group }
+	storage_type{ erasable }
+	size { 50 }
+	tag { local_save }
+
+	property {
+		name { owner }
+		type { nation_id }
+		tag { local_save }
+	}
+
+	property {
+		name { hq }
+		type { province_id }
+		tag { local_save }
+	}
+
+	property {
+		name { provinces_defend }
+		type { vector_pool{30000}{province_id} }
+		tag { local_save }
+	}
+
+	property {
+		name { provinces_enforce_control }
+		type { vector_pool{30000}{province_id} }
+		tag { local_save }
+	}
+
+	property {
+		name { provinces_ferry_origin }
+		type { vector_pool{30000}{province_id} }
+		tag { local_save }
+	}
+}
+
+relationship{
+	name{ automated_army_group_membership_regiment }
+	tag{ local_save }
+
+	link{
+		object{ regiment_automation_data }
+		name{ regiment }
+		type{ unique }
+	}
+	link{
+		object{ automated_army_group }
+		name{ army }
+		type{ many }
+		index_storage{ array }
+	}
+}
+
+relationship{
+	name{ automated_army_group_membership_navy }
+	tag{ local_save }
+
+	link{
+		object{ navy }
+		name{ navy }
+		type{ unique }
+	}
+	link{
+		object{ automated_army_group }
+		name{ army }
+		type{ many }
+		index_storage{ array }
+	}
+}
+
+object {
+	name { regiment_automation_data }
+	storage_type{ erasable }
+	size { 4000 }
+	tag { local_save }
+
+	property {
+		name { status }
+		type { sys::army_group_regiment_status }
+		tag { local_save }
+	}
+	property {
+		name { task }
+		type { sys::army_group_regiment_task }
+		tag { local_save }
+	}
+	property {
+		name { await_command_execution_flag }
+		type { bitfield }
+	}
+	property {
+		name { target }
+		type { province_id }
+	}
+
+	property {
+		name { ferry_target }
+		type { province_id }
+	}
+
+	property {
+		name { ferry_origin }
+		type { province_id }
+	}
+}
+
+
+relationship{
+	name{ automation }
+	tag{ save }
+
+	link{
+		object{ regiment_automation_data }
+		name{ automation_data }
+		type{ unique }
+	}
+	link{
+		object{ regiment }
+		name{ regiment }
+		type{ unique }
+	}
+}
+
+object {
 	name{ ship }
 	storage_type{ erasable }
 	size{ 16000 }

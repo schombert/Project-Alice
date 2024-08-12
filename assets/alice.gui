@@ -4660,49 +4660,67 @@ guiTypes = {
         
         windowType = {
             name = "alice_army_group_control"            
-            position = { 0 490 }
+            position = { 0 190 }
             Orientation = "UPPER_LEFT"
             size = { 310 80 }
             
             iconType = {
                 name = "background"
                 spriteType = "bg-310-410-border-gold-paper"
-                position = { 0 -190 }
+                position = { 0 -60 }
                 Orientation = "UPPER_LEFT"
             }
             
             guiButtonType = {
                 name = "alice_armygroup_go_to_selection"
-                position = { 40 10 }
+                position = { 40 305 }
                 quadTextureSprite ="GFX_frontend_button_236"
                 buttonText = "alice_armygroup_go_to_selection"
                 buttonFont = "vic_22_black"
             }
             
+            iconType = {
+                name = "background"
+                spriteType = "bg-90-50-border-bronze-paper-mirror"
+                position = { 270 10 }
+                Orientation = "UPPER_LEFT"
+            }
+            iconType = {
+                name = "background"
+                spriteType = "bg-90-50-border-bronze-paper-mirror"
+                position = { 270 70 }
+                Orientation = "UPPER_LEFT"
+            }
+            iconType = {
+                name = "background"
+                spriteType = "bg-90-50-border-bronze-paper-mirror"
+                position = { 270 130 }
+                Orientation = "UPPER_LEFT"
+            }
+            
             guiButtonType = {
                 name = "alice_armygroup_defend_button"
-                position = { 40 100 }
-                quadTextureSprite ="GFX_frontend_button_236"
-                buttonText = "alice_battleplanner_defend_order"
+                position = { 310 15 }
+                quadTextureSprite ="button-40-40-tower"
+                buttonText = ""
                 buttonFont = "vic_22_black"
             }      
             
             guiButtonType = {
                 name = "alice_armygroup_enforce_control_button"
-                position = { 40 130 }
-                quadTextureSprite ="GFX_frontend_button_236"
-                buttonText = "alice_battleplanner_enforce_control_order"
+                position = { 310 75 }
+                quadTextureSprite ="button-40-40-cannon"
+                buttonText = ""
                 buttonFont = "vic_22_black"
             }      
             
             guiButtonType = {
                 name = "alice_armygroup_naval_travel_origin_button"
-                position = { 40 160 }
-                quadTextureSprite ="GFX_frontend_button_236"
-                buttonText = "alice_battleplanner_travel_origin_order"
+                position = { 310 135 }
+                quadTextureSprite ="button-40-40-ship"
+                buttonText = ""
                 buttonFont = "vic_22_black"
-            }           
-            
+            }  
         }
         
         

@@ -419,60 +419,6 @@ struct cheat_data_s {
 	bool always_potential_decisions = false;
 };
 
-enum class army_group_regiment_status : uint8_t {
-	move_to_target,
-	move_to_port,
-	standby,
-	await_transport,
-	is_transported,
-	disembark,
-	embark
-};
-
-enum class army_group_regiment_task : uint8_t {
-	idle,
-	gather_at_hq,
-	defend_position,
-	siege,
-};
-
-enum class army_group_ship_status : uint8_t {
-	idle, port, 
-};
-
-struct army_group_regiment_data {
-	dcon::regiment_id id;
-	army_group_regiment_status status;
-	army_group_regiment_task task;
-	dcon::province_id target;
-	dcon::province_id ferry_target;
-	dcon::province_id ferry_origin;
-	bool await_command_execution_flag;
-};
-
-struct army_group_ship_data {
-	dcon::ship_id id;
-	army_group_ship_status status;
-};
-
-struct army_group {
-	//main province
-	dcon::province_id hq;
-
-	// land data
-	std::vector<dcon::army_id> land_forces;
-	std::vector<army_group_regiment_data> land_regiments;
-
-	// sea data
-	std::vector<dcon::navy_id> naval_forces;
-	std::vector<army_group_ship_data> ships;
-
-	//orders
-	std::vector<dcon::province_id> defensive_line;
-	std::vector<dcon::province_id> enforce_control;
-	std::vector<dcon::province_id> designated_ports;
-};
-
 struct crisis_member_def {
 	dcon::nation_id id;
 
@@ -640,8 +586,9 @@ struct alignas(64) state {
 	std::array<std::vector<dcon::navy_id>, 10> ctrl_navies;
 
 	//army group
-	std::vector<army_group> army_groups;
-	army_group * selected_army_group = nullptr;
+	dcon::automated_army_group_id selected_army_group{};
+
+	army_group_order selected_army_group_order = army_group_order::none;
 
 	//current ui
 	game_scene::scene_properties current_scene = game_scene::nation_picker;
@@ -822,53 +769,40 @@ struct alignas(64) state {
 	}
 
 	void new_army_group(dcon::province_id hq);
-	void toggle_designated_port(army_group* group, dcon::province_id position);
-	void toggle_defensive_position(army_group* group, dcon::province_id position);
-	void toggle_enforce_control_position(army_group* group, dcon::province_id position);
-	void new_defensive_position(army_group* group, dcon::province_id position);
-	void update_regiments_and_ships(army_group* group);
-	void update_armies_and_fleets(army_group* group);
-	void regiment_reset_order(army_group_regiment_data& regiment);
-	bool army_group_recalculate_distribution(army_group* group, std::vector<float>& regiments_distribution);
-	void army_group_update_tasks(army_group* group);
-	dcon::province_id get_port_for_landing(army_group* group, dcon::province_id target);
-	void army_group_distribute_tasks(army_group* group);
-	float army_group_available_supply(army_group* group, dcon::province_id province);
-	dcon::province_id find_available_ferry_origin(army_group* group, army_group_regiment_data& regiment);
-	bool move_to_available_port(army_group* group, army_group_regiment_data& regiment);
-	void remove_army_from_army_group(army_group* selected_group, dcon::army_id selected_army);
-	void remove_navy_from_army_group(army_group* selected_group, dcon::navy_id navy_to_delete);
-	std::vector<army_group_regiment_data>::iterator army_group_regiment_array_iterator(army_group* group, dcon::regiment_id id);
-	std::vector<army_group_ship_data>::iterator army_group_ship_array_iterator(army_group* group, dcon::ship_id id);
-	void army_group_update_regiment_status(army_group* group);
-	void army_group_add_regiment(army_group* group, dcon::regiment_id id);
-	void army_group_add_ship(army_group* group, dcon::ship_id id);
-	void remove_regiment_from_army_group(army_group* selected_group, dcon::regiment_id selected_regiment);
-	void remove_ship_from_army_group(army_group* selected_group, dcon::ship_id ship_to_delete);
+	void toggle_designated_port(dcon::automated_army_group_id group, dcon::province_id position);
+	void toggle_defensive_position(dcon::automated_army_group_id group, dcon::province_id position);
+	void toggle_enforce_control_position(dcon::automated_army_group_id group, dcon::province_id position);
+	void update_armies_and_fleets(dcon::automated_army_group_id group);
+	void regiment_reset_order(dcon::regiment_automation_data_id regiment);
+	bool army_group_recalculate_distribution(dcon::automated_army_group_id group, std::vector<float>& regiments_distribution);
+	void army_group_update_tasks(dcon::automated_army_group_id group);
+	dcon::province_id get_port_for_landing(dcon::automated_army_group_id group, dcon::province_id target);
+	void army_group_distribute_tasks(dcon::automated_army_group_id group);
+	float army_group_available_supply(dcon::automated_army_group_id group, dcon::province_id province);
+	dcon::province_id find_available_ferry_origin(dcon::automated_army_group_id group, dcon::regiment_automation_data_id regiment);
+	bool move_to_available_port(dcon::automated_army_group_id group, dcon::regiment_automation_data_id regiment);
+	void remove_navy_from_army_group(dcon::automated_army_group_id selected_group, dcon::navy_id navy_to_delete);
+	void army_group_update_regiment_status(dcon::automated_army_group_id group);
+	void army_group_add_regiment(dcon::automated_army_group_id group, dcon::regiment_id id);
+	void remove_regiment_from_army_group(dcon::automated_army_group_id selected_group, dcon::regiment_id selected_regiment);
 	void remove_regiment_from_all_army_groups(dcon::regiment_id regiment_to_delete);
-	void remove_ship_from_all_army_groups(dcon::ship_id ship_to_delete);
-	void remove_army_from_all_army_groups_clean(dcon::army_id army_to_delete);
-	void remove_navy_from_all_army_groups_clean(dcon::navy_id navy_to_delete);
-	void remove_army_from_all_army_groups_dirty(dcon::army_id army_to_delete);
-	void remove_navy_from_all_army_groups_dirty(dcon::navy_id navy_to_delete);
-	void add_army_to_army_group(army_group* selected_group, dcon::army_id selected_army);
-	void add_navy_to_army_group(army_group* selected_group, dcon::navy_id selected_navy);
-	void smart_select_army_group(army_group* selected_group);
-	void select_army_group(army_group* selected_group);
+	void remove_army_army_group_clean(dcon::automated_army_group_id group, dcon::army_id army_to_delete);
+	void add_army_to_army_group(dcon::automated_army_group_id selected_group, dcon::army_id selected_army);
+	void add_navy_to_army_group(dcon::automated_army_group_id selected_group, dcon::navy_id selected_navy);
+	void smart_select_army_group(dcon::automated_army_group_id selected_group);
+	void select_army_group(dcon::automated_army_group_id selected_group);
 	void deselect_army_group();
-	army_group_regiment_data* fill_province_up_to_supply_limit(
-		army_group* group,
+	dcon::regiment_automation_data_id fill_province_up_to_supply_limit(
+		dcon::automated_army_group_id group_id,
 		dcon::province_id target,
 		std::vector<float>& regiments_distribution,
-		army_group_regiment_task initial_task,
 		float overestimate_supply_limit,
 		bool ignore_enemy_regiments_in_supply_calculations
 	);
-	army_group_regiment_data* fill_province(
-		army_group* group,
+	dcon::regiment_automation_data_id fill_province(
+		dcon::automated_army_group_id group_id,
 		dcon::province_id target,
-		std::vector<float>& regiments_expectation_ideal,
-		army_group_regiment_task initial_task
+		std::vector<float>& regiments_expectation_ideal
 	);
 };
 } // namespace sys

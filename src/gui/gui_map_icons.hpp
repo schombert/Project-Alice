@@ -982,12 +982,12 @@ class small_top_unit_icon : public window_element_base {
 /*
 class select_army_group_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
-		auto info = retrieve<sys::army_group*>(state, parent);
+		auto info = retrieve<dcon::automated_army_group_id>(state, parent);
 		state.select_army_group(info);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto info = retrieve<sys::army_group*>(state, parent);
+		auto info = retrieve<dcon::automated_army_group_id>(state, parent);
 
 		if(state.selected_army_group != nullptr) {
 			if(info != nullptr) {
@@ -1019,8 +1019,8 @@ class army_group_icon : public window_element_base {
 	//}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<sys::army_group*>()) {
-			payload.emplace<sys::army_group*>(retrieve<sys::army_group*>(state, parent));
+		if(payload.holds_type<dcon::automated_army_group_id>()) {
+			payload.emplace<dcon::automated_army_group_id>(retrieve<dcon::automated_army_group_id>(state, parent));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -1032,7 +1032,7 @@ public:
 	bool populated = false;
 	bool visible = true;
 
-	sys::army_group* info = nullptr;
+	dcon::automated_army_group_id info {};
 	
 	element_base* main_icon = nullptr;
 	dcon::province_id prov;
@@ -1067,12 +1067,14 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		populated = false;
-		for(auto & item : state.army_groups) {
-			if(item.hq == prov) {
-				info = &item;
+
+		state.world.for_each_automated_army_group([&](dcon::automated_army_group_id item) {
+			auto hq = state.world.automated_army_group_get_hq(item);
+			if(hq == prov) {
+				info = item;
 				populated = true;
 			}
-		}
+		});
 	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -1098,8 +1100,8 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<sys::army_group*>()) {
-			if(populated) payload.emplace<sys::army_group*>(info);
+		if(payload.holds_type<dcon::automated_army_group_id>()) {
+			if(populated) payload.emplace<dcon::automated_army_group_id>(info);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

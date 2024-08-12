@@ -39,6 +39,7 @@ void open_diplomacy(
 
 void select_player_nation_from_selected_province(sys::state& state);
 void select_wargoal_state_from_selected_province(sys::state& state);
+void military_screen_on_lbutton_up(sys::state& state);
 
 void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod);
 
@@ -238,7 +239,7 @@ inline scene_properties battleplan_editor{
 	.allow_drag_selection = false,
 	.on_drag_start = do_nothing_screen,
 	.drag_selection = do_nothing_screen,
-	.lbutton_up = do_nothing,
+	.lbutton_up = military_screen_on_lbutton_up,
 	.keycode_mapping = replace_keycodes_map_movement,
 	.handle_hotkeys = military_screen_hotkeys,
 	.console_log = console_log_other,

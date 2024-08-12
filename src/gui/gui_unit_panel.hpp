@@ -610,36 +610,34 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			auto army_group = state.selected_army_group;
 			uint16_t totalunits = 0;
 			uint32_t totalpops = 0;
 
-			if(army_group != nullptr) {			
-				for(dcon::army_id & current_army_id : army_group->land_forces) {
-					auto fat = dcon::fatten(state.world, current_army_id);
+			if(state.selected_army_group) {
+				auto group = fatten(state.world, state.selected_army_group);
+				for(auto regiment_membership : group.get_automated_army_group_membership_regiment()) {
+					auto fat = regiment_membership.get_regiment().get_regiment_from_automation();
+					auto strenght = fat.get_strength() * state.defines.pop_size_per_regiment;
 					unitstrength_text->set_visible(state, true);
 				
-					for(auto n : fat.get_army_membership()) {
-						dcon::unit_type_id utid = n.get_regiment().get_type();
-						auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
-						if constexpr(N == 0) {
-							if(result == military::unit_type::infantry) {
-								totalunits++;
-								totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-							}
-						} else if constexpr(N == 1) {
-							if(result == military::unit_type::cavalry) {
-								totalunits++;
-								totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-							}
-						} else if constexpr(N == 2) {
-							if(result == military::unit_type::support || result == military::unit_type::special) {
-								totalunits++;
-								totalpops += uint32_t(state.world.regiment_get_strength(n.get_regiment().id) * state.defines.pop_size_per_regiment);
-							}
+					dcon::unit_type_id utid = fat.get_type();
+					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
+					if constexpr(N == 0) {
+						if(result == military::unit_type::infantry) {
+							totalunits++;
+							totalpops += uint32_t(strenght);
+						}
+					} else if constexpr(N == 1) {
+						if(result == military::unit_type::cavalry) {
+							totalunits++;
+							totalpops += uint32_t(strenght);
+						}
+					} else if constexpr(N == 2) {
+						if(result == military::unit_type::support || result == military::unit_type::special) {
+							totalunits++;
+							totalpops += uint32_t(strenght);
 						}
 					}
-				
 				}
 			}
 			unitamount_text->set_text(state, text::format_float(totalunits, 0));
@@ -674,14 +672,14 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			auto army_group = state.selected_army_group;
-
 			unitstrength_text->set_visible(state, false);
 			uint16_t total = 0;
 
-			if(army_group != nullptr) {			
-				for(dcon::navy_id& current_navy_id : army_group->naval_forces) {
-					auto fat = dcon::fatten(state.world, current_navy_id);
+			if(state.selected_army_group) {
+				auto army_group = fatten(state.world, state.selected_army_group);
+
+				for(auto navy_membership : army_group.get_automated_army_group_membership_navy()) {
+					auto fat = navy_membership.get_navy();
 
 					for(auto n : fat.get_navy_membership()) {
 						dcon::unit_type_id utid = n.get_ship().get_type();
@@ -2277,14 +2275,19 @@ public:
 		std::vector<uint32_t> regiments_by_type{ };
 		regiments_by_type.resize(state.military_definitions.unit_base_definitions.size() + 2);
 
-		if(state.selected_army_group != nullptr) {
-			for(auto regiment : state.selected_army_group->land_regiments) {
-				auto type = state.world.regiment_get_type(regiment.id);
+		if(state.selected_army_group) {
+			auto group = fatten(state.world, state.selected_army_group);
+
+			for(auto regiment_membership : group.get_automated_army_group_membership_regiment()) {
+				auto regiment = regiment_membership.get_regiment().get_regiment_from_automation();
+				auto type = regiment.get_type();
 				regiments_by_type[type.index()] += 1;
 			}
-			for(auto ship : state.selected_army_group->ships) {
-				auto type = state.world.ship_get_type(ship.id);
-				regiments_by_type[type.index()] += 1;
+			for(auto navy_membership : group.get_automated_army_group_membership_navy()) {
+				for(auto ship_membership : state.world.navy_get_navy_membership(navy_membership.get_navy())) {
+					auto type = ship_membership.get_ship().get_type();
+					regiments_by_type[type.index()] += 1;
+				}				
 			}
 		}
 
@@ -2318,9 +2321,11 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(state.selected_army_group != nullptr) {
-			for(auto i : state.selected_army_group->naval_forces)
-				row_contents.push_back(i);
+		if(state.selected_army_group) {
+			auto group = dcon::fatten(state.world, state.selected_army_group);
+			for(auto navy_membership : group.get_automated_army_group_membership_navy()) {
+				row_contents.push_back(navy_membership.get_navy());
+			}
 		}
 		update(state);
 	}
@@ -2389,119 +2394,148 @@ public:
 
 class toggle_defend_order_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
-		state.toggle_defensive_position(state.selected_army_group, state.map_state.selected_province);
+		if(state.selected_army_group_order == sys::army_group_order::defend) {
+			state.selected_army_group_order = sys::army_group_order::none;
+		} else {
+			state.selected_army_group_order = sys::army_group_order::defend;
+		}
+		on_update(state);
+		state.game_state_updated.store(true, std::memory_order_release);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(state.selected_army_group == nullptr) {
-			disabled = true;
-			return;
+		if(state.selected_army_group_order == sys::army_group_order::defend) {
+			frame = 1;
+		} else {
+			frame = 0;
 		}
-		if(state.map_state.selected_province) {
-			disabled = false;
-			return;
-		}
-		disabled = true;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_battleplanner_defend_order");
 	}
 };
 
 class toggle_enforce_control_order_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
-		state.toggle_enforce_control_position(state.selected_army_group, state.map_state.selected_province);
+		if(state.selected_army_group_order == sys::army_group_order::siege) {
+			state.selected_army_group_order = sys::army_group_order::none;
+		} else {
+			state.selected_army_group_order = sys::army_group_order::siege;
+		}
+
+		on_update(state);
+		state.game_state_updated.store(true, std::memory_order_release);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(state.selected_army_group == nullptr) {
-			disabled = true;
-			return;
+		if(state.selected_army_group_order == sys::army_group_order::siege) {
+			frame = 1;
+		} else {
+			frame = 0;
 		}
-		if(state.map_state.selected_province) {
-			disabled = false;
-			return;
-		}
-		disabled = true;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_battleplanner_enforce_control_order");
 	}
 };
 
 class toggle_ferry_origin_order_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
-		state.toggle_designated_port(state.selected_army_group, state.map_state.selected_province);
+		if(state.selected_army_group_order == sys::army_group_order::designate_port) {
+			state.selected_army_group_order = sys::army_group_order::none;
+		} else {
+			state.selected_army_group_order = sys::army_group_order::designate_port;
+		}
+		on_update(state);
+		state.game_state_updated.store(true, std::memory_order_release);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(state.selected_army_group == nullptr) {
-			disabled = true;
-			return;
+		if(state.selected_army_group_order == sys::army_group_order::designate_port) {
+			frame = 1;
+		} else {
+			frame = 0;
 		}
-
-		if(state.map_state.selected_province) {
-			disabled = false;
-			return;
-		}
-
-		disabled = true;
-	}
-};
-
-class toggle_ferry_target_order_button : public button_element_base {
-	void button_action(sys::state& state) noexcept final {
-		state.toggle_designated_port(state.selected_army_group, state.map_state.selected_province);
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		if(state.selected_army_group == nullptr) {
-			disabled = true;
-			return;
-		}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
 
-		if(state.map_state.selected_province) {
-			disabled = false;
-			return;
-		}
-
-		disabled = true;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_battleplanner_travel_origin_order");
 	}
 };
 
 class add_selected_units_to_army_group_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
 		for(auto item : state.selected_armies) {
-			state.remove_army_from_all_army_groups_clean(item);
+			state.world.for_each_automated_army_group([&](dcon::automated_army_group_id group) {
+				state.remove_army_army_group_clean(group, item);
+			});			
 			state.add_army_to_army_group(state.selected_army_group, item);
 		}
 		for(auto item : state.selected_navies) {
-			state.remove_navy_from_all_army_groups_clean(item);
+			state.world.for_each_automated_army_group([&](dcon::automated_army_group_id group) {
+				state.remove_navy_from_army_group(group, item);
+			});
 			state.add_navy_to_army_group(state.selected_army_group, item);
 		}
-		state.update_regiments_and_ships(state.selected_army_group);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(state.selected_army_group == nullptr) {
+		if(state.selected_army_group) {
+			disabled = false;
+		} else {
 			disabled = true;
-			return;
 		}
-		disabled = false;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_armygroup_go_to_selection");
 	}
 };
 
 class remove_selected_units_from_army_group_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
-		for(auto item : state.selected_armies) {
-			state.remove_army_from_all_army_groups_clean(item);
+		if(state.selected_army_group) {
+			for(auto item : state.selected_armies) {
+				state.remove_army_army_group_clean(state.selected_army_group, item);
+			}
+			for(auto item : state.selected_navies) {
+				state.remove_navy_from_army_group(state.selected_army_group, item);
+			}
 		}
-		for(auto item : state.selected_navies) {
-			state.remove_navy_from_all_army_groups_clean(item);
-		}
-		state.update_regiments_and_ships(state.selected_army_group);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(state.selected_army_group == nullptr) {
+		if(state.selected_army_group) {
+			disabled = false;
+		} else {
 			disabled = true;
-			return;
 		}
-		disabled = false;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_battleplanner_travel_origin_order");
 	}
 };
 
@@ -2527,23 +2561,27 @@ class new_army_group_button : public button_element_base {
 class army_group_location : public simple_text_element_base{
 public:
 	void on_update(sys::state & state) noexcept override {
-		auto content = retrieve<sys::army_group*>(state, parent);
-		set_text(state, text::get_name_as_string(state, dcon::fatten(state.world, content->hq)));
+		auto content = retrieve<dcon::automated_army_group_id>(state, parent);
+		auto hq = state.world.automated_army_group_get_hq(content);
+		set_text(state, text::get_name_as_string(state, dcon::fatten(state.world, hq)));
 	}
 };
 
 class select_army_group_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
-		auto info = retrieve<sys::army_group*>(state, parent);
+		auto info = retrieve<dcon::automated_army_group_id>(state, parent);
 		state.select_army_group(info);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto info = retrieve<sys::army_group*>(state, parent);
+		auto info = retrieve<dcon::automated_army_group_id>(state, parent);
 
-		if(state.selected_army_group != nullptr) {
-			if(info != nullptr) {
-				if(info->hq == state.selected_army_group->hq) {
+
+		if(state.selected_army_group) {
+			if(info) {
+				auto local_hq = state.world.automated_army_group_get_hq(info);
+				auto selected_hq = state.world.automated_army_group_get_hq(state.selected_army_group);
+				if(local_hq == selected_hq) {
 					frame = 1;
 					return;
 				}
@@ -2553,7 +2591,7 @@ class select_army_group_button : public button_element_base {
 	}
 };
 
-class army_group_entry : public listbox_row_element_base<sys::army_group*> {
+class army_group_entry : public listbox_row_element_base<dcon::automated_army_group_id> {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "alice_select_army_group_button") {
 			return make_element_by_type<select_army_group_button>(state, id);
@@ -2565,15 +2603,16 @@ class army_group_entry : public listbox_row_element_base<sys::army_group*> {
 	}
 };
 
-class army_groups_list : public listbox_element_base<army_group_entry, sys::army_group*> {
+class army_groups_list : public listbox_element_base<army_group_entry, dcon::automated_army_group_id> {
 public:
 	std::string_view get_row_element_name() override {
 		return "alice_army_group_entry";
 	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(sys::army_group & item : state.army_groups)
-			row_contents.push_back(&item);
+		state.world.for_each_automated_army_group([&](dcon::automated_army_group_id item) {
+			row_contents.push_back(item);
+		});			
 		update(state);
 	}
 };

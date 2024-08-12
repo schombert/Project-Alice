@@ -196,6 +196,30 @@ enum class map_vassal_color_mode : uint8_t {
 	none = 2
 };
 
+enum class army_group_regiment_status : uint8_t {
+	move_to_target,
+	move_to_port,
+	standby,
+	await_transport,
+	is_transported,
+	disembark,
+	embark
+};
+
+enum class army_group_regiment_task : uint8_t {
+	idle,
+	gather_at_hq,
+	defend_position,
+	siege,
+};
+
+enum class army_group_order : uint8_t {
+	siege,
+	defend,
+	designate_port,
+	none
+};
+
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, industrial_and_consumer_goods, count };
 
 enum class message_setting_type : uint8_t {
@@ -606,4 +630,7 @@ enum class army_activity {
 	attack_gathered = 7,
 	attack_transport = 8,
 };
+
+
+
 }

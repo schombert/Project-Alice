@@ -484,6 +484,10 @@ spriteTypes = {
         texturefile = "assets\\bg-90-50-bronze.png"
     }
     spriteType = {
+        name = "bg-90-50-border-bronze-paper-mirror"
+        texturefile = "assets\\bg-90-50-bronze-mirror.png"
+    }    
+    spriteType = {
         name = "bg-90-50-border-gold-paper"
         texturefile = "assets\\bg-90-50-gold.png"
     }
@@ -500,4 +504,20 @@ spriteTypes = {
         texturefile = "assets\\button-280-50.png"
         noOfFrames = 2
     }    
+    spriteType = {
+        name = "button-40-40-cannon"
+        texturefile = "assets\\button-40-40-cannon.png"
+        noOfFrames = 2
+    }    
+    spriteType = {
+        name = "button-40-40-tower"
+        texturefile = "assets\\button-40-40-tower.png"
+        noOfFrames = 2
+    }
+
+    spriteType = {
+        name = "button-40-40-ship"
+        texturefile = "assets\\button-40-40-ship.png"
+        noOfFrames = 2
+    }
 }
