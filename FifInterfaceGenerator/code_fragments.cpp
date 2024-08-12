@@ -85,7 +85,7 @@ std::string offset_of_array_member_container(std::string const& object_name, std
 
 	return "\" + std::to_string(" + offset + ") + \"";
 }
-std::string array_member_leading_padding(std::string const& member_type, size_t raw_size, bool is_bitfield) {
+std::string array_member_leading_padding(std::string const& member_type, size_t , bool is_bitfield) {
 	return is_bitfield ? std::string("64") : std::string("\" + std::to_string(") + std::string("sizeof(") + member_type + ") + 64 - (sizeof(" + member_type + ") & 63)" + std::string(") + \"");
 }
 std::string array_member_trailing_padding(std::string const& member_type, size_t raw_size, bool is_bitfield) {
