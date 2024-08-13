@@ -32,7 +32,96 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t const* start = (uint8_t const*)(content.data);
 
-#ifdef _WIN64
+#ifdef __linux__
+
+	//Taken relevant bits from Microsoft's documentation
+	//Carelessly replace DWORD into uint32_t, WORD into uint16_t
+	//LONG into int32_t
+	typedef struct {
+  		uint16_t  bfType;
+  		uint32_t  bfSize;
+  		uint16_t  bfReserved1;
+  		uint16_t  bfReserved2;
+		uint32_t  bfOffBits;
+	} __attribute__((__packed__))
+	BITMAPFILEHEADER;
+	
+	typedef struct {
+		uint32_t  biSize;
+  		int32_t   biWidth;
+  		int32_t   biHeight;
+  		uint16_t  biPlanes;
+  		uint16_t  biBitCount;
+  		uint32_t  biCompression;
+  		uint32_t  biSizeImage;
+		int32_t   biXPelsPerMeter;
+		int32_t	  biYPelsPerMeter;
+		uint32_t  biClrUsed;
+		uint32_t  biClrImportant;
+	} __attribute__((__packed__))
+	BITMAPINFOHEADER;
+
+	typedef struct {
+  		uint32_t  bcSize;
+  		uint16_t  bcWidth;
+  		uint16_t  bcHeight;
+  		uint16_t  bcPlanes;
+  		uint16_t  bcBitCount;
+	} BITMAPCOREHEADER;
+
+	typedef struct {
+  		uint32_t  bV4Size;
+  		int32_t   bV4Width;
+  		int32_t   bV4Height;
+  		uint16_t  bV4Planes;
+  		uint16_t  bV4BitCount;
+  		uint32_t  bV4V4Compression;
+  		uint32_t  bV4SizeImage;
+		int32_t	  bV4XPelsPerMeter;
+		int32_t	  bV4YPelsPerMeter;
+		uint32_t  bV4ClrUsed;
+		uint32_t  bV4ClrImportant;
+		uint32_t  bV4RedMask;
+		uint32_t  bV4GreenMask;
+		uint32_t  bV4BlueMask;
+		uint32_t  bV4AlphaMask;
+		uint32_t  bV4CSType;
+		uint32_t  bV4GammaRed;
+		uint32_t  bV4GammaGreen;
+		uint32_t  bV4GammaBlue;
+	} BITMAPV4HEADER;
+
+	typedef struct {
+  		uint32_t  bV5Size;
+  		int32_t   bV5Width;
+  		int32_t   bV5Height;
+  		uint16_t  bV5Planes;
+		uint16_t  bV5BitCount;
+  		uint32_t  bV5Compression;
+  		uint32_t  bV5SizeImage;
+		int32_t	  bV5XPelsPerMeter;
+		int32_t	  bV5YPelsPerMeter;
+		uint32_t  bV5ClrUsed;
+		uint32_t  bV5ClrImportant;
+		uint32_t  bV5RedMask;
+		uint32_t  bV5GreenMask;
+		uint32_t  bV5BlueMask;
+		uint32_t  bV5AlphaMask;
+		uint32_t  bV5CSType;
+		uint32_t  bV5GammaRed;
+		uint32_t  bV5GammaGreen;
+		uint32_t  bV5GammaBlue;
+		uint32_t  bV5Intent;
+		uint32_t  bV5ProfileData;
+		uint32_t  bV5ProfileSize;
+		uint32_t  bV5Reserved;
+	} BITMAPV5HEADER;
+	
+	const int	BI_RGB	= 0;
+	const int	BI_RLE8	= 1;
+	const int	BI_RLE4	= 2;
+
+#endif
 
 	int32_t compression_type = 0;
 	int32_t size_x = 0;
@@ -125,23 +214,23 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 
 	assert(size_x == int32_t(map_size.x));
 	uint32_t free_space = uint32_t(std::max(0, map_size.y - size_y)); // schombert: find out how much water we need to add
-#else
+//#else
 
 	// Data offset is where the pixel data starts
-	uint8_t const* ptr = start + 10;
-	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+//	uint8_t const* ptr = start + 10;
+//	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
 	// The width & height of the image
-	ptr = start + 18;
-	uint32_t size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-	ptr = start + 22;
-	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+//	ptr = start + 18;
+//	uint32_t size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+//	ptr = start + 22;
+//	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
 
-	uint8_t const* data = start + data_offset;
-	assert(size_x == uint32_t(map_size.x));
-	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
-#endif
+//	uint8_t const* data = start + data_offset;
+//	assert(size_x == uint32_t(map_size.x));
+//	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
+//#endif
 
 	// Calculate how much extra we add at the poles
 	uint32_t top_free_space = (free_space * 3) / 5;
