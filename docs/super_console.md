@@ -52,6 +52,7 @@ And here is a list of some more specialized console functions that you can use
 - `true daily-oos-check` : makes the OOS check daily instead of monthly
 - `dump-econ` : puts some economic data in the console and starts econ dumping
 - `vanilla save-map` : makes an image of the map. `vanilla` can also be replaced by one of the following to alter its appearance: `no-sea-line`, `no-blend`, `no-sea-line-2`,  and `blend-no-sea`
+- `load-file ...` : loads the file named `...` (relative to your documents\Project Alice directory). This isn't very useful unless you have created a set of common functions (see the documentation below) that you want to save in a file to reuse.
 	
 #### `player @` and province names
 

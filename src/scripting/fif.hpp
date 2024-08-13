@@ -5097,7 +5097,7 @@ inline LLVMValueRef make_exportable_function(std::string const& export_name, std
 }
 #endif
 
-inline void run_fif_interpreter(environment& env, std::string on_text) {
+inline void run_fif_interpreter(environment& env, std::string_view on_text) {
 	env.source_stack.push_back(std::string_view(on_text));
 	env.compiler_stack.emplace_back(std::make_unique<outer_interpreter>(env));
 	outer_interpreter* o = static_cast<outer_interpreter*>(env.compiler_stack.back().get());
@@ -5112,7 +5112,7 @@ inline void run_fif_interpreter(environment& env, std::string on_text) {
 	env.compiler_stack.pop_back();
 }
 
-inline void run_fif_interpreter(environment& env, std::string on_text, interpreter_stack& s) {
+inline void run_fif_interpreter(environment& env, std::string_view on_text, interpreter_stack& s) {
 	env.source_stack.push_back(std::string_view(on_text));
 	env.compiler_stack.emplace_back(std::make_unique<outer_interpreter>(env));
 	outer_interpreter* o = static_cast<outer_interpreter*>(env.compiler_stack.back().get());

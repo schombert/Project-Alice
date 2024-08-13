@@ -117,7 +117,7 @@ TRIGGER_FUNCTION(apply_disjuctively) {
 		result += "r> or >r ";
 		sub_units_start += 1 + trigger::get_trigger_payload_size(sub_units_start);
 	}
-	result += ">r ";
+	result += "r> ";
 	return result;
 }
 
@@ -131,7 +131,7 @@ TRIGGER_FUNCTION(apply_conjuctively) {
 		result += "r> and >r ";
 		sub_units_start += 1 + trigger::get_trigger_payload_size(sub_units_start);
 	}
-	result += ">r ";
+	result += "r> ";
 	return result;
 }
 

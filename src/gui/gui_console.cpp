@@ -1181,6 +1181,36 @@ inline int32_t* compile_modifier(fif::state_stack& s, int32_t* p, fif::environme
 	return p + 2;
 }
 
+inline int32_t* load_file(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(!fif::typechecking_failed(e->mode)) {
+			s.pop_main();
+		}
+		return p + 2;
+	}
+	if(e->mode != fif::fif_mode::interpreting) {
+		e->report_error("attempted to load a file inside a definition");
+		e->mode = fif::fif_mode::error;
+		return p + 2;
+	}
+
+	auto name_token = fif::read_token(e->source_stack.back(), *e);
+
+	auto dir = simple_fs::get_or_create_root_documents();
+	auto file = simple_fs::open_file(dir, simple_fs::utf8_to_native(name_token.content));
+	if(file) {
+		auto content = simple_fs::view_contents(*file);
+		fif::interpreter_stack values{ };
+		fif::run_fif_interpreter(*e, std::string_view{content.data, content.file_size}, values);
+
+	} else {
+		e->mode = fif::fif_mode::error;
+		e->report_error("could not open file");
+		return p + 2;
+	}
+	return p + 2;
+}
+
 
 void ui::initialize_console_fif_environment(sys::state& state) {
 	if(state.fif_environment)
@@ -1364,6 +1394,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("dump-econ", nullptr, f_dump_econ, {  }, {}, * state.fif_environment);
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
+	fif::add_import("load-file", nullptr, load_file, {}, {}, * state.fif_environment);
 
 	fif::add_import("compile-mod", nullptr, compile_modifier, { fif::fif_i32 }, { }, * state.fif_environment);
 
