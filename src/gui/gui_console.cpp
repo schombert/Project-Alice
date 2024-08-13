@@ -6,6 +6,7 @@
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
 #include "fif_dcon_generated.hpp"
+#include "fif_common.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb_image_write.h"
@@ -1156,7 +1157,6 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	std::lock_guard lg{ state.lock_console_strings };
 
 	state.fif_environment = std::make_unique<fif::environment>();
-	fif::initialize_standard_vocab(*state.fif_environment);
 
 	int32_t error_count = 0;
 	std::string error_list;
@@ -1164,24 +1164,9 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 		state.console_command_error += std::string("?R ERROR: ") + std::string(s) + "?W\\n";
 	};
 
+	fif::common_fif_environment(state, *state.fif_environment);
+
 	fif::interpreter_stack values{ };
-
-	fif::run_fif_interpreter(*state.fif_environment,
-		fif::container_interface(),
-		values);
-
-	values.push_back_main(fif::fif_opaque_ptr, (int64_t)(&(state.world)), nullptr);
-	fif::run_fif_interpreter(*state.fif_environment,
-		"set-container ",
-		values);
-	values.push_back_main(fif::fif_opaque_ptr, (int64_t)(dcon::shared_backing_storage.allocation), nullptr);
-	fif::run_fif_interpreter(*state.fif_environment,
-		"set-vector-storage ",
-		values);
-	values.push_back_main(fif::fif_opaque_ptr, (int64_t)(&state), nullptr);
-	fif::run_fif_interpreter(*state.fif_environment,
-		"ptr(nil) global state-ptr state-ptr ! ",
-		values);
 
 	fif::run_fif_interpreter(*state.fif_environment,
 		" :struct localized i32 value ; "
@@ -1357,14 +1342,6 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	
 	fif::run_fif_interpreter(*state.fif_environment,
 		" : player " + std::to_string(offsetof(sys::state, local_player_nation)) + " state-ptr @ buf-add ptr-cast ptr(nation_id) ; ",
-		values);
-
-	fif::run_fif_interpreter(*state.fif_environment,
-		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "
-		" : crisis-state " + std::to_string(offsetof(sys::state, crisis_state)) + " state-ptr @ buf-add ptr-cast ptr(state_instance_id) ; "
-		" : sea-province? >index first-sea-province @ >index >= ; "
-		" : nth-adjacent index @ connected_provinces .wrapped dup ptr-cast ptr(nil) 2 swap buf-add ptr-cast ptr(province_id) @ swap @ dup r@ = not select ; "	
-		,
 		values);
 
 	assert(state.fif_environment->mode != fif::fif_mode::error);

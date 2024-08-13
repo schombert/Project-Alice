@@ -25,7 +25,6 @@ make_index{demographics_key}{uint16_t}
 make_index{provincial_modifier_value}{uint8_t}
 make_index{national_modifier_value}{uint8_t}
 
-
 object{
 	name{ national_identity }
 	storage_type{contiguous}

@@ -596,7 +596,7 @@ public:
 		type_array.push_back(type{ nullptr, nullptr, nullptr, 0, 0, 0, 0 });
 		types.insert_or_assign(std::string("i16"), fif_i16);
 		type_array.push_back(type{ nullptr, nullptr, nullptr, 0, 0, 0, 0 });
-		types.insert_or_assign(std::string("u16"), fif_i16);
+		types.insert_or_assign(std::string("u16"), fif_u16);
 		type_array.push_back(type{ nullptr, nullptr, nullptr, 0, 0, 0, 0 });
 		types.insert_or_assign(std::string("i8"), fif_i8);
 		type_array.push_back(type{ nullptr, nullptr, nullptr, 0, 0, 0, 0 });

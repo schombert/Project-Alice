@@ -2,27 +2,25 @@
 
 std::string type_to_fif_type(std::string const& tin) {
 	if(tin == "uint32_t")
-		return "i32";
+		return "u32";
 	else if(tin == "int32_t")
 		return "i32";
 	else if(tin == "int16_t")
 		return "i16";
 	else if(tin == "uint16_t")
-		return "i16";
+		return "u16";
 	else if(tin == "int8_t")
 		return "i8";
 	else if(tin == "uint8_t")
-		return "i8";
+		return "u8";
 	else if(tin == "int64_t")
 		return "i64";
 	else if(tin == "uint64_t")
-		return "i64";
+		return "u64";
 	else if(tin == "float")
 		return "f32";
 	else if(tin == "double")
 		return "f64";
-	else if(tin == "int16_t")
-		return "i16";
 	else if(tin == "bool")
 		return "bool";
 	else
@@ -48,8 +46,6 @@ bool known_as_fif_type(std::string const& tin) {
 	else if(tin == "float")
 		return true;
 	else if(tin == "double")
-		return true;
-	else if(tin == "int16_t")
 		return true;
 	else if(tin == "bool")
 		return true;
