@@ -115,6 +115,7 @@ TRIGGER_FUNCTION(apply_disjuctively) {
 	while(sub_units_start < tval + source_size) {
 		result += test_trigger_generic(sub_units_start, ws);
 		result += "r> or >r ";
+		sub_units_start += 1 + trigger::get_trigger_payload_size(sub_units_start);
 	}
 	result += ">r ";
 	return result;
@@ -128,6 +129,7 @@ TRIGGER_FUNCTION(apply_conjuctively) {
 	while(sub_units_start < tval + source_size) {
 		result += test_trigger_generic(sub_units_start, ws);
 		result += "r> and >r ";
+		sub_units_start += 1 + trigger::get_trigger_payload_size(sub_units_start);
 	}
 	result += ">r ";
 	return result;
@@ -3585,7 +3587,7 @@ std::string CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws) 
 std::string multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier) {
 	auto base = state.value_modifiers[modifier];
 	std::string result;
-	result += std::to_string(base.factor) + " >r";
+	result += std::to_string(base.factor) + " >r ";
 
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
@@ -3599,7 +3601,7 @@ std::string multiplicative_modifier(sys::state& state, dcon::value_modifier_key 
 std::string additive_modifier(sys::state& state, dcon::value_modifier_key modifier) {
 	auto base = state.value_modifiers[modifier];
 	std::string result;
-	result += std::to_string(base.base) + " >r";
+	result += std::to_string(base.base) + " >r ";
 
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];

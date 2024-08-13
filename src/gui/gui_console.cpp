@@ -1150,6 +1150,38 @@ int32_t* f_nation_name(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	return p + 2;
 }
 
+
+inline int32_t* compile_modifier(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(!fif::typechecking_failed(e->mode)) {
+			s.pop_main();
+		}
+		return p + 2;
+	}
+	if(e->mode != fif::fif_mode::interpreting) {
+		e->report_error("attempted to compile a definition inside a definition");
+		e->mode = fif::fif_mode::error;
+		return p + 2;
+	}
+
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	auto index = s.main_data_back(0);
+	s.pop_main();
+
+	dcon::value_modifier_key mkey{ dcon::value_modifier_key::value_base_t(index) };
+	std::string body = "" + fif_trigger::multiplicative_modifier(*state, mkey) + " drop drop r> ";
+	std::string name_str = "ttest";
+
+	e->dict.words.insert_or_assign(name_str, int32_t(e->dict.word_array.size()));
+	e->dict.word_array.emplace_back();
+	e->dict.word_array.back().source = body;
+
+	return p + 2;
+}
+
+
 void ui::initialize_console_fif_environment(sys::state& state) {
 	if(state.fif_environment)
 		return;
@@ -1332,6 +1364,8 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("dump-econ", nullptr, f_dump_econ, {  }, {}, * state.fif_environment);
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
+
+	fif::add_import("compile-mod", nullptr, compile_modifier, { fif::fif_i32 }, { }, * state.fif_environment);
 
 	fif::run_fif_interpreter(*state.fif_environment,
 		" : no-sea-line 0 ; : no-blend 1 ; : no-sea-line-2 2 ; : blend-no-sea 3 ; : vanilla 4 ; ",

@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
 
 					output += "\" :struct vpool-" + ob.name + "-" + p.name + " ptr(i32) content ;  \"\n";
 					output += "\" :s " + p.name + " " + ob.name + "_id s: >index 4 * " + offset_of_member_container(ob.name, p.name) + " + data-container @ buf-add ptr-cast ptr(i32) make vpool-" + ob.name + "-" + p.name + " .content! ; \"\n";
-					output += "\" :s size vpool-" + ob.name + "-" + p.name + " s: .content @ dup 1 + >i32 0 = if drop 0 else 8 * 4 + vector-storage @ buf-add ptr-cast ptr(ui16) @ >i32 then ;  \"\n";
+					output += "\" :s size vpool-" + ob.name + "-" + p.name + " s: .content @ dup 1 + >i32 0 = if drop 0 else 8 * 4 + vector-storage @ buf-add ptr-cast ptr(u16) @ >i32 then ;  \"\n";
 					output += "\" :s index vpool-" + ob.name + "-" + p.name + " i32 s: let idx .content @ 8 * 8 + \" + std::to_string(sizeof(" + property_type + ")) + \" idx * + vector-storage @ buf-add ptr-cast ptr(" + (known ? d_type : std::string("nil")) + ") ;  \"\n";
 
 					// TODO: write vpool functions
@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
 							output += "\" :struct vpool-" + ob.name + "-" + i.property_name + " ptr(i32) content ;  \"\n";
 							output += "\" :s " + ob.name + "-" + i.property_name + " " + i.type_name + "_id s: >index 4 * " + offset_of_member_container(ob.name, std::string("array_") + i.property_name) + " + data-container @ buf-add ptr-cast ptr(i32) make vpool-" + ob.name + "-" + i.property_name + " .content! ; \"\n";
 
-							output += "\" :s size vpool-" + ob.name + "-" + i.property_name + " s: .content @ dup 1 + >i32 0 = if drop 0 else 8 * 4 + vector-storage @ buf-add ptr-cast ptr(ui16) @ >i32 then ;  \"\n";
+							output += "\" :s size vpool-" + ob.name + "-" + i.property_name + " s: .content @ dup 1 + >i32 0 = if drop 0 else 8 * 4 + vector-storage @ buf-add ptr-cast ptr(u16) @ >i32 then ;  \"\n";
 							output += "\" :s index vpool-" + ob.name + "-" + i.property_name + " i32 s: let idx .content @ 8 * 8 + \" + std::to_string(sizeof(dcon::" + ob.name + "_id)) + \" idx * + vector-storage @ buf-add ptr-cast ptr(" + ob.name + "_id) ;  \"\n";
 
 							//output += "\t\t\tdcon::stable_variable_vector_storage_mk_2<" + ob.name + "_id, 4, " + std::to_string(ob.size * 8) + " > "

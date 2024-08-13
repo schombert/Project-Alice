@@ -1402,3 +1402,9 @@ inline void common_fif_environment(sys::state& state, fif::environment& env) {
 
 }
 
+namespace fif_trigger {
+std::string multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier);
+std::string additive_modifier(sys::state& state, dcon::value_modifier_key modifier);
+std::string evaluate(sys::state& state, dcon::trigger_key key);
+}
+
