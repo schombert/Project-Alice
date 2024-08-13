@@ -529,6 +529,8 @@ public:
 				return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
 			});
 			break;
+		default:
+			break;
 		}
 		update(state);
 	}

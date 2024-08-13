@@ -31,6 +31,7 @@
 #include "events.hpp"
 #include "notifications.hpp"
 #include "network.hpp"
+#include "fif.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -591,7 +592,7 @@ struct alignas(64) state {
 	army_group_order selected_army_group_order = army_group_order::none;
 
 	//current ui
-	game_scene::scene_properties current_scene = game_scene::nation_picker;
+	game_scene::scene_properties current_scene;
 
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
@@ -653,6 +654,15 @@ struct alignas(64) state {
 	// network data
 	network::network_state network_state;
 
+	// console interpreter
+	std::mutex lock_console_strings;
+	std::string console_command_pending;
+	std::string console_command_result;
+	std::string console_command_error;
+	std::unique_ptr<fif::environment> fif_environment;
+	int32_t type_text_key = -1;
+	int32_t type_localized_key = -1;
+
 	// the following functions will be invoked by the window subsystem
 
 	void on_create(); // called once after the window is created and opengl is ready
@@ -681,7 +691,6 @@ struct alignas(64) state {
 	void debug_scenario_oos_dump();
 
 	void start_state_selection(state_selection_data& data);
-	void finish_state_selection();
 	void state_select(dcon::state_definition_id sdef);
 
 	// the following function are for interacting with the string pool
@@ -710,7 +719,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
 
 		key_data.push_back(0);
 	}

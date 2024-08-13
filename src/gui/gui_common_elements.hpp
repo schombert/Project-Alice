@@ -921,9 +921,8 @@ public:
 		auto tech_id = nations::current_research(state, nation_id);
 		if(tech_id) {
 			return text::get_name_as_string(state, dcon::fatten(state.world, tech_id));
-		} else {
-			return text::produce_simple_string(state, "tb_tech_no_current");
 		}
+		return "?R" + text::produce_simple_string(state, "tb_tech_no_current");
 	}
 };
 

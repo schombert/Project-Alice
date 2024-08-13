@@ -133,6 +133,8 @@ public:
 					return a_name < b_name;
 					});
 			break;
+		default:
+			break;
 		}
 		update(state);
 	}

@@ -112,6 +112,10 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 	auto current = state.world.nation_get_issues(nation, issue.id).id;
 	auto allow = state.world.issue_option_get_allow(issue_option);
 	auto time_limit = state.world.nation_get_last_issue_or_reform_change(nation);
+	auto tag = state.world.nation_get_identity_from_identity_holder(nation);
+	auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+	auto end = start + state.world.national_identity_get_political_party_count(tag);
+	auto count_party_issues = state.world.political_party_get_party_issues_size();
 
 	if(current != issue_option && (!time_limit || (time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) &&
 			(!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() ||
@@ -121,12 +125,36 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 		float total = 0.0f;
 		for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
 			dcon::ideology_id iid{dcon::ideology_id::value_base_t(icounter)};
-			auto condition = issue_option.index() > current.index() ? state.world.ideology_get_add_political_reform(iid)
-																															: state.world.ideology_get_remove_political_reform(iid);
+			auto condition = issue_option.index() > current.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
 			auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(nation, iid);
-			if(condition && upperhouse_weight > 0.0f)
-				total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation),
-																				 trigger::to_generic(nation), 0);
+
+			float party_special_issues_support_total = 0.0f;
+			float count_found = 0.0f;
+
+			for(int32_t i = start; i < end; i++) {
+				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+				if(politics::political_party_is_active(state, nation, pid)
+					&& (state.world.nation_get_government_type(nation).get_ideologies_allowed() & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0
+					&& state.world.political_party_get_ideology(pid) == iid) {
+
+					for(uint32_t j = 0; j < count_party_issues; ++j) {
+						auto popt = state.world.political_party_get_party_issues(pid, dcon::issue_id{ dcon::issue_id::value_base_t(j) });
+						auto opt_mod = state.world.issue_option_get_support_modifiers(popt, issue_option);
+
+						if(opt_mod) {
+							party_special_issues_support_total += upperhouse_weight* trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(nation), trigger::to_generic(nation), 0);
+							count_found += 1.0f;
+						}
+					}
+
+					break; // only look at one active party per ideology
+				}
+			}
+
+			if(count_found > 0.0f)
+				total += std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
+			else if(condition && upperhouse_weight > 0.0f)
+				total += upperhouse_weight * std::clamp(trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0), -1.0f, 1.0f);
 			if(total > 0.5f)
 				return true;
 		}
@@ -142,6 +170,10 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 	auto current = state.world.nation_get_issues(n, issue.id).id;
 	auto allow = state.world.issue_option_get_allow(o);
 	auto time_limit = state.world.nation_get_last_issue_or_reform_change(n);
+	auto tag = state.world.nation_get_identity_from_identity_holder(n);
+	auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+	auto end = start + state.world.national_identity_get_political_party_count(tag);
+	auto count_party_issues = state.world.political_party_get_party_issues_size();
 
 	if(current != o && (!time_limit || (time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) &&
 			(!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() ||
@@ -151,12 +183,36 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 		float total = 0.0f;
 		for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
 			dcon::ideology_id iid{dcon::ideology_id::value_base_t(icounter)};
-			auto condition = o.index() > current.index() ? state.world.ideology_get_add_social_reform(iid)
-																									 : state.world.ideology_get_remove_social_reform(iid);
+			auto condition = o.index() > current.index() ? state.world.ideology_get_add_social_reform(iid)  : state.world.ideology_get_remove_social_reform(iid);
 			auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-			if(condition && upperhouse_weight > 0.0f)
-				total += upperhouse_weight *
-								 trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+
+			float party_special_issues_support_total = 0.0f;
+			float count_found = 0.0f;
+
+			for(int32_t i = start; i < end; i++) {
+				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+				if(politics::political_party_is_active(state, n, pid)
+					&& (state.world.nation_get_government_type(n).get_ideologies_allowed() & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0
+					&& state.world.political_party_get_ideology(pid) == iid) {
+
+					for(uint32_t j = 0; j < count_party_issues; ++j) {
+						auto popt = state.world.political_party_get_party_issues(pid, dcon::issue_id{ dcon::issue_id::value_base_t(j) });
+						auto opt_mod = state.world.issue_option_get_support_modifiers(popt, o);
+
+						if(opt_mod) {
+							party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(n), trigger::to_generic(n), 0);
+							count_found += 1.0f;
+						}
+					}
+
+					break; // only look at one active party per ideology
+				}
+			}
+
+			if(count_found > 0.0f)
+				total += std::clamp(party_special_issues_support_total / count_found, -1.0f, 1.0f);
+			else if(condition && upperhouse_weight > 0.0f)
+				total += upperhouse_weight * std::clamp(trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0), -1.0f, 1.0f);
 			if(total > 0.5f)
 				return true;
 		}
@@ -618,8 +674,7 @@ void daily_party_loyalty_update(sys::state& state) {
 	});
 }
 
-float party_total_support(sys::state& state, dcon::pop_id pop, dcon::political_party_id par_id, dcon::nation_id nat_id,
-		dcon::province_id prov_id) {
+float party_total_support(sys::state& state, dcon::pop_id pop, dcon::political_party_id par_id, dcon::nation_id nat_id, dcon::province_id prov_id) {
 	auto n = dcon::fatten(state.world, nat_id);
 	auto p = dcon::fatten(state.world, prov_id);
 

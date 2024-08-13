@@ -18,6 +18,7 @@
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
+#include "fif_triggers.cpp"
 #include "effects.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"

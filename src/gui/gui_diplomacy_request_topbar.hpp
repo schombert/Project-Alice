@@ -30,8 +30,10 @@ class diplomatic_message_topbar_button : public button_element_base {
 			return "crisis_offer_di";
 		case diplomatic_message::type_t::state_transfer:
 			return "state_transfer_di";
+		default:
+			return "???";
 		}
-		return "???";
+		
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -66,6 +68,8 @@ public:
 		case diplomatic_message::type_t::be_crisis_primary_defender:
 		case diplomatic_message::type_t::be_crisis_primary_attacker:
 			frame = 5;
+			break;
+		default:
 			break;
 		}
 	}

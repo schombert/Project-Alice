@@ -11,6 +11,7 @@
 #include <optional>
 #include <sstream>
 #include <cassert>
+#include <algorithm>
 
 // Objects
 struct value_and_optional {

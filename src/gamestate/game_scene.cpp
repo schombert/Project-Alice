@@ -25,11 +25,10 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	state.get_root_element()->set_visible(state, true);
 	*/
-	state.game_state_updated.store(true, std::memory_order_release);
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
-		state.current_scene = state_wargoal_selector;
+		state.current_scene = state_wargoal_selector();
 
 		state.stored_map_mode = state.map_state.active_map_mode;
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
@@ -43,31 +42,35 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 			map_mode::set_map_mode(state, state.stored_map_mode);
 		}
 
-		state.current_scene = basic_game;
+		state.current_scene = basic_game();
 
 		return;
 
 	case scene_id::in_game_military:
-		state.current_scene = battleplan_editor;
+		state.current_scene = battleplan_editor();
 
 		return;
 
 	case scene_id::end_screen:
-		state.current_scene = end_screen;
+		state.current_scene = end_screen();
 
 		return;
 
 	case scene_id::pick_nation:
-		state.current_scene = nation_picker;
+		state.current_scene = nation_picker();
 
 		return;
 
 	case scene_id::in_game_military_selector:
-		state.current_scene = battleplan_editor_add_army;
+		state.current_scene = battleplan_editor_add_army();
 
+		return;
+	case scene_id::count: // this should never happen
+		assert(false);
 		return;
 	}
 	
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 
 void do_nothing_province_target(sys::state& state,
@@ -523,9 +526,8 @@ void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		state.map_state.on_key_down(keycode, mod);
 		if(keycode == sys::virtual_key::ESCAPE) {
-			switch_scene(state, scene_id::in_game_basic);
 			state.state_selection->on_cancel(state);
-			state.finish_state_selection();
+			switch_scene(state, scene_id::in_game_basic);
 			state.ui_state.root->impl_on_update(state);
 		}
 	}
@@ -748,7 +750,10 @@ void render_ui_ingame(sys::state& state) {
 	}
 	if(state.map_state.get_zoom() > map::zoom_close) {
 		if(!state.ui_state.ctrl_held_down) {
-			if(state.ui_state.rgos_root && state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+			if(state.ui_state.rgos_root
+			&& (state.map_state.active_map_mode == map_mode::mode::rgo_output
+			|| state.map_state.active_map_mode == map_mode::mode::infrastructure
+			|| state.map_state.active_map_mode == map_mode::mode::naval)) {
 				state.ui_state.rgos_root->impl_render(state, 0, 0);
 			} else {
 				render_units(state);
@@ -806,7 +811,9 @@ ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
 		return mouse_probe;
 	}
-	if(state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+	if(state.map_state.active_map_mode == map_mode::mode::rgo_output
+	|| state.map_state.active_map_mode == map_mode::mode::infrastructure
+	|| state.map_state.active_map_mode == map_mode::mode::naval) {
 		// RGO doesn't need clicks... yet
 		return mouse_probe;
 	}
@@ -862,7 +869,9 @@ ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_pro
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
 		return tooltip_probe;
 	}
-	if(state.map_state.active_map_mode == map_mode::mode::rgo_output) {
+	if(state.map_state.active_map_mode == map_mode::mode::rgo_output
+	|| state.map_state.active_map_mode == map_mode::mode::infrastructure
+	|| state.map_state.active_map_mode == map_mode::mode::naval) {
 		// RGO doesn't need clicks... yet
 		return tooltip_probe;
 	}

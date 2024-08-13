@@ -1071,6 +1071,7 @@ TRIGGER_FUNCTION(tf_from_scope) {
 	return apply_subtriggers<return_type, from_type, this_type, from_type>(tval, ws, from_slot, this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_sea_zone_scope) {
+	/*
 	auto sea_zones = ve::apply(
 			[&ws](int32_t p_slot) {
 				auto pid = fatten(ws.world, to_prov(p_slot));
@@ -1084,7 +1085,9 @@ TRIGGER_FUNCTION(tf_sea_zone_scope) {
 				return dcon::province_id();
 			},
 			primary_slot);
-	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(sea_zones),
+	*/
+	auto ports = ws.world.province_get_port_to(to_prov(primary_slot));
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(ports),
 			this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_cultural_union_scope) {
@@ -1219,7 +1222,7 @@ auto empty_province_accumulator(sys::state const& ws) {
 	return make_true_accumulator(
 			[&ws, sea_index = ws.province_definitions.first_sea_province.index()](ve::tagged_vector<int32_t> v) {
 				auto owners = ws.world.province_get_nation_from_province_ownership(to_prov(v));
-				return (owners != ve::tagged_vector<dcon::nation_id>()) & (ve::int_vector(v) < sea_index);
+				return (owners == ve::tagged_vector<dcon::nation_id>()) & (ve::int_vector(v) < sea_index);
 			});
 }
 
@@ -1247,7 +1250,7 @@ auto empty_province_from_state_accumulator(sys::state const& ws, dcon::state_ins
 	return make_true_accumulator([&ws, vector_sid = ve::tagged_vector<dcon::state_instance_id>(sid),
 																	 sea_index = ws.province_definitions.first_sea_province.index()](ve::tagged_vector<int32_t> v) {
 		auto owners = ws.world.province_get_nation_from_province_ownership(to_prov(v));
-		return (owners != ve::tagged_vector<dcon::nation_id>()) & (ve::int_vector(v) < sea_index) &
+		return (owners == ve::tagged_vector<dcon::nation_id>()) & (ve::int_vector(v) < sea_index) &
 					 (ws.world.province_get_state_membership(to_prov(v)) != vector_sid);
 	});
 }
@@ -2315,13 +2318,13 @@ TRIGGER_FUNCTION(tf_badboy) {
 	return compare_values(tval[0], ws.world.nation_get_infamy(to_nation(primary_slot)), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_has_building_fort) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) != 0);
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::fort)) != 0);
 }
 TRIGGER_FUNCTION(tf_has_building_railroad) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad) != 0);
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::railroad)) != 0);
 }
 TRIGGER_FUNCTION(tf_has_building_naval_base) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0);
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) != 0);
 }
 
 TRIGGER_FUNCTION(tf_has_building_factory) {
@@ -2486,53 +2489,13 @@ TRIGGER_FUNCTION(tf_tag_pop) {
 TRIGGER_FUNCTION(tf_stronger_army_than_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 
-	auto main_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(primary_slot));
-	auto this_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			tag_holder);
+	auto main_brigades = ws.world.nation_get_active_regiments(to_nation(primary_slot));
+	auto this_brigades = ws.world.nation_get_active_regiments(tag_holder);
 	return compare_values(tval[0], main_brigades, this_brigades);
 }
 TRIGGER_FUNCTION(tf_stronger_army_than_this_nation) {
-	auto main_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(primary_slot));
-	auto this_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			trigger::to_nation(this_slot));
+	auto main_brigades = ws.world.nation_get_active_regiments(to_nation(primary_slot));
+	auto this_brigades = ws.world.nation_get_active_regiments(trigger::to_nation(this_slot));
 	return compare_values(tval[0], main_brigades, this_brigades);
 }
 TRIGGER_FUNCTION(tf_stronger_army_than_this_state) {
@@ -2843,18 +2806,7 @@ TRIGGER_FUNCTION(tf_has_national_focus_province) {
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_total_amount_of_divisions) {
-	auto result = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return total;
-			},
-			to_nation(primary_slot));
-	return compare_values(tval[0], result, int32_t(tval[1]));
+	return compare_values(tval[0], ws.world.nation_get_active_regiments(to_nation(primary_slot)), int32_t(tval[1]));
 }
 TRIGGER_FUNCTION(tf_money) {
 	return compare_values(tval[0], ws.world.nation_get_stockpiles(to_nation(primary_slot), economy::money),
@@ -3775,33 +3727,17 @@ TRIGGER_FUNCTION(tf_is_colonial_pop) {
 }
 TRIGGER_FUNCTION(tf_has_factories_state) {
 	auto result = ve::apply(
-			[&ws](dcon::state_instance_id s) {
-				auto def = ws.world.state_instance_get_definition(s);
-				auto owner = ws.world.state_instance_get_nation_from_state_ownership(s);
-				for(auto p : ws.world.state_definition_get_abstract_state_membership(def)) {
-					if(p.get_province().get_nation_from_province_ownership() == owner) {
-						auto frange = p.get_province().get_factory_location();
-						if(frange.begin() != frange.end())
-							return true;
-					}
-				}
-				return false;
-			},
+			[&ws](dcon::state_instance_id s) { return economy::has_factory(ws, s); },
 			to_state(primary_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_factories_nation) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n) {
-				for(auto s : ws.world.nation_get_state_ownership(n)) {
-					auto def = ws.world.state_instance_get_definition(ws.world.state_ownership_get_state(s));
-					for(auto p : ws.world.state_definition_get_abstract_state_membership(def)) {
-						if(p.get_province().get_nation_from_province_ownership() == n) {
-							auto frange = p.get_province().get_factory_location();
-							if(frange.begin() != frange.end())
-								return true;
-						}
-					}
+				for(auto p : ws.world.nation_get_province_ownership(n)) {
+					auto rng = p.get_province().get_factory_location();
+					if(rng.begin() != rng.end())
+						return true;
 				}
 				return false;
 			},
@@ -4336,108 +4272,18 @@ TRIGGER_FUNCTION(tf_num_of_vassals_no_substates) {
 			tval[1]);
 }
 TRIGGER_FUNCTION(tf_brigades_compare_this) {
-	auto main_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(primary_slot));
-	auto this_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(this_slot));
-	return compare_values(tval[0], ve::select(this_brigades != 0.0f, main_brigades / this_brigades, 1'000'000.0f),
-			read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ve::select(ws.world.nation_get_active_regiments(to_nation(this_slot)) != 0, ve::to_float(ws.world.nation_get_active_regiments(to_nation(primary_slot))) / ve::to_float(ws.world.nation_get_active_regiments(to_nation(this_slot))), 1'000'000.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_brigades_compare_from) {
-	auto main_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(primary_slot));
-	auto from_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(from_slot));
-	return compare_values(tval[0], ve::select(from_brigades != 0.0f, main_brigades / from_brigades, 1'000'000.0f),
-			read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ve::select(ws.world.nation_get_active_regiments(to_nation(from_slot)) != 0, ve::to_float(ws.world.nation_get_active_regiments(to_nation(primary_slot))) / ve::to_float(ws.world.nation_get_active_regiments(to_nation(from_slot))), 1'000'000.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_brigades_compare_province_this) {
-	auto main_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			ws.world.province_get_nation_from_province_control(to_prov(primary_slot)));
-	auto this_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(this_slot));
-	return compare_values(tval[0], ve::select(this_brigades != 0.0f, main_brigades / this_brigades, 1'000'000.0f),
-			read_float_from_payload(tval + 1));
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_values(tval[0], ve::select(ws.world.nation_get_active_regiments(to_nation(this_slot)) != 0, ve::to_float(ws.world.nation_get_active_regiments(owner)) / ve::to_float(ws.world.nation_get_active_regiments(to_nation(this_slot))), 1'000'000.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_brigades_compare_province_from) {
-	auto main_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			ws.world.province_get_nation_from_province_control(to_prov(primary_slot)));
-	auto from_brigades = ve::apply(
-			[&ws](dcon::nation_id n) {
-				int32_t total = 0;
-				for(auto a : ws.world.nation_get_army_control(n)) {
-					for(auto u : a.get_army().get_army_membership()) {
-						++total;
-					}
-				}
-				return float(total);
-			},
-			to_nation(from_slot));
-	return compare_values(tval[0], ve::select(from_brigades != 0.0f, main_brigades / from_brigades, 1'000'000.0f),
-			read_float_from_payload(tval + 1));
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_values(tval[0], ve::select(ws.world.nation_get_active_regiments(to_nation(from_slot)) != 0, ve::to_float(ws.world.nation_get_active_regiments(owner)) / ve::to_float(ws.world.nation_get_active_regiments(to_nation(from_slot))), 1'000'000.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_constructing_cb_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
@@ -5493,76 +5339,76 @@ TRIGGER_FUNCTION(tf_party_loyalty_from_province_scope_province) {
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_from_nation) {
 	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
+			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::railroad))) +
 							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::railroad)));
+					ve::to_float(ws.world.nation_get_max_building_level(to_nation(from_slot), uint8_t(economy::province_building_type::railroad))));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_from_nation) {
 	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
+			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::railroad))) +
 							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::railroad)));
+					ve::to_float(ws.world.nation_get_max_building_level(to_nation(from_slot), uint8_t(economy::province_building_type::railroad))));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_this_nation) {
 	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
+			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::railroad))) +
 							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::railroad)));
+					ve::to_float(ws.world.nation_get_max_building_level(to_nation(this_slot), uint8_t(economy::province_building_type::railroad))));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_this_nation) {
 	return compare_to_true(tval[0],
-			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::railroad)) +
+			ve::to_float(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::railroad))) +
 							ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) <
-					ve::to_float(ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::railroad)));
+					ve::to_float(ws.world.nation_get_max_building_level(to_nation(this_slot), uint8_t(economy::province_building_type::railroad))));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_from_nation) {
 	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::fort));
+			ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::fort)) < ws.world.nation_get_max_building_level(to_nation(from_slot), uint8_t(economy::province_building_type::fort)));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_from_nation) {
 	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::fort));
+			ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::fort)) < ws.world.nation_get_max_building_level(to_nation(from_slot), uint8_t(economy::province_building_type::fort)));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_this_nation) {
 	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::fort));
+			ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::fort)) < ws.world.nation_get_max_building_level(to_nation(this_slot), uint8_t(economy::province_building_type::fort)));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_this_nation) {
 	return compare_to_true(tval[0],
-			ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) < ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::fort));
+			ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::fort)) < ws.world.nation_get_max_building_level(to_nation(this_slot), uint8_t(economy::province_building_type::fort)));
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_from_nation) {
 	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-										ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::naval_base)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) <
+										ws.world.nation_get_max_building_level(to_nation(from_slot), uint8_t(economy::province_building_type::naval_base))) &&
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) != 0 ||
 										ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
 												ws.world.province_get_state_membership(to_prov(primary_slot))));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_from_nation) {
 	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-										ws.world.nation_get_max_building_level(to_nation(from_slot), economy::province_building_type::naval_base)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) <
+										ws.world.nation_get_max_building_level(to_nation(from_slot), uint8_t(economy::province_building_type::naval_base))) &&
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) != 0 ||
 										ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
 												ws.world.province_get_state_membership(to_prov(primary_slot))));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_this_nation) {
 	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-										ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::naval_base)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) <
+										ws.world.nation_get_max_building_level(to_nation(this_slot), uint8_t(economy::province_building_type::naval_base))) &&
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) != 0 ||
 										ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
 												ws.world.province_get_state_membership(to_prov(primary_slot))));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_this_nation) {
 	auto result = ws.world.province_get_is_coast(to_prov(primary_slot)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) <
-										ws.world.nation_get_max_building_level(to_nation(this_slot), economy::province_building_type::naval_base)) &&
-								(ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::naval_base) != 0 ||
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) <
+										ws.world.nation_get_max_building_level(to_nation(this_slot), uint8_t(economy::province_building_type::naval_base))) &&
+								(ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::naval_base)) != 0 ||
 										ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); },
 												ws.world.province_get_state_membership(to_prov(primary_slot))));
 	return compare_to_true(tval[0], result);
@@ -5796,10 +5642,10 @@ TRIGGER_FUNCTION(tf_test) {
 }
 
 TRIGGER_FUNCTION(tf_has_building_bank) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::bank) != 0);
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::bank)) != 0);
 }
 TRIGGER_FUNCTION(tf_has_building_university) {
-	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::university) != 0);
+	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::university)) != 0);
 }
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
@@ -5878,8 +5724,7 @@ return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, 
 #undef CALLTYPE
 #undef TRIGGER_FUNCTION
 
-float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot,
-		int32_t from_slot) {
+float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	float product = base.factor;
 	for(uint32_t i = 0; i < base.segments_count && product != 0; ++i) {
@@ -5893,8 +5738,7 @@ float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_k
 	}
 	return product;
 }
-float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot,
-		int32_t from_slot) {
+float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	float sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5909,8 +5753,7 @@ float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key mod
 	return sum * base.factor;
 }
 
-ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector product = base.factor;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5923,8 +5766,7 @@ ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_mo
 	}
 	return product;
 }
-ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5938,8 +5780,7 @@ ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier
 	return sum * base.factor;
 }
 
-ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector product = base.factor;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
@@ -5952,8 +5793,7 @@ ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_mo
 	}
 	return product;
 }
-ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier,
-		ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 	ve::fp_vector sum = base.base;
 	for(uint32_t i = 0; i < base.segments_count; ++i) {

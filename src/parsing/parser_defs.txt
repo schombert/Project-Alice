@@ -783,6 +783,9 @@ on_execute_body
 	trigger                extern    make_execute_trigger   member
 	effect                 extern    make_execute_effect    member
 
+vote_modifiers_body
+	#any					extern   make_issue_vote_modifier discard
+
 issue_option_body
 	#base          modifier_base
 	technology_cost           value        int              member_fn
@@ -792,6 +795,7 @@ issue_option_body
 	rules                     group        option_rules     member
 	allow                     extern       make_opt_allow   discard
 	on_execute                group        on_execute_body  member_fn
+	vote_modifiers            group        vote_modifiers_body     member_fn
 
 national_focus
 	#base          modifier_base

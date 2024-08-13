@@ -50,6 +50,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
 		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
 		"#extension GL_ARB_shader_subroutine : enable\r\n",
+		"#extension GL_ARB_vertex_array_object : enable\r\n"
 		"#define M_PI 3.1415926535897932384626433832795\r\n",
 		"#define PI 3.1415926535897932384626433832795\r\n",
 		s_source.c_str()

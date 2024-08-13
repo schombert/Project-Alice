@@ -585,7 +585,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, prov_id);
-		frame = fat_id.get_building_level(Value);
+		frame = fat_id.get_building_level(uint8_t(Value));
 	}
 };
 template<economy::province_building_type Value>
@@ -630,8 +630,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto id = retrieve<dcon::province_id>(state, parent);
 
-		int32_t current_lvl = state.world.province_get_building_level(id, Value);
-		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, Value);
+		int32_t current_lvl = state.world.province_get_building_level(id, uint8_t(Value));
+		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, uint8_t(Value));
 		if constexpr(Value == economy::province_building_type::fort) {
 			text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(id) == state.local_player_nation);
 			text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, id));
@@ -1630,7 +1630,7 @@ public:
 		disabled = true;
 		//
 		auto p = retrieve<dcon::province_id>(state, parent);
-		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+		for(uint8_t i = 2; i < state.military_definitions.unit_base_definitions.size(); i++) {
 			auto utid = dcon::unit_type_id(i);
 			auto const& def = state.military_definitions.unit_base_definitions[utid];
 			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
@@ -1878,7 +1878,7 @@ public:
 
 			if(!adjacent && coastal_target && state.world.nation_get_central_ports(state.local_player_nation) != 0) {
 				for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
-					if(auto nb_level = p.get_province().get_building_level(economy::province_building_type::naval_base); nb_level > 0 && p.get_province().get_nation_from_province_control() == state.local_player_nation) {
+					if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0 && p.get_province().get_nation_from_province_control() == state.local_player_nation) {
 						if(province::direct_distance(state, p.get_province(), coastal_target) <= province::world_circumference * 0.075f * nb_level) {
 							reachable_by_sea = true;
 							break;

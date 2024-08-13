@@ -812,9 +812,9 @@ public:
 			if(o.type != type::military_navy)
 				return false;
 			return data.navy_id == o.data.navy_id;
+		default:
+			return true;
 		}
-
-		return true;
 	}
 	bool operator!=(trade_flow_data const& o) const {
 		return !(*this == o);

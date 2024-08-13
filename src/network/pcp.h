@@ -32,7 +32,7 @@
 #include <ws2tcpip.h>
 #include <time.h>
 #if !defined ssize_t && defined _MSC_VER
-typedef int ssize_t;
+//typedef int ssize_t;
 #endif
 #else //WIN32
 #include <sys/time.h>

@@ -297,16 +297,13 @@ void state::start_state_selection(state_selection_data& data) {
 		ui_state.select_states_legend->impl_on_update(*this);
 	}
 }
-void state::finish_state_selection() {
-	game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
-}
 
 void state::state_select(dcon::state_definition_id sdef) {
 	assert(state_selection);
 	if(std::find(state_selection->selectable_states.begin(), state_selection->selectable_states.end(), sdef) != state_selection->selectable_states.end()) {
 		if(state_selection->single_state_select) {
 			state_selection->on_select(*this, sdef);
-			finish_state_selection();
+			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 		} else {
 			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
 			if(it == state.selected_states.end()) {
@@ -426,6 +423,8 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = true;
+	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+		ui_state.shift_held_down = true;
 
 	game_scene::on_key_down(*this, keycode, mod);
 }
@@ -433,6 +432,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = false;
+	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+		ui_state.shift_held_down = false;
 
 	//TODO: move to according scenes
 	if(user_settings.wasd_for_map_movement) {
@@ -457,6 +458,9 @@ inline constexpr int32_t tooltip_width = 400;
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
+	if(!current_scene.get_root)
+		return;
+
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
 		window::change_cursor(*this, window::cursor_type::busy);
@@ -1026,7 +1030,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(ui_state.bg_gfx_id) {
+	if(ui_state.bg_gfx_id && current_scene.based_on_map) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1i(open_gl.ui_shader_texture_sampler_uniform, 0);
@@ -1222,7 +1226,7 @@ void state::reset_locale_pool() {
 
 void state::load_locale_strings(std::string_view locale_name) {
 	auto root_dir = get_root(common_fs);
-	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
+    auto assets_dir = open_directory(root_dir, NATIVE("assets/localisation"));
 
 	auto load_base_files = [&](int32_t column) {
 		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
@@ -2453,6 +2457,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
 		}
 	}
+	world.issue_option_resize_support_modifiers(world.issue_option_size());
 	// pending issue options
 	{
 		err.file_name = "issues.txt";
@@ -3093,6 +3098,31 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+	//sanity flags, but only as a warning
+	{
+		auto gfx_dir = open_directory(root, NATIVE("gfx"));
+		auto flags_dir = open_directory(gfx_dir, NATIVE("flags"));
+		for(auto nid : world.in_national_identity) {
+			native_string tag_native = simple_fs::win1250_to_native(nations::int_to_tag(nid.get_identifying_int()));
+			if(auto f = simple_fs::peek_file(flags_dir, tag_native + NATIVE(".tga")); !f) {
+				err.accumulated_warnings += "Flag missing " + simple_fs::native_to_utf8(tag_native) + ".tga\n";
+			}
+			std::array<bool, size_t(culture::flag_type::count)> has_reported;
+			std::fill(has_reported.begin(), has_reported.end(), false);
+			for(auto g : world.in_government_type) {
+				if(!has_reported[g.get_flag()]) {
+					native_string file_str = tag_native;
+					file_str += ogl::flag_type_to_name(*this, culture::flag_type(g.get_flag()));
+					file_str += NATIVE(".tga");
+					if(auto f = simple_fs::peek_file(flags_dir, file_str); !f) {
+						err.accumulated_warnings += "Flag missing " + simple_fs::native_to_utf8(file_str) + "\n";
+					}
+					has_reported[g.get_flag()] = true;
+				}
+			}
+		}
+	}
+
 	//Fixup armies defined on a different place
 	for(auto p : world.in_pop_location) {
 		for(const auto src : p.get_pop().get_regiment_source()) {
@@ -3555,6 +3585,8 @@ void state::single_game_tick() {
 			demographics::update_conversion(*this, o, days_in_month, rbuf);
 			break;
 		}
+		default:
+			break;
 		}
 	});
 
@@ -3616,6 +3648,8 @@ void state::single_game_tick() {
 		case 7:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+			break;
+		default:
 			break;
 		}
 	});
@@ -3759,7 +3793,7 @@ void state::single_game_tick() {
 		ai::update_ai_colonial_investment(*this);
 	}
 
-	if(defines.alice_eval_ai_mil_everyday) {
+	if(defines.alice_eval_ai_mil_everyday != 0.0f) {
 		ai::make_defense(*this);
 		ai::make_attacks(*this);
 		ai::update_ships(*this);

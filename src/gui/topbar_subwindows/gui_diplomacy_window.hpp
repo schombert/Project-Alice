@@ -443,8 +443,9 @@ class diplomacy_priority_button : public right_click_button_element_base {
 			return "diplomacy_prio_middle";
 		case nations::influence::priority_three:
 			return "diplomacy_prio_high";
+		default:
+			return "diplomacy_prio_none";
 		}
-		return "diplomacy_prio_none";
 	}
 
 public:
@@ -469,6 +470,8 @@ public:
 		case nations::influence::priority_three:
 			frame = 3;
 			disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 0);
+			break;
+		default:
 			break;
 		}
 	}
@@ -510,6 +513,8 @@ public:
 			break;
 		case nations::influence::priority_three:
 			command::change_influence_priority(state, state.local_player_nation, nation_id, 2);
+			break;
+		default:
 			break;
 		}
 	}
@@ -2352,6 +2357,8 @@ public:
 					break;
 				case diplomacy_window_tab::crisis:
 					crisis_window->set_visible(state, true);
+					break;
+				default:
 					break;
 			}
 			active_tab = enum_val;

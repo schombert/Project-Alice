@@ -143,7 +143,7 @@ inline int32_t status_frame(sys::state& state, dcon::navy_id a) {
 		return false;
 		};
 
-	auto nb_level = state.world.province_get_building_level(state.world.navy_get_location_from_navy_location(a), economy::province_building_type::naval_base);
+	auto nb_level = state.world.province_get_building_level(state.world.navy_get_location_from_navy_location(a), uint8_t(economy::province_building_type::naval_base));
 	if(state.world.navy_get_is_retreating(a)) {
 		return 2;
 	} else if(state.world.navy_get_battle_from_navy_battle_participation(a)) {

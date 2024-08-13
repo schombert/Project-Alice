@@ -253,15 +253,15 @@ public:
 	static constexpr uint32_t uniform_is_black = 26;
 	static constexpr uint32_t uniform_border_width = 27;
 	static constexpr uint32_t uniform_unit_arrow = 28;
-	static constexpr uint32_t uniform_29 = 29;
-	static constexpr uint32_t uniform_30 = 30;
-	static constexpr uint32_t uniform_31 = 31;
+	static constexpr uint32_t uniform_model_offset = 29;
+	static constexpr uint32_t uniform_target_facing = 30;
+	static constexpr uint32_t uniform_target_topview_fixup = 31;
 	static constexpr uint32_t uniform_count = 32;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
-	// static constexpr uint32_t max_static_meshes = 42;
-	// GLuint static_mesh_textures[max_static_meshes] = { 0 };
+	static constexpr uint32_t max_static_meshes = 42;
+	GLuint static_mesh_textures[max_static_meshes] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

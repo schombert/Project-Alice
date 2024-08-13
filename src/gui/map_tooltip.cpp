@@ -30,9 +30,9 @@ float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, s
 	for(auto adj : state.world.province_get_province_adjacency(prov)) {
 		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
-			if(other.get_building_level(economy::province_building_type::fort) > 0) {
+			if(other.get_building_level(uint8_t(economy::province_building_type::fort)) > 0) {
 				if(military::are_at_war(state, army_controller, other.get_nation_from_province_control())) {
-					greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_building_level(economy::province_building_type::fort)));
+					greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_building_level(uint8_t(economy::province_building_type::fort))));
 				}
 			}
 		}
@@ -221,8 +221,8 @@ void infrastructure_map_tt_box(sys::state& state, text::columnar_layout& content
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, fat.get_rgo().get_name(), text::text_color::yellow);
-		int32_t current_rails_lvl = state.world.province_get_building_level(prov, economy::province_building_type::railroad);
-		int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(fat.get_nation_from_province_ownership().id, economy::province_building_type::railroad);
+		int32_t current_rails_lvl = state.world.province_get_building_level(prov, uint8_t(economy::province_building_type::railroad));
+		int32_t max_local_rails_lvl = state.world.nation_get_max_building_level(fat.get_nation_from_province_ownership().id, uint8_t(economy::province_building_type::railroad));
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_single_sub_box(state, contents, box, std::string_view("infra_level_here"), text::variable_type::val, uint16_t(float(current_rails_lvl) / float(max_local_rails_lvl)));
 		text::close_layout_box(contents, box);
@@ -758,10 +758,10 @@ void naval_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 	&& fat.get_nation_from_province_ownership().id.value == state.local_player_nation.value
 	&& fat.get_is_coast()) {
 		auto box = text::open_layout_box(contents);
-		if(fat.get_building_level(economy::province_building_type::naval_base) == 0) {
+		if(fat.get_building_level(uint8_t(economy::province_building_type::naval_base)) == 0) {
 			dcon::province_id navalprov{};
 			for(auto p : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
-				if(dcon::fatten(state.world, p).get_province().get_building_level(economy::province_building_type::naval_base) != 0) {
+				if(dcon::fatten(state.world, p).get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)) != 0) {
 					navalprov = p.get_province().id;
 					break;
 				}
@@ -776,7 +776,7 @@ void naval_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 				}
 			}
 		} else {
-			text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_naval_tooltip_level"), text::variable_type::lvl, fat.get_building_level(economy::province_building_type::naval_base));
+			text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_naval_tooltip_level"), text::variable_type::lvl, fat.get_building_level(uint8_t(economy::province_building_type::naval_base)));
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::cap, military::naval_supply_from_naval_base(state, prov, state.local_player_nation));
 			text::add_to_substitution_map(sub, text::variable_type::tot, military::naval_supply_points(state, state.local_player_nation));
@@ -990,10 +990,10 @@ void fort_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::p
 
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
-		if(fat.get_building_level(economy::province_building_type::fort) > 0) {
+		if(fat.get_building_level(uint8_t(economy::province_building_type::fort)) > 0) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_fort_level"));
-			text::add_to_layout_box(state, contents, box, fat.get_building_level(economy::province_building_type::fort), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, fat.get_building_level(uint8_t(economy::province_building_type::fort)), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
 		if(province::has_fort_being_built(state, fat.id)) {
@@ -1208,6 +1208,7 @@ void crime_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 		text::add_to_substitution_map(sub, text::variable_type::x, state.culture_definitions.crimes[state.world.province_get_crime(prov)].name);
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_41"), sub);
 		text::close_layout_box(contents, box);
+		ui::modifier_description(state, contents, state.culture_definitions.crimes[state.world.province_get_crime(prov)].modifier);
 	}
 }
 void rally_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {

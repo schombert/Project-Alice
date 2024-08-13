@@ -3,7 +3,7 @@ message(STATUS "Fetching DataContainer...")
 FetchContent_Declare(
 	DataContainer
 	GIT_REPOSITORY https://github.com/schombert/DataContainer
-	GIT_TAG 431096c
+	GIT_TAG 800e365
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
@@ -25,7 +25,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(DCONGENERATOR PRIVATE
-											/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /wd4388 /wd4389 -Wno-unused-parameter -Wno-sign-compare -Wno-newline-eof -Wno-missing-prototypes -Wno-unsafe-buffer-usage -Wno-shadow-uncaptured-local -Wno-unreachable-code-break
+											/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /wd4388 /wd4389 -Wno-switch-default -Wno-unused-parameter -Wno-sign-compare -Wno-newline-eof -Wno-missing-prototypes -Wno-unsafe-buffer-usage -Wno-shadow-uncaptured-local -Wno-unreachable-code-break
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(DCONGENERATOR PRIVATE

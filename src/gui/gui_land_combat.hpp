@@ -477,6 +477,8 @@ public:
 			case lc_mod_type::gas:
 				frame = 5;
 				break;
+			default:
+				break;
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -503,6 +505,8 @@ public:
 				break;
 			case lc_mod_type::gas:
 				text::add_line(state, contents, "combat_gas");
+				break;
+			default:
 				break;
 		}
 	}
@@ -861,6 +865,8 @@ public:
 				}
 			}
 				break;
+			default:
+				break;
 		}
 	}
 
@@ -887,6 +893,8 @@ public:
 			break;
 		case regiment_rank::defender_back:
 			reg = state.world.land_battle_get_defender_back_line(b).at(slot);
+			break;
+		default:
 			break;
 		}
 		auto utid = state.world.regiment_get_type(reg);

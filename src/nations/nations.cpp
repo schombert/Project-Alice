@@ -676,7 +676,7 @@ float colonial_points_from_naval_bases(sys::state& state, dcon::nation_id n) {
 	the capital.
 	*/
 	for(auto p : state.world.nation_get_province_ownership(n)) {
-		auto nb_rank = state.world.province_get_building_level(p.get_province(), economy::province_building_type::naval_base);
+		auto nb_rank = state.world.province_get_building_level(p.get_province(), uint8_t(economy::province_building_type::naval_base));
 		if(nb_rank > 0) {
 			if(p.get_province().get_connected_region_id() == state.world.province_get_connected_region_id(state.world.nation_get_capital(n))
 				|| p.get_province().get_is_owner_core()) {
@@ -727,7 +727,7 @@ float used_colonial_points(sys::state& state, dcon::nation_id n) {
 		if(prov.get_province().get_is_colonial()) {
 			points += state.defines.colonization_colony_province_maintainance;
 			points += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure *
-				prov.get_province().get_building_level(economy::province_building_type::railroad) * state.defines.colonization_colony_railway_maintainance;
+				prov.get_province().get_building_level(uint8_t(economy::province_building_type::railroad)) * state.defines.colonization_colony_railway_maintainance;
 		}
 	}
 	return points;
@@ -1159,7 +1159,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.nation_set_has_gas_attack(n, state.world.nation_get_has_gas_attack(base));
 	state.world.nation_set_has_gas_defense(n, state.world.nation_get_has_gas_defense(base));
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
-		state.world.nation_set_max_building_level(n, t, state.world.nation_get_max_building_level(base, t));
+		state.world.nation_set_max_building_level(n, uint8_t(t), state.world.nation_get_max_building_level(base, uint8_t(t)));
 	}
 	state.world.nation_set_election_ends(n, sys::date{0});
 	state.world.nation_set_education_spending(n, int8_t(100));

@@ -3400,6 +3400,20 @@ struct effect_body {
 			err.accumulated_errors += "chenge_terrain effect supplied with an invalid terrain \"" + std::string(value) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
+	void masquerade_as_nation(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			if(is_this(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::masquerade_as_nation_this));
+			} else if(is_from(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::masquerade_as_nation_from));
+			} else {
+				err.accumulated_errors += "masquerade_as_nation effect given an invalid parameter " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors += "masquerade_as_nation effect not used in a nation scope (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
 			err.accumulated_errors +=

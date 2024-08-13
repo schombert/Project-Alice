@@ -192,6 +192,8 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			s3tc_format = SOIL_RGBA_S3TC_DXT5;
 			block_size = 16;
 			break;
+		default:
+			break;
 		}
 		dds_main_size = ((width + 3) >> 2) * ((height + 3) >> 2) * block_size;
 	}
@@ -451,9 +453,102 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 	return 0;
 }
 
+native_string flag_type_to_name(sys::state& state, culture::flag_type type) {
+	switch(type) {
+	case culture::flag_type::count:
+	case culture::flag_type::default_flag:
+		return NATIVE("");
+	case culture::flag_type::communist:
+		return NATIVE("_communist");
+	case culture::flag_type::fascist:
+		return NATIVE("_fascist");
+	case culture::flag_type::monarchy:
+		return NATIVE("_monarchy");
+	case culture::flag_type::republic:
+		return NATIVE("_republic");
+		// Non-vanilla
+	case culture::flag_type::theocracy:
+		return NATIVE("_theocracy");
+	case culture::flag_type::special:
+		return NATIVE("_special");
+	case culture::flag_type::spare:
+		return NATIVE("_spare");
+	case culture::flag_type::populist:
+		return NATIVE("_populist");
+	case culture::flag_type::realm:
+		return NATIVE("_realm");
+	case culture::flag_type::other:
+		return NATIVE("_other");
+	case culture::flag_type::monarchy2:
+		return NATIVE("_monarchy2");
+	case culture::flag_type::monarchy3:
+		return NATIVE("_monarchy3");
+	case culture::flag_type::republic2:
+		return NATIVE("_republic2");
+	case culture::flag_type::republic3:
+		return NATIVE("_republic3");
+	case culture::flag_type::communist2:
+		return NATIVE("_communist2");
+	case culture::flag_type::communist3:
+		return NATIVE("_communist3");
+	case culture::flag_type::fascist2:
+		return NATIVE("_fascist2");
+	case culture::flag_type::fascist3:
+		return NATIVE("_fascist3");
+	case culture::flag_type::theocracy2:
+		return NATIVE("_theocracy2");
+	case culture::flag_type::theocracy3:
+		return NATIVE("_theocracy3");
+	case culture::flag_type::cosmetic_1:
+		return NATIVE("_cosmetic_1");
+	case culture::flag_type::cosmetic_2:
+		return NATIVE("_cosmetic_2");
+	case culture::flag_type::colonial:
+		return NATIVE("_colonial");
+	case culture::flag_type::nationalist:
+		return NATIVE("_nationalist");
+	case culture::flag_type::sectarian:
+		return NATIVE("_sectarian");
+	case culture::flag_type::socialist:
+		return NATIVE("_socialist");
+	case culture::flag_type::dominion:
+		return NATIVE("_dominion");
+	case culture::flag_type::agrarism:
+		return NATIVE("_agrarism");
+	case culture::flag_type::national_syndicalist:
+		return NATIVE("_national_syndicalist");
+	case culture::flag_type::theocratic:
+		return NATIVE("_theocratic");
+	case culture::flag_type::slot1:
+		return NATIVE("_slot1");
+	case culture::flag_type::slot2:
+		return NATIVE("_slot2");
+	case culture::flag_type::slot3:
+		return NATIVE("_slot3");
+	case culture::flag_type::slot4:
+		return NATIVE("_slot4");
+	case culture::flag_type::anarcho_liberal:
+		return NATIVE("_anarcho_liberal");
+	case culture::flag_type::green:
+		return NATIVE("_green");
+	case culture::flag_type::traditionalist:
+		return NATIVE("_traditionalist");
+	case culture::flag_type::ultranationalist:
+		return NATIVE("_ultranationalist");
+	default:
+		return NATIVE("");
+
+	}
+}
+
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
+	auto masq_nat_id = state.world.nation_get_masquerade_identity(state.world.national_identity_get_nation_from_identity_holder(nat_id));
+	if(!masq_nat_id) {
+		masq_nat_id = nat_id;
+	}
+
 	auto const offset = culture::get_remapped_flag_type(state, type);
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset) };
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + masq_nat_id.id.index()) * state.flag_types.size() + offset) };
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
@@ -462,128 +557,9 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += NATIVE("flags");
 		file_str += NATIVE_DIR_SEPARATOR;
-		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
+		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(masq_nat_id)));
 		native_string default_file_str = file_str;
-		switch(type) {
-		case culture::flag_type::communist:
-			file_str += NATIVE("_communist");
-			break;
-		case culture::flag_type::count:
-		case culture::flag_type::default_flag:
-			break;
-		case culture::flag_type::fascist:
-			file_str += NATIVE("_fascist");
-			break;
-		case culture::flag_type::monarchy:
-			file_str += NATIVE("_monarchy");
-			break;
-		case culture::flag_type::republic:
-			file_str += NATIVE("_republic");
-			break;
-			// Non-vanilla
-		case culture::flag_type::theocracy:
-			file_str += NATIVE("_theocracy");
-			break;
-		case culture::flag_type::special:
-			file_str += NATIVE("_special");
-			break;
-		case culture::flag_type::spare:
-			file_str += NATIVE("_spare");
-			break;
-		case culture::flag_type::populist:
-			file_str += NATIVE("_populist");
-			break;
-		case culture::flag_type::realm:
-			file_str += NATIVE("_realm");
-			break;
-		case culture::flag_type::other:
-			file_str += NATIVE("_other");
-			break;
-		case culture::flag_type::monarchy2:
-			file_str += NATIVE("_monarchy2");
-			break;
-		case culture::flag_type::monarchy3:
-			file_str += NATIVE("_monarchy3");
-			break;
-		case culture::flag_type::republic2:
-			file_str += NATIVE("_republic2");
-			break;
-		case culture::flag_type::republic3:
-			file_str += NATIVE("_republic3");
-			break;
-		case culture::flag_type::communist2:
-			file_str += NATIVE("_communist2");
-			break;
-		case culture::flag_type::communist3:
-			file_str += NATIVE("_communist3");
-			break;
-		case culture::flag_type::fascist2:
-			file_str += NATIVE("_fascist2");
-			break;
-		case culture::flag_type::fascist3:
-			file_str += NATIVE("_fascist3");
-			break;
-		case culture::flag_type::theocracy2:
-			file_str += NATIVE("_theocracy2");
-			break;
-		case culture::flag_type::theocracy3:
-			file_str += NATIVE("_theocracy3");
-			break;
-		case culture::flag_type::cosmetic_1:
-			file_str += NATIVE("_cosmetic_1");
-			break;
-		case culture::flag_type::cosmetic_2:
-			file_str += NATIVE("_cosmetic_2");
-			break;
-		case culture::flag_type::colonial:
-			file_str += NATIVE("_colonial");
-			break;
-		case culture::flag_type::nationalist:
-			file_str += NATIVE("_nationalist");
-			break;
-		case culture::flag_type::sectarian:
-			file_str += NATIVE("_sectarian");
-			break;
-		case culture::flag_type::socialist:
-			file_str += NATIVE("_socialist");
-			break;
-		case culture::flag_type::dominion:
-			file_str += NATIVE("_dominion");
-			break;
-		case culture::flag_type::agrarism:
-			file_str += NATIVE("_agrarism");
-			break;
-		case culture::flag_type::national_syndicalist:
-			file_str += NATIVE("_national_syndicalist");
-			break;
-		case culture::flag_type::theocratic:
-			file_str += NATIVE("_theocratic");
-			break;
-		case culture::flag_type::slot1:
-			file_str += NATIVE("_slot1");
-			break;
-		case culture::flag_type::slot2:
-			file_str += NATIVE("_slot2");
-			break;
-		case culture::flag_type::slot3:
-			file_str += NATIVE("_slot3");
-			break;
-		case culture::flag_type::slot4:
-			file_str += NATIVE("_slot4");
-			break;
-		case culture::flag_type::anarcho_liberal:
-			file_str += NATIVE("_anarcho_liberal");
-			break;
-		case culture::flag_type::green:
-			file_str += NATIVE("_green");
-			break;
-		case culture::flag_type::traditionalist:
-			file_str += NATIVE("_traditionalist");
-			break;
-		case culture::flag_type::ultranationalist:
-			file_str += NATIVE("_ultranationalist");
-			break;
-		}
+		file_str += flag_type_to_name(state, type);
 		GLuint p_tex = load_file_and_return_handle(file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
 		if(!p_tex) {
 			p_tex = load_file_and_return_handle(file_str + NATIVE(".tga"), state.common_fs, state.open_gl.asset_textures[id], false);

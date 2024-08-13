@@ -12,6 +12,7 @@ namespace ogl {
 class texture;
 
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
+native_string flag_type_to_name(sys::state& state, culture::flag_type type);
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type);
 GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data);
 

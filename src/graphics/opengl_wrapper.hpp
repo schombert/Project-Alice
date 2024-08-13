@@ -118,6 +118,8 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 	case GL_DEBUG_SOURCE_OTHER:
 		source_str = "Unknown source";
 		break;
+	default:
+		break;
 	}
 	std::string error_type;
 	switch(type) {
@@ -148,6 +150,8 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 	case GL_DEBUG_TYPE_OTHER:
 		error_type = "Uknown error type";
 		break;
+	default:
+		break;
 	}
 	std::string severity_str;
 	switch(severity) {
@@ -162,6 +166,8 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 		break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		severity_str = "Notification";
+		break;
+	default:
 		break;
 	}
 	std::string full_message("OpenGL error ");

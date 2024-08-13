@@ -502,6 +502,8 @@ public:
 		case sys::crisis_type::influence:
 			//set_text(state, text::produce_simple_string(state, "crisis_description_influence"));
 			break;
+		default:
+			break;
 		};
 	}
 };
@@ -537,6 +539,9 @@ public:
 			break;
 		case sys::crisis_mode::heating_up:
 			set_text(state, text::produce_simple_string(state, "crisis_mode_heating_up"));
+			break;
+		default:
+			break;
 		}
 	}
 };

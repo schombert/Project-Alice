@@ -37,8 +37,9 @@ public:
 		case 3: // All everyday, some luxury
 		case 4: // All luxury
 			return names[value];
+		default:
+			return dcon::text_key{ 0 };
 		}
-		return dcon::text_key{0};
 	}
 };
 inline pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {

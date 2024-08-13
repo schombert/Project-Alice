@@ -82,6 +82,8 @@ public:
 		case 3:
 			command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -112,6 +114,8 @@ public:
 				break;
 			case 3:
 				text::add_line(state, contents, "diplomacy_prio_high");
+				break;
+			default:
 				break;
 			}
 		}
@@ -1494,7 +1498,7 @@ class state_infrastructure : public simple_text_element_base {
 		float total = 0.0f;
 		float p_total = 0.0f;
 		province::for_each_province_in_state_instance(state, content, [&](dcon::province_id p) {
-			total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * float(state.world.province_get_building_level(p, economy::province_building_type::railroad));
+			total += state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure * float(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad)));
 			p_total += 1.0f;
 		});
 		set_text(state, text::format_float(p_total > 0 ? total / p_total : 0.0f, 3));
@@ -1683,6 +1687,8 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 					}
 				}
 			}
+			break;
+		default:
 			break;
 
 		}

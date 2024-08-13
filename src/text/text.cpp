@@ -1211,8 +1211,10 @@ text::alignment to_text_alignment(ui::alignment in) {
 		return text::alignment::center;
 	case ui::alignment::justified:
 		return text::alignment::left;
+	default:
+		return text::alignment::left;
 	}
-	return text::alignment::left;
+	
 }
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view text, text_color color, substitution source) {

@@ -667,7 +667,7 @@ object {
 	}
 	property{
 		name{ options }
-		type{ std::array<issue_option_id,culture::max_issue_options> }
+		type{ std::array<dcon::issue_option_id,culture::max_issue_options> }
 		tag{ scenario }
 	}
 	property{
@@ -754,6 +754,12 @@ object {
 		name{ parent_issue }
 		type{ issue_id }
 	}
+
+	property{
+		name{ support_modifiers }
+		type{ array{issue_option_id}{value_modifier_key} }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -774,7 +780,7 @@ object {
 	}
 	property{
 		name{ options }
-		type{ std::array<reform_option_id,culture::max_issue_options> }
+		type{ std::array<dcon::reform_option_id,culture::max_issue_options> }
 		tag{ scenario }
 	}
 	property{
@@ -1379,7 +1385,7 @@ object {
 	}
 	property{
 		name{ building_level }
-		type{ array{economy::province_building_type}{uint8_t} }
+		type{ array{uint8_t}{uint8_t} }
 		tag{ save }
 	}
 	property{
@@ -1422,7 +1428,7 @@ object {
 
 	property{
 		name{ port_to }
-		type{ dcon::province_id }
+		type{ province_id }
 		tag{ scenario }
 	}
 
@@ -2364,22 +2370,22 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<regiment_id,30> }
+		type{ std::array<dcon::regiment_id,30> }
 		tag{ save }
 	}
 
@@ -3250,6 +3256,11 @@ object {
 		type{ uint32_t }
 	}
 	property{
+		name{ masquerade_identity }
+		type{ national_identity_id }
+		tag{ save }
+	}
+	property{
 		name{ primary_culture }
 		type{ culture_id }
 		tag{ save }
@@ -3432,7 +3443,7 @@ object {
 	}
 	property {
 		name{ max_building_level }
-		type{ array{economy::province_building_type}{uint8_t} }
+		type{ array{uint8_t}{uint8_t} }
 	}
 	property {
 		name{ current_modifiers }

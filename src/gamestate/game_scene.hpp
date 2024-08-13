@@ -178,61 +178,65 @@ struct scene_properties {
 };
 
 
-inline scene_properties nation_picker{
-	.id = scene_id::pick_nation,
+inline scene_properties nation_picker() {
+	return scene_properties{
+.id = scene_id::pick_nation,
 
-	.get_root = root_pick_nation,
+.get_root = root_pick_nation,
 
-	.starting_scene = true,
-	.enforced_pause = true,
-	.overwrite_map_tooltip = true,
-	.is_lobby = true,
-	.game_in_progress = false,
+.starting_scene = true,
+.enforced_pause = true,
+.overwrite_map_tooltip = true,
+.is_lobby = true,
+.game_in_progress = false,
 
-	.rbutton_selected_units = do_nothing_province_target,
-	.rbutton_province = do_nothing_province_target,
-	.allow_drag_selection = false,
-	.on_drag_start = do_nothing_screen,
-	.drag_selection = do_nothing_screen,
-	.lbutton_up = select_player_nation_from_selected_province,
-	.keycode_mapping = replace_keycodes_map_movement,
-	.handle_hotkeys = nation_picker_hotkeys,
-	.console_log = console_log_pick_nation,	
-	.open_chat = open_chat_before_game,
-	.update_highlight_texture = highlight_player_nation,
-};
+.rbutton_selected_units = do_nothing_province_target,
+.rbutton_province = do_nothing_province_target,
+.allow_drag_selection = false,
+.on_drag_start = do_nothing_screen,
+.drag_selection = do_nothing_screen,
+.lbutton_up = select_player_nation_from_selected_province,
+.keycode_mapping = replace_keycodes_map_movement,
+.handle_hotkeys = nation_picker_hotkeys,
+.console_log = console_log_pick_nation,
+.open_chat = open_chat_before_game,
+.update_highlight_texture = highlight_player_nation,
+	};
+}
 
-inline scene_properties basic_game{
-	.id = scene_id::in_game_basic,
+inline scene_properties basic_game() {
+	return scene_properties{
+.id = scene_id::in_game_basic,
 
-	.get_root = root_game_basic,
+.get_root = root_game_basic,
 
-	.accept_events = true,
+.accept_events = true,
 
-	.rbutton_selected_units = selected_units_control,
-	.rbutton_province = open_diplomacy,
-	.allow_drag_selection = true,
-	.on_drag_start = start_dragging,
-	.drag_selection = select_units,
-	.lbutton_up = do_nothing,
-	.keycode_mapping = replace_keycodes_map_movement,
-	.handle_hotkeys = in_game_hotkeys,
-	.console_log = console_log_other,
+.rbutton_selected_units = selected_units_control,
+.rbutton_province = open_diplomacy,
+.allow_drag_selection = true,
+.on_drag_start = start_dragging,
+.drag_selection = select_units,
+.lbutton_up = do_nothing,
+.keycode_mapping = replace_keycodes_map_movement,
+.handle_hotkeys = in_game_hotkeys,
+.console_log = console_log_other,
 
-	.render_ui = render_ui_ingame,
+.render_ui = render_ui_ingame,
 
-	.recalculate_mouse_probe = recalculate_mouse_probe_basic,
-	.recalculate_tooltip_probe = recalculate_tooltip_probe_basic,
+.recalculate_mouse_probe = recalculate_mouse_probe_basic,
+.recalculate_tooltip_probe = recalculate_tooltip_probe_basic,
 
-	.clean_up = clean_up_basic_game_scene,
-	.on_game_state_update = update_basic_game_scene,
-	.on_game_state_update_update_ui = update_ui_state_basic,
-};
+.clean_up = clean_up_basic_game_scene,
+.on_game_state_update = update_basic_game_scene,
+.on_game_state_update_update_ui = update_ui_state_basic,
+	};
+}
 
-inline scene_properties battleplan_editor{
-	.id = scene_id::in_game_military,
+inline scene_properties battleplan_editor() { return scene_properties{
+		.id = scene_id::in_game_military,
 
-	.get_root = root_game_battleplanner,
+		.get_root = root_game_battleplanner,
 
 	.rbutton_selected_units = do_nothing_province_target,
 	.rbutton_province = do_nothing_province_target,
@@ -244,80 +248,87 @@ inline scene_properties battleplan_editor{
 	.handle_hotkeys = military_screen_hotkeys,
 	.console_log = console_log_other,
 
-	.render_ui = render_ui_military,
+		.render_ui = render_ui_military,
 
-	.recalculate_mouse_probe = recalculate_mouse_probe_military,
+		.recalculate_mouse_probe = recalculate_mouse_probe_military,
 
-	.on_game_state_update = update_military_game_scene,
-	.update_highlight_texture = highlight_defensive_positions
-};
+		.on_game_state_update = update_military_game_scene,
+		.update_highlight_texture = highlight_defensive_positions
+	};
+}
 
-inline scene_properties battleplan_editor_add_army{
-	.id = scene_id::in_game_military_selector,
+inline scene_properties battleplan_editor_add_army() {
+	return scene_properties{
+.id = scene_id::in_game_military_selector,
 
-	.get_root = root_game_battleplanner_add_army,
+.get_root = root_game_battleplanner_add_army,
 
-	.rbutton_selected_units = do_nothing_province_target,
-	.rbutton_province = do_nothing_province_target,
-	.allow_drag_selection = true,
-	.on_drag_start = start_dragging,
-	.drag_selection = select_units,
-	.lbutton_up = do_nothing,
-	.keycode_mapping = replace_keycodes_map_movement,
-	.handle_hotkeys = military_screen_hotkeys,
-	.console_log = console_log_other,
+.rbutton_selected_units = do_nothing_province_target,
+.rbutton_province = do_nothing_province_target,
+.allow_drag_selection = true,
+.on_drag_start = start_dragging,
+.drag_selection = select_units,
+.lbutton_up = do_nothing,
+.keycode_mapping = replace_keycodes_map_movement,
+.handle_hotkeys = military_screen_hotkeys,
+.console_log = console_log_other,
 
-	.render_ui = render_ui_selection_screen,
+.render_ui = render_ui_selection_screen,
 
-	.recalculate_mouse_probe = recalculate_mouse_probe_units_and_details,
-	.recalculate_tooltip_probe = recalculate_tooltip_probe_units_and_details,
+.recalculate_mouse_probe = recalculate_mouse_probe_units_and_details,
+.recalculate_tooltip_probe = recalculate_tooltip_probe_units_and_details,
 
-	.on_game_state_update = update_add_units_game_scene,
-	.on_game_state_update_update_ui = update_ui_unit_details,
-	.update_highlight_texture = highlight_defensive_positions
-};
+.on_game_state_update = update_add_units_game_scene,
+.on_game_state_update_update_ui = update_ui_unit_details,
+.update_highlight_texture = highlight_defensive_positions
+	};
+}
 
-inline scene_properties state_wargoal_selector{
-	.id = scene_id::in_game_state_selector,
+inline scene_properties state_wargoal_selector() {
+	return scene_properties{
+.id = scene_id::in_game_state_selector,
 
-	.get_root = root_game_wargoal_state_selection,
+.get_root = root_game_wargoal_state_selection,
 
-	.borders = borders_granularity::state,
+.borders = borders_granularity::state,
 
-	.rbutton_selected_units = do_nothing_province_target,
-	.rbutton_province = do_nothing_province_target,
-	.allow_drag_selection = false,
-	.on_drag_start = do_nothing_screen,
-	.drag_selection = do_nothing_screen,
-	.lbutton_up = select_wargoal_state_from_selected_province,
-	.keycode_mapping = replace_keycodes_map_movement,
-	.handle_hotkeys = state_selector_hotkeys,
-	.console_log = console_log_other
-};
+.rbutton_selected_units = do_nothing_province_target,
+.rbutton_province = do_nothing_province_target,
+.allow_drag_selection = false,
+.on_drag_start = do_nothing_screen,
+.drag_selection = do_nothing_screen,
+.lbutton_up = select_wargoal_state_from_selected_province,
+.keycode_mapping = replace_keycodes_map_movement,
+.handle_hotkeys = state_selector_hotkeys,
+.console_log = console_log_other
+	};
+}
 
-inline scene_properties end_screen{
-	.id = scene_id::end_screen,
+inline scene_properties end_screen() {
+	return scene_properties{
+.id = scene_id::end_screen,
 
-	.get_root = root_end_screen,
+.get_root = root_end_screen,
 
-	.final_scene = true,
-	.enforced_pause = true,
-	.based_on_map = false,
-	.game_in_progress = false,
+.final_scene = true,
+.enforced_pause = true,
+.based_on_map = false,
+.game_in_progress = false,
 
-	.rbutton_selected_units = do_nothing_province_target,
-	.rbutton_province = do_nothing_province_target,
-	.allow_drag_selection = false,
-	.on_drag_start = do_nothing_screen,
-	.drag_selection = do_nothing_screen,
-	.lbutton_up = do_nothing,
-	.keycode_mapping = replace_keycodes_identity,
-	.handle_hotkeys = do_nothing_hotkeys,
-	.console_log = console_log_other,
+.rbutton_selected_units = do_nothing_province_target,
+.rbutton_province = do_nothing_province_target,
+.allow_drag_selection = false,
+.on_drag_start = do_nothing_screen,
+.drag_selection = do_nothing_screen,
+.lbutton_up = do_nothing,
+.keycode_mapping = replace_keycodes_identity,
+.handle_hotkeys = do_nothing_hotkeys,
+.console_log = console_log_other,
 
-	.render_map = do_nothing,
-	.on_game_state_update = do_nothing,
-};
+.render_map = do_nothing,
+.on_game_state_update = do_nothing,
+	};
+}
 
 
 }
