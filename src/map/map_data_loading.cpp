@@ -34,9 +34,21 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 
 #ifdef __linux__
 
-	//Taken relevant bits from Microsoft's documentation
-	//Carelessly replace DWORD into uint32_t, WORD into uint16_t
+	//Ported from Microsoft's documentation
+	//Replaced DWORD into uint32_t, WORD into uint16_t
 	//LONG into int32_t
+	typedef struct {
+		int32_t   ciexyzX;
+		int32_t	  ciexyzY;
+		int32_t	  ciexyzZ;
+	} CIEXYZ;
+
+	typedef struct {
+		CIEXYZ    ciexyzRed;
+		CIEXYZ	  ciexyzGreen;
+		CIEXYZ	  ciexyzBlue;
+	} CIEXYZTRIPLE;
+
 	typedef struct {
   		uint16_t  bfType;
   		uint32_t  bfSize;
@@ -92,29 +104,30 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	} BITMAPV4HEADER;
 
 	typedef struct {
-  		uint32_t  bV5Size;
-  		int32_t   bV5Width;
-  		int32_t   bV5Height;
-  		uint16_t  bV5Planes;
-		uint16_t  bV5BitCount;
-  		uint32_t  bV5Compression;
-  		uint32_t  bV5SizeImage;
-		int32_t	  bV5XPelsPerMeter;
-		int32_t	  bV5YPelsPerMeter;
-		uint32_t  bV5ClrUsed;
-		uint32_t  bV5ClrImportant;
-		uint32_t  bV5RedMask;
-		uint32_t  bV5GreenMask;
-		uint32_t  bV5BlueMask;
-		uint32_t  bV5AlphaMask;
-		uint32_t  bV5CSType;
-		uint32_t  bV5GammaRed;
-		uint32_t  bV5GammaGreen;
-		uint32_t  bV5GammaBlue;
-		uint32_t  bV5Intent;
-		uint32_t  bV5ProfileData;
-		uint32_t  bV5ProfileSize;
-		uint32_t  bV5Reserved;
+  		uint32_t  	 bV5Size;
+  		int32_t   	 bV5Width;
+  		int32_t   	 bV5Height;
+  		uint16_t  	 bV5Planes;
+		uint16_t  	 bV5BitCount;
+  		uint32_t  	 bV5Compression;
+  		uint32_t  	 bV5SizeImage;
+		int32_t	  	 bV5XPelsPerMeter;
+		int32_t	  	 bV5YPelsPerMeter;
+		uint32_t  	 bV5ClrUsed;
+		uint32_t  	 bV5ClrImportant;
+		uint32_t  	 bV5RedMask;
+		uint32_t  	 bV5GreenMask;
+		uint32_t  	 bV5BlueMask;
+		uint32_t  	 bV5AlphaMask;
+		uint32_t  	 bV5CSType;
+		CIEXYZTRIPLE bV5Endpoints;
+		uint32_t  	 bV5GammaRed;
+		uint32_t  	 bV5GammaGreen;
+		uint32_t  	 bV5GammaBlue;
+		uint32_t  	 bV5Intent;
+		uint32_t  	 bV5ProfileData;
+		uint32_t  	 bV5ProfileSize;
+		uint32_t  	 bV5Reserved;
 	} BITMAPV5HEADER;
 	
 	const int	BI_RGB	= 0;
@@ -214,23 +227,6 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 
 	assert(size_x == int32_t(map_size.x));
 	uint32_t free_space = uint32_t(std::max(0, map_size.y - size_y)); // schombert: find out how much water we need to add
-//#else
-
-	// Data offset is where the pixel data starts
-//	uint8_t const* ptr = start + 10;
-//	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-	// The width & height of the image
-//	ptr = start + 18;
-//	uint32_t size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-//	ptr = start + 22;
-//	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-
-//	uint8_t const* data = start + data_offset;
-//	assert(size_x == uint32_t(map_size.x));
-//	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
-//#endif
 
 	// Calculate how much extra we add at the poles
 	uint32_t top_free_space = (free_space * 3) / 5;
