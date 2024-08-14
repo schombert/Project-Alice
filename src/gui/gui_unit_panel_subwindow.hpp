@@ -123,7 +123,8 @@ public:
 		if(!base_pop) {
 			text::add_line(state, contents, "reinforce_rate_none");
 		} else {
-			text::add_line(state, contents, "x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
+			// Added culture name to the tooltip
+			text::add_line(state, contents, "x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop), text::variable_type::culture, state.world.pop_get_culture(base_pop).get_name());
 			text::add_line_break_to_layout(state, contents);
 
 			auto reg_range = state.world.pop_get_regiment_source(base_pop);
