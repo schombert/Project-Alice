@@ -2439,7 +2439,7 @@ void oob_relationship::value(association_type, int32_t v, error_handler& err, in
 			context.outer_context.state.world.get_diplomatic_relation_by_diplomatic_pair(context.nation_for, context.nation_with);
 	if(rel) {
 		context.outer_context.state.world.diplomatic_relation_set_value(rel, float(v));
-	} else {
+	} else if(v != 0) {
 		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_for, context.nation_with);
 		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, float(v));
 	}
@@ -2467,7 +2467,7 @@ void oob_relationship::level(association_type, int32_t v, error_handler& err, in
 	}();
 	if(rel) {
 		context.outer_context.state.world.gp_relationship_set_status(rel, status_level);
-	} else {
+	} else if(status_level != nations::influence::level_neutral) {
 		auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
 		context.outer_context.state.world.gp_relationship_set_status(new_rel, status_level);
 	}
