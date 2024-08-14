@@ -233,7 +233,7 @@ object {
 object {
 	name{ culture }
 	storage_type{ contiguous }
-	size{ 1800 }
+	size{ 2800 }
 	tag{ scenario }
 
 	property{
@@ -1178,7 +1178,7 @@ object {
 object {
 	name{ rebel_type }
 	storage_type{ contiguous }
-	size{ 60 }
+	size{ 127 }
 	tag{ scenario }
 
 	property{
