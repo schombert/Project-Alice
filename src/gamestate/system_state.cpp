@@ -4523,6 +4523,11 @@ bool state::army_group_recalculate_distribution(dcon::automated_army_group_id gr
 		auto regiment = dcon::fatten(world, regiment_id).get_regiment();
 
 		auto regiment_type = regiment.get_regiment_from_automation().get_type();
+
+		if(!regiment_type) {
+			continue;
+		}
+
 		auto task = regiment.get_task();
 		auto status = regiment.get_status();
 		if(
@@ -5046,7 +5051,9 @@ dcon::regiment_automation_data_id state::fill_province(
 		auto regiment = regiment_membership.get_regiment();
 		if(regiment.get_target() == target) {
 			auto regiment_type = regiment.get_regiment_from_automation().get_type();
-			regiments_expectation_current[regiment_type.index()] += 3.f;
+			if(regiment_type) {
+				regiments_expectation_current[regiment_type.index()] += 3.f;
+			}
 		}
 	}
 
@@ -5064,6 +5071,10 @@ dcon::regiment_automation_data_id state::fill_province(
 		}
 
 		auto regiment_type = regiment.get_regiment_from_automation().get_type();
+
+		if(!regiment_type) {
+			continue;
+		}
 
 		float required =
 			regiments_expectation_ideal[regiment_type.index()]

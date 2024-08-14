@@ -25,6 +25,10 @@ add_executable(launch_alice WIN32
 
 target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT)
 
+if (WIN32)
+	target_link_libraries(launch_alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+endif()
+
 target_link_libraries(launch_alice PRIVATE AliceCommon)
 target_link_libraries(launch_alice PRIVATE dbghelp)
 target_link_libraries(launch_alice INTERFACE libglew_static)
