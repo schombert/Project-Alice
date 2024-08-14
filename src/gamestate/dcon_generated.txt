@@ -3968,7 +3968,7 @@ relationship{
 relationship{
 	name{ gp_relationship }
 	storage_type{ compactable }
-	size{ 8000 }
+	size{ 50000 }
 	tag{ save }
 
 	link{
