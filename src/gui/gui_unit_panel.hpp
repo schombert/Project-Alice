@@ -2281,12 +2281,16 @@ public:
 			for(auto regiment_membership : group.get_automated_army_group_membership_regiment()) {
 				auto regiment = regiment_membership.get_regiment().get_regiment_from_automation();
 				auto type = regiment.get_type();
-				regiments_by_type[type.index()] += 1;
+				if(type) {
+					regiments_by_type[type.index()] += 1;
+				}
 			}
 			for(auto navy_membership : group.get_automated_army_group_membership_navy()) {
 				for(auto ship_membership : state.world.navy_get_navy_membership(navy_membership.get_navy())) {
 					auto type = ship_membership.get_ship().get_type();
-					regiments_by_type[type.index()] += 1;
+					if(type) {
+						regiments_by_type[type.index()] += 1;
+					}
 				}				
 			}
 		}
