@@ -310,7 +310,7 @@ static_assert(sizeof(unit_modifier) ==
 struct rebel_org_modifier {
 	float amount = 0.0f; //4
 	dcon::rebel_type_id type; //1 - no type set = all rebels
-	uint8_t padding[3] = { 0, 0, 0 };
+	uint8_t padding[2] = { 0, 0 };
 };
 static_assert(sizeof(rebel_org_modifier) ==
 	sizeof(rebel_org_modifier::amount)
