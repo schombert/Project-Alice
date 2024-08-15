@@ -464,8 +464,12 @@ void on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers m
 	if(state.user_settings.left_mouse_click_hold_and_release && state.ui_state.left_mouse_hold_target) {
 		on_lbutton_up_ui_click_hold_and_release(state, x, y, mod);
 	}
+
 	on_lbutton_up_map(state, x, y, mod);
-	state.current_scene.lbutton_up(state);
+
+	if(!state.ui_state.under_mouse) {		
+		state.current_scene.lbutton_up(state);
+	}
 
 	// if we were holding some "button" and this scene doesn't allow drag selection, then we can safely return
 	if(state.user_settings.left_mouse_click_hold_and_release
@@ -530,53 +534,54 @@ void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	}
 }
 
+void military_screen_on_lbutton_up(sys::state& state) {
+	auto selected_group = state.selected_army_group;
+	auto selected_province = state.map_state.selected_province;
+
+	switch(state.selected_army_group_order) {
+	case sys::army_group_order::none :
+		return;
+	case sys::army_group_order::designate_port:
+		state.toggle_designated_port(selected_group, selected_province);
+		return;
+	case sys::army_group_order::siege:
+		state.toggle_enforce_control_position(selected_group, selected_province);
+		return;
+	case sys::army_group_order::defend:
+		state.toggle_defensive_position(selected_group, selected_province);
+		return;
+	default:
+		break;
+	}
+}
+
 void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	auto selected_group = state.selected_army_group;
 	auto selected_province = state.map_state.selected_province;
 
 	if(state.ui_state.root->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		if(keycode == sys::virtual_key::ESCAPE) {
-			if(selected_group == nullptr) {
-				game_scene::switch_scene(state, scene_id::in_game_basic);
+			if(state.selected_army_group_order != sys::army_group_order::none) {
+				state.selected_army_group_order = sys::army_group_order::none;
 			} else {
-				state.deselect_army_group();
+				if(!selected_group) {
+					game_scene::switch_scene(state, scene_id::in_game_basic);
+				} else {
+					state.deselect_army_group();
+				}
 			}
 		}
 	} if(state.map_state.selected_province) {
 		if(keycode == sys::virtual_key::Z) {
 			//create HQ
-			if(selected_group == nullptr) {
+			if(!selected_group) {
 				state.new_army_group(state.map_state.selected_province);
 			}
-		} else if(selected_group != nullptr) {
+		} else if(selected_group) {
 			if(keycode == sys::virtual_key::X) {
-				if(state.ui_state.ctrl_held_down) {
-					selected_group->naval_travel_origin.clear();
-				} else {
-					selected_group->naval_travel_origin.push_back(selected_province);
-				}
-			} else if(keycode == sys::virtual_key::C) {
-				if(state.ui_state.ctrl_held_down) {
-					selected_group->naval_travel_target.clear();
-				} else {
-					selected_group->naval_travel_target.push_back(selected_province);
-				}
+				state.toggle_designated_port(selected_group, selected_province);
 			} else if(keycode == sys::virtual_key::V) {
-				if(state.ui_state.ctrl_held_down) {
-					// TODO: removal of defensive position
-				} else {
-					state.new_defensive_position(selected_group, selected_province);
-				}
-			} else if(keycode == sys::virtual_key::B) {
-				for(auto item : state.selected_armies) {
-					state.remove_army_from_all_army_groups_clean(item);
-					state.add_army_to_army_group(state.selected_army_group, item);
-				}
-				for(auto item : state.selected_navies) {
-					state.remove_navy_from_all_army_groups_clean(item);
-					state.add_navy_to_army_group(state.selected_army_group, item);
-				}
-				state.update_regiments_and_ships(state.selected_army_group);
+				state.toggle_defensive_position(selected_group, selected_province);
 			} else if(keycode == sys::virtual_key::N) {
 				switch_scene(state, scene_id::in_game_military_selector);
 			}
@@ -877,16 +882,7 @@ ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_pro
 	return recalculate_tooltip_probe_units_and_details(state, mouse_probe, tooltip_probe);
 }
 
-void clean_up_basic_game_scene(sys::state& state) {
-	if(state.ui_state.change_leader_window && state.ui_state.change_leader_window->is_visible()) {
-		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(state.ui_state.change_leader_window);
-		if(state.ui_state.military_subwindow->is_visible() == false
-			&& std::find(state.selected_armies.begin(), state.selected_armies.end(), win->a) == state.selected_armies.end()
-			&& std::find(state.selected_navies.begin(), state.selected_navies.end(), win->v) == state.selected_navies.end()
-		) {
-			state.ui_state.change_leader_window->set_visible(state, false);
-		}
-	}
+void clean_up_selected_armies_and_navies(sys::state& state) {
 	for(auto i = state.selected_armies.size(); i-- > 0; ) {
 		if(!state.world.army_is_valid(state.selected_armies[i]) || state.world.army_get_controller_from_army_control(state.selected_armies[i]) != state.local_player_nation) {
 			state.selected_armies[i] = state.selected_armies.back();
@@ -899,6 +895,19 @@ void clean_up_basic_game_scene(sys::state& state) {
 			state.selected_navies.pop_back();
 		}
 	}
+}
+
+void clean_up_basic_game_scene(sys::state& state) {
+	if(state.ui_state.change_leader_window && state.ui_state.change_leader_window->is_visible()) {
+		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(state.ui_state.change_leader_window);
+		if(state.ui_state.military_subwindow->is_visible() == false
+			&& std::find(state.selected_armies.begin(), state.selected_armies.end(), win->a) == state.selected_armies.end()
+			&& std::find(state.selected_navies.begin(), state.selected_navies.end(), win->v) == state.selected_navies.end()
+		) {
+			state.ui_state.change_leader_window->set_visible(state, false);
+		}
+	}
+	clean_up_selected_armies_and_navies(state);
 	// clear up control groups too
 	for(auto& v : state.ctrl_armies) {
 		for(auto i = v.size(); i-- > 0; ) {
@@ -919,13 +928,7 @@ void clean_up_basic_game_scene(sys::state& state) {
 }
 
 void update_army_group_selection_ui(sys::state& state) {
-	if(state.selected_army_group != nullptr) {
-		state.ui_state.army_group_window_sea->set_visible(state, true);
-		state.ui_state.army_group_window_land->set_visible(state, true);
-	} else {
-		state.ui_state.army_group_window_sea->set_visible(state, false);
-		state.ui_state.army_group_window_land->set_visible(state, false);
-	}
+	state.ui_state.army_group_window_land->set_visible(state, bool(state.selected_army_group));
 }
 
 void update_unit_selection_ui(sys::state& state) {
@@ -1027,16 +1030,17 @@ void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dc
 }
 
 void highlight_defensive_positions(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
-	if(state.selected_army_group != nullptr) {
-		for(auto position : state.selected_army_group->defensive_line) {
+	if(state.selected_army_group) {
+
+		for(auto position :	state.world.automated_army_group_get_provinces_defend(state.selected_army_group)) {
 			data[province::to_map_id(position)] = 0x2B2B2B2B;
 		}
 
-		for(auto position : state.selected_army_group->naval_travel_origin) {
+		for(auto position : state.world.automated_army_group_get_provinces_ferry_origin(state.selected_army_group)) {
 			data[province::to_map_id(position)] = 0x2B2B2B2B;
 		}
 
-		for(auto position : state.selected_army_group->naval_travel_target) {
+		for(auto position : state.world.automated_army_group_get_provinces_enforce_control(state.selected_army_group)) {
 			data[province::to_map_id(position)] = 0x2B2B2B2B;
 		}
 	}

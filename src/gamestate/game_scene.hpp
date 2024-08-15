@@ -39,6 +39,7 @@ void open_diplomacy(
 
 void select_player_nation_from_selected_province(sys::state& state);
 void select_wargoal_state_from_selected_province(sys::state& state);
+void military_screen_on_lbutton_up(sys::state& state);
 
 void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod);
 
@@ -94,6 +95,8 @@ void open_chat_before_game(sys::state& state);
 void highlight_player_nation(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 void highlight_defensive_positions(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
+
+void clean_up_selected_armies_and_navies(sys::state& state);
 
 ui::element_base* root_end_screen(sys::state& state);
 ui::element_base* root_pick_nation(sys::state& state);
@@ -235,15 +238,15 @@ inline scene_properties battleplan_editor() { return scene_properties{
 
 		.get_root = root_game_battleplanner,
 
-		.rbutton_selected_units = do_nothing_province_target,
-		.rbutton_province = do_nothing_province_target,
-		.allow_drag_selection = false,
-		.on_drag_start = do_nothing_screen,
-		.drag_selection = do_nothing_screen,
-		.lbutton_up = do_nothing,
-		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = military_screen_hotkeys,
-		.console_log = console_log_other,
+	.rbutton_selected_units = do_nothing_province_target,
+	.rbutton_province = do_nothing_province_target,
+	.allow_drag_selection = false,
+	.on_drag_start = do_nothing_screen,
+	.drag_selection = do_nothing_screen,
+	.lbutton_up = military_screen_on_lbutton_up,
+	.keycode_mapping = replace_keycodes_map_movement,
+	.handle_hotkeys = military_screen_hotkeys,
+	.console_log = console_log_other,
 
 		.render_ui = render_ui_military,
 

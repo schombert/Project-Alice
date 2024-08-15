@@ -427,6 +427,7 @@ float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::provin
 float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov);
 float local_army_weight(sys::state& state, dcon::province_id prov);
 float local_army_weight_max(sys::state& state, dcon::province_id prov);
+float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
@@ -447,6 +448,7 @@ void invalidate_unowned_wargoals(sys::state& state);
 void update_blackflag_status(sys::state& state, dcon::province_id p);
 void eject_ships(sys::state& state, dcon::province_id p);
 void update_movement(sys::state& state);
+bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);

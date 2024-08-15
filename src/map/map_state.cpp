@@ -1354,6 +1354,7 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 			if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 				set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
+				//state.current_scene.
 			} else {
 				set_selected_province(dcon::province_id{});
 			}
