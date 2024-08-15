@@ -1149,6 +1149,10 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ issues_fns }
+		type{array{issue_option_id}{uint64_t}}
+	}
+	property{
 		name{ ideology }
 		type{array{ideology_id}{value_modifier_key}}
 		tag{ scenario }

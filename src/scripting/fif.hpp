@@ -1194,7 +1194,7 @@ inline int32_t interepreter_size(int32_t type, environment& env) {
 
 inline int32_t struct_child_count(int32_t type, environment& env) {
 	if(env.dict.type_array[type].decomposed_types_count == 0)
-		return 8;
+		return 0;
 	auto main_type = env.dict.all_stack_types[env.dict.type_array[type].decomposed_types_start];
 	return (env.dict.type_array[type].decomposed_types_count - 1 - env.dict.type_array[main_type].non_member_types);
 }
@@ -1307,9 +1307,6 @@ inline int32_t instantiate_templated_struct_full(int32_t template_base, std::vec
 	env.dict.type_array.back().decomposed_types_count = uint32_t(final_subtype_list.size() + 1);
 	env.dict.type_array.back().decomposed_types_start = uint32_t(env.dict.all_stack_types.size());
 	
-	for(uint32_t j = 0; j < final_subtype_list.size(); ++j) {
-		env.dict.type_array.back().flags |= env.dict.type_array[final_subtype_list[j]].flags;
-	}
 	if(ctypes.size() == 1)
 		env.dict.type_array.back().flags |= type::FLAG_SINGLE_MEMBER;
 
@@ -1381,9 +1378,6 @@ inline int32_t instantiate_templated_struct(int32_t template_base, std::vector<i
 	env.dict.type_array.back().decomposed_types_count = uint32_t(final_subtype_list.size());
 	env.dict.type_array.back().decomposed_types_start = uint32_t(env.dict.all_stack_types.size());
 
-	for(uint32_t j = 1; j < final_subtype_list.size(); ++j) {
-		env.dict.type_array.back().flags |= env.dict.type_array[final_subtype_list[j]].flags;
-	}
 	env.dict.type_array.back().flags &= ~(type::FLAG_TEMPLATE);
 	env.dict.type_array.back().flags |= type::FLAG_REFCOUNTED;
 	if(ctypes.size() == 1)
@@ -1446,11 +1440,6 @@ inline int32_t make_struct_type(std::string_view name, std::span<int32_t const> 
 	};
 
 
-	if(template_types + extra_count == 0) {
-		for(uint32_t j = 1; j < subtypes.size(); ++j) {
-			env.dict.type_array.back().flags |= env.dict.type_array[subtypes[j]].flags;
-		}
-	}
 	if(template_types + extra_count > 0)
 		env.dict.type_array.back().flags |= type::FLAG_TEMPLATE;
 	else
@@ -2896,6 +2885,9 @@ public:
 			wi.llvm_compilation_finished = true;
 
 			if(LLVMVerifyFunction(wi.llvm_function, LLVMVerifierFailureAction::LLVMPrintMessageAction)) {
+
+				//std::string mod_contents = LLVMPrintModuleToString(env.llvm_module);
+
 				env.report_error("LLVM verification of function failed");
 				env.mode = fif_mode::error;
 				return true;
@@ -6006,6 +5998,39 @@ inline int32_t* from_r(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	}
 	return p + 2;
 }
+inline int32_t* r_at(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(e->mode == fif::fif_mode::compiling_llvm) {
+		auto type_a = s.return_type_back(0);
+		auto expr_a = s.return_ex_back(0);
+		s.push_back_main(type_a, 0, expr_a);
+		s.pop_return();
+
+		execute_fif_word(fif::parse_result{ "dup", false }, *e, false);
+		auto type_b = s.main_type_back(0);
+		auto expr_b = s.main_ex_back(0);
+		s.pop_main();
+
+		s.push_back_return(type_b, 0, expr_b);
+
+	} else if(e->mode == fif::fif_mode::interpreting) {
+		auto type_a = s.return_type_back(0);
+		auto dat_a = s.return_data_back(0);
+		s.push_back_main(type_a, dat_a, nullptr);
+		s.pop_return();
+
+		execute_fif_word(fif::parse_result{ "dup", false }, *e, false);
+		auto type_b = s.main_type_back(0);
+		auto dat_b = s.main_data_back(0);
+		s.pop_main();
+		
+		s.push_back_return(type_b, dat_b, nullptr);
+
+	} else if(fif::typechecking_mode(e->mode) && !fif::typechecking_failed(e->mode)) {
+		auto type_a = s.return_type_back(0);
+		s.push_back_main(type_a, 0, nullptr);
+	}
+	return p + 2;
+}
 inline int32_t* to_r(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(e->mode == fif::fif_mode::compiling_llvm) {
 		auto type_a = s.main_type_back(0);
@@ -7875,6 +7900,7 @@ inline int32_t* forth_struct_map_one(fif::state_stack& s, int32_t* p, fif::envir
 	if(e->mode == fif::fif_mode::compiling_llvm) {
 #ifdef USE_LLVM
 		if(e->dict.type_array[stype].single_member_struct()) {
+			assert(children_count == 1);
 			auto child_index = e->dict.type_array[stype].decomposed_types_start + 1 + 0;
 			auto child_type = e->dict.all_stack_types[child_index];
 			s.set_main_type_back(0, child_type);
@@ -9782,6 +9808,7 @@ inline void initialize_standard_vocab(environment& fif_env) {
 	add_precompiled(fif_env, "end-do", fif_end_do, { fif::fif_bool }, true);
 	add_precompiled(fif_env, ">r", to_r, { -2, -1, -1, -1, -2 });
 	add_precompiled(fif_env, "r>", from_r, { -1, -2, -1, -2 });
+	add_precompiled(fif_env, "r@", r_at, { -1, -2, -1, -2, -1, -2 });
 	add_precompiled(fif_env, "immediate", make_immediate, {  });
 	add_precompiled(fif_env, "[", open_bracket, { }, true);
 	add_precompiled(fif_env, "]", close_bracket, { }, true);
@@ -9824,7 +9851,6 @@ inline void initialize_standard_vocab(environment& fif_env) {
 	add_precompiled(fif_env, "select", f_select, { fif_bool, -2, -2, -1, -2 });
 
 	auto preinterpreted =
-		": r@ r> dup >r ; "
 		": over >r dup r> swap ; "
 		": nip >r drop r> ; "
 		": tuck swap over ; "

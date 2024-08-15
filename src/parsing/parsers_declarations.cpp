@@ -2480,7 +2480,7 @@ void oob_relationship::influence_value(association_type, float v, error_handler&
 	auto rel = context.outer_context.state.world.get_gp_relationship_by_gp_influence_pair(context.nation_with, context.nation_for);
 	if(rel) {
 		context.outer_context.state.world.gp_relationship_set_influence(rel, v);
-	} else {
+	} else if(v != 0) {
 		auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
 		context.outer_context.state.world.gp_relationship_set_influence(new_rel, v);
 	}

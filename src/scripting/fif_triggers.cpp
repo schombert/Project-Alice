@@ -155,7 +155,7 @@ TRIGGER_FUNCTION(tf_generic_scope) {
 
 TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-ap-it"
+		return "dup >r false >r make-ap-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // ap on top
@@ -163,6 +163,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -170,7 +171,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-ap-it"
+		return "dup >r true >r make-ap-it "
 			"while more? r@ and "
 			"loop "
 				"next " // ap on top
@@ -178,6 +179,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -188,7 +190,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 }
 TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-sp-it"
+		return "dup >r false >r make-sp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // it ap on top
@@ -203,6 +205,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 							"swap >r " // hide it
 							+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 							"r> drop >r "                                               // replace bool value with new bool
+							"swap drop "
 						"else "
 							"drop "
 						"end-if "
@@ -215,7 +218,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-sp-it"
+		return "dup >r true >r make-sp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // it ap on top
@@ -230,6 +233,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 							"swap >r " // hide it
 							+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 							"r> drop >r "                                               // replace bool value with new bool
+							"swap drop "
 						"else "
 							"drop "
 						"end-if "
@@ -245,32 +249,26 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 }
 TRIGGER_FUNCTION(tf_x_neighbor_country_scope_nation) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-an-it"
+		return "dup >r false >r make-an-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // ap on top
-				"if "
-					"swap >r " // hide it                        
-					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
-					"r> drop >r "                                               // replace bool value with new bool
-				"else "
-					"drop "
-				"end-if "
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-an-it"
+		return "dup >r true >r make-an-it "
 			"while more? r@ and "
 			"loop "
 				"next " // ap on top
-				"if "
-					"swap >r " // hide it                        
-					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
-					"r> drop >r "                                               // replace bool value with new bool
-				"else "
-					"drop "
-				"end-if "
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -278,32 +276,26 @@ TRIGGER_FUNCTION(tf_x_neighbor_country_scope_nation) {
 }
 TRIGGER_FUNCTION(tf_x_neighbor_country_scope_pop) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r " + pop_to_owner() + "false >r make-an-it"
+		return "dup >r " + pop_to_owner() + "false >r make-an-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // ap on top
-				"if "
-					"swap >r " // hide it                        
-					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
-					"r> drop >r "                                               // replace bool value with new bool
-				"else "
-					"drop "
-				"end-if "
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r " + pop_to_owner() + "true >r make-an-it"
+		return "dup >r " + pop_to_owner() + "true >r make-an-it "
 			"while more? r@ and "
 			"loop "
 				"next " // ap on top
-				"if "
-					"swap >r " // hide it                        
-					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
-					"r> drop >r "                                               // replace bool value with new bool
-				"else "
-					"drop "
-				"end-if "
+				"swap >r " // hide it                        
+				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -409,24 +401,26 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_pop) {
 }
 TRIGGER_FUNCTION(tf_x_country_scope) {
 	if(*tval & trigger::is_existence_scope) {
-		return ">r false >r nation-size @" // note : removes nation from stack entirely
+		return ">r false >r nation-size @ " // note : removes nation from stack entirely
 			"while 1 - dup 0 >= r@ not and "
 			"loop "
 				"dup >nation_id " // adjacent nation on top
 				"swap >r "                                                            // hide index
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  index, move stored self nation to stack,  move bool to stack
 			;
 	} else {
-		return ">r true >r nation-size @" // note : removes nation from stack entirely
+		return ">r true >r nation-size @ " // note : removes nation from stack entirely
 			"while 1 - dup 0 >= r@ and "
 			"loop "
 				"dup >nation_id " // adjacent nation on top
 				"swap >r "                                                            // hide index
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  index, move stored self nation to stack,  move bool to stack
 			;
@@ -434,7 +428,7 @@ TRIGGER_FUNCTION(tf_x_country_scope) {
 }
 TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 	if(*tval & trigger::is_existence_scope) {
-		return ">r false >r make-gp-it"
+		return ">r false >r make-gp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // nation on top
@@ -443,6 +437,7 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 					"swap inc-gp >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -450,7 +445,7 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return ">r true >r make-gp-it"
+		return ">r true >r make-gp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // nation on top
@@ -459,6 +454,7 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 					"swap inc-gp >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -469,7 +465,7 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 }
 TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-sp-it"
+		return "dup >r false >r make-sp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // prov + properly in state on top
@@ -477,6 +473,7 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -484,7 +481,7 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-sp-it"
+		return "dup >r true >r make-sp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // prov + properly in state on top
@@ -492,6 +489,7 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -502,24 +500,26 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
 }
 TRIGGER_FUNCTION(tf_x_owned_province_scope_nation) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-n-it"
+		return "dup >r false >r make-n-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // prov on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-n-it"
+		return "dup >r true >r make-n-it "
 			"while more? r@ and "
 			"loop "
 				"next " // prov on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -527,24 +527,26 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_nation) {
 }
 TRIGGER_FUNCTION(tf_x_core_scope_province) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-pc-it"
+		return "dup >r false >r make-pc-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-pc-it"
+		return "dup >r true >r make-pc-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -552,24 +554,26 @@ TRIGGER_FUNCTION(tf_x_core_scope_province) {
 }
 TRIGGER_FUNCTION(tf_x_core_scope_nation) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-nc-it"
+		return "dup >r false >r make-nc-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
 	} else {
-		return "dup >r true >r make-nc-it"
+		return "dup >r true >r make-nc-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -578,24 +582,26 @@ TRIGGER_FUNCTION(tf_x_core_scope_nation) {
 
 TRIGGER_FUNCTION(tf_x_state_scope) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-ns-it"
+		return "dup >r false >r make-ns-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return "dup >r true >r make-ns-it"
+		return "dup >r true >r make-ns-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
@@ -603,7 +609,7 @@ TRIGGER_FUNCTION(tf_x_state_scope) {
 }
 TRIGGER_FUNCTION(tf_x_substate_scope) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-nv-it"
+		return "dup >r false >r make-nv-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
@@ -612,6 +618,7 @@ TRIGGER_FUNCTION(tf_x_substate_scope) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -619,7 +626,7 @@ TRIGGER_FUNCTION(tf_x_substate_scope) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return "dup >r true >r make-nv-it"
+		return "dup >r true >r make-nv-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
@@ -628,6 +635,7 @@ TRIGGER_FUNCTION(tf_x_substate_scope) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -638,7 +646,7 @@ TRIGGER_FUNCTION(tf_x_substate_scope) {
 }
 TRIGGER_FUNCTION(tf_x_sphere_member_scope) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-ngp-it"
+		return "dup >r false >r make-ngp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
@@ -646,6 +654,7 @@ TRIGGER_FUNCTION(tf_x_sphere_member_scope) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -653,7 +662,7 @@ TRIGGER_FUNCTION(tf_x_sphere_member_scope) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return "dup >r true >r make-ngp-it"
+		return "dup >r true >r make-ngp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
@@ -661,6 +670,7 @@ TRIGGER_FUNCTION(tf_x_sphere_member_scope) {
 					"swap >r " // hide it                        
 					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
 				"else "
 					"drop "
 				"end-if "
@@ -671,24 +681,26 @@ TRIGGER_FUNCTION(tf_x_sphere_member_scope) {
 }
 TRIGGER_FUNCTION(tf_x_pop_scope_province) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-pp-it"
+		return "dup >r false >r make-pp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return "dup >r true >r make-pp-it"
+		return "dup >r true >r make-pp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
@@ -696,7 +708,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_province) {
 }
 TRIGGER_FUNCTION(tf_x_pop_scope_state) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-sp-it"
+		return "dup >r false >r make-sp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // v on top
@@ -709,6 +721,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_state) {
 						"swap >r " // hide it
 						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 						"r> drop >r "                                               // replace bool value with new bool
+						"swap drop "
 					"end-while "
 					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
 				"else "
@@ -718,7 +731,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_state) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return "dup >r true >r make-sp-it"
+		return "dup >r true >r make-sp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // v on top
@@ -731,6 +744,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_state) {
 						"swap >r " // hide it
 						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 						"r> drop >r "                                               // replace bool value with new bool
+						"swap drop "
 					"end-while "
 					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
 				"else "
@@ -743,7 +757,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_state) {
 }
 TRIGGER_FUNCTION(tf_x_pop_scope_nation) {
 	if(*tval & trigger::is_existence_scope) {
-		return "dup >r false >r make-n-it"
+		return "dup >r false >r make-n-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // v on top
@@ -756,6 +770,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_nation) {
 						"swap >r " // hide it
 						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 						"r> drop >r "                                               // replace bool value with new bool
+						"swap drop "
 					"end-while "
 					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
 				"else "
@@ -765,7 +780,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_nation) {
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return "dup >r true >r make-n-it"
+		return "dup >r true >r make-n-it "
 			"while more? r@ and "
 			"loop "
 				"next " // v on top
@@ -778,6 +793,7 @@ TRIGGER_FUNCTION(tf_x_pop_scope_nation) {
 						"swap >r " // hide it
 						+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 						"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 					"end-while "
 					"drop r> r> swap >r "   // drop pop-iterator [bool IT], [IT, bool}, {IT], [bool] 
 				"else "
@@ -790,24 +806,26 @@ TRIGGER_FUNCTION(tf_x_pop_scope_nation) {
 }
 TRIGGER_FUNCTION(tf_x_provinces_in_variable_region) {
 	if(*tval & trigger::is_existence_scope) {
-		return ">r false >r " + std::to_string(trigger::payload(*(tval + 2)).state_id.index()) + " >state_definition_id make-asp-it"
+		return ">r false >r " + std::to_string(trigger::payload(*(tval + 2)).state_id.index()) + " >state_definition_id make-asp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return ">r true >r " + std::to_string(trigger::payload(*(tval + 2)).state_id.index()) + " >state_definition_id make-asp-it"
+		return ">r true >r " + std::to_string(trigger::payload(*(tval + 2)).state_id.index()) + " >state_definition_id make-asp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
@@ -815,24 +833,26 @@ TRIGGER_FUNCTION(tf_x_provinces_in_variable_region) {
 }
 TRIGGER_FUNCTION(tf_x_provinces_in_variable_region_proper) {
 	if(*tval & trigger::is_existence_scope) {
-		return ">r false >r " + std::to_string(trigger::payload(*(tval + 2)).reg_id.index()) + " >region_id make-arp-it"
+		return ">r false >r " + std::to_string(trigger::payload(*(tval + 2)).reg_id.index()) + " >region_id make-arp-it "
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;
 	} else {
-		return ">r true >r " + std::to_string(trigger::payload(*(tval + 2)).reg_id.index()) + " >region_id make-arp-it"
+		return ">r true >r " + std::to_string(trigger::payload(*(tval + 2)).reg_id.index()) + " >region_id make-arp-it "
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
 				"swap >r " // hide it                        
 				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
 				"r> drop >r "                                               // replace bool value with new bool
+				"swap drop "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 		;

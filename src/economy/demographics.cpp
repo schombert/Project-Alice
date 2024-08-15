@@ -8,6 +8,8 @@
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
 
+#define CHECK_LLVM_RESULTS
+
 namespace pop_demographics {
 
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::ideology_id v) {
@@ -1176,11 +1178,25 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 
 			auto amount = owner_modifier * ve::select(allowed_by_owner,
 				ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
-					 if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
-						 return trigger::evaluate_multiplicative_modifier(state, mtrigger,  trigger::to_generic(pid), trigger::to_generic(pid), 0);
-					 } else {
-						return 0.0f;
-					 }
+					if(auto mfn = state.world.pop_type_get_issues_fns(ptid, iid); mfn != 0) {
+						using ftype = float(*)(int32_t);
+						ftype fn = (ftype)mfn;
+						float llvm_result = fn(pid.index());
+#ifdef CHECK_LLVM_RESULTS
+						float interp_result = 0.0f;
+						if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+							interp_result = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
+						}
+						assert(llvm_result == interp_result);
+#endif
+						return llvm_result;
+					} else {
+						if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+							return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
+						} else {
+							return 0.0f;
+						}
+					}
 				 },  ids, state.world.pop_get_poptype(ids), owner),
 				0.0f);
 

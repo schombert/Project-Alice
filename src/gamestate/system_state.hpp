@@ -538,6 +538,10 @@ struct alignas(64) state {
 	native_string loaded_scenario_file;
 	native_string loaded_save_file;
 
+#ifdef USE_LLVM
+	std::unique_ptr<fif::environment> jit_environment;
+#endif
+
 	//
 	// Crisis data
 	//
@@ -755,6 +759,7 @@ struct alignas(64) state {
 
 	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
+	void on_scenario_load(); // called when the scenario file is loaded (not when saves are loaded)
 	void preload(); // clears data that will be later reconstructed from saved values
 
 	void console_log(std::string_view message);

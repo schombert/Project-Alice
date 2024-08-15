@@ -1258,9 +1258,16 @@ inline void common_fif_environment(sys::state& state, fif::environment& env) {
 	values.push_back_main(fif::fif_opaque_ptr, (int64_t)(dcon::shared_backing_storage.allocation), nullptr);
 	fif::run_fif_interpreter(env, "set-vector-storage ", values);
 
-	values.push_back_main(fif::fif_opaque_ptr, (int64_t)(&state), nullptr);
-	fif::run_fif_interpreter(env, "ptr(nil) global state-ptr state-ptr ! ", values);
+	fif::run_fif_interpreter(env,
+		" ptr(nil) global state-ptr "
+		" : set-state state-ptr ! ; "
+		" :export set_state ptr(nil) set-state ;  ",
+		values);
 
+	values.push_back_main(fif::fif_opaque_ptr, (int64_t)(&state), nullptr);
+	fif::run_fif_interpreter(env, "set-state", values);
+
+	//fif::run_fif_interpreter(env, "ptr(nil) global state-ptr state-ptr ! ", values);
 
 	auto nation_id_type = env.dict.types.find("nation_id")->second;
 	auto prov_id_type = env.dict.types.find("province_id")->second;

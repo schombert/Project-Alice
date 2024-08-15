@@ -37,6 +37,7 @@
 #include "gui_map_legend.hpp"
 #include "gui_unit_grid_box.hpp"
 #include "blake2.h"
+#include "fif_common.hpp"
 
 namespace ui {
 
@@ -3659,6 +3660,135 @@ void state::preload() {
 	for(auto r : world.in_regiment) {
 		r.set_pending_split(false);
 	}
+}
+
+void state::on_scenario_load() {
+	//
+	// compile functions using llvm when available
+	//
+#ifdef USE_LLVM
+
+	jit_environment = std::make_unique<fif::environment>();
+
+	int32_t error_count = 0;
+	std::string error_list;
+	jit_environment->report_error = [&](std::string_view s) {
+		console_command_error += std::string("?R ERROR: ") + std::string(s) + "?W\\n";
+		};
+	fif::common_fif_environment(*this, *jit_environment);
+
+
+	fif::interpreter_stack values{ };
+
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//freopen("CONOUT$", "w", stderr);
+	
+	for(auto p : world.in_pop_type) {
+		for(auto i : world.in_issue_option) {
+			auto mkey = world.pop_type_get_issues(p, i);
+			std::string base_name = "pi" + std::to_string(p.id.index()) + "_" + std::to_string(i.id.index());
+			if(mkey) {
+				std::string fn_str = ": " + base_name + "internal >pop_id dup " + fif_trigger::multiplicative_modifier(*this, mkey) + " drop drop r> ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			} else {
+				std::string fn_str = ": " + base_name + "internal" + " drop 0.0 ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			}
+		}
+	}
+
+	fif::perform_jit(*jit_environment);
+
+	//
+	// load exported fns
+	//
+	world.pop_type_resize_issues_fns(world.issue_option_size());
+	for(auto p : world.in_pop_type) {
+		for(auto i : world.in_issue_option) {
+			std::string name = "pi" + std::to_string(p.id.index()) + "_" + std::to_string(i.id.index()) + "ext";
+
+			LLVMOrcExecutorAddress bare_address = 0;
+			auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, name.c_str());
+
+			if(error) {
+				auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+				OutputDebugStringA(msg);
+				OutputDebugStringA("\n");
+#endif
+				LLVMDisposeErrorMessage(msg);
+			} else {
+				assert(bare_address != 0);
+				world.pop_type_set_issues_fns(p, i, bare_address);
+			}
+		}
+	}
+	
+	//
+	// set global values
+	//
+	{
+		LLVMOrcExecutorAddress bare_address = 0;
+		auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, "set_container");
+
+		if(error) {
+			auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+			OutputDebugStringA(msg);
+			OutputDebugStringA("\n");
+#endif
+			LLVMDisposeErrorMessage(msg);
+		} else {
+			assert(bare_address != 0);
+			using ftype = void(*)(void* );
+			ftype fn = (ftype)bare_address;
+			fn(&world);
+		}
+	}
+	{
+		LLVMOrcExecutorAddress bare_address = 0;
+		auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, "set_vector_storage");
+
+		if(error) {
+			auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+			OutputDebugStringA(msg);
+			OutputDebugStringA("\n");
+#endif
+			LLVMDisposeErrorMessage(msg);
+		} else {
+			assert(bare_address != 0);
+			using ftype = void(*)(void*);
+			ftype fn = (ftype)bare_address;
+			fn(dcon::shared_backing_storage.allocation);
+		}
+	}
+	{
+		LLVMOrcExecutorAddress bare_address = 0;
+		auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, "set_state");
+
+		if(error) {
+			auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+			OutputDebugStringA(msg);
+			OutputDebugStringA("\n");
+#endif
+			LLVMDisposeErrorMessage(msg);
+		} else {
+			assert(bare_address != 0);
+			using ftype = void(*)(void*);
+			ftype fn = (ftype)bare_address;
+			fn(this);
+		}
+	}
+	//
+	// END set global values
+	//
+
+#endif
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
