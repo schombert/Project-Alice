@@ -465,8 +465,9 @@ void on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers m
 		on_lbutton_up_ui_click_hold_and_release(state, x, y, mod);
 	}
 
-	if(!state.ui_state.under_mouse) {
-		on_lbutton_up_map(state, x, y, mod);
+	on_lbutton_up_map(state, x, y, mod);
+
+	if(!state.ui_state.under_mouse) {		
 		state.current_scene.lbutton_up(state);
 	}
 
@@ -927,11 +928,7 @@ void clean_up_basic_game_scene(sys::state& state) {
 }
 
 void update_army_group_selection_ui(sys::state& state) {
-	if(state.selected_army_group) {
-		state.ui_state.army_group_window_land->set_visible(state, true);
-	} else {
-		state.ui_state.army_group_window_land->set_visible(state, false);
-	}
+	state.ui_state.army_group_window_land->set_visible(state, bool(state.selected_army_group));
 }
 
 void update_unit_selection_ui(sys::state& state) {

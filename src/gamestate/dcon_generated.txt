@@ -1768,27 +1768,31 @@ object {
 	property {
 		name { await_command_execution_flag }
 		type { bitfield }
+		tag { local_save }
 	}
 	property {
 		name { target }
 		type { province_id }
+		tag { local_save }
 	}
 
 	property {
 		name { ferry_target }
 		type { province_id }
+		tag { local_save }
 	}
 
 	property {
 		name { ferry_origin }
 		type { province_id }
+		tag { local_save }
 	}
 }
 
 
 relationship{
 	name{ automation }
-	tag{ save }
+	tag{ local_save }
 
 	link{
 		object{ regiment_automation_data }

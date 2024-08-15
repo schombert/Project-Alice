@@ -4169,7 +4169,7 @@ void state::toggle_defensive_position(dcon::automated_army_group_id group, dcon:
 	if(fat_group.get_provinces_defend().contains(position)) {
 		fat_group.get_provinces_defend().remove_unique(position);
 	} else {
-		fat_group.get_provinces_defend().add_unique(position);
+		fat_group.get_provinces_defend().push_back(position);
 	}
 
 	game_state_updated.store(true, std::memory_order_release);
@@ -4182,7 +4182,7 @@ void state::toggle_enforce_control_position(dcon::automated_army_group_id group,
 	if(fat_group.get_provinces_enforce_control().contains(position)) {
 		fat_group.get_provinces_enforce_control().remove_unique(position);
 	} else {
-		fat_group.get_provinces_enforce_control().add_unique(position);
+		fat_group.get_provinces_enforce_control().push_back(position);
 	}
 
 	game_state_updated.store(true, std::memory_order_release);
@@ -4199,7 +4199,7 @@ void state::toggle_designated_port(dcon::automated_army_group_id group, dcon::pr
 	if(fat_group.get_provinces_ferry_origin().contains(position)) {
 		fat_group.get_provinces_ferry_origin().remove_unique(position);
 	} else {
-		fat_group.get_provinces_ferry_origin().add_unique(position);
+		fat_group.get_provinces_ferry_origin().push_back(position);
 	}
 
 	game_state_updated.store(true, std::memory_order_release);
@@ -4295,22 +4295,37 @@ void state::update_armies_and_fleets(dcon::automated_army_group_id group) {
 	auto owner = world.automated_army_group_get_owner(group);
 
 	if(owner == local_player_nation) {
-		return;
+		// clear up dead regiments
+		static std::vector<dcon::regiment_automation_data_id> to_delete = {};
+		to_delete.clear();
+
+		world.automated_army_group_for_each_automated_army_group_membership_regiment(group, [&](dcon::automated_army_group_membership_regiment_id item) {
+			auto regiment = world.automated_army_group_membership_regiment_get_regiment(item);
+			auto regiment_true = world.regiment_automation_data_get_regiment_from_automation(regiment);
+			if(!regiment_true) {
+				to_delete.push_back(regiment);
+			}
+		});
+
+		for(auto& regiment : to_delete) {
+			world.delete_regiment_automation_data(regiment);
+		}
+	} else {
+		// clear up army groups you don't own
+		static std::vector<dcon::regiment_automation_data_id> to_delete = {};
+		to_delete.clear();
+
+		world.automated_army_group_for_each_automated_army_group_membership_regiment(group, [&](dcon::automated_army_group_membership_regiment_id item) {
+			auto regiment = world.automated_army_group_membership_regiment_get_regiment(item);
+			to_delete.push_back(regiment);
+		});
+
+		for(auto& regiment : to_delete) {
+			world.delete_regiment_automation_data(regiment);
+		}
+
+		world.delete_automated_army_group(group);
 	}
-
-	static std::vector<dcon::regiment_automation_data_id> to_delete = {};
-	to_delete.clear();
-
-	world.automated_army_group_for_each_automated_army_group_membership_regiment(group, [&](dcon::automated_army_group_membership_regiment_id item) {
-		auto regiment = world.automated_army_group_membership_regiment_get_regiment(item);
-		to_delete.push_back(regiment);
-	});
-
-	for(auto& regiment : to_delete) {
-		world.delete_regiment_automation_data(regiment);
-	}
-
-	world.delete_automated_army_group(group);
 }
 
 void state::smart_select_army_group(dcon::automated_army_group_id selected_group) {
