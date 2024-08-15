@@ -1575,6 +1575,22 @@ public:
 
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 
+		auto row_1 = text::open_layout_box(contents);
+		auto col_1 = row_1;
+		col_1.x_size = 75;
+		auto col_2 = row_1;
+		col_2.x_position += 90.f;
+		auto col_3 = row_1;
+		col_3.x_position += 180.f;
+		auto col_4 = row_1;
+		col_4.x_position += 250.f;
+		text::add_to_layout_box(state, contents, col_1, std::string_view("Good"));
+		text::add_to_layout_box(state, contents, col_2, std::string_view("Employed"));
+		text::add_to_layout_box(state, contents, col_3, std::string_view("Max"));
+		text::add_to_layout_box(state, contents, col_4, std::string_view("Profit"));
+		text::add_to_layout_box(state, contents, row_1, std::string_view(" "));
+		text::close_layout_box(contents, row_1);
+
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto rgo_employment = state.world.province_get_rgo_employment_per_good(p, c);
 			auto current_employment = int64_t(rgo_employment);
