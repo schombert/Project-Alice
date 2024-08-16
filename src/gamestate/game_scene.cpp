@@ -848,14 +848,8 @@ ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, u
 			int32_t(scaled_mouse_x - pos_x),
 			int32_t(scaled_mouse_y - pos_y),
 			ui::mouse_probe_type::tooltip);
-		mouse_probe = state.ui_state.unit_details_box->impl_probe_mouse(
-			state,
-			int32_t(scaled_mouse_x - pos_x),
-			int32_t(scaled_mouse_y - pos_y),
-			ui::mouse_probe_type::click
-		);
 	}
-	if(!mouse_probe.under_mouse) {
+	if(!tooltip_probe.under_mouse) {
 		tooltip_probe = state.ui_state.units_root->impl_probe_mouse(
 			state,
 			int32_t(scaled_mouse_x),
