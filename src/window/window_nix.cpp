@@ -348,7 +348,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwTerminate();
 }
 
-void change_cursor(sys::state const& state, cursor_type type) {
+void change_cursor(sys::state& state, cursor_type type) {
 	//TODO: Implement on linux
 }
 
