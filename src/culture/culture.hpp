@@ -164,6 +164,14 @@ struct global_cultural_state {
 	dcon::value_modifier_key emigration_chance;
 	dcon::value_modifier_key assimilation_chance;
 	dcon::value_modifier_key conversion_chance;
+
+	uint64_t promotion_chance_fn = 0;
+	uint64_t demotion_chance_fn = 0;
+	uint64_t migration_chance_fn = 0;
+	uint64_t colonialmigration_chance_fn = 0;
+	uint64_t emigration_chance_fn = 0;
+	uint64_t assimilation_chance_fn = 0;
+	uint64_t conversion_chance_fn = 0;
 };
 
 enum class issue_category : uint8_t { party, political, social, military, economic };

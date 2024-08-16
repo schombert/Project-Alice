@@ -314,7 +314,7 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_nation) {
 					"2dup index @ dup is_attacker @ r@ <> "
 					"if "
 						"nation @ "
-						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						"swap >r swap >r swap >r swap >r "                              // hide array and index (x2)
 						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
 						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
 					"else "
@@ -337,7 +337,7 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_nation) {
 					"2dup index @ dup is_attacker @ r@ <> "
 					"if "
 						"nation @ "
-						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						"swap >r swap >r swap >r swap >r "                              // hide array and index (x2)
 						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
 						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
 					"else "
@@ -363,7 +363,7 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_pop) {
 					"2dup index @ dup is_attacker @ r@ <> "
 					"if "
 						"nation @ "
-						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						"swap >r swap >r swap >r swap >r "                              // hide array and index (x2)
 						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
 						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
 					"else "
@@ -386,7 +386,7 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_pop) {
 					"2dup index @ dup is_attacker @ r@ <> "
 					"if "
 						"nation @ "
-						"swap >r swap >r swap >r swap >r"                              // hide array and index (x2)
+						"swap >r swap >r swap >r swap >r "                              // hide array and index (x2)
 						+ apply_subtriggers(tval, ws) + " r> swap r> swap r> swap r> swap" // bool result on top
 						"r> swap r> swap r> drop >r >r >r "                              // replace bool value with new bool
 					"else "
@@ -1171,7 +1171,7 @@ TRIGGER_FUNCTION(tf_unemployment_pop) {
 		"dup employment @ 1.0 swap r> / - 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_slave_nation) {
-	return "dup combined_issue_rules @ " + std::to_string(issue_rule::slavery_allowed) + " and 0 <> " + truth_inversion(tval[0]);
+	return "dup combined_issue_rules @ >i32 " + std::to_string(issue_rule::slavery_allowed) + " and 0 <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_slave_state) {
 	return "dup capital @ is_slave @ " + truth_inversion(tval[0]);
@@ -1190,15 +1190,15 @@ std::string demo_culture_key(sys::state& ws) {
 	return ">index " + std::to_string(demographics::count_special_keys + ws.world.pop_type_size() * 2) + " + >demographics_key ";
 }
 TRIGGER_FUNCTION(tf_has_national_minority_province) {
-	return "dup dup " + province_to_owner() + " primary_culture @ " + demo_culture_key(ws) + "demographics @ >r"
+	return "dup dup " + province_to_owner() + " primary_culture @ " + demo_culture_key(ws) + "demographics @ >r "
 		"dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ r> <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_national_minority_state) {
-	return "dup dup " + state_to_owner() + " primary_culture @ " + demo_culture_key(ws) + "demographics @ >r"
+	return "dup dup " + state_to_owner() + " primary_culture @ " + demo_culture_key(ws) + "demographics @ >r "
 		"dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ r> <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_national_minority_nation) {
-	return "dup dup primary_culture @ " + demo_culture_key(ws) + "demographics @ >r"
+	return "dup dup primary_culture @ " + demo_culture_key(ws) + "demographics @ >r "
 		"dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ r> <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_government_nation) {
@@ -1232,7 +1232,7 @@ TRIGGER_FUNCTION(tf_culture_province) {
 	return "dup dominant_culture @ >index " + std::to_string(trigger::payload(tval[1]).cul_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_culture_nation) {
-	return "dup primary_culture @ >index " + std::to_string(trigger::payload(tval[1]).cul_id.index()) + " = >r"
+	return "dup primary_culture @ >index " + std::to_string(trigger::payload(tval[1]).cul_id.index()) + " = >r "
 		"dup " + std::to_string(trigger::payload(tval[1]).cul_id.index()) + " >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_culture_pop_reb) {
@@ -1245,28 +1245,28 @@ TRIGGER_FUNCTION(tf_culture_province_reb) {
 	return ">r >r dup primary_culture @ >index r> swap r> swap >r dup dominant_culture @ >index r> " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_culture_nation_reb) {
-	return ">r >r dup primary_culture @ >index r> swap r> swap >r dup primary_culture @ >index r@ = >r"
-		"dup r> r> swap >r >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]);
+	return ">r >r dup primary_culture @  r> swap r> swap >r dup primary_culture @ r@ = >r "
+		"dup r> r> swap >r  accepted_cultures @ r> or " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_culture_this_nation) {
-	return "dup culture @ >index  swap >r >r dup primary_culture @ >index r@ = >r"
-		"dup r> r> swap >r >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
+	return "dup culture @  swap >r >r dup primary_culture @  r@ = >r " // R[pop C bool]
+		"dup r> r> swap >r accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
 }
 TRIGGER_FUNCTION(tf_culture_from_nation) {
-	return "dup culture @ >index  swap >r swap >r >r dup primary_culture @ >index r@ = >r"
-		"dup r> r> swap >r >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap r> swap ";
+	return "dup culture @   swap >r swap >r >r dup primary_culture @  r@ = >r "
+		"dup r> r> swap >r  accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap r> swap ";
 }
 TRIGGER_FUNCTION(tf_culture_this_state) {
-	return "dup culture @ >index  swap >r >r dup " + state_to_owner() + "primary_culture @ >index r@ = >r"
-		"dup r> r> swap >r >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
+	return "dup culture @   swap >r >r dup " + state_to_owner() + "dup primary_culture @  r@ = >r "
+		"r> r> swap >r  accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
 }
 TRIGGER_FUNCTION(tf_culture_this_pop) {
-	return "dup culture @ >index  swap >r >r dup " + pop_to_owner() + "primary_culture @ >index r@ = >r"
-		"dup r> r> swap >r >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
+	return "dup culture @   swap >r >r dup " + pop_to_owner() + "dup primary_culture @  r@ = >r "
+		"r> r> swap >r  accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
 }
 TRIGGER_FUNCTION(tf_culture_this_province) {
-	return "dup culture @ >index  swap >r >r dup " + province_to_owner() + "primary_culture @ >index r@ = >r"
-		"dup r> r> swap >r >culture_id accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
+	return "dup culture @   swap >r >r dup " + province_to_owner() + "dup primary_culture @  r@ = >r "
+		"r> r> swap >r  accepted_cultures @ r> or " + truth_inversion(tval[0]) + "r> swap ";
 }
 TRIGGER_FUNCTION(tf_culture_group_nation) {
 	return "dup primary_culture @ culture_group_membership-member group @ >index " + std::to_string(trigger::payload(tval[1]).culgrp_id.index()) + " " + compare_values_eq(tval[0]);
@@ -1356,7 +1356,7 @@ TRIGGER_FUNCTION(tf_is_secondary_power_pop) {
 TRIGGER_FUNCTION(tf_has_faction_nation) {
 	return "false >r dup rebellion_within-ruler dup size "
 		"while 1 - dup 0 >= loop "
-			"2dup index @ rebels type @ >index " + std::to_string(trigger::payload(tval[1]).reb_id.index()) + " = r> or >r"
+			"2dup index @ rebels type @ >index " + std::to_string(trigger::payload(tval[1]).reb_id.index()) + " = r> or >r "
 		"end-while "
 		"drop drop "
 		"r> " + truth_inversion(tval[0]);
@@ -1443,13 +1443,13 @@ TRIGGER_FUNCTION(tf_is_cultural_union_tag_this_nation) {
 		"r> or r> swap" + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_factory_nation) {
-	return "dup combined_issue_rules @ " + std::to_string(issue_rule::pop_build_factory) + " and 0 <> " + truth_inversion(tval[0]);
+	return "dup combined_issue_rules @ >i32 " + std::to_string(issue_rule::pop_build_factory) + " and 0 <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_factory_province) {
-	return "dup " + province_to_owner() + "combined_issue_rules @ " + std::to_string(issue_rule::pop_build_factory) + " and 0 <> " + truth_inversion(tval[0]);
+	return "dup " + province_to_owner() + "combined_issue_rules @ >i32 " + std::to_string(issue_rule::pop_build_factory) + " and 0 <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_can_build_factory_pop) {
-	return "dup " + pop_to_owner() + "combined_issue_rules @ " + std::to_string(issue_rule::pop_build_factory) + " and 0 <> " + truth_inversion(tval[0]);
+	return "dup " + pop_to_owner() + "combined_issue_rules @ >i32 " + std::to_string(issue_rule::pop_build_factory) + " and 0 <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_war_nation) {
 	return "dup is_at_war @ " + truth_inversion(tval[0]);
@@ -3390,57 +3390,57 @@ TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_no_limit) {
 	return "true " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_nation) {
-	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r> >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_state) {
-	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r> >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_province) {
-	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r> >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_nation) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_state) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_province) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_pop) {
-	return "dup size @ >r"
+	return "dup size @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >pop_demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_nation) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_state) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_province) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_pop) {
-	return "dup size @ >r"
+	return "dup size @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >pop_demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
@@ -3469,22 +3469,22 @@ TRIGGER_FUNCTION(tf_variable_reform_group_name_pop) {
 	return "dup " + pop_to_owner() + std::to_string(trigger::payload(tval[1]).ref_id.index()) + " >reform_id issues @ >index " + std::to_string(trigger::payload(tval[2]).ropt_id.index()) + " " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_nation) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_state) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_province) {
-	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_pop) {
-	return "dup " + pop_to_location() + "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r"
+	return "dup " + pop_to_location() + "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
 		+ std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }

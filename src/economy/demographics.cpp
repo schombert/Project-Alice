@@ -1080,11 +1080,25 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 					auto amount = ve::apply(
 							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
 								if(state.world.nation_get_is_civilized(o)) {
-									auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
-									return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-											trigger::to_generic(pid), 0) : 0.0f;
-								} else
+									if(auto mfn = state.world.pop_type_get_ideology_fns(ptid, i); mfn != 0) {
+										using ftype = float(*)(int32_t);
+										ftype fn = (ftype)mfn;
+										float llvm_result = fn(pid.index());
+#ifdef CHECK_LLVM_RESULTS
+										float interp_result = 0.0f;
+										if(auto mtrigger = state.world.pop_type_get_ideology(ptid, i); mtrigger) {
+											interp_result = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
+										}
+										assert(llvm_result == interp_result);
+#endif
+										return llvm_result;
+									} else {
+										auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+										return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0) : 0.0f;
+									}
+								} else {
 									return 0.0f;
+								}
 							},
 							ids, state.world.pop_get_poptype(ids), owner);
 
@@ -1097,9 +1111,22 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 
 					auto amount = ve::apply(
 							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
-								auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
-								return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid),
-										trigger::to_generic(pid), 0) : 0.0f;
+								if(auto mfn = state.world.pop_type_get_ideology_fns(ptid, i); mfn != 0) {
+									using ftype = float(*)(int32_t);
+									ftype fn = (ftype)mfn;
+									float llvm_result = fn(pid.index());
+#ifdef CHECK_LLVM_RESULTS
+									float interp_result = 0.0f;
+									if(auto mtrigger = state.world.pop_type_get_ideology(ptid, i); mtrigger) {
+										interp_result = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
+									}
+									assert(llvm_result == interp_result);
+#endif
+									return llvm_result;
+								} else {
+									auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+									return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0) : 0.0f;
+								}
 							},
 							ids, state.world.pop_get_poptype(ids), owner);
 
@@ -1340,10 +1367,13 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 		auto owners = nations::owner_of_pop(state, ids);
-		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-				trigger::to_generic(ids), trigger::to_generic(ids), 0);
-		auto demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-				trigger::to_generic(ids), trigger::to_generic(ids), 0);
+#ifdef CHECK_LLVM_RESULTS
+		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+		auto demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+#else
+		ve::fp_vector promotion_chances;
+		ve::fp_vector demotion_chances;
+#endif
 		ve::apply(
 				[&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance, float demotion_chance) {
 					/*
@@ -1373,6 +1403,25 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
 					auto ptype = state.world.pop_get_poptype(p);
 					auto strata = state.world.pop_type_get_strata(ptype);
+
+
+					using ftype = float(*)(int32_t);
+					{
+						ftype fn = (ftype)(state.culture_definitions.promotion_chance_fn);
+						float llvm_result = fn(p.index());
+#ifdef CHECK_LLVM_RESULTS
+						assert(llvm_result == promotion_chance);
+#endif
+						promotion_chance = llvm_result;
+					}
+					{
+						ftype fn = (ftype)(state.culture_definitions.demotion_chance_fn);
+						float llvm_result = fn(p.index());
+#ifdef CHECK_LLVM_RESULTS
+						assert(llvm_result == demotion_chance);
+#endif
+						demotion_chance = llvm_result;
+					}
 
 					if(promoted_type) {
 						if(promoted_type == ptype) {
@@ -1424,31 +1473,33 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 
 					bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
 
-					if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata &&
-							(is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
-						auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
-						if(promote_mod) {
-							auto chance =
-									trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(p), 0) +
-									promotion_bonus;
-							if(chance > 0) {
-								pbuf.types.set(p, promoted_type);
-								return; // early exit
+					if((promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))
+						|| (!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))) {
+
+						float chance = 0.0f;
+						if(auto mfn = state.world.pop_type_get_promotion_fns(ptype, promoted_type); mfn != 0) {
+							using ftype = float(*)(int32_t);
+							ftype fn = (ftype)mfn;
+							float llvm_result = fn(p.index());
+#ifdef CHECK_LLVM_RESULTS
+							float interp_result = 0.0f;
+							if(auto mtrigger = state.world.pop_type_get_promotion(ptype, promoted_type); mtrigger) {
+								interp_result = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0);
+							}
+							assert(llvm_result == interp_result);
+#endif
+							chance = llvm_result + promotion_bonus;
+						} else {
+							if(auto mtrigger = state.world.pop_type_get_promotion(ptype, promoted_type); mtrigger) {
+								chance = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0) + promotion_bonus;
 							}
 						}
-					} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata &&
-										(is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
-						auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
-						if(promote_mod) {
-							auto chance =
-									trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(p), 0) +
-									promotion_bonus;
-							if(chance > 0) {
-								pbuf.types.set(p, promoted_type);
-								return; // early exit
-							}
+
+						if(chance > 0) {
+							pbuf.types.set(p, promoted_type);
+							return; // early exit
 						}
-					}
+					} 
 
 					float chances_total = 0.0f;
 					state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
@@ -1456,30 +1507,33 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 							weights[target_type] = 0.0f; //don't promote to the same type
 						} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
 							weights[target_type] = 0.0f; //don't promote if the pop is not in the state capital
-						} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) { //if the selected type is higher strata
-							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
-							if(promote_mod) {
-								auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
-																					 trigger::to_generic(p), 0) +
-																					 (target_type == promoted_type ? promotion_bonus : 0.0f),
-										0.0f);
+						} else if((promoting && state.world.pop_type_get_strata(promoted_type) >= strata) //if the selected type is higher strata
+							|| (!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) ) {   //if the selected type is lower strata
+
+							weights[target_type] = 0.0f;
+
+							if(auto mfn = state.world.pop_type_get_promotion_fns(ptype, target_type); mfn != 0) {
+								using ftype = float(*)(int32_t);
+								ftype fn = (ftype)mfn;
+								float llvm_result = fn(p.index());
+#ifdef CHECK_LLVM_RESULTS
+								float interp_result = 0.0f;
+								if(auto mtrigger = state.world.pop_type_get_promotion(ptype, target_type); mtrigger) {
+									interp_result = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0);
+								}
+								assert(llvm_result == interp_result);
+#endif
+								auto chance = llvm_result + (target_type == promoted_type ? promotion_bonus : 0.0f);
 								chances_total += chance;
 								weights[target_type] = chance;
 							} else {
-								weights[target_type] = 0.0f;
+								if(auto mtrigger = state.world.pop_type_get_promotion(ptype, target_type); mtrigger) {
+									auto chance = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f);
+									chances_total += chance;
+									weights[target_type] = chance;
+								}
 							}
-						} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) { //if the selected type is lower strata
-							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
-							if(promote_mod) {
-								auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
-																					 trigger::to_generic(p), 0) +
-																					 (target_type == promoted_type ? promotion_bonus : 0.0f),
-										0.0f);
-								chances_total += chance;
-								weights[target_type] = chance;
-							} else {
-								weights[target_type] = 0.0f;
-							}
+
 						} else {
 							weights[target_type] = 0.0f;
 						}

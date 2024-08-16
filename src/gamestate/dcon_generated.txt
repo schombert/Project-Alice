@@ -1158,9 +1158,17 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ ideology_fns }
+		type{array{ideology_id}{uint64_t}}
+	}
+	property{
 		name{ promotion }
 		type{array{pop_type_id}{value_modifier_key}}
 		tag{ scenario }
+	}
+	property{
+		name{ promotion_fns }
+		type{array{pop_type_id}{uint64_t}}
 	}
 	property{
 		name{ life_needs }

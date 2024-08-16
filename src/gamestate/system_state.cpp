@@ -3268,6 +3268,10 @@ void state::preload() {
 }
 
 void state::on_scenario_load() {
+	world.pop_type_resize_issues_fns(world.issue_option_size());
+	world.pop_type_resize_ideology_fns(world.ideology_size());
+	world.pop_type_resize_promotion_fns(world.pop_type_size());
+
 	//
 	// compile functions using llvm when available
 	//
@@ -3303,6 +3307,40 @@ void state::on_scenario_load() {
 				fif::run_fif_interpreter(*jit_environment, fn_str, values);
 			}
 		}
+
+		for(auto id : world.in_ideology) {
+			auto mkey = world.pop_type_get_ideology(p, id);
+			std::string base_name = "pid" + std::to_string(p.id.index()) + "_" + std::to_string(id.id.index());
+			if(mkey) {
+				std::string fn_str = ": " + base_name + "internal >pop_id dup " + fif_trigger::multiplicative_modifier(*this, mkey) + " drop drop r> ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			} else {
+				std::string fn_str = ": " + base_name + "internal" + " drop 0.0 ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			}
+		}
+
+		for(auto t : world.in_pop_type) {
+			auto mkey = world.pop_type_get_promotion(p, t);
+			std::string base_name = "pp" + std::to_string(p.id.index()) + "_" + std::to_string(t.id.index());
+			if(mkey) {
+				std::string fn_str = ": " + base_name + "internal >pop_id dup " + fif_trigger::additive_modifier(*this, mkey) + " drop drop r> ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			}
+		}
+	}
+	{
+		std::string fn_str = ": promote_internal >pop_id dup " + fif_trigger::additive_modifier(*this, culture_definitions.promotion_chance) + " drop drop r> ; ";
+		fn_str += ":export promote_ext i32 promote_internal ; ";
+		fif::run_fif_interpreter(*jit_environment, fn_str, values);
+	}
+	{
+		std::string fn_str = ": demote_internal >pop_id dup " + fif_trigger::additive_modifier(*this, culture_definitions.demotion_chance) + " drop drop r> ; ";
+		fn_str += ":export demote_ext i32 demote_internal ; ";
+		fif::run_fif_interpreter(*jit_environment, fn_str, values);
 	}
 
 	fif::perform_jit(*jit_environment);
@@ -3310,7 +3348,6 @@ void state::on_scenario_load() {
 	//
 	// load exported fns
 	//
-	world.pop_type_resize_issues_fns(world.issue_option_size());
 	for(auto p : world.in_pop_type) {
 		for(auto i : world.in_issue_option) {
 			std::string name = "pi" + std::to_string(p.id.index()) + "_" + std::to_string(i.id.index()) + "ext";
@@ -3329,6 +3366,77 @@ void state::on_scenario_load() {
 				assert(bare_address != 0);
 				world.pop_type_set_issues_fns(p, i, bare_address);
 			}
+		}
+		for(auto id : world.in_ideology) {
+			std::string name = "pid" + std::to_string(p.id.index()) + "_" + std::to_string(id.id.index()) + "ext";
+
+			LLVMOrcExecutorAddress bare_address = 0;
+			auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, name.c_str());
+
+			if(error) {
+				auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+				OutputDebugStringA(msg);
+				OutputDebugStringA("\n");
+#endif
+				LLVMDisposeErrorMessage(msg);
+			} else {
+				assert(bare_address != 0);
+				world.pop_type_set_ideology_fns(p, id, bare_address);
+			}
+		}
+		for(auto t : world.in_pop_type) {
+			if(world.pop_type_get_promotion(p, t)) {
+				std::string name = "pp" + std::to_string(p.id.index()) + "_" + std::to_string(t.id.index()) + "ext";
+
+				LLVMOrcExecutorAddress bare_address = 0;
+				auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, name.c_str());
+
+				if(error) {
+					auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+					OutputDebugStringA(msg);
+					OutputDebugStringA("\n");
+#endif
+					LLVMDisposeErrorMessage(msg);
+				} else {
+					assert(bare_address != 0);
+					world.pop_type_set_promotion_fns(p, t, bare_address);
+				}
+			}
+		}
+	}
+
+	{
+		LLVMOrcExecutorAddress bare_address = 0;
+		auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, "promote_ext");
+
+		if(error) {
+			auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+			OutputDebugStringA(msg);
+			OutputDebugStringA("\n");
+#endif
+			LLVMDisposeErrorMessage(msg);
+		} else {
+			assert(bare_address != 0);
+			culture_definitions.promotion_chance_fn = bare_address;
+		}
+	}
+	{
+		LLVMOrcExecutorAddress bare_address = 0;
+		auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, "demote_ext");
+
+		if(error) {
+			auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+			OutputDebugStringA(msg);
+			OutputDebugStringA("\n");
+#endif
+			LLVMDisposeErrorMessage(msg);
+		} else {
+			assert(bare_address != 0);
+			culture_definitions.demotion_chance_fn = bare_address;
 		}
 	}
 	
