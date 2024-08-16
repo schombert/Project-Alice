@@ -66,7 +66,7 @@ enum class cursor_type : uint8_t {
 	friendly_move,
 	no_move
 };
-void change_cursor(sys::state const& state, cursor_type type);
+void change_cursor(sys::state& state, cursor_type type);
 
 void get_window_size(sys::state const& game_state, int& width, int& height);
 

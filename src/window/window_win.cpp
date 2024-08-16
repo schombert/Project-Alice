@@ -402,7 +402,26 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	}
 }
 
-void change_cursor(sys::state const& state, cursor_type type) {
+/*
+// Also works for cursors
+BOOL GetIconDimensions(__in HICON hico, __out SIZE* psiz) {
+	ICONINFO ii;
+	BOOL fResult = GetIconInfo(hico, &ii);
+	if(fResult) {
+		BITMAP bm;
+		fResult = GetObject(ii.hbmMask, sizeof(bm), &bm) == sizeof(bm);
+		if(fResult) {
+			psiz->cx = bm.bmWidth;
+			psiz->cy = ii.hbmColor ? bm.bmHeight : bm.bmHeight / 2;
+		}
+		if(ii.hbmMask)  DeleteObject(ii.hbmMask);
+		if(ii.hbmColor) DeleteObject(ii.hbmColor);
+	}
+	return fResult;
+}
+*/
+
+void change_cursor(sys::state& state, cursor_type type) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
 	auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
@@ -432,14 +451,45 @@ void change_cursor(sys::state const& state, cursor_type type) {
 			fname = NATIVE("normal.cur");
 			break;
 		}
+
+		// adapted from https://stackoverflow.com/questions/34065/how-to-read-a-value-from-the-windows-registry
+
+		HKEY hKey;
+		auto response = RegOpenKeyExW(HKEY_CURRENT_USER, NATIVE("Software\\Microsoft\\Accessibility"), 0, KEY_READ, &hKey);
+		bool exists = (response == ERROR_SUCCESS);
+		auto cursor_size_key = NATIVE("CursorSize");
+
+		uint32_t cursor_size = 1;
+
+		if(exists) {
+			DWORD dwBufferSize(sizeof(DWORD));
+			DWORD nResult(0);
+			LONG get_cursor_size_error = RegQueryValueExW(hKey,
+				cursor_size_key,
+				0,
+				NULL,
+				reinterpret_cast<LPBYTE>(&nResult),
+				&dwBufferSize);
+			if(get_cursor_size_error == ERROR_SUCCESS) {
+				cursor_size = nResult;
+			}
+		}
+
+		RegCloseKey(hKey);
+
 		if(auto f = simple_fs::peek_file(cursors_dir, fname); f) {
 			auto path = simple_fs::get_full_name(*f);
 			state.win_ptr->cursors[uint8_t(type)] = (HCURSOR)LoadImageW(nullptr, path.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE); //.cur or .ani
+
 			if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
 				state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+				state.ui_state.cursor_size = GetSystemMetrics(SM_CXCURSOR) * cursor_size / 2;
+			} else {
+				state.ui_state.cursor_size = GetSystemMetrics(SM_CXCURSOR) * cursor_size / 2;
 			}
 		} else {
 			state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+			state.ui_state.cursor_size = GetSystemMetrics(SM_CXCURSOR) * cursor_size / 2;
 		}
 	}
 	SetCursor(state.win_ptr->cursors[uint8_t(type)]);
