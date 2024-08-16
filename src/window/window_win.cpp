@@ -402,25 +402,6 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	}
 }
 
-/*
-// Also works for cursors
-BOOL GetIconDimensions(__in HICON hico, __out SIZE* psiz) {
-	ICONINFO ii;
-	BOOL fResult = GetIconInfo(hico, &ii);
-	if(fResult) {
-		BITMAP bm;
-		fResult = GetObject(ii.hbmMask, sizeof(bm), &bm) == sizeof(bm);
-		if(fResult) {
-			psiz->cx = bm.bmWidth;
-			psiz->cy = ii.hbmColor ? bm.bmHeight : bm.bmHeight / 2;
-		}
-		if(ii.hbmMask)  DeleteObject(ii.hbmMask);
-		if(ii.hbmColor) DeleteObject(ii.hbmColor);
-	}
-	return fResult;
-}
-*/
-
 void change_cursor(sys::state& state, cursor_type type) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
