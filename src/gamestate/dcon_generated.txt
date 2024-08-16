@@ -5103,3 +5103,9 @@ load_save{
 	only_objects{save}
 	only_properties{save}
 }
+
+load_save{
+	name{store_full_save}
+	only_objects{save}{local_save}
+	only_properties{save}{local_save}
+}

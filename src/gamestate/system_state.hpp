@@ -585,6 +585,7 @@ struct alignas(64) state {
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
+	std::mutex ugly_ui_game_interaction_hack;
 
 	//control groups
 	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;

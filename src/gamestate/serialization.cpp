@@ -719,9 +719,15 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	// data container contribution
 
 	dcon::load_record loaded;
-	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
-	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
 
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
+		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	} else {
+		dcon::load_record loadmask = state.world.make_serialize_record_store_save();
+		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
+		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded, loadmask);
+	}
 	return section_end;
 }
 
@@ -764,7 +770,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	}
 
 	// data container contribution
-	dcon::load_record loaded = state.world.make_serialize_record_store_save();
+	dcon::load_record loaded = state.world.make_serialize_record_store_full_save();
 	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
 	state.world.serialize(start, loaded);
 
@@ -812,7 +818,7 @@ size_t sizeof_save_section(sys::state& state) {
 	}
 
 	// data container contribution
-	dcon::load_record loaded = state.world.make_serialize_record_store_save();
+	dcon::load_record loaded = state.world.make_serialize_record_store_full_save();
 	sz += state.world.serialize_size(loaded);
 
 	return sz;
@@ -1026,6 +1032,7 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 
 	uint8_t* temp_save_buffer = new uint8_t[save_space];
 	write_save_section(temp_save_buffer, state);
+
 	buffer_position = write_compressed_section(buffer_position, temp_save_buffer, uint32_t(save_space));
 	delete[] temp_save_buffer;
 

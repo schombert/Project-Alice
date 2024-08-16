@@ -44,6 +44,7 @@
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
 #include "ai.cpp"
+#include "fif_triggers.cpp"
 #include "map_modes.cpp"
 #include "platform_specific.cpp"
 #include "opengl_wrapper.cpp"

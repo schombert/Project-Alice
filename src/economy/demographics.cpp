@@ -1190,7 +1190,7 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 						assert(llvm_result == interp_result);
 #endif
 						return llvm_result;
-					} else {
+					} else { 
 						if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
 							return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
 						} else {
