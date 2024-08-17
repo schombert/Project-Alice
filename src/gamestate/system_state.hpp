@@ -819,5 +819,18 @@ struct alignas(64) state {
 		dcon::province_id target,
 		std::vector<float>& regiments_expectation_ideal
 	);
+
+	void fill_vector_of_connected_provinces(
+		dcon::province_id p1,
+		bool is_land,
+		std::vector<dcon::province_id> & provinces
+	);
+
+	void build_up_to_template_land(
+		macro_builder_template& target_template,
+		dcon::province_id target_province,
+		std::vector<dcon::province_id>& available_provinces,
+		std::array<uint8_t, sys::macro_builder_template::max_types>& current_distribution
+	);
 };
 } // namespace sys

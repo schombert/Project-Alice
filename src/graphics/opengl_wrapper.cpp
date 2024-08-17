@@ -898,6 +898,37 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
+	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+
+	auto id = ico.unit_type;
+
+	auto gfx_id =
+		state.ui_defs.gui[
+			state.ui_state.defs_by_name.find(
+				state.lookup_key("gfx_storage_unit_types")
+			)->second.definition
+		].data.image.gfx_object;
+
+	auto& gfx_def = state.ui_defs.gfx[gfx_id];
+
+	auto frame = state.military_definitions.unit_base_definitions[id].icon - 1;
+
+	render_subsprite(
+		state,
+		cmod,
+		frame,
+		gfx_def.number_of_frames,
+		float(x),
+		baseline_y,
+		font_size,
+		font_size,
+		ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+		ui::rotation::upright,
+		gfx_def.is_vertically_flipped(),
+		false
+	);
+}
 
 void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
 	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::filter };

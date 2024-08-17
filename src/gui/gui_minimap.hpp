@@ -95,9 +95,45 @@ class macro_builder_template_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto index = retrieve<uint32_t>(state, parent);
-		auto const& name = state.ui_state.templates[index].name;
-		auto sv = std::string_view(name, name + sizeof(name));
-		set_text(state, std::string(sv));
+		//auto const& name = state.ui_state.templates[index].name;
+		//auto sv = std::string_view(name, name + sizeof(name));
+
+		auto contents = text::create_endless_layout(
+			state,
+			internal_layout,
+			text::layout_parameters{
+				0,
+				0,
+				static_cast<int16_t>(base_data.size.x),
+				static_cast<int16_t>(base_data.size.y),
+				base_data.data.text.font_handle,
+				0,
+				text::alignment::left,
+				text::text_color::white,
+				true
+			});
+
+		auto box = text::open_layout_box(contents);
+
+		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto amount = state.ui_state.templates[index].amounts[i];
+
+			if(amount < 1) {
+				continue;
+			}
+
+			auto const utid = dcon::unit_type_id(i);
+
+			std::string padding = i < 10 ? "0" : "";
+
+			text::add_to_layout_box(state, contents, box, text::int_wholenum{ amount });
+
+			std::string description = "@*" + padding + std::to_string(i);
+
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+		}
+
+		text::close_layout_box(contents, box);
 	}
 };
 class macro_builder_template_flag : public flag_button {
@@ -124,8 +160,6 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			return make_element_by_type<macro_builder_template_name>(state, id);
-		} else if(name == "shield") {
-			return make_element_by_type<macro_builder_template_flag>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<macro_builder_template_select>(state, id);
 		} else {
@@ -267,6 +301,13 @@ public:
 		auto sdir = simple_fs::get_or_create_templates_directory();
 		simple_fs::write_file(sdir, state.loaded_scenario_file, reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
 		send(state, parent, notify_setting_update{});
+	}
+};
+class macro_builder_set_main_template_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		std::memcpy(&state.ui_state.main_template, &state.ui_state.current_template, sizeof(sys::macro_builder_template));
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 };
 struct notify_macro_toggle_is_land {};
@@ -433,28 +474,7 @@ public:
 	}
 };
 class macro_builder_apply_button : public button_element_base {
-	std::vector<dcon::province_id> provinces;
-	void get_provinces(sys::state& state, dcon::province_id p1, bool is_land) {
-		provinces.clear();
-		if(state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation) {
-			if(is_land) {
-				auto rid = state.world.province_get_connected_region_id(p1);
-				for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-					if(pc.get_province().get_connected_region_id() == rid
-					&& pc.get_province().get_province_control().get_nation() == state.local_player_nation) {
-						provinces.push_back(pc.get_province());
-					}
-				}
-			} else {
-				for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-					if(pc.get_province().get_province_control().get_nation() == state.local_player_nation
-					&& pc.get_province().get_is_coast()) {
-						provinces.push_back(pc.get_province());
-					}
-				}
-			}
-		}
-	}
+	std::vector<dcon::province_id> provinces;	
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -473,52 +493,24 @@ public:
 		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
 		const auto template_province = state.map_state.selected_province;
-		uint8_t rem_to_build[sys::macro_builder_template::max_types];
-		std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
-
-		get_provinces(state, state.map_state.selected_province, is_land);
+		
+		state.fill_vector_of_connected_provinces(state.map_state.selected_province, is_land, provinces);
 		if(provinces.empty())
 			return;
 
 		if(is_land) {
-			// Have to queue commands [temporarily on UI side] or it may mess calculations up
-			struct build_queue_data {
-				dcon::province_id p;
-				dcon::culture_id c;
-				dcon::unit_type_id u;
-			};
-			std::vector<build_queue_data> build_queue;
-			for(const auto prov : provinces) {
-				for(const auto p : state.world.province_get_pop_location_as_province(prov)) {
-					if(p.get_pop().get_poptype() != state.culture_definitions.soldiers)
-						continue;
-					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
-					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
-					used += int32_t(p.get_pop().get_province_land_construction_as_pop().end() - p.get_pop().get_province_land_construction_as_pop().begin());
-					int32_t avail = possible - used;
-					if(possible > 0 && avail > 0) {
-						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
-							dcon::unit_type_id utid = dcon::unit_type_id(i);
-							if(rem_to_build[i] > 0
-							&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
-							&& command::can_start_land_unit_construction(state, state.local_player_nation, prov, p.get_pop().get_culture(), utid, template_province)) {
-								for(int32_t j = 0; j < int32_t(rem_to_build[i]) && j < avail; j++) {
-									build_queue.push_back(build_queue_data{ prov, p.get_pop().get_culture(), utid });
-									rem_to_build[i]--;
-									avail--;
-									if(rem_to_build[i] == 0)
-										break;
-								}
-							}
-						}
-					}
-				}
-			}
-			// Then flush them all!
-			for(const auto& build : build_queue) {
-				command::start_land_unit_construction(state, state.local_player_nation, build.p, build.c, build.u, template_province);
-			}
+			std::array<uint8_t, sys::macro_builder_template::max_types> current_distribution;
+			current_distribution.fill(0);
+			state.build_up_to_template_land(
+				state.ui_state.current_template,
+				state.map_state.selected_province,
+				provinces,
+				current_distribution
+			);
 		} else {
+			uint8_t rem_to_build[sys::macro_builder_template::max_types];
+			std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
+
 			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
 				auto ab = state.world.province_get_province_naval_construction_as_province(a);
 				auto bb = state.world.province_get_province_naval_construction_as_province(b);
@@ -572,8 +564,8 @@ public:
 		const auto template_province = state.map_state.selected_province;
 		uint8_t rem_to_build[sys::macro_builder_template::max_types];
 		std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
+		state.fill_vector_of_connected_provinces(state.map_state.selected_province, is_land, provinces);
 
-		get_provinces(state, state.map_state.selected_province, is_land);
 		if(provinces.empty()) {
 			text::add_line(state, contents, "macro_warn_invalid_province");
 			return;
@@ -685,6 +677,8 @@ public:
 			return make_element_by_type<macro_builder_save_template_button>(state, id);
 		} else if(name == "remove_template") {
 			return make_element_by_type<macro_builder_remove_template_button>(state, id);
+		} else if(name == "set_main") {
+			return make_element_by_type<macro_builder_set_main_template_button>(state, id);
 		} else if(name == "switch_type") {
 			return make_element_by_type<macro_builder_switch_type_button>(state, id);
 		} else if(name == "apply") {

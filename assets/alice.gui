@@ -1,4 +1,11 @@
 guiTypes = {
+	iconType = {
+        name = "gfx_storage_unit_types"
+        spriteType = "GFX_unit_strip"
+        position = {  -150 -150 }
+        Orientation = "UPPER_LEFT"
+    }
+
 	instantTextBoxType = {
 		name = "alice_investment_text"
 		position = { 0 0 }
@@ -4370,6 +4377,14 @@ guiTypes = {
 			buttonText = "apply"
 			buttonFont = "vic_22_black"
 		}
+        guiButtonType = {
+			name = "set_main"
+			position = { 510 263 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "set_main"
+			buttonFont = "vic_22_black"
+		}
 		editBoxType = {
 			name = "input"
 			position = { 330 28 }
@@ -4400,17 +4415,11 @@ guiTypes = {
 		}
 		instantTextBoxType = {
 			name = "name"
-			position = { 32 0 }
+			position = { 5 0 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 70 24 }
+			maxsize = { 100 24 }
 			format = center
-		}
-		guiButtonType = {
-			name = "shield"
-			position = { 4 4 }
-			quadTextureSprite = "GFX_flag_new"
-			Orientation = "UPPER_LEFT"
 		}
 	}
 	windowType = {
@@ -4500,6 +4509,30 @@ guiTypes = {
 		extends = "province_view_header"
 		position = { x= 180 y = 3 }
 		quadTextureSprite = "GFX_move_capital"	
+	}
+    
+    windowType = {
+		name = "alice_build_up_to_template_window"
+		position = { 5 312 }
+		size = { 150 24 }
+        
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 105 24 }
+			quadTextureSprite = "console_background"
+		}
+		
+        instantTextBoxType = {
+            name = "composition"            
+            position = { 10 4 }
+            font = "vic_22"
+            borderSize = { 0 0 }
+            maxsize = { 150 24 }
+            format = center
+        }
+        
+        extends = "sup_buttons_window"
 	}
     
     guiButtonType = {
