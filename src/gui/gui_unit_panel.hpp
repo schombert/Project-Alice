@@ -1301,6 +1301,93 @@ public:
 	}
 };
 
+class main_template_composition_label : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto contents = text::create_endless_layout(
+			state,
+			internal_layout,
+			text::layout_parameters{
+				0,
+				0,
+				static_cast<int16_t>(base_data.size.x),
+				static_cast<int16_t>(base_data.size.y),
+				base_data.data.text.font_handle,
+				0,
+				text::alignment::left,
+				text::text_color::white,
+				true
+			});
+
+		auto box = text::open_layout_box(contents);
+
+		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto amount = state.ui_state.main_template.amounts[i];
+
+			if(amount < 1) {
+				continue;
+			}
+
+			auto const utid = dcon::unit_type_id(i);
+
+			std::string padding = i < 10 ? "0" : "";
+
+			text::add_to_layout_box(state, contents, box, text::int_wholenum{ amount });
+
+			std::string description = "@*" + padding + std::to_string(i);
+
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+		}
+
+		text::close_layout_box(contents, box);
+	}
+};
+
+class apply_template_to_army_location_button : public button_element_base {
+	std::vector<dcon::province_id> provinces;
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		disabled = false;
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto army = retrieve<dcon::army_id>(state, parent);
+		auto army_location = state.world.army_get_location_from_army_location(army);
+
+		state.fill_vector_of_connected_provinces(army_location, true, provinces);
+		if(provinces.empty())
+			return;
+
+		std::array<uint8_t, sys::macro_builder_template::max_types> current_distribution;
+		current_distribution.fill(0);
+
+		for(auto reg : state.world.army_get_army_membership(army)) {
+			current_distribution[reg.get_regiment().get_type().index()] += 1;
+		}
+
+		state.build_up_to_template_land(
+			state.ui_state.main_template,
+			army_location,
+			provinces,
+			current_distribution
+		);
+	}
+};
+
+class apply_template_container : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "composition") {
+			return make_element_by_type<main_template_composition_label>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type< apply_template_to_army_location_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 template<class T>
 class unit_details_buttons : public window_element_base {
 private:
@@ -1349,6 +1436,12 @@ public:
 				return make_element_by_type<invisible_element>(state, id);
 			} else {
 				return make_element_by_type< navy_transport_text>(state, id);
+			}
+		} else if(name == "alice_build_up_to_template_window") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<apply_template_container>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
 			}
 		} else {
 			return nullptr;

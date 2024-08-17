@@ -5377,4 +5377,127 @@ dcon::regiment_automation_data_id state::fill_province(
 	return {};
 }
 
+void state::fill_vector_of_connected_provinces(dcon::province_id p1, bool is_land, std::vector<dcon::province_id> & provinces) {
+	provinces.clear();
+	if(world.province_get_nation_from_province_ownership(p1) == local_player_nation) {
+		if(is_land) {
+			auto rid = world.province_get_connected_region_id(p1);
+			for(const auto pc : world.nation_get_province_ownership_as_nation(local_player_nation)) {
+				if(pc.get_province().get_connected_region_id() == rid
+				&& pc.get_province().get_province_control().get_nation() == local_player_nation) {
+					provinces.push_back(pc.get_province());
+				}
+			}
+		} else {
+			for(const auto pc : world.nation_get_province_ownership_as_nation(local_player_nation)) {
+				if(pc.get_province().get_province_control().get_nation() == local_player_nation
+				&& pc.get_province().get_is_coast()) {
+					provinces.push_back(pc.get_province());
+				}
+			}
+		}
+	}
+}
+
+struct build_queue_data {
+	dcon::province_id p;
+	dcon::culture_id c;
+	dcon::unit_type_id u;
+};
+
+void state::build_up_to_template_land(
+	macro_builder_template & target_template,
+	dcon::province_id target_province,
+	std::vector<dcon::province_id> & available_provinces,
+	std::array<uint8_t, sys::macro_builder_template::max_types> & current_distribution
+) {
+	// Have to queue commands [temporarily on UI side] or it may mess calculations up
+	std::vector<build_queue_data> build_queue;
+	auto upper_limit = sys::macro_builder_template::max_types;
+
+	// here we store how many units we need to build
+	uint8_t remaining_to_build[sys::macro_builder_template::max_types];
+	std::memcpy(remaining_to_build, target_template.amounts, sizeof(remaining_to_build));
+
+	// subtract current amount
+	for(dcon::unit_type_id::value_base_t i = 0; i < upper_limit; i++) {
+		dcon::unit_type_id utid = dcon::unit_type_id(i);
+		if(remaining_to_build[i] < current_distribution[i]) {
+			remaining_to_build[i] = 0;
+		} else {
+			remaining_to_build[i] -= current_distribution[i];
+		}
+	}
+
+	for(const auto prov : available_provinces) {
+		for(const auto p : world.province_get_pop_location_as_province(prov)) {
+			auto pop = p.get_pop();
+			if(pop.get_poptype() != culture_definitions.soldiers)
+				continue;
+			int32_t possible = military::regiments_possible_from_pop(*this, p.get_pop());
+
+			auto source = pop.get_regiment_source();
+			int32_t used = int32_t(source.end() - source.begin());
+
+			auto constructions = pop.get_province_land_construction_as_pop();
+			used += int32_t(constructions.end() - constructions.begin());
+
+			int32_t avail = possible - used;
+
+			if(possible <= 0) {
+				continue;
+			}
+			if(avail <= 0) {
+				continue;
+			}
+
+			auto unit_types = military_definitions.unit_base_definitions.size();
+			
+			for(dcon::unit_type_id::value_base_t i = 0; i < unit_types; i++) {
+				dcon::unit_type_id utid = dcon::unit_type_id(i);
+
+				if(!military_definitions.unit_base_definitions[utid].is_land) {
+					continue;
+				}
+
+				if(remaining_to_build[i] == 0) {
+					continue;
+				}
+
+				bool can_build = command::can_start_land_unit_construction(
+					*this,
+					local_player_nation,
+					prov,
+					pop.get_culture(),
+					utid,
+					target_province
+				);
+
+				if(!can_build) {
+					continue;
+				}
+				
+				for(int32_t j = 0; j < int32_t(remaining_to_build[i]) && j < avail; j++) {
+					build_queue.push_back(build_queue_data{ prov, pop.get_culture(), utid });
+					remaining_to_build[i]--;
+					avail--;
+					if(remaining_to_build[i] == 0)
+						break;
+				}
+			}
+		}
+	}
+	// Then flush them all!
+	for(const auto& build : build_queue) {
+		command::start_land_unit_construction(
+			*this,
+			local_player_nation,
+			build.p,
+			build.c,
+			build.u,
+			target_province
+		);
+	}
+}
+
 } // namespace sys
