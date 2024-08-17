@@ -1,4 +1,11 @@
 guiTypes = {
+	iconType = {
+        name = "gfx_storage_unit_types"
+        spriteType = "GFX_unit_strip"
+        position = {  -150 -150 }
+        Orientation = "UPPER_LEFT"
+    }
+
 	instantTextBoxType = {
 		name = "alice_investment_text"
 		position = { 0 0 }
@@ -4400,17 +4407,11 @@ guiTypes = {
 		}
 		instantTextBoxType = {
 			name = "name"
-			position = { 32 0 }
+			position = { 5 0 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 70 24 }
+			maxsize = { 100 24 }
 			format = center
-		}
-		guiButtonType = {
-			name = "shield"
-			position = { 4 4 }
-			quadTextureSprite = "GFX_flag_new"
-			Orientation = "UPPER_LEFT"
 		}
 	}
 	windowType = {

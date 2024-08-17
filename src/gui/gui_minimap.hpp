@@ -95,9 +95,45 @@ class macro_builder_template_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto index = retrieve<uint32_t>(state, parent);
-		auto const& name = state.ui_state.templates[index].name;
-		auto sv = std::string_view(name, name + sizeof(name));
-		set_text(state, std::string(sv));
+		//auto const& name = state.ui_state.templates[index].name;
+		//auto sv = std::string_view(name, name + sizeof(name));
+
+		auto contents = text::create_endless_layout(
+			state,
+			internal_layout,
+			text::layout_parameters{
+				0,
+				0,
+				static_cast<int16_t>(base_data.size.x),
+				static_cast<int16_t>(base_data.size.y),
+				base_data.data.text.font_handle,
+				0,
+				text::alignment::left,
+				text::text_color::white,
+				true
+			});
+
+		auto box = text::open_layout_box(contents);
+
+		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto amount = state.ui_state.templates[index].amounts[i];
+
+			if(amount < 1) {
+				continue;
+			}
+
+			auto const utid = dcon::unit_type_id(i);
+
+			std::string padding = i < 10 ? "0" : "";
+
+			text::add_to_layout_box(state, contents, box, text::int_wholenum{ amount });
+
+			std::string description = "@*" + padding + std::to_string(i);
+
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+		}
+
+		text::close_layout_box(contents, box);
 	}
 };
 class macro_builder_template_flag : public flag_button {
@@ -124,8 +160,6 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			return make_element_by_type<macro_builder_template_name>(state, id);
-		} else if(name == "shield") {
-			return make_element_by_type<macro_builder_template_flag>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<macro_builder_template_select>(state, id);
 		} else {
