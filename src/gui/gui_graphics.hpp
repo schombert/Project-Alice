@@ -298,12 +298,12 @@ struct element_data {
 			std::memset(this, 0, sizeof(internal_data));
 			position = position_data{};
 		}
-	} data; // +12 = 24
+	} data; // +16 = 28
 	static_assert(sizeof(internal_data) == 16);
 
-	uint8_t flags = 0; // 25
-	uint8_t ex_flags = 0; // 26
-	uint8_t padding[2] = {}; // 28
+	uint8_t flags = 0; // 29
+	uint8_t ex_flags = 0; // 30
+	uint8_t padding[2] = { 0, 0 }; // 32
 
 	element_data() {
 		std::memset(this, 0, sizeof(element_data));

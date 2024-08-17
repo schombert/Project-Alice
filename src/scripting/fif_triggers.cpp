@@ -531,10 +531,14 @@ TRIGGER_FUNCTION(tf_x_core_scope_province) {
 			"while more? r@ not and "
 			"loop "
 				"next " // n on top
-				"swap >r " // hide it                        
-				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
-				"r> drop >r "                                               // replace bool value with new bool
-				"swap drop "
+				"swap >r " // hide it
+				"dup valid? if "
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
+				"else "
+					"drop r> "
+				"end-if "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -543,10 +547,14 @@ TRIGGER_FUNCTION(tf_x_core_scope_province) {
 			"while more? r@ and "
 			"loop "
 				"next " // n on top
-				"swap >r " // hide it                        
-				+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
-				"r> drop >r "                                               // replace bool value with new bool
-				"swap drop "
+				"swap >r " // hide it
+				"dup valid? if "
+					+ apply_subtriggers(tval, ws) + " r> swap " // bool result on top
+					"r> drop >r "                                               // replace bool value with new bool
+					"swap drop "
+				"else "
+					"drop r> "
+				"end-if "
 			"end-while "
 			"drop r> r> swap " // drop  it, move stored to stack,  move bool to stack
 			;
@@ -1087,10 +1095,10 @@ TRIGGER_FUNCTION(tf_strata_poor) {
 	return "dup poptype @ strata @ " + std::to_string(int32_t(culture::pop_strata::poor)) + " >u8 " + compare_values_eq(tval[0]);
 }
 TRIGGER_FUNCTION(tf_life_rating_province) {
-	return "dup life_rating @ " + std::to_string(trigger::payload(tval[1]).signed_value) + " >i8 " + compare_values(tval[0]);
+	return "dup life_rating @ " + std::to_string(trigger::payload(tval[1]).signed_value) + " >u8 " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_life_rating_state) {
-	return "dup capital @ life_rating @ " + std::to_string(trigger::payload(tval[1]).signed_value) + " >i8 " + compare_values(tval[0]);
+	return "dup capital @ life_rating @ " + std::to_string(trigger::payload(tval[1]).signed_value) + " >u8 " + compare_values(tval[0]);
 }
 
 TRIGGER_FUNCTION(tf_has_empty_adjacent_state_province) {
@@ -1152,7 +1160,7 @@ TRIGGER_FUNCTION(tf_cash_reserves) {
 
 TRIGGER_FUNCTION(tf_unemployment_nation) {
 	return "dup " + std::to_string(demographics::employable.index()) + " >demographics_key demographics @ >r "
-		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> <= select "  + std::to_string(read_float_from_payload(tval + 1))  + compare_values(tval[0]);
+		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> >= select "  + std::to_string(read_float_from_payload(tval + 1))  + compare_values(tval[0]);
 	//auto total_employable = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::employable);
 	//auto total_employed = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::employed);
 	//return compare_values(tval[0], ve::select(total_employable > 0.0f, 1.0f - (total_employed / total_employable), 0.0f),
@@ -1160,11 +1168,11 @@ TRIGGER_FUNCTION(tf_unemployment_nation) {
 }
 TRIGGER_FUNCTION(tf_unemployment_state) {
 	return "dup " + std::to_string(demographics::employable.index()) + " >demographics_key demographics @ >r "
-		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
+		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_province) {
 	return "dup " + std::to_string(demographics::employable.index()) + " >demographics_key demographics @ >r "
-		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
+		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_pop) {
 	return "dup poptype @ has_unemployment @ not >r dup size @ >r "
@@ -1974,7 +1982,7 @@ TRIGGER_FUNCTION(tf_is_primary_culture_nation_this_nation) {
 	return ">r dup r> swap >r dup primary_culture @ r> primary_culture @ = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_primary_culture_nation_this_pop) {
-	return ">r dup " + pop_to_owner() + "r> swap >r dup primary_culture @ r> primary_culture @ = " + truth_inversion(tval[0]);
+	return ">r dup culture @ r> swap >r dup primary_culture @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_primary_culture_nation_this_state) {
 	return ">r dup " + state_to_owner() + "r> swap >r dup primary_culture @ r> primary_culture @ = " + truth_inversion(tval[0]);
@@ -2157,7 +2165,7 @@ TRIGGER_FUNCTION(tf_has_culture_core) {
 	return "dup dup >r " + pop_to_location() + ">index r> culture >index state-ptr @ has-culture-core? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_culture_core_province_this_pop) {
-	return ">r dup culture @ >index r> swap >r dup " + pop_to_location() + "r> state-ptr @ has-culture-core? " + truth_inversion(tval[0]);
+	return ">r dup culture @ >index r> swap >r dup >index r> state-ptr @ has-culture-core? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_nationalism) {
 	return "dup nationalism @ " + std::to_string(float(tval[1])) + " " + compare_values(tval[0]);
@@ -2241,13 +2249,13 @@ TRIGGER_FUNCTION(tf_total_pops_pop) {
 	return "dup " + pop_to_location() + std::to_string(demographics::total.index()) + " >demographics_key demographics @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_type_nation) {
-	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[1]).popt_id.index()) + " >demographics_key demographics @ 0.0 >" + truth_inversion(tval[0]);
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[1]).popt_id.index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_type_state) {
-	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[1]).popt_id.index()) + " >demographics_key demographics @ 0.0 >" + truth_inversion(tval[0]);
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[1]).popt_id.index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_type_province) {
-	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[1]).popt_id.index()) + " >demographics_key demographics @ 0.0 >" + truth_inversion(tval[0]);
+	return "dup " + std::to_string(demographics::count_special_keys + trigger::payload(tval[1]).popt_id.index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_pop_type_pop) {
 	return "dup poptype @ >index " + std::to_string(trigger::payload(tval[1]).popt_id.index()) + " = " + truth_inversion(tval[0]);

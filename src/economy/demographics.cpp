@@ -2042,17 +2042,30 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 	auto weights_buffer = state.world.province_make_vectorizable_float_buffer();
 	float total_weight = 0.0f;
 
-	auto modifier = state.world.pop_type_get_migration_target(state.world.pop_get_poptype(p));
+	auto pt = state.world.pop_get_poptype(p);
+	auto modifier = state.world.pop_type_get_migration_target(pt);
+	auto modifier_fn = state.world.pop_type_get_migration_target_fn(pt);
 	if(!modifier)
 		return dcon::province_id{};
 
-	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(state.world.pop_get_poptype(p));
+	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(pt);
 	for(auto loc : state.world.nation_get_province_ownership(n)) {
 		if(loc.get_province().get_is_colonial() == false) {
 			if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
-				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id),
-													trigger::to_generic(p), 0) *
-											(loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
+				float weight = 0.0f;
+				if(modifier_fn) {
+					using ftype = float(*)(int32_t, int32_t);
+					ftype fn = (ftype)modifier_fn;
+					float llvm_result = fn(loc.get_province().id.index(), p.index());
+#ifdef CHECK_LLVM_RESULTS
+					float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0);
+					assert(llvm_result == interp_result);
+#endif
+					weight = llvm_result * (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
+				} else {
+					float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0);
+					weight = interp_result * (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
+				}
 
 				if(weight > 0.0f) {
 					weights_buffer.set(loc.get_province(), weight);
@@ -2085,6 +2098,7 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 	float total_weight = 0.0f;
 
 	auto modifier = state.world.pop_type_get_migration_target(state.world.pop_get_poptype(p));
+	auto modifier_fn = state.world.pop_type_get_migration_target_fn(state.world.pop_get_poptype(p));
 	if(!modifier)
 		return dcon::province_id{};
 
@@ -2096,9 +2110,21 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 		if(loc.get_province().get_is_colonial() == true) {
 			if((overseas_culture || loc.get_province().get_continent() == home_continent) &&
 					(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id)) {
-				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id),
-													trigger::to_generic(p), 0) *
-											(loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
+
+				float weight = 0.0f;
+				if(modifier_fn) {
+					using ftype = float(*)(int32_t, int32_t);
+					ftype fn = (ftype)modifier_fn;
+					float llvm_result = fn(loc.get_province().id.index(), p.index());
+#ifdef CHECK_LLVM_RESULTS
+					float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0);
+					assert(llvm_result == interp_result);
+#endif
+					weight = llvm_result * (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
+				} else {
+					float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0);
+					weight = interp_result * (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f);
+				}
 
 				if(weight > 0.0f) {
 					if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
@@ -2137,6 +2163,7 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 	*/
 
 	auto modifier = state.world.pop_type_get_country_migration_target(state.world.pop_get_poptype(p));
+	auto modifier_fn = state.world.pop_type_get_country_migration_target_fn(state.world.pop_get_poptype(p));
 	if(!modifier)
 		return dcon::nation_id{};
 
@@ -2157,9 +2184,20 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 			return; // ignore same continent, non-adjacent nations
 		}
 
-		auto weight =
-				trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0) *
-				std::max(0.0f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
+		float weight = 0.0f;
+		if(modifier_fn) {
+			using ftype = float(*)(int32_t, int32_t);
+			ftype fn = (ftype)modifier_fn;
+			float llvm_result = fn(inner.index(), p.index());
+#ifdef CHECK_LLVM_RESULTS
+			float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0);
+			assert(llvm_result == interp_result);
+#endif
+			weight = llvm_result * std::max(0.0f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
+		} else {
+			float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0);
+			weight = interp_result * std::max(0.0f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
+		}
 
 		if(weight > top_weights[2]) {
 			top_weights[2] = weight;

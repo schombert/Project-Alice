@@ -60,7 +60,7 @@ std::string make_id_definition(std::string const& type_name, std::string const& 
 		+ std::string("\":s >") + type_name + " i32 s: 1 + >" + type_to_fif_type(underlying_type) + " make " + type_name + " .ival! ; \"\n"
 		+ std::string("\":s = ") + type_name + " " + type_name + " s: .ival swap .ival = ; \"\n"
 		+ std::string("\":s @ ") + type_name + " s:  ; \"\n"
-		+ std::string("\":s valid? ") + type_name + " s: .ival 0 <> ; \"\n"
+		+ std::string("\":s valid? ") + type_name + " s: .ival >i32 0 <> ; \"\n"
 	;
 }
 

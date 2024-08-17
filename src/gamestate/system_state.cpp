@@ -3331,6 +3331,26 @@ void state::on_scenario_load() {
 				fif::run_fif_interpreter(*jit_environment, fn_str, values);
 			}
 		}
+		
+		/**/
+		{
+			auto mkey = world.pop_type_get_migration_target(p);
+			std::string base_name = "pmt" + std::to_string(p.id.index());
+			if(mkey) {
+				std::string fn_str = ": " + base_name + "internal swap >pop_id swap >province_id " + fif_trigger::multiplicative_modifier(*this, mkey) + " drop drop r> ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			}
+		}
+		{
+			auto mkey = world.pop_type_get_country_migration_target(p);
+			std::string base_name = "pcmt" + std::to_string(p.id.index());
+			if(mkey) {
+				std::string fn_str = ": " + base_name + "internal swap >pop_id swap >nation_id " + fif_trigger::multiplicative_modifier(*this, mkey) + " drop drop r> ; ";
+				fn_str += ":export " + base_name + "ext" + " i32 i32 " + base_name + "internal ; ";
+				fif::run_fif_interpreter(*jit_environment, fn_str, values);
+			}
+		}
 	}
 	{
 		std::string fn_str = ": promote_internal >pop_id dup " + fif_trigger::additive_modifier(*this, culture_definitions.promotion_chance) + " drop drop r> ; ";
@@ -3402,6 +3422,47 @@ void state::on_scenario_load() {
 				} else {
 					assert(bare_address != 0);
 					world.pop_type_set_promotion_fns(p, t, bare_address);
+				}
+			}
+		}
+
+		{
+			auto mkey = world.pop_type_get_migration_target(p);
+			if(mkey) {
+				std::string base_name = "pmt" + std::to_string(p.id.index()) + "ext";
+				LLVMOrcExecutorAddress bare_address = 0;
+				auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, base_name.c_str());
+
+				if(error) {
+					auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+					OutputDebugStringA(msg);
+					OutputDebugStringA("\n");
+#endif
+					LLVMDisposeErrorMessage(msg);
+				} else {
+					assert(bare_address != 0);
+					world.pop_type_set_migration_target_fn(p, bare_address);
+				}
+			}
+		}
+		{
+			auto mkey = world.pop_type_get_country_migration_target(p);
+			if(mkey) {
+				std::string base_name = "pcmt" + std::to_string(p.id.index()) + "ext";
+				LLVMOrcExecutorAddress bare_address = 0;
+				auto error = LLVMOrcLLJITLookup(jit_environment->llvm_jit, &bare_address, base_name.c_str());
+
+				if(error) {
+					auto msg = LLVMGetErrorMessage(error);
+#ifdef _WIN32
+					OutputDebugStringA(msg);
+					OutputDebugStringA("\n");
+#endif
+					LLVMDisposeErrorMessage(msg);
+				} else {
+					assert(bare_address != 0);
+					world.pop_type_set_country_migration_target_fn(p, bare_address);
 				}
 			}
 		}

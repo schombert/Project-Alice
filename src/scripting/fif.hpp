@@ -2886,7 +2886,10 @@ public:
 
 			if(LLVMVerifyFunction(wi.llvm_function, LLVMVerifierFailureAction::LLVMPrintMessageAction)) {
 
-				//std::string mod_contents = LLVMPrintModuleToString(env.llvm_module);
+				std::string mod_contents = LLVMPrintModuleToString(env.llvm_module);
+
+				char* message = nullptr;
+				LLVMVerifyModule(env.llvm_module, LLVMReturnStatusAction, &message);
 
 				env.report_error("LLVM verification of function failed");
 				env.mode = fif_mode::error;
@@ -3807,6 +3810,7 @@ public:
 			}
 
 			if(auto pb = env.compiler_stack.back()->llvm_block(); pb) {
+				auto in_block = *pb;
 				LLVMBuildBr(env.llvm_builder, entry_block);
 
 				*pb = LLVMCreateBasicBlockInContext(env.llvm_context, "post_loop");
@@ -3828,7 +3832,7 @@ public:
 						LLVMAddIncoming(phinodes[node_index], inc_vals, inc_blocks, 1);
 					} else { 
 						LLVMValueRef inc_vals[2] = { iworking_state->main_ex(i), initial_state->main_ex(i) };
-						LLVMBasicBlockRef inc_blocks[2] = { body_block, pre_block };
+						LLVMBasicBlockRef inc_blocks[2] = { in_block, pre_block };
 						LLVMAddIncoming(phinodes[node_index], inc_vals, inc_blocks, 2);
 					}
 					++node_index;
@@ -3840,7 +3844,7 @@ public:
 						LLVMAddIncoming(phinodes[node_index], inc_vals, inc_blocks, 1);
 					} else {
 						LLVMValueRef inc_vals[2] = { iworking_state->return_ex(i), initial_state->return_ex(i) };
-						LLVMBasicBlockRef inc_blocks[2] = { body_block, pre_block };
+						LLVMBasicBlockRef inc_blocks[2] = { in_block, pre_block };
 						LLVMAddIncoming(phinodes[node_index], inc_vals, inc_blocks, 2);
 					}
 					++node_index;

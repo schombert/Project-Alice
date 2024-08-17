@@ -25,7 +25,6 @@ make_index{demographics_key}{uint16_t}
 make_index{provincial_modifier_value}{uint8_t}
 make_index{national_modifier_value}{uint8_t}
 
-
 object{
 	name{ national_identity }
 	storage_type{contiguous}
@@ -1139,9 +1138,17 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ migration_target_fn }
+		type{ uint64_t }
+	}
+	property{
 		name{ country_migration_target }
 		type{ value_modifier_key }
 		tag{ scenario }
+	}
+	property{
+		name{ country_migration_target_fn }
+		type{ uint64_t }
 	}
 	property{
 		name{ issues }
