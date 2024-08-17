@@ -89,7 +89,7 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 float get_artisan_distribution_slow(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 // base subsistence
-inline constexpr float subsistence_factor = 10.0f;
+inline constexpr float subsistence_factor = 15.0f;
 inline constexpr float subsistence_score_life = 30.0f;
 inline constexpr float subsistence_score_everyday = 50.0f;
 inline constexpr float subsistence_score_luxury = 80.0f;

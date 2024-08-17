@@ -645,6 +645,9 @@ void initialize(sys::state& state) {
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto fp = fatten(state.world, p);
 		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
+		if(state.world.commodity_get_money_rgo(main_trade_good)) {
+			return;
+		}
 		dcon::modifier_id climate = fp.get_climate();
 		dcon::modifier_id terrain = fp.get_terrain();
 		dcon::modifier_id continent = fp.get_continent();
@@ -929,14 +932,15 @@ void update_local_subsistence_factor(sys::state & state) {
 		auto max_subsistence = ve::apply([&](dcon::province_id p) {
 			return subsistence_max_pseudoemployment(state, state.world.province_get_nation_from_province_ownership(p), p);
 		}, ids);
-		auto score = max_subsistence * subsistence_factor / state.defines.alice_rgo_per_size_employment;
-		auto saturation = state.world.province_get_subsistence_employment(ids) / (max_subsistence + 1.f);
+
+		auto employment = state.world.province_get_subsistence_employment(ids);
+		auto saturation = employment / (4.f + max_subsistence);
+		auto saturation_score = 1.f / (saturation + 1.f);
+
 		auto quality = (ve::to_float(state.world.province_get_life_rating(ids)) - 10.f) / 10.f;
 		quality = ve::max(quality, 0.f) + 0.01f;
-		score = (score * quality) + (subsistence_score_everyday * 0.7f);
-		auto saturation_inv = (1.0f - saturation);
-		score = (score * saturation_inv) * saturation_inv * saturation_inv;
-
+		auto score = (subsistence_factor * quality) + subsistence_score_life;
+		score = (score * saturation_score);
 		state.world.province_set_subsistence_score(ids, score);
 	});
 }
@@ -950,9 +954,14 @@ float adjusted_subsistence_score(sys::state& state, dcon::province_id p) {
 void update_land_ownership(sys::state& state) {
 	state.world.execute_parallel_over_province([&](auto ids) {
 		auto local_states = state.world.province_get_state_membership(ids);
-		auto weight_aristocracy = state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.aristocrat)) * 200.f + state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.slaves));
-		auto weight_capitalists = state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.capitalists)) * 200.f;
-		auto weight_population = state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.farmers)) + state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.laborers));
+		auto weight_aristocracy =
+			state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.aristocrat)) * 200.f
+			+ state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.slaves));
+		auto weight_capitalists =
+			state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.capitalists)) * 200.f;
+		auto weight_population =
+			state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.farmers))
+			+ state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.laborers));
 		auto total = weight_aristocracy + weight_capitalists + weight_population + 1.0f;
 		state.world.province_set_landowners_share(ids, weight_aristocracy / total);
 		state.world.province_set_capitalists_share(ids, weight_capitalists / total); 
@@ -1665,7 +1674,7 @@ rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_
 }
 
 float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population) {
-	auto pops_max = rgo_total_max_employment(state, n, p); // maximal amount of workers which rgo could potentially employ
+	auto current_employment = rgo_total_employment(state, n, p); // maximal amount of workers which rgo could potentially employ
 
 	//we assume a "perfect ratio" of 1 aristo per N pops
 	float perfect_aristos_amount = total_relevant_population / 10000.f;
@@ -1701,11 +1710,11 @@ float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dco
 
 	float desired_profit_by_worker = aristo_burden_per_worker + min_wage_burden_per_worker / (1.f - rgo_owners_cut);
 
-	// we want to employ at least someone, so we decrease our desired profits when employment is low.
-	// aristocracy would prefer to gain less money instead of suffering constant revolts
+	// we want to employ at least someone, so we decrease our desired profits when employment is low
+	// otherwise everyone works in subsistence and landowners get no money
 	// not exactly an ideal solution but it works and doesn't create goods or wealth out of thin air
-	float employment_ratio = state.world.province_get_rgo_employment(p);
-	desired_profit_by_worker = desired_profit_by_worker * employment_ratio * employment_ratio;
+	float employment_ratio = current_employment / (total_relevant_population + 1.f);
+	desired_profit_by_worker = desired_profit_by_worker * employment_ratio; //* employment_ratio;
 
 	assert(std::isfinite(desired_profit_by_worker));
 
