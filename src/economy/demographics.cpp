@@ -812,8 +812,31 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto war_exhaustion = state.world.nation_get_war_exhaustion(owner) * state.defines.mil_war_exhaustion;
 		auto old_mil = state.world.pop_get_militancy(ids);
 
-		state.world.pop_set_militancy(ids,
-				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil * 0.99f)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil)), 0.0f)), 10.0f));
+		state.world.pop_set_militancy(
+			ids,
+			ve::min(
+				ve::max(
+					0.0f,
+					ve::select(
+						owner != dcon::nation_id{},
+						(
+							sub_t
+							+ (
+								local_mod
+								+ old_mil * (1.f - state.defines.alice_militancy_decay)
+							)
+							+ (
+								(sep_mod - ln_mod)
+								+ (en_mod_b - en_mod_a)
+								+ (war_exhaustion + overseas_mil)
+							)
+						),
+						0.0f
+					)
+				),
+				10.0f
+			)
+		);
 	});
 }
 
@@ -864,7 +887,7 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 		state.world.nation_get_war_exhaustion(owner) * 0.005f;
 	auto old_mil = state.world.pop_get_militancy(ids);
 
-	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil)) - old_mil * 0.01f;
+	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil)) - old_mil * state.defines.alice_militancy_decay;
 }
 
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
