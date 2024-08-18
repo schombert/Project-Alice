@@ -1405,9 +1405,9 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					auto strata = state.world.pop_type_get_strata(ptype);
 
 
-					using ftype = float(*)(int32_t);
+					using ftypeb = float(*)(int32_t);
 					{
-						ftype fn = (ftype)(state.culture_definitions.promotion_chance_fn);
+						ftypeb fn = (ftypeb)(state.culture_definitions.promotion_chance_fn);
 						float llvm_result = fn(p.index());
 #ifdef CHECK_LLVM_RESULTS
 						assert(llvm_result == promotion_chance);
@@ -1415,7 +1415,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 						promotion_chance = llvm_result;
 					}
 					{
-						ftype fn = (ftype)(state.culture_definitions.demotion_chance_fn);
+						ftypeb fn = (ftypeb)(state.culture_definitions.demotion_chance_fn);
 						float llvm_result = fn(p.index());
 #ifdef CHECK_LLVM_RESULTS
 						assert(llvm_result == demotion_chance);

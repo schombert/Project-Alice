@@ -3332,7 +3332,6 @@ void state::on_scenario_load() {
 			}
 		}
 		
-		/**/
 		{
 			auto mkey = world.pop_type_get_migration_target(p);
 			std::string base_name = "pmt" + std::to_string(p.id.index());
@@ -3563,6 +3562,7 @@ void state::on_scenario_load() {
 	//
 
 #endif
+
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
@@ -5098,8 +5098,6 @@ void state::army_group_distribute_tasks(dcon::automated_army_group_id group) {
 
 	province_queue.push_back(fat_group.get_hq());
 
-	float potential_size = 0;
-
 	size_t l = 0;
 	size_t r = 1;
 
@@ -5156,7 +5154,6 @@ void state::army_group_distribute_tasks(dcon::automated_army_group_id group) {
 		auto supply_left = army_group_available_supply(group, current_location);
 
 		if(4.f < supply_left) {
-			potential_size = supply_left;
 			break;
 		} else if(current_weight > supply_limit) {
 			provinces_to_reduce_weight.push_back(current_location);
@@ -5261,10 +5258,8 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 			break;
 		case army_group_regiment_status::move_to_port:
 		{
-			bool at_port = false;
 			if(regiment.get_ferry_origin() == location) {
 				regiment.set_status(army_group_regiment_status::await_transport);
-				at_port = true;
 			} else {
 				command::move_army(*this, local_player_nation, army, regiment.get_ferry_origin(), false);
 			}
