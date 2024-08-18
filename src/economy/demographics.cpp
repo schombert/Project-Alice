@@ -1395,7 +1395,11 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 		auto demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 #else
 		ve::fp_vector promotion_chances;
+		if(state.culture_definitions.promotion_chance_fn == 0)
+			promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 		ve::fp_vector demotion_chances;
+		if(state.culture_definitions.demotion_chance_fn == 0)
+			demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 #endif
 		ve::apply(
 				[&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance, float demotion_chance) {
@@ -1429,7 +1433,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 
 
 					using ftypeb = float(*)(int32_t);
-					{
+					if(state.culture_definitions.promotion_chance_fn) {
 						ftypeb fn = (ftypeb)(state.culture_definitions.promotion_chance_fn);
 						float llvm_result = fn(p.index());
 #ifdef CHECK_LLVM_RESULTS
@@ -1437,7 +1441,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 #endif
 						promotion_chance = llvm_result;
 					}
-					{
+					if(state.culture_definitions.demotion_chance_fn) {
 						ftypeb fn = (ftypeb)(state.culture_definitions.demotion_chance_fn);
 						float llvm_result = fn(p.index());
 #ifdef CHECK_LLVM_RESULTS

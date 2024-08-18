@@ -2944,8 +2944,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 	// iterate over all factory types available from the start and find "average" daily construction cost:
 
-	static std::vector<float> per_commodity;
-	per_commodity.clear();
+	std::vector<float> per_commodity;
 	per_commodity.resize(state.world.commodity_size() + 2);
 
 	float sum_of_build_times = 0.f;

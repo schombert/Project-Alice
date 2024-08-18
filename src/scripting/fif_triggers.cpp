@@ -2156,10 +2156,10 @@ TRIGGER_FUNCTION(tf_rebel_power_fraction) {
 	// note: virtually unused
 }
 TRIGGER_FUNCTION(tf_recruited_percentage_nation) {
-	return "dup dup >r active_regiments @ >f32 r> recruitable_regiments @ >f32 dup >r / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup dup >r active_regiments @ >f32 r> recruitable_regiments @ >f32 dup >r / 1.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_recruited_percentage_pop) {
-	return "dup " + pop_to_owner() + "dup >r active_regiments @ >f32 r> recruitable_regiments @ >f32 dup >r / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup " + pop_to_owner() + "dup >r active_regiments @ >f32 r> recruitable_regiments @ >f32 dup >r / 1.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_has_culture_core) {
 	return "dup dup >r " + pop_to_location() + ">index r> culture >index state-ptr @ has-culture-core? " + truth_inversion(tval[0]);
