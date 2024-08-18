@@ -2152,12 +2152,13 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 		return false;
 
 	/*
-	Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires
+	Can't fabricate on someone you are at war with. Requires
 	defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members
 	*/
 
+	// Allow subjects to declare wars if can_use of CB definition allows for that as per Vanilla logic.
 	auto ol = state.world.nation_get_overlord_as_subject(source);
-	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
+	if(state.defines.alice_allow_subjects_declare_wars < 1 && state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
 		return false;
 
 	if(state.world.nation_get_in_sphere_of(target) == source)
