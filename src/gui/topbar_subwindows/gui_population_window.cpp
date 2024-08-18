@@ -382,7 +382,7 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	float war_exhaustion =
 		state.world.nation_get_war_exhaustion(owner) * state.defines.mil_war_exhaustion;
 	auto old_mil = state.world.pop_get_militancy(ids) * 0.01f;
-	float total = (sub_t + local_mod) + ((sep_mod - ln_mod - old_mil) + (en_mod_b - en_mod_a) + war_exhaustion);
+	float total = (sub_t + local_mod) + ((sep_mod - ln_mod - old_mil) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil));
 
 	{
 		auto box = text::open_layout_box(contents);
@@ -471,7 +471,7 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	}
 	text::close_layout_box(contents, box);
 
-	text::add_line(state, contents, "alice_mil_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_militancy(ids) * 0.01f });
+	text::add_line(state, contents, "alice_mil_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_militancy(ids) * state.defines.alice_militancy_decay });
 }
 
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
