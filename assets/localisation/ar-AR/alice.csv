@@ -1042,6 +1042,7 @@ alice_gp_status_regain_expiration;إذا لم نصبح في المرتبة ?Y$x$
 alice_mil_decay_description;الاضمحلال الطبيعي؟G-$x$
 alice_con_decay_description;الاضمحلال الطبيعي؟R-$x$
 x_from_y;$culture$ $x$ من $y$
+x_in_y;$x$ من $y$
 reinforce_rate;يمكن لهذا الفوج تعزيز ما يصل إلى $x$ من الجنود شهريًا.
 reinforce_rate_none;لا يمكن تعزيز هذا الفوج حاليًا.
 alice_domestic_investment_button;"الاستثمار في المشاريع الفردية أمر مهمل، استخدم شريط التمرير ""الاستثمار المحلي"" على شاشة الميزانية بدلاً من ذلك"

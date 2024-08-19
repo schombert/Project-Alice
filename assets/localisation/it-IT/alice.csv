@@ -1042,7 +1042,8 @@ alice_ca_cant_influence;Al momento non siamo in grado di aumentare o diminuire l
 alice_gp_status_regain_expiration;Se non raggiungiamo il grado ?Y$x$?W o un livello superiore, perderemo lo status di ?Ygrande potere?W entro il ?Y$data?W!
 alice_mil_decay_description;Decadimento naturale ?G-$x$
 alice_con_decay_description;Decadimento naturale ?R-$x$
-x_from_y;$x$ da $y$
+x_from_y;$culture$ $x$ da $y$
+x_in_y;$x$ a $y$
 reinforce_rate;Questo reggimento può rinforzare fino a $x$ soldati al mese.
 reinforce_rate_none;Al momento questo reggimento non può essere rinforzato.
 alice_domestic_investment_button;Investire in progetti individuali è ?Rdeprecato?W, utilizza invece il dispositivo di scorrimento ?Yinvestimento domestico?W nella schermata del budget

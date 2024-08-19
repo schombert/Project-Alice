@@ -1042,7 +1042,8 @@ alice_ca_cant_influence;Es ist uns derzeit nicht möglich, die Meinung anderer N
 alice_gp_status_regain_expiration;Wenn wir nicht Rang ?Y$x$?W oder höher erreichen, verlieren wir bis zum ?Y$Datum?W den Status ?YGroßmacht?W!
 alice_mil_decay_description;Natürlicher Verfall ?G-$x$
 alice_con_decay_description;Natürlicher Verfall ?R-$x$
-x_from_y;$x$ von $y$
+x_from_y;$culture$ $x$ von $y$
+x_in_y;$x$ in $y$
 reinforce_rate;Dieses Regiment kann bis zu $x$ Soldaten pro Monat verstärken.
 reinforce_rate_none;Dieses Regiment kann derzeit nicht verstärkt werden.
 alice_domestic_investment_button;Investitionen in einzelne Projekte sind veraltet. Verwenden Sie stattdessen den Schieberegler „Inländische Investitionen“ auf dem Budgetbildschirm

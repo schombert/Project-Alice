@@ -1042,6 +1042,7 @@ alice_gp_status_regain_expiration;
 alice_mil_decay_description;
 alice_con_decay_description;
 x_from_y;
+x_in_y;
 reinforce_rate;
 reinforce_rate_none;
 alice_domestic_investment_button;
