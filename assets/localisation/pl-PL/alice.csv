@@ -1042,7 +1042,8 @@ alice_ca_cant_influence;Obecnie nie jesteśmy w stanie zwiększyć ani zmniejszy
 alice_gp_status_regain_expiration;Jeśli nie osiągniemy rangi ?Y$x$?W lub wyższej, utracimy status ?Ywielka moc?W do dnia ?Y$data?W!
 alice_mil_decay_description;Naturalny rozkład ?G-$x$
 alice_con_decay_description;Naturalny rozkład ?R-$x$
-x_from_y;$x$ z $y$
+x_from_y;$culture$ $x$ z $y$
+x_in_y;$x$ pod $y$
 reinforce_rate;Pułk ten może wzmocnić do x $ żołnierzy miesięcznie.
 reinforce_rate_none;Pułk ten nie może być obecnie wzmocniony.
 alice_domestic_investment_button;Inwestowanie w indywidualne projekty jest „przestarzałe”. Zamiast tego użyj suwaka „Inwestycje krajowe” na ekranie budżetu
