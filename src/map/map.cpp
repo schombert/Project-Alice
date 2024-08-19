@@ -378,6 +378,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	for(uint32_t i = 0; i < shader_count; i++) {
 		if(shaders[i] == 0)
 			continue;
+		shader_uniforms[i][uniform_provinces_texture_sampler] = glGetUniformLocation(shaders[i], "provinces_texture_sampler");
 		shader_uniforms[i][uniform_offset] = glGetUniformLocation(shaders[i], "offset");
 		shader_uniforms[i][uniform_aspect_ratio] = glGetUniformLocation(shaders[i], "aspect_ratio");
 		shader_uniforms[i][uniform_zoom] = glGetUniformLocation(shaders[i], "zoom");

@@ -2853,6 +2853,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_construction_demand(world.commodity_size());
 	world.nation_resize_private_construction_demand(world.commodity_size());
 	world.nation_resize_demand_satisfaction(world.commodity_size());
+	world.nation_resize_direct_demand_satisfaction(world.commodity_size());
 	world.nation_resize_life_needs_weights(world.commodity_size());
 	world.nation_resize_everyday_needs_weights(world.commodity_size());
 	world.nation_resize_luxury_needs_weights(world.commodity_size());

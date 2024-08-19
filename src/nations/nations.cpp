@@ -113,6 +113,7 @@ void update_cached_values(sys::state& state) {
 
 void restore_unsaved_values(sys::state& state) {
 	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
+	state.world.nation_resize_direct_demand_satisfaction(state.world.commodity_size());
 
 	for(auto n : state.world.in_nation)
 		n.set_is_great_power(false);

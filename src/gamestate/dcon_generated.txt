@@ -3815,6 +3815,11 @@ object {
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+	property {
+		name{ direct_demand_satisfaction }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
 	property{
 		name{ life_needs_costs }
 		type{ array{pop_type_id}{float} }
