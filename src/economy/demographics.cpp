@@ -2189,8 +2189,9 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 	doing normal internal migration.
 	*/
 
-	auto modifier = state.world.pop_type_get_country_migration_target(state.world.pop_get_poptype(p));
-	auto modifier_fn = state.world.pop_type_get_country_migration_target_fn(state.world.pop_get_poptype(p));
+	auto pt = state.world.pop_get_poptype(p);
+	auto modifier = state.world.pop_type_get_country_migration_target(pt);
+	auto modifier_fn = state.world.pop_type_get_country_migration_target_fn(pt);
 	if(!modifier)
 		return dcon::nation_id{};
 
@@ -2218,7 +2219,7 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 			float llvm_result = fn(inner.index(), p.index());
 #ifdef CHECK_LLVM_RESULTS
 			float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0);
-			assert(llvm_result == interp_result);
+			assert( llvm_result == interp_result);
 #endif
 			weight = llvm_result * std::max(0.0f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
 		} else {

@@ -1913,7 +1913,7 @@ TRIGGER_FUNCTION(tf_lost_national) {
 	return "dup revanchism @ 1.0 swap - " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_vassal) {
-	return "dup overlord-subject ruler @ valid? not " + truth_inversion(tval[0]);
+	return "dup overlord-subject ruler @ valid? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_ruling_party_ideology_nation) {
 	return "dup ruling_party @ ideology @ >index " + std::to_string(trigger::payload(tval[1]).ideo_id.index()) + " " + compare_values_eq(tval[0]);
