@@ -1042,7 +1042,8 @@ alice_ca_cant_influence;We zijn momenteel niet in staat de mening van andere lan
 alice_gp_status_regain_expiration;Als we niet de rang ?Y$x$?W of hoger bereiken, verliezen we de status van ?Ygrote macht?W tegen ?Y$date?W!
 alice_mil_decay_description;Natuurlijk verval ?G-$x$
 alice_con_decay_description;Natuurlijk verval ?R-$x$
-x_from_y;$x$ van $y$
+x_from_y;$culture$ $x$ van $y$
+x_in_y;$x$ in $y$
 reinforce_rate;Dit regiment kan tot $x$ soldaten per maand versterken.
 reinforce_rate_none;Dit regiment kan momenteel niet worden versterkt.
 alice_domestic_investment_button;Investeren in individuele projecten is niet meer mogelijk. Gebruik in plaats daarvan de schuifregelaar 'Binnenlandse investeringen' op het budgetscherm
