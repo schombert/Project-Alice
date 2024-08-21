@@ -46,6 +46,14 @@ struct textured_line_vertex {
 	float distance_ = 0.f;
 };
 
+struct textured_line_with_width_vertex {
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	float texture_coordinate_ = 0.f;
+	float distance_ = 0.f;
+	float width_ = 0.f;
+};
+
 struct textured_line_vertex_b {
 	glm::vec2 position;
 	glm::vec2 previous_point;
@@ -105,7 +113,7 @@ public:
 
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b> border_vertices;
-	std::vector<textured_line_vertex> river_vertices;
+	std::vector<textured_line_with_width_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
 	std::vector<textured_line_vertex> railroad_vertices;
@@ -220,7 +228,8 @@ public:
 	static constexpr uint32_t shader_borders = 6;
 	static constexpr uint32_t shader_railroad_line = 7;
 	static constexpr uint32_t shader_map_standing_object = 8;
-	static constexpr uint32_t shader_count = 9;
+	static constexpr uint32_t shader_textured_line_with_variable_width = 9;
+	static constexpr uint32_t shader_count = 10;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;
@@ -288,5 +297,6 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance);
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_tangent, glm::vec2 end_tangent, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance, float width_start, float width_end);
 
 } // namespace map

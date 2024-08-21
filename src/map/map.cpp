@@ -134,6 +134,35 @@ void create_textured_line_vbo(GLuint vbo, std::vector<textured_line_vertex>& dat
 	glVertexAttribBinding(3, 0);
 }
 
+void create_textured_line_vbo(GLuint vbo, std::vector<textured_line_with_width_vertex>& data) {
+	// Create and populate the border VBO
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_with_width_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_with_width_vertex));
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_with_width_vertex, position_));
+	// Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_with_width_vertex, normal_direction_));
+	// Set up vertex attribute format for the direction
+	glVertexAttribFormat(2, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_with_width_vertex, texture_coordinate_));
+	// Set up vertex attribute format for the texture coordinates
+	glVertexAttribFormat(3, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_with_width_vertex, distance_));
+	// Set up vertex attribute format for the width
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_with_width_vertex, width_));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
+	glVertexAttribBinding(4, 0);
+}
+
 void create_textured_line_b_vbo(GLuint vbo, std::vector<textured_line_vertex_b>& data) {
 	// Create and populate the border VBO
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -358,6 +387,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
 
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
+	auto tline_width_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_variable_width_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_f.glsl"));
 
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
@@ -368,6 +398,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
+	shaders[shader_textured_line_with_variable_width] = create_program(*tline_width_vshader, *tline_fshader);
 	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
 	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
 	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
@@ -510,10 +541,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
 
-		load_shader(shader_textured_line);
-		glUniform1i(shader_uniforms[shader_textured_line][uniform_line_texture], 0);
-		glUniform1i(shader_uniforms[shader_textured_line][uniform_colormap_water], 1);
-		glUniform1f(shader_uniforms[shader_textured_line][uniform_width], 0.00008f);
+		load_shader(shader_textured_line_with_variable_width);
+		glUniform1i(shader_uniforms[shader_textured_line_with_variable_width][uniform_line_texture], 0);
+		glUniform1i(shader_uniforms[shader_textured_line_with_variable_width][uniform_colormap_water], 1);
 
 		glBindVertexArray(vao_array[vo_river]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_river]);
@@ -1402,6 +1432,15 @@ void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::
 	buffer.emplace_back(textured_line_vertex{ end, -next_normal_dir, 1.0f, distance });//D
 }
 
+void add_tl_segment_buffer(std::vector<map::textured_line_with_width_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 next_normal_dir, float size_x, float size_y, float& distance, float width) {
+	start /= glm::vec2(size_x, size_y);
+	end /= glm::vec2(size_x, size_y);
+	auto d = start - end;
+	distance += glm::length(d);
+	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width});//C
+	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width});//D
+}
+
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance) {
 	auto control_point_length = glm::length(end - start) * control_point_length_factor;
 
@@ -1452,6 +1491,61 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm
 		auto end_point = bpoint(t_end);
 
 		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
+	}
+}
+
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_tangent, glm::vec2 end_tangent, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance, float width_start, float width_end) {
+	auto control_point_length = glm::length(end - start) * control_point_length_factor * 0.4f;
+
+	auto start_control_point = start_tangent * control_point_length + start;
+	auto end_control_point = -end_tangent * control_point_length + end;
+
+	auto bpoint = [=](float t) {
+		auto u = 1.0f - t;
+		return 0.0f
+			+ (u * u * u) * start
+			+ (3.0f * u * u * t) * start_control_point
+			+ (3.0f * u * t * t) * end_control_point
+			+ (t * t * t) * end;
+		};
+
+	auto last_normal = glm::vec2(-start_tangent.y, start_tangent.x);
+	glm::vec2 current_normal{ 0.0f, 0.0f };
+
+	for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
+		auto t_start = float(i) / float(num_b_segments);
+		auto t_end = float(i + 1) / float(num_b_segments);
+		auto t_next = float(i + 2) / float(num_b_segments);
+
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+		auto next_point = bpoint(t_next);
+
+		auto tangent_part_1 = glm::normalize(end_point - start_point);
+		auto tangent_part_2 = glm::normalize(next_point - end_point);
+		auto current_tangent = glm::normalize(tangent_part_1 + tangent_part_2);
+
+		current_normal = glm::vec2(-current_tangent.y, current_tangent.x);
+
+		auto width = t_start * width_end + (1.f - t_start) * width_start;
+
+		if(width != width_end) {
+			auto help = true;
+		}
+
+		add_tl_segment_buffer(buffer, start_point, end_point, current_normal, size_x, size_y, distance, width);
+
+		last_normal = current_normal;
+	}
+	{
+		current_normal = glm::vec2(-end_tangent.y, end_tangent.x);
+		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
+		auto t_end = 1.0f;
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+		auto width = t_start * width_end + (1.f - t_start) * width_start;
+
+		add_tl_segment_buffer(buffer, start_point, end_point, current_normal, size_x, size_y, distance, width);
 	}
 }
 
