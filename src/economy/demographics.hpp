@@ -210,4 +210,6 @@ float get_estimated_emigration(sys::state& state, dcon::pop_id n);
 void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::vector<float>& national_amounts);
 float get_estimated_conversion(sys::state& state, dcon::pop_id n);
 
+float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id);
+
 } // namespace demographics

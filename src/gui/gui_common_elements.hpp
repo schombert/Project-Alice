@@ -656,6 +656,13 @@ public:
 	}
 };
 
+class nation_sol_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return text::format_float(demographics::calculate_nation_sol(state, nation_id));
+	}
+};
+
 class nation_prestige_rank_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {

@@ -330,6 +330,7 @@ effect_body
 	this_bounce						extern		ef_scope_this_bounce		discard
 	masquerade_as_nation			value		text						member_fn
 	random_by_modifier				extern		ef_random_by_modifier		discard
+	reduce_pop_abs                  value       int                         member_fn
 	#any                            extern      ef_scope_variable           discard
 
 ef_scope_random_by_modifier
