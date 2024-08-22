@@ -758,6 +758,7 @@ void initialize(sys::state& state) {
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			state.world.nation_set_demand_satisfaction(n, c, 1.0f);
+			state.world.nation_set_direct_demand_satisfaction(n, c, 0.0f);
 			// set domestic market pool
 		});
 	});
@@ -3235,6 +3236,7 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			auto new_sat = rd > 0.0001f ? total_supply / rd : total_supply;
 			auto adj_sat = old_sat * state.defines.alice_sat_delay_factor + new_sat * (1.0f - state.defines.alice_sat_delay_factor);
 			state.world.nation_set_demand_satisfaction(n, c, std::min(1.0f, adj_sat));
+			state.world.nation_set_direct_demand_satisfaction(n, c, std::min(1.0f, new_sat));
 
 			if(global_price_multiplier >= 1.0f) { // prefer domestic
 				state.world.nation_set_domestic_market_pool(n, c, std::max(0.0f, dom_pool - rd));
@@ -3420,7 +3422,9 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = state.world.nation_get_navy_demand(n, c);
-				refund += val * (1.0f - sat) * nations_commodity_spending * spending_level * state.world.commodity_get_current_price(c);
+				auto delta = val * (1.0f - sat) * nations_commodity_spending * spending_level * state.world.commodity_get_current_price(c);
+				assert(delta >= 0.f);
+				refund += delta;
 				total += val;
 				max_sp += val * sat;
 			}
@@ -3437,7 +3441,9 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = state.world.nation_get_army_demand(n, c);
-				refund += val * (1.0f - sat) * nations_commodity_spending * spending_level * state.world.commodity_get_current_price(c);
+				auto delta = val * (1.0f - sat) * nations_commodity_spending * spending_level * state.world.commodity_get_current_price(c);
+				assert(delta >= 0.f);
+				refund += delta;
 				total += val;
 				max_sp += val * sat;
 			}
@@ -3451,7 +3457,7 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			float spending_level = float(state.world.nation_get_construction_spending(n)) / 100.0f;
 			for(uint32_t k = 1; k < total_commodities; ++k) {
 				dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-
+				// no refund: adjusted for satisfaction in advance_construction
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = state.world.nation_get_construction_demand(n, c);
 				total += val;
@@ -3469,9 +3475,15 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 			auto difference = state.world.nation_get_stockpile_targets(n, c) - state.world.nation_get_stockpiles(n, c);
 			if(difference > 0.f && state.world.nation_get_drawing_on_stockpiles(n, c) == false) {
-				auto sat = state.world.nation_get_demand_satisfaction(n, c);
+				auto sat = state.world.nation_get_direct_demand_satisfaction(n, c);
 				state.world.nation_get_stockpiles(n, c) += difference * nations_commodity_spending * sat;
-				refund += difference * (1.0f - sat) * nations_commodity_spending * state.world.commodity_get_current_price(c);
+				auto delta =
+					difference
+					* (1.0f - sat)
+					* nations_commodity_spending
+					* state.world.commodity_get_current_price(c);
+				assert(delta >= 0.f);
+				refund += delta;
 			}
 		}
 
@@ -3492,7 +3504,10 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 						(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
 						auto sat = state.world.nation_get_demand_satisfaction(n, c);
 						overseas_budget_satisfaction = std::min(sat, overseas_budget_satisfaction);
-						refund += overseas_factor * (1.0f - sat) * nations_commodity_spending * state.world.commodity_get_current_price(c);
+						auto price = state.world.commodity_get_current_price(c);
+						auto delta = overseas_factor * (1.0f - sat) * nations_commodity_spending * price;
+						assert(delta >= 0.f);
+						refund += delta;
 					}
 				}
 

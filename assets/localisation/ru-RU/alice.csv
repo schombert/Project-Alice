@@ -1034,7 +1034,8 @@ alice_ca_cant_influence;В данный момент мы не можем пов
 alice_gp_status_regain_expiration;Если мы не получим ранг ?Y$x$?W или выше, мы потеряем статус ?Ygreat power?W к ?Y$date?W!
 alice_mil_decay_description;Естественный распад ?G-$x$
 alice_con_decay_description;Естественный распад ?R-$x$
-x_from_y;$culture$ $x$ от $y$
+x_from_y;$culture$ $x$ из $y$
+x_in_y;$x$ в $y$
 reinforce_rate;Этот полк может пополнять до $x$ солдат в месяц.
 reinforce_rate_none;Этот полк в настоящее время не может быть усилен.
 alice_domestic_investment_button;Инвестирование в отдельные проекты ?Rустарело?W, вместо этого используйте ползунок ?Yвнутренние инвестиции?W на экране бюджета

@@ -1651,6 +1651,32 @@ public:
 			}
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		disabled = false;
+
+		if(state.selected_armies.size() > 0) {
+
+			auto first = state.selected_armies[0];
+
+			for(uint32_t i = 1; i < state.selected_armies.size(); ++i) {
+				if(!command::can_merge_armies(state, state.local_player_nation, first, state.selected_armies[i])) {
+					disabled = true;
+					return;
+				}
+			}
+		}
+		if(state.selected_navies.size() > 0) {
+			auto first = state.selected_navies[0];
+
+			for(uint32_t i = 1; i < state.selected_navies.size(); ++i) {
+				if(!command::can_merge_navies(state, state.local_player_nation, first, state.selected_navies[i])) {
+					disabled = true;
+					return;
+				}
+			}
+		}
+	}
 };
 
 class deselect_all_button : public button_element_base {

@@ -1043,6 +1043,7 @@ alice_gp_status_regain_expiration;If we don't become rank ?Y$x$?W or higher, we 
 alice_mil_decay_description;Natural decay ?G-$x$
 alice_con_decay_description;Natural decay ?R-$x$
 x_from_y;$culture$ $x$ from $y$
+x_in_y;$x$ at $y$
 reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 reinforce_rate_none;This regiment can't currently be reinforced.
 alice_domestic_investment_button;Investing in individual projects is ?Rdeprecated?W, use the ?Ydomestic investment?W slider on the budget screen instead
