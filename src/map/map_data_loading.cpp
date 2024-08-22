@@ -18,8 +18,16 @@
 #endif
 
 namespace map {
+
+struct bmp_pixel_data {
+	uint8_t blue;
+	uint8_t green;
+	uint8_t red;
+	uint8_t _0x00;
+};
+
 // Used to load the terrain.bmp and the rivers.bmp
-std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, native_string_view name, glm::ivec2 map_size, uint8_t fill) {
+std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, native_string_view name, glm::ivec2 map_size, uint8_t fill, std::vector<bmp_pixel_data> * color_table) {
 	std::vector<uint8_t> output_data(map_size.x * map_size.y, fill);
 
 	auto root = simple_fs::get_root(context.state.common_fs);
@@ -140,18 +148,30 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	int32_t size_x = 0;
 	int32_t size_y = 0;
 
+	uint32_t num_of_colors = 2;
+
+	bool has_BI_BITFIELDS = false;
+	bool has_BI_ALPHABITFIELDS = false;
+
 	BITMAPFILEHEADER const* fh = (BITMAPFILEHEADER const*)(start);
 	uint8_t const* data = start + fh->bfOffBits;
 	std::unique_ptr<uint8_t[]> decompressed_data;
+
+	auto color_table_offset = start + sizeof(BITMAPFILEHEADER);
 
 	BITMAPCOREHEADER const* core_h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
 	if(core_h->bcSize == sizeof(BITMAPINFOHEADER)) {
 		BITMAPINFOHEADER const* h = (BITMAPINFOHEADER const*)(start + sizeof(BITMAPFILEHEADER));
 		size_x = h->biWidth;
 		size_y = h->biHeight;
+		num_of_colors = h->biClrUsed;
+		if(num_of_colors == 0) {
+			num_of_colors = 1 << h->biBitCount;
+		}
 		if(h->biCompression == BI_RLE8) {
 			compression_type = 1;
 		}
+		color_table_offset += sizeof(BITMAPINFOHEADER);
 	} else if(core_h->bcSize == sizeof(BITMAPV5HEADER)) {
 		BITMAPV5HEADER const* h = (BITMAPV5HEADER const*)(start + sizeof(BITMAPFILEHEADER));
 		if(h->bV5Compression == BI_RLE8) {
@@ -159,6 +179,11 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		}
 		size_x = h->bV5Width;
 		size_y = h->bV5Height;
+		num_of_colors = h->bV5ClrUsed;
+		if(num_of_colors == 0) {
+			num_of_colors = 1 << h->bV5BitCount;
+		}
+		color_table_offset += sizeof(BITMAPV5HEADER);
 	} else if(core_h->bcSize == sizeof(BITMAPV4HEADER)) {
 		BITMAPV4HEADER const* h = (BITMAPV4HEADER const*)(start + sizeof(BITMAPFILEHEADER));
 		if(h->bV4V4Compression == BI_RLE8) {
@@ -166,12 +191,29 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		}
 		size_x = h->bV4Width;
 		size_y = h->bV4Height;
+		num_of_colors = h->bV4ClrUsed;
+		if(num_of_colors == 0) {
+			num_of_colors = 1 << h->bV4BitCount;
+		}
+		color_table_offset += sizeof(BITMAPV4HEADER);
 	} else if(core_h->bcSize == sizeof(BITMAPCOREHEADER)) {
 		BITMAPCOREHEADER const* h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
 		size_x = h->bcWidth;
 		size_y = h->bcHeight;
+		num_of_colors = 1 << h->bcBitCount;
+		color_table_offset += sizeof(BITMAPCOREHEADER);
 	} else {
 		std::abort(); // unknown bitmap type
+	}
+
+	// reading color table:
+	if(color_table != nullptr) {
+		for(uint32_t color_entry_index = 0; color_entry_index < num_of_colors; color_entry_index++) {
+			bmp_pixel_data const* new_color =
+				(bmp_pixel_data const*)
+				(color_table_offset + color_entry_index * sizeof(bmp_pixel_data));
+			color_table->push_back(*new_color);
+		}
 	}
 
 	if(compression_type == 1) {
@@ -316,7 +358,7 @@ ankerl::unordered_dense::map<uint32_t, uint8_t> internal_make_index_map() {
 
 void display_data::load_terrain_data(parsers::scenario_building_context& context) {
 	if(!context.new_maps) {
-		terrain_id_map = load_bmp(context, NATIVE("terrain.bmp"), glm::ivec2(size_x, size_y), 255);
+		terrain_id_map = load_bmp(context, NATIVE("terrain.bmp"), glm::ivec2(size_x, size_y), 255, nullptr);
 	} else {
 		auto root = simple_fs::get_root(context.state.common_fs);
 		auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
@@ -553,7 +595,30 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	std::vector<uint8_t> river_data;
 	if(!context.new_maps) {
 		auto size = glm::ivec2(size_x, size_y);
-		river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
+		std::vector<bmp_pixel_data> color_table;
+		river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255, &color_table);
+
+		for(uint32_t ty = 0; ty < size_y; ++ty) {
+			//uint32_t y = size_y - ty - 1;
+			for(uint32_t x = 0; x < size_x; ++x) {
+				uint8_t color_index = river_data[x + size_x * ty];
+				auto r = color_table[color_index].red;
+				auto g = color_table[color_index].green;
+				auto b = color_table[color_index].blue;
+				if(r == 255 && g == 0 && b == 128) {
+					river_data[ty * size_x + x] = 255; // sea
+				} else if(r == 255 && g == 255 && b == 255) {
+					river_data[ty * size_x + x] = 255; // land
+				} else if(color_index == 0 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+					river_data[ty * size_x + x] = 0; // source
+				else if(color_index == 1 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+					river_data[ty * size_x + x] = 1; // merge
+				else {
+					river_data[ty * size_x + x] = std::min<uint8_t>((uint8_t)250, std::max<uint8_t>((uint8_t)2, r / 3 + g / 3 + b / 3));
+				}
+			}
+		}
+
 	} else {
 		auto river_file = simple_fs::open_file(map_dir, NATIVE("alice_rivers.png"));
 		river_data.resize(size_x * size_y, uint8_t(255));
@@ -576,7 +641,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 					else if(ptr[1] + ptr[2] < 128 * 2 && ptr[0] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/ )
 						river_data[ty * size_x + x] = 1; // merge
 					else if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 /*&& terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
-						river_data[ty * size_x + x] = 2;
+						river_data[ty * size_x + x] = std::min<uint8_t>((uint8_t)250, std::max<uint8_t>((uint8_t)2, ptr[0] / 3 + ptr[1] / 3 + ptr[2] / 3));
 					else
 						river_data[ty * size_x + x] = 255;
 

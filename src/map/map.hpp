@@ -46,6 +46,14 @@ struct textured_line_vertex {
 	float distance_ = 0.f;
 };
 
+struct textured_line_with_width_vertex {
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	float texture_coordinate_ = 0.f;
+	float distance_ = 0.f;
+	float width_ = 0.f;
+};
+
 struct textured_line_vertex_b {
 	glm::vec2 position;
 	glm::vec2 previous_point;
@@ -105,7 +113,7 @@ public:
 
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b> border_vertices;
-	std::vector<textured_line_vertex> river_vertices;
+	std::vector<textured_line_with_width_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
 	std::vector<textured_line_vertex> railroad_vertices;
@@ -153,6 +161,9 @@ public:
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 	std::vector<uint16_t> map_indices;
+
+	// province id mask to detect seas 
+	std::vector<uint32_t> province_id_sea_mask;
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -203,7 +214,8 @@ public:
 	static constexpr uint32_t texture_objective_unit_arrow = 22;
 	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
 	static constexpr uint32_t texture_hover_border = 24;
-	static constexpr uint32_t texture_count = 25;
+	static constexpr uint32_t texture_sea_mask = 25;
+	static constexpr uint32_t texture_count = 26;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -220,7 +232,8 @@ public:
 	static constexpr uint32_t shader_borders = 6;
 	static constexpr uint32_t shader_railroad_line = 7;
 	static constexpr uint32_t shader_map_standing_object = 8;
-	static constexpr uint32_t shader_count = 9;
+	static constexpr uint32_t shader_textured_line_with_variable_width = 9;
+	static constexpr uint32_t shader_count = 10;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;
@@ -256,7 +269,8 @@ public:
 	static constexpr uint32_t uniform_model_offset = 29;
 	static constexpr uint32_t uniform_target_facing = 30;
 	static constexpr uint32_t uniform_target_topview_fixup = 31;
-	static constexpr uint32_t uniform_count = 32;
+	static constexpr uint32_t uniform_provinces_sea_mask = 32;
+	static constexpr uint32_t uniform_count = 33;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
@@ -288,5 +302,6 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance);
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_tangent, glm::vec2 end_tangent, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance, float width_start, float width_end);
 
 } // namespace map
