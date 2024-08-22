@@ -26,6 +26,7 @@ increase_national_variable_by;Increase national variable $text$ by $value$
 decrease_national_variable_by;Decrease national variable $text$ by $value$
 life_rating;Life rating
 make_national_religion;$text$ becomes the national religion
+make_province_religion;population converts to $text$
 make_slave_state;Becomes a slave state
 make_slave_pop;Becomes a slave
 research_points;Research points
@@ -1195,6 +1196,7 @@ alice_pnt_dominant_religion;?YDominant religion:?! $x$
 alice_pnt_dominant_ideology;?YDominant Ideology:?! $x$
 ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
+ledger_standard_of_living;Standard of Living
 alice_ledger_header_gdp_history;GDP(PPP) over time
 alice_countryalert_colonialgood_start;You can colonize $region$
 alice_overseas_mil_description;Overseas militancy

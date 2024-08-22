@@ -46,7 +46,8 @@ enum class ledger_sort_type {
 	rgo_size,
 	factory_level,
 	gdp,
-	gdp_capita
+	gdp_capita,
+	sol
 };
 
 struct ledger_sort {
@@ -126,7 +127,7 @@ public:
 		auto button_def = state.ui_state.defs_by_name.find(state.lookup_key("ledger_default_button"))->second.definition;
 
 		xy_pair cell_offset{ int16_t(24), 0 };
-		auto cell_width = (972 - cell_offset.x) / 8;
+		auto cell_width = (972 - cell_offset.x) / 9;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
@@ -181,6 +182,12 @@ public:
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
+		{
+			auto ptr = make_element_by_type<ledger_generic_sort_button>(state, button_def, ledger_sort_type::sol);
+			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_standard_of_living"));
+			apply_offset(ptr);
+			add_child_to_front(std::move(ptr));
+		}
 	}
 };
 
@@ -198,7 +205,7 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
-		auto cell_width = (972 - cell_offset.x) / 8;
+		auto cell_width = (972 - cell_offset.x) / 9;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
@@ -246,14 +253,23 @@ public:
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
+		// GDP PPP
 		{
 			auto ptr = make_element_by_type<nation_ppp_gdp_text>(state,
 					state.ui_state.defs_by_name.find(state.lookup_key("ledger_default_textbox"))->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
+		// GDP PPP per capita
 		{
 			auto ptr = make_element_by_type<nation_ppp_gdp_per_capita_text>(state,
+					state.ui_state.defs_by_name.find(state.lookup_key("ledger_default_textbox"))->second.definition);
+			apply_offset(ptr);
+			add_child_to_front(std::move(ptr));
+		}
+		// Standard of living
+		{
+			auto ptr = make_element_by_type<nation_sol_text>(state,
 					state.ui_state.defs_by_name.find(state.lookup_key("ledger_default_textbox"))->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
@@ -355,6 +371,16 @@ public:
 					}
 				});
 				break;
+			case ledger_sort_type::sol:
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+					if(lsort.reversed) {
+						return demographics::calculate_nation_sol(state, a) < demographics::calculate_nation_sol(state, b);
+					} else {
+						return demographics::calculate_nation_sol(state, a) > demographics::calculate_nation_sol(state, b);
+					}
+				});
+				break;
+				
 			default:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 					if(lsort.reversed) {

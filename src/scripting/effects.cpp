@@ -1715,6 +1715,15 @@ uint32_t ef_religion(EFFECT_PARAMTERS) {
 	ws.world.nation_set_religion(trigger::to_nation(primary_slot), trigger::payload(tval[1]).rel_id);
 	return 0;
 }
+uint32_t ef_religion_province(EFFECT_PARAMTERS) {
+	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner) {
+		auto owner_c = ws.world.nation_get_primary_culture(owner);
+		for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
+			pop.get_pop().set_religion(trigger::payload(tval[1]).rel_id);
+		}
+	}
+	return 0;
+}
 uint32_t ef_is_slave_state_yes(EFFECT_PARAMTERS) {
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
 			[&](dcon::province_id p) { ws.world.province_set_is_slave(p, true); });
@@ -2891,6 +2900,15 @@ uint32_t ef_reduce_pop(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 	ws.world.pop_get_size(trigger::to_pop(primary_slot)) *= amount;
+	return 0;
+}
+uint32_t ef_reduce_pop_abs(EFFECT_PARAMTERS) {
+	auto amount = trigger::read_int32_t_from_payload(tval + 1);
+	if(ws.world.pop_get_size(trigger::to_pop(primary_slot)) >= amount) {
+		ws.world.pop_get_size(trigger::to_pop(primary_slot)) -= amount;
+	} else {
+		ws.world.pop_get_size(trigger::to_pop(primary_slot)) = 0;
+	}
 	return 0;
 }
 uint32_t ef_reduce_pop_province(EFFECT_PARAMTERS) {

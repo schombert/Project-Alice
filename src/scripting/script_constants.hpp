@@ -14,6 +14,11 @@ constexpr inline uint16_t scope_has_limit = 0x1000;
 constexpr inline uint16_t code_mask = 0x0FFF;
 
 // non scopes
+/* First argument - key code,
+Second - unique per scope keyword for parsing,
+Third - arguments payload size in cells.
+Int32_t is 4 bytes, which at 2 bytes per cell, is 2 cells, 2 cells for float,
+ids from payload struct are always 1 cell*/
 #define EFFECT_BYTECODE_LIST \
 EFFECT_BYTECODE_ELEMENT(0x0001, capital, 1) \
 EFFECT_BYTECODE_ELEMENT(0x0002, add_core_tag, 1) \
@@ -458,13 +463,15 @@ EFFECT_BYTECODE_ELEMENT(0x01B6, change_terrain_pop, 1) \
 EFFECT_BYTECODE_ELEMENT(0x01B7, change_terrain_province, 1) \
 EFFECT_BYTECODE_ELEMENT(0x01B8, masquerade_as_nation_this, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01B9, masquerade_as_nation_from, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01BA, religion_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01BB, reduce_pop_abs, 2) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01BA;
+constexpr inline uint16_t first_scope_code = 0x01BC;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)

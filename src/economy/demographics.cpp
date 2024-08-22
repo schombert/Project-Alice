@@ -2782,5 +2782,32 @@ void remove_small_pops(sys::state& state) {
 	}
 }
 
+float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id) {
+	auto pln = state.world.nation_get_demographics(nation_id, demographics::poor_life_needs);
+	auto mln = state.world.nation_get_demographics(nation_id, demographics::middle_life_needs);
+	auto rln = state.world.nation_get_demographics(nation_id, demographics::rich_life_needs);
+
+	auto pen = state.world.nation_get_demographics(nation_id, demographics::poor_everyday_needs);
+	auto men = state.world.nation_get_demographics(nation_id, demographics::middle_everyday_needs);
+	auto ren = state.world.nation_get_demographics(nation_id, demographics::rich_everyday_needs);
+
+	auto plun = state.world.nation_get_demographics(nation_id, demographics::poor_luxury_needs);
+	auto mlun = state.world.nation_get_demographics(nation_id, demographics::middle_luxury_needs);
+	auto rlun = state.world.nation_get_demographics(nation_id, demographics::rich_luxury_needs);
+
+	float p = state.world.nation_get_demographics(nation_id, demographics::total);
+	float pp = state.world.nation_get_demographics(nation_id, demographics::poor_total);
+	float mp = state.world.nation_get_demographics(nation_id, demographics::middle_total);
+	float rp = state.world.nation_get_demographics(nation_id, demographics::rich_total);
+
+	auto poor_score = (pln + pen + plun) / pp;
+	auto middle_score = (mln + men + mlun) / mp;
+	auto rich_score = (rln + ren + rlun) / rp;
+
+	auto finalscore = (poor_score * pp + middle_score * mp + rich_score * rp) * 33 / p;
+
+	return finalscore;
+}
+
 
 } // namespace demographics
