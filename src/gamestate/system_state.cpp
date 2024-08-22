@@ -3190,11 +3190,17 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	nations::update_rankings(*this);		// depends on industrial score, military scores
 
 	assert(great_nations.size() == 0);
-	for(uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
-		if(nations_by_rank[i]) {
+	uint32_t greatpowersfound = 0;
+	uint32_t i = 0;
+	while(greatpowersfound < uint32_t(defines.great_nations_count)) {
+		if(i >= nations_by_rank.size()) {
+			break;
+		}
+		if(nations_by_rank[i] && world.overlord_get_ruler(world.nation_get_overlord_as_subject(nations_by_rank[i])) == dcon::nation_id()) {
 			great_nations.push_back(great_nation{ sys::date{0}, nations_by_rank[i] });
 			world.nation_set_is_great_power(nations_by_rank[i], true);
 		}
+		i++;
 	}
 
 	// fix slaves in non-slave owning nations
