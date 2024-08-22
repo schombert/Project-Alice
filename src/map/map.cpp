@@ -2505,7 +2505,6 @@ void display_data::load_map(sys::state& state) {
 	ogl::set_gltex_parameters(textures[texture_province_fow], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	// set up sea texture:
-	OutputDebugStringA((std::string("Error:") + std::to_string(glGetError()) + "\n").c_str());
 	glGenTextures(1, &textures[texture_sea_mask]);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_sea_mask]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
