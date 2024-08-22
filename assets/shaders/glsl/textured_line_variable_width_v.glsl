@@ -101,9 +101,11 @@ void main() {
 	world_pos += normal_vector;
 	world_pos.x /= map_size.x / map_size.y;
 
-	map_coord = world_pos;
+	map_coord = world_pos;    
+    
+    
 	gl_Position = calc_gl_position(world_pos);
 	tex_coord = texture_coord;
 	o_dist = - time + distance / (2.0f * 0.0005f);
-	map_coord = vertex_position;
+	//map_coord = vertex_position;
 }

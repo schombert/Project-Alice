@@ -1086,20 +1086,9 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 				continue;
 			}
 
-			//OutputDebugStringA((std::to_string(runner.x) + ", " + std::to_string(runner.y) + "\n").c_str());
-
-			if(abs((int32_t)runner.x - 3184) + abs((int32_t)runner.y - 782) < 2) {
-				bool HELP = true;
-			}
-
 			auto potential_children = check_for_potential_child(river_data, runner, size);
-			if(potential_children.size() == 2) {
-				bool help = true;
-				auto result = check_for_potential_child(river_data, runner, size);
-			}
 
 			if(potential_children.size() == 0) {
-
 				// extend to the sea:
 
 				for(int32_t i = -1; i <= 1; i++) {
@@ -1134,6 +1123,9 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 							vertex_by_pixel_index[index] = new_river_vertex;
 							new_river_vertex->parents.push_back(runner.position);
 							runner.position->children.push_back(new_river_vertex);
+
+							i = 3;
+							j = 3;
 							break;
 						}
 					}
@@ -1158,6 +1150,10 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 					runner.waiting_for_merge = true;
 				} else {
 					bool first_child = true;
+					uint32_t next_x = 0;
+					uint32_t next_y = 0;
+					river_vertex* next_position = nullptr;
+
 					for(auto candidate : potential_children) {
 						auto x = (uint32_t)candidate.x;
 						auto y = (uint32_t)candidate.y;
@@ -1192,9 +1188,9 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 						if(we_will_move_forward) {
 							if(first_child) {
-								runner.x = x;
-								runner.y = y;
-								runner.position = new_river_vertex;
+								next_x = x;
+								next_y = y;
+								next_position = new_river_vertex;
 								first_child = false;
 							} else {
 								river_runner r = { new_river_vertex, x, y, false, false };
@@ -1203,6 +1199,12 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 						} else {
 							runner.done = true;
 						}
+					}
+
+					if(next_position != nullptr) {
+						runner.x = next_x;
+						runner.y = next_y;
+						runner.position = next_position;
 					}
 				}
 			}
@@ -1507,6 +1509,8 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 	// we assume that "main" child is always at index 0
 
 	current_path.clear();
+	std::vector<glm::vec2> vertex_stabilized_history;
+	vertex_stabilized_history.clear();
 
 	for(auto source : sources) {
 		//skip one pixel rivers
@@ -1515,6 +1519,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		}
 
 		current_path.push_back(source);
+		vertex_stabilized_history.push_back({ source->x, source->y });
 
 		// we explore current river and create paths along it
 		// until we explore all downstream nodes
@@ -1536,6 +1541,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 				runner = current_path.back();
 				current_path.pop_back();
+				vertex_stabilized_history.pop_back();
 
 				for(auto child : runner->children) {
 					if(child->visited) {
@@ -1564,11 +1570,13 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 			glm::vec2 vertex = { runner->x, runner->y };
 			glm::vec2 vertex_stabilized = vertex;
+			if(vertex_stabilized_history.size() > 0) {
+				vertex_stabilized = vertex_stabilized_history.back();
+			}
 			glm::vec2 vertex_stabilized_speed = { 0.f, 0.f };
 			float friction = 0.932f;
 			uint8_t steps = 8;
 			float weight = 0.005f;
-
 
 			uint8_t count_back = 16;
 
@@ -1610,7 +1618,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 					auto next_point = glm::vec2(next_node->x, next_node->y);
 
 					auto current_tangent = glm::normalize(next_point - current_point);
-					next_point = next_point + current_tangent * 10.f;
+					next_point = next_point + current_tangent * 5.f;
 					auto current_normal = glm::vec2{ -current_tangent.y, current_tangent.x };
 					auto next_tangent = glm::normalize(current_tangent);
 
@@ -1625,7 +1633,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 						auto acceleration = (vertex - vertex_stabilized) / current_weight;
 						vertex_stabilized_speed += acceleration;
-						vertex_stabilized_speed *= (1.f - friction);
+						vertex_stabilized_speed *= (1.f - friction * 0.9f);
 
 						auto vertex_old_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
 						vertex_stabilized = vertex_stabilized + vertex_stabilized_speed;
@@ -1659,9 +1667,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 					break;
 				}
 
-				if(next_node->parents.size() > 1) {
-					bool help = true;
-				}
+				// backtrack for a while to connect to previous parent?
 
 				river_vertex* next_next_node = next_node->children[0];
 
@@ -1726,6 +1732,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 				runner = next_node;
 				current_path.push_back(runner);
+				vertex_stabilized_history.push_back( vertex_stabilized );
 			}
 
 			// save count of vertices in current batch

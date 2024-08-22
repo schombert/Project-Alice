@@ -389,6 +389,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
 	auto tline_width_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_variable_width_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_f.glsl"));
+	auto river_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_river_f.glsl"));
 
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
 	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_f.glsl"));
@@ -398,7 +399,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
-	shaders[shader_textured_line_with_variable_width] = create_program(*tline_width_vshader, *tline_fshader);
+	shaders[shader_textured_line_with_variable_width] = create_program(*tline_width_vshader, *river_fshader);
 	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
 	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
 	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
@@ -410,6 +411,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		if(shaders[i] == 0)
 			continue;
 		shader_uniforms[i][uniform_provinces_texture_sampler] = glGetUniformLocation(shaders[i], "provinces_texture_sampler");
+		shader_uniforms[i][uniform_provinces_sea_mask] = glGetUniformLocation(shaders[i], "provinces_sea_mask");
 		shader_uniforms[i][uniform_offset] = glGetUniformLocation(shaders[i], "offset");
 		shader_uniforms[i][uniform_aspect_ratio] = glGetUniformLocation(shaders[i], "aspect_ratio");
 		shader_uniforms[i][uniform_zoom] = glGetUniformLocation(shaders[i], "zoom");
@@ -540,10 +542,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, textures[texture_river_body]);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_sea_mask]);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
+
 
 		load_shader(shader_textured_line_with_variable_width);
 		glUniform1i(shader_uniforms[shader_textured_line_with_variable_width][uniform_line_texture], 0);
 		glUniform1i(shader_uniforms[shader_textured_line_with_variable_width][uniform_colormap_water], 1);
+		glUniform1i(shader_uniforms[shader_textured_line_with_variable_width][uniform_provinces_sea_mask], 2);
+		glUniform1i(shader_uniforms[shader_textured_line_with_variable_width][uniform_provinces_texture_sampler], 3);
 
 		glBindVertexArray(vao_array[vo_river]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_river]);
@@ -2494,6 +2503,23 @@ void display_data::load_map(sys::state& state) {
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	ogl::set_gltex_parameters(textures[texture_province_fow], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+
+	// set up sea texture:
+	OutputDebugStringA((std::string("Error:") + std::to_string(glGetError()) + "\n").c_str());
+	glGenTextures(1, &textures[texture_sea_mask]);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_sea_mask]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
+	ogl::set_gltex_parameters(textures[texture_sea_mask], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	province_id_sea_mask.resize(state.world.province_size() + 1);
+	for(auto p : state.world.in_province) {
+		if(p.id.index() >= state.province_definitions.first_sea_province.index()) {
+			province_id_sea_mask[province::to_map_id(p)] = 0xFFFFFFFF;
+		} else {
+			province_id_sea_mask[province::to_map_id(p)] = 0x00000000;
+		}
+	}
+	gen_prov_color_texture(textures[texture_sea_mask], province_id_sea_mask);
+
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

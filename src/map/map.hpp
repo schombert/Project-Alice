@@ -162,6 +162,9 @@ public:
 	std::vector<uint16_t> province_id_map;
 	std::vector<uint16_t> map_indices;
 
+	// province id mask to detect seas 
+	std::vector<uint32_t> province_id_sea_mask;
+
 	uint32_t size_x;
 	uint32_t size_y;
 	uint32_t land_vertex_count = 0;
@@ -211,7 +214,8 @@ public:
 	static constexpr uint32_t texture_objective_unit_arrow = 22;
 	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
 	static constexpr uint32_t texture_hover_border = 24;
-	static constexpr uint32_t texture_count = 25;
+	static constexpr uint32_t texture_sea_mask = 25;
+	static constexpr uint32_t texture_count = 26;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -265,7 +269,8 @@ public:
 	static constexpr uint32_t uniform_model_offset = 29;
 	static constexpr uint32_t uniform_target_facing = 30;
 	static constexpr uint32_t uniform_target_topview_fixup = 31;
-	static constexpr uint32_t uniform_count = 32;
+	static constexpr uint32_t uniform_provinces_sea_mask = 32;
+	static constexpr uint32_t uniform_count = 33;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
