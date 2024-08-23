@@ -479,4 +479,7 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
+void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
+void disband_regiment_w_pop_transfer(sys::state& state, dcon::regiment_id reg_id);
+
 } // namespace military

@@ -2904,11 +2904,8 @@ uint32_t ef_reduce_pop(EFFECT_PARAMTERS) {
 }
 uint32_t ef_reduce_pop_abs(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_int32_t_from_payload(tval + 1);
-	if(ws.world.pop_get_size(trigger::to_pop(primary_slot)) >= amount) {
-		ws.world.pop_get_size(trigger::to_pop(primary_slot)) -= amount;
-	} else {
-		ws.world.pop_get_size(trigger::to_pop(primary_slot)) = 0;
-	}
+	
+	demographics::reduce_pop_size_safe(ws, trigger::to_pop(primary_slot), amount);
 	return 0;
 }
 uint32_t ef_reduce_pop_province(EFFECT_PARAMTERS) {

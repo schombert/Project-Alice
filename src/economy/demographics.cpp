@@ -2809,5 +2809,12 @@ float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id) {
 	return finalscore;
 }
 
+void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount) {
+	if(state.world.pop_get_size(pop_id) >= amount) {
+		state.world.pop_get_size(pop_id) -= amount;
+	} else {
+		state.world.pop_get_size(pop_id) = 0;
+	}
+}
 
 } // namespace demographics
