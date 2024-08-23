@@ -932,6 +932,23 @@ struct effect_body {
 			return;
 		}
 	}
+	void set_culture(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::pop) {
+			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
+					it != context.outer_context.map_of_culture_names.end()) {
+				context.compiled_effect.push_back(uint16_t(effect::set_culture_pop));
+				context.compiled_effect.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "remove_accepted_culture effect supplied with invalid culture name " + std::string(value) +
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors +=
+				"set_culture effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
 	void life_rating(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::life_rating));
@@ -961,6 +978,17 @@ struct effect_body {
 			if(auto it = context.outer_context.map_of_religion_names.find(std::string(value));
 					it != context.outer_context.map_of_religion_names.end()) {
 				context.compiled_effect.push_back(uint16_t(effect::religion_province));
+				context.compiled_effect.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "religion effect supplied with invalid religion name " + std::string(value) + " (" +
+					err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		}
+		else if(context.main_slot == trigger::slot_contents::pop) {
+			if(auto it = context.outer_context.map_of_religion_names.find(std::string(value));
+					it != context.outer_context.map_of_religion_names.end()) {
+				context.compiled_effect.push_back(uint16_t(effect::religion_pop));
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors += "religion effect supplied with invalid religion name " + std::string(value) + " (" +

@@ -1972,6 +1972,26 @@ uint32_t ef_religion_province(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_religion_pop(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id));
+		text::localised_format_box(ws, layout, box, "make_pop_religion", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_set_culture_pop(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id));
+		text::localised_format_box(ws, layout, box, "make_pop_culture", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 uint32_t ef_is_slave_state_yes(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -7141,7 +7161,9 @@ ef_change_terrain_pop, //constexpr inline uint16_t change_terrain_pop = 0x01B7;
 ef_masquerade_as_nation_this, //constexpr inline uint16_t ef_masquerade_as_nation_this = 0x01B8;
 ef_masquerade_as_nation_from, //constexpr inline uint16_t ef_masquerade_as_nation_from = 0x01B9;
 ef_religion_province,
+ef_religion_pop,
 ef_reduce_pop_abs,
+ef_set_culture_pop,
 //
 // SCOPES
 //
