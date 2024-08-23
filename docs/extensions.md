@@ -50,6 +50,10 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
 - `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
 - `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
+- `religion = religion_name`: Effect can be used in a province and pops scope to change the religion of the province/pop.
+- `assimilate = yes`: Effect can be used in a pop/province/state scope to change the culture of pops in the scope to primary culture.
+- `reduce_pop_abs = amount`: Reduce pop in the pop scope by absolute amount (e.g. 500 soldiers). Use with negative values to increase pop size. Use with very big number to remove pop completely.
+- `set_culture = culture`: Set culture of a pop in scope to a named culture.
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
