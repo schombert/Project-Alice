@@ -27,6 +27,9 @@ increase_national_variable_by;国家变量$text$提高$value$
 decrease_national_variable_by;国家变量$text$降低$value$
 life_rating;生活条件
 make_national_religion;$text$成为国教
+make_province_religion;省份人群变为$text$
+make_pop_religion;变为$text$
+make_pop_culture;变为$text$
 make_slave_state;成为蓄奴区
 make_slave_pop;成为奴隶
 research_points;研究点数
@@ -1194,7 +1197,7 @@ alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;每百万人 GDP（PPP）
-an_assigned_leader;an assigned leader
+an_assigned_leader;已分配的将领
 macro_new_template;新建
 invention;发明
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
