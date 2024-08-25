@@ -2679,7 +2679,22 @@ class new_army_group_button : public button_element_base {
 	}
 };
 
+class delete_army_group_button : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		auto selected = state.selected_army_group;
+		if(selected) {
+			state.delete_army_group(selected);
+		}
+	}
 
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group) {
+			disabled = false;
+			return;
+		}
+		disabled = true;
+	}
+};
 
 class army_group_location : public simple_text_element_base{
 public:
@@ -2754,6 +2769,8 @@ class battleplanner_control : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "alice_armygroup_new_button") {
 			return make_element_by_type<new_army_group_button>(state, id);
+		} else if(name == "alice_armygroup_delete_button") {
+			return make_element_by_type<delete_army_group_button>(state, id);
 		} else if(name == "alice_battleplanner_remove_selected") {
 			return make_element_by_type<remove_selected_units_from_army_group_button>(state, id);
 		} else if(name == "alice_army_group_listbox_wrapper") {

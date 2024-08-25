@@ -784,6 +784,7 @@ struct alignas(64) state {
 	}
 
 	void new_army_group(dcon::province_id hq);
+	void delete_army_group(dcon::automated_army_group_id group);
 	void toggle_designated_port(dcon::automated_army_group_id group, dcon::province_id position);
 	void toggle_defensive_position(dcon::automated_army_group_id group, dcon::province_id position);
 	void toggle_enforce_control_position(dcon::automated_army_group_id group, dcon::province_id position);
