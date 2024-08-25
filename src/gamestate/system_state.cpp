@@ -3200,6 +3200,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(nations_by_rank[i] && world.overlord_get_ruler(world.nation_get_overlord_as_subject(nations_by_rank[i])) == dcon::nation_id()) {
 			great_nations.push_back(great_nation{ sys::date{0}, nations_by_rank[i] });
 			world.nation_set_is_great_power(nations_by_rank[i], true);
+			greatpowersfound++;
 		}
 		i++;
 	}
