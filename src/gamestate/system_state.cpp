@@ -4618,6 +4618,27 @@ void state::add_navy_to_army_group(dcon::automated_army_group_id selected_group,
 	game_state_updated.store(true, std::memory_order_release);
 }
 
+void state::delete_army_group(dcon::automated_army_group_id group) {
+	static std::vector<dcon::regiment_automation_data_id> to_delete = {};
+	to_delete.clear();
+
+	world.automated_army_group_for_each_automated_army_group_membership_regiment(group, [&](dcon::automated_army_group_membership_regiment_id item) {
+		auto regiment = world.automated_army_group_membership_regiment_get_regiment(item);
+		to_delete.push_back(regiment);
+	});
+
+	std::lock_guard l{ ugly_ui_game_interaction_hack };
+
+	if(!to_delete.empty()) {
+		for(auto& regiment : to_delete) {
+			world.delete_regiment_automation_data(regiment);
+		}
+	}
+
+	world.delete_automated_army_group(group);
+	game_state_updated.store(true, std::memory_order_release);
+}
+
 void state::update_armies_and_fleets(dcon::automated_army_group_id group) {
 	auto owner = world.automated_army_group_get_owner(group);
 
@@ -4642,23 +4663,7 @@ void state::update_armies_and_fleets(dcon::automated_army_group_id group) {
 		}
 	} else {
 		// clear up army groups you don't own
-		static std::vector<dcon::regiment_automation_data_id> to_delete = {};
-		to_delete.clear();
-
-		world.automated_army_group_for_each_automated_army_group_membership_regiment(group, [&](dcon::automated_army_group_membership_regiment_id item) {
-			auto regiment = world.automated_army_group_membership_regiment_get_regiment(item);
-			to_delete.push_back(regiment);
-		});
-
-		std::lock_guard l{ ugly_ui_game_interaction_hack };
-
-		if(!to_delete.empty()) {
-			for(auto& regiment : to_delete) {
-				world.delete_regiment_automation_data(regiment);
-			}
-		}
-
-		world.delete_automated_army_group(group);
+		delete_army_group(group);
 	}
 }
 

@@ -4582,10 +4582,18 @@ guiTypes = {
             buttonText = "alice_battleplanner_new_army_group"
             buttonFont = "vic_22_black"
         }
+
+		guiButtonType = {
+            name = "alice_armygroup_delete_button"
+            position = { 40 40  }
+            quadTextureSprite ="GFX_frontend_button_236"
+            buttonText = "alice_battleplanner_delete_army_group"
+            buttonFont = "vic_22_black"
+        }
         
         windowType = {
             name = "alice_army_group_listbox_wrapper"
-            position = { 0 50 }
+            position = { 0 80 }
             Orientation = "UPPER_LEFT"
             size = { 310 410 }
             
