@@ -8,6 +8,7 @@
 #include "rebels.hpp"
 #include "triggers.hpp"
 #include "script_constants.hpp"
+#include "nations.hpp"
 
 namespace effect {
 
