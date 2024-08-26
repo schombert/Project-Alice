@@ -445,6 +445,7 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			state.local_player_nation = n;
+			state.world.nation_set_is_player_controlled(n, true);
 			state.ui_state.nation_picker->impl_on_update(state);
 		} else {
 			command::notify_player_picks_nation(state, state.local_player_nation, n);

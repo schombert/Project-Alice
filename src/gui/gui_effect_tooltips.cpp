@@ -5,6 +5,7 @@
 #include "gui_trigger_tooltips.hpp"
 #include "prng.hpp"
 #include "script_constants.hpp"
+#include "effects.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
 #include "triggers.hpp"
@@ -229,6 +230,25 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 	}
 }
 
+void show_full_random_tooltip(sys::state& ws, uint16_t tval, std::string_view loc_key, text::layout_base& layout, text::substitution val, int32_t indentation) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval)));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, loc_key));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "("));
+	text::add_to_layout_box(ws, layout, box, val);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ")"));
+	text::close_layout_box(layout, box);
+}
+void show_short_any_random_tooltip(sys::state& ws, uint16_t tval, std::string_view loc_key, text::layout_base& layout, int32_t indentation) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval)));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, loc_key));
+	text::close_layout_box(layout, box);
+}
+
 uint32_t es_if_scope(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "et_if"));
@@ -270,9 +290,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+				show_full_random_tooltip(ws, tval[0], "neighboring_province", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
@@ -281,10 +299,87 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 	}
 
 	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_province"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "neighboring_province", layout, indentation);
+	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
+																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+																																	indentation + indentation_amount);
+}
+uint32_t es_x_neighbor_province_scope_nation(EFFECT_DISPLAY_PARAMS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		if(primary_slot != -1) {
+			auto neighbor_range = effect::country_get_province_adjacency(ws, trigger::to_nation(primary_slot));
+
+			std::vector<dcon::province_id> rlist;
+
+			// Apply trigger limit
+			if((tval[0] & effect::scope_has_limit) != 0) {
+				auto limit = trigger::payload(tval[2]).tr_id;
+				for(auto other : neighbor_range) {
+					if(dcon::fatten(ws.world, other).get_nation_from_province_ownership() && trigger::evaluate(ws, limit, trigger::to_generic(other), this_slot, from_slot)) {
+						rlist.push_back(other);
+					}
+				}
+			} else {
+				for(auto other : neighbor_range) {
+					if(dcon::fatten(ws.world, other).get_nation_from_province_ownership()) {
+						rlist.push_back(other);
+					}
+				}
+			}
+
+			if(rlist.size() != 0) {
+				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				
+				show_full_random_tooltip(ws, tval[0], "neighboring_province", layout, rlist[r], indentation);
+				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
+			}
+			return 0;
+		}
+	}
+
+	show_short_any_random_tooltip(ws, tval[0], "neighboring_province", layout, indentation);
+	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
+																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+																																	indentation + indentation_amount);
+}
+uint32_t es_x_empty_neighbor_province_scope_nation(EFFECT_DISPLAY_PARAMS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		if(primary_slot != -1) {
+			auto neighbor_range = effect::country_get_province_adjacency(ws, trigger::to_nation(primary_slot));
+
+			std::vector<dcon::province_id> rlist;
+
+			// Apply trigger limit
+			if((tval[0] & effect::scope_has_limit) != 0) {
+				auto limit = trigger::payload(tval[2]).tr_id;
+				for(auto other : neighbor_range) {
+					if(!dcon::fatten(ws.world, other).get_nation_from_province_ownership() && trigger::evaluate(ws, limit, trigger::to_generic(other), this_slot, from_slot)) {
+						rlist.push_back(other);
+					}
+				}
+			} else {
+				for(auto other : neighbor_range) {
+					if(!dcon::fatten(ws.world, other).get_nation_from_province_ownership()) {
+						rlist.push_back(other);
+					}
+				}
+			}
+
+			if(rlist.size() != 0) {
+				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+
+				show_full_random_tooltip(ws, tval[0], "empty_neighboring_province", layout, rlist[r], indentation);
+				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
+			}
+			return 0;
+		}
+	}
+
+	show_short_any_random_tooltip(ws, tval[0], "empty_neighboring_province", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -315,20 +410,16 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+
+				show_full_random_tooltip(ws, tval[0], "neighboring_nation", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
 	}
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_nation"));
-	text::close_layout_box(layout, box);
+	
+	show_short_any_random_tooltip(ws, tval[0], "neighboring_nation", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -351,19 +442,13 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		}
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(ws, layout, box, rlist[r]);
-			text::close_layout_box(layout, box);
+			show_full_random_tooltip(ws, tval[0], "nation", layout, rlist[r], indentation);
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 		}
 		return 0;
 	}
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "nation", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -386,9 +471,7 @@ uint32_t es_x_event_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		}
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(ws, layout, box, rlist[r]);
-			text::close_layout_box(layout, box);
+			show_full_random_tooltip(ws, tval[0], "nation", layout, rlist[r], indentation);
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 				indentation + indentation_amount);
@@ -396,10 +479,7 @@ uint32_t es_x_event_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		return 0;
 	}
 	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "nation", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -422,20 +502,14 @@ uint32_t es_x_decision_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		}
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(ws, layout, box, rlist[r]);
-			text::close_layout_box(layout, box);
+			show_full_random_tooltip(ws, tval[0], "nation", layout, rlist[r], indentation);
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 				indentation + indentation_amount);
 		}
 		return 0;
 	}
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "nation", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -494,10 +568,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
-
+				show_full_random_tooltip(ws, tval[0], "empty_neighboring_province", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
@@ -505,11 +576,8 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 			return 0;
 		}
 	}
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "empty_neighboring_province"));
-	text::close_layout_box(layout, box);
+
+	show_short_any_random_tooltip(ws, tval[0], "empty_neighboring_province", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -534,9 +602,7 @@ uint32_t es_x_greater_power_scope(EFFECT_DISPLAY_PARAMS) {
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(ws, layout, box, rlist[r]);
-			text::close_layout_box(layout, box);
+			show_full_random_tooltip(ws, tval[0], "great_power", layout, rlist[r], indentation);
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 										 indentation + indentation_amount);
@@ -544,24 +610,14 @@ uint32_t es_x_greater_power_scope(EFFECT_DISPLAY_PARAMS) {
 		return 0;
 	}
 
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "great_power"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "great_power", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_poor_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "poor_strata_pop"));
-		text::close_layout_box(layout, box);
-	}
+	show_short_any_random_tooltip(ws, tval[0], "poor_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
@@ -569,55 +625,35 @@ uint32_t es_poor_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		indentation + indentation_amount);
 }
 uint32_t es_poor_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "poor_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "poor_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_poor_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "poor_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "poor_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_middle_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "middle_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "middle_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_middle_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "middle_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "middle_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_middle_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "middle_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "middle_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -635,55 +671,35 @@ uint32_t es_rich_strata_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		indentation + indentation_amount);
 }
 uint32_t es_rich_strata_scope_state(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "rich_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "rich_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_rich_strata_scope_province(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "rich_strata_pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "rich_strata_pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_x_pop_scope_nation(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_x_pop_scope_state(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
 uint32_t es_x_pop_scope_province(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
-	text::close_layout_box(layout, box);
+	show_short_any_random_tooltip(ws, tval[0], "pop", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
@@ -709,9 +725,7 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+				show_full_random_tooltip(ws, tval[0], "owned_province", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
@@ -764,9 +778,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+				show_full_random_tooltip(ws, tval[0], "owned_province", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
@@ -816,9 +828,7 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+				show_full_random_tooltip(ws, tval[0], "core_of", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
@@ -869,9 +879,7 @@ uint32_t es_x_core_scope_province(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+				show_full_random_tooltip(ws, tval[0], "core_in", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
@@ -915,9 +923,7 @@ uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-			auto box = text::open_layout_box(layout, indentation);
-			text::add_to_layout_box(ws, layout, box, rlist[r]);
-			text::close_layout_box(layout, box);
+			show_full_random_tooltip(ws, tval[0], "substate_of", layout, rlist[r], indentation);
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 		}
@@ -961,9 +967,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				auto box = text::open_layout_box(layout, indentation);
-				text::add_to_layout_box(ws, layout, box, rlist[r]);
-				text::close_layout_box(layout, box);
+				show_full_random_tooltip(ws, tval[0], "state_of", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
@@ -7236,6 +7240,8 @@ es_x_decision_country_scope_nation,//constexpr inline uint16_t x_decision_countr
 es_from_bounce_scope, // constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
 es_this_bounce_scope, // constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
 es_random_by_modifier_scope,//constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
+es_x_neighbor_province_scope_nation,
+es_x_empty_neighbor_province_scope_nation,
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {

@@ -473,6 +473,7 @@ EFFECT_BYTECODE_ELEMENT(0x01BD, set_culture_pop, 1) \
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
+/* This value must be changed if more effects are added. */
 constexpr inline uint16_t first_scope_code = 0x01BE;
 
 // scopes
@@ -545,7 +546,11 @@ constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0
 constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
 constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
 constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0044;
+constexpr inline uint16_t x_neighbor_province_scope_nation = first_scope_code + 0x0044;
+constexpr inline uint16_t x_empty_neighbor_province_scope_nation = first_scope_code + 0x0045;
+/* All scopes must be added before first_invalid_code*/
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0046;
+
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none
