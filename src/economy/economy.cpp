@@ -887,8 +887,6 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	// technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
 	auto rgo_ownership = state.world.province_get_landowners_share(p) + state.world.province_get_capitalists_share(p);
 	auto sz = state.world.province_get_rgo_max_size_per_good(p, c) * rgo_ownership + base;
-	if(!std::isfinite(sz))
-		sz = 0;
 	auto pmod = state.world.province_get_modifier_values(p, is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size);
 	auto nmod = state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size);
 	auto specific_pmod = state.world.nation_get_rgo_size(n, c);
@@ -1277,9 +1275,8 @@ float rgo_efficiency(sys::state & state, dcon::nation_id n, dcon::province_id p,
 			:
 			sys::national_mod_offsets::farm_rgo_eff);
 
-	float saturation = state.world.province_get_rgo_employment_per_good(p, c) / (rgo_max_employment(state, n, p, c) + 1.f);
-	if(!std::isfinite(saturation))
-		saturation = 0;
+	float saturation = state.world.province_get_rgo_employment_per_good(p, c)
+		/ (rgo_max_employment(state, n, p, c) + 1.f);
 
 	float result = base_amount
 		* main_rgo
@@ -1758,7 +1755,7 @@ void update_province_rgo_consumption(
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto max_production = rgo_full_production_quantity(state, n, p, c);
-		if(!std::isfinite(max_production) || max_production < 0.001f) {
+		if(max_production < 0.001f) {
 			return;
 		}		
 
