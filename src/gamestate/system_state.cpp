@@ -2853,6 +2853,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_construction_demand(world.commodity_size());
 	world.nation_resize_private_construction_demand(world.commodity_size());
 	world.nation_resize_demand_satisfaction(world.commodity_size());
+	world.nation_resize_direct_demand_satisfaction(world.commodity_size());
 	world.nation_resize_life_needs_weights(world.commodity_size());
 	world.nation_resize_everyday_needs_weights(world.commodity_size());
 	world.nation_resize_luxury_needs_weights(world.commodity_size());
@@ -3199,6 +3200,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(nations_by_rank[i] && world.overlord_get_ruler(world.nation_get_overlord_as_subject(nations_by_rank[i])) == dcon::nation_id()) {
 			great_nations.push_back(great_nation{ sys::date{0}, nations_by_rank[i] });
 			world.nation_set_is_great_power(nations_by_rank[i], true);
+			greatpowersfound++;
 		}
 		i++;
 	}
@@ -3278,11 +3280,15 @@ void state::on_scenario_load() {
 	world.pop_type_resize_ideology_fns(world.ideology_size());
 	world.pop_type_resize_promotion_fns(world.pop_type_size());
 
+	if(network_mode != network_mode_type::single_player)
+		return;
+
 	//
 	// compile functions using llvm when available
 	//
 #ifdef USE_LLVM
 
+	std::thread dispatch{ [&]() {
 	jit_environment = std::make_unique<fif::environment>();
 
 	int32_t error_count = 0;
@@ -3298,7 +3304,7 @@ void state::on_scenario_load() {
 	//AllocConsole();
 	//freopen("CONOUT$", "w", stdout);
 	//freopen("CONOUT$", "w", stderr);
-	
+
 	for(auto p : world.in_pop_type) {
 		for(auto i : world.in_issue_option) {
 			auto mkey = world.pop_type_get_issues(p, i);
@@ -3337,7 +3343,7 @@ void state::on_scenario_load() {
 				fif::run_fif_interpreter(*jit_environment, fn_str, values);
 			}
 		}
-		
+
 		{
 			auto mkey = world.pop_type_get_migration_target(p);
 			std::string base_name = "pmt" + std::to_string(p.id.index());
@@ -3505,7 +3511,7 @@ void state::on_scenario_load() {
 			culture_definitions.demotion_chance_fn = bare_address;
 		}
 	}
-	
+
 	//
 	// set global values
 	//
@@ -3522,7 +3528,7 @@ void state::on_scenario_load() {
 			LLVMDisposeErrorMessage(msg);
 		} else {
 			assert(bare_address != 0);
-			using ftype = void(*)(void* );
+			using ftype = void(*)(void*);
 			ftype fn = (ftype)bare_address;
 			fn(&world);
 		}
@@ -3566,7 +3572,9 @@ void state::on_scenario_load() {
 	//
 	// END set global values
 	//
+	} };
 
+	dispatch.detach();
 #endif
 
 }

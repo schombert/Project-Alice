@@ -236,7 +236,12 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 }
 
 bool is_river(uint8_t river_data) {
-	return river_data < 16;
+	return river_data < 250;
+}
+int32_t river_width(uint8_t river_data) {
+	auto result = 255 - (int32_t)(river_data) + 40;
+	assert(result >= 0);
+	return result;
 }
 bool is_river_source(uint8_t river_data) {
 	return river_data == 0;
@@ -820,15 +825,103 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 struct river_vertex {
 	float x = 0.0f;
 	float y = 0.0f;
-	bool keep = false;
+	float width = 0.0f;
+	std::vector<river_vertex*> parents = { };
+	std::vector<river_vertex*> children = { };
+	bool visited = false;
+	bool skip_visited = false;
+
+	bool operator==(const river_vertex& other) {
+		return x == other.x && y == other.y;
+	}
 };
 
-std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data, std::vector<bool>& marked, glm::ivec2 size, int32_t old_x = -1, int32_t old_y = -1) {
 
-	std::vector<river_vertex> constructed;
+struct river_runner {
+	river_vertex* position;
+	uint32_t x;
+	uint32_t y;
+	bool waiting_for_merge;
+	bool done;
+};
+
+bool check_for_child(river_vertex* vertex, uint32_t x, uint32_t y) {
+	for(uint8_t index = 0; index < vertex->children.size(); index++) {
+		auto child = vertex->children[index];
+		if((child->x - float(x) - 0.5f) > 0.1f) {
+			continue;
+		}
+		if((child->y - float(y) - 0.5f) > 0.1f) {
+			continue;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool check_for_parent(river_vertex* vertex, uint32_t x, uint32_t y) {
+	for(uint8_t index = 0; index < vertex->parents.size(); index++) {
+		auto parent = vertex->parents[index];
+		if(abs(parent->x - float(x) - 0.5f) > 0.1f) {
+			continue;
+		}
+		if(abs(parent->y - float(y) - 0.5f) > 0.1f) {
+			continue;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool check_for_river(std::vector<uint8_t> const& river_data, river_runner& runner, int32_t x, int32_t y, glm::ivec2 size) {
+	if(x < 0) {
+		return false;
+	}
+	if(x >= size.x) {
+		return false;
+	}
+	if(y < 0) {
+		return false;
+	}
+	if(y >= size.y) {
+		return false;
+	}
+
+	if(is_river(river_data[x + y * size.x])) {
+		if(!check_for_parent(runner.position, x, y)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+std::vector<glm::ivec2> check_for_potential_child(std::vector<uint8_t> const& river_data, river_runner& runner, glm::ivec2 size) {
+	std::vector<glm::ivec2> results;
+	if(check_for_river(river_data, runner, runner.x + 1, runner.y, size)) {
+		results.push_back({ runner.x + 1, runner.y });
+	}
+	if(check_for_river(river_data, runner, runner.x - 1, runner.y, size)) {
+		results.push_back({ runner.x - 1, runner.y });
+	}
+	if(check_for_river(river_data, runner, runner.x, runner.y + 1, size)) {
+		results.push_back({ runner.x, runner.y + 1 });
+	}
+	if(check_for_river(river_data, runner, runner.x, runner.y - 1, size)) {
+		results.push_back({ runner.x, runner.y - 1});
+	}
+
+	return results;
+}
+
+//static std::vector<std::vector<river_vertex>> pool_of_constructed_rivers;
+/*
+std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data, std::vector<bool>& marked, glm::ivec2 size, int32_t old_x = -1, int32_t old_y = -1, int32_t width = 1, int32_t old_width = 1) {
+	//auto available_index = pool_of_constructed_rivers.size();
+	//pool_of_constructed_rivers.push_back({ });
+	std::vector<river_vertex> constructed = {};// pool_of_constructed_rivers[available_index];
 
 	if(old_x != -1 && old_y != -1) {
-		constructed.push_back(river_vertex{ float(old_x + 0.5f), float(old_y + 0.5f), false });
+		constructed.push_back(river_vertex{ float(old_x + 0.5f), float(old_y + 0.5f), (float)width, false });
 	}
 
 	marked[x + y * size.x] = true;
@@ -836,15 +929,16 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		if(xin >= 0 && yin >= 0 && xin < size.x && yin < size.y && (xin != old_x || yin != old_y) && is_river(river_data[xin + yin * size.x]) && !marked[xin + yin * size.x] && !is_river_merge(river_data[xin + yin * size.x]) && !is_river_source(river_data[xin + yin * size.x])) {
 
 			marked[xin + yin * size.x] = true;
+			auto local_width = river_width(river_data[xin + yin * size.x]);
 			if(!forward_found) {
 				forward_found = true;
-				return glm::ivec2{xin, yin};
+				return glm::ivec3{xin, yin, local_width };
 			} else {
 				constructed.back().keep = true;
-				rivers.emplace_back(make_directional_river(xin, yin, rivers, river_data, terrain_data, marked, size, x, y));
+				rivers.emplace_back(make_directional_river(xin, yin, rivers, river_data, terrain_data, marked, size, x, y, local_width));
 			}
 		}
-		return glm::ivec2{ 0, 0 };
+		return glm::ivec3{ 0, 0, 0 };
 	};
 	auto process_merge = [&](int32_t xin, int32_t yin, bool& merge_found) {
 		if(merge_found)
@@ -862,10 +956,10 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		if(xin >= 0 && yin >= 0 && xin < size.x && yin < size.y && (xin != old_x || yin != old_y) && is_river(river_data[xin + yin * size.x]) && !is_river_merge(river_data[xin + yin * size.x]) && !is_river_source(river_data[xin + yin * size.x])) {
 			if(!forward_found) {
 				forward_found = true;
-				return glm::ivec2{ xin, yin };
+				return glm::ivec3{ xin, yin, river_width(river_data[xin + yin * size.x]) };
 			}
 		}
-		return glm::ivec2{ 0, 0 };
+		return glm::ivec3{ 0, 0, 0 };
 	};
 	auto process_sea_extend = [&](int32_t xin, int32_t yin, bool& merge_found) {
 		if(merge_found)
@@ -881,7 +975,7 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 	bool forward_progress = false;
 	do {
 		forward_progress = false;
-		constructed.push_back(river_vertex{ float(x + 0.5f), float(y + 0.5f), false });
+		constructed.push_back(river_vertex{ float(x + 0.5f), float(y + 0.5f), (float)width, false });
 
 		auto res = process_non_merge(x - 1, y, forward_progress);
 		res += process_non_merge(x + 1, y, forward_progress);
@@ -891,8 +985,10 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		if(forward_progress) {
 			old_x = x;
 			old_y = y;
+			old_width = width;
 			x = res.x;
 			y = res.y;
+			width = res.z;
 		}
 
 	} while(forward_progress);
@@ -904,7 +1000,7 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 	resb += process_merge(x, y + 1, merge_found);
 
 	if(merge_found) {
-		constructed.push_back(river_vertex{ float(resb.x + 0.5f), float(resb.y + 0.5f), false });
+		constructed.push_back(river_vertex{ float(resb.x + 0.5f), float(resb.y + 0.5f), (float)width, false });
 
 		old_x = x;
 		old_y = y;
@@ -918,7 +1014,7 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		resc += process_post_merge(x, y + 1, post_progress);
 
 		if(post_progress) {
-			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f), false });
+			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f), (float)resc.z, false });
 		}
 	} else if(terrain_data[x + y * size.x] != 255) {
 		bool post_progress = false;
@@ -928,7 +1024,7 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		resc += process_sea_extend(x, y + 1, post_progress);
 
 		if(post_progress) {
-			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f), false });
+			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f), (float)width, false });
 		}
 	}
 	if(!constructed.empty()) {
@@ -937,19 +1033,195 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 	}
 	return constructed;
 }
+*/
+
 
 void display_data::create_curved_river_vertices(parsers::scenario_building_context & context, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data) {
 
-	std::vector<std::vector<river_vertex>> rivers;
+	std::vector<river_vertex> rivers;
+
 
 	std::vector<bool> marked(size_x * size_y, false);
 
+	std::vector<river_vertex*> sources;
+	std::vector<river_vertex*> mouths;
+	std::map<uint32_t, river_vertex*> vertex_by_pixel_index = {};
+	std::vector<river_runner> runners;
+	std::vector<river_runner> new_runners;
+
+
+	auto size = glm::ivec2(int32_t(size_x), int32_t(size_y));
+
+
+
+	for(uint32_t y = 0; y < size_y; y++) {
+		for(uint32_t x = 0; x < size_x; x++) {
+			auto index = x + y * size_x;
+			if(is_river_source(river_data[index])) {
+				river_vertex * source = new river_vertex { float(x) + 0.5f, float(y) + 0.5f, 40.f };
+				sources.push_back(source);
+				vertex_by_pixel_index[index] = source;
+				river_runner r = { source, x, y, false, false };
+				runners.push_back(r);
+			}
+		}
+	}
+
+
+	bool exists_running_runner = true;
+
+	
+
+	while(exists_running_runner) {
+		exists_running_runner = false;
+
+		for(auto & item : new_runners) {
+			runners.push_back(item);
+		}
+		new_runners.clear();
+
+
+		for(auto & runner : runners) {
+			if(runner.done) {
+				continue;
+			}
+
+			auto potential_children = check_for_potential_child(river_data, runner, size);
+
+			if(potential_children.size() == 0) {
+				// extend to the sea:
+
+				for(int32_t i = -1; i <= 1; i++) {
+					for(int32_t j = -1; j <= 1; j++) {
+						auto x = (int32_t)runner.x + i;
+						auto y = (int32_t)runner.y + j;
+						if(x < 0) {
+							continue;
+						}
+						if(y < 0) {
+							continue;
+						}
+						if(x >= size.x) {
+							continue;
+						}
+						if(y >= size.y) {
+							continue;
+						}
+						auto index = uint32_t(x) + uint32_t(y) * size_x;
+
+						bool is_sea = terrain_data[index] == 255;
+						if(!is_sea) {
+							continue;
+						}
+
+						if(!vertex_by_pixel_index.contains(index)) {
+							river_vertex* new_river_vertex = new river_vertex{
+								float(x) + 0.5f,
+								float(y) + 0.5f,
+								runner.position->width * 2.f
+							};
+							vertex_by_pixel_index[index] = new_river_vertex;
+							new_river_vertex->parents.push_back(runner.position);
+							runner.position->children.push_back(new_river_vertex);
+
+							i = 3;
+							j = 3;
+							break;
+						}
+					}
+				}
+
+				runner.done = true;
+				mouths.push_back(runner.position);
+			} else if(runner.waiting_for_merge) {
+				for(auto target_coord : potential_children) {
+					auto target_index = target_coord.x + target_coord.y * size_x;
+					if(vertex_by_pixel_index.contains(target_index)) {
+						auto target_vertex = vertex_by_pixel_index[target_index];
+						target_vertex->parents.push_back(runner.position);
+						runner.position->children.push_back(target_vertex);
+						runner.waiting_for_merge = false;
+						runner.done = true;
+					}
+				}
+			} else {
+				exists_running_runner = true;
+				if(is_river_merge(river_data[runner.x + runner.y * size_x])) {
+					runner.waiting_for_merge = true;
+				} else {
+					bool first_child = true;
+					uint32_t next_x = 0;
+					uint32_t next_y = 0;
+					river_vertex* next_position = nullptr;
+
+					for(auto candidate : potential_children) {
+						auto x = (uint32_t)candidate.x;
+						auto y = (uint32_t)candidate.y;
+						auto index = x + y * size_x;
+						auto width = float(river_width(river_data[index]));
+
+						if(is_river_merge(river_data[index])) {
+							if(potential_children.size() > 1) {
+								continue;
+							}
+							width = runner.position->width;
+						}
+
+						river_vertex* new_river_vertex = nullptr;
+
+						bool we_will_move_forward = false;
+
+						if(vertex_by_pixel_index.contains(index)) {
+							new_river_vertex = vertex_by_pixel_index[index];
+						} else {
+							new_river_vertex = new river_vertex{
+								float(x) + 0.5f,
+								float(y) + 0.5f,
+								width
+							};
+							vertex_by_pixel_index[index] = new_river_vertex;
+							we_will_move_forward = true;
+						}							
+
+						new_river_vertex->parents.push_back(runner.position);
+						runner.position->children.push_back(new_river_vertex);
+
+						if(we_will_move_forward) {
+							if(first_child) {
+								next_x = x;
+								next_y = y;
+								next_position = new_river_vertex;
+								first_child = false;
+							} else {
+								river_runner r = { new_river_vertex, x, y, false, false };
+								new_runners.push_back(r);
+							}
+						} else {
+							runner.done = true;
+						}
+					}
+
+					if(next_position != nullptr) {
+						runner.x = next_x;
+						runner.y = next_y;
+						runner.position = next_position;
+					}
+				}
+			}
+		}
+	}
+
+
+
+	/*
 	for(uint32_t y = 0; y < size_y; y++) {
 		for(uint32_t x = 0; x < size_x; x++) {
 			if(is_river_source(river_data[x + y * size_x]))
 				rivers.emplace_back(make_directional_river(x, y, rivers, river_data, terrain_data, marked, glm::ivec2(int32_t(size_x), int32_t(size_y))));
 		}
 	}
+	
+
 	// remove empty rivers or rivers with 1 vertex
 	for(auto i = rivers.size(); i-- > 0; ) {
 		if(rivers[i].size() <= 1) {
@@ -977,50 +1249,502 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		}
 	}
 
+	
+
 	for(const auto& river : rivers) {
 		river_starts.push_back(GLint(river_vertices.size()));
 
 		glm::vec2 current_pos = glm::vec2(river.back().x, river.back().y);
 		glm::vec2 next_pos = put_in_local(glm::vec2(river[river.size() - 2].x, river[river.size() - 2].y), current_pos, float(size_x));
-		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+		float current_width = river.back().width;
+		float next_width = river[river.size() - 2].width;
+
+		glm::vec2 tangent_prev = glm::normalize(next_pos - current_pos);
 		float distance = 0.0f;
 
-		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto start_normal = glm::vec2(-tangent_prev.y, tangent_prev.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-		river_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, distance });//C
-		river_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, distance });//D
+		river_vertices.emplace_back(textured_line_with_width_vertex{ norm_pos, +start_normal, 0.0f, distance, river.back().width });//C
+		river_vertices.emplace_back(textured_line_with_width_vertex{ norm_pos, -start_normal, 1.0f, distance, river.back().width });//D
 
 		for(auto i = river.size() - 1; i-- > 0;) {
-			if(!river[i].keep && i % 3 != 0) {
-				continue; // skip
-			}
-			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			//if(!river[i].keep && i % 3 != 0) {
+			//	continue; // skip
+			//}
+			glm::vec2 tangent_next{ 0.0f, 0.0f };
 			next_pos = put_in_local(glm::vec2(river[i].x, river[i].y), current_pos, float(size_x));
+
+			current_width = river[i].width;
 			if(i > 0) {
 				auto nexti = i - 1;
-				while(!river[nexti].keep && nexti % 3 != 0) {
-					nexti--;
-				}
+				//while(!river[nexti].keep && nexti % 3 != 0) {
+				//	nexti--;
+				//}
+
 				glm::vec2 next_next_pos = put_in_local(glm::vec2(river[nexti].x, river[nexti].y), next_pos, float(size_x));
-				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
-				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
-				glm::vec2 temp = a_per + b_per;
-				if(glm::length(temp) < 0.00001f) {
-					next_perpendicular = -a_per;
-				} else {
-					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
-						next_perpendicular *= -1.0f;
-					}
-				}
+
+
+				glm::vec2 tangent_current_to_next = glm::normalize(next_pos - current_pos);
+				glm::vec2 tangent_next_to_next_next = glm::normalize(next_next_pos - next_pos);
+				tangent_next = glm::normalize(tangent_current_to_next + tangent_next_to_next_next);
+				next_width = river[nexti].width;
 			} else {
-				next_perpendicular = glm::normalize(current_pos - next_pos);
+				tangent_next = glm::normalize(next_pos - current_pos);
+				next_width = current_width;
 			}
-			add_tl_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), 4, distance);
-			prev_perpendicular = -1.0f * next_perpendicular;
+			float save_distance = distance;
+			add_tl_bezier_to_buffer(river_vertices, current_pos, next_pos, tangent_prev, tangent_next, 0.0f, false, float(size_x), float(size_y), 4, distance, current_width, next_width);
+			assert(abs((distance - save_distance) * size_x) > 0.5);
+			assert(abs((distance - save_distance) * size_x) < 4.0);
+			tangent_prev = tangent_next;
 			current_pos = glm::vec2(river[i].x, river[i].y);
 		}
 		river_counts.push_back(GLsizei(river_vertices.size() - river_starts.back()));
+	}
+
+	*/
+
+	std::vector<river_vertex*> current_path = { };
+	std::vector<river_vertex*> nodes_to_skip = { };
+
+	current_path.clear();
+
+	uint32_t skip_nodes_counter = 0;
+
+
+	// to avoid "squareness" we walk around the graph and "forget" some of nodes:
+	// optimally, we want to forget a few nodes before nodes with multiple parents
+	// to create smooth "confluence"
+	for(auto source : sources) {
+		//skip one pixel rivers
+		if(source->children.size() == 0) {
+			continue;
+		}
+
+		current_path.push_back(source);
+		
+
+		// walk around to find a confluence
+		while(current_path.size() > 0) {
+			auto current_node = current_path.back();
+			current_node->skip_visited = true;
+
+			// check if one of our child is a confluence:
+			bool has_confluence_further = false;
+
+			for(auto potential_confluence : current_node->children) {
+				if(
+					potential_confluence->parents.size() > 1
+					&& potential_confluence->children.size() > 0
+				) {
+					has_confluence_further = true;
+				}
+			}
+
+			if(has_confluence_further) {
+				// we found a confluence!
+				// backtrack and mark a few nodes for removal
+				auto backrunner = current_path[current_path.size() - 1];
+				for(int steps = 0; steps < 2; steps++) {
+					if(current_path.size() - 1 - steps <= 0) {
+						break;
+					}
+					if(backrunner->parents.size() == 0) {
+						break;
+					}					
+					nodes_to_skip.push_back(backrunner);
+					backrunner = current_path[current_path.size() - 1 - steps];
+				}
+			}
+
+			if(current_path.size() > 2) {
+				auto prev_node = current_path[current_path.size() - 2];
+
+				if(current_node->parents.size() > 1 && current_node->children.size() > 0) {
+					// we are the confluence!
+					// skip three nodes
+					skip_nodes_counter = 2;
+					//nodes_to_skip.push_back(current_node);
+				} else {
+					// we are not at special node
+					bool node_was_skipped = false;
+					if(current_node->children.size() == 1)
+						if(current_node->parents.size() == 1)
+							if(current_node->children[0]->parents.size() == 1)
+								if(current_node->parents[0]->children.size() == 1) {
+									assert(current_node->children[0]->parents[0] == current_node);
+									assert(current_node->parents[0]->children[0] == current_node);
+									if(current_path.size() % 3 == 0) {
+										nodes_to_skip.push_back(current_node);
+										node_was_skipped = true;
+										if(skip_nodes_counter > 0) {
+											skip_nodes_counter -= 1;
+										}
+									};
+								}
+					if(current_node->children.size() > 0)
+						if(current_node->parents.size() > 0)
+							if(!node_was_skipped && skip_nodes_counter > 0)  {
+								//nodes_to_skip.push_back(current_node);
+								skip_nodes_counter -= 1;
+							}
+				}
+			}
+			bool pop_back = true;
+			for(auto candidate : current_node->children) {
+				if(!candidate->skip_visited) {
+					current_path.push_back(candidate);
+					pop_back = false;
+				}
+			}
+
+			if(pop_back) {
+				current_path.pop_back();
+			}
+		}
+	}
+
+	
+	std::vector<river_vertex*> parents;
+	std::vector<river_vertex*> children;
+	std::vector<river_vertex*> temp;
+	for(auto item : nodes_to_skip) {
+		parents.clear();
+		children.clear();
+
+		// collect all children:
+		for(auto child : item->children) {
+			children.push_back(child);
+		}
+		// collect all parents:
+		for(auto parent : item->parents) {
+			parents.push_back(parent);
+		}
+
+		// attach children to parents:
+		for(auto parent : parents) {
+			temp.clear();
+
+			// save old children to temp
+			for(auto parent_child : parent->children) {
+				if(parent_child->x == item->x)
+					if(parent_child->y == item->y)
+						continue;
+				temp.push_back(parent_child);
+			}
+
+			for(auto child_to_attach : children) {
+				// check that they don't have this child already
+				bool skip_child = false;
+				for(auto parent_child : parent->children) {
+					if(parent_child->x == child_to_attach->x)
+						if(parent_child->y == child_to_attach->y) {
+							skip_child = true;
+							break;
+						}
+				}
+
+				if(skip_child) {
+					continue;
+				} else {
+					temp.push_back(child_to_attach);
+				}
+			}
+
+			parent->children.clear();
+
+			for(auto saved_item : temp) {
+				parent->children.push_back(saved_item);
+			}
+		}
+
+		// attach parents to children
+		for(auto child : children) {
+			temp.clear();
+
+			// save old parents to temp
+			for(auto child_parent : child->parents) {
+				if(child_parent->x == item->x)
+					if(child_parent->y == item->y)
+						continue;
+				temp.push_back(child_parent);
+			}
+
+			for(auto parent_to_attach : parents) {
+				// check that they don't have this child already
+				bool skip_parent = false;
+				for(auto child_parent : child->parents) {
+					if(child_parent->x == parent_to_attach->x)
+						if(child_parent->y == parent_to_attach->y) {
+							skip_parent = true;
+							break;
+						}
+				}
+
+				if(skip_parent) {
+					continue;
+				} else {
+					temp.push_back(parent_to_attach);
+				}
+			}
+
+			child->parents.clear();
+
+			for(auto saved_item : temp) {
+				//assert(saved_item->children[0] == child);
+				child->parents.push_back(saved_item);
+			}
+		}
+
+		item->children.clear();
+		item->parents.clear();
+	}
+	
+
+	// now we generate quads for rivers:
+	// basic idea is to proceed from sources to children
+	// every segment is a bezier curve with control points being the tangent vectors of rivers
+	// in result, segments should share tangent lines at the merge/split points
+	// we assume that "main" child is always at index 0
+
+	current_path.clear();
+	std::vector<glm::vec2> vertex_stabilized_history;
+	vertex_stabilized_history.clear();
+
+	for(auto source : sources) {
+		//skip one pixel rivers
+		if(source->children.size() == 0) {
+			continue;
+		}
+
+		current_path.push_back(source);
+		vertex_stabilized_history.push_back({ source->x, source->y });
+
+		// we explore current river and create paths along it
+		// until we explore all downstream nodes
+		while(current_path.size() > 0) {
+			// we start by tracking back along the river until we find
+			// a node with not visited child
+			bool can_start_here = false;
+
+
+			river_vertex* runner = current_path.back();
+			if(!runner->visited) {
+				can_start_here = true;
+			}
+
+			while(!can_start_here) {
+				if(current_path.size() == 0) {
+					break;
+				}
+
+				runner = current_path.back();
+				current_path.pop_back();
+				vertex_stabilized_history.pop_back();
+
+				for(auto child : runner->children) {
+					if(child->visited) {
+						continue;
+					}
+
+					can_start_here = true;
+				}
+			}
+
+			if(!can_start_here) {
+				break;
+			}
+
+			// we start running along the river
+			// to create a new path and save it in a buffer			
+
+			// save current offset
+			river_starts.push_back(GLint(river_vertices.size()));
+
+			//init distance from the source
+			float distance = 0.0f;
+			// it will store distance local to current source
+			// which will lead to incontinuities in distances in river basins
+			// these problems should be probably solved in a separate pass ?
+
+			glm::vec2 vertex = { runner->x, runner->y };
+			glm::vec2 vertex_stabilized = vertex;
+			if(vertex_stabilized_history.size() > 0) {
+				vertex_stabilized = vertex_stabilized_history.back();
+			}
+			glm::vec2 vertex_stabilized_speed = { 0.f, 0.f };
+			float friction = 0.932f;
+			uint8_t steps = 8;
+			float weight = 0.005f;
+
+			uint8_t count_back = 16;
+
+			bool can_continue = true;
+			while(can_continue) {
+				runner->visited = true;
+
+				can_continue = false;
+				bool stop = true;
+
+				river_vertex* next_node = nullptr;
+
+				for(auto candidate : runner->children) {
+					if(candidate->visited) {
+						can_continue = true;
+						next_node = candidate;
+						continue;
+					} else {
+						next_node = candidate;
+						can_continue = true;
+						stop = false;
+						break;
+					}
+				}
+
+				if(!can_continue) {
+					// no children at all: give up
+					break;
+				}
+				// otherwise we have an already visited children
+				// which we could use to finish the curve
+
+				// we care about mouths:
+				if(next_node->children.size() == 0) {
+					can_continue = false;
+					next_node->visited = true;
+
+					auto current_point = glm::vec2(runner->x, runner->y);
+					auto next_point = glm::vec2(next_node->x, next_node->y);
+
+					auto current_tangent = glm::normalize(next_point - current_point);
+					next_point = next_point + current_tangent * 5.f;
+					auto current_normal = glm::vec2{ -current_tangent.y, current_tangent.x };
+					auto next_tangent = glm::normalize(current_tangent);
+
+					for(uint8_t step = 0; step <= steps; step++) {
+						auto t = (float(step) / float(steps));
+						vertex =
+							t * next_point
+							+ (1.f - t) * current_point;
+						auto width = t * next_node->width + (1.f - t) * runner->width;
+
+						auto current_weight = weight * width;
+
+						auto acceleration = (vertex - vertex_stabilized) / current_weight;
+						vertex_stabilized_speed += acceleration;
+						vertex_stabilized_speed *= (1.f - friction * 0.9f);
+
+						auto vertex_old_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
+						vertex_stabilized = vertex_stabilized + vertex_stabilized_speed;
+						auto vertex_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
+						auto speed_opengl_coords = vertex_opengl_coords - vertex_old_opengl_coords;
+						auto normal_opengl_coords = glm::normalize(glm::vec2{ -speed_opengl_coords.y, speed_opengl_coords.x });
+						distance += glm::length(speed_opengl_coords);
+
+						river_vertices.emplace_back(textured_line_with_width_vertex{ vertex_opengl_coords, +normal_opengl_coords, 0.0f, distance, width });//C
+						river_vertices.emplace_back(textured_line_with_width_vertex{ vertex_opengl_coords, -normal_opengl_coords, 1.0f, distance, width });//D
+					}
+
+					/*
+					add_tl_bezier_to_buffer(
+						river_vertices,
+						current_point,
+						next_point,
+						current_tangent,
+						next_tangent,
+						0.0f,
+						false,
+						float(size_x),
+						float(size_y),
+						8,
+						distance,
+						runner->width,
+						next_node->width
+					);
+					*/
+
+					break;
+				}
+
+				// backtrack for a while to connect to previous parent?
+
+				river_vertex* next_next_node = next_node->children[0];
+
+				auto current_point = glm::vec2(runner->x, runner->y);
+				auto next_point = glm::vec2(next_node->x, next_node->y);
+				auto next_next_point = glm::vec2(next_next_node->x, next_next_node->y);
+
+				auto current_tangent = next_point - current_point;
+				auto next_tangent = next_next_point - next_point;
+
+				for(uint8_t step = 0; step <= steps; step++) {
+					auto t = (float(step) / float(steps));
+					vertex =
+						t * next_point
+						+ (1.f - t) * current_point;
+					auto width = t * next_node->width + (1.f - t) * runner->width;
+
+					auto current_weight = weight * width;
+
+					auto acceleration = (vertex - vertex_stabilized) / current_weight;
+					vertex_stabilized_speed += acceleration;
+					vertex_stabilized_speed *= (1.f - friction);
+
+					auto vertex_old_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
+					vertex_stabilized = vertex_stabilized + vertex_stabilized_speed;
+					auto vertex_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
+					auto speed_opengl_coords = vertex_opengl_coords - vertex_old_opengl_coords;
+					auto normal_opengl_coords = glm::normalize(glm::vec2{ -speed_opengl_coords.y, speed_opengl_coords.x });
+					distance += glm::length(speed_opengl_coords);
+
+					river_vertices.emplace_back(textured_line_with_width_vertex{ vertex_opengl_coords, +normal_opengl_coords, 0.0f, distance, width });//C
+					river_vertices.emplace_back(textured_line_with_width_vertex{ vertex_opengl_coords, -normal_opengl_coords, 1.0f, distance, width });//D
+				}
+
+				/*
+				add_tl_bezier_to_buffer(
+					river_vertices,
+					current_point,
+					next_point,
+					current_tangent,
+					next_tangent,
+					0.0f,
+					false,
+					float(size_x),
+					float(size_y),
+					8,
+					distance,
+					runner->width,
+					next_node->width
+				);
+				*/
+
+				if(stop) {
+					count_back -= 1;
+				}
+
+				if(count_back == 0) {
+					// we already visited the next node
+					// and used it only to have a smooth merge
+					break;
+				}
+
+				runner = next_node;
+				current_path.push_back(runner);
+				vertex_stabilized_history.push_back( vertex_stabilized );
+			}
+
+			// save count of vertices in current batch
+			river_counts.push_back(GLsizei(river_vertices.size() - river_starts.back()));
+		}
+
+		glm::vec2 current_pos = glm::vec2(source->x, source->y);
+		glm::vec2 next_pos = glm::vec2(0, 0);
+
+
+
+		
 	}
 }
 

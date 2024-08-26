@@ -464,14 +464,17 @@ EFFECT_BYTECODE_ELEMENT(0x01B7, change_terrain_province, 1) \
 EFFECT_BYTECODE_ELEMENT(0x01B8, masquerade_as_nation_this, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01B9, masquerade_as_nation_from, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01BA, religion_province, 1) \
-EFFECT_BYTECODE_ELEMENT(0x01BB, reduce_pop_abs, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01BB, religion_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01BC, reduce_pop_abs, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01BD, set_culture_pop, 1) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01BC;
+/* This value must be changed if more effects are added. */
+constexpr inline uint16_t first_scope_code = 0x01BE;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -543,7 +546,11 @@ constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0
 constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
 constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
 constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0044;
+constexpr inline uint16_t x_neighbor_province_scope_nation = first_scope_code + 0x0044;
+constexpr inline uint16_t x_empty_neighbor_province_scope_nation = first_scope_code + 0x0045;
+/* All scopes must be added before first_invalid_code*/
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0046;
+
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none

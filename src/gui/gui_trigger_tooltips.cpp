@@ -7543,7 +7543,7 @@ void tf_variable_good_name(TRIGGER_DISPLAY_PARAMS) {
 	text::add_to_layout_box(ws, layout, box, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "stockpile"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
+			text::fp_one_place{trigger::read_float_from_payload(tval + 2)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_religion_nation(TRIGGER_DISPLAY_PARAMS) {

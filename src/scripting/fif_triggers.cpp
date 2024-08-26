@@ -2389,8 +2389,8 @@ TRIGGER_FUNCTION(tf_crime_higher_than_education_pop) {
 	return "dup " + pop_to_owner() + "dup >r administrative_spending @ r> education_spending @ >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_agree_with_ruling_party) {
-	return "dup dup >r " + pop_to_owner() + "ruling_party @ ideology @ >index " + std::to_string(pop_demographics::count_special_keys) + " + >pop_demographics_key  "
-		"r> dup size @ >r swap demographics @ r@ / 0.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup dup >r " + pop_to_owner() + "ruling_party @ ideology @ dup valid? if >index " + std::to_string(pop_demographics::count_special_keys) + " + >pop_demographics_key  "
+		"r> dup size @ >r swap demographics @ r@ / 0.0 0.0 r> >= select else drop r> drop 0.0 end-if " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_colonial_state) {
 	return "dup capital @ is_colonial @ " + truth_inversion(tval[0]);
@@ -2793,16 +2793,16 @@ TRIGGER_FUNCTION(tf_num_of_vassals_no_substates) {
 	return "dup dup >r vassals_count @ >i32 r> substates_count @ >i32 - " + std::to_string(tval[1]) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_brigades_compare_this) {
-	return ">r dup active_regiments >f32 r> swap >r dup active_regiments >f32 r@ / 1000000.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return ">r dup active_regiments >f32 r> swap >r dup active_regiments >f32 r@ / 1000000.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_brigades_compare_from) {
-	return ">r >r dup active_regiments >f32 r> swap r> swap >r dup active_regiments >f32 r@ / 1000000.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return ">r >r dup active_regiments >f32 r> swap r> swap >r dup active_regiments >f32 r@ / 1000000.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_brigades_compare_province_this) {
-	return ">r dup active_regiments >f32 r> swap >r dup " + province_to_owner() + "active_regiments >f32 r@ / 1000000.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return ">r dup active_regiments >f32 r> swap >r dup " + province_to_owner() + "active_regiments >f32 r@ / 1000000.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_brigades_compare_province_from) {
-	return ">r >r dup active_regiments >f32 r> swap r> swap >r dup " + province_to_owner() + "active_regiments >f32 r@ / 1000000.0 0.0 r> <= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return ">r >r dup active_regiments >f32 r> swap r> swap >r dup " + province_to_owner() + "active_regiments >f32 r@ / 1000000.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_constructing_cb_tag) {
 	return "dup constructing_cb_target @ " + std::to_string(trigger::payload(tval[1]).tag_id.index()) + " >national_identity_id " + tag_to_nation() + " = " + truth_inversion(tval[0]);

@@ -26,7 +26,9 @@ increase_national_variable_by;Increase national variable $text$ by $value$
 decrease_national_variable_by;Decrease national variable $text$ by $value$
 life_rating;Life rating
 make_national_religion;$text$ becomes the national religion
-make_province_religion;population converts to $text$
+make_province_religion;province population converts to $text$
+make_pop_religion;Converts to $text$
+make_pop_culture;Converts to $text$
 make_slave_state;Becomes a slave state
 make_slave_pop;Becomes a slave
 research_points;Research points
