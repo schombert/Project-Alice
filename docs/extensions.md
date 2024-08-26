@@ -48,7 +48,10 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `annex_to = null`: this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
 - `secede_province = null`: turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
-- `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
+- `random_empty_neighbor_province` - selects random empty neighbor province in nation/province scope.
+- `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped. Can be used in province or nation scope.
+- `random_neighbor_province` can be used in nation and province scope.
+- `any_neighbor_province` can be used in nation and province scope.
 - `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
 - `religion = religion_name`: Effect can be used in a province and pops scope to change the religion of the province/pop.
 - `assimilate = yes`: Effect can be used in a pop/province/state scope to change the culture of pops in the scope to primary culture.
