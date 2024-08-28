@@ -5193,6 +5193,9 @@ void update_land_battles(sys::state& state) {
 		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
 		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_defending_general(b));
 
+		auto atk_leader_exp_mod = (1 + attacker_per.get_experience()) * (1 + attacker_bg.get_experience());
+		auto def_leader_exp_mod = (1 + defender_per.get_experience()) * (1 + defender_per.get_experience());
+
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
 		auto defender_org_bonus =
@@ -5269,7 +5272,7 @@ void update_land_battles(sys::state& state) {
 				cstr -= str_damage;
 				defender_casualties += str_damage;
 
-				adjust_regiment_experience(state, att_back[i], org_damage * state.defines.exp_gain_div);
+				adjust_regiment_experience(state, att_back[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
 
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5312,7 +5315,7 @@ void update_land_battles(sys::state& state) {
 				cstr -= str_damage;
 				attacker_casualties += str_damage;
 
-				adjust_regiment_experience(state, def_back[i], org_damage * state.defines.exp_gain_div);
+				adjust_regiment_experience(state, def_back[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
 
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5374,7 +5377,7 @@ void update_land_battles(sys::state& state) {
 					cstr -= str_damage;
 					defender_casualties += str_damage;
 
-					adjust_regiment_experience(state, att_front[i], org_damage * state.defines.exp_gain_div);
+					adjust_regiment_experience(state, att_front[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
 
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -5434,7 +5437,7 @@ void update_land_battles(sys::state& state) {
 					cstr -= str_damage;
 					attacker_casualties += str_damage;
 
-					adjust_regiment_experience(state, def_front[i], org_damage * state.defines.exp_gain_div);
+					adjust_regiment_experience(state, def_front[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
 
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -6879,7 +6882,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			auto curstr = reg.get_regiment().get_strength();
 			auto newstr = std::min(curstr + combined, limit_fraction);
 			reg.get_regiment().set_strength(newstr);
-			adjust_regiment_experience(state, reg.get_regiment(), std::min(0.f, newstr - curstr));
+			adjust_regiment_experience(state, reg.get_regiment(), std::min(0.f, (newstr - curstr) * 5 * state.defines.exp_gain_div));
 		}
 	}
 }
