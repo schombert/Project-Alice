@@ -28,6 +28,7 @@ public:
 	}
 };
 
+template<class T>
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -36,6 +37,15 @@ public:
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			disabled = !command::can_split_army(state, state.local_player_nation, content);
+		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			disabled = !command::can_split_navy(state, state.local_player_nation, content);
+		}
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -545,7 +555,7 @@ public:
 		} else if(name == "remove_unit_from_selection_button") {
 			return make_element_by_type<unit_selection_close_button>(state, id);
 		} else if(name == "newunitbutton") {
-			return make_element_by_type<unit_selection_new_unit_button>(state, id);
+			return make_element_by_type<unit_selection_new_unit_button<T>>(state, id);
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<unit_selection_split_in_half_button<T>>(state, id);
 		} else if(name == "disbandbutton") {
@@ -1156,7 +1166,7 @@ public:
 	bool visible = false;
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		visible = !state.world.army_get_is_rebel_hunter(a);
+		visible = !state.world.army_get_is_rebel_hunter(a) && state.world.army_get_controller_from_army_control(a) == state.local_player_nation;
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
@@ -1182,7 +1192,7 @@ public:
 	bool visible = false;
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		visible = state.world.army_get_is_rebel_hunter(a);
+		visible = state.world.army_get_is_rebel_hunter(a) && state.world.army_get_controller_from_army_control(a) == state.local_player_nation;
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
@@ -1217,6 +1227,10 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		command::toggle_unit_ai_control(state, state.local_player_nation, a);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto a = retrieve<dcon::army_id>(state, parent);
+		disabled = state.world.army_get_controller_from_army_control(a) != state.local_player_nation;
 	}
 };
 

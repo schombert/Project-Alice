@@ -32,18 +32,18 @@ public:
 		auto u = retrieve< unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(u)) {
 			auto a = std::get<dcon::army_id>(u);
-			if(state.world.army_get_controller_from_army_control(a) == state.local_player_nation) {
+			// if(state.world.army_get_controller_from_army_control(a) == state.local_player_nation) {
 				state.selected_armies.clear();
 				state.selected_navies.clear();
 				state.select(a);
-			}
+			// }
 		} else if(std::holds_alternative<dcon::navy_id>(u)) {
 			auto a = std::get<dcon::navy_id>(u);
-			if(state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation) {
+			// if(state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation) {
 				state.selected_armies.clear();
 				state.selected_navies.clear();
 				state.select(a);
-			}
+			// }
 		}
 	}
 	void button_shift_action(sys::state& state) noexcept override {
@@ -433,7 +433,7 @@ inline outline_color to_color(sys::state& state, unit_var display_unit) {
 		return outline_color::gray;
 	}
 
-	if(selected) {
+	if(selected && controller == state.local_player_nation) {
 		return outline_color::gold;
 	} else if(controller == state.local_player_nation) {
 		return outline_color::blue;
@@ -687,6 +687,7 @@ public:
 	void open(sys::state& state, ui::xy_pair location, ui::xy_pair source_size, dcon::province_id p, bool port) {
 		if(!as_port) {
 			if(p.index() < state.province_definitions.first_sea_province.index()) {
+				auto pname = text::produce_simple_string(state, state.world.province_get_name(p));
 				auto arange = state.world.province_get_army_location(p);
 				if(int32_t(arange.end() - arange.begin()) <= 1)
 					return;
