@@ -501,9 +501,9 @@ public:
 		} else if(name == "leader_prestige_icon") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "leader_prestige_bar") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<leader_prestige_progress_bar<T>>(state, id);
 		} else if(name == "prestige_bar_frame") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "unitname") {
 			auto ptr = make_element_by_type<unit_selection_unit_name_text<T>>(state, id);
 			ptr->base_data.position.x += 9;

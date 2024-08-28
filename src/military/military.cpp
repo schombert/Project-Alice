@@ -1877,6 +1877,10 @@ dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_ge
 
 	l.set_since(state.current_date);
 
+	/* defines:LEADER_MAX_RANDOM_PRESTIGE */
+	float r_factor = float(rng::reduce(uint32_t(rng::get_random(state, seed_base + 1)), 100)) / 100.f;
+	l.set_prestige(r_factor * state.defines.leader_max_random_prestige);
+
 	state.world.try_create_leader_loyalty(n, l);
 
 	state.world.nation_get_leadership_points(n) -= state.defines.leader_recruit_cost;
@@ -4414,6 +4418,14 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 	state.world.delete_navy(n);
 }
 
+void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
+	auto v = state.world.leader_get_prestige(l);
+	auto name = state.to_string_view(state.world.leader_get_name(l));
+	auto c = std::string(name);
+	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
+	state.world.leader_set_prestige(l, v);
+}
+
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
 	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
 	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
@@ -4472,6 +4484,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 		if(war)
 			state.world.war_get_number_of_battles(war)++;
 
+		auto a_leader = state.world.land_battle_get_general_from_attacking_general(b);
+		auto b_leader = state.world.land_battle_get_general_from_defending_general(b);
+
 		if(result == battle_result::attacker_won) {
 			auto total_def_loss = state.world.land_battle_get_defender_cav_lost(b) + state.world.land_battle_get_defender_infantry_lost(b) + state.world.land_battle_get_defender_support_lost(b);
 			auto total_att_loss = state.world.land_battle_get_attacker_cav_lost(b) + state.world.land_battle_get_attacker_infantry_lost(b) + state.world.land_battle_get_attacker_support_lost(b);
@@ -4489,6 +4504,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			if(a_nation && d_nation) { // no prestige for beating up rebels
 				nations::adjust_prestige(state, a_nation, score / 50.0f);
 				nations::adjust_prestige(state, d_nation, score / -50.0f);
+
+				adjust_leader_prestige(state, a_leader, score / 50.f / 100.f);
+				adjust_leader_prestige(state, b_leader, -score / 50.f / 100.f);
 			}
 
 			// Report
@@ -4549,6 +4567,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			if(a_nation && d_nation) {
 				nations::adjust_prestige(state, a_nation, score / -50.0f);
 				nations::adjust_prestige(state, d_nation, score / 50.0f);
+
+				adjust_leader_prestige(state, a_leader, -score / 50.f / 100.f);
+				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 			}
 
 			// Report
@@ -4687,6 +4708,9 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 	if(result != battle_result::indecisive) {
 		state.world.war_get_number_of_battles(war)++;
 
+		auto a_leader = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
+		auto b_leader = state.world.naval_battle_get_admiral_from_defending_admiral(b);
+
 		if(result == battle_result::attacker_won) {
 			auto score = std::max(0.0f,
 					(state.world.naval_battle_get_defender_loss_value(b) - state.world.naval_battle_get_attacker_loss_value(b)) / 10.0f);
@@ -4700,6 +4724,8 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			if(a_nation && d_nation) {
 				nations::adjust_prestige(state, a_nation, score / 50.0f);
 				nations::adjust_prestige(state, d_nation, score / -50.0f);
+				adjust_leader_prestige(state, a_leader, score / 50.f / 100.f);
+				adjust_leader_prestige(state, b_leader, score / -50.f / 100.f);
 
 				// Report
 				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
@@ -4751,6 +4777,8 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			if(a_nation && d_nation) {
 				nations::adjust_prestige(state, a_nation, score / -50.0f);
 				nations::adjust_prestige(state, d_nation, score / 50.0f);
+				adjust_leader_prestige(state, a_leader, score / -50.f / 100.f);
+				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 
 				// Report
 				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
@@ -6700,6 +6728,8 @@ void recover_org(sys::state& state) {
 	Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier +
 	morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit
 	times (0.25 + 0.75 x effective land or naval spending).
+	- Additionally, the prestige of the leader factors in morale as unit-morale
+		+ (leader-prestige x defines:LEADER_PRESTIGE_TO_MORALE_FACTOR).
 	*/
 
 	for(auto ar : state.world.in_army) {
@@ -6711,13 +6741,16 @@ void recover_org(sys::state& state) {
 
 		auto leader = ar.get_general_from_army_leadership();
 		auto regen_mod = tech_nation.get_modifier_values(sys::national_mod_offsets::org_regain) +
-										 leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f;
+										 leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
+			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 		auto modified_regen = regen_mod * spending_level / 150.0f;
 
+		auto max_org = (0.25f + 0.75f * spending_level) + leader.get_prestige() * state.defines.leader_prestige_to_max_org_factor;
+
 		for(auto reg : ar.get_army_membership()) {
 			auto c_org = reg.get_regiment().get_org();
-			reg.get_regiment().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
+			reg.get_regiment().set_org(std::min(c_org + modified_regen, std::max(c_org, max_org)));
 		}
 	}
 
@@ -6729,7 +6762,8 @@ void recover_org(sys::state& state) {
 
 		auto leader = ar.get_admiral_from_navy_leadership();
 		auto regen_mod = in_nation.get_modifier_values(sys::national_mod_offsets::org_regain) +
-										 leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f;
+										 leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
+			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
 		float oversize_amount =
 				in_nation.get_naval_supply_points() > 0
 						? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
@@ -6738,9 +6772,11 @@ void recover_org(sys::state& state) {
 		auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
 		auto modified_regen = regen_mod * spending_level / 150.0f;
 
+		auto max_org = 0.25f + 0.75f * spending_level + leader.get_prestige() * state.defines.leader_prestige_to_max_org_factor;
+
 		for(auto reg : ar.get_navy_membership()) {
 			auto c_org = reg.get_ship().get_org();
-			reg.get_ship().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
+			reg.get_ship().set_org(std::min(c_org + modified_regen, std::max(c_org, max_org)));
 		}
 	}
 }

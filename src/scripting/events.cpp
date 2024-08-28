@@ -112,6 +112,10 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 	if(ft == slot_type::province)
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
 
+
+	auto name = text::produce_simple_string(state, dcon::fatten(state.world, e).get_name());
+	auto nationtag = text::produce_simple_string(state, dcon::fatten(state.world, n).get_identity_from_identity_holder().get_name());
+
 	if(state.world.national_event_get_is_major(e)) {
 		notification::post(state, notification::message{
 			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, state.current_date, e, n, pt, ft}](sys::state& state, text::layout_base& contents) {
@@ -205,6 +209,11 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		return;
 	if(!state.world.free_national_event_get_name(e) && !state.world.free_national_event_get_immediate_effect(e) && !event_has_options(state, e))
 		return; // event without data
+
+
+	auto name = text::produce_simple_string(state, dcon::fatten(state.world, e).get_name());
+	auto nationtag = text::produce_simple_string(state, dcon::fatten(state.world, n).get_identity_from_identity_holder().get_name());
+
 
 	state.world.free_national_event_set_has_been_triggered(e, true);
 	if(state.world.free_national_event_get_is_major(e)) {
