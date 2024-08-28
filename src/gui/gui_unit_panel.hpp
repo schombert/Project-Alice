@@ -416,6 +416,37 @@ public:
 	}
 };
 
+class unit_experience_bar : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto regiment = retrieve<dcon::regiment_id>(state, parent);
+		frame = int(state.world.regiment_get_experience(regiment)* 10);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		auto regiment = retrieve<dcon::regiment_id>(state, parent);
+		frame = int(state.world.regiment_get_experience(regiment) * 10);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto regiment = retrieve<dcon::regiment_id>(state, parent);
+		auto exp = state.world.regiment_get_experience(regiment);
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "unit_experience");
+		text::add_space_to_layout_box(state, contents, box);
+		if(exp > 0) {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::green);
+		} else {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::red);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 template<class T>
 class unit_selection_total_str_text : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
@@ -816,7 +847,7 @@ public:
 		} else if(name == "rebel_faction") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "unit_experience") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<unit_experience_bar>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<subunit_organisation_progress_bar<dcon::regiment_id>>(state, id);
 		} else if(name == "str_bar") {

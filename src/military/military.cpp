@@ -4420,10 +4420,13 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 
 void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
 	auto v = state.world.leader_get_prestige(l);
-	auto name = state.to_string_view(state.world.leader_get_name(l));
-	auto c = std::string(name);
 	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
 	state.world.leader_set_prestige(l, v);
+}
+void adjust_regiment_experience(sys::state& state, dcon::regiment_id l, float value) {
+	auto v = state.world.regiment_get_experience(l);
+	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
+	state.world.regiment_set_experience(l, v);
 }
 
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
@@ -5236,6 +5239,7 @@ void update_land_battles(sys::state& state) {
 		float defender_casualties = 0;
 
 		for(int32_t i = 0; i < combat_width; ++i) {
+			// Attackers backline shooting defenders frontline
 			if(att_back[i] && def_front[i]) {
 				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
 
@@ -5245,19 +5249,27 @@ void update_land_battles(sys::state& state) {
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_back[i]));
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i]));
 
+				auto& atk_exp = state.world.regiment_get_experience(att_back[i]);
+				auto& def_exp = state.world.regiment_get_experience(def_front[i]);
+
 				auto str_damage = str_dam_mul *
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
-						(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
+						(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics))
+							* (1 + def_exp));
 				auto org_damage = org_dam_mul *
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
 						(defender_fort * defender_org_bonus * def_stats.discipline_or_evasion *
-								(1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
+								(1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation))
+							* (1 + def_exp));
+
 
 				auto& cstr = state.world.regiment_get_strength(def_front[i]);
 				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(def_front[i]) += str_damage;
 				cstr -= str_damage;
 				defender_casualties += str_damage;
+
+				adjust_regiment_experience(state, att_back[i], org_damage * state.defines.exp_gain_div);
 
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5278,6 +5290,7 @@ void update_land_battles(sys::state& state) {
 				}
 			}
 
+			// Defence backline shooting attackers frontline
 			if(def_back[i] && att_front[i]) {
 				assert(state.world.regiment_is_valid(def_back[i]) && state.world.regiment_is_valid(att_front[i]));
 
@@ -5287,14 +5300,19 @@ void update_land_battles(sys::state& state) {
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_back[i]));
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
-				auto str_damage = str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
-				auto org_damage = org_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
+				auto& atk_exp = state.world.regiment_get_experience(att_front[i]);
+				auto& def_exp = state.world.regiment_get_experience(def_back[i]);
+
+				auto str_damage = str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)) * (1 + atk_exp));
+				auto org_damage = org_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)) * (1 + atk_exp));
 
 				auto& cstr = state.world.regiment_get_strength(att_front[i]);
 				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(att_front[i]) += str_damage;
 				cstr -= str_damage;
 				attacker_casualties += str_damage;
+
+				adjust_regiment_experience(state, def_back[i], org_damage * state.defines.exp_gain_div);
 
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5315,6 +5333,7 @@ void update_land_battles(sys::state& state) {
 				}
 			}
 
+			// Attackers frontline attacking defenders frontline targets
 			if(att_front[i]) {
 				assert(state.world.regiment_is_valid(att_front[i]));
 
@@ -5337,18 +5356,25 @@ void update_land_battles(sys::state& state) {
 					auto tech_def_nation = tech_nation_for_regiment(state, att_front_target);
 					auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(att_front_target));
 
+					auto& atk_exp = state.world.regiment_get_experience(att_front[i]);
+					auto& def_exp = state.world.regiment_get_experience(att_front_target);
+
 					auto str_damage = str_dam_mul *
 							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
-							(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics)));
+							(defender_fort * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::military_tactics))
+								* (1+ def_exp));
 					auto org_damage = org_dam_mul *
 							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
-							(defender_fort * def_stats.discipline_or_evasion * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation)));
+							(defender_fort * def_stats.discipline_or_evasion * defender_org_bonus * (1.0f + state.world.nation_get_modifier_values(tech_def_nation, sys::national_mod_offsets::land_organisation))
+								* (1 + def_exp));
 
 					auto& cstr = state.world.regiment_get_strength(att_front_target);
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
 					cstr -= str_damage;
 					defender_casualties += str_damage;
+
+					adjust_regiment_experience(state, att_front[i], org_damage * state.defines.exp_gain_div);
 
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -5370,6 +5396,7 @@ void update_land_battles(sys::state& state) {
 				}
 			}
 
+			// Defenders frontline attacks attackers frontline
 			if(def_front[i]) {
 				assert(state.world.regiment_is_valid(def_front[i]));
 
@@ -5393,14 +5420,21 @@ void update_land_battles(sys::state& state) {
 					auto tech_att_nation = tech_nation_for_regiment(state, def_front_target);
 					auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(def_front_target));
 
-					auto str_damage = str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)));
-					auto org_damage = org_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)));
+					auto& atk_exp = state.world.regiment_get_experience(def_front_target);
+					auto& def_exp = state.world.regiment_get_experience(def_front[i]);
+
+					auto str_damage = str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics))
+						* (1+ atk_exp));
+					auto org_damage = org_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation))
+						* (1+ atk_exp));
 
 					auto& cstr = state.world.regiment_get_strength(def_front_target);
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
 					cstr -= str_damage;
 					attacker_casualties += str_damage;
+
+					adjust_regiment_experience(state, def_front[i], org_damage * state.defines.exp_gain_div);
 
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -6842,7 +6876,10 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			auto pop = reg.get_regiment().get_pop_from_regiment_source();
 			auto pop_size = pop.get_size();
 			auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
-			reg.get_regiment().set_strength(std::min(reg.get_regiment().get_strength() + combined, limit_fraction));
+			auto curstr = reg.get_regiment().get_strength();
+			auto newstr = std::min(curstr + combined, limit_fraction);
+			reg.get_regiment().set_strength(newstr);
+			adjust_regiment_experience(state, reg.get_regiment(), std::min(0.f, newstr - curstr));
 		}
 	}
 }
