@@ -507,6 +507,57 @@ public:
 };
 
 template<class T>
+class unit_panel_dynamic_tinted_bg : public opaque_element_base {
+public:
+	uint32_t color = 0;
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			if(state.world.army_get_controller_from_army_control(content) == state.local_player_nation) {
+				color = sys::pack_color(210, 255, 210);
+			} else {
+				color = sys::pack_color(170, 190, 170);
+			}
+		} else {
+			if(state.world.navy_get_controller_from_navy_control(content) == state.local_player_nation) {
+				color = sys::pack_color(210, 210, 255);
+			} else {
+				color = sys::pack_color(170, 170, 190);
+			}
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid) {
+			auto const& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				if(gfx_def.number_of_frames > 1) {
+					ogl::render_tinted_subsprite(state, frame,
+						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				} else {
+					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				}
+			}
+		}
+	}
+};
+
+template<class T>
 class unit_selection_panel : public window_element_base {
 	dcon::gfx_object_id disband_gfx{};
 	unit_selection_disband_too_small_button* disband_too_small_btn = nullptr;
@@ -538,7 +589,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unitpanel_bg") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<unit_panel_dynamic_tinted_bg<T>>(state, id);
 		} else if(name == "leader_prestige_icon") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "leader_prestige_bar") {
@@ -1573,7 +1624,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_bottom_bg") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<unit_panel_dynamic_tinted_bg<T>>(state, id);
 		} else if(name == "icon_speed") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "speed") {
