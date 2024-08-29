@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
 	glew
 	GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
-	GIT_TAG a5494db
+	GIT_TAG f456dea
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )

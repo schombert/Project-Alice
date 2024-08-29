@@ -8,7 +8,7 @@
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
 
-#define CHECK_LLVM_RESULTS
+// #define CHECK_LLVM_RESULTS
 
 namespace pop_demographics {
 
