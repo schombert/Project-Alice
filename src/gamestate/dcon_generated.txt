@@ -1861,6 +1861,11 @@ object {
 		name{ pending_split }
 		type{ bitfield }
 	}
+	property{
+		name{ experience }
+		type{ float }
+		tag{ save }
+}
 }
 
 object {
@@ -3764,11 +3769,6 @@ object {
 	property {
 		name{ stockpiles }
 		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
-	property {
-		name{ pops_bank_savings }
-		type{ array{pop_id}{float} }
 		tag{ save }
 	}
 	property {
