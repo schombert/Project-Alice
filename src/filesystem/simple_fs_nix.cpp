@@ -199,6 +199,17 @@ bool contains_non_ascii(native_char const* str) {
 }
 } // namespace impl
 
+bool list_files_compare_func(native_char const& char1, native_char const& char2) {
+	auto const to_alpha_prec = [](native_char const& ch) -> native_char {
+		if(isdigit(ch)) {
+			auto digit = ch - NATIVE('0');
+			return native_char((10 - digit) + NATIVE('Z'));
+		}
+		return ch;
+	};
+	return to_alpha_prec(char1) < to_alpha_prec(char2);
+}
+
 std::vector<unopened_file> list_files(directory const& dir, native_char const* extension) {
 	std::vector<unopened_file> accumulated_results;
 	if(dir.parent_system) {
@@ -266,9 +277,7 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 		}
 	}
 	std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const& a, unopened_file const& b) {
-		return std::lexicographical_compare(std::begin(a.file_name), std::end(a.file_name), std::begin(b.file_name),
-				std::end(b.file_name),
-				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
+		return std::lexicographical_compare(std::begin(a.file_name), std::end(a.file_name), std::begin(b.file_name), std::end(b.file_name), list_files_compare_func);
 	});
 	return accumulated_results;
 }
