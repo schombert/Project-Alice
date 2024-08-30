@@ -569,7 +569,9 @@ void update_events(sys::state& state) {
 	});
 	std::sort(total_vector.begin(), total_vector.end());
 	for(auto& v : total_vector) {
-		event::trigger_national_event(state, v.e, v.n, uint32_t((state.current_date.value) ^ (v.e.value << 3)), uint32_t(v.n.value));
+		if(trigger::evaluate(state, state.world.free_national_event_get_trigger(v.e), trigger::to_generic(v.n), trigger::to_generic(v.n), 0)) {
+			event::trigger_national_event(state, v.e, v.n, uint32_t((state.current_date.value) ^ (v.e.value << 3)), uint32_t(v.n.value));
+		}
 	}
 
 	concurrency::combinable<std::vector<event_prov_pair>> p_events_triggered;
@@ -622,7 +624,9 @@ void update_events(sys::state& state) {
 	});
 	std::sort(total_p_vector.begin(), total_p_vector.end());
 	for(auto& v : total_p_vector) {
-		trigger_provincial_event(state, v.e, v.p, uint32_t((state.current_date.value) ^ (v.e.value << 3)), uint32_t(v.p.value));
+		if(trigger::evaluate(state, state.world.free_provincial_event_get_trigger(v.e), trigger::to_generic(v.p), trigger::to_generic(v.p), 0)) {
+			trigger_provincial_event(state, v.e, v.p, uint32_t((state.current_date.value) ^ (v.e.value << 3)), uint32_t(v.p.value));
+		}
 	}
 
 	for(auto i = state.pending_n_event.size(); i-- > 0;) {
