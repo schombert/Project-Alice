@@ -16,6 +16,8 @@
 
 namespace nations {
 
+constexpr float max_prestige = 2147483648.f;
+
 namespace influence {
 
 int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target) {
@@ -1328,8 +1330,9 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 }
 
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta) {
-	auto prestige_multiplier = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::prestige);
-	auto new_prestige = std::max(0.0f, state.world.nation_get_prestige(n) + (delta > 0 ? (delta * prestige_multiplier) : delta));
+	float prestige_multiplier = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::prestige);
+	float v = state.world.nation_get_prestige(n) + (delta > 0 ? (delta * prestige_multiplier) : delta);
+	float new_prestige = std::clamp(v, 0.f, max_prestige);
 	state.world.nation_set_prestige(n, new_prestige);
 }
 
