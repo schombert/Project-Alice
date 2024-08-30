@@ -3672,7 +3672,7 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 			regs.push_back(r.get_regiment());
 	}
 	for(auto r : regs)
-		state.world.delete_regiment(r);
+		military::disband_regiment_w_pop_transfer(state, r);
 }
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {

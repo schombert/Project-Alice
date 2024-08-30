@@ -273,14 +273,14 @@ public:
 				}
 
 				for(auto n : state.world.province_get_navy_location(port_for)) {
-					if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation) {
+					//if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation) {
 						state.select(n.get_navy().id);
 						// Hide province window when navy is clicked.
 						if(state.ui_state.province_window) {
 							state.ui_state.province_window->set_visible(state, false);
 							state.map_state.set_selected_province(dcon::province_id{});
 						}
-					}
+					//}
 				}
 
 				auto location = get_absolute_non_mirror_location(state, *this);
@@ -1180,7 +1180,7 @@ public:
 
 					auto controller = a.get_army().get_controller_from_army_control().id;
 
-					if(state.is_selected(a.get_army()))
+					if(state.is_selected(a.get_army()) && controller == state.local_player_nation)
 						found_selected = true;
 					else if(controller == state.local_player_nation)
 						all_selected = false;
@@ -1206,7 +1206,7 @@ public:
 			} else {
 				for(auto n : navies) {
 					auto controller = n.get_navy().get_controller_from_navy_control().id;
-					if(state.is_selected(n.get_navy()))
+					if(state.is_selected(n.get_navy()) && controller == state.local_player_nation)
 						found_selected = true;
 					else if(controller == state.local_player_nation)
 						all_selected = false;
@@ -1761,18 +1761,18 @@ public:
 
 				if(prov.index() >= state.province_definitions.first_sea_province.index()) {
 					for(auto n : state.world.province_get_navy_location(prov)) {
-						if(state.world.navy_get_controller_from_navy_control(n.get_navy()) == state.local_player_nation) {
+						// if(state.world.navy_get_controller_from_navy_control(n.get_navy()) == state.local_player_nation) {
 							state.select(n.get_navy().id);
 							// Hide province window when navy is clicked.
 							if(state.ui_state.province_window) {
 								state.ui_state.province_window->set_visible(state, false);
 								state.map_state.set_selected_province(dcon::province_id{});
 							}
-						}
+						//  }
 					}
 				} else {
 					for(auto n : state.world.province_get_army_location(prov)) {
-						if(!(n.get_army().get_navy_from_army_transport()) && n.get_army().get_controller_from_army_control() == state.local_player_nation) {
+						if(!(n.get_army().get_navy_from_army_transport()) /* && n.get_army().get_controller_from_army_control() == state.local_player_nation */) {
 							state.select(n.get_army().id);
 							// Hide province window when army is clicked.
 							if(state.ui_state.province_window) {

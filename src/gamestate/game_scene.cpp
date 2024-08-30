@@ -877,16 +877,27 @@ ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_pro
 }
 
 void clean_up_selected_armies_and_navies(sys::state& state) {
-	for(auto i = state.selected_armies.size(); i-- > 0; ) {
-		if(!state.world.army_is_valid(state.selected_armies[i]) || state.world.army_get_controller_from_army_control(state.selected_armies[i]) != state.local_player_nation) {
-			state.selected_armies[i] = state.selected_armies.back();
-			state.selected_armies.pop_back();
+	// Allow player to select single enemy army or enemy navy to view them
+	if(state.selected_armies.size() == 1) {
+		if(!state.world.army_is_valid(state.selected_armies[0])) {
+			state.selected_armies.clear();
 		}
-	}
-	for(auto i = state.selected_navies.size(); i-- > 0; ) {
-		if(!state.world.navy_is_valid(state.selected_navies[i]) || state.world.navy_get_controller_from_navy_control(state.selected_navies[i]) != state.local_player_nation) {
-			state.selected_navies[i] = state.selected_navies.back();
-			state.selected_navies.pop_back();
+	} else if(state.selected_navies.size() == 1) {
+		if(!state.world.navy_is_valid(state.selected_navies[0])) {
+			state.selected_navies.clear();
+		}
+	} else {
+		for(auto i = state.selected_armies.size(); i-- > 0; ) {
+			if(!state.world.army_is_valid(state.selected_armies[i]) || state.world.army_get_controller_from_army_control(state.selected_armies[i]) != state.local_player_nation) {
+				state.selected_armies[i] = state.selected_armies.back();
+				state.selected_armies.pop_back();
+			}
+		}
+		for(auto i = state.selected_navies.size(); i-- > 0; ) {
+			if(!state.world.navy_is_valid(state.selected_navies[i]) || state.world.navy_get_controller_from_navy_control(state.selected_navies[i]) != state.local_player_nation) {
+				state.selected_navies[i] = state.selected_navies.back();
+				state.selected_navies.pop_back();
+			}
 		}
 	}
 }

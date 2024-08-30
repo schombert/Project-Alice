@@ -28,6 +28,7 @@ public:
 	}
 };
 
+template<class T>
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -36,6 +37,15 @@ public:
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			disabled = !command::can_split_army(state, state.local_player_nation, content);
+		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			disabled = !command::can_split_navy(state, state.local_player_nation, content);
+		}
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -416,6 +426,37 @@ public:
 	}
 };
 
+class unit_experience_bar : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto regiment = retrieve<dcon::regiment_id>(state, parent);
+		frame = int(state.world.regiment_get_experience(regiment)* 10);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		auto regiment = retrieve<dcon::regiment_id>(state, parent);
+		frame = int(state.world.regiment_get_experience(regiment) * 10);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto regiment = retrieve<dcon::regiment_id>(state, parent);
+		auto exp = state.world.regiment_get_experience(regiment);
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "unit_experience");
+		text::add_space_to_layout_box(state, contents, box);
+		if(exp > 0) {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::green);
+		} else {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::red);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 template<class T>
 class unit_selection_total_str_text : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
@@ -466,6 +507,57 @@ public:
 };
 
 template<class T>
+class unit_panel_dynamic_tinted_bg : public opaque_element_base {
+public:
+	uint32_t color = 0;
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			if(state.world.army_get_controller_from_army_control(content) == state.local_player_nation) {
+				color = sys::pack_color(210, 255, 210);
+			} else {
+				color = sys::pack_color(170, 190, 170);
+			}
+		} else {
+			if(state.world.navy_get_controller_from_navy_control(content) == state.local_player_nation) {
+				color = sys::pack_color(210, 210, 255);
+			} else {
+				color = sys::pack_color(170, 170, 190);
+			}
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid) {
+			auto const& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				if(gfx_def.number_of_frames > 1) {
+					ogl::render_tinted_subsprite(state, frame,
+						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				} else {
+					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				}
+			}
+		}
+	}
+};
+
+template<class T>
 class unit_selection_panel : public window_element_base {
 	dcon::gfx_object_id disband_gfx{};
 	unit_selection_disband_too_small_button* disband_too_small_btn = nullptr;
@@ -497,13 +589,13 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unitpanel_bg") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<unit_panel_dynamic_tinted_bg<T>>(state, id);
 		} else if(name == "leader_prestige_icon") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "leader_prestige_bar") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<leader_prestige_progress_bar<T>>(state, id);
 		} else if(name == "prestige_bar_frame") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "unitname") {
 			auto ptr = make_element_by_type<unit_selection_unit_name_text<T>>(state, id);
 			ptr->base_data.position.x += 9;
@@ -514,7 +606,7 @@ public:
 		} else if(name == "remove_unit_from_selection_button") {
 			return make_element_by_type<unit_selection_close_button>(state, id);
 		} else if(name == "newunitbutton") {
-			return make_element_by_type<unit_selection_new_unit_button>(state, id);
+			return make_element_by_type<unit_selection_new_unit_button<T>>(state, id);
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<unit_selection_split_in_half_button<T>>(state, id);
 		} else if(name == "disbandbutton") {
@@ -816,7 +908,7 @@ public:
 		} else if(name == "rebel_faction") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "unit_experience") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<unit_experience_bar>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<subunit_organisation_progress_bar<dcon::regiment_id>>(state, id);
 		} else if(name == "str_bar") {
@@ -1125,7 +1217,7 @@ public:
 	bool visible = false;
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		visible = !state.world.army_get_is_rebel_hunter(a);
+		visible = !state.world.army_get_is_rebel_hunter(a) && state.world.army_get_controller_from_army_control(a) == state.local_player_nation;
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
@@ -1151,7 +1243,7 @@ public:
 	bool visible = false;
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		visible = state.world.army_get_is_rebel_hunter(a);
+		visible = state.world.army_get_is_rebel_hunter(a) && state.world.army_get_controller_from_army_control(a) == state.local_player_nation;
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
@@ -1186,6 +1278,10 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		command::toggle_unit_ai_control(state, state.local_player_nation, a);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto a = retrieve<dcon::army_id>(state, parent);
+		disabled = state.world.army_get_controller_from_army_control(a) != state.local_player_nation;
 	}
 };
 
@@ -1528,7 +1624,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_bottom_bg") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<unit_panel_dynamic_tinted_bg<T>>(state, id);
 		} else if(name == "icon_speed") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "speed") {

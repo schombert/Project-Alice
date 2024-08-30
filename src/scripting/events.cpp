@@ -112,6 +112,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 	if(ft == slot_type::province)
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
 
+
 	if(state.world.national_event_get_is_major(e)) {
 		notification::post(state, notification::message{
 			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, state.current_date, e, n, pt, ft}](sys::state& state, text::layout_base& contents) {

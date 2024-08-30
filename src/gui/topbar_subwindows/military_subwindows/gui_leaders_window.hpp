@@ -48,6 +48,7 @@ public:
 	ui::simple_text_element_base* personality = nullptr;
 	ui::simple_text_element_base* army = nullptr;
 	ui::simple_text_element_base* location = nullptr;
+	ui::leader_prestige_progress_bar<dcon::leader_id>* prestige = nullptr;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -83,8 +84,16 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			location = ptr.get();
 			return ptr;
-
-		} else {
+		}
+		else if(name == "leader_prestige_bar") {
+			auto ptr = make_element_by_type<leader_prestige_progress_bar<dcon::leader_id>>(state, id);
+			prestige = ptr.get();
+			return ptr;
+		}
+		else if(name == "prestige_bar_frame") {
+			return make_element_by_type<image_element_base>(state, id);
+		}
+		else {
 			return nullptr;
 		}
 	}

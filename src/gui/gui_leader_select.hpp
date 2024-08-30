@@ -382,6 +382,59 @@ public:
 	}
 };
 
+template<typename T>
+class leader_prestige_progress_bar : public vertical_progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		dcon::leader_id lid = get_leader_id(state);
+		progress = state.world.leader_get_prestige(lid);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		vertical_progress_bar::on_create(state);
+
+		dcon::leader_id lid = get_leader_id(state);
+		progress = state.world.leader_get_prestige(lid);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::leader_id lid = get_leader_id(state);
+		auto prestige = state.world.leader_get_prestige(lid);
+
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "leader_prestige");
+		text::add_space_to_layout_box(state, contents, box);
+		if(prestige > 0) {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ prestige }, text::text_color::green);
+		} else {
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ prestige }, text::text_color::red);
+		}
+		text::close_layout_box(contents, box);
+	}
+
+	dcon::leader_id get_leader_id(sys::state& state) noexcept {
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto content = retrieve<dcon::army_id>(state, parent);
+
+			return state.world.army_get_general_from_army_leadership(content);
+		}
+		else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			auto content = retrieve<dcon::navy_id>(state, parent);
+
+			return state.world.navy_get_admiral_from_navy_leadership(content);
+		}
+		else if constexpr(std::is_same_v<T, dcon::leader_id>) {
+			dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
+
+			return lid;
+		}
+	}
+};
+
 class leader_select_row : public listbox_row_element_base<dcon::leader_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -392,7 +445,11 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "leader_button") {
 			return make_element_by_type<set_leader_button>(state, id);
-		} else if(name == "photo") {
+		}
+		else if(name == "leader_prestige_bar") {
+			return make_element_by_type<leader_prestige_progress_bar<dcon::leader_id>>(state, id);
+		}
+		else if(name == "photo") {
 			return make_element_by_type<passive_leader_image>(state, id);
 		} else if(name == "leader_name") {
 			return make_element_by_type<passive_leader_name>(state, id);
@@ -545,8 +602,8 @@ public:
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "current_leader_prestige_bar") {
-			return make_element_by_type<vertical_progress_bar>(state, id);
+		} else if(name == "leader_prestige_bar") {
+			return make_element_by_type<leader_prestige_progress_bar<dcon::leader_id>>(state, id);
 		} else if(name == "selected_photo") {
 			return make_element_by_type<passive_leader_image>(state, id);
 		} else if(name == "selected_leader_name") {

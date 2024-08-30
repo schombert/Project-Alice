@@ -2139,6 +2139,21 @@ guiTypes = {
 			quadTextureSprite ="GFX_alice_unit_select_leader"
 		}
 
+		iconType = {
+			name ="prestige_bar_frame"
+			spriteType = "GFX_prestige_bar_frame"
+			position = { 8 2 }
+			#allwaystransparent = yes
+		}
+		iconType = {
+			name ="leader_prestige_bar"
+			spriteType = "GFX_leader_prestige_progress_bar"
+			position = { 18 32 }
+			Orientation = "UPPER_LEFT"
+			rotation = 1.5708
+			#allwaystransparent = yes
+		}
+
 		iconType =	{
 			name ="photo"
 			spriteType = "GFX_leader_generic0"

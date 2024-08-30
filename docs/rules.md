@@ -831,6 +831,8 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 
 Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
 
+Additionally, the prestige of the leader factors in morale as unit-morale + (leader-prestige x defines:LEADER_PRESTIGE_TO_MORALE_FACTOR). Similarly, unit-max-org + (leader-prestige x defines:LEADER_PRESTIGE_TO_MAX_ORG_FACTOR) allows for maximum org.
+
 Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit times (0.25 + 0.75 x effective land or naval spending).
 
 Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.

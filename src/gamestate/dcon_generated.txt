@@ -1696,6 +1696,11 @@ object {
 		name{ pending_split }
 		type{ bitfield }
 	}
+	property{
+		name{ experience }
+		type{ float }
+		tag{ save }
+	}
 }
 
 object {
@@ -1856,6 +1861,11 @@ object {
 		name{ pending_split }
 		type{ bitfield }
 	}
+	property{
+		name{ experience }
+		type{ float }
+		tag{ save }
+}
 }
 
 object {
@@ -4607,6 +4617,11 @@ object {
 	size{ 300000 }
 	tag{ save }
 
+	property{
+		name{ name }
+		type{ text_key }
+		tag{ scenario }
+	}
 	property{
 		name{ poptype }
 		type{ pop_type_id }
