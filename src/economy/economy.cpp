@@ -724,9 +724,40 @@ void initialize(sys::state& state) {
 			total += current;
 		});
 
+		// remove continental restriction if failed:
+		if(total == 0.f) {
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				float climate_d = per_climate_distribution_buffer[climate.value][c.value];
+				float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
+				float current = (climate_d + terrain_d) * (climate_d + terrain_d);
+				true_distribution[c.index()] = current;
+				total += current;
+			});
+		}
+
+		// make it into uniform distrubution on available goods then...
+		if(total == 0.f) {
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				if(state.world.commodity_get_money_rgo(c)) {
+					return;
+				}
+				if(!state.world.commodity_get_is_available_from_start(c)) {
+					return;
+				}
+				float current = 1.f;
+				true_distribution[c.index()] = current;
+				total += current;
+			});
+		}
+
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			assert(total > 0.f && std::isfinite(total));
-			true_distribution[c.index()] /= total;
+			assert(std::isfinite(total));
+			// if everything had failed for some reason, then assume 0 distribution: main rgo is still active
+			if(total == 0.f) {
+				true_distribution[c.index()] = 0.f;
+			} else {
+				true_distribution[c.index()] /= total;
+			}
 		});
 
 		// distribution of rgo land per good		
