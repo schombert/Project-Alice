@@ -4618,11 +4618,6 @@ object {
 	tag{ save }
 
 	property{
-		name{ name }
-		type{ text_key }
-		tag{ scenario }
-	}
-	property{
 		name{ poptype }
 		type{ pop_type_id }
 		tag{ save }
