@@ -1085,6 +1085,8 @@ GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t
 }
 GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = open_file(dir, file_name);
+	if(!file)
+		return 0;
 	auto image = load_stb_image(*file);
 	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
 }
