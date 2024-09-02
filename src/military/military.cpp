@@ -5291,7 +5291,7 @@ void update_land_battles(sys::state& state) {
 				cstr -= str_damage;
 				defender_casualties += str_damage;
 
-				adjust_regiment_experience(state, attacking_nation, att_back[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
+				adjust_regiment_experience(state, attacking_nation, att_back[i], str_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
 
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5333,7 +5333,7 @@ void update_land_battles(sys::state& state) {
 				cstr -= str_damage;
 				attacker_casualties += str_damage;
 
-				adjust_regiment_experience(state, defending_nation, def_back[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
+				adjust_regiment_experience(state, defending_nation, def_back[i], str_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
 
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5394,7 +5394,7 @@ void update_land_battles(sys::state& state) {
 					cstr -= str_damage;
 					defender_casualties += str_damage;
 
-					adjust_regiment_experience(state, attacking_nation, att_front[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
+					adjust_regiment_experience(state, attacking_nation, att_front[i], str_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
 
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -5453,7 +5453,7 @@ void update_land_battles(sys::state& state) {
 					cstr -= str_damage;
 					attacker_casualties += str_damage;
 
-					adjust_regiment_experience(state, defending_nation, def_front[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
+					adjust_regiment_experience(state, defending_nation, def_front[i], str_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
 
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -5828,7 +5828,7 @@ void update_naval_battles(sys::state& state) {
 				tstr = std::max(0.0f, tstr - str_damage);
 
 				auto leader_exp_mod = (is_attacker ? atk_leader_exp_mod : def_leader_exp_mod);
-				adjust_ship_experience(state, aship_owner, aship, org_damage * 5.f * state.defines.exp_gain_div * leader_exp_mod);
+				adjust_ship_experience(state, aship_owner, aship, str_damage * 5.f * state.defines.exp_gain_div * leader_exp_mod);
 
 				break;
 			}
