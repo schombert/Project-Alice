@@ -4346,7 +4346,7 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 
 	auto regs = state.world.army_get_army_membership(n);
 	while(regs.begin() != regs.end()) {
-		disband_regiment_w_pop_transfer(state, (*regs.begin()).get_regiment().id);
+		state.world.delete_regiment((*regs.begin()).get_regiment().id);
 	}
 
 	auto b = state.world.army_get_battle_from_army_battle_participation(n);
@@ -4670,7 +4670,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				auto em_regs = em.get_army().get_army_membership();
 				while(em_regs.begin() != em_regs.end() && transport_cap < 0) {
 					auto reg_id = (*em_regs.begin()).get_regiment();
-					disband_regiment_w_pop_death(state, reg_id);
+					state.world.delete_regiment(reg_id);
 					++transport_cap;
 				}
 				if(transport_cap >= 0)
@@ -7371,44 +7371,6 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
 		&& pop.get_poptype() != state.culture_definitions.slaves
 		&& pop.get_is_primary_or_accepted_culture()
 		&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor);
-}
-
-void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
-	auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
-	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
-	state.world.delete_regiment(reg_id);
-}
-
-void disband_regiment_w_pop_transfer(sys::state& state, dcon::regiment_id reg_id) {
-	auto base_pop = dcon::fatten(state.world, state.world.regiment_get_pop_from_regiment_source(reg_id));
-	// demographics::reduce_pop_size_safe(state, base_pop, state.defines.pop_size_per_regiment);
-	auto strength = state.world.regiment_get_strength(reg_id);
-
-	auto loc = dcon::fatten(state.world, reg_id).get_army_from_army_membership().get_army_location().get_location();
-	auto cid = base_pop.get_culture();
-	auto rid = base_pop.get_religion();
-
-	for(auto pop : state.world.province_get_pop_location(loc)) {
-		if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers &&
-			pop.get_pop().get_culture().id == cid &&
-			pop.get_pop().get_religion().id == rid) {
-			demographics::reduce_pop_size_safe(state, base_pop, int32_t(strength * state.defines.pop_size_per_regiment));
-			demographics::reduce_pop_size_safe(state, pop.get_pop().id, int32_t(-1 * strength * state.defines.pop_size_per_regiment));
-			state.world.delete_regiment(reg_id);
-			return;
-		}
-	}
-
-	auto l = base_pop.get_literacy();
-
-	auto np = fatten(state.world, state.world.create_pop());
-	state.world.force_create_pop_location(np, loc);
-	np.set_culture(cid);
-	np.set_religion(rid);
-	np.set_poptype(state.culture_definitions.soldiers);
-	np.set_literacy(l);
-
-	state.world.delete_regiment(reg_id);
 }
 
 } // namespace military
