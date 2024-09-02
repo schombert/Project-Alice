@@ -319,6 +319,8 @@ units_in_the_state;位于地区
 at_war_against;交战于
 num_of_divisions;部队数
 an_ongoing_battle;持续的战斗
+an_assigned_leader;已分配的将领
+leader_prestige;将领声望
 treasury;国库
 o_treasury;所有者国库
 o_of_prov;此省所属
@@ -1197,7 +1199,6 @@ alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;每百万人 GDP（PPP）
-an_assigned_leader;已分配的将领
 macro_new_template;新建
 invention;发明
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
