@@ -2049,7 +2049,7 @@ dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon
 	reg.set_type(t);
 	// TODO make name
 	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience);
-	exp += state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level);
+	exp += state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f;
 	reg.set_experience(std::clamp(exp, 0.f, 1.f));
 	reg.set_strength(1.f);
 	reg.set_org(1.f);
@@ -2059,7 +2059,9 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	auto shp = fatten(state.world, state.world.create_ship());
 	shp.set_type(t);
 	// TODO make name
-	shp.set_experience(std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_unit_start_experience), 0.f, 1.f));
+	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_unit_start_experience);
+	exp += state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f;
+	shp.set_experience(std::clamp(exp, 0.f, 1.f));
 	shp.set_strength(1.f);
 	shp.set_org(1.f);
 	return shp.id;
@@ -4344,7 +4346,7 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 
 	auto regs = state.world.army_get_army_membership(n);
 	while(regs.begin() != regs.end()) {
-		state.world.delete_regiment((*regs.begin()).get_regiment().id);
+		disband_regiment_w_pop_transfer(state, (*regs.begin()).get_regiment().id);
 	}
 
 	auto b = state.world.army_get_battle_from_army_battle_participation(n);
@@ -4430,7 +4432,7 @@ void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
 void adjust_regiment_experience(sys::state& state, dcon::nation_id n, dcon::regiment_id l, float value) {
 	auto v = state.world.regiment_get_experience(l);
 
-	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level), 0.f, 1.f);
+	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f, 0.f, 1.f);
 
 	v = std::clamp(v + value, min_exp, 1.f); //from regular_experience_level to 100%
 
@@ -4439,7 +4441,7 @@ void adjust_regiment_experience(sys::state& state, dcon::nation_id n, dcon::regi
 void adjust_ship_experience(sys::state& state, dcon::nation_id n, dcon::ship_id r, float value) {
 	auto v = state.world.ship_get_experience(r);
 
-	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level), 0.f, 1.f);
+	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f, 0.f, 1.f);
 
 	v = std::clamp(v + value * state.defines.exp_gain_div, min_exp, 1.f);
 	state.world.ship_set_experience(r, v); //from regular_experience_level to 100%
@@ -7374,6 +7376,38 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
+	state.world.delete_regiment(reg_id);
+}
+
+void disband_regiment_w_pop_transfer(sys::state& state, dcon::regiment_id reg_id) {
+	auto base_pop = dcon::fatten(state.world, state.world.regiment_get_pop_from_regiment_source(reg_id));
+	// demographics::reduce_pop_size_safe(state, base_pop, state.defines.pop_size_per_regiment);
+	auto strength = state.world.regiment_get_strength(reg_id);
+
+	auto loc = dcon::fatten(state.world, reg_id).get_army_from_army_membership().get_army_location().get_location();
+	auto cid = base_pop.get_culture();
+	auto rid = base_pop.get_religion();
+
+	for(auto pop : state.world.province_get_pop_location(loc)) {
+		if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers &&
+			pop.get_pop().get_culture().id == cid &&
+			pop.get_pop().get_religion().id == rid) {
+			demographics::reduce_pop_size_safe(state, base_pop, int32_t(strength * state.defines.pop_size_per_regiment));
+			demographics::reduce_pop_size_safe(state, pop.get_pop().id, int32_t(-1 * strength * state.defines.pop_size_per_regiment));
+			state.world.delete_regiment(reg_id);
+			return;
+		}
+	}
+
+	auto l = base_pop.get_literacy();
+
+	auto np = fatten(state.world, state.world.create_pop());
+	state.world.force_create_pop_location(np, loc);
+	np.set_culture(cid);
+	np.set_religion(rid);
+	np.set_poptype(state.culture_definitions.soldiers);
+	np.set_literacy(l);
+
 	state.world.delete_regiment(reg_id);
 }
 
