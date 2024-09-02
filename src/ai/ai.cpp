@@ -284,8 +284,11 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
 		return false;
 
+	// No more than 2 GP allies
+	// No more than 4 alliances
 	if(bool(state.defines.alice_artificial_gp_limitant) && state.world.nation_get_is_great_power(target)) {
 		int32_t gp_count = 0;
+		int32_t alli_count = 0;
 		for(const auto rel : state.world.nation_get_diplomatic_relation(from)) {
 			auto n = rel.get_related_nations(rel.get_related_nations(0) == from ? 1 : 0);
 			if(rel.get_are_allied() && n.get_is_great_power()) {
@@ -293,6 +296,12 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 					return false;
 				}
 				++gp_count;
+			}
+			if(rel.get_are_allied()) {
+				if(alli_count >= 4) {
+					return false;
+				}
+				++alli_count;
 			}
 		}
 	}
