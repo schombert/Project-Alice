@@ -53,7 +53,33 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve< outliner_data>(state, parent);
+		content = retrieve< outliner_data>(state, parent);
 
+
+		if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
+
+			auto grid = std::get<dcon::gp_relationship_id>(content);
+			auto nid = state.world.gp_relationship_get_influence_target(grid);
+
+			for(auto n : state.world.in_nation) {
+				auto targettag = text::produce_simple_string(state, text::get_name(state, nid));
+				auto gptag = text::produce_simple_string(state, text::get_name(state, n));
+
+				if(!nations::is_great_power(state, n) || state.local_player_nation == n)
+					continue;
+
+				auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nid, n);
+				auto influence = state.world.gp_relationship_get_influence(rel);
+
+				auto status = state.world.gp_relationship_get_status(rel);
+
+				if((status & nations::influence::priority_mask) == nations::influence::priority_zero)
+					continue;
+
+				auto nationname = text::produce_simple_string(state, text::get_name(state, n));
+				text::add_line(state, contents, nationname + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")", 0);
+			}
+		}
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve< outliner_data>(state, parent);
@@ -327,7 +353,8 @@ public:
 		auto content = retrieve< outliner_data>(state, parent);
 		if(std::holds_alternative<outliner_filter>(content)) {
 			set_text(state, "");
-		} else if(std::holds_alternative<dcon::army_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::army_id>(content)) {
 			auto army = fatten(state.world, std::get<dcon::army_id>(content));
 			color = bool(army.get_battle_from_army_battle_participation()) ? text::text_color::orange
 				: military::attrition_amount(state, army) > 0.f ? text::text_color::red
@@ -353,7 +380,8 @@ public:
 			auto base_str = ctrl_str + text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, army.get_location_from_army_location().get_name()) + ")";
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::navy_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::navy_id>(content)) {
 
 			auto navy = fatten(state.world, std::get<dcon::navy_id>(content));
 
@@ -379,7 +407,8 @@ public:
 			auto base_str = ctrl_str + text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, navy.get_location_from_navy_location().get_name()) + ")";
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
 			auto grid = std::get<dcon::gp_relationship_id>(content);
 			auto nid = state.world.gp_relationship_get_influence_target(grid);
 			auto status = state.world.gp_relationship_get_status(grid);
@@ -389,7 +418,8 @@ public:
 
 			color = text::text_color::white;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
 			auto st_con = fatten(state.world, std::get<dcon::state_building_construction_id>(content));
 			auto ftid = state.world.state_building_construction_get_type(st_con);
 
@@ -412,7 +442,8 @@ public:
 
 			color = text::text_color::white;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 			auto pbcid = std::get<dcon::province_building_construction_id>(content);
 			auto btid = state.world.province_building_construction_get_type(pbcid);
 			auto name = economy::province_building_type_get_name(economy::province_building_type(btid));
@@ -422,7 +453,8 @@ public:
 
 			color = text::text_color::white;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 			auto plcid = std::get<dcon::province_land_construction_id>(content);
 			auto utid = state.world.province_land_construction_get_type(plcid);
 			auto unitname = utid ? state.military_definitions.unit_base_definitions[utid].name : dcon::text_key{};
@@ -439,7 +471,8 @@ public:
 
 			color = text::text_color::white;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 			auto pncid = std::get<dcon::province_naval_construction_id>(content);
 			auto utid = state.world.province_naval_construction_get_type(pncid);
 			auto unitname = state.military_definitions.unit_base_definitions[utid].name;
@@ -454,7 +487,8 @@ public:
 			auto full_str = res + " (" + text::format_percentage(progress, 0) + ")";
 			color = text::text_color::white;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::state_instance_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::state_instance_id>(content)) {
 			auto siid = std::get<dcon::state_instance_id>(content);
 			auto fat_si = dcon::fatten(state.world, siid);
 			auto fat_nf = dcon::fatten(state.world, siid).get_owner_focus();
@@ -481,37 +515,43 @@ public:
 				color = text::text_color::white;
 				set_text(state, full_str);
 			}
-		} else if(std::holds_alternative<outliner_rebel_occupation>(content)) {
+		}
+		else if(std::holds_alternative<outliner_rebel_occupation>(content)) {
 			auto p = std::get<outliner_rebel_occupation>(content).p;
 
 			auto full_str = text::produce_simple_string(state, state.world.province_get_name(p));
 			color = text::text_color::red;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<outliner_hostile_siege>(content)) {
+		}
+		else if(std::holds_alternative<outliner_hostile_siege>(content)) {
 			auto p = std::get<outliner_hostile_siege>(content).p;
 
 			auto full_str = text::produce_simple_string(state, state.world.province_get_name(p)) + " (" + text::format_percentage(state.world.province_get_siege_progress(p), 0) + ")";
 			color = text::text_color::red;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<outliner_my_siege>(content)) {
+		}
+		else if(std::holds_alternative<outliner_my_siege>(content)) {
 			auto p = std::get<outliner_my_siege>(content).p;
 
 			auto full_str = text::produce_simple_string(state, state.world.province_get_name(p)) + " (" + text::format_percentage(state.world.province_get_siege_progress(p), 0) + ")";
 			color = text::text_color::white;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::land_battle_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::land_battle_id>(content)) {
 			auto p = std::get<dcon::land_battle_id>(content);
 
 			auto full_str = text::produce_simple_string(state, state.world.province_get_name(state.world.land_battle_get_location_from_land_battle_location(p)));
 			color = text::text_color::red;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<dcon::naval_battle_id>(content)) {
+		}
+		else if(std::holds_alternative<dcon::naval_battle_id>(content)) {
 			auto p = std::get<dcon::naval_battle_id>(content);
 
 			auto full_str = text::produce_simple_string(state, state.world.province_get_name(state.world.naval_battle_get_location_from_naval_battle_location(p)));
 			color = text::text_color::red;
 			set_text(state, full_str);
-		} else if(std::holds_alternative<outliner_rally_point>(content)) {
+		}
+		else if(std::holds_alternative<outliner_rally_point>(content)) {
 			auto p = std::get<outliner_rally_point>(content).p;
 
 			auto full_str = text::produce_simple_string(state, state.world.province_get_name(p));
