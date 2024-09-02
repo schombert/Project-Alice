@@ -2048,7 +2048,9 @@ dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon
 	auto reg = fatten(state.world, state.world.create_regiment());
 	reg.set_type(t);
 	// TODO make name
-	reg.set_experience(std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience), 0.f, 1.f));
+	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience);
+	exp += state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level);
+	reg.set_experience(std::clamp(exp, 0.f, 1.f));
 	reg.set_strength(1.f);
 	reg.set_org(1.f);
 	return reg.id;
@@ -4425,15 +4427,22 @@ void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
 	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
 	state.world.leader_set_prestige(l, v);
 }
-void adjust_regiment_experience(sys::state& state, dcon::regiment_id l, float value) {
+void adjust_regiment_experience(sys::state& state, dcon::nation_id n, dcon::regiment_id l, float value) {
 	auto v = state.world.regiment_get_experience(l);
-	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
+
+	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level), 0.f, 1.f);
+
+	v = std::clamp(v + value, min_exp, 1.f); //from regular_experience_level to 100%
+
 	state.world.regiment_set_experience(l, v);
 }
-void adjust_ship_experience(sys::state& state, dcon::ship_id r, float value) {
+void adjust_ship_experience(sys::state& state, dcon::nation_id n, dcon::ship_id r, float value) {
 	auto v = state.world.ship_get_experience(r);
-	v = std::clamp(v + value * state.defines.exp_gain_div, 0.f, 1.f);
-	state.world.ship_set_experience(r, v);
+
+	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level), 0.f, 1.f);
+
+	v = std::clamp(v + value * state.defines.exp_gain_div, min_exp, 1.f);
+	state.world.ship_set_experience(r, v); //from regular_experience_level to 100%
 }
 
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
@@ -5280,7 +5289,7 @@ void update_land_battles(sys::state& state) {
 				cstr -= str_damage;
 				defender_casualties += str_damage;
 
-				adjust_regiment_experience(state, att_back[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
+				adjust_regiment_experience(state, attacking_nation, att_back[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
 
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5322,7 +5331,7 @@ void update_land_battles(sys::state& state) {
 				cstr -= str_damage;
 				attacker_casualties += str_damage;
 
-				adjust_regiment_experience(state, def_back[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
+				adjust_regiment_experience(state, defending_nation, def_back[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
 
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
@@ -5383,7 +5392,7 @@ void update_land_battles(sys::state& state) {
 					cstr -= str_damage;
 					defender_casualties += str_damage;
 
-					adjust_regiment_experience(state, att_front[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
+					adjust_regiment_experience(state, attacking_nation, att_front[i], org_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
 
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -5442,7 +5451,7 @@ void update_land_battles(sys::state& state) {
 					cstr -= str_damage;
 					attacker_casualties += str_damage;
 
-					adjust_regiment_experience(state, def_front[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
+					adjust_regiment_experience(state, defending_nation, def_front[i], org_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
 
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -6896,7 +6905,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			auto curstr = reg.get_regiment().get_strength();
 			auto newstr = std::min(curstr + combined, limit_fraction);
 			reg.get_regiment().set_strength(newstr);
-			adjust_regiment_experience(state, reg.get_regiment(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
+			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
 		}
 	}
 }
@@ -6928,7 +6937,7 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 				auto curstr = reg.get_ship().get_strength();
 				auto newstr = std::min(curstr + repair_val, 1.0f);
 				reg.get_ship().set_strength(newstr);
-				adjust_ship_experience(state, reg.get_ship(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
+				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
 			}
 		}
 	}
