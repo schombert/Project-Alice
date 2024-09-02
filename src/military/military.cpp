@@ -5716,6 +5716,9 @@ void update_naval_battles(sys::state& state) {
 		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
 		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
+		auto atk_leader_exp_mod = 1 + attacker_per.get_experience() + attacker_bg.get_experience();
+		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_per.get_experience();
+
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
 		auto defender_org_bonus =
@@ -5732,6 +5735,10 @@ void update_naval_battles(sys::state& state) {
 			assert((slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_sunk || (slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated || ship_type);
 
 			auto& ship_stats = state.world.nation_get_unit_stats(ship_owner, ship_type);
+
+			auto aship = slots[j].ship;
+			auto aship_owner =
+				state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(aship));
 
 			switch(slots[j].flags & ship_in_battle::mode_mask) {
 			case ship_in_battle::mode_approaching: {
@@ -5792,19 +5799,25 @@ void update_naval_battles(sys::state& state) {
 				define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG (if target has no org) / (target-max-hull x target-experience x 0.1 + 1)
 				*/
 
+				auto& targ_ship_exp = state.world.ship_get_experience(tship);
+
 				float org_damage = org_dam_mul * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
 													 (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult /
 													 ((ship_target_stats.defence_or_hull + 1.0f) * (is_attacker ? defender_org_bonus : attacker_org_bonus) *
 															 (1.0f + state.world.nation_get_modifier_values(ship_target_owner,
-																					 sys::national_mod_offsets::naval_organisation)));
+																					 sys::national_mod_offsets::naval_organisation))
+														 * (1 + targ_ship_exp));
 				float str_damage = str_dam_mul * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
 													 (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_str_mult /
-													 (ship_target_stats.defence_or_hull + 1.0f);
+													 ((ship_target_stats.defence_or_hull + 1.0f) * (1 + targ_ship_exp));
 
 				auto& torg = state.world.ship_get_org(tship);
 				torg = std::max(0.0f, torg - org_damage);
 				auto& tstr = state.world.ship_get_strength(tship);
 				tstr = std::max(0.0f, tstr - str_damage);
+
+				auto leader_exp_mod = (is_attacker ? atk_leader_exp_mod : def_leader_exp_mod);
+				adjust_ship_experience(state, aship_owner, aship, org_damage * 5.f * state.defines.exp_gain_div * leader_exp_mod);
 
 				break;
 			}
