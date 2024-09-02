@@ -4452,7 +4452,8 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 		float def = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_defense_modifier)
 			+ state.world.leader_trait_get_defense(back)
 			+ state.world.leader_trait_get_defense(pers) + 1.0f;
-		scale *= def * morale * org;
+		scale += def * morale * org;
+		scale += state.world.nation_get_has_gas_defense(n) ? 10.f : 0.f;
 	}
 	// terrain defensive bonus
 	float terrain_bonus = state.world.province_get_modifier_values(state.world.army_get_location_from_army_location(a), sys::provincial_mod_offsets::defense);
@@ -4482,7 +4483,8 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 		float atk = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attack_modifier)
 			+ state.world.leader_trait_get_attack(back)
 			+ state.world.leader_trait_get_attack(pers) + 1.0f;
-		scale *= atk * morale * org;
+		scale += atk * morale * org;
+		scale += state.world.nation_get_has_gas_attack(n) ? 10.f : 0.f;
 	}
 	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);

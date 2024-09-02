@@ -3379,6 +3379,9 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 				}
 			}
 		}
+
+		//update leaders
+		military::update_battle_leaders(state, battle);
 	}
 }
 
@@ -3482,6 +3485,8 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 				}
 			}
 		}
+		//update leaders
+		military::update_battle_leaders(state, battle);
 	}
 }
 
@@ -3672,7 +3677,7 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 			regs.push_back(r.get_regiment());
 	}
 	for(auto r : regs)
-		military::disband_regiment_w_pop_transfer(state, r);
+		state.world.delete_regiment(r);
 }
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {

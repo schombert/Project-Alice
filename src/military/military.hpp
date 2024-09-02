@@ -472,6 +472,10 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_battle_id b);
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
+float get_leader_select_score(sys::state& state, dcon::leader_id l);
+void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
+void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
+
 bool rebel_army_in_province(sys::state& state, dcon::province_id p);
 dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
