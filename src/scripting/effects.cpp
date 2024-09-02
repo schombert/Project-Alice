@@ -8,6 +8,8 @@
 #include "rebels.hpp"
 #include "triggers.hpp"
 #include "script_constants.hpp"
+#include "nations.hpp"
+#include "nations_templates.hpp"
 
 namespace effect {
 
@@ -3267,7 +3269,7 @@ uint32_t ef_set_culture_pop(EFFECT_PARAMTERS) {
 	if(auto owner = nations::owner_of_pop(ws, trigger::to_pop(primary_slot)); owner) {
 		auto c = trigger::payload(tval[1]).cul_id;
 		ws.world.pop_set_culture(trigger::to_pop(primary_slot), c);
-		nations::update_pop_acceptance(ws, trigger::to_nation(this_slot));
+		ws.world.pop_set_is_primary_or_accepted_culture(trigger::to_pop(primary_slot), nations::nation_accepts_culture(ws, owner, c));
 	}
 	return 0;
 }

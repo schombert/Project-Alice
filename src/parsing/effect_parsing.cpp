@@ -1423,8 +1423,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 int32_t simplify_effect(uint16_t* source) {
 	auto mask = effect::code_mask;
 	auto firstinvalid = effect::first_invalid_code;
-	auto assertcall = (0 <= (*source & effect::code_mask) && (*source & effect::code_mask) < effect::first_invalid_code);
-	assert(0 <= (*source & effect::code_mask) && (*source & effect::code_mask) < effect::first_invalid_code);
+	assert((*source & effect::code_mask) < effect::first_invalid_code);
 	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
 		auto source_size = 1 + effect::get_effect_scope_payload_size(source);
 

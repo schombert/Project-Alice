@@ -4467,7 +4467,7 @@ static void post_chat_message(sys::state& state, ui::chat_message& m) {
 		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
 			state.ui_state.chat_messages_index = 0;
 		notification::post(state, notification::message{
-			[&m](sys::state& state, text::layout_base& contents) {
+			[m](sys::state& state, text::layout_base& contents) {
 				text::add_line(state, contents, "msg_chat_message_1", text::variable_type::x, m.source);
 				text::add_line(state, contents, "msg_chat_message_2", text::variable_type::x, m.body);
 			},
