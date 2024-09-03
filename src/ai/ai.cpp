@@ -75,14 +75,6 @@ void update_ai_general_status(sys::state& state) {
 			self_str += 0.75f * float(subj.get_subject().get_military_score());
 		float defensive_str = estimate_defensive_strength(state, n);
 
-		// Include strength of allies in threat calculation. 0.75f to factor for allies not joining war.
-		for(const auto rel : state.world.nation_get_diplomatic_relation(n)) {
-			auto n2 = rel.get_related_nations(rel.get_related_nations(0) == n ? 1 : 0);
-			if(rel.get_are_allied()) {
-				defensive_str += estimate_defensive_strength(state, n2) * 0.75f;
-			}
-		}
-
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
 		state.world.nation_set_ai_is_threatened(n, threatened);
 
