@@ -75,6 +75,14 @@ void update_ai_general_status(sys::state& state) {
 			self_str += 0.75f * float(subj.get_subject().get_military_score());
 		float defensive_str = estimate_defensive_strength(state, n);
 
+		// Include strength of allies in threat calculation. 0.75f to factor for allies not joining war.
+		for(const auto rel : state.world.nation_get_diplomatic_relation(n)) {
+			auto n2 = rel.get_related_nations(rel.get_related_nations(0) == n ? 1 : 0);
+			if(rel.get_are_allied()) {
+				defensive_str += estimate_defensive_strength(state, n2) * 0.75f;
+			}
+		}
+
 		bool threatened = defensive_str < safety_factor * greatest_neighbor;
 		state.world.nation_set_ai_is_threatened(n, threatened);
 
@@ -288,7 +296,6 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	// No more than 4 alliances
 	if(bool(state.defines.alice_artificial_gp_limitant) && state.world.nation_get_is_great_power(target)) {
 		int32_t gp_count = 0;
-		int32_t alli_count = 0;
 		for(const auto rel : state.world.nation_get_diplomatic_relation(from)) {
 			auto n = rel.get_related_nations(rel.get_related_nations(0) == from ? 1 : 0);
 			if(rel.get_are_allied() && n.get_is_great_power()) {
@@ -296,12 +303,6 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 					return false;
 				}
 				++gp_count;
-			}
-			if(rel.get_are_allied()) {
-				if(alli_count >= 4) {
-					return false;
-				}
-				++alli_count;
 			}
 		}
 	}
