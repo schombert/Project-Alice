@@ -426,16 +426,27 @@ public:
 	}
 };
 
+template<class T>
 class unit_experience_bar : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto regiment = retrieve<dcon::regiment_id>(state, parent);
-		frame = int(state.world.regiment_get_experience(regiment)* 10);
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			auto regiment = retrieve<dcon::regiment_id>(state, parent);
+			frame = int(state.world.regiment_get_experience(regiment) * 10);
+		} else {
+			auto ship = retrieve<dcon::ship_id>(state, parent);
+			frame = int(state.world.ship_get_experience(ship) * 10);
+		}
 	}
 
 	void on_create(sys::state& state) noexcept override {
-		auto regiment = retrieve<dcon::regiment_id>(state, parent);
-		frame = int(state.world.regiment_get_experience(regiment) * 10);
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			auto regiment = retrieve<dcon::regiment_id>(state, parent);
+			frame = int(state.world.regiment_get_experience(regiment) * 10);
+		} else {
+			auto ship = retrieve<dcon::ship_id>(state, parent);
+			frame = int(state.world.ship_get_experience(ship) * 10);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -443,17 +454,23 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto regiment = retrieve<dcon::regiment_id>(state, parent);
-		auto exp = state.world.regiment_get_experience(regiment);
-		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "unit_experience");
-		text::add_space_to_layout_box(state, contents, box);
-		if(exp > 0) {
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			auto regiment = retrieve<dcon::regiment_id>(state, parent);
+			auto exp = state.world.regiment_get_experience(regiment);
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "unit_experience");
+			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::green);
+			text::close_layout_box(contents, box);
 		} else {
-			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::red);
+			auto ship = retrieve<dcon::ship_id>(state, parent);
+			auto exp = state.world.ship_get_experience(ship);
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "unit_experience");
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ exp }, text::text_color::green);
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -908,7 +925,7 @@ public:
 		} else if(name == "rebel_faction") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "unit_experience") {
-			return make_element_by_type<unit_experience_bar>(state, id);
+			return make_element_by_type<unit_experience_bar<dcon::regiment_id>>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<subunit_organisation_progress_bar<dcon::regiment_id>>(state, id);
 		} else if(name == "str_bar") {
@@ -941,7 +958,7 @@ public:
 		} else if(name == "rebel_faction") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "unit_experience") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<unit_experience_bar<dcon::ship_id>>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<subunit_organisation_progress_bar<dcon::ship_id>>(state, id);
 		} else if(name == "str_bar") {
