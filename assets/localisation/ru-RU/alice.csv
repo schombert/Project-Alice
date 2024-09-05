@@ -934,6 +934,7 @@ monthly_emigration_lab;Ежемесячная эмиграция в (топ-10)
 monthly_immigration_lab;Ежемесячная иммиграция из (топ-10)
 im_em_header;Прогнозируемая иммиграция/эмиграция для
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?! истощение
+unit_arrival_time_text;Прибудет $date$
 ol_unit_standing_text;$m$ $n$/$x$/$y$
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
 unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)

@@ -3889,6 +3889,32 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
 }
 
+int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
+	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
+	float distance = province::distance(state, adj);
+	float sum_mods = state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) +
+		state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost);
+	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
+
+	float effective_speed = effective_army_speed(state, a);
+
+	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	assert(days > 0);
+	return days;
+}
+int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
+	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
+	float distance = province::distance(state, adj);
+	float sum_mods = state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) +
+		state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost);
+	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
+
+	float effective_speed = effective_navy_speed(state, n);
+
+	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	return days;
+}
+
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
 	auto current_location = state.world.army_get_location_from_army_location(a);
 	auto adj = state.world.get_province_adjacency_by_province_pair(current_location, p);

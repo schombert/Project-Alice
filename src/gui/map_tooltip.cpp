@@ -1,6 +1,7 @@
 #include "map_tooltip.hpp"
 #include "demographics.hpp"
 #include "rebels.hpp"
+#include "commands.hpp"
 #include "unit_tooltip.hpp"
 
 namespace ui {
@@ -82,6 +83,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::supply_limit, true);
 		ui::active_modifiers_description(state, contents, fat, 0, sys::provincial_mod_offsets::supply_limit, true);
 
+		// Supply in the target province tooltip
 		for(const auto a : state.selected_armies) {
 			auto controller = dcon::fatten(state.world, state.local_player_nation);
 			ui::unitamounts amounts = ui::calc_amounts_from_army(state, dcon::fatten(state.world, a));
@@ -96,6 +98,47 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			box = text::open_layout_box(contents);
 			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 			text::close_layout_box(contents, box);
+
+			// Army arrival time tooltip
+			auto army = dcon::fatten(state.world, a);
+			auto path = command::can_move_army(state, state.local_player_nation, a, prov);
+			
+			if(army.get_arrival_time() && *(army.get_path().end()) == prov) {
+				sub = text::substitution_map{};
+				text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
+				resolved = text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
+				box = text::open_layout_box(contents);
+
+				text::add_to_layout_box(state, contents, box, resolved, text::text_color::white);
+				text::close_layout_box(contents, box);
+			}
+			else {
+				auto dt = state.current_date;
+				auto curprov = army.get_army_location().get_location().id;
+
+				for(const auto provonpath : path) {
+					dt += military::movement_time_from_to(state, a, curprov, provonpath);
+					curprov = provonpath;
+				}
+
+				sub = text::substitution_map{};
+				text::add_to_substitution_map(sub, text::variable_type::date, dt);
+
+				resolved = text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
+
+				box = text::open_layout_box(contents);
+
+				if(state.current_date + 15 > dt) {
+					text::add_to_layout_box(state, contents, box, resolved, text::text_color::green);
+				}
+				else if(state.current_date + 30 < dt) {
+					text::add_to_layout_box(state, contents, box, resolved, text::text_color::red);
+				}
+				else {
+					text::add_to_layout_box(state, contents, box, resolved, text::text_color::yellow);
+				}
+				text::close_layout_box(contents, box);
+			}
 		}
 	} else if(state.selected_navies.size() > 0) {
 		text::add_line(state, contents, "alice_supply_limit_desc", text::variable_type::x, text::int_wholenum{ military::supply_limit_in_province(state, state.local_player_nation, fat) });
