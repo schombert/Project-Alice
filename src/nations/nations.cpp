@@ -1044,7 +1044,7 @@ float get_treasury(sys::state& state, dcon::nation_id n) {
 }
 
 float get_bank_funds(sys::state& state, dcon::nation_id n) {
-	return 0.0f;
+	return economy::max_loan(state, n);
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {

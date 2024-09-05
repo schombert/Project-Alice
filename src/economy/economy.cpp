@@ -76,7 +76,7 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 	*/
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
-	return std::max(0.0f, total_tax_base * mod);
+	return std::max(0.0f, (total_tax_base + state.world.nation_get_national_bank(n)) * mod);
 }
 
 int32_t most_recent_price_record_index(sys::state& state) {
@@ -724,9 +724,40 @@ void initialize(sys::state& state) {
 			total += current;
 		});
 
+		// remove continental restriction if failed:
+		if(total == 0.f) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			assert(total > 0.f && std::isfinite(total));
+				float climate_d = per_climate_distribution_buffer[climate.value][c.value];
+				float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
+				float current = (climate_d + terrain_d) * (climate_d + terrain_d);
+				true_distribution[c.index()] = current;
+				total += current;
+			});
+		}
+
+		// make it into uniform distrubution on available goods then...
+		if(total == 0.f) {
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				if(state.world.commodity_get_money_rgo(c)) {
+					return;
+				}
+				if(!state.world.commodity_get_is_available_from_start(c)) {
+					return;
+				}
+				float current = 1.f;
+				true_distribution[c.index()] = current;
+				total += current;
+			});
+		}
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			assert(std::isfinite(total));
+			// if everything had failed for some reason, then assume 0 distribution: main rgo is still active
+			if(total == 0.f) {
+				true_distribution[c.index()] = 0.f;
+			} else {
 			true_distribution[c.index()] /= total;
+			}
 		});
 
 		// distribution of rgo land per good		
@@ -2416,6 +2447,27 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 				total_budget -= total_budget * state.defines.alice_invest_aristocrat;
 			}
 
+			//handle savings before luxury goods spending
+			if(nation_allows_investment && (t == state.culture_definitions.aristocrat || t == state.culture_definitions.capitalists)) {
+				if(total_budget > en_cost) {
+					if(t == state.culture_definitions.capitalists) {
+						state.world.nation_get_national_bank(n) += total_budget * state.defines.alice_save_capitalist;
+						total_budget -= total_budget * state.defines.alice_save_capitalist;
+					} else {
+						state.world.nation_get_national_bank(n) += total_budget * state.defines.alice_save_aristocrat;
+						total_budget -= total_budget * state.defines.alice_save_aristocrat;
+					}
+				} else if (state.world.nation_get_national_bank(n) > en_cost - total_budget) {
+					if(t == state.culture_definitions.capitalists) {
+						state.world.nation_get_national_bank(n) -= en_cost - total_budget;
+						total_budget += en_cost - total_budget;
+					} else {
+						state.world.nation_get_national_bank(n) -= en_cost - total_budget;
+						total_budget += en_cost - total_budget;
+					}
+				}
+			}
+
 			float everyday_needs_fraction = (total_budget >= en_cost ? en_to_satisfy : std::max(0.0f, total_budget / en_cost));
 			total_budget -= en_cost;
 
@@ -3187,7 +3239,19 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			float spending_scale = 0.0f;
 			if(state.world.nation_get_is_player_controlled(n)) {
 				auto& sp = state.world.nation_get_stockpiles(n, economy::money);
-				sp -= interest_payment(state, n);
+
+				/*
+				BANKRUPTCY
+				*/
+				auto ip = interest_payment(state, n);
+				// To become bankrupt nation should be unable to cover its interest payments with its actual money or more loans
+				if(sp < ip && sp < -max_loan(state, n)) {
+					go_bankrupt(state, n);
+				}
+				if(ip > 0) {
+					sp -= ip;
+					state.world.nation_get_national_bank(n) += ip;
+				}
 
 				if(can_take_loans(state, n)) {
 					budget = total;
@@ -3199,6 +3263,12 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			} else {
 				budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
 				spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+
+				auto& sp = state.world.nation_get_stockpiles(n, economy::money);
+
+				if(sp < 0 && sp < -max_loan(state, n)) {
+					go_bankrupt(state, n);
+				}
 			}
 
 			assert(spending_scale >= 0);
@@ -3985,18 +4055,6 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 
 				n.get_stockpiles(money) -= capped_payout;
 				uni.get_target().get_stockpiles(money) += capped_payout;
-			}
-		}
-	}
-
-	/*
-	BANKRUPTCY
-	*/
-	for(auto n : state.world.in_nation) {
-		auto m = n.get_stockpiles(money);
-		if(m < 0) {
-			if(m < -max_loan(state, n)) {
-				go_bankrupt(state, n);
 			}
 		}
 	}

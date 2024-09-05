@@ -672,8 +672,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_overhire_multiplier, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_production_scale_neg_delta, 0.001) \
-	LUA_DEFINES_LIST_ELEMENT(alice_invest_capitalist, 0.125) \
-	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.025) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_capitalist, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.0125) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.025) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.0125) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.20) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.40) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.40) \
