@@ -97,24 +97,21 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			auto resolved = text::resolve_string_substitution(state, "alice_unit_relative_attrition", sub);
 			box = text::open_layout_box(contents);
 			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
-			text::close_layout_box(contents, box);
 
 			// Army arrival time tooltip
 			auto army = dcon::fatten(state.world, a);
 			auto path = command::can_move_army(state, state.local_player_nation, a, prov);
-			
-			if(army.get_arrival_time() && *(army.get_path().end()) == prov) {
+			auto curprov = army.get_army_location().get_location().id;
+
+			if (path.size() == 0) { /* No available route */ }
+			else if(army.get_arrival_time() && *(army.get_path().end()) == prov) {
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
-				resolved = text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
-				box = text::open_layout_box(contents);
-
+				resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
 				text::add_to_layout_box(state, contents, box, resolved, text::text_color::white);
-				text::close_layout_box(contents, box);
 			}
 			else {
 				auto dt = state.current_date;
-				auto curprov = army.get_army_location().get_location().id;
 
 				for(const auto provonpath : path) {
 					dt += military::movement_time_from_to(state, a, curprov, provonpath);
@@ -124,9 +121,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, dt);
 
-				resolved = text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
-
-				box = text::open_layout_box(contents);
+				resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
 
 				if(state.current_date + 15 > dt) {
 					text::add_to_layout_box(state, contents, box, resolved, text::text_color::green);
@@ -137,13 +132,71 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				else {
 					text::add_to_layout_box(state, contents, box, resolved, text::text_color::yellow);
 				}
-				text::close_layout_box(contents, box);
 			}
+
+			text::close_layout_box(contents, box);
 		}
 	} else if(state.selected_navies.size() > 0) {
 		text::add_line(state, contents, "alice_supply_limit_desc", text::variable_type::x, text::int_wholenum{ military::supply_limit_in_province(state, state.local_player_nation, fat) });
 		ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::supply_limit, true);
 		ui::active_modifiers_description(state, contents, fat, 0, sys::provincial_mod_offsets::supply_limit, true);
+
+		for(const auto n : state.selected_navies) {
+			auto navy = dcon::fatten(state.world, n);
+			unitamounts amounts = calc_amounts_from_navy(state, navy);
+			auto path = command::can_move_navy(state, state.local_player_nation, n, prov);
+			auto curprov = navy.get_navy_location().get_location().id;
+
+			/* No available route */
+			if(path.size() == 0 && prov != curprov) {
+			}
+			else {
+				box = text::open_layout_box(contents);
+
+				text::substitution_map sub{};
+				auto unit_name = state.to_string_view(navy.get_name());
+				text::add_to_substitution_map(sub, text::variable_type::m, unit_name);
+				text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
+				text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
+				text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
+
+				auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
+				text::add_to_layout_box(state, contents, box, base_str, text::text_color::white);
+
+				// Navy arrival time tooltip
+				// Zero arrival time to current province
+				if(prov == curprov) {
+				}
+				else if(navy.get_arrival_time() && *(navy.get_path().end()) == prov) {
+					sub = text::substitution_map{};
+					text::add_to_substitution_map(sub, text::variable_type::date, navy.get_arrival_time());
+					auto resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
+					text::add_to_layout_box(state, contents, box, resolved, text::text_color::white);
+				} else {
+					auto dt = state.current_date;
+
+					for(const auto provonpath : path) {
+						dt += military::movement_time_from_to(state, n, curprov, provonpath);
+						curprov = provonpath;
+					}
+
+					sub = text::substitution_map{};
+					text::add_to_substitution_map(sub, text::variable_type::date, dt);
+
+					auto resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
+
+					if(state.current_date + 15 > dt) {
+						text::add_to_layout_box(state, contents, box, resolved, text::text_color::green);
+					} else if(state.current_date + 30 < dt) {
+						text::add_to_layout_box(state, contents, box, resolved, text::text_color::red);
+					} else {
+						text::add_to_layout_box(state, contents, box, resolved, text::text_color::yellow);
+					}
+				}
+
+				text::close_layout_box(contents, box);
+			}
+		}
 	}
 }
 
