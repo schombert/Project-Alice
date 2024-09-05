@@ -100,10 +100,11 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 			// Army arrival time tooltip
 			auto army = dcon::fatten(state.world, a);
-			auto path = command::can_move_army(state, state.local_player_nation, a, prov);
+			auto path = command::calculate_army_path(state, state.local_player_nation, a, army.get_location_from_army_location(), prov);
 			auto curprov = army.get_army_location().get_location().id;
 
 			if (path.size() == 0) { /* No available route */ }
+
 			else if(army.get_arrival_time() && *(army.get_path().end()) == prov) {
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
@@ -144,7 +145,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		for(const auto n : state.selected_navies) {
 			auto navy = dcon::fatten(state.world, n);
 			unitamounts amounts = calc_amounts_from_navy(state, navy);
-			auto path = command::can_move_navy(state, state.local_player_nation, n, prov);
+			auto path = command::calculate_navy_path(state, state.local_player_nation, n, navy.get_location_from_navy_location(), prov);
 			auto curprov = navy.get_navy_location().get_location().id;
 
 			/* No available route */

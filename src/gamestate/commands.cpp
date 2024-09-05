@@ -3171,12 +3171,18 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	if(!dest)
 		return std::vector<dcon::province_id>{}; // stop movement
 
+	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
 	auto last_province = state.world.army_get_location_from_army_location(a);
 	auto movement = state.world.army_get_path(a);
 	if(movement.size() > 0) {
 		last_province = movement.at(0);
 	}
 
+	return calculate_army_path(state, source, a, last_province, dest);
+}
+
+
+std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest) {
 	if(last_province == dest)
 		return std::vector<dcon::province_id>{};
 
@@ -3403,11 +3409,18 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 	if(!dest)
 		return std::vector<dcon::province_id>{}; // stop movement
 
+	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
 	auto last_province = state.world.navy_get_location_from_navy_location(n);
 	auto movement = state.world.navy_get_path(n);
 	if(movement.size() > 0) {
 		last_province = movement.at(0);
 	}
+
+	return calculate_navy_path(state, source, n, last_province, dest);
+}
+
+
+std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest) {
 
 	if(last_province == dest)
 		return std::vector<dcon::province_id>{};
