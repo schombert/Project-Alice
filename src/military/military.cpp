@@ -3154,7 +3154,7 @@ void add_truce_between_sides(sys::state& state, dcon::war_id w, int32_t months) 
 
 		auto attacker = this_par.get_is_attacker();
 
-		for(int32_t j = i + 1; j < num_par; ++j) {
+		for(int32_t j = 0; j < num_par; ++j) {
 			auto other_par = *(wpar.begin() + j);
 			auto other_nation = other_par.get_nation();
 
@@ -3241,13 +3241,12 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	}
 
 	if(war) {
+		auto truce_months = military::peace_offer_truce_months(state, offer);
 		// remove successful WG
 		auto offer_range = state.world.peace_offer_get_peace_offer_item(offer);
 		while(offer_range.begin() != offer_range.end()) {
 			state.world.delete_wargoal((*offer_range.begin()).get_wargoal());
 		}
-
-		auto truce_months = military::peace_offer_truce_months(state, offer);
 
 		if((state.world.war_get_primary_attacker(war) == from && state.world.war_get_primary_defender(war) == target)
 			|| (contains_sq && military::is_attacker(state, war, from))) {
