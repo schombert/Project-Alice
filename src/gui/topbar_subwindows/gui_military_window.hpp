@@ -151,6 +151,10 @@ public:
 		set_text(state, text::format_percentage(v, 0));
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, false);
