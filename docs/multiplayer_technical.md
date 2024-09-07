@@ -40,7 +40,9 @@ We send a copy of the save to the client, ultra-compressed, to permit it to conn
 
 ### Hot-join
 
-A new functionality is hotjoining to running sessions - the client may connect to the host and the host will assign them a random nation, usually uncivilized ones, if they wish to change their nation then they'll have to ask the host to go back to the lobby. This is a small measure to prevent abuse or random people entering games to ruin them, given the assumption most people will be choosing great powers.
+A new functionality is hotjoining to running sessions - the client may connect to the host and the host will assign them a random nation, if they wish to change their nation then they'll have to ask the host to go back to the lobby.
+
+When people rejoin the game, they are placed on the same country they had. Countries are not transferred to AI control till rehosting.
 
 ### Out-of-sync (OOS)
 

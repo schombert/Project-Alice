@@ -475,9 +475,21 @@ static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_
 // non-platform specific
 //
 
+static dcon::nation_id get_player_nation(sys::state& state, sys::player_name name) {
+	// Reassign player to his previous nation if any
+
+	if(state.network_state.map_of_countries.contains(name.to_string_view())) {
+		return state.network_state.map_of_countries[name.to_string_view()];
+	}
+
+	return dcon::nation_id{ };
+}
+
 static dcon::nation_id get_temp_nation(sys::state& state) {
-	// give the client a "joining" nation, basically a temporal nation choosen
+	// On join or hotjoin give the client a "joining" nation, basically a temporal nation choosen
 	// "randomly" that is tied to the client iself
+
+
 	for(auto n : state.nations_by_rank)
 		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
 			bool is_taken = false;
@@ -542,6 +554,19 @@ static void disconnect_client(sys::state& state, client_data& client, bool grace
 	client.handshake = true;
 }
 
+void clear_socket(sys::state& state, client_data& client) {
+	socket_shutdown(client.socket_fd);
+	client.socket_fd = 0;
+	client.send_buffer.clear();
+	client.early_send_buffer.clear();
+	client.total_sent_bytes = 0;
+	client.save_stream_size = 0;
+	client.save_stream_offset = 0;
+	client.playing_as = dcon::nation_id{};
+	client.recv_count = 0;
+	client.handshake = true;
+}
+
 static uint8_t* write_network_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
 	uint32_t decompressed_length = uncompressed_size;
 	uint32_t section_length = uint32_t(ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size), ptr_in,
@@ -580,6 +605,25 @@ bool client_data::is_banned(sys::state& state) const {
 static void send_post_handshake_commands(sys::state& state, network::client_data& client) {
 	std::vector<char> tmp = client.send_buffer;
 	client.send_buffer.clear();
+
+	// Don't allow two players with the same nickname
+	/*for(auto& c : state.network_state.clients) {
+		if(!c.is_active()) {
+			continue;
+		}
+
+		if(c.hshake_buffer.nickname.to_string_view() == client.hshake_buffer.nickname.to_string_view()) {
+			disconnect_client(state, client, false);
+			return;
+		}
+	}*/
+
+	/* Reassign this client to his real nation */
+	auto plnation = get_player_nation(state, client.hshake_buffer.nickname);
+	if(plnation) {
+		client.playing_as = plnation;
+	}
+
 	if(state.current_scene.starting_scene) {
 		/* Send the savefile to the newly connected client (if not a new game) */
 		if(!state.network_state.is_new_game) {
@@ -611,13 +655,14 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
 					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
-					state.console_log("host:send:cmd: (new(2)->others_join) " + std::to_string(n.id.index()));
+					state.console_log("host:send:cmd: (new(2)->others_join) " + std::to_string(n.id.index()) + " | " + std::to_string(sizeof(c)));
 #endif
 				}
 			}
 		}
 	} else if(state.current_scene.game_in_progress) {
-		{ /* Tell this client about every other client */
+		{
+			/* Tell this client about every other client */
 			command::payload c;
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_joins;
@@ -625,6 +670,11 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				if(n == client.playing_as) {
 					c.source = client.playing_as;
 					c.data.player_name = client.hshake_buffer.nickname;
+
+					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+
 					broadcast_to_clients(state, c);
 					command::execute_command(state, c);
 #ifndef NDEBUG
@@ -912,6 +962,7 @@ void send_and_receive_commands(sys::state& state) {
 			} else {
 				if(client.send_buffer.size() > 0) {
 					size_t old_size = client.send_buffer.size();
+					// this gets called if hotjoin is done before unpause
 					int r = socket_send(client.socket_fd, client.send_buffer);
 					if(r != 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
@@ -1111,7 +1162,7 @@ void finish(sys::state& state, bool notify_host) {
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_leaves;
 			c.source = state.local_player_nation;
-			c.data.notify_leave.make_ai = true;
+			c.data.notify_leave.make_ai = false;
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 			while(state.network_state.send_buffer.size() > 0) {
 				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
@@ -1150,7 +1201,11 @@ void kick_player(sys::state& state, client_data& client) {
 }
 
 void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
+	// Even though it should be here logically, it breaks the game
+	// state.network_state.map_of_player_names.insert_or_assign(old_n.index(), sys::player_name{});
 	state.network_state.map_of_player_names.insert_or_assign(new_n.index(), state.network_state.map_of_player_names[old_n.index()]);
+	state.network_state.map_of_countries.insert_or_assign(state.network_state.map_of_player_names[old_n.index()].to_string_view(), new_n);
+
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(!client.is_active())

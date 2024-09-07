@@ -4531,8 +4531,30 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 	return true;
 }
 void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
-	state.world.nation_set_is_player_controlled(source, true);
+
+	if(state.network_state.map_of_countries.contains(name.to_string_view())) {
+		auto oldnation = state.network_state.map_of_countries[name.to_string_view()];
+
+		if (oldnation != source)
+			state.world.nation_set_is_player_controlled(oldnation, false);
+	}
+ 	state.world.nation_set_is_player_controlled(source, true);
 	state.network_state.map_of_player_names.insert_or_assign(source.index(), name);
+	state.network_state.map_of_countries.insert_or_assign(name.to_string_view(), source);
+
+	// Server is moving us to another country
+	if(name.to_string_view() == state.network_state.nickname.to_string_view() && state.local_player_nation != source) {
+		assert(source && source != state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
+
+		state.world.nation_set_is_player_controlled(state.local_player_nation, false);
+
+		state.local_player_nation = source;
+
+		// We will also re-assign all chat messages from this nation to the new one
+		for(auto& msg : state.ui_state.chat_messages)
+			if(bool(msg.source) && msg.source == state.local_player_nation)
+				msg.source = source;
+	}
 
 	ui::chat_message m{};
 	m.source = source;
@@ -4560,6 +4582,14 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool ma
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
 	if(make_ai) {
 		state.world.nation_set_is_player_controlled(source, false);
+	}
+
+	if(state.network_mode == sys::network_mode_type::host) {
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active() && client.playing_as == source) {
+				network::clear_socket(state, client);
+			}
+		}
 	}
 
 	ui::chat_message m{};
@@ -4762,6 +4792,13 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	state.fill_unsaved_data();
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
+	 
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
+	m.body = text::resolve_string_substitution(state, "chat_player_reload", sub);
+	post_chat_message(state, m);
 }
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {

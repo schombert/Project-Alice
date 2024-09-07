@@ -878,6 +878,8 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 
 - Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
 - Units start with max strength and org after being built
+- Regiments cannot get experience lower than regular_experience_level given by tech.
+- Regiments can get experience lower than land_unit_start_experience.
 
 ### Unit construction
 
