@@ -1945,7 +1945,7 @@ public:
 		} else if(name == "topbarbutton_trade") {
 			auto btn = make_element_by_type<topbar_trade_tab_button>(state, id);
 
-			auto tab = make_element_by_type<trade_window>(state, "country_trade");
+			auto tab = make_element_by_type<trade_window>(state, "alice_country_trade");
 			btn->topbar_subwindow = tab.get();
 
 			state.ui_state.trade_subwindow = tab.get();

@@ -41,6 +41,7 @@ inline constexpr GLuint interactable_disabled = 14;
 inline constexpr GLuint subsprite_b = 15;
 inline constexpr GLuint alternate_tint = 16;
 inline constexpr GLuint linegraph_color = 17;
+inline constexpr GLuint transparent_color = 18;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -311,6 +312,8 @@ void render_tinted_textured_rect(sys::state const& state, float x, float y, floa
 		GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
 void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y,
 		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_tinted_rect(sys::state const& state, float x, float y, float width, float height,
+	float r, float g, float b, ui::rotation rot, bool flipped, bool rtl);
 void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
 		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
 void render_new_text(sys::state const& state, text::stored_glyphs const& txt, color_modification enabled, float x,

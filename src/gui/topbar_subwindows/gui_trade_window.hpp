@@ -4,9 +4,9 @@
 #include "economy.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "widgets/table.hpp"
 
 namespace ui {
-
 
 class commodity_price_text : public simple_text_element_base {
 public:
@@ -1249,6 +1249,139 @@ public:
 	}
 };
 
+std::string name_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::get_name_as_string(
+		state,
+		dcon::fatten(state.world, item)
+	);
+};
+
+bool compare_price(sys::state& state, const dcon::commodity_id a, const  dcon::commodity_id b) {
+	auto price_a = state.world.commodity_get_current_price(a);
+	auto price_b = state.world.commodity_get_current_price(b);
+	return price_a < price_b;
+}
+
+std::string price_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::format_money(state.world.commodity_get_current_price(item));
+};
+std::string supply_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::format_float(state.world.commodity_get_total_production(item));
+};
+std::string demand_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::format_float(state.world.commodity_get_total_real_demand(item));
+};
+std::string balance_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	auto supply = state.world.commodity_get_total_production(item);
+	auto demand = state.world.commodity_get_total_real_demand(item);
+	auto balance = supply - demand;
+	return text::format_float(balance);
+};
+std::string stockpile_market_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::format_float(state.world.commodity_get_global_market_pool(item));
+};
+std::string stockpile_player_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, item));
+};
+std::string stockpile_target_player_view_commodity_id(sys::state& state, dcon::commodity_id item) {
+	return text::format_float(state.world.nation_get_stockpile_targets(state.local_player_nation, item));
+};
+
+bool compare_name(sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+	auto value_a = text::get_name_as_string(
+		state,
+		dcon::fatten(state.world, a)
+	);
+	auto value_b = text::get_name_as_string(
+		state,
+		dcon::fatten(state.world, b)
+	);
+	return value_a < value_b;
+}
+bool compare_supply(sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+	auto value_a = state.world.commodity_get_total_production(a);
+	auto value_b = state.world.commodity_get_total_production(b);
+	return value_a < value_b;
+}
+bool compare_demand(sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+	auto value_a = state.world.commodity_get_total_real_demand(a);
+	auto value_b = state.world.commodity_get_total_real_demand(b);
+	return value_a < value_b;
+}
+bool compare_balance(sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+	auto supply_a = state.world.commodity_get_total_production(a);
+	auto demand_a = state.world.commodity_get_total_real_demand(a);
+	auto balance_a = supply_a - demand_a;
+
+	auto supply_b = state.world.commodity_get_total_production(b);
+	auto demand_b = state.world.commodity_get_total_real_demand(b);
+	auto balance_b = supply_b - demand_b;
+
+	return balance_a < balance_b;
+}
+bool compare_stockpile_market(sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+	auto value_a = state.world.commodity_get_global_market_pool(a);
+	auto value_b = state.world.commodity_get_global_market_pool(b);
+	return value_a < value_b;
+}
+bool compare_stockpile_player(sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+	auto value_a = state.world.nation_get_stockpiles(state.local_player_nation, a);
+	auto value_b = state.world.nation_get_stockpiles(state.local_player_nation, b);
+	return value_a < value_b;
+}
+
+table::column<dcon::commodity_id> trade_good_name_column = {
+	.sortable = true,
+	.header = "trade_good_name_header",
+	.compare = compare_name,
+	.view = name_view_commodity_id,
+	.cell_definition_string = "thin_cell_name",
+	.header_definition_string = "thin_cell_name"
+};
+table::column<dcon::commodity_id> trade_good_price_column = {
+	.sortable = true,
+	.header = "price",
+	.compare = compare_price,
+	.view = price_view_commodity_id,
+	.cell_definition_string = "thin_cell_number"
+};
+
+table::column<dcon::commodity_id> trade_good_supply_column = {
+	.sortable = true,
+	.header = "supply",
+	.compare = compare_supply,
+	.view = supply_view_commodity_id,
+	.cell_definition_string = "thin_cell_number"
+};
+table::column<dcon::commodity_id> trade_good_demand_column = {
+	.sortable = true,
+	.header = "demand",
+	.compare = compare_demand,
+	.view = demand_view_commodity_id,
+	.cell_definition_string = "thin_cell_number"
+};
+table::column<dcon::commodity_id> trade_good_balance_column = {
+	.sortable = true,
+	.header = "balance",
+	.compare = compare_balance,
+	.view = balance_view_commodity_id,
+	.cell_definition_string = "thin_cell_number"
+};
+table::column<dcon::commodity_id> trade_good_market_stockpile_column = {
+	.sortable = true,
+	.header = "market",
+	.compare = compare_stockpile_market,
+	.view = stockpile_market_view_commodity_id,
+	.cell_definition_string = "thin_cell_number"
+};
+table::column<dcon::commodity_id> trade_good_player_stockpile_column = {
+	.sortable = true,
+	.header = "nation",
+	.compare = compare_stockpile_player,
+	.view = stockpile_player_view_commodity_id,
+	.cell_definition_string = "thin_cell_number"
+};
+
 class trade_details_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1575,9 +1708,6 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto btn = make_element_by_type<stockpile_buy_from_stockpile_hint>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_buy_from_stockpile"))->second.definition);
-		add_child_to_front(std::move(btn));
-
 		auto ptr = make_element_by_type<trade_flow_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("trade_flow"))->second.definition);
 		trade_flow_win = ptr.get();
 		add_child_to_front(std::move(ptr));
@@ -1604,7 +1734,28 @@ public:
 			auto ptr = make_element_by_type<trade_stockpile_listbox>(state, id);
 			list_sp = ptr.get();
 			return ptr;
-		} else if(name == "group_raw_material_goods") {
+		} else if(name == "commodity_table") {
+			std::vector<table::column<dcon::commodity_id>> columns = {
+				trade_good_name_column,
+				trade_good_price_column,
+				trade_good_supply_column,
+				trade_good_demand_column,
+				trade_good_balance_column,
+				trade_good_market_stockpile_column,
+				trade_good_player_stockpile_column,
+			};
+			auto ptr = make_element_by_type<table::display<dcon::commodity_id>>(
+				state,
+				id,
+				std::string("commodity_table_body"),
+				columns
+			);
+			table::display<dcon::commodity_id>* pointer_to_table = ptr.get();
+			state.world.for_each_commodity([&](dcon::commodity_id id) {
+				pointer_to_table->content.data.push_back(id);
+			});
+			return ptr;
+		/* } else if(name == "group_raw_material_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::raw_material_goods>>(state, id);
 		} else if(name == "group_industrial_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::industrial_goods>>(state, id);
@@ -1612,6 +1763,7 @@ public:
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::consumer_goods>>(state, id);
 		} else if(name == "group_military_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::military_goods>>(state, id);
+		*/
 		} else if(name == "government_needs_list") {
 			auto ptr = make_element_by_type<trade_government_needs_listbox>(state, id);
 			list_gn = ptr.get();

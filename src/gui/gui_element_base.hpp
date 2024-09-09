@@ -142,6 +142,17 @@ inline void send(sys::state& state, element_base* parent, T value) {
 	}
 }
 
+template<typename T>
+inline T send_and_retrieve(sys::state& state, element_base* parent, T value) {
+	if(parent) {
+		Cyto::Any payload = value;
+		parent->impl_get(state, payload);
+		return any_cast<T>(payload);
+	} else {
+		return T{};
+	}
+}
+
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
 		int32_t this_slot = -1, int32_t from_slot = -1);
 void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,

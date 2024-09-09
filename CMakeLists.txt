@@ -45,6 +45,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/graphics/texture.cpp"
 	"src/gui/gui_common_elements.cpp"
 	"src/gui/gui_effect_tooltips.cpp"
+	"src/gui/widgets/table.cpp"
 	"src/gui/gui_graphics.cpp"
 	"src/gui/gui_leader_select.cpp"
 	"src/gui/gui_leader_tooltip.cpp"
