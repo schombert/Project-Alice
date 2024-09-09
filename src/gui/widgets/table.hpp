@@ -44,7 +44,7 @@ struct column {
 	std::string header = "???";
 	std::function<bool(sys::state& state, const item_type & a, const item_type & b)> compare;
 	std::function<std::string(sys::state& state, const item_type& a)> view;
-	std::string cell_definition_string;
+	std::string cell_definition_string="thin_cell_number";
 	std::string header_definition_string="thin_cell_number";
 };
 
@@ -136,6 +136,9 @@ struct table_signal_cell_hover {
 	uint8_t column;
 	uint8_t row;
 };
+struct table_signal_scroll {
+	float scroll_amount;
+};
 
 template<typename item_type>
 class entry : public ui::button_element_base {
@@ -187,6 +190,18 @@ public:
 
 		return result;
 	}
+
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type t) noexcept override {
+		return ui::message_result::consumed;
+	}
+
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		table_signal_scroll signal{ };
+		signal.scroll_amount = amount;
+		send<table_signal_scroll>(state, parent, signal);
+
+		return ui::message_result::consumed;
+	}
 };
 
 template<class item_type>
@@ -200,16 +215,19 @@ public:
 template<typename item_type>
 class body : public ui::container_base {
 protected:
-	_scrollbar<item_type>* list_scrollbar = nullptr;
 public:
+	_scrollbar<item_type>* list_scrollbar = nullptr;
 	std::vector<entry<item_type>*> cells{};
 	int32_t scroll_pos;
 	uint8_t columns;
 	uint8_t rows;
+	float scroll_impulse;
 
 	body(uint8_t in_columns, uint8_t in_rows) {
+		scroll_pos = 0;
 		columns = in_columns;
 		rows = in_rows;
+		scroll_impulse = 0;
 	}
 
 	void update(sys::state& state) {
@@ -248,7 +266,22 @@ public:
 		list_scrollbar->scale_to_parent();
 		update(state);
 	}
-	
+
+	ui::message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<table_signal_scroll>()) {
+			table_signal_scroll signal = any_cast<table_signal_scroll>(payload);
+			auto amount = signal.scroll_amount;
+			auto rows_visible = cells.size() / columns;
+			auto content_off_screen = int32_t(rows - rows_visible);
+			if(content_off_screen > 0) {	
+				// for the sake of smooth scrolling:
+				scroll_impulse += amount > 0 ? 1 : -1;
+			} else {
+				scroll_impulse = 0.f;
+			}
+		}
+		return ui::container_base::get(state, payload);
+	}
 };
 
 template<typename item_type>
@@ -373,6 +406,26 @@ public:
 	
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept {
+		//smooth scolling
+		constexpr float dt = 0.99f;
+
+		float impulse = table_body->scroll_impulse;
+		if(impulse > dt) {
+			table_body->scroll_impulse -= dt;
+		} else if (impulse < -dt) {
+			table_body->scroll_impulse += dt;
+		} else {
+			table_body->scroll_impulse = 0;
+		}
+
+		// if we jumped to another step: make a step
+		if(std::floor(impulse) != std::floor(table_body->scroll_impulse)) {
+			table_body->list_scrollbar->update_raw_value(state, table_body->list_scrollbar->raw_value() + (impulse < 0 ? 1 : -1));
+			state.ui_state.last_tooltip = nullptr; //force update of tooltip
+			table_body->update(state);
+		}
+
+
 		float tinted_column_x = (float)x;
 		for(uint8_t i = 0; i < hovered_column; i++) {
 			float width = (float)(widths[i]);

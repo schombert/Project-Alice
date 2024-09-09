@@ -1382,6 +1382,58 @@ table::column<dcon::commodity_id> trade_good_player_stockpile_column = {
 	.cell_definition_string = "thin_cell_number"
 };
 
+
+table::column<dcon::commodity_id> trade_good_player_gov_needs = {
+	.sortable = true,
+	.header = "gov_need",
+	.compare = [](sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+		auto av = economy::government_consumption(state, state.local_player_nation, a);
+		auto bv = economy::government_consumption(state, state.local_player_nation, b);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, dcon::commodity_id id) {
+		auto value = economy::government_consumption(state, state.local_player_nation, id);
+		return text::format_float(value);
+	}
+};
+
+table::column<dcon::commodity_id> trade_good_player_factory_needs = {
+	.sortable = true,
+	.header = "factory_need",
+	.compare = [](sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+		auto av = economy::nation_factory_consumption(state, state.local_player_nation, a);
+		auto bv = economy::nation_factory_consumption(state, state.local_player_nation, b);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, dcon::commodity_id id) {
+		auto value = economy::nation_factory_consumption(state, state.local_player_nation, id);
+		return text::format_float(value);
+	}
+};
+
+table::column<dcon::commodity_id> trade_good_player_pop_needs = {
+	.sortable = true,
+	.header = "pop_need",
+	.compare = [](sys::state& state, dcon::commodity_id a, dcon::commodity_id b) {
+		auto av = economy::nation_pop_consumption(state, state.local_player_nation, a);
+		auto bv = economy::nation_pop_consumption(state, state.local_player_nation, b);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, dcon::commodity_id id) {
+		auto value = economy::nation_pop_consumption(state, state.local_player_nation, id);
+		return text::format_float(value);
+	}
+};
+
 class trade_details_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1743,6 +1795,9 @@ public:
 				trade_good_balance_column,
 				trade_good_market_stockpile_column,
 				trade_good_player_stockpile_column,
+				trade_good_player_gov_needs,
+				trade_good_player_factory_needs,
+				trade_good_player_pop_needs
 			};
 			auto ptr = make_element_by_type<table::display<dcon::commodity_id>>(
 				state,
@@ -1763,7 +1818,6 @@ public:
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::consumer_goods>>(state, id);
 		} else if(name == "group_military_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::military_goods>>(state, id);
-		*/
 		} else if(name == "government_needs_list") {
 			auto ptr = make_element_by_type<trade_government_needs_listbox>(state, id);
 			list_gn = ptr.get();
@@ -1776,6 +1830,7 @@ public:
 			auto ptr = make_element_by_type<trade_pop_needs_listbox>(state, id);
 			list_pn = ptr.get();
 			return ptr;
+		*/
 		} else if(name == "trade_details") {
 			auto ptr = make_element_by_type<trade_details_window>(state, id);
 			details_win = ptr.get();

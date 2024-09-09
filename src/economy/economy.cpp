@@ -1449,6 +1449,11 @@ float factory_output_multiplier(sys::state& state, dcon::factory_fat_id fac, dco
 		+ 1.0f;
 }
 
+float factory_max_production_scale_non_modified(sys::state& state, dcon::factory_fat_id fac) {
+	return fac.get_primary_employment()
+		* fac.get_level();
+}
+
 float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied) {
 	return fac.get_primary_employment()
 		* fac.get_level()
@@ -4358,6 +4363,80 @@ float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodi
 
 float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
 	auto amount = 0.f;
+	for(auto ownership : state.world.nation_get_province_ownership(n)) {
+		for(auto location : state.world.province_get_factory_location(ownership.get_province())) {
+			// factory
+			auto f = state.world.factory_location_get_factory(location);
+			auto p = ownership.get_province();
+			auto s = p.get_state_membership();
+			auto fac = fatten(state.world, f);
+			auto fac_type = fac.get_building_type();
+
+			// assume that all inputs are available
+			float min_input_available = 1.f;
+			float min_e_input_available = 1.f;
+
+			//modifiers
+
+			float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
+			float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s);
+			float output_multiplier = factory_output_multiplier(state, fac, n, p);
+
+			//this value represents total production if 1 lvl of this factory is filled with workers
+			float total_production = fac_type.get_output_amount()
+				* (0.75f + 0.25f * min_e_input_available)
+				* throughput_multiplier
+				* output_multiplier
+				* min_input_available;
+
+			float effective_production_scale = fac.get_production_scale();
+
+			auto& inputs = fac_type.get_inputs();
+			auto& e_inputs = fac_type.get_efficiency_inputs();
+
+			// register real demand : input_multiplier * throughput_multiplier * level * primary_employment
+			// also multiply by target production scale... otherwise too much excess demand is generated
+			// also multiply by something related to minimal satisfied input
+			// to prevent generation of too much demand on rgos already influenced by a shortage
+
+			float input_scale =
+				input_multiplier
+				* throughput_multiplier
+				* effective_production_scale
+				* (0.1f + min_input_available * 0.9f);
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(inputs.commodity_type[i]) {
+					if(inputs.commodity_type[i] == c) {
+						amount +=
+							+input_scale * inputs.commodity_amounts[i];
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+
+			// and for efficiency inputs
+			//  the consumption of efficiency inputs is (national-factory-maintenance-modifier + 1) x input-multiplier x
+			//  throughput-multiplier x factory level
+			auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
+			for(uint32_t i = 0; i < small_commodity_set::set_size; ++i) {
+				if(e_inputs.commodity_type[i]) {
+					if(e_inputs.commodity_type[i] == c) {
+						amount +=
+							mfactor
+							* input_scale
+							* e_inputs.commodity_amounts[i]
+							* (0.1f + min_e_input_available * 0.9f);
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+		}
+	}
 	return amount;
 }
 
