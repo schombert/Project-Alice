@@ -126,15 +126,27 @@ template<typename item_type>
 class sort_button : public ui::button_element_base {
 public:
 	uint8_t column;
+	std::string name;
 
-	sort_button(uint8_t in_column) {
+	sort_button(uint8_t in_column, std::string in_name) {
 		column = in_column;
+		name = in_name;
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		sort_signal signal = { };
 		signal.column = column;
 		send(state, parent, signal);
+	}
+
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return ui::tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view(name));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -400,7 +412,8 @@ public:
 			auto ptr = ui::make_element_by_type<sort_button<item_type>>(
 				state,
 				def,
-				column_index
+				column_index,
+				column.header
 			);
 			ptr->base_data.position.x += offset_x;
 			ptr->set_button_text(state, text::produce_simple_string(state, column.header));
