@@ -39,13 +39,27 @@ struct sort_data {
 };
 
 template<typename item_type>
+void tooltip_fallback (sys::state& state, text::columnar_layout& contents, const item_type& a, std::string fallback) {
+	auto box = text::open_layout_box(contents, 0);
+	text::localised_format_box(state, contents, box, std::string_view(fallback));
+	text::close_layout_box(contents, box);
+}
+
+template<typename item_type>
 struct column {
 	bool sortable = true;
 	std::string header = "???";
-	std::function<bool(sys::state& state, const item_type & a, const item_type & b)> compare;
-	std::function<std::string(sys::state& state, const item_type& a)> view;
+	std::function<bool(sys::state& state, ui::element_base* container, const item_type & a, const item_type & b)> compare;
+	std::function<std::string(sys::state& state, ui::element_base* container, const item_type& a)> view;
+	std::function<void(
+		sys::state& state,
+		text::columnar_layout& contents,
+		const item_type& a,
+		std::string fallback
+	)> update_tooltip = tooltip_fallback<item_type>;
 	std::string cell_definition_string="thin_cell_number";
 	std::string header_definition_string="thin_cell_number";
+	bool has_tooltip = false;
 };
 
 template<typename item_type>
@@ -81,14 +95,14 @@ struct data {
 		sort_priority.push_back(new_sort_data);
 	}
 
-	void update_rows_order(sys::state& state) {
+	void update_rows_order(sys::state& state, ui::element_base* container) {
 		for(auto& order : sort_priority) {
 			if(order.order == sort_order::ascending) {
 				std::sort(
 					data.begin(),
 					data.end(),
 					[&](const item_type& a, const item_type& b) {
-						return columns[order.sorted_index].compare(state, a, b);
+						return columns[order.sorted_index].compare(state, container, a, b);
 					}
 				);
 			} else {
@@ -96,7 +110,7 @@ struct data {
 					data.begin(),
 					data.end(),
 					[&](const item_type& a, const item_type& b) {
-						return columns[order.sorted_index].compare(state, b, a);
+						return columns[order.sorted_index].compare(state, container, b, a);
 					}
 				);
 			}
@@ -136,8 +150,25 @@ struct table_signal_cell_hover {
 	uint8_t column;
 	uint8_t row;
 };
+
+struct table_signal_cell_click {
+	uint8_t column;
+	uint8_t row;
+};
+
 struct table_signal_scroll {
 	float scroll_amount;
+};
+
+struct table_has_tooltip_signal {
+	bool has_tooltip = false;
+	uint8_t column;
+};
+
+struct table_tooltip_callback_signal {
+	text::columnar_layout* tooltip_layout;
+	uint8_t column;
+	uint8_t row;
 };
 
 template<typename item_type>
@@ -168,27 +199,15 @@ public:
 		signal.row = row;
 
 		send<table_signal_cell_hover>(state, parent, signal);
-
-		/*
-		int16_t offset_x = 0;
-		hovered_column = 0;
-		column_is_hovered = false;
-		for(uint8_t column_index = 0; column_index < content.columns.size(); column_index++) {
-			auto width = widths[column_index];
-			if(x > offset_x && x < offset_x + width) {
-				column_is_hovered = true;
-				hovered_column = column_index;
-			}
-			offset_x += width;
-		}
-
-		if(table_body != nullptr) {
-			table_body->rows = (uint8_t)content.data.size();
-			table_body->update(state);
-		}
-		*/
-
 		return result;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		table_signal_cell_click signal = { };
+		signal.column = column;
+		signal.row = row;
+
+		send<table_signal_cell_click>(state, parent, signal);
 	}
 
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type t) noexcept override {
@@ -201,6 +220,25 @@ public:
 		send<table_signal_scroll>(state, parent, signal);
 
 		return ui::message_result::consumed;
+	}
+
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		table_has_tooltip_signal signal = { };
+		signal.column = column;
+		signal = send_and_retrieve<table_has_tooltip_signal>(state, parent, signal);
+		if(signal.has_tooltip) {
+			return ui::tooltip_behavior::tooltip;
+		} else {
+			return ui::tooltip_behavior::no_tooltip;
+		}
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		table_tooltip_callback_signal signal { };
+		signal.row = row;
+		signal.column = column;
+		signal.tooltip_layout = &contents;
+		send<table_tooltip_callback_signal>(state, parent, signal);
 	}
 };
 
@@ -220,7 +258,7 @@ public:
 	std::vector<entry<item_type>*> cells{};
 	int32_t scroll_pos;
 	uint8_t columns;
-	uint8_t rows;
+	uint16_t rows;
 	float scroll_impulse;
 
 	body(uint8_t in_columns, uint8_t in_rows) {
@@ -232,7 +270,7 @@ public:
 
 	void update(sys::state& state) {
 		auto rows_visible = cells.size() / columns;
-		auto content_off_screen = int32_t(rows - rows_visible);
+		auto content_off_screen = int32_t(rows) - int32_t(rows_visible);
 
 		scroll_pos = list_scrollbar->raw_value();
 		if(content_off_screen <= 0) {
@@ -282,6 +320,10 @@ public:
 		}
 		return ui::container_base::get(state, payload);
 	}
+
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
 };
 
 template<typename item_type>
@@ -297,10 +339,14 @@ public:
 	uint8_t hovered_row = 0;
 	bool column_is_hovered = false;
 
+	std::function<void(sys::state& state, ui::element_base* container, const item_type& a)> row_callback;
 
 	display(std::string body_definition, std::vector<column<item_type>> columns) {
 		content.columns = columns;
 		body_def = body_definition;
+		row_callback = [](sys::state& state, ui::element_base* container, const item_type& a) {
+			return;
+		};
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -357,7 +403,7 @@ public:
 				column_index
 			);
 			ptr->base_data.position.x += offset_x;
-			ptr->set_button_text(state, column.header);
+			ptr->set_button_text(state, text::produce_simple_string(state, column.header));
 
 			widths.push_back(ptr->base_data.size.x);
 			offset_x += ptr->base_data.size.x;
@@ -371,7 +417,7 @@ public:
 			auto index = signal.column;
 			if((uint16_t)signal.row + (uint16_t)(table_body->scroll_pos) < (uint16_t)content.data.size()) {
 				auto raw_data = content.data[signal.row + table_body->scroll_pos];
-				signal.text_to_set = content.columns[index].view(state, raw_data);
+				signal.text_to_set = content.columns[index].view(state, this, raw_data);
 			} else {
 				signal.text_to_set = "???";
 			}
@@ -388,22 +434,43 @@ public:
 			sort_signal signal = any_cast<sort_signal>(payload);
 			content.toggle_sort_column_by_index(signal.column);
 			on_update(state);
+			return ui::message_result::consumed;
 		} else if(payload.holds_type<table_signal_cell_hover>()) {
 			table_signal_cell_hover signal = any_cast<table_signal_cell_hover>(payload);
 			hovered_column = signal.column;
 			hovered_row = signal.row;
+			return ui::message_result::consumed;
+		} else if(payload.holds_type<table_signal_cell_click>()) {
+			table_signal_cell_click signal = any_cast<table_signal_cell_click>(payload);
+			if((uint16_t)signal.row + (uint16_t)(table_body->scroll_pos) < (uint16_t)content.data.size()) {
+				row_callback(state, this, content.data[signal.row + table_body->scroll_pos]);
+			}
+			return ui::message_result::consumed;
+		} else if(payload.holds_type<table_has_tooltip_signal>()) {
+			table_has_tooltip_signal signal = any_cast<table_has_tooltip_signal>(payload);
+			signal.has_tooltip = content.columns[signal.column].has_tooltip;
+			payload.emplace<table_has_tooltip_signal>(signal);
+			return ui::message_result::consumed;
+		} else if(payload.holds_type<table_tooltip_callback_signal>()) {
+			table_tooltip_callback_signal signal = any_cast<table_tooltip_callback_signal>(payload);
+			content.columns[signal.column].update_tooltip(
+				state,
+				*(signal.tooltip_layout),
+				content.data[signal.row],
+				content.columns[signal.column].header
+			);
+			return ui::message_result::consumed;
 		}
 		return ui::container_base::get(state, payload);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		content.update_rows_order(state);
+		content.update_rows_order(state, this);
 		if(table_body != nullptr) {
-			table_body->rows = (uint8_t)content.data.size();
+			table_body->rows = (uint16_t)content.data.size();
 			table_body->update(state);
 		}
 	}
-	
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept {
 		//smooth scolling
