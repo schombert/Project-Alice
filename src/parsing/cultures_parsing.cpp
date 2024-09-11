@@ -566,13 +566,11 @@ void read_pending_technology(dcon::technology_id id, token_generator& gen, error
 }
 
 dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
-			trigger::slot_contents::empty};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_value_modifier(gen, err, t_context);
 }
 dcon::trigger_key make_inv_limit(token_generator& gen, error_handler& err, invention_context& context) {
-	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
-			trigger::slot_contents::empty};
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 

@@ -1805,7 +1805,7 @@ struct open_investment_nation {
 	dcon::nation_id id;
 };
 
-table::column<dcon::factory_type_id> factory_type_name = {
+inline table::column<dcon::factory_type_id> factory_type_name = {
 	.sortable = true,
 	.header = "method_name",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
@@ -1824,7 +1824,7 @@ table::column<dcon::factory_type_id> factory_type_name = {
 	.header_definition_string = "thin_cell_name"
 };
 
-table::column<dcon::factory_type_id> factory_type_input_cost = {
+inline table::column<dcon::factory_type_id> factory_type_input_cost = {
 	.sortable = true,
 	.header = "method_input",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
@@ -1841,7 +1841,7 @@ table::column<dcon::factory_type_id> factory_type_input_cost = {
 	},
 };
 
-table::column<dcon::factory_type_id> factory_type_output_cost = {
+inline table::column<dcon::factory_type_id> factory_type_output_cost = {
 	.sortable = true,
 	.header = "method_output",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
@@ -1858,7 +1858,7 @@ table::column<dcon::factory_type_id> factory_type_output_cost = {
 	},
 };
 
-table::column<dcon::factory_type_id> factory_type_profit = {
+inline table::column<dcon::factory_type_id> factory_type_profit = {
 	.sortable = true,
 	.header = "method_profit",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
@@ -1878,7 +1878,7 @@ table::column<dcon::factory_type_id> factory_type_profit = {
 	},
 };
 
-table::column<dcon::factory_type_id> factory_type_profit_margin = {
+inline table::column<dcon::factory_type_id> factory_type_profit_margin = {
 	.sortable = true,
 	.header = "method_margin",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
@@ -1903,7 +1903,7 @@ table::column<dcon::factory_type_id> factory_type_profit_margin = {
 	},
 };
 
-table::column<dcon::factory_type_id> factory_type_cost = {
+inline table::column<dcon::factory_type_id> factory_type_cost = {
 	.sortable = true,
 	.header = "method_cost",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
@@ -1921,7 +1921,7 @@ table::column<dcon::factory_type_id> factory_type_cost = {
 	},
 };
 
-table::column<dcon::factory_type_id> factory_type_payback = {
+inline table::column<dcon::factory_type_id> factory_type_payback = {
 	.sortable = true,
 	.header = "method_payback",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {

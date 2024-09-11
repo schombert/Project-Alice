@@ -20,7 +20,7 @@ enum sort_order {
 	descending
 };
 
-sort_order toggle_sort_order(const sort_order order) {
+inline sort_order toggle_sort_order(const sort_order order) {
 	switch(order) {
 	case sort_order::undefined:
 		return sort_order::ascending;
@@ -254,19 +254,18 @@ public:
 	}
 };
 
-template<class item_type>
-class _scrollbar : public ui::autoscaling_scrollbar {
-public:
-	void on_value_change(sys::state& state, int32_t v) noexcept override;
-};
-
-
 
 template<typename item_type>
 class body : public ui::container_base {
 protected:
+	class _scrollbar : public ui::autoscaling_scrollbar {
+	public:
+		void on_value_change(sys::state& state, int32_t v) noexcept override {
+			static_cast<body*>(parent)->update(state);
+		};
+	};
 public:
-	_scrollbar<item_type>* list_scrollbar = nullptr;
+	_scrollbar* list_scrollbar = nullptr;
 	std::vector<entry<item_type>*> cells{};
 	int32_t scroll_pos;
 	uint8_t columns;
@@ -310,8 +309,8 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		ui::container_base::on_create(state);
 
-		auto ptr = ui::make_element_by_type<_scrollbar<item_type>>(state, "standardlistbox_slider");
-		list_scrollbar = static_cast<_scrollbar<item_type>*>(ptr.get());
+		auto ptr = ui::make_element_by_type<_scrollbar>(state, "standardlistbox_slider");
+		list_scrollbar = static_cast<_scrollbar*>(ptr.get());
 		add_child_to_front(std::move(ptr));
 		list_scrollbar->scale_to_parent();
 		update(state);
