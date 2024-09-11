@@ -1218,3 +1218,31 @@ alice_battleplanner_delete_army_group;Delete army group
 fab_explain_8;Doesn't have a truce
 alice_reform_support_header;Political support for this reform (a total of 50% or greater is required to choose the reform)
 alice_no_current_support;Currently there is no political support for this reform
+trade_global_data;World
+trade_nation_data;Domestic
+trade_good_stats_global;Nations
+trade_good_name_header;Trade good
+price;Price
+supply;Supply
+demand;Demand
+balance;Balance
+market_stockpiles;In stock
+national_stockpile;Stockpile
+government_need;Government procurement
+factory_need;Factory inputs
+pop_need;Population needs
+rgo_production;RGO output
+artisan_production;Artisans output
+factory_production;Factories output
+artisan_distribution;Artisans priorities
+produced_nation;Production
+consumed_nation;Consumption
+nation_name;Nation
+demanded_nation;Demand
+method_name;Name
+method_input;Inputs cost
+method_output;Outputs cost
+method_profit;Profit (expected)
+method_margin;Margin
+method_cost;Build cost
+method_payback;Payback time

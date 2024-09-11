@@ -181,6 +181,9 @@ rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_
 float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
 float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, dcon::commodity_id c);
 
+float factory_type_output_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_id factory_type);
+float factory_type_input_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_id factory_type);
+float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_id factory_type);
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
