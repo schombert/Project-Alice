@@ -484,7 +484,7 @@ public:
 		}
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept {
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		//smooth scolling
 		constexpr float dt = 0.99f;
 
