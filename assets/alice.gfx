@@ -499,6 +499,22 @@ spriteTypes = {
         name = "bg-280-50-border-gold-paper"
         texturefile = "assets\\bg-280-50.png"
     }
+    
+    spriteType = {
+        name = "bg-1022-822"
+        texturefile = "assets\\bg-1022-822.png"
+    }
+    
+    spriteType = {
+        name = "bg-150-100"
+        texturefile = "assets\\bg-150-100.png"
+    }
+    
+    spriteType = {
+        name = "bg-100-60"
+        texturefile = "assets\\bg-100-60.png"
+    }
+    
     spriteType = {
         name = "button-280-50-border-gold-paper"
         texturefile = "assets\\button-280-50.png"

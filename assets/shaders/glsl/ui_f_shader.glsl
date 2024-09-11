@@ -96,6 +96,11 @@ vec4 linegraph_color(vec2 tc) {
 	return vec4(inner_color, 1.0);
 }
 
+//layout(index = 18) subroutine(font_function_class)
+vec4 transparent_color(vec2 tc) {
+	return vec4(inner_color, 0.5);
+}
+
 //layout(index = 3) subroutine(color_function_class)
 vec4 disabled_color(vec4 color_in) {
 	float amount = (color_in.r + color_in.g + color_in.b) / 4.0;
@@ -137,6 +142,7 @@ case 10: return barchart(tc);
 case 11: return linegraph(tc);
 case 15: return subsprite_b(tc);
 case 17: return linegraph_color(tc);
+case 18: return transparent_color(tc);
 default: break;
 	}
 	return vec4(0.f, 0.f, 1.f, 1.f);
