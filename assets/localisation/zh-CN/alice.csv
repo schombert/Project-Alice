@@ -1191,8 +1191,8 @@ alice_pnt_culture;?Y主体民族：?!$x$
 alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
-ledger_ppp_gdp;GDP(PPP)
-ledger_ppp_gdp_per_capita;每百万人 GDP（PPP）
+ledger_ppp_gdp;购买力平价GDP
+ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
 an_assigned_leader;已分配的将领
 macro_new_template;新建
 make_province_religion;省份人群变为$text$
