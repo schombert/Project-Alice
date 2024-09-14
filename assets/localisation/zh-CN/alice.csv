@@ -1218,3 +1218,31 @@ alice_battleplanner_delete_army_group;删除集团军群
 fab_explain_8;没有休战
 alice_reform_support_header;该改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
 alice_no_current_support;目前这项改革尚未得到政治支持
+trade_global_data;国际
+trade_nation_data;国内
+trade_good_stats_global;国家
+trade_good_name_header;商品
+price;价格
+supply;供给
+demand;需求
+balance;平衡
+market_stockpiles;库存
+national_stockpile;库存
+government_need;政府采购
+factory_need;工厂输入
+pop_need;民众需求
+rgo_production;RGO 产出
+artisan_production;手工业者产出
+factory_production;工厂产出
+artisan_distribution;手工业者优先级
+produced_nation;生产
+consumed_nation;消费
+nation_name;国家
+demanded_nation;需求
+method_name;名称
+method_input;输入成本
+method_output;产出成本
+method_profit;利润（预计）
+method_margin;差值
+method_cost;建设成本
+method_payback;回本时间
