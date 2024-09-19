@@ -4699,6 +4699,15 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	p.type = command_type::notify_player_oos;
 	p.source = source;
 	add_to_command_queue(state, p);
+	if(state.network_mode == sys::network_mode_type::host) {
+#ifndef NDEBUG
+		state.console_log("host:send:cmd | type=notify_player_oos");
+#endif
+
+		// Send new save to all clients
+		network::full_reset_after_oos(state);
+		// Start with zero speed
+	}
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	state.actual_game_speed = 0; //pause host immediately
@@ -4710,6 +4719,10 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);
+
+#ifndef NDEBUG
+	state.console_log("client:rcv:cmd | type=notify_player_oos from:" + std::to_string(source.index()));
+#endif
 }
 
 void advance_tick(sys::state& state, dcon::nation_id source) {

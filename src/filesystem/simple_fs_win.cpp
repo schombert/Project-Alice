@@ -363,6 +363,22 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 	}
 }
 
+void append_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size) {
+	if(dir.parent_system)
+		std::abort();
+
+	native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
+	HANDLE file_handle = CreateFileW(full_path.c_str(), FILE_APPEND_DATA, 0, nullptr, OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+	if(file_handle != INVALID_HANDLE_VALUE) {
+		DWORD written_bytes = 0;
+		WriteFile(file_handle, file_data, DWORD(file_size), &written_bytes, nullptr);
+		(void)written_bytes;
+		SetEndOfFile(file_handle);
+		CloseHandle(file_handle);
+	}
+}
+
 file_contents view_contents(file const& f) {
 	return f.content;
 }

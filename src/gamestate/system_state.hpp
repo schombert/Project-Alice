@@ -741,6 +741,7 @@ struct alignas(64) state {
 	void preload(); // clears data that will be later reconstructed from saved values
 
 	void console_log(std::string_view message);
+	void log_player_nations();
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
 

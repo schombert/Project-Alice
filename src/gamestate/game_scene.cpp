@@ -6,7 +6,7 @@
 #include "gui_chat_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
-
+#include "simple_fs.hpp"
 
 namespace game_scene {
 
@@ -701,21 +701,21 @@ void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers
 	}
 }
 
-void console_log_pick_nation(sys::state& state, std::string_view message) {
-	OutputDebugStringA(std::string(message).c_str());
-
-	/*if(state.ui_state.console_window_r != nullptr) {
-		Cyto::Any payload = std::string(message);
-		state.ui_state.console_window_r->impl_get(state, payload);
-		if(true && !(state.ui_state.console_window_r->is_visible())) {
-			state.ui_state.nation_picker->move_child_to_front(state.ui_state.console_window_r);
-			state.ui_state.console_window_r->set_visible(state, true);
-		}
-	}*/
-}
-
 void console_log_other(sys::state& state, std::string_view message) {
-	OutputDebugStringA((std::string(message) + "\n").c_str());
+	auto msg = std::string(message);
+	msg = "{" + std::string(state.network_state.nickname.to_string_view()) + "} " + msg;
+	OutputDebugStringA((msg + "\n").c_str());
+
+	auto folder = simple_fs::get_or_create_data_dumps_directory();
+
+	msg += "\n";
+
+	simple_fs::append_file(
+			folder,
+			NATIVE("console_log.txt"),
+			msg.c_str(),
+			uint32_t(msg.size())
+	);
 	/*if(state.ui_state.console_window) {
 		Cyto::Any payload = std::string(message);
 		state.ui_state.console_window->impl_get(state, payload);
