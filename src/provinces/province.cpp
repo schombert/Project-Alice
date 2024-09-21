@@ -716,6 +716,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			if(state.world.province_get_building_level(id, uint8_t(economy::province_building_type::naval_base)) > 0)
 				state.world.state_instance_set_naval_base_is_taken(new_si, true);
 
+			auto new_market = state.world.create_market();
+			auto new_local_market = state.world.force_create_local_market(new_market, new_si);
+
 			state_is_new = true;
 		} else {
 			auto sc = state.world.state_instance_get_capital(new_si);
@@ -841,7 +844,11 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		if(!a_province) {
 			if(old_si == state.crisis_state)
 				nations::cleanup_crisis(state);
+			auto local_market = state.world.state_instance_get_market_from_local_market(old_si);
+
+			state.world.delete_market(local_market);
 			state.world.delete_state_instance(old_si);
+
 		} else if(state.world.state_instance_get_capital(old_si) == id) {
 			state.world.state_instance_set_capital(old_si, a_province);
 		}

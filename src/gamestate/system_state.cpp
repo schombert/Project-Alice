@@ -2839,25 +2839,37 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_employment_per_good(world.commodity_size());
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
-	world.nation_resize_domestic_market_pool(world.commodity_size());
-	world.nation_resize_real_demand(world.commodity_size());
-	world.nation_resize_intermediate_demand(world.commodity_size());
+	world.market_resize_price(world.commodity_size());
+	world.market_resize_supply(world.commodity_size());
+	world.market_resize_demand(world.commodity_size());
+	world.market_resize_stockpile(world.commodity_size());
+	world.market_resize_consumption(world.commodity_size());
+	world.market_resize_intermediate_demand(world.commodity_size());
+
+	world.market_resize_life_needs_costs(world.pop_type_size());
+	world.market_resize_everyday_needs_costs(world.pop_type_size());
+	world.market_resize_luxury_needs_costs(world.pop_type_size());
+	world.market_resize_life_needs_scale(world.pop_type_size());
+	world.market_resize_everyday_needs_scale(world.pop_type_size());
+	world.market_resize_luxury_needs_scale(world.pop_type_size());
+	world.market_resize_max_life_needs_satisfaction(world.pop_type_size());
+	world.market_resize_max_everyday_needs_satisfaction(world.pop_type_size());
+	world.market_resize_max_luxury_needs_satisfaction(world.pop_type_size());
+
+	world.market_resize_import(world.commodity_size());
+	world.market_resize_export(world.commodity_size());
+	world.market_resize_army_demand(world.commodity_size());
+	world.market_resize_navy_demand(world.commodity_size());
+	world.market_resize_construction_demand(world.commodity_size());
+	world.market_resize_private_construction_demand(world.commodity_size());
+	world.market_resize_demand_satisfaction(world.commodity_size());
+	world.market_resize_direct_demand_satisfaction(world.commodity_size());
+	world.market_resize_life_needs_weights(world.commodity_size());
+	world.market_resize_everyday_needs_weights(world.commodity_size());
+	world.market_resize_luxury_needs_weights(world.commodity_size());
+
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
-	world.nation_resize_life_needs_costs(world.pop_type_size());
-	world.nation_resize_everyday_needs_costs(world.pop_type_size());
-	world.nation_resize_luxury_needs_costs(world.pop_type_size());
-	world.nation_resize_imports(world.commodity_size());
-	world.nation_resize_army_demand(world.commodity_size());
-	world.nation_resize_navy_demand(world.commodity_size());
-	world.nation_resize_construction_demand(world.commodity_size());
-	world.nation_resize_private_construction_demand(world.commodity_size());
-	world.nation_resize_demand_satisfaction(world.commodity_size());
-	world.nation_resize_direct_demand_satisfaction(world.commodity_size());
-	world.nation_resize_life_needs_weights(world.commodity_size());
-	world.nation_resize_everyday_needs_weights(world.commodity_size());
-	world.nation_resize_luxury_needs_weights(world.commodity_size());
-	world.nation_resize_effective_prices(world.commodity_size());
 	world.commodity_resize_price_record(economy::price_history_length);
 	world.nation_resize_gdp_record(economy::gdp_history_length);
 
@@ -4076,7 +4088,7 @@ void state::single_game_tick() {
 		}
 	});
 
-	economy::daily_update(*this, true);
+	economy::daily_update(*this, false);
 
 	military::recover_org(*this);
 	military::update_siege_progress(*this);
@@ -4321,7 +4333,7 @@ void state::single_game_tick() {
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
-			c.set_price_record(index, c.get_current_price());
+			c.set_price_record(index, economy::price(*this, c));
 		}
 	}
 

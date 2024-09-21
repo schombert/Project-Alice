@@ -413,7 +413,6 @@ struct cheat_data_s {
 	std::string prices_dump_buffer;
 	std::string demand_dump_buffer;
 	std::string supply_dump_buffer;
-	std::string demand_by_category_dump_buffer;
 
 	bool instant_navy = false;
 	bool always_allow_decisions = false;

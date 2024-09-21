@@ -78,11 +78,13 @@ public:
 		float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
 		float admin_cost_factor =  (2.0f - admin_eff) * factory_mod;
 
+		auto s = retrieve<dcon::state_instance_id>(state, parent);
+
 		auto total = 0.0f;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 			auto cid = name.commodity_type[i];
 			if(bool(cid)) {
-				total += state.world.commodity_get_current_price(cid) * name.commodity_amounts[i] * admin_cost_factor;
+				total += economy::price(state, s, cid) * name.commodity_amounts[i] * admin_cost_factor;
 			}
 		} // Credit to leaf for this code :3
 		return text::format_money(total);
@@ -141,18 +143,21 @@ public:
 		text::add_line(state, contents, "alice_factory_base_workforce", text::variable_type::x, state.world.factory_type_get_base_workforce(content));
 		//
 		text::add_line(state, contents, "alice_factory_inputs");
+
+		auto s = retrieve<dcon::state_instance_id>(state, parent);
+
 		auto const& cset = state.world.factory_type_get_inputs(content);
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 			if(cset.commodity_type[i] && cset.commodity_amounts[i] > 0.0f) {
 				auto amount = cset.commodity_amounts[i];
 				auto cid = cset.commodity_type[i];
-				auto cost = state.world.commodity_get_current_price(cid);
+				auto price = economy::price(state, s, cid);
 
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ price });
 				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ price * amount });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
 				text::close_layout_box(contents, box);
@@ -215,7 +220,9 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		desired_types.clear();
-		ai::get_desired_factory_types(state, state.local_player_nation, desired_types);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto m = state.world.state_instance_get_market_from_local_market(sid);
+		ai::get_desired_factory_types(state, state.local_player_nation, m, desired_types);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -249,7 +256,9 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		row_contents.clear();
 		desired_types.clear();
-		ai::get_desired_factory_types(state, state.local_player_nation, desired_types);
+		auto m = state.world.state_instance_get_market_from_local_market(sid);
+		ai::get_desired_factory_types(state, state.local_player_nation, m, desired_types);
+
 		// First the desired factory types
 		for(const auto ftid : desired_types)
 			if(is_highlighted(state, sid, ftid))

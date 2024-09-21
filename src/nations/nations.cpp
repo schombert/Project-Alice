@@ -114,8 +114,8 @@ void update_cached_values(sys::state& state) {
 }
 
 void restore_unsaved_values(sys::state& state) {
-	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
-	state.world.nation_resize_direct_demand_satisfaction(state.world.commodity_size());
+	state.world.market_resize_demand_satisfaction(state.world.commodity_size());
+	state.world.market_resize_direct_demand_satisfaction(state.world.commodity_size());
 
 	for(auto n : state.world.in_nation)
 		n.set_is_great_power(false);
@@ -146,6 +146,9 @@ void generate_initial_state_instances(sys::state& state) {
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
 		if(owner && !(state.world.province_get_state_membership(pid))) {
 			auto state_instance = fatten(state.world, state.world.create_state_instance());
+			auto new_market = state.world.create_market();
+			auto new_local_market = state.world.force_create_local_market(new_market, state_instance);
+
 			auto abstract_state = state.world.province_get_state_from_abstract_state_membership(pid);
 
 			state_instance.set_definition(abstract_state);

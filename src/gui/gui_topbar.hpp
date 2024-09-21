@@ -2112,7 +2112,9 @@ public:
 			e->set_visible(state, false);
 
 		{
-			std::map<float, int32_t> v;
+			std::map<float, int32_t> exported;
+			std::map<float, int32_t> imported;
+
 			for(dcon::commodity_id cid : state.world.in_commodity) {
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods &&
@@ -2120,14 +2122,12 @@ public:
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
-				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
-				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) *
-												 state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
-				v.insert({produced - consumed, cid.index()});
+				exported.insert({economy::export_volume(state, state.local_player_nation, cid), cid.index() });
+				imported.insert({-economy::import_volume(state, state.local_player_nation, cid), cid.index() });
 			}
 
 			uint8_t slot = 0;
-			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
+			for(auto it = std::rbegin(exported); it != std::rend(exported); it++) {
 				for(auto const& e : export_icons)
 					if(e->slot == slot) {
 						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
@@ -2139,7 +2139,7 @@ public:
 				++slot;
 			}
 			slot = 0;
-			for(auto it = v.begin(); it != v.end(); it++) {
+			for(auto it = imported.begin(); it != imported.end(); it++) {
 				for(auto const& e : import_icons)
 					if(e->slot == slot) {
 						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
@@ -2161,7 +2161,7 @@ public:
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
-				v.insert({state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index()});
+				v.insert({economy::supply(state, state.local_player_nation, cid), cid.index()});
 			}
 
 			uint8_t slot = 0;

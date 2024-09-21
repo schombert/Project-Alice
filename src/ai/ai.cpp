@@ -508,8 +508,11 @@ void update_influence_priorities(sys::state& state) {
 			float weight = 0.0f;
 
 			for(auto c : state.world.in_commodity) {
-				if(auto d = state.world.nation_get_real_demand(n.nation, c); d > 0.001f) {
-					auto cweight = std::min(1.0f, t.get_domestic_market_pool(c) / d) * (1.0f - state.world.nation_get_demand_satisfaction(n.nation, c));
+				if(auto d = economy::demand(state, n.nation, c); d > 0.001f) {
+					auto cweight = std::min(
+						1.0f,
+						economy::supply(state, n.nation, c) / d)
+						* (1.0f - economy::demand_satisfaction(state, n.nation, c));
 					weight += cweight;
 				}
 			}
@@ -901,61 +904,59 @@ void update_ai_ruling_party(sys::state& state) {
 	}
 }
 
-void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
+	auto m = dcon::fatten(state.world, mid);
 
-	/*
-	// first pass: try to fill shortages
-	for(auto type : state.world.in_factory_type) {
-		if(n.get_active_building(type) || type.get_is_available_from_start()) {
-			bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 1.0f;
-			if(lacking_output) {
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
-				if(!lacking_input)
-					desired_types.push_back(type.id);
-			}
-		} // END if building unlocked
-	}
-	*/
-
-	if(desired_types.empty()) { // second pass: try to make money
+	// first pass: try to create factories which will pay back investment fast - in a year at most:
+	if(desired_types.empty()) { 
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
-				bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 0.98f;
+				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
 
-				float input_total = 0.f;
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(inputs.commodity_type[i]) {
-						input_total += inputs.commodity_amounts[i] * state.world.commodity_get_current_price(inputs.commodity_type[i]);
-						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
 							lacking_input = true;
 					} else {
 						break;
 					}
 				}
 
-				float output_total = type.get_output_amount() * state.world.commodity_get_current_price(type.get_output());
+				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				float input_multiplier = std::max(0.1f, (state.defines.alice_inputs_base_factor +
-					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)));
+				if(!lacking_input && (lacking_output || ((output - input) / cost < 365.f)))
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
 
-				float output_multiplier = state.world.nation_get_factory_goods_output(n, type.get_output()) +
-					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_output) + 1.0f;
+	// second pass: try to create factories which have a good profit margin
+	if(desired_types.empty()) {
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
 
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
 
-				if(!lacking_input && (lacking_output || (input_total * input_multiplier * 0.9 <= output_total * output_multiplier)))
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
+
+				if(!lacking_input && (lacking_output || ((output - input) / input > 0.3f)))
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1050,9 +1051,7 @@ void update_ai_econ_construction(sys::state& state) {
 			}
 
 			// try to build
-			static::std::vector<dcon::factory_type_id> desired_types;
-			desired_types.clear();
-			get_desired_factory_types(state, n, desired_types);
+			static::std::vector<dcon::factory_type_id> desired_types;			
 
 			// desired types filled: try to construct or upgrade
 			if(!desired_types.empty()) {				
@@ -1062,6 +1061,10 @@ void update_ai_econ_construction(sys::state& state) {
 					for(auto si : ordered_states) {
 						if(max_projects <= 0)
 							break;
+
+						auto m = state.world.state_instance_get_market_from_local_market(si);
+						desired_types.clear();
+						get_desired_factory_types(state, n, m, desired_types);
 
 						// check -- either unemployed factory workers or no factory workers
 						auto pw_num = state.world.state_instance_get_demographics(si,

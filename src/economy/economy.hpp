@@ -86,13 +86,17 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
-float get_artisan_distribution_slow(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float get_artisan_distribution_slow(
+	sys::state& state,
+	dcon::market_id n,
+	dcon::commodity_id c
+);
 
 // base subsistence
 inline constexpr float subsistence_factor = 15.0f;
 inline constexpr float subsistence_score_life = 30.0f;
-inline constexpr float subsistence_score_everyday = 50.0f;
-inline constexpr float subsistence_score_luxury = 80.0f;
+inline constexpr float subsistence_score_everyday = 30.0f;
+inline constexpr float subsistence_score_luxury = 30.0f;
 inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday + subsistence_score_luxury;
 
 struct global_economy_state {
@@ -122,8 +126,138 @@ inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float rgo_owners_cut = 0.05f;
+inline constexpr float price_speed_mod = 0.001f;
+inline constexpr float price_rigging = 0.001f;
+inline constexpr float stockpile_to_supply = 0.f;
 
 void presimulate(sys::state& state);
+
+float price(
+	sys::state& state,
+	dcon::state_instance_id s,
+	dcon::commodity_id c
+);
+float price(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+float price(
+	sys::state& state,
+	dcon::commodity_id c
+);
+ve::fp_vector price(
+	sys::state& state,
+	ve::tagged_vector<dcon::market_id> s,
+	dcon::commodity_id c
+);
+float price(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+
+float supply(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float supply(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+float supply(
+	sys::state& state,
+	dcon::commodity_id c
+);
+
+float demand(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float demand(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+float demand(
+	sys::state& state,
+	dcon::commodity_id c
+);
+
+float consumption(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float consumption(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+float consumption(
+	sys::state& state,
+	dcon::commodity_id c
+);
+
+float demand_satisfaction(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float demand_satisfaction(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+float demand_satisfaction(
+	sys::state& state,
+	dcon::commodity_id c
+);
+
+float market_pool (
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float market_pool(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+float market_pool(
+	sys::state& state,
+	dcon::commodity_id c
+);
+
+float export_volume(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float export_volume(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+
+float import_volume(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float import_volume(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+
+float average_capitalists_luxury_cost(
+	sys::state& state,
+	dcon::nation_id s
+);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
@@ -142,19 +276,30 @@ bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
-void populate_effective_prices(sys::state& state, dcon::nation_id n);
-float factory_min_input_available(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
-float factory_input_total_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
-float factory_min_e_input_available(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
-float factory_e_input_total_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+//factories
+
+// monetary values
+
+float factory_min_input_available(sys::state& state, dcon::market_id m, dcon::factory_type_fat_id fac_type);
+float factory_input_total_cost(sys::state& state, dcon::market_id m, dcon::factory_type_fat_id fac_type);
+float factory_min_e_input_available(sys::state& state, dcon::market_id m, dcon::factory_type_fat_id fac_type);
+float factory_e_input_total_cost(sys::state& state, dcon::market_id m, dcon::factory_type_fat_id fac_type);
+
+// abstract modifiers
+
 float factory_input_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
 float factory_throughput_multiplier(sys::state& state, dcon::factory_type_fat_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
 float factory_output_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p);
-float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied);
+
 float factory_desired_raw_profit(dcon::factory_fat_id fac, float spendings);
+
+float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
+
+// misc
+
 int32_t factory_priority(sys::state const& state, dcon::factory_id f);
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
 bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
@@ -166,9 +311,9 @@ void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
 
 float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
-float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
-float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
-float pop_factory_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+float farmer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
+float laborer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
+float factory_min_wage(sys::state& state, dcon::market_id m, dcon::state_instance_id s, float min_wage_factor);
 
 struct rgo_workers_breakdown {
 	float paid_workers;
@@ -178,20 +323,48 @@ struct rgo_workers_breakdown {
 
 rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
 
-float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
-float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, dcon::commodity_id c);
+float rgo_desired_worker_norm_profit(
+	sys::state& state,
+	dcon::province_id p,
+	dcon::market_id m,
+	dcon::nation_id n,
+	float min_wage,
+	float total_relevant_population
+);
+float rgo_expected_worker_norm_profit(
+	sys::state& state,
+	dcon::province_id p,
+	dcon::market_id m,
+	dcon::nation_id n,
+	dcon::commodity_id c
+);
 
-float factory_type_output_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_id factory_type);
-float factory_type_input_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_id factory_type);
-float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_id factory_type);
+float factory_type_output_cost(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::market_id m,
+	dcon::factory_type_id factory_type
+);
+float factory_type_input_cost(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::market_id m,
+	dcon::factory_type_id factory_type
+);
+
+float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::factory_type_id factory_type);
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
-void daily_update(sys::state& state, bool initiate_building);
+void daily_update(sys::state& state, bool presimulation);
 void resolve_constructions(sys::state& state);
 
-float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
-float artisan_scale_limit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+ve::fp_vector base_artisan_profit(
+	sys::state& state,
+	ve::tagged_vector<dcon::market_id> markets,
+	ve::tagged_vector<dcon::nation_id> nations,
+	dcon::commodity_id c
+);
 
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
@@ -258,6 +431,7 @@ int32_t most_recent_gdp_record_index(sys::state& state);
 int32_t previous_gdp_record_index(sys::state& state);
 
 float gdp_adjusted(sys::state& state, dcon::nation_id n);
+float gdp_adjusted(sys::state& state, dcon::market_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);

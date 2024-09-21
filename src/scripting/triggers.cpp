@@ -3147,7 +3147,16 @@ TRIGGER_FUNCTION(tf_in_sphere_this_pop) {
 }
 TRIGGER_FUNCTION(tf_produces_nation) {
 	auto good = payload(tval[1]).com_id;
-	return compare_to_true(tval[0], ws.world.nation_get_domestic_market_pool(to_nation(primary_slot), good) > 0.0f);
+
+	return compare_to_true(
+		tval[0],
+		ve::apply(
+			[&ws, good](dcon::nation_id n) {
+				return economy::supply(ws, n, good) > 0.0f;
+			},
+			to_nation(primary_slot)
+		)
+	);
 }
 TRIGGER_FUNCTION(tf_produces_province) {
 	/* return compare_to_true(tval[0],
