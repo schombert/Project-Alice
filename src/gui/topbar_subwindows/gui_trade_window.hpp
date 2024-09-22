@@ -1271,7 +1271,7 @@ bool compare_stockpile_player(sys::state& state, element_base* container, dcon::
 	return value_a < value_b;
 }
 
-table::column<dcon::commodity_id> trade_good_name_column = {
+inline table::column<dcon::commodity_id> trade_good_name_column = {
 	.sortable = true,
 	.header = "trade_good_name_header",
 	.compare = compare_name,
@@ -1279,7 +1279,7 @@ table::column<dcon::commodity_id> trade_good_name_column = {
 	.cell_definition_string = "thin_cell_name",
 	.header_definition_string = "thin_cell_name"
 };
-table::column<dcon::commodity_id> trade_good_price_column = {
+inline table::column<dcon::commodity_id> trade_good_price_column = {
 	.sortable = true,
 	.header = "price",
 	.compare = compare_price,
@@ -1287,35 +1287,35 @@ table::column<dcon::commodity_id> trade_good_price_column = {
 	.cell_definition_string = "thin_cell_number"
 };
 
-table::column<dcon::commodity_id> trade_good_supply_column = {
+inline table::column<dcon::commodity_id> trade_good_supply_column = {
 	.sortable = true,
 	.header = "supply",
 	.compare = compare_supply,
 	.view = supply_view_commodity_id,
 	.cell_definition_string = "thin_cell_number"
 };
-table::column<dcon::commodity_id> trade_good_demand_column = {
+inline table::column<dcon::commodity_id> trade_good_demand_column = {
 	.sortable = true,
 	.header = "demand",
 	.compare = compare_demand,
 	.view = demand_view_commodity_id,
 	.cell_definition_string = "thin_cell_number"
 };
-table::column<dcon::commodity_id> trade_good_balance_column = {
+inline table::column<dcon::commodity_id> trade_good_balance_column = {
 	.sortable = true,
 	.header = "balance",
 	.compare = compare_balance,
 	.view = balance_view_commodity_id,
 	.cell_definition_string = "thin_cell_number"
 };
-table::column<dcon::commodity_id> trade_good_market_stockpile_column = {
+inline table::column<dcon::commodity_id> trade_good_market_stockpile_column = {
 	.sortable = true,
 	.header = "market_stockpiles",
 	.compare = compare_stockpile_market,
 	.view = stockpile_market_view_commodity_id,
 	.cell_definition_string = "thin_cell_number"
 };
-table::column<dcon::commodity_id> trade_good_player_stockpile_column = {
+inline table::column<dcon::commodity_id> trade_good_player_stockpile_column = {
 	.sortable = true,
 	.header = "national_stockpile",
 	.compare = compare_stockpile_player,
@@ -1324,7 +1324,7 @@ table::column<dcon::commodity_id> trade_good_player_stockpile_column = {
 };
 
 
-table::column<dcon::commodity_id> trade_good_player_gov_needs = {
+inline table::column<dcon::commodity_id> trade_good_player_gov_needs = {
 	.sortable = true,
 	.header = "government_need",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1341,7 +1341,7 @@ table::column<dcon::commodity_id> trade_good_player_gov_needs = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_player_factory_needs = {
+inline table::column<dcon::commodity_id> trade_good_player_factory_needs = {
 	.sortable = true,
 	.header = "factory_need",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1358,7 +1358,7 @@ table::column<dcon::commodity_id> trade_good_player_factory_needs = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_player_pop_needs = {
+inline table::column<dcon::commodity_id> trade_good_player_pop_needs = {
 	.sortable = true,
 	.header = "pop_need",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1375,7 +1375,7 @@ table::column<dcon::commodity_id> trade_good_player_pop_needs = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_production_rgo = {
+inline table::column<dcon::commodity_id> trade_good_production_rgo = {
 	.sortable = true,
 	.header = "rgo_production",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1407,7 +1407,7 @@ table::column<dcon::commodity_id> trade_good_production_rgo = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_production_artisan = {
+inline table::column<dcon::commodity_id> trade_good_production_artisan = {
 	.sortable = true,
 	.header = "artisan_production",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1433,7 +1433,7 @@ table::column<dcon::commodity_id> trade_good_production_artisan = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_production_factory = {
+inline table::column<dcon::commodity_id> trade_good_production_factory = {
 	.sortable = true,
 	.header = "factory_production",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1462,7 +1462,7 @@ table::column<dcon::commodity_id> trade_good_production_factory = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_artisan_distribution = {
+inline table::column<dcon::commodity_id> trade_good_artisan_distribution = {
 	.sortable = true,
 	.header = "artisan_distribution",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1479,7 +1479,7 @@ table::column<dcon::commodity_id> trade_good_artisan_distribution = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_satisfaction = {
+inline table::column<dcon::commodity_id> trade_good_satisfaction = {
 	.sortable = true,
 	.header = "artisan_distribution",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1496,7 +1496,7 @@ table::column<dcon::commodity_id> trade_good_satisfaction = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_produced_nation = {
+inline table::column<dcon::commodity_id> trade_good_produced_nation = {
 	.sortable = true,
 	.header = "produced_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1513,7 +1513,7 @@ table::column<dcon::commodity_id> trade_good_produced_nation = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_consumed_nation = {
+inline table::column<dcon::commodity_id> trade_good_consumed_nation = {
 	.sortable = true,
 	.header = "consumed_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
@@ -1533,7 +1533,7 @@ table::column<dcon::commodity_id> trade_good_consumed_nation = {
 	}
 };
 
-table::column<dcon::nation_id> nation_name = {
+inline table::column<dcon::nation_id> nation_name = {
 	.sortable = true,
 	.header = "nation_name",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
@@ -1552,7 +1552,7 @@ table::column<dcon::nation_id> nation_name = {
 	.header_definition_string = "thin_cell_name"
 };
 
-table::column<dcon::nation_id> nation_production = {
+inline table::column<dcon::nation_id> nation_production = {
 	.sortable = true,
 	.header = "produced_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
@@ -1571,7 +1571,7 @@ table::column<dcon::nation_id> nation_production = {
 	}
 };
 
-table::column<dcon::nation_id> nation_demand = {
+inline table::column<dcon::nation_id> nation_demand = {
 	.sortable = true,
 	.header = "demanded_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
@@ -1590,7 +1590,7 @@ table::column<dcon::nation_id> nation_demand = {
 	}
 };
 
-table::column<dcon::nation_id> nation_consumption = {
+inline table::column<dcon::nation_id> nation_consumption = {
 	.sortable = true,
 	.header = "consumed_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
