@@ -13,7 +13,7 @@
 namespace economy {
 
 enum class economy_reason {
-	pop, factory, rgo, artisan, construction, nation, stockpile, overseas_penalty
+	pop, factory, rgo, artisan, construction, nation, stockpile, overseas_penalty, trade
 };
 
 float price(sys::state& state, dcon::state_instance_id s, dcon::commodity_id c) {
@@ -376,6 +376,17 @@ void register_domestic_supply(
 	state.world.market_get_supply(s, commodity_type) += amount;
 	state.world.market_get_gdp(s) += amount * price(state, s, commodity_type);
 }
+
+void register_foreign_supply(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id commodity_type,
+	float amount,
+	economy_reason reason
+) {
+	state.world.market_get_supply(s, commodity_type) += amount;
+}
+
 template<typename T>
 void register_domestic_supply(
 	sys::state& state,
@@ -2133,7 +2144,7 @@ float update_factory_scale(
 }
 
 float factory_desired_raw_profit(dcon::factory_fat_id fac, float spendings) {
-	return spendings * (1.2f + fac.get_secondary_employment() * fac.get_level() / 150.f );
+	return spendings * 1.01f;
 }
 
 void update_single_factory_consumption(
@@ -3632,6 +3643,12 @@ void update_pop_consumption(
 		auto result_everyday = ve::min(1.f, delayed_everyday_from_money + everyday_needs_satisfaction);
 		auto result_luxury = ve::min(1.f, delayed_luxury_from_money + luxury_needs_satisfaction);
 
+		ve::apply([&](float life, float everyday, float luxury) {
+			assert(life >= 0.f && life <= 1.f);
+			assert(everyday >= 0.f && everyday <= 1.f);
+			assert(luxury >= 0.f && luxury <= 1.f);
+		}, result_life, result_everyday, result_luxury);
+
 		state.world.pop_set_life_needs_satisfaction(ids, result_life);
 		state.world.pop_set_everyday_needs_satisfaction(ids, result_everyday);
 		state.world.pop_set_luxury_needs_satisfaction(ids, result_luxury);
@@ -4607,19 +4624,21 @@ void daily_update(sys::state& state, bool presimulation) {
 				float min_wage
 				) {
 					auto capital = state.world.state_instance_get_capital(s);
-					for(auto f : state.world.province_get_factory_location(capital)) {
-						update_single_factory_consumption(
-							state,
-							f.get_factory(),
-							capital,
-							s,
-							m,
-							n,
-							mob_impact,
-							min_wage,
-							state.world.province_get_nation_from_province_control(capital) != n // is occupied
-						);
-					}
+					province::for_each_province_in_state_instance(state, s, [&](auto p) {
+						for(auto f : state.world.province_get_factory_location(p)) {
+							update_single_factory_consumption(
+								state,
+								f.get_factory(),
+								p,
+								s,
+								m,
+								n,
+								mob_impact,
+								min_wage,
+								state.world.province_get_nation_from_province_control(p) != n // is occupied
+							);
+						}
+					});
 				}, states, markets, nations, mobilization_impact, factory_min_wage
 		);
 	});
@@ -5081,6 +5100,12 @@ void daily_update(sys::state& state, bool presimulation) {
 			en_max = ve::select(en_total > 0.f, en_max / en_total, 1.f);
 			lx_max = ve::select(lx_total > 0.f, lx_max / lx_total, 1.f);
 
+			ve::apply([](float life, float everyday, float luxury) {
+				assert(life >= 0.f && life <= 1.f);
+				assert(everyday >= 0.f && everyday <= 1.f);
+				assert(luxury >= 0.f && luxury <= 1.f);
+			}, ln_max, en_max, lx_max);
+
 			state.world.market_set_max_life_needs_satisfaction(ids, pt, ln_max);
 			state.world.market_set_max_everyday_needs_satisfaction(ids, pt, en_max);
 			state.world.market_set_max_luxury_needs_satisfaction(ids, pt, lx_max);
@@ -5093,6 +5118,68 @@ void daily_update(sys::state& state, bool presimulation) {
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		state.world.execute_serial_over_market([&](auto markets) {
 			state.world.market_set_supply(markets, c, ve::fp_vector{});
+			state.world.market_set_import(markets, c, ve::fp_vector{});
+			state.world.market_set_export(markets, c, ve::fp_vector{});
+		});
+	});
+
+	// start with trade:
+	// we can handle each trade good separately: they do not influence each other
+
+
+
+	concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
+		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
+
+		if(state.world.commodity_get_money_rgo(cid)) {
+			return;
+		}
+
+		state.world.for_each_trade_route([&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+			auto origin =
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target = 
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+			auto adj_sat = std::min(sat + 0.01f, 1.f);
+
+			auto absolute_volume = std::abs(current_volume);
+
+			register_demand(state, origin, cid, adj_sat * absolute_volume, economy_reason::trade);
+			register_foreign_supply(state, target, cid, sat * absolute_volume, economy_reason::trade);
+
+			auto s_origin = state.world.market_get_zone_from_local_market(origin);
+			auto s_target = state.world.market_get_zone_from_local_market(target);
+
+			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+
+			if(n_origin != n_target) {
+				state.world.market_get_export(origin, cid) += sat * absolute_volume;
+				state.world.market_get_import(target, cid) += sat * absolute_volume;
+			}
+
+			auto price_origin = price(state, origin, cid);
+			auto price_target = price(state, target, cid);
+
+			auto push_to_target = (price_target + 1.f) / (price_origin + 1.f);
+			auto push_to_origin = (price_origin + 1.f) / (price_target + 1.f);
+
+			// adjust trade volume based on price balance:
+			auto volume_change = std::clamp((push_to_target - push_to_origin) * 0.01f, -0.1f, 0.1f);
+
+			// trade slowly decays to create soft limit on transportation
+			if(current_volume > 0.f) {
+				state.world.trade_route_set_volume(trade_route, cid, current_volume * 0.5f + volume_change);
+			} else {
+				state.world.trade_route_set_volume(trade_route, cid, current_volume * 0.5f - volume_change);
+			}
 		});
 	});
 
@@ -5152,6 +5239,10 @@ void daily_update(sys::state& state, bool presimulation) {
 				ln -= subsistence_life;
 				en -= subsistence_everyday;
 				lx -= subsistence_luxury;
+
+				assert(std::isfinite(ln) && ln >= 0);
+				assert(std::isfinite(en) && en >= 0);
+				assert(std::isfinite(lx) && lx >= 0);
 
 				ln = std::min(ln, state.world.market_get_max_life_needs_satisfaction(market, t));
 				en = std::min(en, state.world.market_get_max_everyday_needs_satisfaction(market, t));

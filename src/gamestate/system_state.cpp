@@ -2839,6 +2839,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_employment_per_good(world.commodity_size());
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
+	world.trade_route_resize_volume(world.commodity_size());
+
 	world.market_resize_price(world.commodity_size());
 	world.market_resize_supply(world.commodity_size());
 	world.market_resize_demand(world.commodity_size());
@@ -3230,6 +3232,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
+	nations::generate_initial_trade_routes(*this);
 	economy::presimulate(*this);
 
 	ai::identify_focuses(*this);

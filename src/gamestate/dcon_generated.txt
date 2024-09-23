@@ -4104,7 +4104,7 @@ relationship{
 	
 	composite_key{
 		name{province_pair}
-		index{connected_provinces}
+		index{connected_markets}
 	}
 
 	property{

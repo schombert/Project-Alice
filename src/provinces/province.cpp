@@ -9,6 +9,7 @@
 #include "math_fns.hpp"
 #include "prng.hpp"
 #include "triggers.hpp"
+#include <set>
 
 namespace province {
 
@@ -719,6 +720,35 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			auto new_market = state.world.create_market();
 			auto new_local_market = state.world.force_create_local_market(new_market, new_si);
 
+			// new state, new trade routes
+
+			std::set<dcon::state_instance_id::value_base_t> trade_route_candidates{};
+
+			// try to create trade routes to neighbors
+			for(auto adj : state.world.province_get_province_adjacency(id)) {
+				if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
+					auto other =
+						adj.get_connected_provinces(0) != id
+						? adj.get_connected_provinces(0)
+						: adj.get_connected_provinces(1);
+
+					if(!other.get_state_membership())
+						continue;
+					if(other.get_state_membership() == new_si)
+						continue;
+					if(trade_route_candidates.contains(other.get_state_membership().id.value))
+						continue;
+
+					trade_route_candidates.insert(other.get_state_membership().id.value);
+				}
+			}
+
+			for(auto candidate_trade_partner_val : trade_route_candidates) {
+				auto si = dcon::state_instance_id{ candidate_trade_partner_val };
+				auto target_market = state.world.state_instance_get_market_from_local_market(si);
+				auto new_route = state.world.force_create_trade_route(new_market, target_market);
+			}
+
 			state_is_new = true;
 		} else {
 			auto sc = state.world.state_instance_get_capital(new_si);
@@ -730,6 +760,50 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				} else {
 					state.world.state_instance_set_naval_base_is_taken(new_si, true);
 				}
+			}
+
+			//new province can potentially unlock new trade routes
+
+
+			// save old trade routes
+			auto market = state.world.state_instance_get_market_from_local_market(new_si);
+			std::set<dcon::state_instance_id::value_base_t> old_trade_routes;
+			for(auto item : state.world.market_get_trade_route(market)) {
+				auto other =
+					item.get_connected_markets(0) != market
+					? item.get_connected_markets(0)
+					: item.get_connected_markets(1);
+
+				old_trade_routes.insert(other.get_zone_from_local_market().id.value);
+			}
+
+			std::set<dcon::state_instance_id::value_base_t> trade_route_candidates{};
+
+			// try to create trade routes to neighbors
+			for(auto adj : state.world.province_get_province_adjacency(id)) {
+				if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
+					auto other =
+						adj.get_connected_provinces(0) != id
+						? adj.get_connected_provinces(0)
+						: adj.get_connected_provinces(1);
+
+					if(!other.get_state_membership())
+						continue;
+					if(other.get_state_membership() == new_si)
+						continue;
+					if(old_trade_routes.contains(other.get_state_membership().id.value))
+						continue;
+					if(trade_route_candidates.contains(other.get_state_membership().id.value))
+						continue;
+
+					trade_route_candidates.insert(other.get_state_membership().id.value);
+				}
+			}
+
+			for(auto candidate_trade_partner_val : trade_route_candidates) {
+				auto si = dcon::state_instance_id{ candidate_trade_partner_val };
+				auto target_market = state.world.state_instance_get_market_from_local_market(si);
+				auto new_route = state.world.force_create_trade_route(market, target_market);
 			}
 		}
 		if(was_slave_state) {

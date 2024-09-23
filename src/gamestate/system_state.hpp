@@ -584,6 +584,7 @@ struct alignas(64) state {
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
+	dcon::commodity_id selected_trade_good;
 	std::mutex ugly_ui_game_interaction_hack;
 
 	//control groups
@@ -616,6 +617,7 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 	std::atomic<bool> railroad_built = true; // game state -> map
+	std::atomic<bool> update_trade_flow = true;
 
 	// synchronization: notifications from the gamestate to ui
 	rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;

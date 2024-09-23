@@ -77,6 +77,81 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 
+void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
+	map_data.trade_flow_vertices.clear();
+	map_data.trade_flow_arrow_counts.clear();
+	map_data.trade_flow_arrow_starts.clear();
+
+	auto cid = state.selected_trade_good;
+
+	if(!cid) {
+		return;
+	}
+
+	state.world.for_each_trade_route([&](auto trade_route) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+		auto origin =
+			current_volume > 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto target =
+			current_volume <= 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+		auto s_origin = state.world.market_get_zone_from_local_market(origin);
+		auto s_target = state.world.market_get_zone_from_local_market(target);
+
+		auto p_origin = state.world.state_instance_get_capital(s_origin);
+		auto p_target = state.world.state_instance_get_capital(s_target);
+
+		auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+
+		auto absolute_volume = std::abs(sat * current_volume);
+
+		if(absolute_volume <= 0.01f) {
+			return;
+		}
+
+		auto old_size = map_data.trade_flow_vertices.size();
+		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+		if(state.world.trade_route_get_is_sea_route(trade_route)) {
+			//TODO:
+			//show routes for non coastal capitals too!
+
+			map::make_sea_path(
+				state,
+				map_data.trade_flow_vertices,
+				p_origin, p_target,
+				absolute_volume * 10000.f,
+				float(map_data.size_x), float(map_data.size_y)
+			);
+		} else {
+			map::make_land_path(
+				state,
+				map_data.trade_flow_vertices,
+				p_origin, p_target,
+				absolute_volume * 10000.f,
+				float(map_data.size_x), float(map_data.size_y)
+			);
+		}
+		map_data.trade_flow_arrow_counts.push_back(
+			GLsizei(map_data.trade_flow_vertices.size() - old_size)
+		);
+	});
+
+	if(!map_data.trade_flow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_trade_flow]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof(textured_line_with_width_vertex)
+			* map_data.trade_flow_vertices.size(),
+			map_data.trade_flow_vertices.data(),
+			GL_STATIC_DRAW
+		);
+	}
+}
+
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
 	map_data.unit_arrow_counts.clear();
@@ -970,7 +1045,11 @@ void map_state::update(sys::state& state) {
 	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
 
-	update_unit_arrows(state, map_data);
+	if(state.selected_trade_good && state.update_trade_flow.load(std::memory_order::acquire)) {
+		update_trade_flow_arrows(state, map_data);
+		state.update_trade_flow.store(false, std::memory_order_release);
+	}
+	update_unit_arrows(state, map_data);	
 
 	// Update railroads, only if railroads are being built and we have 'em enabled
 	if(state.user_settings.railroads_enabled && state.railroad_built.load(std::memory_order::acquire)) {

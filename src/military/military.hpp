@@ -312,7 +312,8 @@ bool province_is_under_siege(sys::state const& state, dcon::province_id ids);
 void update_blockade_status(sys::state& state);
 
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
-bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
+bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si);
+uint32_t state_naval_base_level(sys::state const& state, dcon::state_instance_id si);
 
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p);
 int32_t regiments_possible_from_pop(sys::state& state, dcon::pop_id p);

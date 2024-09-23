@@ -44,7 +44,7 @@ void create_opengl_context(sys::state& state) {
 	// Explicitly request for OpenGL 3.1
 	static const int attribs_3_1[] = {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
 		WGL_CONTEXT_FLAGS_ARB,
 #ifndef NDEBUG
 		WGL_CONTEXT_DEBUG_BIT_ARB |

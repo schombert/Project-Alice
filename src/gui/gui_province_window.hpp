@@ -2397,6 +2397,14 @@ public:
 			);
 
 			rgo_table = ptr.get();
+			rgo_table->row_callback = [](sys::state& state, ui::element_base* container, const dcon::commodity_id a) {
+				if(state.selected_trade_good == a) {
+					state.selected_trade_good = { };
+				} else {
+					state.selected_trade_good = a;
+				}
+				state.update_trade_flow.store(true, std::memory_order::release);
+			};
 			state.world.for_each_commodity([&](dcon::commodity_id id) {
 				rgo_table->content.data.push_back(id);
 			});
