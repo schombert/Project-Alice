@@ -1115,6 +1115,63 @@ table::column<dcon::market_id> market_price = {
 	}
 };
 
+table::column<dcon::market_id> market_artisan_distribution = {
+	.sortable = true,
+	.header = "w_artisan_distribution",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::get_artisan_distribution_slow(state, a, good);
+		auto bv = economy::get_artisan_distribution_slow(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::get_artisan_distribution_slow(state, id, good);
+		return text::format_float(value, 3);
+	}
+};
+
+table::column<dcon::market_id> market_artisan_profit = {
+	.sortable = true,
+	.header = "w_artisan_profit",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::base_artisan_profit(state, a, good);
+		auto bv = economy::base_artisan_profit(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::base_artisan_profit(state, id, good);
+		return text::format_float(value, 3);
+	}
+};
+
+table::column<dcon::market_id> market_artisan_score = {
+	.sortable = true,
+	.header = "w_artisan_score",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = state.world.market_get_artisan_score(a, good);
+		auto bv = state.world.market_get_artisan_score(b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = state.world.market_get_artisan_score(id, good);
+		return text::format_float(value, 3);
+	}
+};
+
 /*
 * MOVE TO PRODUCTION METHODS TABLE
 text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
@@ -1571,7 +1628,10 @@ public:
 			return ptr;
 		} else if(name == "trade_good_markets_stats") {
 			std::vector<table::column<dcon::market_id>> columns = {
-				market_name, market_price, market_production, market_demand, market_consumption
+				market_name,
+				market_price,
+				market_production, market_demand, market_consumption,
+				market_artisan_distribution, market_artisan_profit, market_artisan_score
 			};
 			auto ptr = make_element_by_type<table::display<dcon::market_id>>(
 				state,
@@ -1605,7 +1665,16 @@ public:
 	void on_update(sys::state& state) noexcept override  {
 		table_trade_good_stats_market->content.data.clear();
 		state.world.for_each_market([&](dcon::market_id id) {
-			table_trade_good_stats_market->content.data.push_back(id);
+			auto sid = state.world.market_get_zone_from_local_market(id);
+			auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
+
+			auto selected_nid = retrieve<dcon::nation_id>(state, this);
+
+			if (selected_nid && selected_nid == nid)
+				table_trade_good_stats_market->content.data.push_back(id);
+
+			if (!selected_nid)
+				table_trade_good_stats_market->content.data.push_back(id);
 		});
 	}
 

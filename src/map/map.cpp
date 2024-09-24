@@ -1473,7 +1473,7 @@ void add_tl_segment_buffer(
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 	auto d = start - end;
-	distance += glm::length(d);
+	distance += glm::length(d) * width / 1000.f;
 	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width});//C
 	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width});//D
 }

@@ -747,6 +747,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				auto si = dcon::state_instance_id{ candidate_trade_partner_val };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
 				auto new_route = state.world.force_create_trade_route(new_market, target_market);
+				state.world.trade_route_set_distance(new_route, 99999.f);
 			}
 
 			state_is_new = true;
@@ -804,6 +805,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				auto si = dcon::state_instance_id{ candidate_trade_partner_val };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
 				auto new_route = state.world.force_create_trade_route(market, target_market);
+				state.world.trade_route_set_distance(new_route, 99999.f);
 			}
 		}
 		if(was_slave_state) {
@@ -1552,6 +1554,32 @@ void update_colonization(sys::state& state) {
 			}
 		}
 	}
+}
+
+dcon::province_id state_get_coastal_capital(sys::state& state, dcon::state_instance_id s) {
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+	auto max_pop = 0.f;
+	dcon::province_id result = { };
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() != o)
+			continue;
+		if(!p.get_province().get_port_to())
+			continue;
+		if(
+			state.world.province_get_demographics(
+				p.get_province(),
+				demographics::total
+			) > max_pop
+		) {
+			max_pop = state.world.province_get_demographics(
+				p.get_province(),
+				demographics::total
+			);
+			result = p.get_province();
+		}
+	}
+	return result;
 }
 
 bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {

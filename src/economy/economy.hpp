@@ -127,7 +127,7 @@ inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float rgo_owners_cut = 0.05f;
 inline constexpr float price_speed_mod = 0.001f;
-inline constexpr float price_rigging = 0.001f;
+inline constexpr float price_rigging = 0.02f;
 inline constexpr float stockpile_to_supply = 0.f;
 
 void presimulate(sys::state& state);
@@ -363,6 +363,11 @@ ve::fp_vector base_artisan_profit(
 	sys::state& state,
 	ve::tagged_vector<dcon::market_id> markets,
 	ve::tagged_vector<dcon::nation_id> nations,
+	dcon::commodity_id c
+);
+float base_artisan_profit(
+	sys::state& state,
+	dcon::market_id market,
 	dcon::commodity_id c
 );
 

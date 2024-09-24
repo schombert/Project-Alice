@@ -113,17 +113,19 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 
+		auto width = std::log(1.f + (absolute_volume - 0.009f) * 10000.f) * 100.f;
+
 		auto old_size = map_data.trade_flow_vertices.size();
 		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
 		if(state.world.trade_route_get_is_sea_route(trade_route)) {
-			//TODO:
-			//show routes for non coastal capitals too!
+			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
+			auto coast_target = province::state_get_coastal_capital(state, s_target);
 
 			map::make_sea_path(
 				state,
 				map_data.trade_flow_vertices,
-				p_origin, p_target,
-				absolute_volume * 10000.f,
+				coast_origin, coast_target,
+				width,
 				float(map_data.size_x), float(map_data.size_y)
 			);
 		} else {
@@ -131,7 +133,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				state,
 				map_data.trade_flow_vertices,
 				p_origin, p_target,
-				absolute_volume * 10000.f,
+				width,
 				float(map_data.size_x), float(map_data.size_y)
 			);
 		}
