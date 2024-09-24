@@ -1238,7 +1238,7 @@ void finish(sys::state& state, bool notify_host) {
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_leaves;
 			c.source = state.local_player_nation;
-			c.data.notify_leave.make_ai = false;
+			c.data.notify_leave.make_ai = (state.defines.alice_place_ai_upon_disconnection == 1);
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 			state.console_log("client:send:cmd | type:notify_player_leaves");
