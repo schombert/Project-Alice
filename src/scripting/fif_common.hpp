@@ -1,5 +1,6 @@
 #pragma once
 #include "fif.hpp"
+#include "politics.hpp"
 
 namespace fif {
 
