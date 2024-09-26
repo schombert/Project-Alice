@@ -19,18 +19,18 @@ change_name_to;Изменить имя на $text$
 change_terrain_to;Изменить местность на $text$
 change_rgo_production_to;Изменить производство РГО на $text$
 make_accepted_culture;$text$ становится принятой культурой
-primary_culture_changes_to;Primary culture changes to $text$
-union_culture_accepted;All cultures in the nation's primary culture group become accepted
-remove_accepted_culture;$text$ stops being an accepted culture
+primary_culture_changes_to;Основная культура становится $text$
+union_culture_accepted;Все культуры в культурной группе становятся принятыми
+remove_accepted_culture;$text$ перестаёт быть принятой культурой
 increase_national_variable_by;Увеличить национальную переменную $text$ на $value$
 decrease_national_variable_by;Уменьшить национальную переменную $text$ на $value$
-life_rating;Life rating
-make_national_religion;$text$ becomes the national religion
+life_rating;Рейтинг жизни
+make_national_religion;$text$ становится национально религией
 make_slave_state;Становится рабовладельческим штатом
 make_slave_pop;Становятся рабами
 research_points;Очки исследований
 change_tech_school;Technology school changes to $text$
-change_government_to;Government changes to $text$
+change_government_to;Правительство становится $text$
 add_to_treasury;Добавлено в казну
 war_exhaustion;Усталость от войны
 become_blank;Становится $text$
@@ -53,7 +53,7 @@ end_war_with;Закончить войну с $text$
 enable_ideology;Включить идеологию ?Y$text$?!
 enable_technology;Укажите технологию ?Y$text$?!
 enable_invention;Укажите изобретение ?Y$text$?!
-change_ruling_party;Change ruling party to $text$
+change_ruling_party;Поменять правящую партию на $text$
 remove_prov_mod;Удалить модификатор провинции $text$
 remove_nat_mod;Удалить национальный модификатор $text$
 make_alliance;Вступить в альянс с $text$
@@ -110,23 +110,23 @@ set_national_variable_to;Установить национальную пере�
 event_fires;Событие $text$ срабатывает
 event_fires_in_days;Событие $text$ инициируется через $value$ дней
 railroad_in_capital;?G+1?! уровень железной дороги в столице
-railroad_in_capital_state;?G+1?! уровень железной дороги в столице штата
+railroad_in_capital_state;?G+1?! уровень железной дороги в столичном регионе
 fort_in_capital;?G+1?! уровень форта в столице
-fort_in_capital_state;?G+1?! уровень форта в столице штата
+fort_in_capital_state;?G+1?! уровень форта в столичном регионе
 fort_in_capital;?G+1?! уровень форта в столице
 fort_in_capital_state;?G+1?! уровень форта в столице штата
 university_in_capital;?G+1?! университетский уровень в столице
-university_in_capital_state;?G+1?! университетский уровень в столице штата
+university_in_capital_state;?G+1?! уровень университета в столичном регионе
 bank_in_capital;?G+1?! уровень банка в капитале
-bank_in_capital_state;?G+1?! банковский уровень в столичном государстве
+bank_in_capital_state;?G+1?! банковский уровень в столичном регионе
 railroad_level;Уровень железной дороги
 fort_level;уровень форта
 naval_base_level;уровень военно-морской базы
 university_base_level;уровень военно-морской базы
 bank_base_level;уровень военно-морской базы
-apply;Применять
+apply;Применить
 ok;ХОРОШО
-close;Закрывать
+close;Закрыть
 delete;Удалить
 new;Новый
 reset;Перезагрузить
@@ -134,28 +134,28 @@ every;Каждый
 ready;Готовый
 any;Любой
 none;Никто
-random;A random
-neighboring_province;neighboring province
-where;where: 
-neighboring_nation;neighboring nation
-nation;nation
+random;Случайный
+neighboring_province;соседняя провинция
+where;где: 
+neighboring_nation;соседнее государство
+nation;государство
 continent;континент
 same_continent;на том же континенте
-empty_neighboring_province;Empty neighboring province
+empty_neighboring_province;Пустая соседняя провинция
 poor_strata_pop;бедные слои
 middle_strata_pop;средние слои
 rich_strata_pop;богатые слои
 pop;Pop
 owned_province;province belonging to
-singular_nation;that nation
-singular_state;that state
-singular_province;that province
-singular_pop;that pop
-one_of_the_following;one of the following effects:
-this_nation;this nation
-this_state;this state
-this_province;this province
-this_pop;this pop
+singular_nation;то государство
+singular_state;тот штат
+singular_province;та провинция
+singular_pop;то население
+one_of_the_following;один из эффектов:
+this_nation;это государство
+this_state;этот штат
+this_province;эта провинция
+this_pop;это население
 from_nation;from nation
 from_state;from state
 from_province;from province
@@ -171,9 +171,9 @@ owner_of;owner of
 controller_of;controller of
 location_of_pop;location of that pop
 nation_of_pop;nation containing that pop
-capital_of;capital of
-containing_state;state containing
-adjacent_sea;adjacent sea zone
+capital_of;столица
+containing_state;штат содержащий
+adjacent_sea;соседняя морская зона
 cultural_union_of;cultural union of
 overlord_of;overlord of
 sphere_leader_of;sphere leader of
@@ -259,9 +259,9 @@ rebel_religion;мятежная религия
 this_nation_religion;национальная религия этой нации
 from_nation_religion;национальная религия нации
 province_terrain;рельеф провинции
-rgo_production;Добыча
+rgo_production;РГО
 a_secondary_power;колониальная держава
-owner;owner
+owner;владелец
 an_active_rebel;an active rebel faction
 a_member_of;a member of
 unclaimed_cores;unclaimed cores
@@ -302,49 +302,49 @@ prestige;Престиж
 a_railroad;железная дорога
 a_fort;форт
 a_naval_base;морская база
-a_factory;a factory
+a_factory;завод
 empty;unowned
 blockaded;в блокаде
-national_modifier;national modifier
-provincial_modifier;provincial modifier
-part_of;part of
-a_border_with;a border with
-units_in_province;units in province
-units_in_the_province;units in the province
-units_in_the_state;units in the state
-at_war_against;at war against
+national_modifier;национальный модификатор
+provincial_modifier;провинциальный модификатор
+part_of;часть
+a_border_with;граница с
+units_in_province;юниты в провинции
+units_in_the_province;юниты в провинции
+units_in_the_state;юниты в регионе
+at_war_against;в войне против
 num_of_divisions;a number of divisions
-an_ongoing_battle;an ongoing battle
-an_assigned_leader;an assigned leader
-treasury;treasury
+an_ongoing_battle;активная битва
+an_assigned_leader;назначенный лидер
+treasury;казна
 o_treasury;owner's treasury
 o_of_prov;the owner of the province
 percentage_unowned_cores;percentage of unowned cores
-a_vassal;a vassal
-ruling_party_ideology;ruling party ideology
-ruling_party;ruling party
+a_vassal;вассал
+ruling_party_ideology;идеология правящей партии
+ruling_party;правящая партия
 enabled;enabled
 political_reform_desire;political reform desire
 social_reform_desire;social reform desire
-num_of_ships;number of ships
-crime_percent;percentage of provinces with crime
-national_religion;the national_religion
+num_of_ships;число кораблей
+crime_percent;доля провинций с преступностью
+national_religion;национальная религия
 member_of_nat_religion;a member of the national religion
-dominant_religion;the dominant religion
-same_rel_as_this;the same religion as this nation
-this_pop_culture;культура этой поп-музыки
+dominant_religion;ведущая религия
+same_rel_as_this;та же религия как у этого государства
+this_pop_culture;культура этого населения
 this_nation_primary_culture;основная культура этой нации
 this_nation_accepted_culture;принятая культура этой нации
 coastal;прибрежный
-in_sphere_of;in the sphere of
-a_producer_of;a producer of
+in_sphere_of;в сфере влияния
+a_producer_of;производитель
 next_reform;next reform
-always;always
-never;never
+always;всегда
+never;никогда
 percentage_recruited;процент завербованного населения
 in_cultural_core_prov;в провинции с ядром той же культуры
 nationalism;национализм
-overseas;overseas
+overseas;заморское
 overseas_pop;located in an overseas province
 controlled_by_rebel;controlled by rebels
 controlled_by;controlled by
@@ -357,24 +357,24 @@ pops_of_type;pops of type
 of_type_plain;of type
 ai_controlled;AI controlled
 a_leader_named;a leader named
-a_possible_vassal;a possible vassal
-a_vassal_of;a vassal of
-a_substate_of;a substate of
-allied_to;allied to
+a_possible_vassal;возможный вассал
+a_vassal_of;вассал
+a_substate_of;регион
+allied_to;союзник
 has_recently_lost_war;has recently lost a war
 has_not_recently_lost_war;has not recently lost a war
 mobilized;мобилизованный
-mobilization_size;mobilization size
+mobilization_size;размер мобилизации
 admin_spending;administration spending
 greater_than_edu_spending;greater than education spending
 support_for_rp;support for ruling party
 colonial;colonial
 in_default_to;in default to
-in_bnkrpt;bankrupt
+in_bnkrpt;банкрот
 num_of_ports_connected;number of ports connected to capital
 holding_an_election;holding an election
 set_globally;set globally
-national_value;national value
+national_value;национальные ценности
 industrial_score;промышленный рейтинг
 industrial_score_of;промышленный балл
 military_score;военный счет
@@ -410,7 +410,7 @@ cb_not_discovered;фабрикация повода для войны не об�
 cb_progress;прогресс изготовления повода для войны
 civ_progress;прогресс цивилизации
 constructing_a;изготовление
-casus_belli;casus belli
+casus_belli;основание войны
 nation_in_scope;the nation in scope
 a_substate;a substate
 gw_enabled;великие войны включены
@@ -424,7 +424,7 @@ num_states;number of states
 a_releasable_vassal;a releasable vassal
 recent_immigration;recent immigration
 num_control_days;number of days under current control
-disarmed;disarmed
+disarmed;обезоруженный
 social_mov_support;поддержка общественного движения
 political_mov_support;поддержка политического движения
 a_member_of_social_mov;член общественного движения
@@ -895,18 +895,18 @@ on;ON
 off;OFF
 province_selector;Selector
 province_immigrator;Immigrator
-tt_a_bank;a bank
-tt_a_university;a university
+tt_a_bank;банк
+tt_a_university;университет
 et_add_selector;enable province selector
 et_remove_selector;disable province selector
 et_add_immigrator;enable province immigrator
 et_remove_immigrator;disable province immigrator
-et_if;If
-et_else_if;Else
+et_if;Если
+et_else_if;Иначе
 modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
 modifier_conversion_rate;Conversion Rate
-modifier_attrition;Attrition
+modifier_attrition;Истощение
 chat_player_joins;$playername$ joined
 chat_player_leaves;$playername$ left
 chat_player_ban;$playername$ was banned
