@@ -1246,3 +1246,11 @@ method_profit;利润（预计）
 method_margin;差值
 method_cost;建设成本
 method_payback;回本时间
+change_pname_to;将$x$党的名称更改为$text$
+change_rpname_to;将执政党的名称更改为$text$
+change_pposition_to;将$x$党的立场更改为$text$
+change_rpposition_to;将执政党的立场更改为$text$
+pname_is;$x$党的名称
+rpname_is;执政党的名称
+pposition_is;$x$党的立场
+rpposition_is;执政党的立场
