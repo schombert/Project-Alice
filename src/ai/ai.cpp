@@ -741,22 +741,22 @@ void update_focuses(sys::state& state) {
 			auto ideal_swfrac = (1.f - state.economy_definitions.craftsmen_fraction);
 			// Due to floating point comparison where 2.9999 != 3, we will round the number
 			// so that the ratio is NOT exact, but rather an aproximate
-			if(pw_employed >= pw_num && int8_t(pw_frac * 100.f) != int8_t(ideal_pwfrac * 100.f)) {
-				auto nf = state.national_definitions.secondary_factory_worker_focus;
-				auto k = state.world.national_focus_get_limit(nf);
-				if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
-					// Keep balance between ratio of factory workers
-					// we will only promote primary workers if none are unemployed
-					assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
-					state.world.state_instance_set_owner_focus(ordered_states[i], nf);
-					--num_focuses_total;
-				}
-			} else if(sw_employed >= sw_num && int8_t(sw_frac * 100.f) != int8_t(ideal_swfrac * 100.f)) {
+			if((pw_employed < pw_num || pw_num < 1.0f) && int8_t(pw_frac * 100.f) != int8_t(ideal_pwfrac * 100.f)) {
 				auto nf = state.national_definitions.primary_factory_worker_focus;
 				auto k = state.world.national_focus_get_limit(nf);
 				if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
 					// Keep balance between ratio of factory workers
 					// we will only promote secondary workers if none are unemployed
+					assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+					state.world.state_instance_set_owner_focus(ordered_states[i], nf);
+					--num_focuses_total;
+				}
+			} else if(pw_employed >= pw_num && pw_num > 1.0f && int8_t(sw_frac * 100.f) != int8_t(ideal_swfrac * 100.f)) {
+				auto nf = state.national_definitions.secondary_factory_worker_focus;
+				auto k = state.world.national_focus_get_limit(nf);
+				if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+					// Keep balance between ratio of factory workers
+					// we will only promote primary workers if none are unemployed
 					assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
 					state.world.state_instance_set_owner_focus(ordered_states[i], nf);
 					--num_focuses_total;
