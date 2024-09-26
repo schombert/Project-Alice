@@ -3681,6 +3681,10 @@ struct effect_body {
 			err.accumulated_errors += "change_party_position effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 				std::to_string(line) + ")\n";
 			return;
+		} else if(!value.opt_) {
+			err.accumulated_errors += "change_party_position effect used without a valid position " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
 		}
 		context.compiled_effect.push_back(effect::change_party_position);
 		context.compiled_effect.push_back(trigger::payload(value.ideology_).value);

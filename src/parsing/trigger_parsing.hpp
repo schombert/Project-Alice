@@ -5789,7 +5789,11 @@ struct trigger_body {
 	}
 	void party_position(tr_party_position const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "party_position effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+			err.accumulated_errors += "party_position trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		} else if(!value.opt_) {
+			err.accumulated_errors += "party_position trigger used without a valid position " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 				std::to_string(line) + ")\n";
 			return;
 		}
