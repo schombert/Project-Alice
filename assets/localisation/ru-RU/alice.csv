@@ -26,30 +26,30 @@ increase_national_variable_by;Увеличить национальную пер
 decrease_national_variable_by;Уменьшить национальную переменную $text$ на $value$
 life_rating;Life rating
 make_national_religion;$text$ becomes the national religion
-make_slave_state;Becomes a slave state
-make_slave_pop;Becomes a slave
-research_points;Research points
+make_slave_state;Становится рабовладельческим штатом
+make_slave_pop;Становятся рабами
+research_points;Очки исследований
 change_tech_school;Technology school changes to $text$
 change_government_to;Government changes to $text$
-add_to_treasury;Added to treasury
-war_exhaustion;War exhaustion
-become_blank;Becomes $text$
+add_to_treasury;Добавлено в казну
+war_exhaustion;Усталость от войны
+become_blank;Становится $text$
 player_control_change;Player control changes to $text$
 set_national_flag;$text$ is set for this nation
 remove_national_flag;$text$ is unset for this nation
 infamy;позор
 change_province_owner;Изменить владельца провинции на $text$
-annex_effect;Annex $text$
-annexed_by_effect;Is annexed by $text$
+annex_effect;Аннексировать $text$
+annexed_by_effect;Аннексирован $text$
 core_return;$adj$ cores are returned to $text$
 core_return_short;$adj$ cores are returned
 change_province_controller;change province controller to $text$
 change_state_controller;change state controller to $text$
-pop_savings;Pop savings
-leadership_points;Leadership points
-release_as_vassal;Release $text$ as a vassal
-end_alliance;End alliance with $text$
-end_war_with;End war with $text$
+pop_savings;Накопления
+leadership_points;Очки лидерства
+release_as_vassal;Выпустить $text$ как вассала
+end_alliance;Закончить альянс с $text$
+end_war_with;Закончить войну с $text$
 enable_ideology;Включить идеологию ?Y$text$?!
 enable_technology;Укажите технологию ?Y$text$?!
 enable_invention;Укажите изобретение ?Y$text$?!
@@ -59,40 +59,40 @@ remove_nat_mod;Удалить национальный модификатор $t
 make_alliance;Вступить в альянс с $text$
 becomes_independent;$text$ становится независимым государством
 release_as_independent;Выпустить $text$ как независимую нацию
-set_global_flag;Установить $text$ глобально
-remove_global_flag;Удалить $text$ глобально
+set_global_flag;Установить глобальный флаг $text$
+remove_global_flag;Удалить глобальный флаг $text$
 change_national_value;Change national value to $text$
-become_civ;Becomes a civilized nation
-become_unciv;Becomes an uncivilized nation
-free_slave_state;Becomes a free state
-free_slave_pop;Is freed from slavery
-hold_election;Hold election
+become_civ;Становится признанной страной
+become_unciv;Становится непризнанным государством
+free_slave_state;Становится свободным штатом
+free_slave_pop;Освобождён из рабства
+hold_election;Провести выборы
 issue_change;$issue$ changes to $text$
 add_relative_income;Times last income added to treasury
 make_neutral;All alliances ended and all vassals released
-pop_size;Pop size
-move_pop_to;Move pop to $text$
-change_pop_type;Change pop type to $text$
-years_of_research;Years of research
+pop_size;Размер населения
+move_pop_to;Переселить население в $text$
+change_pop_type;Поменять тип населения на $text$
+years_of_research;Лет исследований
 remove_mil_reforms;Remove $value$ military reforms
 remove_econ_reforms;Remove $value$ economic reforms
-add_crime;Add crime $text$
-remove_crime;Remove active crime
-perform_nationalization;Perform nationalization
+add_crime;Добавить преступность $text$
+remove_crime;Убрать преступность
+perform_nationalization;Провести национализацию
 build_factory_in_capital;Build $text$ in capital state
 enable_great_wars;Великие войны включены
 enable_world_wars;Мировые войны включены
 disable_great_wars;Великие войны больше невозможны
 disable_world_wars;Мировые войны больше невозможны
-assimilate_pop;Change culture to $text$
-assimilate_province;Change the culture of all pops to $text$
+assimilate_pop;Поменять культуру на $text$
+assimilate_province;Поменять культуру на $text$
 owner_primary_culture;its owner's primary culture
-literacy;literacy
+literacy;грамотность
 add_crisis_interest;Интересуется текущим кризисом
 crisis_temperature_plain;crisis temperature
 militancy;militancy
 consciousness;consciousness
-rgo_size;РГО size
+rgo_size;Размер добычи
 trigger_every_revolt;Вызвать восстание каждой повстанческой фракции
 call_allies;Призвать союзников в их текущие войны
 truce_with;Перемирие с $text$ до ?Y$y$?!
@@ -139,12 +139,12 @@ neighboring_province;neighboring province
 where;where: 
 neighboring_nation;neighboring nation
 nation;nation
-continent;continent
-same_continent;on the same continent as
+continent;континент
+same_continent;на том же континенте
 empty_neighboring_province;Empty neighboring province
-poor_strata_pop;poor strata pop
-middle_strata_pop;middle strata pop
-rich_strata_pop;rich strata pop
+poor_strata_pop;бедные слои
+middle_strata_pop;средние слои
+rich_strata_pop;богатые слои
 pop;Pop
 owned_province;province belonging to
 singular_nation;that nation
@@ -236,8 +236,8 @@ a_slave_state;рабовладельческое государство
 a_slave;a slave
 an_independent_nation;an independent nation
 non_prim_culture_pops;non primary-culture pops
-government;government
-capital;capital
+government;правительство
+capital;столица
 technology_school;technology school
 primary_culture;primary culture
 primary_culture_pop;основная культура нации, в которой находится поп-музыка
@@ -259,24 +259,24 @@ rebel_religion;мятежная религия
 this_nation_religion;национальная религия этой нации
 from_nation_religion;национальная религия нации
 province_terrain;рельеф провинции
-rgo_production;РГО production
+rgo_production;Добыча
 a_secondary_power;колониальная держава
 owner;owner
 an_active_rebel;an active rebel faction
 a_member_of;a member of
 unclaimed_cores;unclaimed cores
-a_cultural_union;a cultural union
-union_for_pop;культурный союз поп-музыки
+a_cultural_union;культурный союз
+union_for_pop;культурный союз населения
 union_for_nation;культурный союз нации
-the_rebel_ind_nation;мятежная нация независимости
+the_rebel_ind_nation;мятежная нация
 capitalists_can_build;капиталистам разрешено строить заводы
 capitalists_cannot_build;капиталистам не разрешено строить заводы
-at_war;на войне
-total_blockade;total blockade
+at_war;в состоянии войны
+total_blockade;полная блокада
 owns;владеет
 does_not_own;не владеет
 controls;контролируют
-does_not_control;dне контролирует
+does_not_control;не контролирует
 a_core_in;ядро в
 a_core_of;ядро
 a_core_of_owner;ядро его владельца
@@ -288,23 +288,23 @@ num_provinces_owned_by;количество провинций, принадле
 num_of_ports;количество портов
 num_of_allies;количество союзников
 num_of_vassals;количество вассалов
-owned_by;owned by
-exists;exists
-does_not_exist;does not exist
+owned_by;принадлежит
+exists;существует
+does_not_exist;не существует
 att_set;set
 in;in
-located_in;located in
+located_in;расположен в
 the_owner_of_region;the owner of every province in
 a_casus_belli_against;a casus belli against
 military_access_with;military access with
 prestige_of;the prestige of
-prestige;Prestige
-a_railroad;a railroad
-a_fort;a fort
-a_naval_base;a naval base
+prestige;Престиж
+a_railroad;железная дорога
+a_fort;форт
+a_naval_base;морская база
 a_factory;a factory
 empty;unowned
-blockaded;blockaded
+blockaded;в блокаде
 national_modifier;national modifier
 provincial_modifier;provincial modifier
 part_of;part of
@@ -335,7 +335,7 @@ same_rel_as_this;the same religion as this nation
 this_pop_culture;культура этой поп-музыки
 this_nation_primary_culture;основная культура этой нации
 this_nation_accepted_culture;принятая культура этой нации
-coastal;coastal
+coastal;прибрежный
 in_sphere_of;in the sphere of
 a_producer_of;a producer of
 next_reform;next reform
@@ -343,7 +343,7 @@ always;always
 never;never
 percentage_recruited;процент завербованного населения
 in_cultural_core_prov;в провинции с ядром той же культуры
-nationalism;nationalism
+nationalism;национализм
 overseas;overseas
 overseas_pop;located in an overseas province
 controlled_by_rebel;controlled by rebels
@@ -379,15 +379,15 @@ industrial_score;промышленный рейтинг
 industrial_score_of;промышленный балл
 military_score;военный счет
 military_score_of;военный счет
-civilized;civilized
-percent_occupied;percentage of occupied provinces
-rich_tax;rich tax
-middle_tax;middle tax
-poor_tax;poor tax
+civilized;цивилизованный
+percent_occupied;процент оккупированных провиций
+rich_tax;налоги на богатых
+middle_tax;налоги на средний класс
+poor_tax;налоги на бедных
 soc_spending;социальные расходы
 edu_spending;расходы на образование
 mil_spending;военные расходы
-colonies;colonies
+colonies;колонии
 dominant_ideology;доминирующая идеология
 dominant_issue;доминирующая проблема
 poor_militancy;бедные слои воинственности
@@ -432,7 +432,7 @@ a_member_of_politic_mov;член политического движения
 cultural_sphere_members;члены сферы в одной культурной группе
 pops;pops
 this_pop_religion;the religion of this pop
-pops_with;pops with
+pops_with;население с
 life_needs_satisfaction;удовлетворение жизненных потребностей
 everyday_needs_satisfaction;удовлетворение повседневных потребностей
 luxury_needs_satisfaction;роскошь-удовлетворение потребностей
@@ -441,7 +441,7 @@ flashpoint;Flashpoint
 plurality_pop;the plurality of the nation the pop is in
 an_ongoing_crisis;an ongoing crisis
 there;There
-current_crisis;current crisis
+current_crisis;текущий кризис
 liberation_crisis;a liberation crisis
 claim_crisis;a claim crisis
 involved_in_crisis;involved in crisis
@@ -1110,8 +1110,8 @@ unit_controls_tooltip_1;?YЩелкните левой кнопкой мыши?W 
 unit_controls_tooltip_2;?YЩелкните правой кнопкой мыши по провинции?W частичное отступление (?Gcycling/rotation?W) в провинцию
 unit_control_group_tooltip;Нажмите от ?YCTRL-1?W до ?YCTRL-9?W, чтобы назначить/отменить назначение этого устройства в группу управления, которую затем можно нажать от ?Y1?W до ?Y9?W, чтобы выбрать
 console_button_tooltip;Открыть командную консоль
-demobilize;Demobilize
-mobilize;Mobilize
+demobilize;Демобилизировать
+mobilize;Мобилизировать
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
 alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
 alice_mob_controls;?YRight-click?W to remobilize
@@ -1178,14 +1178,22 @@ alice_mvcap_10;Принадлежит вам
 alice_mvcap_11;Управляется вами
 alice_mvcap_12;Является владельцем ядра
 alice_pnt_pops;?YНаселение:?! $x$
-alice_pnt_rpops;?YРич Страта:?! $x$ ($y$)
+alice_pnt_rpops;?YБогатые слои:?! $x$ ($y$)
 alice_pnt_mpops;?YСредние слои:?! $x$ ($y$)
 alice_pnt_ppops;?YБедные слои:?! $x$ ($y$)
 alice_pnt_culture;?YКультура:?! $x$
-alice_pnt_religion;?YReligion:?! $x$
+alice_pnt_religion;?YРелигия:?! $x$
 alice_pnt_dominant_religion;?YДоминирующая религия:?! $x$
 alice_pnt_dominant_ideology;?YДоминантная идеология:?! $x$
 ledger_ppp_gdp;ВВП(ППС)
 ledger_ppp_gdp_per_capita;ВВП(ППС) на 1 млн человек
 becomes_from;Scoped becomes from
 becomes_this;Scoped becomes this
+change_pname_to;Переименовать партию $x$ в $text$
+change_rpname_to;Переименовать правящую партию в $text$
+change_pposition_to;Поменять политику партии $x$ на $text$
+change_rpposition_to;Поменять политику правящей партии на $text$
+pname_is;партия $x$
+rpname_is;правящая партия
+pposition_is;политика партии $x$
+rpposition_is;политика правящей партии
