@@ -4264,6 +4264,9 @@ void state::single_game_tick() {
 			}
 
 			ai::update_influence_priorities(*this);
+
+			nations::generate_sea_trade_routes(*this);
+			nations::recalculate_markets_distance(*this);
 		}
 		if(ymd_date.month == 2) {
 			ai::upgrade_colonies(*this);
@@ -4290,6 +4293,8 @@ void state::single_game_tick() {
 		}
 		if(ymd_date.month == 7) {
 			ai::update_influence_priorities(*this);
+
+			nations::recalculate_markets_distance(*this);
 		}
 		if(ymd_date.month == 9 && !national_definitions.on_quarterly_pulse.empty()) {
 			for(auto n : world.in_nation) {

@@ -126,8 +126,8 @@ inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float rgo_owners_cut = 0.05f;
-inline constexpr float price_speed_mod = 0.001f;
-inline constexpr float price_rigging = 0.02f;
+inline constexpr float price_speed_mod = 0.0001f;
+inline constexpr float price_rigging = 0.015f;
 inline constexpr float stockpile_to_supply = 0.f;
 
 void presimulate(sys::state& state);

@@ -266,6 +266,8 @@ void restore_unsaved_values(sys::state& state);
 void restore_state_instances(sys::state& state);
 void generate_initial_trade_routes(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
+void generate_sea_trade_routes(sys::state& state);
+void recalculate_markets_distance(sys::state& state);
 
 dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag);
 

@@ -199,7 +199,6 @@ void generate_sea_trade_routes(sys::state& state) {
 	// buffer for "capitals" of connected regions:
 	std::array<dcon::state_instance_id, 2000> capital_of_region = {};
 
-
 	state.world.for_each_state_instance([&](auto candidate) {
 		auto capital = state.world.state_instance_get_capital(candidate);
 		auto connected_region = state.world.province_get_connected_region_id(capital);
@@ -222,12 +221,14 @@ void generate_sea_trade_routes(sys::state& state) {
 	state.world.for_each_state_instance([&](auto origin) {
 		if(!province::state_is_coastal(state, origin))
 			return;
+
+		auto market = state.world.state_instance_get_market_from_local_market(origin);
+
 		auto capital = state.world.state_instance_get_capital(origin);
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(origin);
 		auto state_owner_capital = state.world.nation_get_capital(owner);
 		auto state_owner_capital_state = state.world.province_get_state_membership(state_owner_capital);
 
-		auto market = state.world.state_instance_get_market_from_local_market(origin);
 		auto naval_base_origin = military::state_naval_base_level(state, origin);
 		auto population_origin = state.world.state_instance_get_demographics(origin, demographics::total);
 		auto connected_region = state.world.province_get_connected_region_id(capital);
@@ -239,6 +240,10 @@ void generate_sea_trade_routes(sys::state& state) {
 			if(!province::state_is_coastal(state, sid))
 				return;
 			auto target_market = state.world.state_instance_get_market_from_local_market(sid);
+
+			if(state.world.get_trade_route_by_province_pair(market, target_market)) {
+				return;
+			}
 
 			float score = 0.f;
 
@@ -310,7 +315,7 @@ void generate_initial_trade_routes(sys::state& state) {
 		});
 
 		for(auto candidate_trade_partner_val : trade_route_candidates) {
-			auto si = dcon::state_instance_id{ candidate_trade_partner_val };
+			auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 			auto target_market = state.world.state_instance_get_market_from_local_market(si);
 			auto new_route = state.world.force_create_trade_route(market, target_market);
 		}

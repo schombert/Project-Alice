@@ -744,7 +744,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			}
 
 			for(auto candidate_trade_partner_val : trade_route_candidates) {
-				auto si = dcon::state_instance_id{ candidate_trade_partner_val };
+				auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
 				auto new_route = state.world.force_create_trade_route(new_market, target_market);
 				state.world.trade_route_set_distance(new_route, 99999.f);
@@ -802,7 +802,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			}
 
 			for(auto candidate_trade_partner_val : trade_route_candidates) {
-				auto si = dcon::state_instance_id{ candidate_trade_partner_val };
+				auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
 				auto new_route = state.world.force_create_trade_route(market, target_market);
 				state.world.trade_route_set_distance(new_route, 99999.f);
