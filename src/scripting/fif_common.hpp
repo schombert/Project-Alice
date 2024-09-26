@@ -1246,6 +1246,80 @@ inline std::string tag_to_nation() {
 	return "identity_holder-identity nation @ ";
 }
 
+inline bool f_party_name(sys::state* state, int32_t s_index, int32_t ideoindex, int32_t nameindex) {
+	dcon::nation_id n{ dcon::nation_id::value_base_t(s_index) };
+	dcon::ideology_id i{ dcon::ideology_id::value_base_t(ideoindex) };
+	dcon::text_key m{ dcon::text_key::value_base_t(nameindex) };
+
+	auto holder = state->world.nation_get_identity_from_identity_holder(n);
+
+	auto start = state->world.national_identity_get_political_party_first(holder).id.index();
+	auto end = start + state->world.national_identity_get_political_party_count(holder);
+
+	for(int32_t j = start; j < end; j++) {
+		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(j));
+		if(politics::political_party_is_active(*state, n, pid) && state->world.political_party_get_ideology(pid) == i) {
+			return state->world.political_party_get_name(pid) == m;
+		}
+	}
+
+	return false;
+}
+inline int32_t* f_party_name_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t ideoindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t nameindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	s.push_back_main(fif::fif_bool, f_party_name(state, nindex, ideoindex, nameindex), nullptr);
+	return p + 2;
+}
+
+inline bool f_party_pos(sys::state* state, int32_t s_index, int32_t ideoindex, int32_t optid) {
+	dcon::nation_id n{ dcon::nation_id::value_base_t(s_index) };
+	dcon::ideology_id i{ dcon::ideology_id::value_base_t(ideoindex) };
+	dcon::issue_option_id m{ dcon::issue_option_id::value_base_t(optid) };
+
+	auto popt = state->world.issue_option_get_parent_issue(m);
+	auto holder = state->world.nation_get_identity_from_identity_holder(n);
+
+	auto start = state->world.national_identity_get_political_party_first(holder).id.index();
+	auto end = start + state->world.national_identity_get_political_party_count(holder);
+
+	for(int32_t j = start; j < end; j++) {
+		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(j));
+		if(politics::political_party_is_active(*state, n, pid) && state->world.political_party_get_ideology(pid) == i) {
+			return state->world.political_party_get_party_issues(pid, popt) == m;
+		}
+	}
+	return false;
+}
+inline int32_t* f_party_pos_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t ideoindex = int32_t(s.main_data_back(0)); s.pop_main();
+	int32_t nameindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	s.push_back_main(fif::fif_bool, f_party_pos(state, nindex, ideoindex, nameindex), nullptr);
+	return p + 2;
+}
+
 inline void common_fif_environment(sys::state& state, fif::environment& env) {
 	fif::initialize_standard_vocab(env);
 
@@ -1317,7 +1391,8 @@ inline void common_fif_environment(sys::state& state, fif::environment& env) {
 	fif::add_import("relations", (void *) f_relations, f_relations_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
 	fif::add_import("can-build-naval-base?", (void *) f_can_build_naval_base, f_can_build_naval_base_b, { fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 	fif::add_import("ranked-nation-array", (void *) f_ranked_nations, f_ranked_nations_b, { fif::fif_opaque_ptr }, { fif::fif_opaque_ptr }, env);
-
+	fif::add_import("has-named-party?", (void*)f_party_name, f_party_name_b, { fif::fif_i32, fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("has-positioned-party?", (void*)f_party_pos, f_party_pos_b, { fif::fif_i32, fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 
 	fif::run_fif_interpreter(env,
 		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "

@@ -416,8 +416,7 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 		assert(state.world.government_type_is_valid(new_type));
 		state.world.nation_set_government_type(n, new_type);
 
-		if((state.world.government_type_get_ideologies_allowed(new_type) &
-					 culture::to_bits(state.world.nation_get_ruling_party(n).get_ideology())) == 0) {
+		if((state.world.government_type_get_ideologies_allowed(new_type) & culture::to_bits(state.world.nation_get_ruling_party(n).get_ideology())) == 0) {
 
 			auto tag = state.world.nation_get_identity_from_identity_holder(n);
 			auto start = state.world.national_identity_get_political_party_first(tag).id.index();
@@ -537,8 +536,7 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 					if(weight > 0) {
 						for(auto i : state.world.in_ideology) {
 							if((allowed_ideo & culture::to_bits(i)) != 0)
-								accumulated_in_state[i.id.index()] +=
-										weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+								accumulated_in_state[i.id.index()] += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
 						}
 					}
 				}
@@ -619,8 +617,7 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 				if(weight > 0) {
 					for(auto i : state.world.in_ideology) {
 						if((allowed_ideo & culture::to_bits(i)) != 0)
-							state.world.nation_get_upper_house(n, i) +=
-									weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+							state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
 					}
 				}
 			}
@@ -682,13 +679,11 @@ float party_total_support(sys::state& state, dcon::pop_id pop, dcon::political_p
 	if(weight > 0.f) {
 		auto ideological_share = state.world.pop_get_consciousness(pop) / 20.0f;
 
-		float ruling_party_support = p.get_modifier_values(sys::provincial_mod_offsets::local_ruling_party_support) +
-																 n.get_modifier_values(sys::national_mod_offsets::ruling_party_support) + 1.0f;
+		float ruling_party_support = p.get_modifier_values(sys::provincial_mod_offsets::local_ruling_party_support) +  n.get_modifier_values(sys::national_mod_offsets::ruling_party_support) + 1.0f;
 		float prov_vote_mod = p.get_modifier_values(sys::provincial_mod_offsets::number_of_voters) + 1.0f;
 
 		auto pid = state.world.political_party_get_ideology(par_id);
-		auto base_support = (p.get_party_loyalty(pid) + 1.0f) * prov_vote_mod *
-												(par_id == n.get_ruling_party() ? ruling_party_support : 1.0f) * weight;
+		auto base_support = (p.get_party_loyalty(pid) + 1.0f) * prov_vote_mod * (par_id == n.get_ruling_party() ? ruling_party_support : 1.0f) * weight;
 		auto issue_support = 0.0f;
 		for(auto pi : state.culture_definitions.party_issues) {
 			auto party_pos = state.world.political_party_get_party_issues(par_id, pi);
@@ -882,9 +877,9 @@ void update_elections(sys::state& state) {
 					float winner_amount_b = -1.0f;
 					for(uint32_t i = 0; i < party_votes.size(); ++i) {
 						total += party_votes[i].vote;
-						if(state.world.ideology_get_ideology_group_from_ideology_group_membership(
-									 state.world.political_party_get_ideology(party_votes[i].par)) == winner &&
-								party_votes[i].vote > winner_amount_b) {
+						if(state.world.ideology_get_ideology_group_from_ideology_group_membership(state.world.political_party_get_ideology(party_votes[i].par)) == winner
+							&& party_votes[i].vote > winner_amount_b) {
+
 							winner_b = i;
 							winner_amount_b = party_votes[i].vote;
 						}

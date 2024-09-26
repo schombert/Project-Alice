@@ -5272,6 +5272,63 @@ uint32_t ef_masquerade_as_nation_from(EFFECT_PARAMTERS) {
 	return 0;
 }
 
+uint32_t ef_change_party_name(EFFECT_PARAMTERS) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::text_key new_name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 2)) };
+
+	if(ideo) {
+		auto n = trigger::to_nation(primary_slot);
+		auto holder = ws.world.nation_get_identity_from_identity_holder(n);
+
+		auto start = ws.world.national_identity_get_political_party_first(holder).id.index();
+		auto end = start + ws.world.national_identity_get_political_party_count(holder);
+
+		for(int32_t i = start; i < end; i++) {
+			auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+			if(politics::political_party_is_active(ws, n, pid) && ws.world.political_party_get_ideology(pid) == ideo) {
+				ws.world.political_party_set_name(pid, new_name);
+				return 0;
+			}
+		}
+	} else {
+		auto n = trigger::to_nation(primary_slot);
+		auto rp = ws.world.nation_get_ruling_party(n);
+		if(rp) {
+			ws.world.political_party_set_name(rp, new_name);
+		}
+	}
+	return 0;
+}
+
+uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::issue_option_id new_opt = trigger::payload(tval[2]).opt_id;
+	auto popt = ws.world.issue_option_get_parent_issue(new_opt);
+
+	if(ideo) {
+		auto n = trigger::to_nation(primary_slot);
+		auto holder = ws.world.nation_get_identity_from_identity_holder(n);
+
+		auto start = ws.world.national_identity_get_political_party_first(holder).id.index();
+		auto end = start + ws.world.national_identity_get_political_party_count(holder);
+
+		for(int32_t i = start; i < end; i++) {
+			auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+			if(politics::political_party_is_active(ws, n, pid) && ws.world.political_party_get_ideology(pid) == ideo) {
+				ws.world.political_party_set_party_issues(pid, popt, new_opt);
+				return 0;
+			}
+		}
+	} else {
+		auto n = trigger::to_nation(primary_slot);
+		auto rp = ws.world.nation_get_ruling_party(n);
+		if(rp) {
+			ws.world.political_party_set_party_issues(rp, popt, new_opt);
+		}
+	}
+	return 0;
+}
+
 inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) ef_##name,

@@ -328,8 +328,7 @@ void tf_x_owned_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(primary_slot))
-													 : text::produce_simple_string(ws, "singular_state"));
+				primary_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(primary_slot)) : text::produce_simple_string(ws, "singular_state"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -350,8 +349,7 @@ void tf_x_owned_province_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot)))
-													 : text::produce_simple_string(ws, "singular_nation"));
+				primary_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(primary_slot))) : text::produce_simple_string(ws, "singular_nation"));
 		text::close_layout_box(layout, box);
 	}
 
@@ -7644,6 +7642,55 @@ void tf_has_building_university(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 
+void tf_party_name(TRIGGER_DISPLAY_PARAMS) {
+	auto ideology = trigger::payload(tval[1]).ideo_id;
+	dcon::text_key new_name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 2)) };
+
+	if(ideology) {
+		auto id_name = ws.world.ideology_get_name(ideology);
+		auto box = text::open_layout_box(layout, indentation);
+
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+		text::substitution_map s;
+		text::add_to_substitution_map(s, text::variable_type::x, id_name);
+		auto left_str = text::resolve_string_substitution(ws, "pname_is", s);
+		display_with_comparison(tval[0], left_str, new_name, ws, layout, box);
+
+		text::close_layout_box(layout, box);
+	} else {
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "rpname_is"), new_name, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
+}
+
+void tf_party_position(TRIGGER_DISPLAY_PARAMS) {
+	auto ideology = trigger::payload(tval[1]).ideo_id;
+	dcon::issue_option_id new_opt = trigger::payload(tval[2]).opt_id;
+	auto opt_name = ws.world.issue_option_get_name(new_opt);
+
+	if(ideology) {
+		auto id_name = ws.world.ideology_get_name(ideology);
+		auto box = text::open_layout_box(layout, indentation);
+
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+		text::substitution_map s;
+		text::add_to_substitution_map(s, text::variable_type::x, id_name);
+		auto left_str = text::resolve_string_substitution(ws, "pposition_is", s);
+		display_with_comparison(tval[0], left_str, opt_name, ws, layout, box);
+
+		text::close_layout_box(layout, box);
+	} else {
+		auto box = text::open_layout_box(layout, indentation);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "rpposition_is"), opt_name, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
+}
+
 constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_none,
 		tf_year,																			// constexpr inline uint16_t year = 0x0001;
@@ -8199,46 +8246,26 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_party_loyalty_from_province_province_id,		// constexpr inline uint16_t party_loyalty_from_province_province_id = 0x0227;
 		tf_party_loyalty_nation_from_province,				// constexpr inline uint16_t party_loyalty_nation_from_province = 0x0228;
 		tf_party_loyalty_from_nation_scope_province,	// constexpr inline uint16_t party_loyalty_from_nation_scope_province = 0x0229;
-		tf_can_build_in_province_railroad_no_limit_from_nation,		 // constexpr inline uint16_t
-																															 // can_build_in_province_railroad_no_limit_from_nation = 0x022A;
-		tf_can_build_in_province_railroad_yes_limit_from_nation,	 // constexpr inline uint16_t
-																															 // can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
-		tf_can_build_in_province_railroad_no_limit_this_nation,		 // constexpr inline uint16_t
-																															 // can_build_in_province_railroad_no_limit_this_nation = 0x022C;
-		tf_can_build_in_province_railroad_yes_limit_this_nation,	 // constexpr inline uint16_t
-																															 // can_build_in_province_railroad_yes_limit_this_nation = 0x022D;
-		tf_can_build_in_province_fort_no_limit_from_nation,				 // constexpr inline uint16_t
-																															 // can_build_in_province_fort_no_limit_from_nation = 0x022E;
-		tf_can_build_in_province_fort_yes_limit_from_nation,			 // constexpr inline uint16_t
-																															 // can_build_in_province_fort_yes_limit_from_nation = 0x022F;
-		tf_can_build_in_province_fort_no_limit_this_nation,				 // constexpr inline uint16_t
-																															 // can_build_in_province_fort_no_limit_this_nation = 0x0230;
-		tf_can_build_in_province_fort_yes_limit_this_nation,			 // constexpr inline uint16_t
-																															 // can_build_in_province_fort_yes_limit_this_nation = 0x0231;
-		tf_can_build_in_province_naval_base_no_limit_from_nation,	 // constexpr inline uint16_t
-																															 // can_build_in_province_naval_base_no_limit_from_nation = 0x0232;
-		tf_can_build_in_province_naval_base_yes_limit_from_nation, // constexpr inline uint16_t
-																															 // can_build_in_province_naval_base_yes_limit_from_nation = 0x0233;
-		tf_can_build_in_province_naval_base_no_limit_this_nation,	 // constexpr inline uint16_t
-																															 // can_build_in_province_naval_base_no_limit_this_nation = 0x0234;
-		tf_can_build_in_province_naval_base_yes_limit_this_nation, // constexpr inline uint16_t
-																															 // can_build_in_province_naval_base_yes_limit_this_nation = 0x0235;
-		tf_can_build_railway_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t
-																															 // can_build_railway_in_capital_yes_whole_state_yes_limit = 0x0236;
-		tf_can_build_railway_in_capital_yes_whole_state_no_limit,	 // constexpr inline uint16_t
-																															 // can_build_railway_in_capital_yes_whole_state_no_limit = 0x0237;
-		tf_can_build_railway_in_capital_no_whole_state_yes_limit,	 // constexpr inline uint16_t
-																															 // can_build_railway_in_capital_no_whole_state_yes_limit = 0x0238;
-		tf_can_build_railway_in_capital_no_whole_state_no_limit,	 // constexpr inline uint16_t
-																															 // can_build_railway_in_capital_no_whole_state_no_limit = 0x0239;
-		tf_can_build_fort_in_capital_yes_whole_state_yes_limit,		 // constexpr inline uint16_t
-																															 // can_build_fort_in_capital_yes_whole_state_yes_limit = 0x023A;
-		tf_can_build_fort_in_capital_yes_whole_state_no_limit,		 // constexpr inline uint16_t
-																															 // can_build_fort_in_capital_yes_whole_state_no_limit = 0x023B;
-		tf_can_build_fort_in_capital_no_whole_state_yes_limit,		 // constexpr inline uint16_t
-																															 // can_build_fort_in_capital_no_whole_state_yes_limit = 0x023C;
-		tf_can_build_fort_in_capital_no_whole_state_no_limit,			 // constexpr inline uint16_t
-																															 // can_build_fort_in_capital_no_whole_state_no_limit = 0x023D;
+		tf_can_build_in_province_railroad_no_limit_from_nation,		 // constexpr inline uint16_t can_build_in_province_railroad_no_limit_from_nation = 0x022A;
+		tf_can_build_in_province_railroad_yes_limit_from_nation,	 // constexpr inline uint16_t can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
+		tf_can_build_in_province_railroad_no_limit_this_nation,		 // constexpr inline uint16_t can_build_in_province_railroad_no_limit_this_nation = 0x022C;
+		tf_can_build_in_province_railroad_yes_limit_this_nation,	 // constexpr inline uint16_t can_build_in_province_railroad_yes_limit_this_nation = 0x022D;
+		tf_can_build_in_province_fort_no_limit_from_nation,				 // constexpr inline uint16_t  can_build_in_province_fort_no_limit_from_nation = 0x022E;
+		tf_can_build_in_province_fort_yes_limit_from_nation,			 // constexpr inline uint16_t can_build_in_province_fort_yes_limit_from_nation = 0x022F;
+		tf_can_build_in_province_fort_no_limit_this_nation,				 // constexpr inline uint16_t can_build_in_province_fort_no_limit_this_nation = 0x0230;
+		tf_can_build_in_province_fort_yes_limit_this_nation,			 // constexpr inline uint16_t  can_build_in_province_fort_yes_limit_this_nation = 0x0231;
+		tf_can_build_in_province_naval_base_no_limit_from_nation,	 // constexpr inline uint16_t can_build_in_province_naval_base_no_limit_from_nation = 0x0232;
+		tf_can_build_in_province_naval_base_yes_limit_from_nation, // constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_from_nation = 0x0233;
+		tf_can_build_in_province_naval_base_no_limit_this_nation,	 // constexpr inline uint16_t can_build_in_province_naval_base_no_limit_this_nation = 0x0234;
+		tf_can_build_in_province_naval_base_yes_limit_this_nation, // constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_this_nation = 0x0235;
+		tf_can_build_railway_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_yes_limit = 0x0236;
+		tf_can_build_railway_in_capital_yes_whole_state_no_limit,	 // constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_no_limit = 0x0237;
+		tf_can_build_railway_in_capital_no_whole_state_yes_limit,	 // constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_yes_limit = 0x0238;
+		tf_can_build_railway_in_capital_no_whole_state_no_limit,	 // constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_no_limit = 0x0239;
+		tf_can_build_fort_in_capital_yes_whole_state_yes_limit,		 // constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_yes_limit = 0x023A;
+		tf_can_build_fort_in_capital_yes_whole_state_no_limit,		 // constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_no_limit = 0x023B;
+		tf_can_build_fort_in_capital_no_whole_state_yes_limit,		 // constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_yes_limit = 0x023C;
+		tf_can_build_fort_in_capital_no_whole_state_no_limit,			 // constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_no_limit = 0x023D;
 		tf_work_available_nation,																	 // constexpr inline uint16_t work_available_nation = 0x023E;
 		tf_work_available_state,																	 // constexpr inline uint16_t work_available_state = 0x023F;
 		tf_work_available_province,																 // constexpr inline uint16_t work_available_province = 0x0240;
@@ -8262,8 +8289,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_variable_good_name,												 // constexpr inline uint16_t variable_good_name = 0x0251;
 		tf_strata_middle,															 // constexpr inline uint16_t strata_middle = 0x0252;
 		tf_strata_poor,																 // constexpr inline uint16_t strata_poor = 0x0253;
-		tf_party_loyalty_from_province_scope_province, // constexpr inline uint16_t party_loyalty_from_province_scope_province =
-																									 // 0x0254;
+		tf_party_loyalty_from_province_scope_province, // constexpr inline uint16_t party_loyalty_from_province_scope_province =  0x0254;
 		tf_can_build_factory_nation,									 // constexpr inline uint16_t can_build_factory_nation = 0x0255;
 		tf_can_build_factory_province,								 // constexpr inline uint16_t can_build_factory_province = 0x0256;
 		tf_nationalvalue_pop,													 // constexpr inline uint16_t nationalvalue_pop = 0x0257;
@@ -8404,7 +8430,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_unit_has_leader, //constexpr inline uint16_t unit_has_leader = 0x02DF
 		tf_has_national_focus_state, //constexpr inline uint16_t has_national_focus_state = 0x02E0
 		tf_has_national_focus_province, //constexpr inline uint16_t has_national_focus_province = 0x02E1
-
+		tf_party_name, //TRIGGER_BYTECODE_ELEMENT(0x02E2, party_name, 3)
+		tf_party_position, //TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2)
 		//
 		// scopes
 		//

@@ -3542,6 +3542,29 @@ TRIGGER_FUNCTION(tf_has_building_university) {
 	return "dup " + std::to_string(int32_t(economy::province_building_type::university)) + " >ui8 building_level 0 <> " + truth_inversion(tval[0]);
 }
 
+TRIGGER_FUNCTION(tf_party_name) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::text_key new_name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 2)) };
+
+	if(ideo) {
+		return "dup >index >r " + std::to_string(new_name.index()) + " " + std::to_string(ideo.index()) + " r> state-ptr @ has-named-party? " + truth_inversion(tval[0]);
+	} else {
+		return "dup ruling_party @ name @ " + std::to_string(new_name.index()) + " >text_key = " + truth_inversion(tval[0]);
+	}
+}
+
+TRIGGER_FUNCTION(tf_party_position) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::issue_option_id new_opt = trigger::payload(tval[2]).opt_id;
+
+	if(ideo) {
+		return "dup >index >r " + std::to_string(new_opt.index()) + " " + std::to_string(ideo.index()) + " r> state-ptr @ has-positioned-party? " + truth_inversion(tval[0]);
+	} else {
+		auto popt = ws.world.issue_option_get_parent_issue(new_opt);
+		return "dup ruling_party @ " + std::to_string(popt.id.index())  + " >issue_id party_issues @ " + std::to_string(new_opt.index()) + " >issue_option_id = " + truth_inversion(tval[0]);
+	}
+}
+
 struct trigger_container {
 	constexpr static std::string (
 			CALLTYPE* trigger_functions[])(uint16_t const* tval, sys::state& ws) = {

@@ -226,20 +226,17 @@ struct ef_wargoal {
 			special_end_wargoal = true;
 		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "call_allies_cb")) {
 			special_call_ally_wargoal = true;
-		} else if(auto it = context.outer_context.map_of_cb_types.find(std::string(value));
-				it != context.outer_context.map_of_cb_types.end()) {
+		} else if(auto it = context.outer_context.map_of_cb_types.find(std::string(value)); it != context.outer_context.map_of_cb_types.end()) {
 			casus_belli_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid cb type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid cb type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void state_province_id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(0 <= value && size_t(value) < context.outer_context.original_id_to_prov_id_map.size()) {
 			state_province_id_ = context.outer_context.original_id_to_prov_id_map[value];
 		} else {
-			err.accumulated_errors +=
-					"wargoal given an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "wargoal given an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -267,12 +264,10 @@ struct ef_sub_unit {
 	std::string_view value;
 	dcon::unit_type_id type_;
 	void type(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_unit_types.find(std::string(v));
-				it != context.outer_context.map_of_unit_types.end()) {
+		if(auto it = context.outer_context.map_of_unit_types.find(std::string(v)); it != context.outer_context.map_of_unit_types.end()) {
 			type_ = it->second;
 		} else {
-			err.accumulated_errors +=
-					"Invalid unit type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid unit type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -297,12 +292,10 @@ struct ef_ideology {
 	float factor = 0.0f;
 	dcon::ideology_id value_;
 	void value(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v));
-				it != context.outer_context.map_of_ideologies.end()) {
+		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
 			value_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -314,8 +307,7 @@ struct ef_dominant_issue {
 		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			value_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -324,12 +316,10 @@ struct ef_upper_house {
 	float value = 0.0f;
 	dcon::ideology_id ideology_;
 	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v));
-				it != context.outer_context.map_of_ideologies.end()) {
+		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
 			ideology_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -340,20 +330,17 @@ struct ef_scaled_militancy {
 	dcon::ideology_id ideology_;
 	dcon::issue_option_id issue_;
 	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v));
-				it != context.outer_context.map_of_ideologies.end()) {
+		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
 			ideology_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void issue(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			issue_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -364,20 +351,17 @@ struct ef_scaled_consciousness {
 	dcon::ideology_id ideology_;
 	dcon::issue_option_id issue_;
 	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v));
-				it != context.outer_context.map_of_ideologies.end()) {
+		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
 			ideology_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void issue(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			issue_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -387,21 +371,17 @@ struct ef_define_general {
 	dcon::leader_trait_id background_;
 	dcon::leader_trait_id personality_;
 	void background(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v));
-				it != context.outer_context.map_of_leader_traits.end()) {
+		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v)); it != context.outer_context.map_of_leader_traits.end()) {
 			background_ = it->second;
 		} else {
-			err.accumulated_errors +=
-					"Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void personality(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v));
-				it != context.outer_context.map_of_leader_traits.end()) {
+		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v)); it != context.outer_context.map_of_leader_traits.end()) {
 			personality_ = it->second;
 		} else {
-			err.accumulated_errors +=
-					"Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -411,21 +391,17 @@ struct ef_define_admiral {
 	dcon::leader_trait_id background_;
 	dcon::leader_trait_id personality_;
 	void background(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v));
-				it != context.outer_context.map_of_leader_traits.end()) {
+		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v)); it != context.outer_context.map_of_leader_traits.end()) {
 			background_ = it->second;
 		} else {
-			err.accumulated_errors +=
-					"Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void personality(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v));
-				it != context.outer_context.map_of_leader_traits.end()) {
+		if(auto it = context.outer_context.map_of_leader_traits.find(std::string(v)); it != context.outer_context.map_of_leader_traits.end()) {
 			personality_ = it->second;
 		} else {
-			err.accumulated_errors +=
-					"Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid leader trait " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -436,8 +412,7 @@ struct ef_add_war_goal {
 		if(auto it = context.outer_context.map_of_cb_types.find(std::string(v)); it != context.outer_context.map_of_cb_types.end()) {
 			casus_belli_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid cb type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid cb type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -450,16 +425,14 @@ struct ef_move_issue_percentage {
 		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			from_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void to(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			to_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -469,22 +442,51 @@ struct ef_party_loyalty {
 	dcon::province_id province_id_;
 	dcon::ideology_id ideology_;
 	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v));
-				it != context.outer_context.map_of_ideologies.end()) {
+		if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
 			ideology_ = it->second.id;
 		} else {
-			err.accumulated_errors +=
-					"Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void province_id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(0 <= value && size_t(value) < context.outer_context.original_id_to_prov_id_map.size()) {
 			province_id_ = context.outer_context.original_id_to_prov_id_map[value];
 		} else {
-			err.accumulated_errors +=
-					"party_loyalty given an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "party_loyalty given an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
+	void finish(effect_building_context&) { }
+};
+struct ef_change_party_name {
+	dcon::ideology_id ideology_;
+	dcon::text_key name_;
+	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		if(is_fixed_token_ci(v.data(), v.data() + v.length(), "ruling_party")) {
+			// leave invalid
+		} else if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
+			ideology_ = it->second.id;
+		} else {
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	}
+	void name(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		name_ = text::find_or_add_key(context.outer_context.state, v, false);
+	}
+	void finish(effect_building_context&) { }
+};
+struct ef_change_party_position {
+	dcon::ideology_id ideology_;
+	dcon::issue_option_id opt_;
+	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		if(is_fixed_token_ci(v.data(), v.data() + v.length(), "ruling_party")) {
+			// leave invalid
+		} else if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
+			ideology_ = it->second.id;
+		} else {
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	}
+	void position(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context);
 	void finish(effect_building_context&) { }
 };
 struct ef_build_railway_in_capital {
@@ -3664,16 +3666,34 @@ struct effect_body {
 			return;
 		}
 	}
-	void build_railway_in_capital(ef_build_railway_in_capital const& value, error_handler& err, int32_t line,
-			effect_building_context& context) {
+	void change_party_name(ef_change_party_name const& value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors += "change_party_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		context.compiled_effect.push_back(effect::change_party_name);
+		context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
+		context.add_int32_t_to_payload(value.name_.index());
+	}
+	void change_party_position(ef_change_party_position const& value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors += "change_party_position effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		context.compiled_effect.push_back(effect::change_party_position);
+		context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
+		context.compiled_effect.push_back(trigger::payload(value.opt_).value);
+	}
+	void build_railway_in_capital(ef_build_railway_in_capital const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "build_railway_in_capital effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
 		if(value.in_whole_capital_state && value.limit_to_world_greatest_level)
-			context.compiled_effect.push_back(
-					uint16_t(effect::build_railway_in_capital_yes_whole_state_yes_limit | effect::no_payload));
+			context.compiled_effect.push_back( uint16_t(effect::build_railway_in_capital_yes_whole_state_yes_limit | effect::no_payload));
 		else if(value.in_whole_capital_state && !value.limit_to_world_greatest_level)
 			context.compiled_effect.push_back(uint16_t(effect::build_railway_in_capital_yes_whole_state_no_limit | effect::no_payload));
 		else if(!value.in_whole_capital_state && value.limit_to_world_greatest_level)

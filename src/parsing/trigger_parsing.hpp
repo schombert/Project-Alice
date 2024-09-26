@@ -10,6 +10,7 @@
 #include "script_constants.hpp"
 #include "nations.hpp"
 #include "container_types.hpp"
+#include "text.hpp"
 
 namespace economy {
 dcon::modifier_id get_province_selector_modifier(sys::state& state);
@@ -283,6 +284,39 @@ struct tr_work_available {
 					std::string(value) + " is not a valid pop type name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
+	void finish(trigger_building_context&) { }
+};
+
+struct tr_party_name {
+	dcon::ideology_id ideology_;
+	dcon::text_key name_;
+	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(is_fixed_token_ci(v.data(), v.data() + v.length(), "ruling_party")) {
+			// leave invalid
+		} else if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
+			ideology_ = it->second.id;
+		} else {
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	}
+	void name(association_type t, std::string_view v, error_handler& err, int32_t line, trigger_building_context& context) {
+		name_ = text::find_or_add_key(context.outer_context.state, v, false);
+	}
+	void finish(trigger_building_context&) { }
+};
+struct tr_party_position {
+	dcon::ideology_id ideology_;
+	dcon::issue_option_id opt_;
+	void ideology(association_type t, std::string_view v, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(is_fixed_token_ci(v.data(), v.data() + v.length(), "ruling_party")) {
+			// leave invalid
+		} else if(auto it = context.outer_context.map_of_ideologies.find(std::string(v)); it != context.outer_context.map_of_ideologies.end()) {
+			ideology_ = it->second.id;
+		} else {
+			err.accumulated_errors += "Invalid ideology " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	}
+	void position(association_type t, std::string_view v, error_handler& err, int32_t line, trigger_building_context& context);
 	void finish(trigger_building_context&) { }
 };
 
@@ -5743,7 +5777,26 @@ struct trigger_body {
 		}
 		context.compiled_trigger.push_back(trigger::payload(value.pop_type_list[0]).value);
 	}
-
+	void party_name(tr_party_name const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors += "party_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		context.compiled_trigger.push_back(trigger::party_name);
+		context.compiled_trigger.push_back(trigger::payload(value.ideology_).value);
+		context.add_int32_t_to_payload(value.name_.index());
+	}
+	void party_position(tr_party_position const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors += "party_position effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		context.compiled_trigger.push_back(trigger::party_position);
+		context.compiled_trigger.push_back(trigger::payload(value.ideology_).value);
+		context.compiled_trigger.push_back(trigger::payload(value.opt_).value);
+	}
 	void any_value(std::string_view label, association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
 		std::string str_label{label};
