@@ -883,6 +883,20 @@ public:
 };
 
 struct open_msg_log_data {};
+struct expand_mapmodes_data {
+	bool expand;
+};
+
+class expand_mapmodes_button : public button_element_base {
+	bool toggle = false;
+public:
+	void button_action(sys::state& state) noexcept override {
+		toggle = !toggle;
+		frame = (toggle) ? 1 : 0;
+
+		send(state, parent, expand_mapmodes_data{ toggle });
+	}
+};
 
 class minimap_open_message_log_button : public button_element_base {
 public:
@@ -919,6 +933,8 @@ public:
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 	minimap_open_message_log_button* open_btn = nullptr;
+	bool expand_mapmodes = false;
+	std::array<minimap_mapmode_button*, 45> mapmode_buttons = {};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
@@ -971,8 +987,19 @@ public:
 				num += name[i] - '0';
 			}
 			ptr->target = static_cast<map_mode::mode>(num);
+
+			if(num > 22 && !expand_mapmodes) {
+				ptr->set_visible(state, false);
+			}
+
+			mapmode_buttons[num] = ptr.get();
 			return ptr;
-		} else {
+		}
+		else if(name == "expand_mapmodes_button") {
+			auto ptr = make_element_by_type<expand_mapmodes_button>(state, id);
+			return ptr;
+		}
+		else {
 			return nullptr;
 		}
 	}
@@ -980,6 +1007,19 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.ui_state.msg_log_window) {
 			open_btn->set_visible(state, !state.ui_state.msg_log_window->is_visible());
+		}
+
+		for(size_t i = 0; i < mapmode_buttons.size(); i++) {
+			auto ptr = mapmode_buttons[i];
+			if(ptr == nullptr) {
+				continue;
+			}
+			if(i > 22 && !expand_mapmodes) {
+				ptr->set_visible(state, false);
+			}
+			else {
+				ptr->set_visible(state, true);
+			}
 		}
 	}
 
@@ -992,6 +1032,13 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<open_msg_log_data>()) {
 			state.ui_state.msg_log_window->set_visible(state, !state.ui_state.msg_log_window->is_visible());
+			return message_result::consumed;
+		}
+		if(payload.holds_type<expand_mapmodes_data>()) {
+			auto p = any_cast<expand_mapmodes_data>(payload);
+			expand_mapmodes = p.expand;
+			on_update(state);
+
 			return message_result::consumed;
 		}
 		return message_result::unseen;

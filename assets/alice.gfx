@@ -520,4 +520,10 @@ spriteTypes = {
         texturefile = "assets\\button-40-40-ship.png"
         noOfFrames = 2
     }
+
+	spriteType = {
+        name = "mapmodes_expand_button"
+        texturefile = "assets\\mapmodes_expand.dds"
+        noOfFrames = 2
+    }
 }
