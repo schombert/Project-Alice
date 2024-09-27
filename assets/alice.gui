@@ -4518,7 +4518,12 @@ guiTypes = {
 		position = { x= 180 y = 3 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
-    
+    guiButtonType = {
+		name = "alice_budget_warning"
+		extends = "topbar"
+		position = { x= 147 y = 23 }
+		quadTextureSprite = "GFX_gunboats"	
+	}
     windowType = {
         name = "table_production_methods"
         position = { 80 60 }	

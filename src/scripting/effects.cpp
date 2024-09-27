@@ -5316,6 +5316,8 @@ uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
 			auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
 			if(politics::political_party_is_active(ws, n, pid) && ws.world.political_party_get_ideology(pid) == ideo) {
 				ws.world.political_party_set_party_issues(pid, popt, new_opt);
+				if(ws.world.nation_get_ruling_party(n) == pid)
+					politics::set_ruling_party(ws, n, pid); // force update of issues and rules
 				return 0;
 			}
 		}
@@ -5324,6 +5326,7 @@ uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
 		auto rp = ws.world.nation_get_ruling_party(n);
 		if(rp) {
 			ws.world.political_party_set_party_issues(rp, popt, new_opt);
+			politics::set_ruling_party(ws, n, rp); // force update of issues and rules
 		}
 	}
 	return 0;

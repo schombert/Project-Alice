@@ -1254,3 +1254,4 @@ pname_is;$x$ party name
 rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
+topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
