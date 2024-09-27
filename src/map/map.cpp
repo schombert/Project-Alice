@@ -1672,12 +1672,16 @@ void make_sea_path(
 	dcon::province_id target,
 	float width,
 	float size_x,
-	float size_y
+	float size_y,
+	float shift_x,
+	float shift_y
 ) {
 	auto path = province::make_naval_path(state, origin, target);
 	float distance = 0.0f;
+
+	auto shift = glm::vec2(shift_x, shift_y) / glm::vec2(size_x, size_y);
 	if(auto ps = path.size(); ps > 0) {
-		glm::vec2 current_pos = duplicates::get_army_location(state, origin);
+		glm::vec2 current_pos = duplicates::get_army_location(state, origin) + shift;
 		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
@@ -1700,10 +1704,10 @@ void make_sea_path(
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
-			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
+			next_pos = put_in_local(duplicates::get_army_location(state, path[i]) + shift, current_pos, size_x);
 
 			if(i > 0) {
-				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]) + shift, next_pos, size_x);
 				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
 				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
 				glm::vec2 temp = a_per + b_per;
@@ -1736,7 +1740,7 @@ void make_sea_path(
 			);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
-			current_pos = duplicates::get_army_location(state, path[i]);
+			current_pos = duplicates::get_army_location(state, path[i]) + shift;
 		}
 	}
 }

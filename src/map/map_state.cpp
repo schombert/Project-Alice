@@ -88,7 +88,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		return;
 	}
 
-	state.world.for_each_trade_route([&](auto trade_route) {
+	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
 		auto origin =
 			current_volume > 0.f
@@ -109,11 +109,11 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 		auto absolute_volume = std::abs(sat * current_volume);
 
-		if(absolute_volume <= 0.01f) {
+		if(absolute_volume <= 0.001f) {
 			return;
 		}
 
-		auto width = std::log(1.f + (absolute_volume - 0.009f) * 10000.f) * 100.f;
+		auto width = std::log(1.f + absolute_volume * 10000.f) * 100.f;
 
 		auto old_size = map_data.trade_flow_vertices.size();
 		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
@@ -126,7 +126,9 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				map_data.trade_flow_vertices,
 				coast_origin, coast_target,
 				width,
-				float(map_data.size_x), float(map_data.size_y)
+				float(map_data.size_x), float(map_data.size_y),
+				std::sin((float)(trade_route.value)) * 5.f,
+				std::cos((float)(trade_route.value)) * 5.f
 			);
 		} else {
 			map::make_land_path(

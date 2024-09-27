@@ -312,7 +312,9 @@ void make_sea_path(
 	dcon::province_id target,
 	float width,
 	float size_x,
-	float size_y
+	float size_y,
+	float shift_x,
+	float shift_y
 );
 void make_land_path(
 	sys::state& state,

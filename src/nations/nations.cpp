@@ -252,10 +252,10 @@ void generate_sea_trade_routes(sys::state& state) {
 				score += 2.f;
 
 			auto naval_base_target = military::state_naval_base_level(state, sid);
-			score += std::min(naval_base_origin, naval_base_target);
+			score += std::min(naval_base_origin, naval_base_target) * 2.f;
 
 			auto population_target = state.world.state_instance_get_demographics(sid, demographics::total);
-			score += std::min(population_origin, population_target) / 2'000'000.f;
+			score += std::min(population_origin, population_target) / 500'000.f;
 
 			auto capital_target = state.world.state_instance_get_capital(sid);
 			auto connected_region_target = state.world.province_get_connected_region_id(capital_target);
@@ -1369,7 +1369,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.nation_set_poor_tax(n, int8_t(50));
 	state.world.nation_set_middle_tax(n, int8_t(50));
 	state.world.nation_set_rich_tax(n, int8_t(50));
-	state.world.nation_set_tariffs(n, int8_t(0));
+	state.world.nation_set_tariffs(n, int8_t(5));
 
 	auto base_ruling_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(base));
 

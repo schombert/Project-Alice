@@ -4393,6 +4393,135 @@ void daily_update(sys::state& state, bool presimulation) {
 		}, nations);
 	});
 
+	// update trade volume based on potential profits right at the start
+	// we can't put it between demand and supply generation!
+	concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
+		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
+
+		if(state.world.commodity_get_money_rgo(c)) {
+			return;
+		}
+
+		state.world.for_each_trade_route([&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+			auto origin =
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			auto absolute_volume = std::abs(current_volume);
+			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+
+			auto s_origin = state.world.market_get_zone_from_local_market(origin);
+			auto s_target = state.world.market_get_zone_from_local_market(target);
+
+			if(origin == target) {
+				return;
+			}
+
+			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+
+			auto import_tariff = effective_tariff_rate(state, n_target);
+			auto export_tariff = effective_tariff_rate(state, n_origin);
+			if(n_target == n_origin) {
+				import_tariff = 0.f;
+				export_tariff = 0.f;
+			}
+			auto distance = state.world.trade_route_get_distance(trade_route);
+
+			auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+			auto transport_cost = distance * 0.2f;
+
+			auto price_origin = price(state, origin, c) * (1.f + import_tariff);
+			auto price_target = price(state, target, c) * (1.f - import_tariff) * trade_good_loss_mult;
+
+
+			auto current_profit = price_target - price_origin * 1.05f - transport_cost;
+
+			auto supply = state.world.market_get_supply(target, c)
+				+ state.world.market_get_stockpile(target, c) * stockpile_to_supply + price_rigging;
+			auto demand = state.world.market_get_demand(target, c) + price_rigging;
+
+			auto supply_origin = state.world.market_get_supply(origin, c)
+				+ state.world.market_get_stockpile(origin, c) * stockpile_to_supply + price_rigging;
+			auto demand_origin = state.world.market_get_demand(origin, c) + price_rigging;
+
+			auto price_acceleration_from_additional_supply =
+				// - price_speed_mod * (1 / supply_origin + supply_origin / demand_origin / demand_origin)
+				+price_target * price_speed_mod * (demand / supply / supply + 1 / demand) * price_target;
+
+			if(price_acceleration_from_additional_supply == 0.f) {
+				return;
+			}
+
+			auto price_speed_change =
+				price_speed_mod * price_target * (demand / supply - supply / demand)
+				- price_speed_mod * price_origin * (demand_origin / supply_origin - supply_origin / demand_origin);
+
+			auto weight_short_term = short_term_profits_weight_n;
+			auto weight_mid_term = mid_term_profits_weight_n;
+			auto weight_long_term = long_term_profits_weight_n;
+			if(current_profit >= 0.f) {
+				weight_short_term = short_term_profits_weight_p;
+				weight_mid_term = mid_term_profits_weight_p;
+				weight_long_term = long_term_profits_weight_p;
+			}
+
+			auto hire_rate_from_income =
+				current_profit
+				* weight_short_term;
+
+			auto hire_rate_from_predicted_acceleration_of_price =
+				-price_acceleration_from_additional_supply * supply * weight_mid_term;
+
+			auto hire_rate_from_predicted_change_of_price =
+				price_speed_change * weight_mid_term;
+
+			auto money_to_workers_divisor =
+				2
+				* weight_long_term
+				* price_acceleration_from_additional_supply;
+
+			auto optimal_hire_change =
+				(
+					hire_rate_from_income
+					+ hire_rate_from_predicted_acceleration_of_price
+					+ hire_rate_from_predicted_change_of_price
+				) / money_to_workers_divisor;
+
+			auto change = optimal_hire_change;
+
+			auto max_change =
+				std::max(
+					0.001f + absolute_volume * 0.1f,
+				std::max(
+					0.001f + demand * 0.1f,
+					std::min(
+						0.001f * std::abs(change),
+						0.5f
+					)));
+
+			change = std::clamp(change, -max_change, max_change);
+
+			// trade slowly decays to create soft limit on transportation
+			auto decay = 0.999f;
+
+
+			if(current_volume > 0.f) {
+				state.world.trade_route_set_volume(trade_route, c, (current_volume + change) * decay);
+			} else {
+				state.world.trade_route_set_volume(trade_route, c, (current_volume - change) * decay);
+			}
+
+			assert(std::isfinite(state.world.trade_route_get_volume(trade_route, c)));
+		});
+	});
+
 	static ve::vectorizable_buffer<float, dcon::nation_id> invention_count = state.world.nation_make_vectorizable_float_buffer();
 	state.world.execute_serial_over_nation([&](auto nations) {
 		invention_count.set(nations, 0.f);
@@ -4769,7 +4898,7 @@ void daily_update(sys::state& state, bool presimulation) {
 			state.world.nation_set_spending_level(n, spending_scale);
 
 			float pi_total = full_private_investment_cost(state, n);
-			float perceived_spending = std::max(pi_total, pi_total * pi_total * 0.0000000001f);
+			float perceived_spending = pi_total * 10.f;
 			float pi_budget = state.world.nation_get_private_investment(n);
 			auto pi_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
 			//cut away low values:
@@ -4805,7 +4934,7 @@ void daily_update(sys::state& state, bool presimulation) {
 			auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
 
 			//reduce volume in case of low supply
-			current_volume = current_volume * std::max(0.9f, sat);
+			current_volume = current_volume * std::max(0.99f, sat);
 			state.world.trade_route_set_volume(trade_route, cid, current_volume);
 
 			auto absolute_volume = std::abs(current_volume);
@@ -4817,115 +4946,6 @@ void daily_update(sys::state& state, bool presimulation) {
 			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
 
 			register_demand(state, origin, cid, absolute_volume, economy_reason::trade);
-		});
-	});
-
-	// update trade volume based on potential profits after calculation of total demand and supply
-	concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
-		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-
-		if(state.world.commodity_get_money_rgo(c)) {
-			return;
-		}
-
-		state.world.for_each_trade_route([&](auto trade_route) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
-			auto origin =
-				current_volume > 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
-			auto target =
-				current_volume <= 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
-
-			auto absolute_volume = std::abs(current_volume);
-			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
-
-			auto s_origin = state.world.market_get_zone_from_local_market(origin);
-			auto s_target = state.world.market_get_zone_from_local_market(target);
-
-			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
-			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
-
-
-			auto price_origin = price(state, origin, c);
-			auto price_target = price(state, target, c);
-
-			auto current_profit = price_target - price_origin * 1.02f;
-
-			auto supply = state.world.market_get_supply(target, c)
-				+ state.world.market_get_stockpile(target, c) * stockpile_to_supply + price_rigging;
-			auto demand = state.world.market_get_demand(target, c) + price_rigging;
-
-			auto supply_origin = state.world.market_get_supply(origin, c)
-				+ state.world.market_get_stockpile(origin, c) * stockpile_to_supply + price_rigging;
-			auto demand_origin = state.world.market_get_demand(origin, c) + price_rigging;
-
-			auto price_acceleration_from_additional_supply =
-				// - price_speed_mod * (1 / supply_origin + supply_origin / demand_origin / demand_origin)
-				+ price_speed_mod * (demand / supply / supply + 1 / demand) * price_target;
-
-			if(price_acceleration_from_additional_supply == 0.f) {
-				return;
-			}
-
-			auto price_speed_change =
-				price_speed_mod * price_target * (demand / supply - supply / demand)
-				- price_speed_mod * price_origin * (demand_origin / supply_origin - supply_origin / demand_origin);
-
-			auto weight_short_term = short_term_profits_weight_n;
-			auto weight_mid_term = mid_term_profits_weight_n;
-			auto weight_long_term = long_term_profits_weight_n;
-			if(current_profit >= 0.f) {
-				weight_short_term = short_term_profits_weight_p;
-				weight_mid_term = mid_term_profits_weight_p;
-				weight_long_term = long_term_profits_weight_p;
-			}
-
-			auto hire_rate_from_income =
-				current_profit
-				* weight_short_term;
-
-			auto hire_rate_from_predicted_acceleration_of_price =
-				-price_acceleration_from_additional_supply * supply * weight_mid_term;
-
-			auto hire_rate_from_predicted_change_of_price =
-				price_speed_change * weight_mid_term;
-
-			auto money_to_workers_divisor =
-				2
-				* weight_long_term
-				* price_acceleration_from_additional_supply;
-
-			auto optimal_hire_change =
-				(
-					hire_rate_from_income
-					+ hire_rate_from_predicted_acceleration_of_price
-					+ hire_rate_from_predicted_change_of_price
-				) / money_to_workers_divisor;
-
-			auto change = optimal_hire_change;
-
-			auto max_change = std::max(
-				0.001f + absolute_volume * 0.1f,
-				0.001f + demand * 0.1f
-			);
-
-			change = std::clamp(change, -max_change, max_change);
-
-			//distance influences decay
-			//100 day of travel adds 0.01 to decay
-
-			auto distance = state.world.trade_route_get_distance(trade_route);
-			auto decay = std::max(0.f, 1.f - 0.01f * distance / 100.f);
-
-			// trade slowly decays to create soft limit on transportation
-			if(current_volume > 0.f) {
-				state.world.trade_route_set_volume(trade_route, c, (current_volume + change) * decay);
-			} else {
-				state.world.trade_route_set_volume(trade_route, c, (current_volume - change) * decay);
-			}
 		});
 	});
 
@@ -5365,7 +5385,6 @@ void daily_update(sys::state& state, bool presimulation) {
 				? state.world.trade_route_get_connected_markets(trade_route, 0)
 				: state.world.trade_route_get_connected_markets(trade_route, 1);
 
-			auto trade_loss = 0.8f;
 			auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
 			auto absolute_volume = std::abs(current_volume);
 			auto s_origin = state.world.market_get_zone_from_local_market(origin);
@@ -5373,11 +5392,18 @@ void daily_update(sys::state& state, bool presimulation) {
 			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
 			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
 
-			register_foreign_supply(state, target, cid, sat * absolute_volume * trade_loss, economy_reason::trade);
+			auto distance = state.world.trade_route_get_distance(trade_route);
+
+			auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+
+			register_foreign_supply(state, target, cid, sat * absolute_volume * trade_good_loss_mult, economy_reason::trade);
 
 			if(n_origin != n_target) {
 				state.world.market_get_export(origin, cid) += sat * absolute_volume;
-				state.world.market_get_import(target, cid) += sat * absolute_volume * trade_loss;
+				state.world.market_get_import(target, cid) += sat * absolute_volume * trade_good_loss_mult;
+
+				assert(std::isfinite(state.world.market_get_export(origin, cid)));
+				assert(std::isfinite(state.world.market_get_import(origin, cid)));
 			}
 		});
 	});	
@@ -7332,7 +7358,7 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 		max_tariff = std::max(min_tariff, max_tariff);
 
 		auto& tariff = state.world.nation_get_tariffs(n);
-		tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), -100, 100));
+		tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), 0, 100));
 	}
 	{
 		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));
