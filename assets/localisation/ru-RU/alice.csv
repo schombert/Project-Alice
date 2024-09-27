@@ -166,27 +166,27 @@ from_nation_culture;The primary culture of the from nation
 cultural_union_nation;The cultural union nation for its primary culture
 core_of;core of
 state_of;state of
-chance_of;chance of:
-owner_of;owner of
+chance_of;шанс:
+owner_of;владелец
 controller_of;controller of
 location_of_pop;location of that pop
 nation_of_pop;nation containing that pop
 capital_of;столица
 containing_state;штат содержащий
 adjacent_sea;соседняя морская зона
-cultural_union_of;cultural union of
+cultural_union_of;культурный союз
 overlord_of;overlord of
-sphere_leader_of;sphere leader of
+sphere_leader_of;лидер сферы влияния
 crisis_state;crisis state
 reb_independence_nation;rebel independence nation
 flashpoint_nation;flashpoint nation
-rebel;Rebel
+rebel;Повстанцы
 flashpoint_tension_label;Flashpoint tension
 for_text; for $text$
 where_ideology_is;Где его идеология — $text$
 where_culture_is;где ее культура — $text$
 where_religion_is;Где его религия $text$
-of_type;of type $text$
+of_type;типа $text$
 no_nation;no nation
 declare_war_on;Объявить войну $text$
 attacker_wg_label;Военная цель атакующего: $text$
@@ -195,7 +195,7 @@ attacker_no_allies;Союзники атакующего не будут выз�
 attacker_yes_allies;Союзники атакующего будут вызваны
 war_start_date_desc;война началась в ?Y$date$?!
 cmp_ge;по крайней мере
-cmp_le; не более
+cmp_le;не более
 cmp_gt;больше, чем
 cmp_lt;меньше чем
 cmp_eq;есть
@@ -229,28 +229,28 @@ does_not_belong_to_same_state;не принадлежит тому же сост
 contains_blank;contains $text$
 does_not_contain_blank;does not contain $text$
 times_target_needs_spending;times desired needs spending
-unemployment;unemployment
+unemployment;безработица
 slavery;рабство
 allowed;допустимый
-a_slave_state;рабовладельческое государство
-a_slave;a slave
-an_independent_nation;an independent nation
-non_prim_culture_pops;non primary-culture pops
+a_slave_state;рабовладельческий штат
+a_slave;раб
+an_independent_nation;независимое государство
+non_prim_culture_pops;население не основной культуры
 government;правительство
 capital;столица
 technology_school;technology school
-primary_culture;primary culture
-primary_culture_pop;основная культура нации, в которой находится поп-музыка
-an_accepted_culture;an accepted culture
-culture;Culture
+primary_culture;основная культура
+primary_culture_pop;население основной культуры
+an_accepted_culture;признанная культура
+culture;Культура
 dominant_culture;доминирующая культура
 a_primary_or_accepted;основная или принятая культура
 rebel_culture;повстанческая культура
 this_nation_prim_culture;основная культура или принятая культура этой нации
 from_nation_prim_culture;основная культура или принятая культура нации
 culture_group;culture group
-dominant_culture_group;dominant culture group
-primary_culture_group;primary culture group
+dominant_culture_group;доминирующая культурная группа
+primary_culture_group;основная культурная группа
 a_core_ob;a core owned by
 rebel_culture_group;повстанческая культурная группа
 this_nation_culture_group;то же, что и культурная группа этой нации
@@ -295,8 +295,8 @@ att_set;set
 in;in
 located_in;расположен в
 the_owner_of_region;the owner of every province in
-a_casus_belli_against;a casus belli against
-military_access_with;military access with
+a_casus_belli_against;основание войны против
+military_access_with;проход войск к
 prestige_of;the prestige of
 prestige;Престиж
 a_railroad;железная дорога
@@ -313,19 +313,19 @@ units_in_province;юниты в провинции
 units_in_the_province;юниты в провинции
 units_in_the_state;юниты в регионе
 at_war_against;в войне против
-num_of_divisions;a number of divisions
+num_of_divisions;число батальонов
 an_ongoing_battle;активная битва
 an_assigned_leader;назначенный лидер
 treasury;казна
-o_treasury;owner's treasury
+o_treasury;казна владельца
 o_of_prov;the owner of the province
 percentage_unowned_cores;percentage of unowned cores
 a_vassal;вассал
 ruling_party_ideology;идеология правящей партии
 ruling_party;правящая партия
-enabled;enabled
-political_reform_desire;political reform desire
-social_reform_desire;social reform desire
+enabled;включён
+political_reform_desire;желание политических реформ
+social_reform_desire;желание социальных реформ
 num_of_ships;число кораблей
 crime_percent;доля провинций с преступностью
 national_religion;национальная религия
@@ -350,13 +350,13 @@ controlled_by_rebel;controlled by rebels
 controlled_by;controlled by
 state_capital;the state capital
 loc_state_capital;located in the state capital
-a_truce_with;a truce with
-att_population;population
-size;size
-pops_of_type;pops of type
-of_type_plain;of type
-ai_controlled;AI controlled
-a_leader_named;a leader named
+a_truce_with;перемирие с
+att_population;население
+size;размер
+pops_of_type;население типа
+of_type_plain;типа
+ai_controlled;управляемый ИИ
+a_leader_named;лидер с именем
 a_possible_vassal;возможный вассал
 a_vassal_of;вассал
 a_substate_of;регион
@@ -365,14 +365,14 @@ has_recently_lost_war;has recently lost a war
 has_not_recently_lost_war;has not recently lost a war
 mobilized;мобилизованный
 mobilization_size;размер мобилизации
-admin_spending;administration spending
+admin_spending;административные расходы
 greater_than_edu_spending;greater than education spending
-support_for_rp;support for ruling party
-colonial;colonial
+support_for_rp;поддержка правящей партии
+colonial;колониальный
 in_default_to;in default to
 in_bnkrpt;банкрот
-num_of_ports_connected;number of ports connected to capital
-holding_an_election;holding an election
+num_of_ports_connected;число портов соединённых со столицей
+holding_an_election;проводит выборы
 set_globally;set globally
 national_value;национальные ценности
 industrial_score;промышленный рейтинг
@@ -396,9 +396,9 @@ rich_militancy;богатые слои воинственности
 gt_poor_tax;налог больше, чем налог на бедных
 cultural_union;культурный союз
 same_cultural_union;то же самое, что культурный союз
-non_accepted_pops;непринятые поселения
-crime;crime
-num_substates;количество подсостояний
+non_accepted_pops;непринятое население
+crime;преступность
+num_substates;количество субгосударств
 num_vassals_no_substates;количество вассалов, не являющихся субгосударствами
 num_regiments;количество полков
 owner_num_regiments;количество полков владельца
@@ -412,15 +412,15 @@ civ_progress;прогресс цивилизации
 constructing_a;изготовление
 casus_belli;основание войны
 nation_in_scope;the nation in scope
-a_substate;a substate
+a_substate;подгосударство
 gw_enabled;великие войны включены
 gw_not_enabled;великие войны отключены
 ww_enabled;мировые войны включены
 ww_not_enabled;мировые войны отключены
 can_perform_nationalization;может национализировать
-can_perform_nationalization;не могу национализировать
+can_perform_nationalization;не может национализировать
 in_sphere;in a sphere of influence
-num_states;number of states
+num_states;число штатов
 a_releasable_vassal;a releasable vassal
 recent_immigration;recent immigration
 num_control_days;number of days under current control
@@ -431,7 +431,7 @@ a_member_of_social_mov;член общественного движения
 a_member_of_politic_mov;член политического движения
 cultural_sphere_members;члены сферы в одной культурной группе
 pops;pops
-this_pop_religion;the religion of this pop
+this_pop_religion;религия населения
 pops_with;население с
 life_needs_satisfaction;удовлетворение жизненных потребностей
 everyday_needs_satisfaction;удовлетворение повседневных потребностей
@@ -439,7 +439,7 @@ luxury_needs_satisfaction;роскошь-удовлетворение потре
 present_in_state;present in state
 flashpoint;Flashpoint
 plurality_pop;the plurality of the nation the pop is in
-an_ongoing_crisis;an ongoing crisis
+an_ongoing_crisis;текущий кризис
 there;There
 current_crisis;текущий кризис
 liberation_crisis;a liberation crisis
@@ -508,16 +508,16 @@ factory_stats_6;Доступность входов эффективности:
 factory_stats_wage;Заработная плата:
 factory_stats_expenses;Общие расходы
 factory_stats_desired_income;Желаемая чистая прибыль
-speed;$val$ kph
+speed;$val$ км/ч
 shift_to_hold_open;Удерживать ?YSHIFT?! чтобы оставить это окно открытым, нажмите ?YSHIFT-щелчок правой кнопкой мыши?! построить это в каждом штате (но не расширять)
 factory_upgrade_shortcuts;?YSHIFT-щелкните левой кнопкой мыши?W модернизируйте ?Gall?!S заводы в штате\n?YSHIFT-щелкните правой кнопкой мыши?W модернизируйте ?Gall прибыльный?W заводы в штате\n?YCTRL-щелкните левой кнопкой мыши?W обновить ?Gall?W фабрики в стране\n?YCTRL-щелкнуть правой кнопкой мыши?W обновить ?Gall прибыльно?W фабрики в стране\n?YCTRL-SHIFT-щелкнуть левой кнопкой мыши?W обновить ?Gall прибыльно при полной занятости?W заводы в штате\n?YCTRL-SHIFT-щелкните правой кнопкой мыши?W обновление ?Галл прибыльен при полной занятости?W заводы в штате
 blank_org_gain;organization gain
 plurality_change_reason;(based on the average consciousness)
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
-allow_reform_cond;Requirements:
-reform_effect_if_desc;When activated, if
-reform_effect_then_desc;Then:
-reform_effect_desc;When activated:
+allow_reform_cond;Требования:
+reform_effect_if_desc;Когда активирован, если
+reform_effect_then_desc;Тогда:
+reform_effect_desc;Когда активирован:
 special_rules;Special rules:
 voting_rules;Voting rules:
 hide_decision;Hide the notification for this decision
@@ -887,10 +887,10 @@ uv_sort_e;Spd
 uv_sort_f;Rec
 uv_sort_g;Rel
 uv_sort_h;Exp
-alice_condition_diplo_points;Has atleast $x$ diplomatic points
-alice_retreat;Retreat from battle
-alice_retreat_1;It has been at least $x$ days since the battle started
-alice_retreat_2;You are the lead attacker or defender
+alice_condition_diplo_points;Имеет как минимумt $x$ диплоочков
+alice_retreat;Отступить
+alice_retreat_1;Прошло $x$ дней с начала сражения
+alice_retreat_2;Вы ведущий наступающий или обороняющийся
 on;ON
 off;OFF
 province_selector;Selector
@@ -907,14 +907,14 @@ modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
 modifier_conversion_rate;Conversion Rate
 modifier_attrition;Истощение
-chat_player_joins;$playername$ joined
-chat_player_leaves;$playername$ left
-chat_player_ban;$playername$ was banned
-chat_player_kick;$playername$ was kicked
-chat_player_switch;$playername$ has choosen $country$
-chat_player_oos;$playername$ has OOSed!
-alice_status_stream;Save progress $value$
-alice_play_pending_client;$playername$ is not ready yet
+chat_player_joins;$playername$ присоединился
+chat_player_leaves;$playername$ отключился
+chat_player_ban;$playername$ был забанен
+chat_player_kick;$playername$ был выгнан
+chat_player_switch;$playername$ выбрал страну $country$
+chat_player_oos;$playername$ рассинхронзиировался!
+alice_status_stream;Процесс сохранения $value$
+alice_play_pending_client;$playername$ ещё не готов
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see ?Ggreen?W lines go up, and ?Rred?W lines go down, as per usual I'm ?Ynot?W a line graph so I mostly go unnoticed :)
 alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... ?ROR ELSE?W
 alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a ?Ydifferent?W dialogue and that's just boring
@@ -939,10 +939,10 @@ ol_unit_standing_text;$m$ $n$/$x$/$y$
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
 unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
 disarmed_pop;a member of a disarmed nation
-cancel_fac_construction;Cancel factory construction
-cancel_fac_upgrade;Cancel factory upgrade
-kierkegaard_1;Either
-kierkegaard_2;Or
+cancel_fac_construction;Отменить строительство завода
+cancel_fac_upgrade;Отменить расширение завода
+kierkegaard_1;Либо
+kierkegaard_2;Или
 open_and_sub;Субсидировать и вновь открыть завод
 o_set_national_flag;Установить национальный флаг $text$ для владельца
 o_add_modifier_until;Владелец провинции получает $text$ до $date$
@@ -991,8 +991,8 @@ alice_trade_flow_piechart_workforce;Инвесторы
 alice_diplo_release_subject;Тема выпуска
 alice_diplo_release_subject_desc;Освобождает одного из наших субъектов, делая его больше не нашим субъектом, союзы необходимо разрывать отдельно
 alice_diplo_release_subject_0;Наш объект?
-kill_leader;Kill leader
-annex_null;becomes unowned
+kill_leader;Убить лидера
+annex_null;становится ничейным
 meets_the_conditions_of;соответствует условиям
 does_not_meet_the_conditions_of;не соответствует условиям
 fab_finish_date;Ожидается, что изготовление CB завершится $date$
@@ -1115,8 +1115,8 @@ mobilize;Мобилизировать
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
 alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
 alice_mob_controls;?YRight-click?W to remobilize
-alice_mw_create_1;Add general
-alice_mw_create_2;Add admiral
+alice_mw_create_1;Добавить генерала
+alice_mw_create_2;Добавить адмирала
 alice_mw_create_lpb;?YLeadership points?W will automatically be used to create generals or admirals when hitting the cap
 alice_mw_create_lp;We need ?R$x$?W ?Yleadership points?W to add
 alice_mw_controls_1;?YRight-click?W create ?Gall?W possible as generals
@@ -1137,7 +1137,7 @@ alice_crisis_par_3;?YПросто интересно (нет стороны)?!:
 alice_commodity_cprice;Текущая цена: $x$
 alice_commodity_cost;Стоимость: $x$
 alice_commodity_eprice;Эффективная цена: $x$
-alice_trade_top_producers;Лучшие производители ?Y$value$?W:
+alice_trade_top_producers;Крупнейшие производители ?Y$value$?W:
 alice_trade_no_producers;?RНикто не производит этот товар?W
 alice_politic_party_trigger;Доступно только с ?Y$date_long_0$?W по ?Y$date_long_1$?W и удовлетворяет следующему триггеру:
 alice_politic_party_no_trigger;Доступно только с ?Y$date_long_0$?W по ?Y$date_long_1$?W
@@ -1197,3 +1197,4 @@ pname_is;партия $x$
 rpname_is;правящая партия
 pposition_is;политика партии $x$
 rpposition_is;политика правящей партии
+topbar_budget_warning;Вчера вы не смогли полностью оплатить расходы бюджета
