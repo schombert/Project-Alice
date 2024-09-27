@@ -893,7 +893,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		toggle = !toggle;
 		frame = (toggle) ? 1 : 0;
-
 		send(state, parent, expand_mapmodes_data{ toggle });
 	}
 };

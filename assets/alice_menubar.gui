@@ -494,7 +494,7 @@ guiTypes = {
 		}
 		guiButtonType = {
 				name = "expand_mapmodes_button"
-				position = { -374 -175 }
+				position = { -374 -178 }
 				quadTextureSprite = "mapmodes_expand_button"
 				tooltip = ""
 				tooltipText = ""

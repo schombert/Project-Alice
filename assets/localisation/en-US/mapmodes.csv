@@ -33,14 +33,14 @@ mapmode_31;Factories
 mapmode_32;Issues
 mapmode_33;Growth
 mapmode_34;Players
-mapmode_35;Life Needs
-mapmode_36;Everyday Needs
-mapmode_37;Luxury Needs
+mapmode_35;Life Needs satisfaction
+mapmode_36;Everyday Needs satisfaction
+mapmode_37;Luxury Needs satisfaction
 mapmode_38;Officers
 mapmode_39;Clerk-to-Craftsmen Ratio
 mapmode_40;Life Rating
 mapmode_41;Crime
-mapmode_42;Rally
+mapmode_42;Rally points
 mapmode_43;Workforce
 mapmode_44;Mobilization
 legend_min_mapmode_8;Low admin
@@ -104,7 +104,7 @@ mapmode_tooltip_40;Life rating: $x$
 mapmode_tooltip_41;Crime: $x$
 mapmode_tooltip_42_1;Land rally point
 mapmode_tooltip_42_2;Naval rally point
-mapmode_tooltip_43;Workforce distrobution:
+mapmode_tooltip_43;Workforce distribution:
 mapmode_tooltip_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
 mapmode_tooltip_44_2;No possible regiments
 mapmode_tooltip_name;$state$ ($name$ - )
