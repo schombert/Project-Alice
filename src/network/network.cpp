@@ -864,7 +864,7 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			}
 		notify_player_joins_discovery(state, client);
 		
-		notify_start_game(state, client)
+		notify_start_game(state, client);
 	}
 	
 	auto old_size = client.send_buffer.size();
