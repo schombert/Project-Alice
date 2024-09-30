@@ -95,7 +95,7 @@ struct network_state {
 	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
-	bool handshake = true; // if in handshake mode -> send handshake data
+	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
 
 	network_state() : outgoing_commands(1024) {}
