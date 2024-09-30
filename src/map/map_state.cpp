@@ -127,8 +127,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				coast_origin, coast_target,
 				width,
 				float(map_data.size_x), float(map_data.size_y),
-				std::sin((float)(trade_route.value)) * 5.f,
-				std::cos((float)(trade_route.value)) * 5.f
+				std::sin((float)(trade_route.value)) * 50.f,
+				std::cos((float)(trade_route.value)) * 50.f
 			);
 		} else {
 			map::make_land_path(

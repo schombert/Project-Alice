@@ -4090,7 +4090,7 @@ relationship {
 relationship{
 	name{ trade_route }
 	storage_type{ compactable }
-	size{ 10000 }
+	size{ 40000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -4105,6 +4105,12 @@ relationship{
 	composite_key{
 		name{province_pair}
 		index{connected_markets}
+	}
+
+	property{
+		name{ connected_province }
+		type{ array{uint8_t}{float} }
+		tag{ save }
 	}
 
 	property{

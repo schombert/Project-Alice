@@ -3164,7 +3164,7 @@ void update_budget(sys::state& state) {
 
 
 		float ratio_construction = 100.f * construction_budget / (1.f + economy::estimate_construction_spending(state, n));
-		ratio_construction = std::clamp(ratio_construction, 1.f, 100.f);
+		ratio_construction = std::clamp(ratio_construction, 0.f, 100.f);
 		n.set_construction_spending(int8_t(ratio_construction));
 
 		
@@ -3175,7 +3175,7 @@ void update_budget(sys::state& state) {
 
 		// solving x^2 * max = desired
 		float ratio_education = 100.f * math::sqrt(education_budget / max_education_budget);
-		ratio_education = std::clamp(ratio_education, 1.f, 100.f);
+		ratio_education = std::clamp(ratio_education, 0.f, 100.f);
 		n.set_education_spending(int8_t(ratio_education));		
 
 		if(n.get_is_civilized()) {
