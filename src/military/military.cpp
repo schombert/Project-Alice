@@ -2048,7 +2048,7 @@ dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon
 	auto reg = fatten(state.world, state.world.create_regiment());
 	reg.set_type(t);
 	// TODO make name
-	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience);
+	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience) / 100.f;
 	exp += state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f;
 	reg.set_experience(std::clamp(exp, 0.f, 1.f));
 	reg.set_strength(1.f);
@@ -2059,7 +2059,7 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	auto shp = fatten(state.world, state.world.create_ship());
 	shp.set_type(t);
 	// TODO make name
-	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_unit_start_experience);
+	auto exp = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_unit_start_experience) / 100.f;
 	exp += state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f;
 	shp.set_experience(std::clamp(exp, 0.f, 1.f));
 	shp.set_strength(1.f);
