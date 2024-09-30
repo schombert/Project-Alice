@@ -82,8 +82,6 @@ struct network_state {
 	std::vector<char> early_send_buffer;
 	command::payload recv_buffer;
 	std::vector<uint8_t> save_data; //client
-	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
-	ankerl::unordered_dense::map<std::string_view, dcon::nation_id> map_of_countries;
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;
@@ -115,7 +113,12 @@ void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t c
 void broadcast_to_clients(sys::state& state, command::payload& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
-
+dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
+dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation);
+void log_player_nations(sys::state& state);
+void place_host_player_after_saveload(sys::state& state);
+bool pause_game(sys::state& state);
+bool unpause_game(sys::state& state);
 
 class port_forwarder {
 private:

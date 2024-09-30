@@ -4531,16 +4531,23 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 	return true;
 }
 void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+#ifndef NDEBUG
+	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
+#endif
 
-	if(state.network_state.map_of_countries.contains(name.to_string_view())) {
-		auto oldnation = state.network_state.map_of_countries[name.to_string_view()];
+	auto p = network::find_mp_player(state, name);
+	if(p) {
+		auto oldnation = state.world.mp_player_get_nation_from_player_nation(p);
 
 		if (oldnation != source)
 			state.world.nation_set_is_player_controlled(oldnation, false);
 	}
+	else {
+		p = state.world.create_mp_player();
+		state.world.mp_player_set_nickname(p, name.data);
+	}
  	state.world.nation_set_is_player_controlled(source, true);
-	state.network_state.map_of_player_names.insert_or_assign(source.index(), name);
-	state.network_state.map_of_countries.insert_or_assign(name.to_string_view(), source);
+	state.world.force_create_player_nation(source, p);
 
 	// Server is moving us to another country
 	if(name.to_string_view() == state.network_state.nickname.to_string_view() && state.local_player_nation != source) {
@@ -4566,6 +4573,8 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	/* Hotjoin */
 	if(state.current_scene.game_in_progress)
 		ai::remove_ai_data(state, source);
+
+	network::log_player_nations(state);
 }
 
 void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
@@ -4595,7 +4604,9 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
+	auto p = network::find_country_player(state, source);
+	auto nickname = state.world.mp_player_get_nickname(p);
+	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
 }
@@ -4623,10 +4634,13 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	}
 	state.world.nation_set_is_player_controlled(target, false);
 
+	auto p = network::find_country_player(state, target);
+	auto nickname = state.world.mp_player_get_nickname(p);
+
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	post_chat_message(state, m);
 }
@@ -4657,7 +4671,10 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
+
+	auto p = network::find_country_player(state, target);
+	auto nickname = state.world.mp_player_get_nickname(p);
+	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	post_chat_message(state, m);
 }
@@ -4699,30 +4716,32 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	p.type = command_type::notify_player_oos;
 	p.source = source;
 	add_to_command_queue(state, p);
-	if(state.network_mode == sys::network_mode_type::host) {
-#ifndef NDEBUG
-		state.console_log("host:send:cmd | type=notify_player_oos");
-#endif
 
-		// Send new save to all clients
-		network::full_reset_after_oos(state);
-		// Start with zero speed
-	}
+	network::log_player_nations(state);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
 
+	network::log_player_nations(state);
+
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
+	auto p = network::find_country_player(state, source);
+	auto nickname = state.world.mp_player_get_nickname(p);
+	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);
 
 #ifndef NDEBUG
 	state.console_log("client:rcv:cmd | type=notify_player_oos from:" + std::to_string(source.index()));
 #endif
+
+	if(state.network_mode == sys::network_mode_type::host) {
+		// Send new save to all clients
+		network::full_reset_after_oos(state);
+	}
 }
 
 void advance_tick(sys::state& state, dcon::nation_id source) {
@@ -4805,11 +4824,18 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	state.fill_unsaved_data();
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
+
+#ifndef NDEBUG
+	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + state.session_host_checksum.to_string());
+#endif
 	 
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
+
+	auto p = network::find_country_player(state, source);
+	auto nickname = state.world.mp_player_get_nickname(p);
+	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_reload", sub);
 	post_chat_message(state, m);
 }

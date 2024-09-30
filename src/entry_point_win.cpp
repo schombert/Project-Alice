@@ -236,7 +236,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-name")) {
 					if(i + 1 < num_params) {
 						std::string nickname = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
-						memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
+						memcpy(&game_state.network_state.nickname.data, nickname.c_str(), std::min<size_t>(nickname.length(), 8));
 						i++;
 					}
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-password")) {

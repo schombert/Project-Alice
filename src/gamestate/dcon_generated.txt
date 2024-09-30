@@ -3887,6 +3887,7 @@ object {
 	property{
 		name{ is_player_controlled }
 		type{ bitfield }
+		tag { save }
 	}
 	property{
 		name{ is_debt_spending }
@@ -5129,6 +5130,34 @@ object {
 	property{
 		name{ map_font_features }
 		type{vector_pool{1000}{uint32_t}}
+	}
+}
+
+object{
+	name{ mp_player }
+	storage_type{ erasable }
+	size{ 200 }
+	tag{ save }
+
+	property{
+		name{ nickname }
+		type{ std::array<uint8_t,48> }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ player_nation }
+	tag{ save }
+	link{
+		object{nation}
+		name{nation}
+		type{unique}
+	}
+	link{
+		object{mp_player}
+		name{player}
+		type{unique}
 	}
 }
 
