@@ -921,6 +921,7 @@ chat_player_switch;$playername$ has choosen $country$
 chat_player_oos;$playername$ has OOSed!
 chat_player_reload;$playername$ has reloaded players
 alice_status_stream;Save progress $value$
+alice_receiving_savegame;Loading savegame from host
 alice_play_pending_client;$playername$ is not ready yet
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see ?Ggreen?W lines go up, and ?Rred?W lines go down, as per usual I'm ?Ynot?W a line graph so I mostly go unnoticed :)
 alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... ?ROR ELSE?W
@@ -1053,7 +1054,7 @@ x_in_y;$x$ at $y$
 reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 reinforce_rate_none;This regiment can't currently be reinforced.
 alice_domestic_investment_button;Investing in individual projects is ?Rdeprecated?W, use the ?Ydomestic investment?W slider on the budget screen instead
-alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
+alice_domestic_investment_pops;We have $x$ investors we can indirectly give generous donations to
 alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
 alice_budget_scaled_inc;Income: ?G$value$
 alice_budget_scaled_1;Poor tax: ?G$value$
