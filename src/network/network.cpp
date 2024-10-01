@@ -1463,6 +1463,12 @@ void finish(sys::state& state, bool notify_host) {
 void remove_player(sys::state& state, sys::player_name name) {
 	auto p = find_mp_player(state, name);
 	if(p) {
+
+		auto c = state.world.mp_player_get_nation_from_player_nation(p);
+
+		if(c) {
+			state.world.nation_set_is_player_controlled(c, false);
+		}
 		auto rel = state.world.mp_player_get_player_nation(p);
 		state.world.delete_player_nation(rel);
 		state.world.delete_mp_player(p);
