@@ -869,17 +869,19 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 	client.send_buffer.clear();
 
 	/* Send the savefile to the newly connected client (if not a new game) */
-	command::payload c;
-	memset(&c, 0, sizeof(command::payload));
-	c.type = command::command_type::notify_save_loaded;
-	c.source = state.local_player_nation;
-	c.data.notify_save_loaded.target = client.playing_as;
-	network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
+	{
+		command::payload c;
+		memset(&c, 0, sizeof(command::payload));
+		c.type = command::command_type::notify_save_loaded;
+		c.source = state.local_player_nation;
+		c.data.notify_save_loaded.target = client.playing_as;
+		network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
 #ifndef NDEBUG
-	state.console_log("host:broadcast:cmd | (new->save_loaded) | checksum: " + state.network_state.current_save_checksum.to_string()
-	+ " | target: " + std::to_string(c.data.notify_save_loaded.target.index()));
-	log_player_nations(state);
+		state.console_log("host:broadcast:cmd | (new->save_loaded) | checksum: " + state.network_state.current_save_checksum.to_string()
+		+ " | target: " + std::to_string(c.data.notify_save_loaded.target.index()));
+		log_player_nations(state);
 #endif
+	}
 
 	if(hotjoin) {
 		/* Reload clients */
