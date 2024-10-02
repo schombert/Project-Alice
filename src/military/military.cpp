@@ -6229,7 +6229,10 @@ void update_movement(sys::state& state) {
 				}
 			} else { // land province
 				if(a.get_black_flag()) {
-					if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
+					auto n = state.world.province_get_nation_from_province_ownership(dest);
+					// Since AI and pathfinding can lead armies into unowned provinces that are completely locked by other nations,
+					// make armies go back to home territories for black flag removal
+					if(n == a.get_controller_from_army_control().id) {
 						a.set_black_flag(false);
 					}
 					army_arrives_in_province(state, a, dest,
