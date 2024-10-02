@@ -3914,6 +3914,11 @@ object{
 		tag{ save }
 	}
 	property {
+		name{ income_scale }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ supply }
 		type{ array{commodity_id}{float} }
 		tag{ save }

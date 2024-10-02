@@ -175,7 +175,7 @@ void recalculate_markets_distance(sys::state& state) {
 			auto market_0_center = state.world.state_instance_get_capital(state_0);
 			auto market_1_center = state.world.state_instance_get_capital(state_1);
 			path = province::make_unowned_land_path(state, market_0_center, market_1_center);
-			speed *= 0.1f;
+			speed *= 0.2f;
 		}
 
 		auto ps = path.size();
@@ -189,7 +189,7 @@ void recalculate_markets_distance(sys::state& state) {
 			float sum_mods =
 				state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
 				+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-			effective_distance += std::max(0.1f, distance * (sum_mods * 2.f + 1.0f));
+			effective_distance += std::max(0.01f, distance * std::max(0.01f, (sum_mods * 2.f + 1.0f)));
 		}
 		state.world.trade_route_set_distance(route, effective_distance / speed);
 	});
