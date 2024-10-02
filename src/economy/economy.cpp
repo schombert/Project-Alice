@@ -4028,10 +4028,11 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 	for(auto n : state.world.in_nation) {
 		for(auto uni : n.get_unilateral_relationship_as_source()) {
 			if(uni.get_war_subsidies()) {
-				auto target_m_costs = uni.get_target().get_maximum_military_costs() * state.defines.warsubsidies_percent;
-				if(target_m_costs <= n.get_stockpiles(money)) {
-					n.get_stockpiles(money) -= target_m_costs;
-					uni.get_target().get_stockpiles(money) += target_m_costs;
+				auto sub_size = estimate_war_subsidies(state, uni.get_target(), uni.get_source());
+
+				if(sub_size <= n.get_stockpiles(money)) {
+					n.get_stockpiles(money) -= sub_size;
+					uni.get_target().get_stockpiles(money) += sub_size;
 				} else {
 					uni.set_war_subsidies(false);
 
@@ -4701,9 +4702,12 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
-float estimate_war_subsidies(sys::state& state, dcon::nation_id n) {
-	/* total-nation-expenses x defines:WARSUBSIDIES_PERCENT */
-	return state.world.nation_get_maximum_military_costs(n) * state.defines.warsubsidies_percent;
+float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon::nation_fat_id source) {
+	/* total-nation-tax-base x defines:WARSUBSIDIES_PERCENT */
+
+	auto target_m_costs = (target.get_total_rich_income() + target.get_total_middle_income() + target.get_total_poor_income()) * state.defines.warsubsidies_percent;
+	auto source_m_costs = (source.get_total_rich_income() + source.get_total_middle_income() + source.get_total_poor_income()) * state.defines.warsubsidies_percent;
+	return std::min(target_m_costs, source_m_costs);
 }
 
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {

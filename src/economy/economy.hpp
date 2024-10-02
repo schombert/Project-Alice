@@ -219,7 +219,7 @@ float estimate_stockpile_filling_spending(sys::state& state, dcon::nation_id n);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment
-float estimate_war_subsidies(sys::state& state, dcon::nation_id n);
+float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon::nation_fat_id source);
 
 float estimate_daily_income(sys::state& state, dcon::nation_id n);
 

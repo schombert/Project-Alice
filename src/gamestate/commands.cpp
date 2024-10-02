@@ -242,8 +242,8 @@ bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nat
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
-	if(!state.world.nation_get_is_at_war(target))
-		return false; // target must be at war
+	//if(!state.world.nation_get_is_at_war(target))
+	//	return false; // target must be at war
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && state.world.unilateral_relationship_get_war_subsidies(rel))
 		return false; // Can't already be giving war subsidies
