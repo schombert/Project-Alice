@@ -284,6 +284,21 @@ public:
 			text::add_line(state, contents, "ai_will_not_accept_po");
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if(state.world.nation_get_is_player_controlled(target)) {
+			// no tooltip -- no expected acceptance from players
+			disabled = false;
+		}
+		auto res = retrieve<test_acceptance>(state, parent);
+		if(res.result) {
+			disabled = false;
+		} else {
+			disabled = true;
+		}
+	}
 };
 
 class diplomacy_setup_peace_dialog : public window_element_base { // eu3dialogtype

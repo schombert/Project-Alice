@@ -2623,7 +2623,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	dcon::nation_id real_target = target;
 
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
-	if(state.world.overlord_get_ruler(target_ol_rel))
+	if(state.world.overlord_get_ruler(target_ol_rel) && state.world.overlord_get_ruler(target_ol_rel) != source)
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
 
 	if(source == target || source == real_target)
@@ -2663,7 +2663,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 	dcon::nation_id real_target = target;
 
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
-	if(state.world.overlord_get_ruler(target_ol_rel))
+	if(state.world.overlord_get_ruler(target_ol_rel) && state.world.overlord_get_ruler(target_ol_rel) != source)
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
 
 	if(military::has_truce_with(state, source, real_target)) {
