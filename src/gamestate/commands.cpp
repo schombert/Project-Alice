@@ -2316,10 +2316,10 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	}
 
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
-	if(state.world.overlord_get_ruler(ol))
+	if(state.world.overlord_get_ruler(ol) && state.defines.alice_allow_subjects_declare_wars == 0)
 		return false;
 	auto ol2 = state.world.nation_get_overlord_as_subject(target);
-	if(state.world.overlord_get_ruler(ol2))
+	if(state.world.overlord_get_ruler(ol2) && state.defines.alice_allow_subjects_declare_wars == 0)
 		return false;
 
 	if(military::are_at_war(state, asker, target))
