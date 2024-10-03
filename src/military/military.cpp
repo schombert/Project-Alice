@@ -2784,7 +2784,30 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at
 	// war again.
 	if((bits & cb_flag::po_disarmament) != 0) {
-		// TODO: destroy units
+		int32_t total = 0;
+		int32_t removed = 0;
+		for(auto p : state.world.nation_get_army_control(target)) {
+			auto frange = p.get_army().get_army_membership();
+			total += int32_t(frange.end() - frange.begin());
+
+			for(auto reg : frange) {
+				if(removed < total * state.defines.disarmament_army_hit) {
+					state.world.delete_regiment(reg.get_regiment().id);
+				}
+				else {
+					break;
+				}
+			}
+		}
+		// Stop all army & navy construction in progress
+		state.world.nation_for_each_province_land_construction_as_nation(target, [&](dcon::province_land_construction_id c) {
+			auto lc = dcon::fatten(state.world, c);
+			command::cancel_land_unit_construction(state, state.local_player_nation, lc.get_pop().get_province_from_pop_location(), lc.get_pop().get_culture(), lc.get_type());
+		});
+			state.world.nation_for_each_province_naval_construction_as_nation(target, [&](dcon::province_naval_construction_id c) {
+			auto lc = dcon::fatten(state.world, c);
+			command::cancel_naval_unit_construction(state, state.local_player_nation, lc.get_province(), lc.get_type());
+		});
 		if(state.world.nation_get_owned_province_count(target) > 0)
 			state.world.nation_set_disarmed_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
 	}
