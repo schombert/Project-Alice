@@ -191,7 +191,10 @@ public:
 			return make_element_by_type<player_name_text>(state, id);
 		} else if(name == "button_kick") {
 			return make_element_by_type<player_kick_button>(state, id);
-		} else {
+		} else if(name == "button_ban") {
+			return make_element_by_type<player_ban_button>(state, id);
+		}
+		else {
 			return nullptr;
 		}
 	}
