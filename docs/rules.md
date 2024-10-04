@@ -1284,7 +1284,7 @@ Can only perform if, the nations are not at war, the nation isn't already being 
 
 #### Effect
 
-The sender will give the target `defines:WARSUBSIDIES_PERCENT x total-expenses-of-target` every tick.
+The sender will give the target the minimal between `defines:WARSUBSIDIES_PERCENT x target tax base` and `defines:WARSUBSIDIES_PERCENT x source tax base` every tick.
 
 ### Increase relations
 
