@@ -275,7 +275,22 @@ std::string get_last_error_msg() {
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
 	native_string err_text = err_buf;
 	LocalFree(err_buf);
-	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
+
+	std::string err_msg;
+	if(err == WSAECONNRESET) {
+		err_msg += "Host was lost ";
+	} else if(err == WSAEHOSTDOWN) {
+		err_msg += "Host is down ";
+	} else if(err == WSAEHOSTUNREACH) {
+		err_msg += "Host is unreachable ";
+	} else {
+		err_msg += "Network issue ocurred ";
+	}
+	err_msg += "Technical details: ";
+	err_msg += std::to_string(err);
+	err_msg += " => ";
+	err_msg += simple_fs::native_to_utf8(err_text);
+	return err_msg;
 #else
 	return std::string("Dummy");
 #endif
@@ -829,11 +844,8 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
-	for(const auto n : state.world.in_nation) {
-		if(n == client.playing_as) {
+void notify_player_joins(sys::state& state, network::client_data& client) {
 			// Tell all clients about this client
-
 			command::payload c;
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_joins;
@@ -845,7 +857,11 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 #ifndef NDEBUG
 			state.console_log("host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(n.id.index()));
 #endif
-		} else if(n.get_is_player_controlled()) {
+}
+
+void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
+	for(const auto n : state.world.in_nation) {
+		if(n.get_is_player_controlled()) {
 			// Tell new client about all other clients
 
 			command::payload c;
@@ -952,12 +968,14 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 	if(state.current_scene.starting_scene) {
 		/* Lobby - existing savegame */
+		notify_player_joins(state, client);
 		if(!state.network_state.is_new_game) {
 			send_savegame(state, client, false);
 		}
 		notify_player_joins_discovery(state, client);
 
 	} else if(state.current_scene.game_in_progress) {
+		notify_player_joins(state, client);
 			if(!state.network_state.is_new_game) {
 				paused = pause_game(state);
 				network::write_network_save(state);
@@ -978,16 +996,13 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 }
 
 void full_reset_after_oos(sys::state& state) {
+	pause_game(state);
 #ifndef NDEBUG
 	state.console_log("host:full_reset_after_oos");
 	network::log_player_nations(state);
 #endif
 	/* Reload clients */
 	if(!state.network_state.is_new_game) {
-		std::vector<dcon::nation_id> players;
-		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
-				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.local_player_nation = dcon::nation_id{ };
 		network::write_network_save(state);
@@ -997,8 +1012,6 @@ void full_reset_after_oos(sys::state& state) {
 			read_save_section(ptr_in, ptr_in + length, state);
 		});
 		state.fill_unsaved_data();
-		for(const auto n : players)
-			state.world.nation_set_is_player_controlled(n, true);
 		state.local_player_nation = old_local_player_nation;
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 		{ /* Reload all the clients  */
@@ -1039,6 +1052,8 @@ void full_reset_after_oos(sys::state& state) {
 		state.console_log("host:broadcast:cmd | (new->start_game)");
 #endif
 	}
+
+	unpause_game(state);
 }
 
 int server_process_handshake(sys::state& state, network::client_data& client) {
@@ -1323,6 +1338,11 @@ void send_and_receive_commands(sys::state& state) {
 
 				dcon::nation_id old_local_player_nation = state.local_player_nation;
 				state.local_player_nation = dcon::nation_id{ };
+				state.preload();
+				with_network_decompressed_section(state.network_state.save_data.data(), [&state](uint8_t const* ptr_in, uint32_t length) {
+					read_save_section(ptr_in, ptr_in + length, state);
+				});
+				state.fill_unsaved_data();
 
 #ifndef NDEBUG
 				auto save_checksum = state.get_save_checksum();
@@ -1330,12 +1350,6 @@ void send_and_receive_commands(sys::state& state) {
 				state.console_log("client:loadsave | checksum:" + state.session_host_checksum.to_string() + "| localchecksum: " + save_checksum.to_string());
 				log_player_nations(state);
 #endif
-
-				state.preload();
-				with_network_decompressed_section(state.network_state.save_data.data(), [&state](uint8_t const* ptr_in, uint32_t length) {
-					read_save_section(ptr_in, ptr_in + length, state);
-				});
-				state.fill_unsaved_data();
 
 				state.local_player_nation = old_local_player_nation;
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
@@ -1477,8 +1491,6 @@ void remove_player(sys::state& state, sys::player_name name) {
 
 void kick_player(sys::state& state, client_data& client) {
 	socket_shutdown(client.socket_fd);
-
-	remove_player(state, client.hshake_buffer.nickname);
 
 	clear_socket(state, client);
 }
