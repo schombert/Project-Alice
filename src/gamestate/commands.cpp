@@ -4740,6 +4740,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		// Send new save to all clients
+		notify_player_oos(state, source);
 		network::full_reset_after_oos(state);
 	}
 }
