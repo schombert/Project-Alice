@@ -4549,20 +4549,6 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
  	state.world.nation_set_is_player_controlled(source, true);
 	state.world.force_create_player_nation(source, p);
 
-	// Server is moving us to another country
-	if(name.to_string_view() == state.network_state.nickname.to_string_view() && state.local_player_nation != source) {
-		assert(source && source != state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
-
-		state.world.nation_set_is_player_controlled(state.local_player_nation, false);
-
-		state.local_player_nation = source;
-
-		// We will also re-assign all chat messages from this nation to the new one
-		for(auto& msg : state.ui_state.chat_messages)
-			if(bool(msg.source) && msg.source == state.local_player_nation)
-				msg.source = source;
-	}
-
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};

@@ -119,6 +119,8 @@ void log_player_nations(sys::state& state);
 void place_host_player_after_saveload(sys::state& state);
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);
+void notify_player_joins(sys::state& state, network::client_data& client);
+void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation);
 
 class port_forwarder {
 private:

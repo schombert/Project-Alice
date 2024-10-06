@@ -305,6 +305,13 @@ struct player_name {
 		}
 		return "???";
 	}
+
+	player_name from_string_view(std::string_view sv) noexcept {
+		size_t length_to_copy = std::min(sv.size(), data.size());
+		sv.copy(reinterpret_cast<char*>(data.data()), length_to_copy);
+		return *this;
+	}
+
 	std::string to_string() noexcept {
 		return std::string(to_string_view());
 	}

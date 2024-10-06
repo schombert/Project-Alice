@@ -844,19 +844,29 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-void notify_player_joins(sys::state& state, network::client_data& client) {
+void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation) {
 			// Tell all clients about this client
 			command::payload c;
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_joins;
 
-			c.source = client.playing_as;
-			c.data.player_name = client.hshake_buffer.nickname;
-			broadcast_to_clients(state, c);
+	c.source = nation;
+	c.data.player_name = name;
+
+	for(auto cl : state.network_state.clients) {
+		if(!cl.is_active() || cl.playing_as == nation) {
+			continue;
+		}
+		socket_add_to_send_queue(cl.send_buffer, &c, sizeof(c));
+	}
 			command::execute_command(state, c);
 #ifndef NDEBUG
-			state.console_log("host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(n.id.index()));
+	state.console_log("host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(nation.index()));
 #endif
+}
+
+void notify_player_joins(sys::state& state, network::client_data& client) {
+	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as);
 }
 
 void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
