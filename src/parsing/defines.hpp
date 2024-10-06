@@ -696,6 +696,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_subjects_declare_wars, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_place_ai_upon_disconnection, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_mode, 0.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_unpause, 12.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_pause, 20.0)                                                          \
+
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

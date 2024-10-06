@@ -29,6 +29,7 @@
 #include "network.hpp"
 #include "serialization.hpp"
 #include "gui_error_window.hpp"
+#include "persistent_server_extensions.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -806,6 +807,8 @@ void init(sys::state& state) {
 
 	// Host must have an already selected nation, to prevent issues...
 	if(state.network_mode == sys::network_mode_type::host) {
+		load_player_nations(state);
+
 		state.local_player_nation = choose_nation_for_player(state);
 		assert(bool(state.local_player_nation));
 
@@ -845,10 +848,10 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 }
 
 void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation) {
-			// Tell all clients about this client
-			command::payload c;
-			memset(&c, 0, sizeof(c));
-			c.type = command::command_type::notify_player_joins;
+	// Tell all clients about this client
+	command::payload c;
+	memset(&c, 0, sizeof(c));
+	c.type = command::command_type::notify_player_joins;
 
 	c.source = nation;
 	c.data.player_name = name;
@@ -859,10 +862,11 @@ void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_
 		}
 		socket_add_to_send_queue(cl.send_buffer, &c, sizeof(c));
 	}
-			command::execute_command(state, c);
+	command::execute_command(state, c);
 #ifndef NDEBUG
 	state.console_log("host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(nation.index()));
 #endif
+	write_player_nations(state);
 }
 
 void notify_player_joins(sys::state& state, network::client_data& client) {
@@ -911,6 +915,10 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 
 	if(hotjoin) {
 		/* Reload clients */
+		std::vector<dcon::nation_id> players;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.local_player_nation = dcon::nation_id{ };
 		/* Then reload as if we loaded the save data */
@@ -919,7 +927,8 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 			read_save_section(ptr_in, ptr_in + length, state);
 		});
 		state.fill_unsaved_data();
-
+		for(const auto n : players)
+			state.world.nation_set_is_player_controlled(n, true);
 		state.local_player_nation = old_local_player_nation;
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 		{ /* Reload all the other clients except the newly connected one */
@@ -1013,6 +1022,10 @@ void full_reset_after_oos(sys::state& state) {
 #endif
 	/* Reload clients */
 	if(!state.network_state.is_new_game) {
+		std::vector<dcon::nation_id> players;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.local_player_nation = dcon::nation_id{ };
 		network::write_network_save(state);
@@ -1022,6 +1035,8 @@ void full_reset_after_oos(sys::state& state) {
 			read_save_section(ptr_in, ptr_in + length, state);
 		});
 		state.fill_unsaved_data();
+		for(const auto n : players)
+			state.world.nation_set_is_player_controlled(n, true);
 		state.local_player_nation = old_local_player_nation;
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 		{ /* Reload all the clients  */
@@ -1179,6 +1194,10 @@ void write_network_save(sys::state& state) {
 	size_t length = sizeof_save_section(state);
 	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
 	/* Clear the player nation since it is part of the savegame */
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{ };
 	assert(state.local_player_nation == dcon::nation_id{ });
@@ -1189,7 +1208,16 @@ void write_network_save(sys::state& state) {
 	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
 	state.network_state.current_save_checksum = state.get_save_checksum();
 
+	/* Then reload as if we loaded the save data */
+	state.preload();
+	with_network_decompressed_section(state.network_state.current_save_buffer.get(), [&state](uint8_t const* ptr_in, uint32_t length) {
+		read_save_section(ptr_in, ptr_in + length, state);
+	});
+	state.fill_unsaved_data();
+	for(const auto n : players)
+		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
+	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }
 
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k) {
@@ -1533,6 +1561,8 @@ void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old
 				client.playing_as = new_n;
 			}
 		}
+
+		write_player_nations(state);
 	}
 }
 
