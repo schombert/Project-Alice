@@ -2548,8 +2548,8 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	if(pop_militancy > 0) {
 		for(auto prv : state.world.nation_get_province_ownership(n)) {
 			for(auto pop : prv.get_province().get_pop_location()) {
-				auto& mil = pop.get_pop().get_militancy();
-				mil = std::min(mil + pop_militancy, 10.0f);
+				auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+				pop_demographics::set_militancy(state, pop.get_pop(), std::min(mil + pop_militancy, 10.0f));
 			}
 		}
 	}
@@ -3356,13 +3356,12 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 																	state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
 						nations::adjust_prestige(state, par.id, prestige_loss);
 
-						auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult *
-																 state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
+						auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
 						if(pop_militancy > 0) {
 							for(auto prv : state.world.nation_get_province_ownership(par.id)) {
 								for(auto pop : prv.get_province().get_pop_location()) {
-									auto& mil = pop.get_pop().get_militancy();
-									mil = std::min(mil + pop_militancy, 10.0f);
+									auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+									pop_demographics::set_militancy(state, pop.get_pop(), std::min(mil + pop_militancy, 10.0f));
 								}
 							}
 						}
@@ -5172,7 +5171,8 @@ void apply_regiment_damage(sys::state& state) {
 
 				if(!controller) {
 					if(pop_backer) {
-						state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
+						auto mil = pop_demographics::get_militancy(state, pop_backer) / state.defines.reduction_after_defeat;
+						pop_demographics::set_militancy(state, pop_backer, mil);
 					}
 				} else {
 					auto maxr = state.world.nation_get_recruitable_regiments(controller);
@@ -6672,7 +6672,8 @@ void update_siege_progress(sys::state& state) {
 				if(old_rf) {
 					for(auto pop : state.world.province_get_pop_location(prov)) {
 						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
-							pop.get_pop().get_militancy() /= state.defines.reduction_after_defeat;
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
+							pop_demographics::set_militancy(state, pop.get_pop(), mil);
 						//}
 					}
 				}

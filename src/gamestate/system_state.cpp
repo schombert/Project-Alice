@@ -2807,7 +2807,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	nations::generate_initial_state_instances(*this);
 	world.nation_resize_stockpiles(world.commodity_size());
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
-	world.pop_resize_demographics(pop_demographics::size(*this));
+	world.pop_resize_udemographics(pop_demographics::size(*this));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
 
 	// add dummy nations for unheld tags
@@ -3254,8 +3254,8 @@ void state::preload() {
 		n.set_ai_home_port(dcon::province_id{});
 	}
 	for(auto p : world.in_pop) {
-		p.set_political_reform_desire(0);
-		p.set_social_reform_desire(0);
+		pop_demographics::set_social_reform_desire(*this, p, 0.0f);
+		pop_demographics::set_political_reform_desire(*this, p, 0.0f);
 		p.set_is_primary_or_accepted_culture(false);
 	}
 	for(auto p : world.in_province) {
@@ -3753,17 +3753,17 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	for(auto p : world.in_pop) {
 		float total = 0.0f;
 		for(auto i : world.in_ideology) {
-			auto& val = p.get_demographics(pop_demographics::to_key(*this, i));
+			auto val = pop_demographics::get_demo(*this, p, pop_demographics::to_key(*this, i));
 			if(0.0 <= val && val <= 1.0f) {
 				total += val;
 			} else {
-				val = 0.0f;
+				pop_demographics::set_demo(*this, p, pop_demographics::to_key(*this, i), 0.0f);
 			}
 		}
 		if(total > 0.0f) {
 			for(auto i : world.in_ideology) {
-				auto& val = p.get_demographics(pop_demographics::to_key(*this, i));
-				val = val / total;
+				auto val = pop_demographics::get_demo(*this, p, pop_demographics::to_key(*this, i));
+				pop_demographics::set_demo(*this, p, pop_demographics::to_key(*this, i), val / total);
 			}
 		}
 	}

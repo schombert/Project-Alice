@@ -943,7 +943,7 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 	if(state.world.province_get_is_owner_core(id) == false && !was_colonial) {
 		for(auto pop : state.world.province_get_pop_location(id)) {
 			if(!pop.get_pop().get_is_primary_or_accepted_culture()) {
-				pop.get_pop().set_militancy(std::clamp(pop.get_pop().get_militancy() + state.defines.mil_hit_from_conquest, 0.0f, 10.0f));
+				pop_demographics::set_militancy(state, pop.get_pop(), std::clamp(pop_demographics::get_militancy(state, pop.get_pop()) + state.defines.mil_hit_from_conquest, 0.0f, 10.0f));
 			}
 		}
 	}

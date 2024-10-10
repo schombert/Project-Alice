@@ -230,9 +230,9 @@ public:
 					auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
 
 					float total =
-						pop_id.get_luxury_needs_satisfaction()
-						+ pop_id.get_everyday_needs_satisfaction()
-						+ pop_id.get_life_needs_satisfaction();
+						pop_demographics::get_luxury_needs(state, pop_id)
+						+ pop_demographics::get_everyday_needs(state, pop_id)
+						+ pop_demographics::get_life_needs(state, pop_id);
 
 					if(total / 3.f >= cutoff)
 						value += pop_size;
@@ -1467,10 +1467,10 @@ public:
 				auto pop_id = pop_loc.get_pop();
 				if(pop_id.get_poptype() == type) {
 					auto pop_size = state.world.pop_get_size(pop_id);
-					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
-									 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
-									 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
-									 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
+					sat_pool[(pop_demographics::get_luxury_needs(state, pop_id) > 0.95f)             ? 4
+									 : (pop_demographics::get_everyday_needs(state, pop_id) > 0.95f) ? 3
+									 : (pop_demographics::get_life_needs(state, pop_id) > 0.95f)     ? 2
+									 : (pop_demographics::get_life_needs(state, pop_id) > 0.01f)     ? 1
 									 : 0] += pop_size;
 					total += pop_size;
 				}

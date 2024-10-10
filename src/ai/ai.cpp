@@ -1422,7 +1422,7 @@ void take_reforms(sys::state& state) {
 						for(const auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
 							for(auto plid : state.world.province_get_pop_location_as_province(poid.get_province())) {
 								float weigth = plid.get_pop().get_size() * 0.001f;
-								support += state.world.pop_get_demographics(plid.get_pop(), pop_demographics::to_key(state, io)) * weigth;
+								support += pop_demographics::get_demo(state, plid.get_pop(), pop_demographics::to_key(state, io)) * weigth;
 							}
 						}
 						if(support > max_support) {

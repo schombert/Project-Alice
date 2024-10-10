@@ -1,6 +1,5 @@
 #pragma once
 #include "dcon_generated.hpp"
-#include "container_types.hpp"
 #include "system_state.hpp"
 
 namespace pop_demographics {
@@ -11,7 +10,131 @@ dcon::pop_demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
 uint32_t size(sys::state const& state);
 
+constexpr inline float pop_mc_scaling = 10.0f / float(std::numeric_limits<uint16_t>::max());
+constexpr inline float pop_u16_scaling = 1.0f / float(std::numeric_limits<uint16_t>::max());
+constexpr inline float pop_u8_scaling = 1.0f / float(std::numeric_limits<uint8_t>::max());
+constexpr inline float inv_pop_mc_scaling = float(std::numeric_limits<uint16_t>::max()) / 10.0f;
+constexpr inline float inv_pop_u16_scaling = float(std::numeric_limits<uint16_t>::max());
+constexpr inline float inv_pop_u8_scaling = float(std::numeric_limits<uint8_t>::max());
+
+inline uint8_t to_pu8(float v) {
+	return uint8_t(v * inv_pop_u8_scaling + 0.49f);
+}
+inline uint16_t to_pu16(float v) {
+	return uint16_t(v * inv_pop_u16_scaling + 0.49f);
+}
+inline uint16_t to_pmc(float v) {
+	return uint16_t(v * inv_pop_mc_scaling + 0.49f);
+}
+inline ve::int_vector to_pu8(ve::fp_vector v) {
+	return ve::to_int(v * inv_pop_u8_scaling + 0.49f);
+}
+inline ve::int_vector to_pu16(ve::fp_vector v) {
+	return ve::to_int(v * inv_pop_u16_scaling + 0.49f);
+}
+inline ve::int_vector to_pmc(ve::fp_vector v) {
+	return ve::to_int(v * inv_pop_mc_scaling + 0.49f);
+}
+
+inline float from_pu8(uint8_t v) {
+	return float(v) * pop_u8_scaling;
+}
+inline float from_pu16(uint16_t v) {
+	return float(v) * pop_u16_scaling;
+}
+inline float from_pmc(uint16_t v) {
+	return float(v) * pop_mc_scaling;
+}
+
+inline ve::fp_vector from_pu8(ve::int_vector v) {
+	return ve::to_float(v) * pop_u8_scaling;
+}
+inline ve::fp_vector from_pu16(ve::int_vector v) {
+	return ve::to_float(v) * pop_u16_scaling;
+}
+inline ve::fp_vector from_pmc(ve::int_vector v) {
+	return ve::to_float(v) * pop_mc_scaling;
+}
+
 void regenerate_is_primary_or_accepted(sys::state& state);
+float get_demo(sys::state const& state, dcon::pop_id p, dcon::pop_demographics_key k);
+void set_demo(sys::state& state, dcon::pop_id p, dcon::pop_demographics_key k, float v);
+float get_militancy(sys::state const& state, dcon::pop_id p);
+void set_militancy(sys::state& state, dcon::pop_id p, float v);
+float get_consciousness(sys::state const& state, dcon::pop_id p);
+void set_consciousness(sys::state& state, dcon::pop_id p, float v);
+float get_literacy(sys::state const& state, dcon::pop_id p);
+void set_literacy(sys::state& state, dcon::pop_id p, float v);
+float get_employment(sys::state const& state, dcon::pop_id p);
+float get_raw_employment(sys::state const& state, dcon::pop_id p);
+void set_employment(sys::state& state, dcon::pop_id p, float v);
+void set_raw_employment(sys::state& state, dcon::pop_id p, float v);
+float get_life_needs(sys::state const& state, dcon::pop_id p);
+void set_life_needs(sys::state& state, dcon::pop_id p, float v);
+float get_everyday_needs(sys::state const& state, dcon::pop_id p);
+void set_everyday_needs(sys::state& state, dcon::pop_id p, float v);
+float get_luxury_needs(sys::state const& state, dcon::pop_id p);
+void set_luxury_needs(sys::state& state, dcon::pop_id p, float v);
+float get_social_reform_desire(sys::state const& state, dcon::pop_id p);
+void set_social_reform_desire(sys::state& state, dcon::pop_id p, float v);
+float get_political_reform_desire(sys::state const& state, dcon::pop_id p);
+void set_political_reform_desire(sys::state& state, dcon::pop_id p, float v);
+
+template<typename T>
+auto get_employment(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_uemployment(p);
+	return from_pu8(ival) * state.world.pop_get_size(p);
+}
+template<typename T>
+auto get_raw_employment(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_uemployment(p);
+	return from_pu8(ival);
+}
+template<typename T>
+auto get_social_reform_desire(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_usocial_reform_desire(p);
+	return from_pu8(ival);
+}
+template<typename T>
+auto get_political_reform_desire(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_upolitical_reform_desire(p);
+	return from_pu8(ival);
+}
+template<typename T>
+auto get_militancy(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_umilitancy(p);
+	return from_pmc(ival);
+}
+template<typename T>
+auto get_consciousness(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_uconsciousness(p);
+	return from_pmc(ival);
+}
+template<typename T>
+auto get_literacy(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_uliteracy(p);
+	return from_pu16(ival);
+}
+template<typename T>
+auto get_life_needs(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_ulife_needs_satisfaction(p);
+	return from_pu8(ival);
+}
+template<typename T>
+auto get_everyday_needs(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_ueveryday_needs_satisfaction(p);
+	return from_pu8(ival);
+}
+template<typename T>
+auto get_luxury_needs(sys::state const& state, T p) {
+	auto ival = state.world.pop_get_uluxury_needs_satisfaction(p);
+	return from_pu8(ival);
+}
+template<typename T>
+auto get_demo(sys::state const& state, T p, dcon::pop_demographics_key k) {
+	auto ival = state.world.pop_get_udemographics(p, k);
+	return from_pu8(ival);
+}
 
 } // namespace pop_demographics
 namespace demographics {

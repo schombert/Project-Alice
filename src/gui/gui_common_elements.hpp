@@ -1401,7 +1401,7 @@ protected:
 				if(vote_size > 0) {
 					state.world.for_each_ideology([&](dcon::ideology_id iid) {
 						auto dkey = pop_demographics::to_key(state, iid);
-						distribution[iid.index()].value += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;
+						distribution[iid.index()].value += pop_demographics::get_demo(state, pop_id.id, dkey) * vote_size;
 					});
 				}
 			}

@@ -1102,8 +1102,8 @@ void life_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 		float value = 0.f;
 		float total = 0.f;
 		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
-			value += pl.get_pop().get_life_needs_satisfaction();
-			total += 1.f;
+			value += pop_demographics::get_life_needs(state, pl.get_pop()) * pl.get_pop().get_size();
+			total += pl.get_pop().get_size();
 		}
 		if(total > 0.f) {
 			float ratio = value / total;
@@ -1122,8 +1122,8 @@ void everyday_needs_map_tt_box(sys::state& state, text::columnar_layout& content
 		float value = 0.f;
 		float total = 0.f;
 		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
-			value += pl.get_pop().get_everyday_needs_satisfaction();
-			total += 1.f;
+			value += pop_demographics::get_everyday_needs(state, pl.get_pop()) * pl.get_pop().get_size();
+			total += pl.get_pop().get_size();
 		}
 		if(total > 0.f) {
 			float ratio = value / total;
@@ -1142,8 +1142,8 @@ void luxury_needs_map_tt_box(sys::state& state, text::columnar_layout& contents,
 		float value = 0.f;
 		float total = 0.f;
 		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
-			value += pl.get_pop().get_luxury_needs_satisfaction();
-			total += 1.f;
+			value += pop_demographics::get_luxury_needs(state, pl.get_pop()) * pl.get_pop().get_size();
+			total += pl.get_pop().get_size();
 		}
 		if(total > 0.f) {
 			float ratio = value / total;

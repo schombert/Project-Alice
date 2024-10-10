@@ -3274,10 +3274,10 @@ uint32_t ef_set_culture_pop(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_literacy(EFFECT_PARAMTERS) {
-	auto& l = ws.world.pop_get_literacy(trigger::to_pop(primary_slot));
+	auto l = pop_demographics::get_literacy(ws, trigger::to_pop(primary_slot));
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
-	l = std::clamp(l + amount, 0.0f, 1.0f);
+	pop_demographics::set_literacy(ws, trigger::to_pop(primary_slot),  std::clamp(l + amount, 0.0f, 1.0f));
 	return 0;
 }
 uint32_t ef_add_crisis_interest(EFFECT_PARAMTERS) {
@@ -3327,16 +3327,16 @@ uint32_t ef_consciousness(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 
-	auto& c = ws.world.pop_get_consciousness(trigger::to_pop(primary_slot));
-	c = std::clamp(c + amount, 0.0f, 10.0f);
+	auto c = pop_demographics::get_consciousness(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_consciousness(ws, trigger::to_pop(primary_slot), std::clamp(c + amount, 0.0f, 10.0f));
 	return 0;
 }
 uint32_t ef_consciousness_province(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 	for(auto p : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto& c = p.get_pop().get_consciousness();
-		c = std::clamp(c + amount, 0.0f, 10.0f);
+		auto c = pop_demographics::get_consciousness(ws, p.get_pop());
+		pop_demographics::set_consciousness(ws, p.get_pop(), std::clamp(c + amount, 0.0f, 10.0f));
 	}
 	return 0;
 }
@@ -3345,8 +3345,8 @@ uint32_t ef_consciousness_nation(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 	for(auto pr : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto p : pr.get_province().get_pop_location()) {
-			auto& c = p.get_pop().get_consciousness();
-			c = std::clamp(c + amount, 0.0f, 10.0f);
+			auto c = pop_demographics::get_consciousness(ws, p.get_pop());
+			pop_demographics::set_consciousness(ws, p.get_pop(), std::clamp(c + amount, 0.0f, 10.0f));
 		}
 	}
 	return 0;
@@ -3356,8 +3356,8 @@ uint32_t ef_consciousness_state(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, amount](dcon::province_id pr) {
 		for(auto p : ws.world.province_get_pop_location(pr)) {
-			auto& c = p.get_pop().get_consciousness();
-			c = std::clamp(c + amount, 0.0f, 10.0f);
+			auto c = pop_demographics::get_consciousness(ws, p.get_pop());
+			pop_demographics::set_consciousness(ws, p.get_pop(), std::clamp(c + amount, 0.0f, 10.0f));
 		}
 	});
 	return 0;
@@ -3366,16 +3366,16 @@ uint32_t ef_militancy(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 
-	auto& c = ws.world.pop_get_militancy(trigger::to_pop(primary_slot));
-	c = std::clamp(c + amount, 0.0f, 10.0f);
+	auto c = pop_demographics::get_militancy(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_militancy(ws, trigger::to_pop(primary_slot), std::clamp(c + amount, 0.0f, 10.0f));
 	return 0;
 }
 uint32_t ef_militancy_province(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 	for(auto p : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto& c = p.get_pop().get_militancy();
-		c = std::clamp(c + amount, 0.0f, 10.0f);
+		auto c = pop_demographics::get_militancy(ws, p.get_pop());
+		pop_demographics::set_militancy(ws, p.get_pop(), std::clamp(c + amount, 0.0f, 10.0f));
 	}
 	return 0;
 }
@@ -3384,8 +3384,8 @@ uint32_t ef_militancy_nation(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 	for(auto pr : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto p : pr.get_province().get_pop_location()) {
-			auto& c = p.get_pop().get_militancy();
-			c = std::clamp(c + amount, 0.0f, 10.0f);
+			auto c = pop_demographics::get_militancy(ws, p.get_pop());
+			pop_demographics::set_militancy(ws, p.get_pop(), std::clamp(c + amount, 0.0f, 10.0f));
 		}
 	}
 	return 0;
@@ -3395,8 +3395,8 @@ uint32_t ef_militancy_state(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&ws, amount](dcon::province_id pr) {
 		for(auto p : ws.world.province_get_pop_location(pr)) {
-			auto& c = p.get_pop().get_militancy();
-			c = std::clamp(c + amount, 0.0f, 10.0f);
+			auto c = pop_demographics::get_militancy(ws, p.get_pop());
+			pop_demographics::set_militancy(ws, p.get_pop(), std::clamp(c + amount, 0.0f, 10.0f));
 		}
 	});
 	return 0;
@@ -4358,12 +4358,13 @@ uint32_t ef_ideology(EFFECT_PARAMTERS) {
 	auto factor = trigger::read_float_from_payload(tval + 2);
 	assert(std::isfinite(factor));
 
-	auto& s = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i));
+	auto s = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i));
 	float new_total = 1.0f  - s + std::max(0.0f, s + factor);
-	s = std::max(0.0f, s + factor);
+	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i), std::max(0.0f, s + factor));
 
 	for(auto j : ws.world.in_ideology) {
-		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j)) /= new_total;
+		pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j),
+			pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, j)) / new_total);
 	}
 
 	return 0;
@@ -4390,70 +4391,62 @@ uint32_t ef_upper_house(EFFECT_PARAMTERS) {
 uint32_t ef_scaled_militancy_issue(EFFECT_PARAMTERS) {
 	auto issue_demo_tag = pop_demographics::to_key(ws, trigger::payload(tval[1]).opt_id);
 
-	auto support = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), issue_demo_tag);
+	auto support = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), issue_demo_tag);
 	float adjustment = trigger::read_float_from_payload(tval + 2) * float(support);
 	assert(std::isfinite(adjustment));
-	auto& v = ws.world.pop_get_militancy(trigger::to_pop(primary_slot));
-	v = std::clamp(v + adjustment, 0.0f, 10.0f);
+	auto v = pop_demographics::get_militancy(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_militancy(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
 
 	return 0;
 }
 uint32_t ef_scaled_militancy_ideology(EFFECT_PARAMTERS) {
 	auto ideology_demo_tag = pop_demographics::to_key(ws, trigger::payload(tval[1]).ideo_id);
 
-	auto support = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), ideology_demo_tag);
+	auto support = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), ideology_demo_tag);
 	float adjustment = trigger::read_float_from_payload(tval + 2) * float(support);
 	assert(std::isfinite(adjustment));
-	auto& v = ws.world.pop_get_militancy(trigger::to_pop(primary_slot));
-	v = std::clamp(v + adjustment, 0.0f, 10.0f);
+	auto v = pop_demographics::get_militancy(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_militancy(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
 
 	return 0;
 }
 uint32_t ef_scaled_militancy_unemployment(EFFECT_PARAMTERS) {
-	auto pop_size = ws.world.pop_get_size(trigger::to_pop(primary_slot));
-
-	if(pop_size != 0) {
-		auto unemployed = pop_size - ws.world.pop_get_employment(trigger::to_pop(primary_slot));
-		float adjustment = trigger::read_float_from_payload(tval + 1) * float(unemployed) / float(pop_size);
-		assert(std::isfinite(adjustment));
-		auto& v = ws.world.pop_get_militancy(trigger::to_pop(primary_slot));
-		v = std::clamp(v + adjustment, 0.0f, 10.0f);
-	}
-
+	auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, trigger::to_pop(primary_slot));
+	float adjustment = trigger::read_float_from_payload(tval + 1) * float(unemployed);
+	assert(std::isfinite(adjustment));
+	auto v = pop_demographics::get_militancy(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_militancy(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
+	
 	return 0;
 }
 uint32_t ef_scaled_consciousness_issue(EFFECT_PARAMTERS) {
 	auto issue_demo_tag = pop_demographics::to_key(ws, trigger::payload(tval[1]).opt_id);
 
-	auto support = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), issue_demo_tag);
+	auto support = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), issue_demo_tag);
 	float adjustment = trigger::read_float_from_payload(tval + 2) * float(support);
 	assert(std::isfinite(adjustment));
-	auto& v = ws.world.pop_get_consciousness(trigger::to_pop(primary_slot));
-	v = std::clamp(v + adjustment, 0.0f, 10.0f);
+	auto v = pop_demographics::get_consciousness(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_consciousness(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
 
 	return 0;
 }
 uint32_t ef_scaled_consciousness_ideology(EFFECT_PARAMTERS) {
 	auto ideology_demo_tag = pop_demographics::to_key(ws, trigger::payload(tval[1]).ideo_id);
 
-	auto support = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), ideology_demo_tag);
+	auto support = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), ideology_demo_tag);
 	float adjustment = trigger::read_float_from_payload(tval + 2) * float(support);
 	assert(std::isfinite(adjustment));
-	auto& v = ws.world.pop_get_consciousness(trigger::to_pop(primary_slot));
-	v = std::clamp(v + adjustment, 0.0f, 10.0f);
+	auto v = pop_demographics::get_consciousness(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_consciousness(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
 
 	return 0;
 }
 uint32_t ef_scaled_consciousness_unemployment(EFFECT_PARAMTERS) {
-	auto pop_size = ws.world.pop_get_size(trigger::to_pop(primary_slot));
-
-	if(pop_size != 0) {
-		auto unemployed = pop_size - ws.world.pop_get_employment(trigger::to_pop(primary_slot));
-		float adjustment = trigger::read_float_from_payload(tval + 1) * float(unemployed) / float(pop_size);
-		auto& v = ws.world.pop_get_consciousness(trigger::to_pop(primary_slot));
-		v = std::clamp(v + adjustment, 0.0f, 10.0f);
-	}
-
+	auto unemployed = 1.0 - pop_demographics::get_employment(ws, trigger::to_pop(primary_slot));
+	float adjustment = trigger::read_float_from_payload(tval + 1) * float(unemployed);
+	auto v = pop_demographics::get_consciousness(ws, trigger::to_pop(primary_slot));
+	pop_demographics::set_consciousness(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
+	
 	return 0;
 }
 uint32_t ef_scaled_militancy_nation_issue(EFFECT_PARAMTERS) {
@@ -4463,10 +4456,10 @@ uint32_t ef_scaled_militancy_nation_issue(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_militancy();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+			pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	}
 
@@ -4479,10 +4472,10 @@ uint32_t ef_scaled_militancy_nation_ideology(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_militancy();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+			pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	}
 
@@ -4494,12 +4487,10 @@ uint32_t ef_scaled_militancy_nation_unemployment(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			if(auto pop_size = pop.get_pop().get_size(); pop_size > 0) {
-				auto unemployed = pop_size - pop.get_pop().get_employment();
-				float adjustment = factor * unemployed / pop_size;
-				auto& v = pop.get_pop().get_militancy();
-				v = std::clamp(v + adjustment, 0.0f, 10.0f);
-			}
+			auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, pop.get_pop());
+			float adjustment = factor * unemployed;
+			auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+			pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	}
 
@@ -4512,10 +4503,10 @@ uint32_t ef_scaled_consciousness_nation_issue(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_consciousness();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+			pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	}
 
@@ -4528,10 +4519,10 @@ uint32_t ef_scaled_consciousness_nation_ideology(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_consciousness();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+			pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	}
 
@@ -4543,12 +4534,10 @@ uint32_t ef_scaled_consciousness_nation_unemployment(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			if(auto pop_size = pop.get_pop().get_size(); pop_size > 0) {
-				auto unemployed = pop_size - pop.get_pop().get_employment();
-				float adjustment = factor * unemployed / pop_size;
-				auto& v = pop.get_pop().get_consciousness();
-				v = std::clamp(v + adjustment, 0.0f, 10.0f);
-			}
+			auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, pop.get_pop());
+			float adjustment = factor * unemployed;
+			auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+			pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	}
 
@@ -4561,10 +4550,10 @@ uint32_t ef_scaled_militancy_state_issue(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_militancy();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+			pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	});
 
@@ -4577,10 +4566,10 @@ uint32_t ef_scaled_militancy_state_ideology(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_militancy();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+			pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	});
 
@@ -4592,12 +4581,10 @@ uint32_t ef_scaled_militancy_state_unemployment(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			if(auto pop_size = pop.get_pop().get_size(); pop_size > 0) {
-				auto unemployed = pop_size - pop.get_pop().get_employment();
-				float adjustment = factor * unemployed / pop_size;
-				auto& v = pop.get_pop().get_militancy();
-				v = std::clamp(v + adjustment, 0.0f, 10.0f);
-			}
+			auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, pop.get_pop());
+			float adjustment = factor * unemployed;
+			auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+			pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	});
 
@@ -4610,10 +4597,10 @@ uint32_t ef_scaled_consciousness_state_issue(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_consciousness();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+			pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	});
 
@@ -4626,10 +4613,10 @@ uint32_t ef_scaled_consciousness_state_ideology(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			auto support = pop.get_pop().get_demographics(demo_tag);
+			auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			float adjustment = factor * support;
-			auto& v = pop.get_pop().get_consciousness();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
+			auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+			pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	});
 
@@ -4641,12 +4628,10 @@ uint32_t ef_scaled_consciousness_state_unemployment(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			if(auto pop_size = pop.get_pop().get_size(); pop_size > 0) {
-				auto unemployed = pop_size - pop.get_pop().get_employment();
-				float adjustment = factor * unemployed / pop_size;
-				auto& v = pop.get_pop().get_consciousness();
-				v = std::clamp(v + adjustment, 0.0f, 10.0f);
-			}
+			auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, pop.get_pop());
+			float adjustment = factor * unemployed;
+			auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+			pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 		}
 	});
 
@@ -4658,10 +4643,10 @@ uint32_t ef_scaled_militancy_province_issue(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto support = pop.get_pop().get_demographics(demo_tag);
+		auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 		float adjustment = factor * support;
-		auto& v = pop.get_pop().get_militancy();
-		v = std::clamp(v + adjustment, 0.0f, 10.0f);
+		auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+		pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 	}
 
 	return 0;
@@ -4672,10 +4657,10 @@ uint32_t ef_scaled_militancy_province_ideology(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto support = pop.get_pop().get_demographics(demo_tag);
+		auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 		float adjustment = factor * support;
-		auto& v = pop.get_pop().get_militancy();
-		v = std::clamp(v + adjustment, 0.0f, 10.0f);
+		auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+		pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 	}
 
 	return 0;
@@ -4685,12 +4670,10 @@ uint32_t ef_scaled_militancy_province_unemployment(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		if(auto pop_size = pop.get_pop().get_size(); pop_size > 0) {
-			auto unemployed = pop_size - pop.get_pop().get_employment();
-			float adjustment = factor * unemployed / pop_size;
-			auto& v = pop.get_pop().get_militancy();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
-		}
+		auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, pop.get_pop());
+		float adjustment = factor * unemployed;
+		auto v = pop_demographics::get_militancy(ws, pop.get_pop());
+		pop_demographics::set_militancy(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 	}
 
 	return 0;
@@ -4701,10 +4684,10 @@ uint32_t ef_scaled_consciousness_province_issue(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto support = pop.get_pop().get_demographics(demo_tag);
+		auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 		float adjustment = factor * support;
-		auto& v = pop.get_pop().get_consciousness();
-		v = std::clamp(v + adjustment, 0.0f, 10.0f);
+		auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+		pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 	}
 
 	return 0;
@@ -4715,10 +4698,10 @@ uint32_t ef_scaled_consciousness_province_ideology(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto support = pop.get_pop().get_demographics(demo_tag);
+		auto support = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 		float adjustment = factor * support;
-		auto& v = pop.get_pop().get_consciousness();
-		v = std::clamp(v + adjustment, 0.0f, 10.0f);
+		auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+		pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 	}
 
 	return 0;
@@ -4728,12 +4711,10 @@ uint32_t ef_scaled_consciousness_province_unemployment(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		if(auto pop_size = pop.get_pop().get_size(); pop_size > 0) {
-			auto unemployed = pop_size - pop.get_pop().get_employment();
-			float adjustment = factor * unemployed / pop_size;
-			auto& v = pop.get_pop().get_consciousness();
-			v = std::clamp(v + adjustment, 0.0f, 10.0f);
-		}
+		auto unemployed = 1.0f - pop_demographics::get_raw_employment(ws, pop.get_pop());
+		float adjustment = factor * unemployed;
+		auto v = pop_demographics::get_consciousness(ws, pop.get_pop());
+		pop_demographics::set_consciousness(ws, pop.get_pop(), std::clamp(v + adjustment, 0.0f, 10.0f));
 	}
 
 	return 0;
@@ -4791,12 +4772,13 @@ uint32_t ef_dominant_issue(EFFECT_PARAMTERS) {
 	auto t = trigger::payload(tval[1]).opt_id;
 	auto factor = trigger::read_float_from_payload(tval + 2);
 
-	auto& s = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, t));
+	auto s = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, t));
 	auto new_total = 1.0f - s + std::max(0.0f, s + factor);
-	s = std::max(0.0f, s + factor);
+	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, t), std::max(0.0f, s + factor));
 
 	for(auto i : ws.world.in_issue_option) {
-		ws.world.pop_get_demographics(trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i)) /= new_total;
+		pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i),
+			pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i)) / new_total);
 	}
 
 	return 0;
@@ -4807,12 +4789,13 @@ uint32_t ef_dominant_issue_nation(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			auto& s = pop.get_pop().get_demographics(demo_tag);
+			auto s = pop_demographics::get_demo(ws, pop.get_pop(), demo_tag);
 			auto new_total = 1.0f - s + std::max(0.0f, s + factor);
-			s = std::max(0.0f, s + factor);
+			pop_demographics::set_demo(ws, pop.get_pop(), demo_tag, std::max(0.0f, s + factor));
 
 			for(auto i : ws.world.in_issue_option) {
-				pop.get_pop().get_demographics(pop_demographics::to_key(ws, i)) /= new_total;
+				pop_demographics::set_demo(ws, pop.get_pop(), pop_demographics::to_key(ws, i),
+					pop_demographics::get_demo(ws, pop.get_pop(), pop_demographics::to_key(ws, i)) / new_total);
 			}
 		}
 	}
@@ -4833,10 +4816,10 @@ uint32_t ef_move_issue_percentage_nation(EFFECT_PARAMTERS) {
 
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 		for(auto pop : p.get_province().get_pop_location()) {
-			auto& s = pop.get_pop().get_demographics(from_issue);
-			auto adjust = s * amount;
-			s -= adjust;
-			pop.get_pop().get_demographics(to_issue) += adjust;
+			auto s = pop_demographics::get_demo(ws, pop.get_pop(), from_issue);
+			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s - s * amount);
+			auto s2 = pop_demographics::get_demo(ws, pop.get_pop(), to_issue);
+			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s2 + s * amount);
 		}
 	}
 
@@ -4849,10 +4832,10 @@ uint32_t ef_move_issue_percentage_state(EFFECT_PARAMTERS) {
 
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
 		for(auto pop : ws.world.province_get_pop_location(p)) {
-			auto& s = pop.get_pop().get_demographics(from_issue);
-			auto adjust = s * amount;
-			s -= adjust;
-			pop.get_pop().get_demographics(to_issue) += adjust;
+			auto s = pop_demographics::get_demo(ws, pop.get_pop(), from_issue);
+			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s - s * amount);
+			auto s2 = pop_demographics::get_demo(ws, pop.get_pop(), to_issue);
+			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s2 + s * amount);
 		}
 	});
 
@@ -4864,10 +4847,10 @@ uint32_t ef_move_issue_percentage_province(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 3);
 
 	for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-		auto& s = pop.get_pop().get_demographics(from_issue);
-		auto adjust = s * amount;
-		s -= adjust;
-		pop.get_pop().get_demographics(to_issue) += adjust;
+		auto s = pop_demographics::get_demo(ws, pop.get_pop(), from_issue);
+		pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s - s * amount);
+		auto s2 = pop_demographics::get_demo(ws, pop.get_pop(), to_issue);
+		pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s2 + s * amount);
 	}
 
 	return 0;
@@ -4877,10 +4860,10 @@ uint32_t ef_move_issue_percentage_pop(EFFECT_PARAMTERS) {
 	auto to_issue = pop_demographics::to_key(ws, trigger::payload(tval[2]).opt_id);
 	auto amount = trigger::read_float_from_payload(tval + 3);
 
-	auto& s = ws.world.pop_get_demographics(trigger::to_pop(primary_slot), from_issue);
-	auto adjust = s * amount;
-	s -= adjust;
-	ws.world.pop_get_demographics(trigger::to_pop(primary_slot), to_issue) += adjust;
+	auto s = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), from_issue);
+	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), from_issue, s - s * amount);
+	auto s2 = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), to_issue);
+	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), from_issue, s2 + s * amount);
 
 	return 0;
 }

@@ -624,9 +624,9 @@ void initialize(sys::state& state) {
 
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto fp = fatten(state.world, p);
-		fp.set_life_needs_satisfaction(1.0f);
-		fp.set_everyday_needs_satisfaction(0.1f);
-		fp.set_luxury_needs_satisfaction(0.0f);
+		pop_demographics::set_life_needs(state, p, 1.0f);
+		pop_demographics::set_everyday_needs(state, p, 0.1f);
+		pop_demographics::set_luxury_needs(state, p, 0.0f);
 		fp.set_savings(savings_buffer.get(fp.get_poptype()) * fp.get_size() / state.defines.alice_needs_scaling_factor);
 	});
 
@@ -1097,9 +1097,9 @@ void update_rgo_employment(sys::state& state) {
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			auto pt = pop.get_pop().get_poptype();
 			if(pt == state.culture_definitions.slaves) {
-				pop.get_pop().set_employment(pop.get_pop().get_size() * slave_fraction);
+				pop_demographics::set_raw_employment(state, pop.get_pop(), slave_fraction);
 			} else if(pt.get_is_paid_rgo_worker()) {
-				pop.get_pop().set_employment(pop.get_pop().get_size() * free_fraction);
+				pop_demographics::set_raw_employment(state, pop.get_pop(), free_fraction);
 			}
 		}
 	});
@@ -1220,9 +1220,9 @@ void update_factory_employment(sys::state& state) {
 		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 			for(auto pop : state.world.province_get_pop_location(p)) {
 				if(pop.get_pop().get_poptype() == state.culture_definitions.primary_factory_worker) {
-					pop.get_pop().set_employment(pop.get_pop().get_size() * prim_employment);
+					pop_demographics::set_raw_employment(state, pop.get_pop(), prim_employment);
 				} else if(pop.get_pop().get_poptype() == state.culture_definitions.secondary_factory_worker) {
-					pop.get_pop().set_employment(pop.get_pop().get_size() * sec_employment);
+					pop_demographics::set_raw_employment(state, pop.get_pop(), sec_employment);
 				}
 			}
 		});
@@ -2495,9 +2495,9 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 			assert(std::isfinite(everyday_needs_fraction));
 			assert(std::isfinite(luxury_needs_fraction));
 
-			float old_life = pl.get_pop().get_life_needs_satisfaction();
-			float old_everyday = pl.get_pop().get_everyday_needs_satisfaction();
-			float old_luxury = pl.get_pop().get_luxury_needs_satisfaction();
+			float old_life = pop_demographics::get_life_needs(state, pl.get_pop());
+			float old_everyday = pop_demographics::get_everyday_needs(state, pl.get_pop());
+			float old_luxury = pop_demographics::get_luxury_needs(state, pl.get_pop());
 
 			float old_life_to_use_in_demand_calculation = old_life;
 			float old_everyday_to_use_in_demand_calculation = old_everyday;
@@ -2517,9 +2517,9 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 			auto result_everyday = std::clamp(old_everyday_to_use_in_demand_calculation * 0.9f + everyday_needs_fraction * 0.1f, 0.f, 1.f);
 			auto result_luxury = std::clamp(old_luxury_to_use_in_demand_calculation * 0.9f + luxury_needs_fraction * 0.1f, 0.f, 1.f);
 
-			state.world.pop_set_life_needs_satisfaction(pl.get_pop(), std::clamp(old_life * 0.99f + final_life_needs_fraction * 0.01f, 0.f, 1.f));
-			state.world.pop_set_everyday_needs_satisfaction(pl.get_pop(), std::clamp(old_everyday * 0.99f + final_everyday_needs_fraction * 0.01f, 0.f, 1.f));
-			state.world.pop_set_luxury_needs_satisfaction(pl.get_pop(), std::clamp(old_luxury * 0.99f + final_luxury_needs_fraction * 0.01f, 0.f, 1.f));
+			pop_demographics::set_life_needs(state, pl.get_pop(), std::clamp(old_life * 0.99f + final_life_needs_fraction * 0.01f, 0.f, 1.f));
+			pop_demographics::set_everyday_needs(state, pl.get_pop(), std::clamp(old_everyday * 0.99f + final_everyday_needs_fraction * 0.01f, 0.f, 1.f));
+			pop_demographics::set_luxury_needs(state, pl.get_pop(), std::clamp(old_luxury * 0.99f + final_luxury_needs_fraction * 0.01f, 0.f, 1.f));
 
 			ln_demand_vector.get(t) += result_life * total_pop / state.defines.alice_needs_scaling_factor;
 			en_demand_vector.get(t) += result_everyday * total_pop / state.defines.alice_needs_scaling_factor;
@@ -3394,16 +3394,18 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 		acc_e = acc_e + ve::select(lx_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * lx_costs, 0.0f);
 		acc_m = acc_m + ve::select(lx_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * lx_costs, 0.0f);
 
-		auto employment = state.world.pop_get_employment(ids);
+		auto employment = pop_demographics::get_employment(state, ids);
 
 		acc_u = acc_u + ve::select(none_of_above && state.world.pop_type_get_has_unemployment(types),
 												s_spending * (pop_of_type - employment) / state.defines.alice_needs_scaling_factor * unemp_level * ln_costs, 0.0f);
 
 		state.world.pop_set_savings(ids, state.inflation * ((acc_e + acc_m) + (acc_u + acc_a)));
+#ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_e);
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_m);
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_u);
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_a);
+#endif
 	});
 
 	/* add up production, collect taxes and tariffs, other updates purely internal to each nation */
@@ -3610,9 +3612,10 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			for(auto pl : p.get_province().get_pop_location()) {
 				auto t = pl.get_pop().get_poptype();
 
-				auto ln = pl.get_pop().get_life_needs_satisfaction();
-				auto en = pl.get_pop().get_everyday_needs_satisfaction();
-				auto lx = pl.get_pop().get_luxury_needs_satisfaction();
+				auto ln = pop_demographics::get_life_needs(state, pl.get_pop());
+				auto en = pop_demographics::get_everyday_needs(state, pl.get_pop());
+				auto lx = pop_demographics::get_luxury_needs(state, pl.get_pop());
+
 
 				// sat = raw + sub ## first summand is "raw satisfaction"
 				ln -= subsistence_life;
@@ -3627,9 +3630,9 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 				en += subsistence_everyday;
 				lx += subsistence_luxury;
 
-				pl.get_pop().set_life_needs_satisfaction(ln);
-				pl.get_pop().set_everyday_needs_satisfaction(en);
-				pl.get_pop().set_luxury_needs_satisfaction(lx);
+				pop_demographics::set_life_needs(state, pl.get_pop(), ln);
+				pop_demographics::set_everyday_needs(state, pl.get_pop(), en);
+				pop_demographics::set_luxury_needs(state, pl.get_pop(), lx);
 			}
 		}
 
