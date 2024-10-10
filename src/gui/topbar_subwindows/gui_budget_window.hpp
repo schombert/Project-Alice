@@ -281,10 +281,10 @@ protected:
 					// OR All life needs
 					// OR Some life needs
 					// OR No needs fulfilled...
-				sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.95f)             ? 4
-								 : (pop_id.get_everyday_needs_satisfaction() > 0.95f) ? 3
-								 : (pop_id.get_life_needs_satisfaction() > 0.95f)     ? 2
-								 : (pop_id.get_life_needs_satisfaction() > 0.01f)     ? 1
+				sat_pool[(pop_demographics::get_luxury_needs(state, pop_id) > 0.95f)             ? 4
+								 : (pop_demographics::get_everyday_needs(state, pop_id) > 0.95f) ? 3
+								 : (pop_demographics::get_life_needs(state, pop_id) > 0.95f)     ? 2
+								 : (pop_demographics::get_life_needs(state, pop_id) > 0.01f)     ? 1
 								 : 0] += pop_size;
 			}
 		}

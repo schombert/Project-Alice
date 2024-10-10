@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "rebels.hpp"
 #include "fonts.hpp"
+#include "demographics.hpp"
 
 namespace parsers {
 
