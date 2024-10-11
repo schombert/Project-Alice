@@ -1165,8 +1165,10 @@ static void receive_from_clients(sys::state& state) {
 			return;
 		}
 
-		while(r == 0) {
+		int commandspertick = 0;
+		while(r == 0 && commandspertick < 10) {
 			r = server_process_commands(state, client);
+			commandspertick++;
 		}
 
 		if(r > 0) { // error
