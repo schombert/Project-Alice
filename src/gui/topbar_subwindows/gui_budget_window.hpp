@@ -1663,9 +1663,9 @@ class debt_piechart : public piechart<dcon::nation_id> {
 public:
 	void on_update(sys::state& state) noexcept override {
 		distribution.clear();
-		auto t = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto t = state.world.nation_get_local_loan(state.local_player_nation);
 
-		if(t < 0.0f) {
+		if(t > 0.0f) {
 			float share = 10.0f;
 			distribution.emplace_back(state.local_player_nation, share);
 		}
@@ -1725,9 +1725,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
-		auto t = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto t = state.world.nation_get_local_loan(state.local_player_nation);
 
-		if(t < 0.0f) {
+		if(t > 0.0f) {
 			row_contents.push_back(debt_item_data{ state.local_player_nation, t });
 		}
 

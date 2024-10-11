@@ -64,11 +64,8 @@ float interest_payment(sys::state& state, dcon::nation_id n) {
 	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30
 	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 	*/
-	auto debt = state.world.nation_get_stockpiles(n, money);
-	if(debt >= 0)
-		return 0.0f;
-
-	return -debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
+	auto debt = state.world.nation_get_local_loan(n);
+	return debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
 }
 float max_loan(sys::state& state, dcon::nation_id n) {
 	/*
@@ -3245,7 +3242,7 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 				*/
 				auto ip = interest_payment(state, n);
 				// To become bankrupt nation should be unable to cover its interest payments with its actual money or more loans
-				if(sp < ip && sp < -max_loan(state, n)) {
+				if(sp < ip && state.world.nation_get_local_loan(n) >= max_loan(state, n)) {
 					go_bankrupt(state, n);
 				}
 				if(ip > 0) {
@@ -3253,7 +3250,8 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 					state.world.nation_get_national_bank(n) += ip;
 				}
 
-				if(can_take_loans(state, n)) {
+				// If available loans don't allow run 100% of spending, adjust spending scale
+				if(can_take_loans(state, n) && total - state.world.nation_get_stockpiles(n, economy::money) <= max_loan(state, n) - state.world.nation_get_local_loan(n)) {
 					budget = total;
 					spending_scale = 1.0f;
 				} else {
@@ -3277,6 +3275,23 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 
 			state.world.nation_get_stockpiles(n, economy::money) -= std::min(budget, total * spending_scale);
 			state.world.nation_set_spending_level(n, spending_scale);
+
+			auto s = state.world.nation_get_stockpiles(n, economy::money);
+			auto l = state.world.nation_get_local_loan(n);
+			if(s < 0 && l < max_loan(state, n) &&
+				std::abs(s) <= max_loan(state, n) - l) {
+				state.world.nation_get_local_loan(n) += std::abs(s);
+				state.world.nation_set_stockpiles(n, economy::money, 0);
+			}
+			else if (s < 0) {
+				// Nation somehow got into negative bigger than its loans allow
+				go_bankrupt(state, n);
+			}
+			else if(s > 0 && l > 0) {
+				auto change = std::min(s, l);
+				state.world.nation_get_local_loan(n) -= change;
+				state.world.nation_get_stockpiles(n, economy::money) -= change;
+			}
 
 			float pi_total = full_private_investment_cost(state, n);
 			float pi_budget = state.world.nation_get_private_investment(n);
@@ -5266,7 +5281,7 @@ dcon::modifier_id get_province_immigrator_modifier(sys::state& state) {
 }
 
 void go_bankrupt(sys::state& state, dcon::nation_id n) {
-	auto& debt = state.world.nation_get_stockpiles(n, economy::money);
+	auto& debt = state.world.nation_get_local_loan(n);
 
 	/*
 	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2.

@@ -3777,6 +3777,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ local_loan }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ stockpile_targets }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -5140,6 +5145,10 @@ object{
 	property{
 		name{ nickname }
 		type{ std::array<uint8_t,48> }
+	}
+	property{
+		name{ is_online }
+		type{ bitfield }
 	}
 }
 
