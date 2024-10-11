@@ -179,11 +179,10 @@ void regenerate_from_pop_data_full(sys::state& state);
 void regenerate_from_pop_data_daily(sys::state& state);
 
 struct ideology_buffer {
-	tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::ideology_id> temp_buffers;
-	ve::vectorizable_buffer<float, dcon::pop_id> totals;
+	tagged_vector<ve::vectorizable_buffer<uint8_t, dcon::pop_id>, dcon::ideology_id> temp_buffers;
 	uint32_t size = 0;
 
-	ideology_buffer(sys::state& state) : totals(0), size(0) {
+	ideology_buffer(sys::state& state) : size(0) {
 		for(uint32_t i = 0; i < state.world.ideology_size(); ++i) {
 			temp_buffers.emplace_back(uint32_t(0));
 		}
@@ -193,18 +192,16 @@ struct ideology_buffer {
 		if(size < s) {
 			size = s;
 			state.world.for_each_ideology(
-					[&](dcon::ideology_id i) { temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer(); });
-			totals = ve::vectorizable_buffer<float, dcon::pop_id>(s);
+					[&](dcon::ideology_id i) { temp_buffers[i] = ve::vectorizable_buffer<uint8_t, dcon::pop_id>(s);  /*state.world.pop_make_vectorizable_float_buffer();*/ });
 		}
 	}
 };
 
 struct issues_buffer {
-	tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::issue_option_id> temp_buffers;
-	ve::vectorizable_buffer<float, dcon::pop_id> totals;
+	tagged_vector<ve::vectorizable_buffer<uint8_t, dcon::pop_id>, dcon::issue_option_id> temp_buffers;
 	uint32_t size = 0;
 
-	issues_buffer(sys::state& state) : totals(0), size(0) {
+	issues_buffer(sys::state& state) : size(0) {
 		for(uint32_t i = 0; i < state.world.issue_option_size(); ++i) {
 			temp_buffers.emplace_back(uint32_t(0));
 		}
@@ -214,8 +211,7 @@ struct issues_buffer {
 		if(size < s) {
 			size = s;
 			state.world.for_each_issue_option(
-					[&](dcon::issue_option_id i) { temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer(); });
-			totals = ve::vectorizable_buffer<float, dcon::pop_id>(s);
+					[&](dcon::issue_option_id i) { temp_buffers[i] = ve::vectorizable_buffer<uint8_t, dcon::pop_id>(s); /*state.world.pop_make_vectorizable_float_buffer();*/ });
 		}
 	}
 };

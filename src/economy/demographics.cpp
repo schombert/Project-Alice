@@ -1182,51 +1182,25 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 	auto new_pop_count = state.world.pop_size();
 	ibuf.update(state, new_pop_count);
 
-	// clear totals
-	execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) { ibuf.totals.set(ids, ve::fp_vector{}); });
+	assert(state.world.ideology_size() <= 64);
 
 	// update
-	state.world.for_each_ideology([&](dcon::ideology_id i) {
-		if(state.world.ideology_get_enabled(i)) {
-			auto const i_key = pop_demographics::to_key(state, i);
-			if(state.world.ideology_get_is_civilized_only(i)) {
-				pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
-					auto owner = nations::owner_of_pop(state, ids);
+	
+	pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		ve::fp_vector iopt_weights[64];
+		ve::fp_vector ttotal = 0.0f;
 
-					auto amount = ve::apply(
-							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
-								if(state.world.nation_get_is_civilized(o)) {
-									if(auto mfn = state.world.pop_type_get_ideology_fns(ptid, i); mfn != 0) {
-										using ftype = float(*)(int32_t);
-										ftype fn = (ftype)mfn;
-										float llvm_result = fn(pid.index());
-#ifdef CHECK_LLVM_RESULTS
-										float interp_result = 0.0f;
-										if(auto mtrigger = state.world.pop_type_get_ideology(ptid, i); mtrigger) {
-											interp_result = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
-										}
-										assert(llvm_result == interp_result);
-#endif
-										return llvm_result;
-									} else {
-										auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
-										return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0) : 0.0f;
-									}
-								} else {
-									return 0.0f;
-								}
-							},
-							ids, state.world.pop_get_poptype(ids), owner);
-
-					ibuf.temp_buffers[i].set(ids, amount);
-					ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
-				});
+		state.world.for_each_ideology([&](dcon::ideology_id i) {
+			if(!state.world.ideology_get_enabled(i)) {
+				iopt_weights[i.index()] = 0.0f;
 			} else {
-				pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
-					auto owner = nations::owner_of_pop(state, ids);
+				auto const i_key = pop_demographics::to_key(state, i);
+				auto owner = nations::owner_of_pop(state, ids);
 
+				if(state.world.ideology_get_is_civilized_only(i)) {
 					auto amount = ve::apply(
-							[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+						[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+							if(state.world.nation_get_is_civilized(o)) {
 								if(auto mfn = state.world.pop_type_get_ideology_fns(ptid, i); mfn != 0) {
 									using ftype = float(*)(int32_t);
 									ftype fn = (ftype)mfn;
@@ -1243,13 +1217,67 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 									auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
 									return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0) : 0.0f;
 								}
-							},
-							ids, state.world.pop_get_poptype(ids), owner);
+							} else {
+								return 0.0f;
+							}
+						}, ids, state.world.pop_get_poptype(ids), owner);
 
-					ibuf.temp_buffers[i].set(ids, amount);
-					ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
-				});
+					iopt_weights[i.index()] = amount;
+					ttotal = ttotal + amount;
+				} else {
+					auto amount = ve::apply(
+						[&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+							if(auto mfn = state.world.pop_type_get_ideology_fns(ptid, i); mfn != 0) {
+								using ftype = float(*)(int32_t);
+								ftype fn = (ftype)mfn;
+								float llvm_result = fn(pid.index());
+#ifdef CHECK_LLVM_RESULTS
+								float interp_result = 0.0f;
+								if(auto mtrigger = state.world.pop_type_get_ideology(ptid, i); mtrigger) {
+									interp_result = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0);
+								}
+								assert(llvm_result == interp_result);
+#endif
+								return llvm_result;
+							} else {
+								auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+								return ptrigger ? trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(pid), 0) : 0.0f;
+							}
+						}, ids, state.world.pop_get_poptype(ids), owner);
+
+					iopt_weights[i.index()] = amount;
+					ttotal = ttotal + amount;
+				}
 			}
+		});
+
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			state.world.for_each_ideology([&](dcon::ideology_id iid) {
+				auto avalue = iopt_weights[iid.index()] / ttotal;
+
+				auto const i_key = pop_demographics::to_key(state, iid);
+				auto current = pop_demographics::get_demo(state, ids, i_key);
+
+				//pop_demographics::set_demo(state, ids, i_key,
+				//	ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current));
+
+				state.world.pop_set_udemographics(ids, i_key, pop_demographics::to_pu8(ve::select(ttotal > 0.0f,
+					state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current)));
+			});
+		} else {
+			state.world.for_each_ideology([&](dcon::ideology_id iid) {
+				auto avalue = iopt_weights[iid.index()] / ttotal;
+
+				auto const i_key = pop_demographics::to_key(state, iid);
+				auto current = pop_demographics::get_demo(state, ids, i_key);
+
+				//pop_demographics::set_demo(state, ids, i_key,
+				//	ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current));
+
+				ibuf.temp_buffers[iid].set(ids, pop_demographics::to_pu8(ve::select(ttotal > 0.0f,
+					state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current)));
+				
+			});
 		}
 	});
 }
@@ -1263,23 +1291,29 @@ void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, id
 	ideology: do nothing Otherwise: subtract 0.25 from the pop's current support for the ideology (to a minimum of zero)
 	*/
 
+	if(state.network_mode == sys::network_mode_type::single_player)
+		return;
+
 	state.world.for_each_ideology([&](dcon::ideology_id i) {
 		if(state.world.ideology_get_enabled(i)) {
 			auto const i_key = pop_demographics::to_key(state, i);
 
 			execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
-				auto ttotal = pbuf.totals.get(ids);
-				auto avalue = pbuf.temp_buffers[i].get(ids) / ttotal;
-				auto current = pop_demographics::get_demo(state, ids, i_key);
+				auto avalue = pbuf.temp_buffers[i].get(ids);// / ttotal;
+				state.world.pop_set_udemographics(ids, i_key, avalue);
 
-				pop_demographics::set_demo(state, ids, i_key,
-					ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current));
+				//auto ttotal = pbuf.totals.get(ids);
+				//auto avalue = pbuf.temp_buffers[i].get(ids) / ttotal;
+				//auto current = pop_demographics::get_demo(state, ids, i_key);
+
+				//pop_demographics::set_demo(state, ids, i_key,
+				//	ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current));
 			});
 		}
 	});
 }
 
-inline constexpr float issues_change_rate = 0.10f;
+inline constexpr float issues_change_rate = 0.20f;
 
 void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& ibuf) {
 	/*
@@ -1291,24 +1325,26 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 	auto new_pop_count = state.world.pop_size();
 	ibuf.update(state, new_pop_count);
 
-	// clear totals
-	execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) { ibuf.totals.set(ids, ve::fp_vector{}); });
-
 	// update
-	state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
-		auto opt = fatten(state.world, iid);
-		auto allow = opt.get_allow();
-		auto parent_issue = opt.get_parent_issue();
-		auto const i_key = pop_demographics::to_key(state, iid);
-		auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
-		auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
-		auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
-		auto has_modifier = is_social_issue || is_political_issue;
-		auto modifier_key =
+	assert(state.world.issue_option_size() <= 720);
+
+	pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		ve::fp_vector iopt_weights[720];
+		ve::fp_vector ttotal = 0.0f;
+		auto owner = nations::owner_of_pop(state, ids);
+
+		state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+			auto opt = fatten(state.world, iid);
+			auto allow = opt.get_allow();
+			auto parent_issue = opt.get_parent_issue();
+			auto const i_key = pop_demographics::to_key(state, iid);
+			auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
+			auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
+			auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
+			auto has_modifier = is_social_issue || is_political_issue;
+			auto modifier_key =
 				is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
 
-		pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
-			auto owner = nations::owner_of_pop(state, ids);
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner =
 				(state.world.nation_get_is_civilized(owner) || ve::mask_vector(is_party_issue))
@@ -1340,12 +1376,38 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 							return 0.0f;
 						}
 					}
-				 },  ids, state.world.pop_get_poptype(ids), owner),
-				0.0f);
+				},  ids, state.world.pop_get_poptype(ids), owner),
+			0.0f);
 
-			ibuf.temp_buffers[iid].set(ids, amount);
-			ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
+			iopt_weights[iid.index()] = amount;
+			ttotal = ttotal + amount;
 		});
+
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+				auto avalue = iopt_weights[iid.index()] / ttotal;
+
+				auto const i_key = pop_demographics::to_key(state, iid);
+				auto current = pop_demographics::get_demo(state, ids, i_key);
+				auto owner_rate_modifier =
+					(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::issue_change_speed) + 1.0f);
+
+				state.world.pop_set_udemographics(ids, i_key, pop_demographics::to_pu8(ve::select(ttotal > 0.0f,
+					issues_change_rate * owner_rate_modifier * avalue + (1.0f - issues_change_rate * owner_rate_modifier) * current, current)));
+			});
+		} else {
+			state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+				auto avalue = iopt_weights[iid.index()] / ttotal;
+
+				auto const i_key = pop_demographics::to_key(state, iid);
+				auto current = pop_demographics::get_demo(state, ids, i_key);
+				auto owner_rate_modifier =
+					(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::issue_change_speed) + 1.0f);
+
+				ibuf.temp_buffers[iid].set(ids, pop_demographics::to_pu8(ve::select(ttotal > 0.0f,
+					issues_change_rate * owner_rate_modifier * avalue + (1.0f - issues_change_rate * owner_rate_modifier) * current, current)));
+			});
+		}
 	});
 }
 
@@ -1359,23 +1421,18 @@ void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues
 	at 5x more or less where the adjustment is a flat 1.0.
 	*/
 
+	if(state.network_mode == sys::network_mode_type::single_player)
+		return;
+
 	state.world.for_each_issue_option([&](dcon::issue_option_id i) {
 		auto const i_key = pop_demographics::to_key(state, i);
 
 		execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
-			auto ttotal = pbuf.totals.get(ids);
-			auto avalue = pbuf.temp_buffers[i].get(ids) / ttotal;
-			auto current = pop_demographics::get_demo(state, ids, i_key);
-			auto owner = nations::owner_of_pop(state, ids);
-			auto owner_rate_modifier =
-					(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::issue_change_speed) + 1.0f);
-
-			pop_demographics::set_demo(state, ids, i_key,
-					ve::select(ttotal > 0.0f,
-							issues_change_rate * owner_rate_modifier * avalue + (1.0f - issues_change_rate * owner_rate_modifier) * current,
-							current));
+			auto avalue = pbuf.temp_buffers[i].get(ids);// / ttotal;
+			state.world.pop_set_udemographics(ids, i_key, avalue);
 		});
 	});
+	
 }
 
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
