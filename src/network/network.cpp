@@ -342,8 +342,10 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 		assert(*m <= len);
 		*m = 0; // reset
 		func();
+		return 0;
 	}
-	return 0;
+	// No data received
+	return -1;
 }
 
 static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
@@ -1153,10 +1155,21 @@ static void receive_from_clients(sys::state& state) {
 		int r = 0;
 		if(client.handshake) {
 			r = server_process_handshake(state, client);
-		} else {
+			if(r > 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+				state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from:" + std::to_string(client.playing_as.index()));
+#endif
+				network::disconnect_client(state, client, false);
+			}
+
+			return;
+		}
+
+		while(r == 0) {
 			r = server_process_commands(state, client);
 		}
-		if(r != 0) { // error
+
+		if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 			state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from:" + std::to_string(client.playing_as.index()));
 #endif
@@ -1330,7 +1343,7 @@ void send_and_receive_commands(sys::state& state) {
 			if(client.early_send_buffer.size() > 0) {
 				size_t old_size = client.early_send_buffer.size();
 				int r = socket_send(client.socket_fd, client.early_send_buffer);
-				if(r != 0) { // error
+				if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 					state.console_log("host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
@@ -1345,7 +1358,7 @@ void send_and_receive_commands(sys::state& state) {
 		} else if(client.send_buffer.size() > 0) {
 				size_t old_size = client.send_buffer.size();
 				int r = socket_send(client.socket_fd, client.send_buffer);
-				if(r != 0) { // error
+				if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 					state.console_log("host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
@@ -1362,7 +1375,7 @@ void send_and_receive_commands(sys::state& state) {
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		if(state.network_state.handshake) {
 			int r = client_process_handshake(state);
-			if(r != 0) { // error
+			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client handshake receive error: " + get_last_error_msg());
 				network::finish(state, false);
 				return;
@@ -1397,7 +1410,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 			});
-			if(r != 0) { // error
+			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_last_error_msg());
 				network::finish(state, false);
 				return;
@@ -1426,7 +1439,7 @@ void send_and_receive_commands(sys::state& state) {
 				}
 
 			});
-			if(r != 0) { // error
+			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client command receive error: " + get_last_error_msg());
 				network::finish(state, false);
 				return;
