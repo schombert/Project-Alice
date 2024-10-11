@@ -1011,8 +1011,18 @@ bool factory_is_profitable(sys::state const& state, dcon::factory_id f) {
 	return state.world.factory_get_unprofitable(f) == false || state.world.factory_get_subsidized(f);
 }
 
+struct commodity_profit_holder {
+	float profit = 0.0f;
+	dcon::commodity_id c;
+};
+
 void update_rgo_employment(sys::state& state) {
-	province::for_each_land_province(state, [&](dcon::province_id p) {
+	int32_t last = state.province_definitions.first_sea_province.index();
+
+	concurrency::parallel_for(0, last, [&](int32_t for_index) {
+	//province::for_each_land_province(state, [&](dcon::province_id p) {
+		dcon::province_id p{ dcon::province_id::value_base_t(for_index) };
+
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		auto current_employment = 0.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -1035,21 +1045,26 @@ void update_rgo_employment(sys::state& state) {
 		// update rgo employment per good:
 
 		//sorting goods by profitability
-		static std::vector<dcon::commodity_id> ordered_rgo_goods;
-		ordered_rgo_goods.clear();
+		//static std::vector<dcon::commodity_id> ordered_rgo_goods;
 
+		commodity_profit_holder ordered_list[126];
+		assert(state.world.commodity_size() <= 126);
+
+		//ordered_rgo_goods.clear();
+
+		uint32_t used_indices = 0;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			if (rgo_max_employment(state, owner, p, c) > 0.f)
-				ordered_rgo_goods.push_back(c);
-			else {
+			if(rgo_max_employment(state, owner, p, c) > 0.f) {
+				ordered_list[used_indices].c = c;
+				ordered_list[used_indices].profit = rgo_expected_worker_norm_profit(state, p, owner, c);
+				++used_indices;
+			}  else {
 				state.world.province_set_rgo_employment_per_good(p, c, 0.f);
 			}
 		});
 
-		std::sort(ordered_rgo_goods.begin(), ordered_rgo_goods.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-			float profit_a = rgo_expected_worker_norm_profit(state, p, owner, a);
-			float profit_b = rgo_expected_worker_norm_profit(state, p, owner, b);
-			return (profit_a > profit_b);
+		std::sort(ordered_list, ordered_list + used_indices, [&](commodity_profit_holder const& a, commodity_profit_holder const& b) {
+			return (a.profit > b.profit);
 		});
 
 		// distributing workers in almost the same way as factories:
@@ -1059,8 +1074,8 @@ void update_rgo_employment(sys::state& state) {
 		float max_employment_total = 0.f;
 		float total_employed = 0.f;
 
-		for(uint32_t i = 0; i < ordered_rgo_goods.size(); ++i) {
-			auto c = ordered_rgo_goods[i];
+		for(uint32_t i = 0; i < used_indices; ++i) {
+			auto c = ordered_list[i].c;
 			float max_employment = rgo_max_employment(state, owner, p, c);
 			max_employment_total += max_employment;
 			float target_workforce = std::min(state.world.province_get_rgo_target_employment_per_good(p, c), total_workforce);
