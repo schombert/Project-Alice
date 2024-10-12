@@ -3240,14 +3240,14 @@ std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nati
 					}
 				}
 				// 1.3 - Not more than 1 province
-				bool b_13 = false;
+				bool b_13 = true; /*
 				for(const auto adj : state.world.province_get_province_adjacency(dest)) {
 					auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == dest ? 1 : 0);
 					if(last_province == other) {
 						b_13 = true; //Is adjacent to destination, hence a single province retreat!?
 						break;
 					}
-				}
+				}*/
 
 				if(state.world.army_get_black_flag(a)) {
 					return province::make_unowned_land_path(state, last_province, dest);
