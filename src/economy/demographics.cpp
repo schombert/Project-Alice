@@ -841,9 +841,6 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 	auto const extra_size = sz - csz;
 	auto const extra_group_size = (extra_size + extra_demo_grouping - 1) / extra_demo_grouping;
 
-	LARGE_INTEGER pc_measure_start;
-	QueryPerformanceCounter(&pc_measure_start);
-
 	concurrency::parallel_for(uint32_t(0), full ? sz : csz + extra_group_size, [&](uint32_t base_index) {
 		auto index = base_index;
 		if constexpr(!full) {
@@ -1328,15 +1325,6 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 	});
-
-
-	LARGE_INTEGER pc_measure_end;
-	QueryPerformanceCounter(&pc_measure_end);
-
-	if(pc_measure_end.QuadPart > pc_measure_start.QuadPart) {
-		//OutputDebugStringA(std::to_string(pc_measure_end.QuadPart - pc_measure_start.QuadPart).c_str());
-		//OutputDebugStringA("\n");
-	}
 }
 
 template<bool full>
