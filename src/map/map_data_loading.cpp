@@ -466,37 +466,39 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	load_median_terrain_type(context);
 }
 
-
-	void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
-		median_terrain_type.resize(context.state.world.province_size() + 1);
-		province_area.resize(context.state.world.province_size() + 1);
-		constexpr uint8_t max_terrain_index = 64;
-		ve::vectorizable_buffer<int32_t, dcon::province_id> terrain_histogram[max_terrain_index](context.state.world.province_size());
-		for(int32_t i = size_x * size_y - 1; i-- > 0;) {
-			auto prov_id = dcon::province_id(dcon::province_id::value_base_t(province_id_map[i]));
-			auto terrain_id = terrain_id_map[i];
-			if(terrain_id < max_terrain_index) {
-				terrain_histogram[terrain_id].get(prov_id) += 1;
-			}
+void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
+	median_terrain_type.resize(context.state.world.province_size() + 1);
+	province_area.resize(context.state.world.province_size() + 1);
+	constexpr uint8_t max_terrain_index = 64;
+	ve::vectorizable_buffer<int32_t, uint16_t> terrain_histogram[max_terrain_index] = {
+		ve::vectorizable_buffer<int32_t, uint16_t>(context.state.world.province_size()),
+	};
+	for(int32_t i = size_x * size_y - 1; i-- > 0;) {
+		auto prov_id = province_id_map[i];
+		auto terrain_id = terrain_id_map[i];
+		if(terrain_id < max_terrain_index) {
+			terrain_histogram[terrain_id].get(prov_id) += 1;
 		}
-		// map-id province 0 == the invalid province; we don't need to collect data for it
-		context.state.world.execute_parallel_over_province([&](auto ids) {
-			auto max = ve::int_vector(0);
-			auto max_index = ve::int_vector(0);
-			auto area = ve::int_vector(0);
-			for(uint8_t j = max_terrain_index; j-- > 0;) {
-				auto const v = terrain_histogram[j].get(ids);
-				area += v;
-				auto mask = v > max;
-				max_index = ve::select(mask, ve::int_vector(j), max_index);
-				max = ve::select(mask, ve::int_vector(j), max);
-			}
-			ve::apply([&](dcon::province_id p, int32_t mindx, int32_t parea) {
-				median_terrain_type[i] = mindx;
-				province_area[i] = std::max(parea, uint32_t(1));
-			}, ids, max_index, area);
-		});
 	}
+	// map-id province 0 == the invalid province; we don't need to collect data for it
+	context.state.world.execute_parallel_over_province([&](auto ids) {
+		auto max = ve::int_vector(0);
+		auto max_index = ve::int_vector(0);
+		auto area = ve::int_vector(0);
+		for(uint8_t j = max_terrain_index; j-- > 0;) {
+			auto const v = terrain_histogram[j].get(ids);
+			area = area + v;
+			auto mask = v > max;
+			max_index = ve::select(mask, ve::int_vector(j), max_index);
+			max = ve::select(mask, ve::int_vector(j), max);
+		}
+		ve::apply([&](dcon::province_id p, uint32_t mindx, uint32_t parea) {
+			auto pidx = province::to_map_id(p);
+			median_terrain_type[pidx] = uint8_t(mindx);
+			province_area[pidx] = std::max(parea, uint32_t(1));
+		}, ids, max_index, area);
+	});
+}
 
 void display_data::load_provinces_mid_point(parsers::scenario_building_context& context) {
 	std::vector<glm::ivec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::vec2(0));
