@@ -3572,6 +3572,19 @@ void update_ticking_war_score(sys::state& state) {
 			}
 		}
 
+		// Ticking warscope for make_puppet war
+		if((bits & cb_flag::po_make_puppet) != 0) {
+			
+			auto target = wg.get_target_nation().get_capital();
+
+			if(get_role(state, war, target.get_nation_from_province_control()) == role) {
+					wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed;
+			}
+			else if(wg.get_ticking_war_score() > 0.0f || war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
+				wg.get_ticking_war_score() -= state.defines.tws_not_fulfilled_speed;
+			}
+		}
+
 		if(wg.get_type().get_tws_battle_factor() > 0) {
 
 			/*

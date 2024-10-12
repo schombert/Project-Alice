@@ -522,7 +522,9 @@ When a peace offer is accepted, relations between the nations increase by define
 
 If a "good" peace offer is refused, the refusing nation gains define:GOOD_PEACE_REFUSAL_WAREXH war exhaustion and all of its pops gain define:GOOD_PEACE_REFUSAL_MILITANCY. What counts as a good offer, well if the peace offer is considered "better" than expected. This seems to be a complicated thing to calculate involving: the direction the war is going in (sign of the latest war score change), the overall quantity of forces on each side (with navies counting for less), time since the war began, war exhaustion, war score, the peace cost of the offer, and whether the recipient will be annexed as a result.
 
-A peace offer must be accepted when war score reaches 100.
+If winning side has 100 warscore and sends a peace deal <=100 warscore worth in wargoals, it is accepted automatically.
+
+If losing side proposes a peace deal conceding all the wargoals or 100+ warscore worth in wargoals, that peace deal is accepted automatically.
 
 When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose). When a nation exits a war, it takes all of its vassals / substates with it. The nations on the other side of the war get a truce with the nation for define:BASE_TRUCE_MONTHS + the greatest truce months for any CB in the peace deal.
 

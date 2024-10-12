@@ -3078,11 +3078,41 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 
 	auto target = state.world.peace_offer_get_target(pending_offer);
 
+	// A concession offer must be accepted when target concedes all wargoals
+	if(military::directed_warscore(state, in_war, source, target) < 0.0f && state.world.peace_offer_get_is_concession(pending_offer)) {
+		if(military::cost_of_peace_offer(state, pending_offer) >= 100) {
+			military::implement_peace_offer(state, pending_offer);
+			return;
+		}
+
+		auto containseverywargoal = true;
+		for(auto poi : state.world.peace_offer_get_peace_offer_item(pending_offer)) {
+
+			auto foundmatch = false;
+			for(auto wg : state.world.war_get_wargoals_attached(in_war)) {
+				if(wg.get_wargoal().id == poi.get_wargoal().id) {
+					foundmatch = true;
+					break;
+				}
+			}
+
+			if(!foundmatch) {
+				containseverywargoal = false;
+				break;
+			}
+		}
+
+		if(containseverywargoal) {
+			military::implement_peace_offer(state, pending_offer);
+		}
+	}
+
 	// A peace offer must be accepted when war score reaches 100.
 	if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
 
 		military::implement_peace_offer(state, pending_offer);
-	} else {
+	}
+	else {
 		diplomatic_message::message m;
 		memset(&m, 0, sizeof(diplomatic_message::message));
 		m.to = target;
