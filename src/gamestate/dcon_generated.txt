@@ -1491,6 +1491,11 @@ object {
 		type{ array{demographics_key}{float} }
 	}
 	property {
+		name{ demographics_alt }
+		type{ array{demographics_key}{float} }
+	}
+	swappable{demographics}{demographics_alt}
+	property {
 		name{ dominant_culture }
 		type{ culture_id }
 	}
@@ -2888,6 +2893,11 @@ object {
 		type{ array{demographics_key}{float} }
 	}
 	property {
+		name{ demographics_alt }
+		type{ array{demographics_key}{float} }
+	}
+	swappable{demographics}{demographics_alt}
+	property {
 		name{ dominant_culture }
 		type{ culture_id }
 	}
@@ -3509,6 +3519,11 @@ object {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
 	}
+	property {
+		name{ demographics_alt }
+		type{ array{demographics_key}{float} }
+	}
+	swappable{demographics}{demographics_alt}
 	property {
 		name{ war_exhaustion }
 		type{ float }

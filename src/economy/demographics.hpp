@@ -177,6 +177,9 @@ uint32_t size(sys::state const& state);
 void regenerate_jingoism_support(sys::state& state, dcon::nation_id n);
 void regenerate_from_pop_data_full(sys::state& state);
 void regenerate_from_pop_data_daily(sys::state& state);
+void alt_regenerate_from_pop_data_daily(sys::state& state);
+
+void alt_demographics_update_extras(sys::state& state);
 
 struct ideology_buffer {
 	tagged_vector<ve::vectorizable_buffer<uint8_t, dcon::pop_id>, dcon::ideology_id> temp_buffers;
