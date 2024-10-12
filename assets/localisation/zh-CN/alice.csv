@@ -1045,7 +1045,7 @@ x_from_y;$culture$ $x$来自$y$
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
 alice_domestic_investment_button;不推荐投资单个项目，请改用预算屏幕上的国内投资滑块
-alice_domestic_investment_pops;我们有$x$名资本家以让我们间接的慷慨解囊
+alice_domestic_investment_pops;我们有$x$名潜在投资者以让我们间接的慷慨解囊
 alice_domestic_investment_needs;他们每天需要$x$去满足奢侈的生活方式
 alice_budget_scaled_inc;收入：?G$value$
 alice_budget_scaled_1;贫困阶层税：?G$value$
