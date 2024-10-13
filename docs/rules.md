@@ -596,6 +596,7 @@ Each war goal has a value that determines how much it is worth in a peace offer 
 #### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
+- po_make_puppet wargoal gives ticking warscore if you occupy the target's capital.
 - limited by define:TWS_CB_LIMIT_DEFAULT
 - to calculate: first you need to figure out the percentage of the war goal complete. This is percentage of provinces occupied or, for war score from battles see Battle score below
 
