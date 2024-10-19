@@ -1,4 +1,4 @@
-﻿#Powered_by_ParaTranz
+#Powered_by_ParaTranz
 save_and_exit;保存并退出
 save;保存
 exit;退出
@@ -14,7 +14,7 @@ map_projection_globe_perspective;垂直
 dm_popup_label;弹出外交信息
 ui_scale;UI 缩放
 zoom_mode_label;缩放风格
-zoom_mode_panning;拍摄
+zoom_mode_panning;平移
 zoom_mode_inverted;颠倒
 zoom_mode_centered;中心
 zoom_mode_to_cursor;随光标
