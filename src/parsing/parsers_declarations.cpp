@@ -404,22 +404,15 @@ void party::finish(party_context& context) {
 void party::any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line,
 		party_context& context) {
 	if(auto it = context.outer_context.map_of_iissues.find(std::string(issue)); it != context.outer_context.map_of_iissues.end()) {
-		if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
-			if(auto oit = context.outer_context.map_of_ioptions.find(std::string(option));
-					oit != context.outer_context.map_of_ioptions.end()) {
-				context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
-			} else {
-				err.accumulated_errors +=
-						std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
+		if(auto oit = context.outer_context.map_of_ioptions.find(std::string(option)); oit != context.outer_context.map_of_ioptions.end()) {
+			context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
 		} else {
 			err.accumulated_errors +=
-					std::string(issue) + " is not a proper party issue (" + err.file_name + " line " + std::to_string(line) + ")\n";
+						std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 		// context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
 	} else {
-		err.accumulated_errors +=
-				std::string(issue) + " is not a valid issue name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += std::string(issue) + " is not a valid issue name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
