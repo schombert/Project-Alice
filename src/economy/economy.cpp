@@ -858,8 +858,9 @@ void give_sphere_leader_production(sys::state& state, dcon::nation_id n) {
 }
 
 float effective_tariff_rate(sys::state& state, dcon::nation_id n) {
-	auto tariff_efficiency = nations::tariff_efficiency(state, n);
-	return tariff_efficiency * float(state.world.nation_get_tariffs(n)) / 100.0f;
+	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n));
+	auto r = tariff_efficiency * float(state.world.nation_get_tariffs(n)) / 100.0f;
+	return std::max(r, 0.0f);
 }
 
 float global_market_price_multiplier(sys::state& state, dcon::nation_id n) {
@@ -1040,7 +1041,7 @@ void update_rgo_employment(sys::state& state) {
 
 		float total_population = state.world.province_get_demographics(p, demographics::total);
 
-		assert(labor_pool <= total_population);
+		labor_pool = std::min(labor_pool, total_population);
 
 		// update rgo employment per good:
 
@@ -1322,8 +1323,8 @@ float rgo_efficiency(sys::state & state, dcon::nation_id n, dcon::province_id p,
 			:
 			sys::national_mod_offsets::farm_rgo_eff);
 
-	float saturation = state.world.province_get_rgo_employment_per_good(p, c)
-		/ (rgo_max_employment(state, n, p, c) + 1.f);
+	float saturation = std::clamp(state.world.province_get_rgo_employment_per_good(p, c)
+		/ (rgo_max_employment(state, n, p, c) + 1.f), 0.0f, 1.0f);
 
 	float result = base_amount
 		* main_rgo
@@ -1334,7 +1335,7 @@ float rgo_efficiency(sys::state & state, dcon::nation_id n, dcon::province_id p,
 			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output) +
 			state.world.nation_get_rgo_goods_output(n, c)));
 
-	assert(std::isfinite(result));
+	assert(result >= 0.0f && std::isfinite(result));
 	return result;
 }
 
