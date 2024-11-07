@@ -156,7 +156,7 @@ int query_DXT_capability(void) {
 			CFRelease(bundle);
 #else
 			ext_addr = (P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC)
-				glXGetProcAddressARB
+				glXGetProcAddress
 				(
 					(const GLubyte*)"glCompressedTexImage2DARB"
 				);
