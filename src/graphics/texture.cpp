@@ -103,6 +103,10 @@ enum {
 	SOIL_CAPABILITY_PRESENT = 1
 };
 
+#ifndef APIENTRY
+#define APIENTRY
+#endif
+
 typedef void (APIENTRY* P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data);
 
 int query_DXT_capability(void) {

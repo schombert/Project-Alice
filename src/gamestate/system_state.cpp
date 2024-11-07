@@ -3655,6 +3655,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	culture::restore_unsaved_values(*this);
 	nations::restore_state_instances(*this);
 	demographics::regenerate_from_pop_data_full(*this);
+	demographics::alt_regenerate_from_pop_data_full(*this);
 
 	sys::repopulate_modifier_effects(*this);
 	military::restore_unsaved_values(*this);
@@ -3740,6 +3741,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	//copy current day's data to the alt store
+
+
 	province::update_cached_values(*this);
 	nations::update_cached_values(*this);
 
@@ -3750,6 +3754,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(*this);
+
+	
+
 
 #ifndef NDEBUG
 	for(auto p : world.in_pop) {

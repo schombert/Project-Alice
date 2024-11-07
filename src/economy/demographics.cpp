@@ -219,6 +219,18 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	});
 }
 
+void alt_copy_demographics(sys::state& state, dcon::demographics_key key) {
+	province::ve_for_each_land_province(state, [&](auto pi) {
+		state.world.province_set_demographics_alt(pi, key, state.world.province_get_demographics(pi, key));
+	});
+	state.world.execute_serial_over_state_instance([&](auto si) {
+		state.world.state_instance_set_demographics_alt(si, key, state.world.state_instance_get_demographics(si, key));
+	});
+	state.world.execute_serial_over_nation([&](auto ni) {
+		state.world.nation_set_demographics_alt(ni, key, state.world.nation_get_demographics(ni, key));
+	});
+}
+
 inline constexpr uint32_t extra_demo_grouping = 8;
 
 template<typename F>
@@ -1340,7 +1352,7 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 			if(index >= csz) {
 				index += extra_group_size * (state.current_date.value % extra_demo_grouping);
 				if(index >= sz)
-					return;
+					break;
 			}
 		}
 		dcon::demographics_key key{ dcon::demographics_key::value_base_t(index) };
@@ -1550,6 +1562,18 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 			alt_sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
 				return state.world.pop_get_religion(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
 			});
+		}
+	}
+
+	if constexpr(full == false) { // copies
+		for(uint32_t base_index = csz; base_index < (full ? sz : csz + extra_group_size); ++base_index) {
+			auto index = base_index;
+			index += extra_group_size * ((state.current_date.value + extra_demo_grouping - 1) % extra_demo_grouping);
+			if(index >= sz)
+				break;
+
+			dcon::demographics_key key{ dcon::demographics_key::value_base_t(index) };
+			alt_copy_demographics(state, key);
 		}
 	}
 
@@ -1827,6 +1851,9 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 
 void alt_regenerate_from_pop_data_daily(sys::state& state) {
 	alt_st_regenerate_from_pop_data<false>(state);
+}
+void alt_regenerate_from_pop_data_full(sys::state& state) {
+	alt_mt_regenerate_from_pop_data<true>(state);
 }
 
 
