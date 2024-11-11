@@ -3233,88 +3233,6 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	}
 }
 
-void update_conversion(sys::state& state, uint32_t offset, uint32_t divisions, conversion_buffer& pbuf) {
-	pbuf.update(state.world.pop_size());
-
-	/*
-	- religious conversion -- Conversion is per-month rather than per-day as in Victoria 2.
-	*/
-
-	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
-		pbuf.amounts.set(ids, 0.0f);
-		auto loc = state.world.pop_get_province_from_pop_location(ids);
-		auto owners = state.world.province_get_nation_from_province_ownership(loc);
-		auto conversion_chances = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.conversion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
-
-		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float conversion_chance) {
-					// no conversion in unowned provinces
-					if(!owner)
-						return; // early exit
-
-					auto state_religion = state.world.nation_get_religion(owner);
-					// pops of the state religion do not convert
-					if(state_religion == state.world.pop_get_religion(p))
-						return; // early exit
-
-					// need at least 1 pop following the religion in the province
-					if(state.world.province_get_demographics(location, demographics::to_key(state, state_religion.id)) < 1.f)
-						return; // early exit
-
-					/*
-					Amount: define:CONVERSION_SCALE x (provincial-conversion-rate-modifier + 1) x
-					(national-conversion-rate-modifier + 1) x pop-size x conversion chance factor (computed additively, and always
-					at least 0.01).
-					*/
-
-					float current_size = state.world.pop_get_size(p);
-					float base_amount =
-							state.defines.conversion_scale *
-							std::max(0.0f, (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::conversion_rate) + 1.0f)) *
-							std::max(0.0f, (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_conversion_rate) + 1.0f)) *
-							conversion_chance * current_size;
-
-					if(base_amount >= 0.001f) {
-						auto transfer_amount = std::min(current_size, std::ceil(base_amount));
-						pbuf.amounts.set(p, transfer_amount);
-					}
-				},
-				ids, loc, owners, conversion_chances);
-	});
-}
-
-float get_estimated_conversion(sys::state& state, dcon::pop_id ids) {
-	auto location = state.world.pop_get_province_from_pop_location(ids);
-	auto owner = state.world.province_get_nation_from_province_ownership(location);
-	auto conversion_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.conversion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
-
-	// pops of the state religion do not convert
-	if(state.world.nation_get_religion(owner) == state.world.pop_get_religion(ids))
-		return 0.0f; // early exit
-
-	auto state_religion = state.world.nation_get_religion(owner);
-	// pops of the state religion do not convert
-	if(state_religion == state.world.pop_get_religion(ids))
-		return 0.0f; // early exit
-
-	// need at least 1 pop following the religion in the province
-	if(state.world.province_get_demographics(location, demographics::to_key(state, state_religion.id)) < 1.f)
-		return 0.0f; // early exit
-
-	float current_size = state.world.pop_get_size(ids);
-	float base_amount =
-		state.defines.conversion_scale *
-		std::max(0.0f, (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::conversion_rate) + 1.0f)) *
-		std::max(0.0f, (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_conversion_rate) + 1.0f)) *
-			conversion_chances * current_size;
-
-	if(base_amount >= 0.001f) {
-		return std::min(current_size, std::ceil(base_amount));
-	} else {
-		return 0.0f;
-	}
-}
-
 namespace impl {
 dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
 	/*
@@ -3906,64 +3824,24 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 }
 
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
-	if(bool(state.defines.alice_nurture_religion_assimilation)) {
-		auto exec_fn = [&](auto ids) {
-			auto locs = state.world.pop_get_province_from_pop_location(ids);
-			ve::apply([&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
-				if(pbuf.amounts.get(p) > 0.0f) {
-					//auto o = nations::owner_of_pop(state, p);
-					auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
-					auto rel = state.world.pop_get_religion(p);
-					assert(state.world.pop_get_poptype(p));
-					auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-					state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-					state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-				}
-			},
-			ids, locs, state.world.province_get_dominant_accepted_culture(locs));
-		};
-		execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), exec_fn);
-	} else {
-		auto exec_fn = [&](auto ids) {
-			auto locs = state.world.pop_get_province_from_pop_location(ids);
-			ve::apply([&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
-				if(pbuf.amounts.get(p) > 0.0f) {
-					//auto o = nations::owner_of_pop(state, p);
-					auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
-					auto rel = dac
-						? state.world.nation_get_religion(nations::owner_of_pop(state, p))
-						: state.world.province_get_dominant_religion(l);
-					assert(state.world.pop_get_poptype(p));
-					auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-					state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-					state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-				}
-			},
-			ids, locs, state.world.province_get_dominant_accepted_culture(locs));
-			};
-		execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), exec_fn);
-	}
-}
-
-void apply_conversion(sys::state& state, uint32_t offset, uint32_t divisions, conversion_buffer& pbuf) {
-	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+	auto exec_fn = [&](auto ids) {
 		auto locs = state.world.pop_get_province_from_pop_location(ids);
-		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id l) {
-					if(pbuf.amounts.get(p) > 0.0f) {
-						auto state_rel = state.world.nation_get_religion(nations::owner_of_pop(state, p));
-						auto rel = state_rel
-							? state_rel
-							: state.world.province_get_dominant_religion(l);
-						assert(state.world.pop_get_poptype(p));
-						assert(state.world.pop_get_culture(p));
-						auto target_pop = impl::find_or_make_pop(state, l, state.world.pop_get_culture(p), rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-					}
-				},
-				ids, locs);
-	});
+		ve::apply([&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
+			if(pbuf.amounts.get(p) > 0.0f) {
+				//auto o = nations::owner_of_pop(state, p);
+				auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
+				auto rel = dac
+					? state.world.nation_get_religion(nations::owner_of_pop(state, p))
+					: state.world.province_get_dominant_religion(l);
+				assert(state.world.pop_get_poptype(p));
+				auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
+				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+			}
+		},
+		ids, locs, state.world.province_get_dominant_accepted_culture(locs));
+		};
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), exec_fn);
 }
 
 void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {

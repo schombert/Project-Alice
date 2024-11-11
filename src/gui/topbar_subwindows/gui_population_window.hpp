@@ -393,11 +393,10 @@ public:
 		auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
 		auto promote = -int64_t(demographics::get_estimated_type_change(state, pop));
 		auto assimilation = -int64_t(demographics::get_estimated_assimilation(state, pop));
-		auto conversion = -int64_t(demographics::get_estimated_conversion(state, pop));
 		auto internal_migration = -int64_t(demographics::get_estimated_internal_migration(state, pop));
 		auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pop));
 		auto emigration = -int64_t(demographics::get_estimated_emigration(state, pop));
-		auto total = int64_t(growth) + promote + assimilation + conversion + internal_migration + colonial_migration + emigration;
+		auto total = int64_t(growth) + promote + assimilation  + internal_migration + colonial_migration + emigration;
 
 		{
 			auto box = text::open_layout_box(contents);
@@ -474,17 +473,6 @@ public:
 				text::add_to_layout_box(state, contents, box, emigration, text::text_color::green);
 			} else {
 				text::add_to_layout_box(state, contents, box, emigration, text::text_color::red);
-			}
-			text::close_layout_box(contents, box);
-		}
-		{
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, "pop_size_8");
-			if(conversion >= 0) {
-				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
-				text::add_to_layout_box(state, contents, box, conversion, text::text_color::green);
-			} else {
-				text::add_to_layout_box(state, contents, box, conversion, text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
 		}
