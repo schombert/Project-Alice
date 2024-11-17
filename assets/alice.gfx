@@ -516,6 +516,11 @@ spriteTypes = {
     }
     
     spriteType = {
+        name = "bg-700-547"
+        texturefile = "assets\\bg-700-547.png"
+    }
+    
+    spriteType = {
         name = "button-280-50-border-gold-paper"
         texturefile = "assets\\button-280-50.png"
         noOfFrames = 2

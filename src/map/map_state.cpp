@@ -125,7 +125,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 		auto absolute_volume = std::abs(sat * current_volume);
 
-		if(absolute_volume <= std::clamp(average * 2.f, 0.001f, 5.f)) {
+		if(absolute_volume <= std::clamp(average, 0.001f, 5.f)) {
 			return;
 		}
 

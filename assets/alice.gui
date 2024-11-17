@@ -4520,6 +4520,53 @@ guiTypes = {
 	}
     
     windowType = {
+        name = "local_economy_view"
+        extends = "province_view"
+        position = { 400 -19 }
+        size = { 700 547 }
+        
+        iconType = {
+			name ="background"
+			spriteType = "bg-700-547"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}      
+        
+        windowType = {
+            name = "table_rgo_data"
+            position = { 15 15 }	
+            size = { 670 517 }
+            
+            listboxType = {
+                name = "table_body"
+                position = { 0 30 }	
+                size = { 670 487 }
+            }
+        }
+        
+        iconType = {
+			name ="trade_route_background"
+			spriteType = "bg-700-547"
+			position = { x= 200 y = 0 }
+			Orientation = "UPPER_LEFT"
+		} 
+        
+        windowType = {
+            name = "table_trade_route_data"
+            position = { 215 15 }
+            size = { 670 517 }
+            
+            listboxType = {
+                name = "table_body"
+                position = { 0 30 }	
+                size = { 670 487 }
+            }
+        }
+    }
+    
+    
+    
+    windowType = {
         name = "table_production_methods"
         position = { 80 60 }	
         size = { 800 540 }
@@ -4563,6 +4610,12 @@ guiTypes = {
             spriteType ="bg-150-100"
         }
         
+        iconType = {
+            name = "bg_market_table_trade_good_markets"
+            position = { x=550 y=800}
+            spriteType ="bg-150-100"
+        }
+        
         guiButtonType = {
             name = "market_table_global"
             position = { x=50 y=810}
@@ -4584,6 +4637,14 @@ guiTypes = {
             position = { x=400 y=810}
             quadTextureSprite ="bg-100-60"
             buttonText = "trade_good_stats_global"
+            buttonFont = "vic_18_black"
+        }
+        
+        guiButtonType = {
+            name = "market_table_trade_good_markets"
+            position = { x=575 y=810}
+            quadTextureSprite ="bg-100-60"
+            buttonText = "trade_good_stats_markets"
             buttonFont = "vic_18_black"
         }
 				
@@ -4643,6 +4704,18 @@ guiTypes = {
         
         windowType = {
             name = "trade_good_global_stats"
+            position = { 20 20 }	
+            size = { 650 780 }
+            
+            listboxType = {
+                name = "commodity_table_body"
+                position = { 0 40 }	
+                size = { 650 740 }
+            }
+        }
+        
+        windowType = {
+            name = "trade_good_markets_stats"
             position = { 20 20 }	
             size = { 650 780 }
             

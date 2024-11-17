@@ -103,8 +103,11 @@ void main() {
 
 	map_coord = world_pos;    
     
+    vec4 temp = calc_gl_position(world_pos);
     
-	gl_Position = calc_gl_position(world_pos);
+    //temp.z = 1.f - (zoom * width * 0.0001f - 0.0000001f);
+    
+	gl_Position = temp;
 	tex_coord = texture_coord;
 	o_dist = - time + distance / (2.0f * 0.0005f);
 	//map_coord = vertex_position;
