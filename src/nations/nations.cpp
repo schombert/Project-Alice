@@ -219,6 +219,7 @@ void recalculate_markets_distance(sys::state& state) {
 			auto ps = path.size();
 			auto effective_distance = 0.f;
 			auto worst_movement_cost = 0.f;
+			auto min_railroad_level = 0.f;
 
 			for(size_t i = 0; i < ps; i++) {
 				auto p_current = path[i];
@@ -227,7 +228,14 @@ void recalculate_markets_distance(sys::state& state) {
 				float sum_mods =
 					state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
 					+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-				effective_distance += std::max(0.01f, distance * std::max(0.01f, (sum_mods * 2.f + 1.0f)));
+				float local_effective_distance = distance * std::max(0.01f, sum_mods * 3.f);
+				auto railroad_origin = state.world.province_get_building_level(p_prev, uint8_t(economy::province_building_type::railroad));
+				auto railroad_target = state.world.province_get_building_level(p_current, uint8_t(economy::province_building_type::railroad));
+				if(railroad_origin > 0 && railroad_target > 0) {
+					local_effective_distance = local_effective_distance / 2.f;
+				}
+				local_effective_distance -= 0.03f * std::min(railroad_target, railroad_origin) * local_effective_distance;
+				effective_distance += std::max(0.01f, local_effective_distance);
 				if(sum_mods > worst_movement_cost)
 					worst_movement_cost = std::max(0.01f, sum_mods);
 
@@ -335,20 +343,32 @@ void generate_sea_trade_routes(sys::state& state) {
 			float score = 0.f;
 
 			auto naval_base_target = military::state_naval_base_level(state, sid);
-			score += std::min(naval_base_origin, naval_base_target) * 0.5f;
+			score += std::min(naval_base_origin, naval_base_target) * 0.25f;
+
+			if(naval_base_origin > 0 && naval_base_target > 0) {
+				score = score + 1.f;
+			}
 
 			auto population_target = state.world.state_instance_get_demographics(sid, demographics::total);
-			score += std::min(population_origin, population_target) / (500'000.f + world_population * 0.000'100f);
+			score += std::min(population_origin, population_target) / (400'000.f + world_population * 0.000'100f);
 
-			auto state_target_owner_capital = state.world.nation_get_capital(owner);
-			auto state_target_owner_capital_state = state.world.province_get_state_membership(state_owner_capital);
+			auto state_target_owner_capital = state.world.nation_get_capital(target_owner);
+			auto state_target_owner_capital_state = state.world.province_get_state_membership(state_target_owner_capital);
+
+			auto continent_target = state.world.province_get_continent(state_target_owner_capital);
+			auto continent_origin = state.world.province_get_continent(state_owner_capital);
+
+			float mod = 1.f;
+			if(continent_origin == continent_target) {
+				mod = 2.f;
+			}
 
 			if(state_target_owner_capital_state == sid)
 				if(state_owner_capital_state == origin)
-					score = score + std::min(
-						state.world.nation_get_demographics(owner, demographics::total),
-						state.world.nation_get_demographics(target_owner, demographics::total)
-					) / 2'000'000.f;
+					score = score + (
+						state.world.nation_get_demographics(owner, demographics::total)
+						+ state.world.nation_get_demographics(target_owner, demographics::total)
+					) / 2'000'000.f * mod;
 
 			bool must_connect = same_owner && different_region && capitals_of_regions;
 
@@ -387,7 +407,7 @@ void generate_sea_trade_routes(sys::state& state) {
 				distance = effective_distance / speed;
 			}
 
-			if((score / (distance / 125.f) >= 4.f) || must_connect) {
+			if((score / (distance / 200.f) >= 4.f) || must_connect) {
 				auto new_route = state.world.force_create_trade_route(market, target_market);
 				state.world.trade_route_set_is_sea_route(new_route, true);
 			}

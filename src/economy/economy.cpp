@@ -3532,7 +3532,11 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 	auto const m_spending = float(state.world.nation_get_military_spending(n)) * float(state.world.nation_get_military_spending(n)) / 100.0f / 100.f;
 	auto const p_level = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::pension_level);
 	auto const unemp_level = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::unemployment_benefit);
-	auto const di_spending = float(state.world.nation_get_domestic_investment_spending(n)) * float(state.world.nation_get_domestic_investment_spending(n)) / 100.0f / 100.0f;
+	auto const di_spending =
+		float(state.world.nation_get_domestic_investment_spending(n))
+		* float(state.world.nation_get_domestic_investment_spending(n))
+		/ 100.0f
+		/ 100.0f;
 
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
@@ -3541,12 +3545,18 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 		auto capitalists_def = state.culture_definitions.capitalists;
 		auto capitalists_key = demographics::to_key(state, capitalists_def);
 		auto capitalists = state.world.state_instance_get_demographics(local_state, capitalists_key);
-		auto capitalists_base = state.world.market_get_luxury_needs_costs(market, capitalists_def);
+		auto capitalists_base =
+			state.world.market_get_life_needs_costs(market, capitalists_def)
+			+ state.world.market_get_everyday_needs_costs(market, capitalists_def)
+			+ state.world.market_get_luxury_needs_costs(market, capitalists_def);
 
 		auto aristocrats_def = state.culture_definitions.aristocrat;
 		auto aristoctats_key = demographics::to_key(state, aristocrats_def);
 		auto aristocrats = state.world.state_instance_get_demographics(local_state, aristoctats_key);
-		auto aristocrats_base = state.world.market_get_luxury_needs_costs(market, aristocrats_def);
+		auto aristocrats_base =
+			state.world.market_get_life_needs_costs(market, aristocrats_def)
+			+ state.world.market_get_everyday_needs_costs(market, aristocrats_def)
+			+ state.world.market_get_luxury_needs_costs(market, aristocrats_def);
 
 		total +=
 			state.defines.alice_domestic_investment_multiplier
@@ -4747,11 +4757,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				return;
 			}
 
+			auto merchant_cut = 1.05f;
+
 			if(n_A == n_B) {
 				import_tariff_A = 0.f;
 				export_tariff_A = 0.f;
 				import_tariff_B = 0.f;
 				export_tariff_B = 0.f;
+				merchant_cut = 1.001f;
 			}
 			if(n_A == sphere_B) {
 				import_tariff_A = 0.f;
@@ -4790,8 +4803,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto price_A_import = price(state, A, c) * (1.f - import_tariff_A) * trade_good_loss_mult;
 			auto price_B_import = price(state, B, c) * (1.f - import_tariff_B) * trade_good_loss_mult;
 
-			auto current_profit_A_to_B = price_B_import - price_A_export * 1.05f - transport_cost * effect_of_scale;
-			auto current_profit_B_to_A = price_A_import - price_B_export * 1.05f - transport_cost * effect_of_scale;
+			
+
+			auto current_profit_A_to_B = price_B_import - price_A_export * merchant_cut - transport_cost * effect_of_scale;
+			auto current_profit_B_to_A = price_A_import - price_B_export * merchant_cut - transport_cost * effect_of_scale;
 
 			auto change = 0.f;
 
@@ -5446,6 +5461,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				[&](dcon::pop_type_id pt, dcon::market_id n) { return pt ? state.world.market_get_luxury_needs_costs(n, pt) : 0.0f; },
 				types, markets);
 
+		auto total_costs = ln_costs + en_costs + lx_costs;
+
 		auto acc_a =
 			ve::select(ln_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * ln_costs, 0.0f);
 		auto acc_e = ve::select(ln_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * ln_costs, 0.0f);
@@ -5461,8 +5478,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		acc_e = acc_e + ve::select(en_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * en_costs, 0.0f);
 		acc_m = acc_m + ve::select(en_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * en_costs, 0.0f);
 
-		acc_u = acc_u + ve::select(types == state.culture_definitions.capitalists, di_level * adj_pop_of_type * state.defines.alice_domestic_investment_multiplier * lx_costs, 0.0f);
-		acc_u = acc_u + ve::select(types == state.culture_definitions.aristocrat, di_level * adj_pop_of_type * state.defines.alice_domestic_investment_multiplier * lx_costs, 0.0f);
+		acc_u = acc_u + ve::select(types == state.culture_definitions.capitalists, di_level * adj_pop_of_type * state.defines.alice_domestic_investment_multiplier * total_costs, 0.0f);
+		acc_u = acc_u + ve::select(types == state.culture_definitions.aristocrat, di_level * adj_pop_of_type * state.defines.alice_domestic_investment_multiplier * total_costs, 0.0f);
 
 		acc_a = acc_a + ve::select(lx_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * lx_costs, 0.0f);
 		acc_e = acc_e + ve::select(lx_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * lx_costs, 0.0f);

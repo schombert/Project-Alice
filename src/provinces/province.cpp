@@ -1944,11 +1944,19 @@ std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::provin
 		auto nearest = path_heap.back();
 		path_heap.pop_back();
 
+		auto railroad_origin = state.world.province_get_building_level(nearest.province, uint8_t(economy::province_building_type::railroad));
+
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
+
 			auto distance = adj.get_distance();
+			auto railroad_target = state.world.province_get_building_level(other_prov, uint8_t(economy::province_building_type::railroad));
+			if(railroad_origin > 0 && railroad_target > 0) {
+				distance = distance / 2.f;
+			}
+			distance -= 0.03f * std::min(railroad_target, railroad_origin) * distance;
 
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {

@@ -2372,11 +2372,14 @@ float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_ro
 		return 0.f;
 	}
 
+	auto merchant_cut = 1.05f;
+
 	if(n_A == n_B) {
 		import_tariff_A = 0.f;
 		export_tariff_A = 0.f;
 		import_tariff_B = 0.f;
 		export_tariff_B = 0.f;
+		merchant_cut = 1.001f;
 	}
 	if(n_A == sphere_B) {
 		import_tariff_A = 0.f;
@@ -2413,8 +2416,8 @@ float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_ro
 	auto price_A_import = economy::price(state, A, c) * (1.f - import_tariff_A) * trade_good_loss_mult;
 	auto price_B_import = economy::price(state, B, c) * (1.f - import_tariff_B) * trade_good_loss_mult;
 
-	auto current_profit_A_to_B = price_B_import - price_A_export * 1.05f - transport_cost * effect_of_scale;
-	auto current_profit_B_to_A = price_A_import - price_B_export * 1.05f - transport_cost * effect_of_scale;
+	auto current_profit_A_to_B = price_B_import - price_A_export * merchant_cut - transport_cost * effect_of_scale;
+	auto current_profit_B_to_A = price_A_import - price_B_export * merchant_cut - transport_cost * effect_of_scale;
 
 	return std::max(0.f, std::max(current_profit_A_to_B / price_A_export, current_profit_B_to_A / price_B_export));
 }

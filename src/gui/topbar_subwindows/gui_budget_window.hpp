@@ -1364,9 +1364,7 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::domestic_investment)] = economy::estimate_domestic_investment(state, state.local_player_nation)
-			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f
-			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
+		vals[uint8_t(budget_slider_target::domestic_investment)] = economy::estimate_domestic_investment(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::subsidies)] = economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::overseas)] = economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::stockpile_filling)] = economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
@@ -1398,9 +1396,7 @@ public:
 		vals[uint8_t(budget_slider_target::subsidies)] = -economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::overseas)] = -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::stockpile_filling)] = -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::domestic_investment)] = -economy::estimate_domestic_investment(state, state.local_player_nation)
-			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f
-			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
+		vals[uint8_t(budget_slider_target::domestic_investment)] = -economy::estimate_domestic_investment(state, state.local_player_nation);
 		// balance
 		vals[uint8_t(budget_slider_target::diplomatic_interest)] = economy::estimate_diplomatic_balance(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::interest)] = -economy::interest_payment(state, state.local_player_nation);
