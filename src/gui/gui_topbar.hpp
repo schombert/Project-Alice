@@ -1854,8 +1854,50 @@ public:
 class topbar_commodity_xport_icon : public image_element_base {
 public:
 	uint8_t slot = 0;
+	economy::trade_volume_data_detailed amount{};
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(
+			state,
+			contents,
+			box,
+			text::produce_simple_string(state, state.world.commodity_get_name(amount.commodity)),
+			text::text_color::white
+		);
+		text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(amount.volume, 2), text::text_color::white);
+
+		text::add_line_break_to_layout_box(state, contents, box);
+
+		for(auto i = 0; i < 5; i++) {
+			if(amount.targets[i].nation) {
+				text::add_line_break_to_layout_box(state, contents, box);
+				auto ident = state.world.nation_get_identity_from_identity_holder(amount.targets[i].nation);
+				add_to_layout_box(state, contents, box, text::embedded_flag{ ident ? ident : state.national_definitions.rebel_id });
+				add_space_to_layout_box(state, contents, box);
+				add_to_layout_box(state, contents, box, text::get_name(state, amount.targets[i].nation));
+				text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::format_float(amount.targets[i].value, 2), text::text_color::white);
+			}
+		}
+
+		text::close_layout_box(contents, box);
+	}
+};
+
+class topbar_commodity_amount_icon : public image_element_base {
+public:
+	uint8_t slot = 0;
 	dcon::commodity_id commodity_id{};
-	float amount = 0.f;
+	float amount{};
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -1877,7 +1919,7 @@ private:
 	dcon::nation_id current_nation{};
 	std::vector<topbar_commodity_xport_icon*> import_icons;
 	std::vector<topbar_commodity_xport_icon*> export_icons;
-	std::vector<topbar_commodity_xport_icon*> produced_icons;
+	std::vector<topbar_commodity_amount_icon*> produced_icons;
 	simple_text_element_base* atpeacetext = nullptr;
 
 public:
@@ -2084,7 +2126,7 @@ public:
 			export_icons.push_back(ptr.get());
 			return ptr;
 		} else if(name.substr(0, 15) == "topbar_produced") {
-			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
+			auto ptr = make_element_by_type<topbar_commodity_amount_icon>(state, id);
 			std::string var = std::string{name.substr(15)};
 			var.empty() ? ptr->slot = uint8_t(0) : ptr->slot = uint8_t(std::stoi(var));
 			produced_icons.push_back(ptr.get());
@@ -2112,8 +2154,8 @@ public:
 			e->set_visible(state, false);
 
 		{
-			std::map<float, int32_t> exported;
-			std::map<float, int32_t> imported;
+			std::vector<economy::trade_volume_data_detailed> exported;
+			std::vector<economy::trade_volume_data_detailed> imported;
 
 			for(dcon::commodity_id cid : state.world.in_commodity) {
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
@@ -2122,30 +2164,33 @@ public:
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
-				exported.insert({economy::export_volume(state, state.local_player_nation, cid), cid.index() });
-				imported.insert({-economy::import_volume(state, state.local_player_nation, cid), cid.index() });
+				exported.push_back(economy::export_volume_detailed(state, state.local_player_nation, cid));
+				imported.push_back(economy::import_volume_detailed(state, state.local_player_nation, cid));
 			}
 
+			std::sort(exported.begin(), exported.end(), [&](auto& a, auto& b) {
+				return a.volume > b.volume;
+			});
+			std::sort(imported.begin(), imported.end(), [&](auto& a, auto& b) {
+				return a.volume > b.volume;
+			});
+
 			uint8_t slot = 0;
-			for(auto it = std::rbegin(exported); it != std::rend(exported); it++) {
+			for(size_t it = 0; it < exported.size(); it++) {
 				for(auto const& e : export_icons)
 					if(e->slot == slot) {
-						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
-						e->frame = state.world.commodity_get_icon(cid);
-						e->commodity_id = cid;
-						e->amount = it->first;
+						e->frame = state.world.commodity_get_icon(exported[it].commodity);
+						e->amount = exported[it];
 						e->set_visible(state, true);
 					}
 				++slot;
 			}
 			slot = 0;
-			for(auto it = imported.begin(); it != imported.end(); it++) {
+			for(size_t it = 0; it < imported.size(); it++) {
 				for(auto const& e : import_icons)
 					if(e->slot == slot) {
-						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
-						e->frame = state.world.commodity_get_icon(cid);
-						e->commodity_id = cid;
-						e->amount = it->first;
+						e->frame = state.world.commodity_get_icon(imported[it].commodity);
+						e->amount = imported[it];
 						e->set_visible(state, true);
 					}
 				++slot;

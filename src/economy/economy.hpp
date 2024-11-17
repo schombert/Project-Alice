@@ -128,10 +128,11 @@ inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float rgo_owners_cut = 0.05f;
 inline constexpr float price_speed_mod = 0.0001f;
 inline constexpr float price_rigging = 0.015f;
-inline constexpr float stockpile_to_supply = 0.008f;
+inline constexpr float stockpile_to_supply = 0.1f;
 inline constexpr float production_throughput_multiplier = 2.f;
 
 void presimulate(sys::state& state);
+void sanity_check(sys::state& state);
 
 float price(
 	sys::state& state,
@@ -244,12 +245,34 @@ float export_volume(
 	dcon::commodity_id c
 );
 
+struct nation_enriched_float {
+	float value;
+	dcon::nation_id nation;
+};
+
+struct trade_volume_data_detailed {
+	float volume;
+	dcon::commodity_id commodity;
+	nation_enriched_float targets[5];
+};
+
+trade_volume_data_detailed export_volume_detailed(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+
 float import_volume(
 	sys::state& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float import_volume(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+trade_volume_data_detailed import_volume_detailed(
 	sys::state& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
@@ -261,6 +284,8 @@ float average_capitalists_luxury_cost(
 );
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
+
+float effective_tariff_rate(sys::state& state, dcon::nation_id n);
 
 float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
 float rgo_total_effective_size(sys::state& state, dcon::nation_id n, dcon::province_id p);
@@ -357,7 +382,7 @@ float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
-void daily_update(sys::state& state, bool presimulation);
+void daily_update(sys::state& state, bool presimulation, float presimulation_stage);
 void resolve_constructions(sys::state& state);
 
 ve::fp_vector base_artisan_profit(

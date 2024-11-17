@@ -121,6 +121,7 @@ bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, d
 std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 // pathfind through non-enemy controlled, not under siege provinces
 std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
+std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 // used for rebel unit and black-flagged unit pathfinding
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both

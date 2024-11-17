@@ -2132,6 +2132,313 @@ public:
 	}
 };
 
+
+inline table::column<dcon::trade_route_id> trade_route_0 = {
+	.sortable = true,
+	.header = "route_origin",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		return text::get_name_as_string(
+			state,
+			state.world.state_instance_get_capital(retrieve<dcon::state_instance_id>(state, container))
+		);
+	},
+	.cell_definition_string = "thin_cell_name",
+	.header_definition_string = "thin_cell_name"
+};
+
+inline table::column<dcon::trade_route_id> trade_route_1 = {
+	.sortable = true,
+	.header = "route_target",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		int32_t index_a = 0;
+		if(local_market == dcon::fatten(state.world, a).get_connected_markets(index_a)) {
+			index_a = 1;
+		}
+		int32_t index_b = 0;
+		if(local_market == dcon::fatten(state.world, b).get_connected_markets(index_b)) {
+			index_b = 1;
+		}
+
+		auto value_a = text::get_name_as_string(
+			state,
+			dcon::fatten(state.world, a).get_connected_markets(index_a).get_zone_from_local_market().get_capital()
+		);
+		auto value_b = text::get_name_as_string(
+			state,
+			dcon::fatten(state.world, b).get_connected_markets(index_b).get_zone_from_local_market().get_capital()
+		);
+
+		if(value_a != value_b)
+			return value_a > value_b;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		int32_t index = 0;
+		if(local_market == dcon::fatten(state.world, item).get_connected_markets(index)) {
+			index = 1;
+		}
+
+		return text::get_name_as_string(
+			state,
+			dcon::fatten(state.world, item).get_connected_markets(index).get_zone_from_local_market().get_capital()
+		);
+	},
+	.cell_definition_string = "thin_cell_name",
+	.header_definition_string = "thin_cell_name"
+};
+
+inline table::column<dcon::trade_route_id> trade_route_2 = {
+	.sortable = true,
+	.header = "price_origin",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		return text::format_money(
+			dcon::fatten(state.world, retrieve<dcon::market_id>(state, container))
+			.get_price(retrieve<dcon::commodity_id>(state, container))
+		);
+	}
+};
+
+inline table::column<dcon::trade_route_id> trade_route_3 = {
+	.sortable = true,
+	.header = "price_target",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		int32_t index_a = 0;
+		if(local_market == dcon::fatten(state.world, a).get_connected_markets(index_a)) {
+			index_a = 1;
+		}
+		int32_t index_b = 0;
+		if(local_market == dcon::fatten(state.world, b).get_connected_markets(index_b)) {
+			index_b = 1;
+		}
+
+		auto value_a = dcon::fatten(state.world, a).get_connected_markets(index_a).get_price(retrieve<dcon::commodity_id>(state, container));
+		auto value_b = dcon::fatten(state.world, b).get_connected_markets(index_b).get_price(retrieve<dcon::commodity_id>(state, container));
+
+		if(value_a != value_b)
+			return value_a > value_b;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		int32_t index = 0;
+		if(local_market == dcon::fatten(state.world, item).get_connected_markets(index)) {
+			index = 1;
+		}
+
+		return text::format_money(
+			dcon::fatten(state.world, item)
+			.get_connected_markets(index).get_price(retrieve<dcon::commodity_id>(state, container))
+		);
+	}
+};
+
+inline table::column<dcon::trade_route_id> trade_route_4 = {
+	.sortable = true,
+	.header = "trade_distance",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		auto value_a = dcon::fatten(state.world, a).get_distance();
+		auto value_b = dcon::fatten(state.world, b).get_distance();
+
+		if(value_a != value_b)
+			return value_a > value_b;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		return text::format_float(dcon::fatten(state.world, item).get_distance());
+	}
+};
+
+inline table::column<dcon::trade_route_id> trade_route_5 = {
+	.sortable = true,
+	.header = "volume",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		int32_t index_a = 0;
+		if(local_market == dcon::fatten(state.world, a).get_connected_markets(index_a)) {
+			index_a = 1;
+		}
+		int32_t index_b = 0;
+		if(local_market == dcon::fatten(state.world, b).get_connected_markets(index_b)) {
+			index_b = 1;
+		}
+
+
+		auto value_a = dcon::fatten(state.world, a).get_volume(retrieve<dcon::commodity_id>(state, container));
+		auto value_b = dcon::fatten(state.world, b).get_volume(retrieve<dcon::commodity_id>(state, container));
+
+		if(value_a != value_b)
+			return value_a * ((float)index_a - 0.5f) > value_b * ((float)index_b - 0.5f);
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		int32_t index = 0;
+		if(local_market == dcon::fatten(state.world, item).get_connected_markets(index)) {
+			index = 1;
+		}
+
+		return text::format_float(dcon::fatten(state.world, item).get_volume(retrieve<dcon::commodity_id>(state, container)) * (float(index) - 0.5f) * 2.f);
+	}
+};
+
+inline table::column<dcon::trade_route_id> trade_route_6 = {
+	.sortable = true,
+	.header = "max_throughput",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		auto value_a = std::min(
+			dcon::fatten(state.world, a).get_connected_markets(0).get_max_throughput(),
+			dcon::fatten(state.world, a).get_connected_markets(1).get_max_throughput()
+		);
+		auto value_b = std::min(
+			dcon::fatten(state.world, b).get_connected_markets(0).get_max_throughput(),
+			dcon::fatten(state.world, b).get_connected_markets(1).get_max_throughput()
+		);
+
+		if(value_a != value_b)
+			return value_a > value_b;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		return text::format_float(std::min(
+			dcon::fatten(state.world, item).get_connected_markets(0).get_max_throughput(),
+			dcon::fatten(state.world, item).get_connected_markets(1).get_max_throughput()
+		));
+	}
+};
+
+
+
+float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_route_id route, dcon::commodity_id c) {
+	auto current_volume = state.world.trade_route_get_volume(route, c);
+	auto A = state.world.trade_route_get_connected_markets(route, 0);
+	auto B = state.world.trade_route_get_connected_markets(route, 1);
+
+	auto absolute_volume = std::abs(current_volume);
+	//auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+
+	auto s_A = state.world.market_get_zone_from_local_market(A);
+	auto s_B = state.world.market_get_zone_from_local_market(B);
+
+	if(A == B) {
+		return 0.f;
+	}
+
+	auto n_A = state.world.state_instance_get_nation_from_state_ownership(s_A);
+	auto n_B = state.world.state_instance_get_nation_from_state_ownership(s_B);
+
+	auto at_war = military::are_at_war(state, n_A, n_B);
+
+	auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
+	auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
+
+	auto import_tariff_A = economy::effective_tariff_rate(state, n_A);
+	auto export_tariff_A = economy::effective_tariff_rate(state, n_A);
+	auto import_tariff_B = economy::effective_tariff_rate(state, n_B);
+	auto export_tariff_B = economy::effective_tariff_rate(state, n_B);
+
+	auto is_A_civ = state.world.nation_get_is_civilized(n_A);
+	auto is_B_civ = state.world.nation_get_is_civilized(n_B);
+
+	auto is_sea_route = state.world.trade_route_get_is_sea_route(route);
+	auto is_land_route = state.world.trade_route_get_is_land_route(route);
+
+	if(is_sea_route) {
+		auto port_A = province::state_get_coastal_capital(state, s_A);
+		if(state.world.province_get_is_blockaded(port_A)) {
+			is_sea_route = false;
+		}
+		auto port_B = province::state_get_coastal_capital(state, s_B);
+		if(state.world.province_get_is_blockaded(port_B)) {
+			is_sea_route = false;
+		}
+	}
+
+	if(!(is_sea_route || is_land_route)) {
+		return 0.f;
+	}
+
+	if(n_A == n_B) {
+		import_tariff_A = 0.f;
+		export_tariff_A = 0.f;
+		import_tariff_B = 0.f;
+		export_tariff_B = 0.f;
+	}
+	if(n_A == sphere_B) {
+		import_tariff_A = 0.f;
+		export_tariff_A = 0.f;
+		import_tariff_B = 0.f;
+		export_tariff_B = 0.f;
+	}
+	if(n_B == sphere_A) {
+		import_tariff_A = 0.f;
+		export_tariff_A = 0.f;
+		import_tariff_B = 0.f;
+		export_tariff_B = 0.f;
+	}
+
+	auto distance = 999999.f;
+
+	if(is_land_route) {
+		distance = std::min(distance, state.world.trade_route_get_land_distance(route));
+	}
+	if(is_sea_route) {
+		distance = std::min(distance, state.world.trade_route_get_sea_distance(route));
+	}
+
+	auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+
+	auto transport_cost = distance * 0.05f;
+	// effect of scale
+	// volume reduces transport costs
+	auto effect_of_scale = std::max(0.1f, 1.f - absolute_volume * 0.0005f);
+
+	auto price_A_export = economy::price(state, A, c) * (1.f + export_tariff_A);
+	auto price_B_export = economy::price(state, B, c) * (1.f + export_tariff_B);
+
+	auto price_A_import = economy::price(state, A, c) * (1.f - import_tariff_A) * trade_good_loss_mult;
+	auto price_B_import = economy::price(state, B, c) * (1.f - import_tariff_B) * trade_good_loss_mult;
+
+	auto current_profit_A_to_B = price_B_import - price_A_export * 1.05f - transport_cost * effect_of_scale;
+	auto current_profit_B_to_A = price_A_import - price_B_export * 1.05f - transport_cost * effect_of_scale;
+
+	return std::max(0.f, std::max(current_profit_A_to_B / price_A_export, current_profit_B_to_A / price_B_export));
+}
+
+inline table::column<dcon::trade_route_id> trade_route_7 = {
+	.sortable = true,
+	.header = "trade_margin",
+	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+
+		auto value_a = trade_route_profit(state, local_market, a, retrieve<dcon::commodity_id>(state, container));
+		auto value_b = trade_route_profit(state, local_market, b, retrieve<dcon::commodity_id>(state, container));
+
+		if(value_a != value_b)
+			return value_a > value_b;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		return text::format_percentage(trade_route_profit(state, local_market, item, retrieve<dcon::commodity_id>(state, container)));
+	}
+};
+
 inline table::column<dcon::commodity_id> rgo_name = {
 	.sortable = true,
 	.header = "trade_good_name_header",
@@ -2382,6 +2689,8 @@ class province_economy_window : public window_element_base {
 
 public:
 	table::display<dcon::commodity_id>* rgo_table = nullptr;
+	table::display<dcon::trade_route_id>* trade_table = nullptr;
+	image_element_base* trade_routes_bg = nullptr;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "table_rgo_data") {
@@ -2404,14 +2713,58 @@ public:
 					state.selected_trade_good = a;
 				}
 				state.update_trade_flow.store(true, std::memory_order::release);
+				if(state.ui_state.province_window) {
+					state.ui_state.province_window->impl_on_update(state);
+				}
 			};
 			state.world.for_each_commodity([&](dcon::commodity_id id) {
 				rgo_table->content.data.push_back(id);
 			});
 			rgo_table->set_visible(state, true);
 			return ptr;
+		} else if(name == "table_trade_route_data") {
+			std::vector<table::column<dcon::trade_route_id>> columns = {
+				trade_route_0, trade_route_1, trade_route_2,
+				trade_route_3, trade_route_4, trade_route_5,
+				trade_route_6, trade_route_7
+			};
+
+			auto ptr = make_element_by_type<table::display<dcon::trade_route_id>>(
+				state,
+				id,
+				std::string("table_body"),
+				columns
+			);
+
+			trade_table = ptr.get();	
+			trade_table->set_visible(state, true);
+			return ptr;
+		} else if(name == "trade_route_background") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			trade_routes_bg = ptr.get();
+			trade_routes_bg->set_visible(state, true);
+			return ptr;
 		}
 		return nullptr;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+		auto si = retrieve<dcon::state_instance_id>(state, parent);
+		auto m = state.world.state_instance_get_market_from_local_market(si);
+		trade_table->content.data.clear();
+
+		if(state.selected_trade_good) {
+			state.world.market_for_each_trade_route_as_connected_markets(m, [&](auto route) {
+				trade_table->content.data.push_back(route);
+			});
+			trade_table->set_visible(state, true);
+			trade_routes_bg->set_visible(state, true);
+		} else {
+			trade_table->set_visible(state, false);
+			trade_routes_bg->set_visible(state, false);
+		}
 	}
 };
 
@@ -2423,6 +2776,7 @@ private:
 	province_view_statistics* local_details_window = nullptr;
 	province_view_buildings* local_buildings_window = nullptr;
 	province_window_colony* colony_window = nullptr;
+	province_economy_window* economy_window = nullptr;
 	element_base* nf_win = nullptr;
 
 public:
@@ -2471,7 +2825,9 @@ public:
 			nf_win = ptr.get();
 			return ptr;
 		} else if(name == "local_economy_view") {
-			return make_element_by_type<province_economy_window>(state, id);
+			auto ptr = make_element_by_type<province_economy_window>(state, id);
+			economy_window = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -2488,6 +2844,13 @@ public:
 		} else if(payload.holds_type<dcon::state_instance_id>()) {
 			dcon::state_instance_id sid = dcon::fatten(state.world, active_province).get_state_membership();
 			payload.emplace<dcon::state_instance_id>(sid);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(state.selected_trade_good);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::market_id>()) {
+			dcon::market_id mid = dcon::fatten(state.world, active_province).get_state_membership().get_market_from_local_market();
+			payload.emplace<dcon::market_id>(mid);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -2511,6 +2874,7 @@ public:
 		local_details_window->impl_on_update(state);
 		local_buildings_window->impl_on_update(state);
 		colony_window->impl_on_update(state);
+		economy_window->impl_on_update(state);
 
 		//Hide unit builder if not our province
 		auto n = state.world.province_get_nation_from_province_ownership(active_province);

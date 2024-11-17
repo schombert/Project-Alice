@@ -3188,9 +3188,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
+	economy::sanity_check(*this);
 
 	culture::create_initial_ideology_and_issues_distribution(*this);
 	demographics::regenerate_from_pop_data_full(*this);
+
+	economy::sanity_check(*this);
 
 	military::reinforce_regiments(*this);
 
@@ -3203,6 +3206,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	economy::update_factory_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
+
+	economy::sanity_check(*this);
 
 	assert(great_nations.size() == 0);
 	uint32_t greatpowersfound = 0;
@@ -3224,6 +3229,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
+	economy::sanity_check(*this);
+
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		if(auto rgo = world.province_get_rgo(p); !rgo) {
 			auto name = world.province_get_name(p);
@@ -3232,7 +3239,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
+	economy::sanity_check(*this);
+
 	nations::generate_initial_trade_routes(*this);
+
+	economy::sanity_check(*this);
+
 	economy::presimulate(*this);
 
 	ai::identify_focuses(*this);
@@ -4091,7 +4103,7 @@ void state::single_game_tick() {
 		}
 	});
 
-	economy::daily_update(*this, false);
+	economy::daily_update(*this, false, 1.f);
 
 	military::recover_org(*this);
 	military::update_siege_progress(*this);

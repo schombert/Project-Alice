@@ -718,6 +718,13 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				state.world.state_instance_set_naval_base_is_taken(new_si, true);
 
 			auto new_market = state.world.create_market();
+
+			// set prices to something to avoid infinite demand:
+
+			state.world.for_each_commodity([&](auto cid){
+				state.world.market_set_price(new_market, cid, 10.f);
+			});
+
 			auto new_local_market = state.world.force_create_local_market(new_market, new_si);
 
 			// new state, new trade routes
@@ -747,7 +754,12 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
 				auto new_route = state.world.force_create_trade_route(new_market, target_market);
-				state.world.trade_route_set_distance(new_route, 99999.f);
+				state.world.trade_route_set_land_distance(new_route, 99999.f);
+				state.world.trade_route_set_sea_distance(new_route, 99999.f);
+				if(province::state_is_coastal(state, new_si) && province::state_is_coastal(state, si)) {
+					state.world.trade_route_set_is_sea_route(new_route, true);
+				}
+				state.world.trade_route_set_is_land_route(new_route, true);
 			}
 
 			state_is_new = true;
@@ -805,7 +817,12 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
 				auto new_route = state.world.force_create_trade_route(market, target_market);
-				state.world.trade_route_set_distance(new_route, 99999.f);
+				state.world.trade_route_set_land_distance(new_route, 99999.f);
+				state.world.trade_route_set_sea_distance(new_route, 99999.f);
+				if(province::state_is_coastal(state, new_si) && province::state_is_coastal(state, si)) {
+					state.world.trade_route_set_is_sea_route(new_route, true);
+				}
+				state.world.trade_route_set_is_land_route(new_route, true);
 			}
 		}
 		if(was_slave_state) {
@@ -1895,6 +1912,54 @@ std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::prov
 				} else { // is sea
 					origins_vector.set(other_prov, dcon::province_id{0}); // exclude it from being checked again
 				}
+			}
+		}
+	}
+
+	assert_path_result(path_result);
+	return path_result;
+}
+
+// used for land trade
+std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
+	std::vector<province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	std::vector<dcon::province_id> path_result;
+
+	if(start == end)
+		return path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		path_result.push_back(end);
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+		};
+
+	path_heap.push_back(province_and_distance{ 0.0f, direct_distance(state, start, end), start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+				if(other_prov == end) {
+					fill_path_result(nearest.province);
+					assert_path_result(path_result);
+					return path_result;
+				}
+				path_heap.push_back(
+						province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
+				std::push_heap(path_heap.begin(), path_heap.end());
+				origins_vector.set(other_prov, nearest.province);
 			}
 		}
 	}

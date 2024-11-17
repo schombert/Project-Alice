@@ -391,8 +391,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	});
 	compare_game_states(ws1, ws2);
 
-	economy::daily_update(ws1, false);
-	economy::daily_update(ws2, false);
+	economy::daily_update(ws1, false, 1.f);
+	economy::daily_update(ws2, false, 1.f);
 	compare_game_states(ws1, ws2);
 
 	military::update_siege_progress(ws1);

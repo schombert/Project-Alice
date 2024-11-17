@@ -4071,6 +4071,12 @@ object{
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+
+	property{
+		name{ max_throughput }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship {
@@ -4095,7 +4101,7 @@ relationship {
 relationship{
 	name{ trade_route }
 	storage_type{ compactable }
-	size{ 40000 }
+	size{ 80000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -4113,19 +4119,31 @@ relationship{
 	}
 
 	property{
-		name{ connected_province }
-		type{ array{uint8_t}{float} }
-		tag{ save }
-	}
-
-	property{
 		name{ distance }
 		type{ float }
 		tag{ save }
 	}
 
 	property{
+		name{ sea_distance }
+		type{ float }
+		tag{ save }
+	}
+
+	property{
+		name{ land_distance }
+		type{ float }
+		tag{ save }
+	}
+
+	property{
 		name{ is_sea_route }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ is_land_route }
 		type{ bitfield }
 		tag{ save }
 	}

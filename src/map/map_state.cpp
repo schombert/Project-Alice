@@ -88,6 +88,22 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		return;
 	}
 
+	// we start with getting some stats on trade routes:
+	// we do not want to display too many of them
+
+	auto total = 0.f;
+	auto count = 0.f;
+
+	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
+		auto current_volume = std::abs(state.world.trade_route_get_volume(trade_route, cid));
+		if(current_volume > 0.f) {
+			total = total + current_volume;
+			count += 1.f;
+		}
+	});
+
+	auto average = total / (count + 1);
+
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
 		auto origin =
@@ -109,15 +125,18 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 		auto absolute_volume = std::abs(sat * current_volume);
 
-		if(absolute_volume <= 0.001f) {
+		if(absolute_volume <= std::clamp(average * 2.f, 0.001f, 5.f)) {
 			return;
 		}
 
-		auto width = std::log(1.f + absolute_volume * 10000.f) * 100.f;
+		auto width = std::log(1.f + absolute_volume * 100.f) * 300.f;
 
 		auto old_size = map_data.trade_flow_vertices.size();
 		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-		if(state.world.trade_route_get_is_sea_route(trade_route)) {
+
+		bool is_sea = state.world.trade_route_get_distance(trade_route) == state.world.trade_route_get_sea_distance(trade_route);
+
+		if(is_sea) {
 			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
 
