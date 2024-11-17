@@ -1548,7 +1548,7 @@ void initialize(sys::state& state) {
 		pop_demographics::set_life_needs(state, p, 1.0f);
 		pop_demographics::set_everyday_needs(state, p, 0.1f);
 		pop_demographics::set_luxury_needs(state, p, 0.0f);
-		fp.set_savings(savings_buffer.get(fp.get_poptype()) * fp.get_size() * expected_savings * 10.f);
+		fp.set_savings(fp.get_size() * expected_savings * 10.f);
 	});
 
 	sanity_check(state);
@@ -1958,7 +1958,7 @@ void update_rgo_employment(sys::state& state) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(rgo_max_employment(state, owner, p, c) > 0.f) {
 				ordered_list[used_indices].c = c;
-				ordered_list[used_indices].profit = rgo_expected_worker_norm_profit(state, p, owner, c);
+				ordered_list[used_indices].profit = rgo_expected_worker_norm_profit(state, p, m, owner, c);
 				++used_indices;
 			}  else {
 				state.world.province_set_rgo_employment_per_good(p, c, 0.f);
@@ -3987,9 +3987,9 @@ void update_pop_consumption(
 			0.f,
 			willing_to_spend_on_luxury_needs / luxury_costs
 		);
-		float old_life = pop_demographics::get_life_needs(state, pl.get_pop());
-		float old_everyday = pop_demographics::get_everyday_needs(state, pl.get_pop());
-		float old_luxury = pop_demographics::get_luxury_needs(state, pl.get_pop());
+		auto old_life = pop_demographics::get_life_needs(state, ids);
+		auto old_everyday = pop_demographics::get_everyday_needs(state, ids);
+		auto old_luxury = pop_demographics::get_luxury_needs(state, ids);
 
 		savings = savings * (
 			1.f
@@ -4028,9 +4028,9 @@ void update_pop_consumption(
 		}, result_life, result_everyday, result_luxury);
 
 
-		pop_demographics::set_life_needs(state, pl.get_pop(), result_life);
-		pop_demographics::set_everyday_needs(state, pl.get_pop(), result_everyday);
-		pop_demographics::set_luxury_needs(state, pl.get_pop(), result_luxury);
+		pop_demographics::set_life_needs(state, ids, result_life);
+		pop_demographics::set_everyday_needs(state, ids, result_everyday);
+		pop_demographics::set_luxury_needs(state, ids, result_luxury);
 
 		auto final_demand_scale_life =
 			pop_size / state.defines.alice_needs_scaling_factor

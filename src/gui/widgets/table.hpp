@@ -98,7 +98,7 @@ struct data {
 	void update_rows_order(sys::state& state, ui::element_base* container) {
 		for(auto& order : sort_priority) {
 			if(order.order == sort_order::ascending) {
-				std::sort(
+				std::stable_sort(
 					data.begin(),
 					data.end(),
 					[&](const item_type& a, const item_type& b) {
@@ -106,7 +106,7 @@ struct data {
 					}
 				);
 			} else {
-				std::sort(
+				std::stable_sort(
 					data.begin(),
 					data.end(),
 					[&](const item_type& a, const item_type& b) {

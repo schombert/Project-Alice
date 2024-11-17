@@ -2276,11 +2276,11 @@ inline table::column<dcon::trade_route_id> trade_route_5 = {
 		}
 
 
-		auto value_a = dcon::fatten(state.world, a).get_volume(retrieve<dcon::commodity_id>(state, container));
-		auto value_b = dcon::fatten(state.world, b).get_volume(retrieve<dcon::commodity_id>(state, container));
+		auto value_a = dcon::fatten(state.world, a).get_volume(retrieve<dcon::commodity_id>(state, container)) * ((float)index_a - 0.5f);
+		auto value_b = dcon::fatten(state.world, b).get_volume(retrieve<dcon::commodity_id>(state, container)) * ((float)index_b - 0.5f);
 
 		if(value_a != value_b)
-			return value_a * ((float)index_a - 0.5f) > value_b * ((float)index_b - 0.5f);
+			return value_a > value_b;
 		else
 			return a.index() < b.index();
 	},

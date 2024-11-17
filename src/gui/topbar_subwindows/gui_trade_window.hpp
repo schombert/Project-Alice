@@ -725,7 +725,6 @@ inline table::column<dcon::commodity_id> trade_good_player_price = {
 	}
 };
 
-table::column<dcon::commodity_id> trade_good_player_factory_needs = {
 inline table::column<dcon::commodity_id> trade_good_player_factory_needs = {
 	.sortable = true,
 	.header = "factory_need",
@@ -918,7 +917,7 @@ inline table::column<dcon::commodity_id> trade_good_consumed_nation = {
 	}
 };
 
-table::column<dcon::nation_id> nation_price = {
+inline table::column<dcon::nation_id> nation_price = {
 	.sortable = true,
 	.header = "price_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
@@ -937,7 +936,6 @@ table::column<dcon::nation_id> nation_price = {
 	}
 };
 
-table::column<dcon::nation_id> nation_name = {
 inline table::column<dcon::nation_id> nation_name = {
 	.sortable = true,
 	.header = "nation_name",
@@ -1015,7 +1013,7 @@ inline table::column<dcon::nation_id> nation_consumption = {
 };
 
 
-table::column<dcon::market_id> market_name = {
+inline table::column<dcon::market_id> market_name = {
 	.sortable = true,
 	.header = "market_name",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1042,7 +1040,7 @@ table::column<dcon::market_id> market_name = {
 	.header_definition_string = "thin_cell_name"
 };
 
-table::column<dcon::market_id> market_production = {
+inline table::column<dcon::market_id> market_production = {
 	.sortable = true,
 	.header = "produced_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1061,7 +1059,7 @@ table::column<dcon::market_id> market_production = {
 	}
 };
 
-table::column<dcon::market_id> market_demand = {
+inline table::column<dcon::market_id> market_demand = {
 	.sortable = true,
 	.header = "demanded_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1080,7 +1078,7 @@ table::column<dcon::market_id> market_demand = {
 	}
 };
 
-table::column<dcon::market_id> market_consumption = {
+inline table::column<dcon::market_id> market_consumption = {
 	.sortable = true,
 	.header = "consumed_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1099,7 +1097,7 @@ table::column<dcon::market_id> market_consumption = {
 	}
 };
 
-table::column<dcon::market_id> market_price = {
+inline table::column<dcon::market_id> market_price = {
 	.sortable = true,
 	.header = "price_market",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1118,7 +1116,7 @@ table::column<dcon::market_id> market_price = {
 	}
 };
 
-table::column<dcon::market_id> market_artisan_distribution = {
+inline table::column<dcon::market_id> market_artisan_distribution = {
 	.sortable = true,
 	.header = "w_artisan_distribution",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1137,7 +1135,7 @@ table::column<dcon::market_id> market_artisan_distribution = {
 	}
 };
 
-table::column<dcon::market_id> market_artisan_profit = {
+inline table::column<dcon::market_id> market_artisan_profit = {
 	.sortable = true,
 	.header = "w_artisan_profit",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
@@ -1156,7 +1154,7 @@ table::column<dcon::market_id> market_artisan_profit = {
 	}
 };
 
-table::column<dcon::market_id> market_artisan_score = {
+inline table::column<dcon::market_id> market_artisan_score = {
 	.sortable = true,
 	.header = "w_artisan_score",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
