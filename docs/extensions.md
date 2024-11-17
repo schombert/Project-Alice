@@ -45,8 +45,8 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `add_accepted_culture = THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
 - `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
 - `kill_leader = "name of leader"`: kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
-- `annex_to = null`: this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
-- `secede_province = null`: turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
+- `annex_to = null`: this turns all the provinces owned by the nation in scope into un-owned provinces (which defeats the nation, liberates its puppets, etc).
+- `secede_province = null`: turns the province in scope into an un-owned province. This is to replace some of the tricks mods did to turn provinces un-owned, such as seceding them to nonexistent tags, etc
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
 - `random_empty_neighbor_province` - selects random empty neighbor province in nation/province scope.
 - `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped. Can be used in province or nation scope.
@@ -57,9 +57,9 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `assimilate = yes`: Effect can be used in a pop/province/state scope to change the culture of pops in the scope to primary culture.
 - `reduce_pop_abs = amount`: Reduce pop in the pop scope by absolute amount (e.g. 500 soldiers). Use with negative values to increase pop size. Use with very big number to remove pop completely.
 - `set_culture = culture`: Set culture of a pop in scope to a named culture.
-- `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
-- `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
-- `random_neighbor_country`: A random neighbouring country.
+- `any_existing_country_except_scoped`: Same behavior of `any_country` on decisions, any existing nation except the one scoped
+- `any_defined_country`: Same behavior of `any_country` on events, scope all countries even those that don't exist and includes the current country
+- `random_neighbor_country`: A random neighboring country.
 - `all_core = { ... } (for provinces)`: The ability to use it within provinces to scope all the cores of the province in question, for example if England and Russia have cores on Houston, then this will scope both England and Russia
 - `any_core = { ... }`: Effects dont have `any_core`, but triggers do, so for consistency its supported too.
 - `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
@@ -82,7 +82,21 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `add_country_modifier = modifier`: Shorthand for `add_country_modifier = { name = modifier duration = -1 }`
 - `add_province_modifier = modifier`: Shorthand for `add_province_modifier = { name = modifier duration = -1 }`
 - `masquerade_as_nation = THIS/FROM`: Use the visual flag of `THIS/FROM` as the flag of the nation, most useful for dynamic rebellions for example.
-
+- `change_party_name = { ... }`: This effect is defined using a block with two members. The first member is `ideology = ...` where `...` is either the name of an ideology or `ruling_party`. This member determines which party the effect will apply to. If an ideology is provided, it will apply to the first active political party with that ideology (generally the "first" party is the political party defined earlier in the files). If `ruling_party` is provided, the current ruling party of the nation in scope will be affected. The second member is `name = ...`. This value is the new name that the party will be given. This effect can be used only within a national scope. Example:
+```
+	change_party_name = {
+		ideology = conservative
+		name = NEW_PARTY_NAME
+	}
+```
+- `change_party_position = { ... }` : This effect is defined using a block with two members. The first member is `ideology = ...` where `...` is either the name of an ideology or `ruling_party`, which determines which party the effect applies to as described above. The second member is `position = ...` where `...` is one of the options for a party issue or a political or social reform. The effect will cause the political party determined by the `ideology` member to change their party position to the given `position`, if it is a party issue or it will give them a voting preference in favor of that particular reform and remove any voting preference in favor of another reform in that group (see below for more on the extension of party preferences). This effect can be used only within a national scope. Example:
+```
+	change_party_position = {
+		ideology = ruling_party
+		position = free_trade
+	}
+```
+ 
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 
 The syntax for `build_bank_in_capital` and it's university counterpart is the same:
@@ -101,23 +115,37 @@ build_bank_in_capital = {
 - `any_known_country = { ... }`: same as above, alias
 - `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
 - `has_global_flag = project_alice`: true if playing on Project Alice, false if not
-- `all_war_countries = { ... }`: All countries we're at war with MUST fullfill the condition, as opposed to `war_countries` were only one country has to fullfill the condition
+- `all_war_countries = { ... }`: All countries we're at war with MUST fulfill the condition, as opposed to `war_countries` were only one country has to fulfill the condition
 - `any_war_countries = { ... }`: Equivalent to `war_countries`
 - `all_state = { ... }`: All states must fulfill condition, similar to `any_state`
 - `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
 - `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
 - `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
-- `all_greater_power = { ... }`: All greater powers must fullfill condition.
+- `all_greater_power = { ... }`: All greater powers must fulfill condition.
 - `any_owned = { ... }`: Shorthand for `any_owned_province`.
 - `is_ai = yes/no`: Alias of `ai = yes/no`.
 - `recently_lost_war`: Alias of `has_recently_lost_war = yes`
-- `has_recent_immigration`: Alias of `has_recent_imigration` (the original is mispelt).
+- `has_recent_immigration`: Alias of `has_recent_imigration` (the original is misspelled).
 - `industry_score`: Alias of `industrial_score`.
 - `has_accepted_culture`: Alias of `accepted_culture`.
 - `number_of_cities`: Alias of `num_of_cities`.
 - `disarmed`: Alias of `is_disarmed`.
 - `is_vassal_of`: Alias of `vassal_of`.
 - `has_national_focus = focus`: Checks if a state (or province) in scope has a focus `focus`.
+- `party_name = { ... }`: This trigger condition is defined using a block with two members. The first member is `ideology = ...` where `...` is either the name of an ideology or `ruling_party`. This member determines which political party the trigger condition will test. If an ideology is provided, it will test to the first active political party with that ideology (generally the "first" party is the political party defined earlier in the files). If `ruling_party` is provided, the current ruling party of the nation in scope will be tested. The second member is `name = ...`. This value is what the name of the selected party is tested against. An exact match evaluates as `true`, while a party with any other name will yield false. This trigger condition can be used only within a national scope. Example:
+```
+	party_name = {
+		ideology = conservative
+		name = SOME_PARTY_NAME
+	}
+```
+- `party_position = { ... }` : This trigger condition is defined using a block with two members. The first member is `ideology = ...` where `...` is either the name of an ideology or `ruling_party`, which determines which political party the trigger condition will test, as described above. The second member is `position = ...` where `...` is one of the options for a party issue or a political or social reform. The trigger condition will test whether the political party determined by the `ideology` member holds the specified party position (if a party issue) or whether it has a specific voting preference in favor of that particular reform (see below for more on the extension of party preferences). This trigger condition can be used only within a national scope. Example:
+```
+	party_position = {
+		ideology = ruling_party
+		position = free_trade
+	}
+```
 
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:
@@ -267,7 +295,7 @@ country_event = {
 }
 ```
 
-This allows essentially to "inline" anonymous events, for example when doing a FAQ section event, or doing a long event chain for setup or "LARP choices" purpouses.
+This allows essentially to "inline" anonymous events, for example when doing a FAQ section event, or doing a long event chain for setup or "LARP choices" purposes.
 
 These events can't be triggered with the `event` command, nor can they be referenced by other events, they never will trigger on their own and will always be treated as if they were `is_triggered_only = yes`.
 
@@ -294,7 +322,7 @@ To use a scripted trigger simply add `test = name_of_condition` in a trigger whe
 
 ### If/Else
 
-If and Else statments are now provided to avoid code duplication and make your life easier. A `else` with a limit is equivalent to an `else_if` with a limit, and a `else_if` without a limit is equal to a `else` without a limit. In other words, `else` and `else_if` are essentially synonyms, provided for code clarity.
+If and Else statements are now provided to avoid code duplication and make your life easier. A `else` with a limit is equivalent to an `else_if` with a limit, and a `else_if` without a limit is equal to a `else` without a limit. In other words, `else` and `else_if` are essentially synonyms, provided for code clarity.
 
 For example:
 ```
@@ -304,7 +332,7 @@ if = { #run if limit is true
 } else_if = { #run only if the limit above is false, and this limit is true
   limit = { ... }
   ...
-} else = { #only if both cases are not fullfilled AND the limit is true
+} else = { #only if both cases are not fulfilled AND the limit is true
   limit = { ... }
   ...
 }
@@ -312,7 +340,7 @@ if = { #run if limit is true
 
 No limit specified equals to an `always = yes`.
 
-Additionally, the order of execution for `if` and `else`/`else_if` statments allows for nested code:
+Additionally, the order of execution for `if` and `else`/`else_if` statements allows for nested code:
 
 ```
 if = {
@@ -339,7 +367,7 @@ if = {
 }
 ```
 
-Additionally, negation of statments are implicit, in other words:
+Additionally, negation of statements are implicit, in other words:
 ```
 if = {
 	limit = { test == yes }
@@ -348,7 +376,7 @@ if = {
 }
 ```
 
-Is implicitly assumed for every `else` after a `if`, this means that an explicit negation (rewriting everything inside a big NOT statment) is not required for `else` statments, as they now logically are tied to all stamtents beforehand being false, and the statment of it's own limit being true.
+Is implicitly assumed for every `else` after a `if`, this means that an explicit negation (rewriting everything inside a big NOT statement) is not required for `else` statements, as they now logically are tied to all statements beforehand being false, and the statement of it's own limit being true.
 
 An issue which might exist due to the volatility of the syntax could be:
 ```
@@ -359,9 +387,9 @@ else_if = {
 }
 ```
 
-The behaviour of this statment is that, since there is no preceding `if` before the `else_if`, the `else_if` will be able to run as if it was chained with an `if` that evaluated to false, in the case of it's limit evaluating to true, then it will run its own effect. However, the other `if` statment will run regardless of the previous expression.
+The behavior of this statement is that, since there is no preceding `if` before the `else_if`, the `else_if` will be able to run as if it was chained with an `if` that evaluated to false, in the case of it's limit evaluating to true, then it will run its own effect. However, the other `if` statement will run regardless of the previous expression.
 
-As the lexicographical order of the statments are sequential, this is, every `else_if` and `else` must be preceded by an `if` statment, otherwise they will be chained to the nearest *preceding* `if` statment before them for their lexicographical evaluation, otherwise they will act as an `if` in itself if none is present.
+As the lexicographical order of the statements are sequential, this is, every `else_if` and `else` must be preceded by an `if` statement, otherwise they will be chained to the nearest *preceding* `if` statement before them for their lexicographical evaluation, otherwise they will act as an `if` in itself if none is present.
 
 ```
 else_if = {
@@ -370,7 +398,7 @@ else_if = {
   limit = { ... }
 }
 ```
-These `else_if` statments are chained together, if the first runs, the second will not, and viceversa. If no preceding `if` exists before them, the first `else_if` takes the role of the `if` statment.
+These `else_if` statements are chained together, if the first runs, the second will not, and vice versa. If no preceding `if` exists before them, the first `else_if` takes the role of the `if` statement.
 
 ## UI Modding
 
@@ -433,7 +461,7 @@ However, the following new extensions will make GUI editing way less painful:
 Alice adds a handful of new defines:
 
 - `factories_per_state`: Factories allowed per state, default 8
-- `alice_speed_1`: Speed 1 in miliseconds
+- `alice_speed_1`: Speed 1 in milliseconds
 - `alice_speed_2`: Same as above but with speed 2
 - `alice_speed_3`: Same as above but with speed 3
 - `alice_speed_4`: Same as above but with speed 4
@@ -442,12 +470,12 @@ Alice adds a handful of new defines:
 - `alice_ai_threat_radius`: Radius AI will scan for threats
 - `alice_ai_threat_overestimate`: Overestimate AI opponents (higher values leads to camping)
 - `alice_ai_attack_target_radius`: Radius AI will perform attacks
-- `alice_full_reinforce`: 1 = Normal vanilla behaviour, 0 = Understaffed armies are allowed
-- `alice_ai_offensive_strength_overestimate`: Overestimate strength of an offensive oppontent (makes AI less aggressive)
+- `alice_full_reinforce`: 1 = Normal vanilla behavior, 0 = Understaffed armies are allowed
+- `alice_ai_offensive_strength_overestimate`: Overestimate strength of an offensive opponent (makes AI less aggressive)
 - `alice_lf_needs_scale`: Scale multiplier for life needs
 - `alice_ev_needs_scale`: Scale multiplier for everyday needs
 - `alice_lx_needs_scale`: Scale multiplier for luxury needs
-- `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
+- `alice_max_event_iterations`: The maximum number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may increase this value up to whatever they wish.
 - `alice_needs_scaling_factor`: Scale factor multiplier for all needs
 - `alice_base_rgo_employment_bonus`: Additional rgo size of the main rgo.
 - `alice_base_rgo_efficiency_bonus`: Additional rgo efficiency of the main rgo.
@@ -466,10 +494,10 @@ Alice adds a handful of new defines:
 - `alice_needs_lx_spend`: See above, but luxury needs
 - `alice_sat_delay_factor`: Satisfaction delay factor
 - `alice_need_drift_speed`: Drift speed of need weights for POPs
-- `alice_disable_divergent_any_country_effect`: On events, `any_country = { ... }` refers to any country, including non-existant and the one scoped, in decisions, `any_country = { ... }` refers only to existing nations and not the one on scope. Set 0 to keep this behaviour, set 1 to use a universal `any_country = { ... }` that scopes existing countries including the currently scoped nation.
+- `alice_disable_divergent_any_country_effect`: On events, `any_country = { ... }` refers to any country, including nonexistent and the one scoped, in decisions, `any_country = { ... }` refers only to existing nations and not the one on scope. Set 0 to keep this behavior, set 1 to use a universal `any_country = { ... }` that scopes existing countries including the currently scoped nation.
 - `alice_unciv_civ_forbid_war`: Forbids civilized nations from aiding uncivilized ones except via scripted events
 - `alice_ideology_base_change_rate`: Base change rate for ideology for pops
-- `alice_nurture_religion_assimilation`: Whetever religion assimilation should also convert pops or not (0 = yes, 1 = no)
+- `alice_nurture_religion_assimilation`: Whether religion assimilation should also convert pops or not (0 = yes, 1 = no)
 - `alice_surrender_on_cores_lost`: Force AI to surrender when they have lost their cores, or if they have no cores, all of their land
 - `alice_artificial_gp_limitant`: Limit the number of GP allies the AI can have
 - `alice_rename_dont_use_localisation`: Keys specified on `change_region_name` or `change_province_name` will be treated as CSV keys, otherwise they will define in-line.
@@ -497,6 +525,30 @@ Inside the `vote_modifiers` section one or more modifiers can be defined for ref
 		}
 ```
 When these modifiers are present, instead of using the generic add/remove political/social reform modifiers for an ideology to determine reform support the support for a particular reform option, the game will first attempt to use the modifier(s) associated with the active issue options of the active party associated with that ideology (if there is more than one such party, one will be picked arbitrarily for this). This will completely override the generic add/remove reform modifiers, allowing a party-ideology combination to support (or oppose) particular reforms in a category even when it would otherwise generically oppose (or support) all such reforms.
+
+### Party reform support overrides
+
+Previously in a party definition it was possible to insert a line such as `economic_policy = laissez_faire` which would define the specific party issue that the party would have. This has been extended so that any political or social reform category and option may appear there. For example `pensions = good_pensions` in the following party description is now valid
+
+```
+party = {
+	name = "ENG_liberal"
+	start_date = 1830.1.1
+	end_date = 1859.1.1
+
+	ideology = liberal
+
+	economic_policy = laissez_faire
+	trade_policy = free_trade
+	religious_policy = pluralism
+	citizenship_policy = limited_citizenship
+	war_policy = anti_military
+	
+	pensions = good_pensions
+}
+```
+
+What this means is that the party will always support that particular reform in that category (or the closest reform if the category can only be changed step by step) and that it will not support any other reforms in that category. This will override any other preference either via ideology or the extended support weights described above. 
 
 ### Political party triggers
 
@@ -537,7 +589,7 @@ province-id;size;culture;religion;pop-type;rebel-faction(optional)
 ...
 ```
 
-This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favourite office spreadsheet program.
+This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favorite office spreadsheet program.
 
 Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.
 

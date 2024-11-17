@@ -6717,6 +6717,55 @@ uint32_t ef_masquerade_as_nation_from(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
+uint32_t ef_change_party_name(EFFECT_DISPLAY_PARAMS) {
+	auto ideology = trigger::payload(tval[1]).ideo_id;
+	dcon::text_key new_name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 2)) };
+
+	if(ideology) {
+		auto id_name = ws.world.ideology_get_name(ideology);
+
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, new_name);
+		text::add_to_substitution_map(m, text::variable_type::x, id_name);
+		text::localised_format_box(ws, layout, box, "change_pname_to", m);
+		text::close_layout_box(layout, box);
+		return 0;
+	} else {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, new_name);
+		text::localised_format_box(ws, layout, box, "change_rpname_to", m);
+		text::close_layout_box(layout, box);
+		return 0;
+	}
+}
+
+uint32_t ef_change_party_position(EFFECT_DISPLAY_PARAMS) {
+	auto ideology = trigger::payload(tval[1]).ideo_id;
+	dcon::issue_option_id new_opt = trigger::payload(tval[2]).opt_id;
+	auto opt_name = ws.world.issue_option_get_name(new_opt);
+
+	if(ideology) {
+		auto id_name = ws.world.ideology_get_name(ideology);
+
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, opt_name);
+		text::add_to_substitution_map(m, text::variable_type::x, id_name);
+		text::localised_format_box(ws, layout, box, "change_pposition_to", m);
+		text::close_layout_box(layout, box);
+		return 0;
+	} else {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, opt_name);
+		text::localised_format_box(ws, layout, box, "change_rpposition_to", m);
+		text::close_layout_box(layout, box);
+		return 0;
+	}
+}
+
 inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -7164,10 +7213,12 @@ ef_change_terrain_province, //constexpr inline uint16_t change_terrain_province 
 ef_change_terrain_pop, //constexpr inline uint16_t change_terrain_pop = 0x01B7;
 ef_masquerade_as_nation_this, //constexpr inline uint16_t ef_masquerade_as_nation_this = 0x01B8;
 ef_masquerade_as_nation_from, //constexpr inline uint16_t ef_masquerade_as_nation_from = 0x01B9;
-ef_religion_province,
-ef_religion_pop,
-ef_reduce_pop_abs,
-ef_set_culture_pop,
+ef_religion_province, // 0x01BA
+ef_religion_pop, //0x01BB
+ef_reduce_pop_abs, //0x01BC
+ef_set_culture_pop, // 0x01BD
+ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3) 
+ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2) 
 //
 // SCOPES
 //

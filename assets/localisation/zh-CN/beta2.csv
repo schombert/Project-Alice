@@ -63,8 +63,8 @@ EVTDESC60130;随着大众民族感情的汹涌澎湃，$FROMCOUNTRY_ADJ$政府�
 EVTOPTA60130;就这样做
 EVTOPTB60130;以上帝的名义拒绝$FROMCOUNTRY$废物
 ATPEACE;处于和平
-NORMAL_WAR_RUDEBOI_NAME;$ORDER$$FIRST_COUNTRY$遏制$SECOND_COUNTRY$之战
-AGRESSION_WAR_RUDEBOI_NAME;$ORDER$$FIRS_COUNTRY$遏制$SECOND_COUNTRY$之战
+NORMAL_WAR_RUDEBOI_NAME;$ORDER$$FIRST$遏制$SECOND$之战
+AGRESSION_WAR_RUDEBOI_NAME;$ORDER$$FIRS_COUNTRY$遏制$SECOND$之战
 rude_boy;遏制
 rude_boy_desc;强迫一个?Y国家?W大幅度降低其野心，这一宣战行为已在国际事务中抛开了所有文明伪装
 rude_boy_setup;通过削减其领土、威望及军队来遏制$RECIPIENT$
@@ -100,14 +100,14 @@ demand_concession_casus_belli;索要租借地
 demand_concession_casus_belli_desc;强迫一个?Y未开化国家?W割让领土以设立殖民租借地
 demand_concession_casus_belli_setup;要求$RECIPIENT$割让领土以设立殖民租借地
 demand_concession_casus_belli_short;索要$STATE$
-NORMAL_WAR_PROTECTORATE_NAME;$ORDER$获取属于$FIRST$$SECOND_COUNTRY$
-AGRESSION_WAR_PROTECTORATE_NAME;$ORDER$获取属于$FIRST$$SECOND_COUNTRY$
+NORMAL_WAR_PROTECTORATE_NAME;$ORDER$获取属于$FIRST$$SECOND$
+AGRESSION_WAR_PROTECTORATE_NAME;$ORDER$获取属于$FIRST$$SECOND$
 establish_protectorate_casus_belli;建立保护国
 establish_protectorate_casus_belli_desc;通过强迫一个?Y未开化国家?W成为我们的保护国来吞并他们
 establish_protectorate_casus_belli_setup;通过建立保护国的形式吞并$RECIPIENT$
 establish_protectorate_casus_belli_short;吞并$RECIPIENT$
-NORMAL_WAR_UNIFICATION_NAME;$ORDER$$FIRST_COUNTRY$解放$STATE$
-AGRESSION_WAR_UNIFICATION_NAME;$ORDER$$FIRST_COUNTRY$解放$STATE$
+NORMAL_WAR_UNIFICATION_NAME;$ORDER$$FIRST$解放$STATE$
+AGRESSION_WAR_UNIFICATION_NAME;$ORDER$$FIRST$解放$STATE$
 unification_casus_belli;统一战争
 unification_casus_belli_desc;解放我们?Y文化圈?W的核心领土
 unification_casus_belli_setup;解放我们?Y文化圈?W的核心领土
@@ -224,8 +224,8 @@ unification_annex_casus_belli_setup;解放我们?Y文化圈?W的核心领土
 unification_annex_casus_belli_short;吞并
 enlightenment_thought;权利思想
 enlightenment_thought_desc;权利思想
-NORMAL_WAR_UNIFICATION_ANNEX_NAME;$ORDER$$FIRST_COUNTRY$解放$SECOND_COUNTRY$
-AGRESSION_WAR_UNIFICATION_ANNEX_NAME;$ORDER$$FIRST_COUNTRY$解放$SECOND_COUNTRY$
+NORMAL_WAR_UNIFICATION_ANNEX_NAME;$ORDER$$FIRST$解放$SECOND$
+AGRESSION_WAR_UNIFICATION_ANNEX_NAME;$ORDER$$FIRST$解放$SECOND$
 springtime_of_nations;万国之春！
 springtime_of_nations_desc;沉睡的欧洲民族觉醒过来对抗专制与暴政
 HND_conservative;国民会议党
@@ -243,8 +243,8 @@ unification_humiliate_cb;宣示霸权
 REMOVE_unification_humiliate_cb_desc;羞辱其他列强来向你的文化圈展示领袖地位
 REMOVE_unification_humiliate_cb_setup;羞辱其他列强来向你的文化圈展示领袖地位
 unification_humiliate_cb_short;承认霸权
-NORMAL_UNIFICATION_HUMILIATE_NAME;$FIRST_COUNTRY$ - $SECOND_COUNTRY$ 兄弟之战
-AGRESSION_UNIFICATION_HUMILIATE_NAME;$FIRST_COUNTRY$ - $SECOND_COUNTRY$ 兄弟之战
+NORMAL_UNIFICATION_HUMILIATE_NAME;$FIRST$ - $SECOND$ 兄弟之战
+AGRESSION_UNIFICATION_HUMILIATE_NAME;$FIRST$ - $SECOND$ 兄弟之战
 PRODUCTION_REQUIRED_DAILY_INPUTS;所需每日输入：
 PRODUCTION_DAILY_OUTPUT;每日输出：
 COUNTRYALERT_NO_HasClosedFactories;我国没有破产的工厂
@@ -297,6 +297,6 @@ liberal_rebels_title;雅各宾派
 liberal_rebels_name;雅各宾派
 liberal_rebels_desc;自由主义的雅各宾派为了国家的政府能纳入更广大阶层的民众而奋斗。在一个绝对君主制国家他们会要求实行君主立宪制，在其他情况下他们都希望建立民主制度。
 liberal_rebels_army;共和国卫队
-NORMAL_WAR_RESTORE_ORDER_NAME;$ORDER$$FIRST_COUNTRY$恢复$SECOND$秩序
-AGRESSION_WAR_RESTORE_ORDER_NAME;$ORDER$$FIRST_COUNTRY$恢复$SECOND$秩序
+NORMAL_WAR_RESTORE_ORDER_NAME;$ORDER$$FIRST$恢复$SECOND$秩序
+AGRESSION_WAR_RESTORE_ORDER_NAME;$ORDER$$FIRST$恢复$SECOND$秩序
 NOT_ENOUGH_FOR_BRIGADE;现在尚未完全动员一个旅

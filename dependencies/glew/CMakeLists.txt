@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
 	glew
 	GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
-	GIT_TAG f456dea
+	GIT_TAG 72ff6b1
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
@@ -28,13 +28,13 @@ if(WIN32)
 
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1 -Wno-reserved-identifier -Wno-nonportable-system-include-path -Wno-unsafe-buffer-usage -Wno-strict-prototypes")
 		else()
 			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
 		endif()
 	else()
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline")
+			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-reserved-identifier -Wno-nonportable-system-include-path -Wno-unsafe-buffer-usage -Wno-strict-prototypes")
 		else()
 			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
 		endif()

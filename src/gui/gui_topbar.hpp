@@ -1163,6 +1163,27 @@ public:
 	}
 };
 
+class topbar_budget_warning : public image_element_base {
+public:
+	bool visible = false;
+	void on_update(sys::state& state) noexcept override {
+		visible = (state.world.nation_get_spending_level(state.local_player_nation) < 1.0f);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(visible) {
+			text::add_line(state, contents, "topbar_budget_warning");
+		}
+	}
+};
+
 class topbar_unemployment_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -2049,6 +2070,8 @@ public:
 			return make_element_by_type<topbar_unemployment_icon>(state, id);
 		} else if(name == "budget_linechart") {
 			return make_element_by_type<topbar_budget_line_graph>(state, id);
+		} else if(name == "alice_budget_warning") {
+			return make_element_by_type<topbar_budget_warning>(state, id);
 		} else if(name == "budget_funds") {
 			return make_element_by_type<topbar_treasury_text>(state, id);
 		} else if(name == "topbar_tech_progress") {

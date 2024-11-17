@@ -1051,7 +1051,7 @@ x_in_y;$x$ at $y$
 reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 reinforce_rate_none;This regiment can't currently be reinforced.
 alice_domestic_investment_button;Investing in individual projects is ?Rdeprecated?W, use the ?Ydomestic investment?W slider on the budget screen instead
-alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
+alice_domestic_investment_pops;We have $x$ potential investors we can indirectly give generous donations to
 alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
 alice_budget_scaled_inc;Income: ?G$value$
 alice_budget_scaled_1;Poor tax: ?G$value$
@@ -1247,3 +1247,12 @@ method_profit;Profit (expected)
 method_margin;Margin
 method_cost;Build cost
 method_payback;Payback time
+change_pname_to;Change $x$ party name to $text$
+change_rpname_to;Change ruling party name to $text$
+change_pposition_to;Change $x$ party position to $text$
+change_rpposition_to;Change ruling party position to $text$
+pname_is;$x$ party name
+rpname_is;ruling party name
+pposition_is;$x$ party position
+rpposition_is;ruling party position
+topbar_budget_warning;You were unable to fully afford yesterday's target budget spending

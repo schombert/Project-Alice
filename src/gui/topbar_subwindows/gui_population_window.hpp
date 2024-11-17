@@ -7,6 +7,7 @@
 #include "color.hpp"
 #include "triggers.hpp"
 #include "gui_province_window.hpp"
+#include "demographics.hpp"
 
 namespace ui {
 
@@ -392,11 +393,10 @@ public:
 		auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
 		auto promote = -int64_t(demographics::get_estimated_type_change(state, pop));
 		auto assimilation = -int64_t(demographics::get_estimated_assimilation(state, pop));
-		auto conversion = -int64_t(demographics::get_estimated_conversion(state, pop));
 		auto internal_migration = -int64_t(demographics::get_estimated_internal_migration(state, pop));
 		auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pop));
 		auto emigration = -int64_t(demographics::get_estimated_emigration(state, pop));
-		auto total = int64_t(growth) + promote + assimilation + conversion + internal_migration + colonial_migration + emigration;
+		auto total = int64_t(growth) + promote + assimilation  + internal_migration + colonial_migration + emigration;
 
 		{
 			auto box = text::open_layout_box(contents);
@@ -476,17 +476,6 @@ public:
 			}
 			text::close_layout_box(contents, box);
 		}
-		{
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, "pop_size_8");
-			if(conversion >= 0) {
-				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
-				text::add_to_layout_box(state, contents, box, conversion, text::text_color::green);
-			} else {
-				text::add_to_layout_box(state, contents, box, conversion, text::text_color::red);
-			}
-			text::close_layout_box(contents, box);
-		}
 	}
 };
 
@@ -502,7 +491,7 @@ public:
 class pop_militancy_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_float(state.world.pop_get_militancy(retrieve<dcon::pop_id>(state, parent))));
+		set_text(state, text::format_float(pop_demographics::get_militancy(state, retrieve<dcon::pop_id>(state, parent))));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -516,7 +505,7 @@ public:
 class pop_con_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_float(state.world.pop_get_consciousness(retrieve<dcon::pop_id>(state, parent))));
+		set_text(state, text::format_float(pop_demographics::get_consciousness(state, retrieve<dcon::pop_id>(state, parent))));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -531,7 +520,7 @@ class pop_literacy_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			set_text(state, text::format_percentage(state.world.pop_get_literacy(retrieve<dcon::pop_id>(state, parent)), 2));
+			set_text(state, text::format_percentage(pop_demographics::get_literacy(state, retrieve<dcon::pop_id>(state, parent)), 2));
 		}
 	}
 
@@ -653,7 +642,7 @@ public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto pfat_id = dcon::fatten(state.world, content);
 		if(state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)))
-			return (1 - pfat_id.get_employment() / pfat_id.get_size());
+			return (1 - pop_demographics::get_employment(state, pfat_id) / pfat_id.get_size());
 		return 0.0f;
 	}
 
@@ -666,7 +655,7 @@ public:
 
 		auto pfat_id = dcon::fatten(state.world, content);
 		float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content))
-												? (1 - pfat_id.get_employment() / pfat_id.get_size())
+												? (1 - pop_demographics::get_employment(state, pfat_id) / pfat_id.get_size())
 												: 0.0f;
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
@@ -678,8 +667,7 @@ public:
 class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
 public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		return fat_id.get_life_needs_satisfaction();
+		return pop_demographics::get_life_needs(state, content);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -693,7 +681,7 @@ public:
 		auto need = text::produce_simple_string(state, "life_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction() * 100.f});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{ pop_demographics::get_life_needs(state, content) * 100.f});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -703,8 +691,7 @@ public:
 class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
 public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		return fat_id.get_everyday_needs_satisfaction();
+		return pop_demographics::get_everyday_needs(state, content);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -718,7 +705,7 @@ public:
 		auto need = text::produce_simple_string(state, "everyday_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction() * 100.f });
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{ pop_demographics::get_everyday_needs(state, content) * 100.f });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -728,8 +715,7 @@ public:
 class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
 public:
 	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		return fat_id.get_luxury_needs_satisfaction();
+		return pop_demographics::get_luxury_needs(state, content);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -743,7 +729,7 @@ public:
 		auto need = text::produce_simple_string(state, "luxury_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction() * 100.f });
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{ pop_demographics::get_luxury_needs(state, content) * 100.f });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -1044,11 +1030,11 @@ class pop_distribution_piechart : public piechart<T> {
 
 		if constexpr(std::is_same_v<T, dcon::issue_option_id>) {
 			for(auto iopt : state.world.in_issue_option) {
-				weight_fn(iopt, state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, iopt)));
+				weight_fn(iopt, pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, iopt)));
 			}
 		} else if constexpr(std::is_same_v<T, dcon::ideology_id>) {
 			for(auto iopt : state.world.in_ideology) {
-				weight_fn(iopt, state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, iopt)));
+				weight_fn(iopt, pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, iopt)));
 			}
 		} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
@@ -1186,7 +1172,7 @@ public:
 			std::unordered_map<typename T::value_base_t, float> distrib{};
 			for(auto const pop_id : pop_list) {
 				auto const weight_fn = [&](auto id) {
-					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
+					auto weight = pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, id));
 					distrib[typename T::value_base_t(id.index())] += weight;
 				};
 				// Can obtain via simple pop_demographics query
@@ -1377,19 +1363,19 @@ public:
 
 			std::vector<dcon::issue_option_id> distrib;
 			for(auto io : state.world.in_issue_option) {
-				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				auto v = pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, io.id));
 				if(v > 0.f)
 					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
-				return state.world.pop_get_demographics(pop, pop_demographics::to_key(state, a)) > state.world.pop_get_demographics(pop, pop_demographics::to_key(state, b));
+				return pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, a)) > pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, b));
 			});
 
 			distrib_listbox->row_contents.clear();
 
 			for(auto const& e : distrib)
-				distrib_listbox->row_contents.emplace_back(e, state.world.pop_get_demographics(pop, pop_demographics::to_key(state, e)));
+				distrib_listbox->row_contents.emplace_back(e, pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, e)));
 			distrib_listbox->update(state);
 		}
 	}
@@ -1528,19 +1514,19 @@ public:
 
 			std::vector<dcon::ideology_id> distrib;
 			for(auto io : state.world.in_ideology) {
-				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				auto v = pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, io.id));
 				if(v > 0.f)
 					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
-				return state.world.pop_get_demographics(pop, pop_demographics::to_key(state, a)) > state.world.pop_get_demographics(pop, pop_demographics::to_key(state, b));
+				return pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, a)) > pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, b));
 			});
 
 			distrib_listbox->row_contents.clear();
 
 			for(auto const& e : distrib)
-				distrib_listbox->row_contents.emplace_back(e, state.world.pop_get_demographics(pop, pop_demographics::to_key(state, e)));
+				distrib_listbox->row_contents.emplace_back(e, pop_demographics::get_demo(state, pop, pop_demographics::to_key(state, e)));
 			distrib_listbox->update(state);
 		}
 	}
@@ -2427,16 +2413,12 @@ private:
 			break;
 		case pop_list_sort::con:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
-				auto a_fat_id = dcon::fatten(state.world, a);
-				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_consciousness() > b_fat_id.get_consciousness();
+				return pop_demographics::get_consciousness(state, a) > pop_demographics::get_consciousness(state, b);
 			};
 			break;
 		case pop_list_sort::mil:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
-				auto a_fat_id = dcon::fatten(state.world, a);
-				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_militancy() > b_fat_id.get_militancy();
+				return pop_demographics::get_militancy(state, a) > pop_demographics::get_militancy(state, b);
 			};
 			break;
 		case pop_list_sort::religion:
@@ -2471,7 +2453,7 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_employment() / a_fat_id.get_size() < b_fat_id.get_employment() / b_fat_id.get_size();
+				return pop_demographics::get_employment(state, a) / a_fat_id.get_size() < pop_demographics::get_employment(state, b) / b_fat_id.get_size();
 			};
 			break;
 		case pop_list_sort::ideology:
@@ -2490,30 +2472,22 @@ private:
 			break;
 		case pop_list_sort::life_needs:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
-				auto a_fat_id = dcon::fatten(state.world, a);
-				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_life_needs_satisfaction() > b_fat_id.get_life_needs_satisfaction();
+				return pop_demographics::get_life_needs(state, a) > pop_demographics::get_life_needs(state, b);
 			};
 			break;
 		case pop_list_sort::everyday_needs:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
-				auto a_fat_id = dcon::fatten(state.world, a);
-				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_everyday_needs_satisfaction() > b_fat_id.get_everyday_needs_satisfaction();
+				return pop_demographics::get_everyday_needs(state, a) > pop_demographics::get_everyday_needs(state, b);
 			};
 			break;
 		case pop_list_sort::luxury_needs:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
-				auto a_fat_id = dcon::fatten(state.world, a);
-				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_luxury_needs_satisfaction() > b_fat_id.get_luxury_needs_satisfaction();
+				return pop_demographics::get_luxury_needs(state, a) > pop_demographics::get_luxury_needs(state, b);
 			};
 			break;
 		case pop_list_sort::literacy:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
-				auto a_fat_id = dcon::fatten(state.world, a);
-				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_literacy() > b_fat_id.get_literacy();
+				return pop_demographics::get_literacy(state, a) > pop_demographics::get_literacy(state, b);
 			};
 			break;
 		case pop_list_sort::revoltrisk:

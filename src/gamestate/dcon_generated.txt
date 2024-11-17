@@ -125,11 +125,12 @@ object {
 	storage_type{contiguous}
 	size{ 15000 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
 		type{ text_key }
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ start_date }
@@ -149,7 +150,7 @@ object {
 	property{
 		name{ party_issues }
 		type{array{issue_id}{issue_option_id}}
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ trigger }
@@ -1460,6 +1461,11 @@ object {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
 	}
+	property {
+		name{ demographics_alt }
+		type{ array{demographics_key}{float} }
+	}
+	swappable{demographics}{demographics_alt}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
@@ -2858,6 +2864,11 @@ object {
 		type{ array{demographics_key}{float} }
 	}
 	property {
+		name{ demographics_alt }
+		type{ array{demographics_key}{float} }
+	}
+	swappable{demographics}{demographics_alt}
+	property {
 		name{ dominant_culture }
 		type{ culture_id }
 	}
@@ -3479,6 +3490,11 @@ object {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
 	}
+	property {
+		name{ demographics_alt }
+		type{ array{demographics_key}{float} }
+	}
+	swappable{demographics}{demographics_alt}
 	property {
 		name{ war_exhaustion }
 		type{ float }
@@ -4764,51 +4780,51 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ consciousness }
-		type{ float }
+		name{ uconsciousness }
+		type{ uint16_t }
 		tag{ save }
 	}
 	property{
-		name{ militancy }
-		type{ float }
+		name{ umilitancy }
+		type{ uint16_t }
 		tag{ save }
 	}
 	property{
-		name{ literacy }
-		type{ float }
+		name{ uliteracy }
+		type{ uint16_t }
 		tag{ save }
 	}
 	property{
-		name{ employment }
-		type{ float }
+		name{ uemployment }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property{
-		name{ life_needs_satisfaction }
-		type{ float }
+		name{ ulife_needs_satisfaction }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property{
-		name{ everyday_needs_satisfaction }
-		type{ float }
+		name{ ueveryday_needs_satisfaction }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property{
-		name{ luxury_needs_satisfaction }
-		type{ float }
+		name{ uluxury_needs_satisfaction }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property {
-		name{ political_reform_desire }
-		type{ float }
+		name{ upolitical_reform_desire }
+		type{ uint8_t }
 	}
 	property {
-		name{ social_reform_desire }
-		type{ float }
+		name{ usocial_reform_desire }
+		type{ uint8_t }
 	}
 	property {
-		name{ demographics }
-		type{ array{pop_demographics_key}{float} }
+		name{ udemographics }
+		type{ array{pop_demographics_key}{uint8_t} }
 		tag{ save }
 	}
 	property {

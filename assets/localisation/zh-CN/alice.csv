@@ -27,9 +27,6 @@ increase_national_variable_by;国家变量$text$提高$value$
 decrease_national_variable_by;国家变量$text$降低$value$
 life_rating;生活条件
 make_national_religion;$text$成为国教
-make_province_religion;省份人群变为$text$
-make_pop_religion;变为$text$
-make_pop_culture;变为$text$
 make_slave_state;成为蓄奴区
 make_slave_pop;成为奴隶
 research_points;研究点数
@@ -319,8 +316,6 @@ units_in_the_state;位于地区
 at_war_against;交战于
 num_of_divisions;部队数
 an_ongoing_battle;持续的战斗
-an_assigned_leader;已分配的将领
-leader_prestige;将领声望
 treasury;国库
 o_treasury;所有者国库
 o_of_prov;此省所属
@@ -554,7 +549,7 @@ pop_emg_1;人群只可从开化国家移民
 pop_emg_2;没有殖民地移民
 pop_emg_3;奴隶从不迁徙
 pop_emg_4;没有 ?海外?!文化的人群不能移民
-pop_emg_5;将要移民的人数等于人群的大小乘以移民规模（$x$）乘以此省的移民潮规模修正（$y$，如果大于100%则则平方），乘以出境移民系数（$val$）
+pop_emg_5;将要移民的人数等于人群的大小乘以移民规模（$x$）乘以此省的移民潮规模修正（$y$，如果大于100%则平方），乘以出境移民系数（$val$）
 pop_emg_6;?Y移民因素：
 pop_prom_1;?Y升职系数：
 pop_prom_2;来自国家焦点：?G$val$
@@ -788,7 +783,7 @@ decrease_rel_explain_2;你不能恶化你和你自己的关系
 decrease_rel_explain_3;你至少有$x$外交点
 decrease_rel_explain_4;当前关系大于-200
 decrease_rel_explain_5;你现在没和目标处于战争中
-cancel_w_sub_explain_1;我们现在每天资助此国 ?Y$x$?! 
+cancel_w_sub_explain_1;我们现在每天资助此国 ?Y$x$?!
 cancel_w_sub_explain_2;你至少有$x$外交点
 w_sub_explain_1;你不能给你自己提供战争资助
 w_sub_explain_2;你至少有$x$外交点
@@ -866,7 +861,7 @@ col_invest_3;你没有参与一场危机战争
 col_invest_4;无人与你竞争，你将在$x$能够将此地区变为殖民地
 col_invest_5;自你上次投资后已过去$x$天（下一次投资将在$y$可用）
 col_invest_6;至少拥有$x$点可用的殖民力点数
-activated_by_with_a_chance_of;被 ?Y$x$?!激活,具有以下效果: 
+activated_by_with_a_chance_of;被 ?Y$x$?!激活,具有以下效果:
 unit_max_speed;最高速度?G$x$?! KPH
 unit_attack;攻击?G$x$
 unit_hull;船体?G$x$
@@ -1029,17 +1024,17 @@ alice_warn_war_ends_for_us;?R这将为所有站在我们一方的国家终结这
 alice_invention_chance;发现这个 ?Y发明?! 的概率如下:
 is_primary_culture;?Y$NAME$?!是主体民族
 is_primary_religion;?Y$NAME$?!是国教
-tt_can_use_nation;使用本目标需要的条件: 
-et_on_add;将本战争目标添加到战争中将会产生以下效果: 
-et_on_po_accepted;接受有此战争目标的和平提议将会产生以下效果: 
+tt_can_use_nation;使用本目标需要的条件:
+et_on_add;将本战争目标添加到战争中将会产生以下效果:
+et_on_po_accepted;接受有此战争目标的和平提议将会产生以下效果:
 alice_no_possible_units;没有可用的单位能够被建造,并且没有正在建造的单位
 alice_debt_spending;取消或启用债务消费
 alice_loan_size;我们目前的最大贷款是$x$ 贷款规模超越它将会导致我们走向破产
 alice_currently_bankrupt;我国正处于破产状态（直到$x$）
 alice_no_loans_possible;我们现在无法贷款
-alice_rf_demands_enforced_trigger;如果以下为真,叛军将只强迫服从他们的要求: 
-alice_rf_demands_enforced_effect;如果叛军强迫实施了他们的要求那么将会产生以下影响: 
-alice_rf_siege_won_trigger;如果叛军赢得了一场围城战,以下将会被检查是否生效,比如在你的首都$x$: 
+alice_rf_demands_enforced_trigger;如果以下为真,叛军将只强迫服从他们的要求:
+alice_rf_demands_enforced_effect;如果叛军强迫实施了他们的要求那么将会产生以下影响:
+alice_rf_siege_won_trigger;如果叛军赢得了一场围城战,以下将会被检查是否生效,比如在你的首都$x$:
 alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响将会产生，比如你首都$x$：
 may_month_name;5月
 alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
@@ -1047,11 +1042,10 @@ alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更�
 alice_mil_decay_description;自然衰减?G-$x$
 alice_con_decay_description;自然衰减?R-$x$
 x_from_y;$culture$ $x$来自$y$
-x_in_y;$x$来自$y$
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
 alice_domestic_investment_button;不推荐投资单个项目，请改用预算屏幕上的国内投资滑块
-alice_domestic_investment_pops;我们有$x$名资本家以让我们间接的慷慨解囊
+alice_domestic_investment_pops;我们有$x$名潜在投资者以让我们间接的慷慨解囊
 alice_domestic_investment_needs;他们每天需要$x$去满足奢侈的生活方式
 alice_budget_scaled_inc;收入：?G$value$
 alice_budget_scaled_1;贫困阶层税：?G$value$
@@ -1084,7 +1078,7 @@ alice_spending_total;?Y总费用：?W
 alice_spending_commodity;?R$cost$?W - 需要$name$ ($val$)的$need$
 alice_spending_commodity_2;?R$cost$?W - 买入 $need$ 的 $name$ (以 $val$ 为单位相乘). 进度: $x$/$y$
 alice_recommended_build;?G建议建造此工厂?W
-alice_factory_bonus;将获得?Y$x$?W 的奖励 如果: 
+alice_factory_bonus;将获得?Y$x$?W 的奖励 如果:
 alice_factory_inputs;输入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$ ($val$)的$need$
 alice_factory_base_workforce;基础劳力?Y$x$?W
@@ -1114,9 +1108,9 @@ mouse_left_click_mode_label;点击释放
 alice_supply_limit_desc;补给上限：$x$
 alice_factory_worker_1;雇佣：?G$x$?W
 alice_factory_worker_2;失业：?R$x$?W
-alice_rgo_unemployment_country_alert;以下地区有失业的农民和劳工: 
+alice_rgo_unemployment_country_alert;以下地区有失业的农民和劳工:
 pop_promote_info_on_sel_2;$val$预计下月$who$将变动$where$
-alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活质量功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y宏组建器?W：使用我们的宏组建器构建由不同兵种组成的军队单位\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
+alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活质量功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：TPS（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y宏组建器?W：使用我们的宏组建器构建由不同兵种组成的军队单位\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除
 unit_controls_tooltip_1;?Y左键?W选择（取消选择其它）\n?YSHIFT+左键?W增加到选择中
 unit_controls_tooltip_2;?Y右键点击一个省份?W以局部撤退（?G循环/轮流?W）到此省
@@ -1156,7 +1150,7 @@ alice_political_party_no_trigger;只在?Y$date_long_0$?W到?Y$date_long_1$?W期�
 alice_ai_decision;AI选择这一决定的可能性将取决于：
 alice_mobilized_is_ai_controlled;无论动员的单位如何，都将自动被AI控制
 alice_ai_controlled_unit;启用/禁用此单位的AI控制，此单位将会：\n- 自动增援前线\n- 情况安全时自动围城\n- 猎杀叛军\n- 对我们可能攻击的国家形成防御姿态（由AI自由裁定，且只在和平时期生效）\n如果你想让此单位专注于一个特定的国家或地区，首先将其移动到此地区或国家附近，然后打开AI控制。因为AI会覆盖你的所有命令，直到你再次关闭它
-alice_navy_allocation_tt;具有?Y$curr$?W艘船，我们统计了总的补给吞吐为 ?Y$tot$?W,且正需要?Y$req$?W 补给我们的船队，海军中每艘舰船所需的补给消费详细总结如下: 
+alice_navy_allocation_tt;具有?Y$curr$?W艘船，我们统计了总的补给吞吐为 ?Y$tot$?W,且正需要?Y$req$?W 补给我们的船队，海军中每艘舰船所需的补给消费详细总结如下:
 alice_navy_allocation_2;$name$：?Y$value$?W (?Y$perc$?W)
 alice_wg_condition_1;作为防守方没有维持现状
 alice_wg_condition_2;与我们交战
@@ -1197,10 +1191,16 @@ alice_pnt_culture;?Y主体民族：?!$x$
 alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
-ledger_ppp_gdp;GDP(PPP)
-ledger_ppp_gdp_per_capita;每百万人 GDP（PPP）
+ledger_ppp_gdp;购买力平价GDP
+ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
+an_assigned_leader;已分配的将领
 macro_new_template;新建
-invention;发明
+make_province_religion;省份人群变为$text$
+make_pop_religion;变为$text$
+make_pop_culture;变为$text$
+x_in_y;$x$来自$y$
+ledger_standard_of_living;生活水平
+alice_ledger_header_gdp_history;购买力平价GDP历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
@@ -1218,3 +1218,40 @@ alice_battleplanner_delete_army_group;删除集团军群
 fab_explain_8;没有休战
 alice_reform_support_header;该改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
 alice_no_current_support;目前这项改革尚未得到政治支持
+trade_global_data;国际
+trade_nation_data;国内
+trade_good_stats_global;国家
+trade_good_name_header;商品
+price;价格
+supply;供给
+demand;需求
+balance;平衡
+market_stockpiles;库存
+national_stockpile;库存
+government_need;政府采购
+factory_need;工厂输入
+pop_need;民众需求
+rgo_production;RGO 产出
+artisan_production;手工业者产出
+factory_production;工厂产出
+artisan_distribution;手工业者优先级
+produced_nation;生产
+consumed_nation;消费
+nation_name;国家
+demanded_nation;需求
+method_name;名称
+method_input;输入成本
+method_output;产出成本
+method_profit;利润（预计）
+method_margin;差值
+method_cost;建设成本
+method_payback;回本时间
+change_pname_to;将$x$党的名称更改为$text$
+change_rpname_to;将执政党的名称更改为$text$
+change_pposition_to;将$x$党的立场更改为$text$
+change_rpposition_to;将执政党的立场更改为$text$
+pname_is;$x$党的名称
+rpname_is;执政党的名称
+pposition_is;$x$党的立场
+rpposition_is;执政党的立场
+topbar_budget_warning;你无法完全承担昨天的目标预算支出

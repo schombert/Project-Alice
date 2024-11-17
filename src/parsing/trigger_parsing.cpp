@@ -995,4 +995,12 @@ void trigger_body::has_leader(association_type a, std::string_view value, error_
 	context.add_int32_t_to_payload(name_id.index());
 }
 
+void tr_party_position::position(association_type t, std::string_view v, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
+		opt_ = it->second.id;
+	} else {
+		err.accumulated_errors += "Invalid issue position " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 } // namespace parsers

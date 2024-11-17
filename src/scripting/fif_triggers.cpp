@@ -1175,8 +1175,9 @@ TRIGGER_FUNCTION(tf_unemployment_province) {
 		"dup " + std::to_string(demographics::employed.index()) + " >demographics_key demographics @ 1.0 swap r@ / - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_unemployment_pop) {
-	return "dup poptype @ has_unemployment @ not >r dup size @ >r "
-		"dup employment @ 1.0 swap r> / - 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
+	return "dup poptype @ has_unemployment @ not >r "
+		"dup uemployment @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * 1.0 swap - 0.0 r> select "
+		+ std::to_string(read_float_from_payload(tval + 1)) + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_slave_nation) {
 	return "dup combined_issue_rules @ >i32 " + std::to_string(issue_rule::slavery_allowed) + " and 0 <> " + truth_inversion(tval[0]);
@@ -1934,13 +1935,13 @@ TRIGGER_FUNCTION(tf_political_reform_want_nation) {
 	return "dup dup >r " + std::to_string(demographics::political_reform_desire.index()) + " >demographics_key demographics @ " + std::to_string(ws.defines.movement_support_uh_factor) + " * r> non_colonial_population @ / " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_political_reform_want_pop) {
-	return "dup political_reform_desire @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup upolitical_reform_desire @  >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_social_reform_want_nation) {
 	return "dup dup >r " + std::to_string(demographics::social_reform_desire.index()) + " >demographics_key demographics @ " + std::to_string(ws.defines.movement_support_uh_factor) + " * r> non_colonial_population @ / " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_social_reform_want_pop) {
-	return "dup social_reform_desire @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup usocial_reform_desire @  >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_total_amount_of_ships) {
 	return "dup >index state-ptr @ count-ships " + std::to_string(int32_t(tval[1])) + " " + compare_values(tval[0]);
@@ -2391,7 +2392,7 @@ TRIGGER_FUNCTION(tf_crime_higher_than_education_pop) {
 }
 TRIGGER_FUNCTION(tf_agree_with_ruling_party) {
 	return "dup dup >r " + pop_to_owner() + "ruling_party @ ideology @ dup valid? if >index " + std::to_string(pop_demographics::count_special_keys) + " + >pop_demographics_key  "
-		"r> dup size @ >r swap demographics @ r@ / 0.0 0.0 r> >= select else drop r> drop 0.0 end-if " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+		"r> dup size @ >r swap udemographics @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * r@ / 0.0 0.0 r> >= select else drop r> drop 0.0 end-if " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_colonial_state) {
 	return "dup capital @ is_colonial @ " + truth_inversion(tval[0]);
@@ -2645,7 +2646,7 @@ TRIGGER_FUNCTION(tf_poor_strata_militancy_province) {
 }
 TRIGGER_FUNCTION(tf_poor_strata_militancy_pop) {
 	return "dup poptype @ strata @ >i32 " + std::to_string(uint8_t(culture::pop_strata::poor)) + " <> >r "
-		"dup militancy @ 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+		"dup umilitancy @ >f32 " + std::to_string(10.0f / float(std::numeric_limits<uint16_t>::max())) + " * 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_middle_strata_militancy_nation) {
 	return "dup " + std::to_string(demographics::middle_total.index()) + " >demographics_key demographics @ >r "
@@ -2664,7 +2665,7 @@ TRIGGER_FUNCTION(tf_middle_strata_militancy_province) {
 }
 TRIGGER_FUNCTION(tf_middle_strata_militancy_pop) {
 	return "dup poptype @ strata @ >i32 " + std::to_string(uint8_t(culture::pop_strata::middle)) + " <> >r "
-		"dup militancy @ 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+		"dup umilitancy @ >f32 " + std::to_string(10.0f / float(std::numeric_limits<uint16_t>::max())) + " * 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_strata_militancy_nation) {
 	return "dup " + std::to_string(demographics::rich_total.index()) + " >demographics_key demographics @ >r "
@@ -2683,7 +2684,7 @@ TRIGGER_FUNCTION(tf_rich_strata_militancy_province) {
 }
 TRIGGER_FUNCTION(tf_rich_strata_militancy_pop) {
 	return "dup poptype @ strata @ >i32 " + std::to_string(uint8_t(culture::pop_strata::rich)) + " <> >r "
-		"dup militancy @ 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+		"dup umilitancy @ >f32 " + std::to_string(10.0f / float(std::numeric_limits<uint16_t>::max())) + " * 0.0 r> select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_rich_tax_above_poor) {
 	return "dup dup >r rich_tax @ r> poor_tax @ > " + truth_inversion(tval[0]);
@@ -3014,16 +3015,16 @@ TRIGGER_FUNCTION(tf_has_pop_religion_nation) {
 	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).rel_id).index()) + " >demographics_key demographics @ 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_life_needs) {
-	return "dup life_needs_satisfaction @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup ulife_needs_satisfaction @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_everyday_needs) {
-	return "dup everyday_needs_satisfaction @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup ueveryday_needs_satisfaction @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_luxury_needs) {
-	return "dup luxury_needs_satisfaction @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup uluxury_needs_satisfaction @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_consciousness_pop) {
-	return "dup consciousness @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup uconsciousness @ >f32 " + std::to_string(10.0f / float(std::numeric_limits<uint16_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_consciousness_province) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::consciousness.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
@@ -3035,7 +3036,7 @@ TRIGGER_FUNCTION(tf_consciousness_nation) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::consciousness.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_literacy_pop) {
-	return "dup literacy @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup uliteracy @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint16_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_literacy_province) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::literacy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
@@ -3047,7 +3048,7 @@ TRIGGER_FUNCTION(tf_literacy_nation) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::literacy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_militancy_pop) {
-	return "dup militancy @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup umilitancy @ >f32 " + std::to_string(10.0f / float(std::numeric_limits<uint16_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_militancy_province) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r dup " + std::to_string(demographics::militancy.index()) + " >demographics_key demographics @ r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
@@ -3230,7 +3231,7 @@ TRIGGER_FUNCTION(tf_pop_unemployment_province) {
 		"r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_pop) {
-	return "dup size @ >r dup employment @ r@ / 1.0 swap - 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+	return "dup uemployment @ >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * 1.0 swap - " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
 	return
@@ -3429,9 +3430,8 @@ TRIGGER_FUNCTION(tf_variable_ideology_name_province) {
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_pop) {
-	return "dup size @ >r "
-		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >pop_demographics_key demographics @ "
-		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).ideo_id).index()) + " >pop_demographics_key udemographics @ "
+		" >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_nation) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "
@@ -3449,9 +3449,8 @@ TRIGGER_FUNCTION(tf_variable_issue_name_province) {
 		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_name_pop) {
-	return "dup size @ >r "
-		"dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >pop_demographics_key demographics @ "
-		" r@ / 0.0 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
+	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).opt_id).index()) + " >pop_demographics_key udemographics @ "
+		" >f32 " + std::to_string(1.0f / float(std::numeric_limits<uint8_t>::max())) + " * " + std::to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_nation) {
 	return "dup " + std::to_string(trigger::payload(tval[1]).iss_id.index()) + " >issue_id issues @ >index " + std::to_string(trigger::payload(tval[2]).opt_id.index()) + " " + compare_values_eq(tval[0]);
@@ -3541,6 +3540,29 @@ TRIGGER_FUNCTION(tf_has_building_bank) {
 }
 TRIGGER_FUNCTION(tf_has_building_university) {
 	return "dup " + std::to_string(int32_t(economy::province_building_type::university)) + " >ui8 building_level 0 <> " + truth_inversion(tval[0]);
+}
+
+TRIGGER_FUNCTION(tf_party_name) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::text_key new_name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 2)) };
+
+	if(ideo) {
+		return "dup >index >r " + std::to_string(new_name.index()) + " " + std::to_string(ideo.index()) + " r> state-ptr @ has-named-party? " + truth_inversion(tval[0]);
+	} else {
+		return "dup ruling_party @ name @ " + std::to_string(new_name.index()) + " >text_key = " + truth_inversion(tval[0]);
+	}
+}
+
+TRIGGER_FUNCTION(tf_party_position) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::issue_option_id new_opt = trigger::payload(tval[2]).opt_id;
+
+	if(ideo) {
+		return "dup >index >r " + std::to_string(new_opt.index()) + " " + std::to_string(ideo.index()) + " r> state-ptr @ has-positioned-party? " + truth_inversion(tval[0]);
+	} else {
+		auto popt = ws.world.issue_option_get_parent_issue(new_opt);
+		return "dup ruling_party @ " + std::to_string(popt.id.index())  + " >issue_id party_issues @ " + std::to_string(new_opt.index()) + " >issue_option_id = " + truth_inversion(tval[0]);
+	}
 }
 
 struct trigger_container {

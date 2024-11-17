@@ -3309,8 +3309,8 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 				if(factor > 0) {
 					for(auto pr : state.world.nation_get_province_ownership(source)) {
 						for(auto pop : pr.get_province().get_pop_location()) {
-							auto base_mil = pop.get_pop().get_militancy();
-							pop.get_pop().set_militancy(base_mil + pop.get_pop().get_demographics(idsupport_key) * factor * state.defines.mil_reform_impact); // intentionally left to be clamped below
+							auto base_mil = pop_demographics::get_militancy(state, pop.get_pop());
+							pop_demographics::set_militancy(state, pop.get_pop(), std::clamp(base_mil + pop_demographics::get_demo(state, pop.get_pop(), idsupport_key) * factor * state.defines.mil_reform_impact, 0.0f, 10.0f));
 						}
 					}
 				}
@@ -3328,16 +3328,16 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 	auto const isupport_key = pop_demographics::to_key(state, i);
 	for(auto pr : state.world.nation_get_province_ownership(source)) {
 		for(auto pop : pr.get_province().get_pop_location()) {
-			auto base_con = pop.get_pop().get_consciousness();
-			auto adj_con = base_con + pop.get_pop().get_demographics(isupport_key) * state.defines.con_reform_impact;
-			pop.get_pop().set_consciousness(std::clamp(adj_con, 0.0f, 10.0f));
+			auto base_con = pop_demographics::get_consciousness(state, pop.get_pop());
+			auto adj_con = base_con + pop_demographics::get_demo(state, pop.get_pop(), isupport_key) * state.defines.con_reform_impact;
+			pop_demographics::set_consciousness(state, pop.get_pop(), std::clamp(adj_con, 0.0f, 10.0f));
 
 			if(auto m = pop.get_pop().get_movement_from_pop_movement_membership(); m && m.get_pop_support() > winner_support) {
-				auto base_mil = pop.get_pop().get_militancy();
-				pop.get_pop().set_militancy(std::clamp(base_mil + state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
+				auto base_mil = pop_demographics::get_militancy(state, pop.get_pop());
+				pop_demographics::set_militancy(state, pop.get_pop(), std::clamp(base_mil + state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
 			} else {
-				auto base_mil = pop.get_pop().get_militancy();
-				pop.get_pop().set_militancy(std::clamp(base_mil - state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
+				auto base_mil = pop_demographics::get_militancy(state, pop.get_pop());
+				pop_demographics::set_militancy(state, pop.get_pop(), std::clamp(base_mil - state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
 			}
 		}
 	}

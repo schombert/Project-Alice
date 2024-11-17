@@ -1404,7 +1404,7 @@ void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
 				if(obj_id_payload.holds_type<dcon::pop_id>()) {
 					auto demo_key = pop_demographics::to_key(state, demo_id);
 					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
-					volume = state.world.pop_get_demographics(pop_id, demo_key);
+					volume = pop_demographics::get_demo(state, pop_id, demo_key);
 				}
 			}
 			if(volume > 0)
