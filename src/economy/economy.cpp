@@ -868,7 +868,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_life_need(state, nation, c)) {
 				auto weight = need_weight(state, n, c);
-				if(weight > total_weights * 0.25f * count) {
+				if(weight > total_weights * 0.25f / count) {
 					total_weights_adjusted += weight;
 				}
 			}
@@ -879,7 +879,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 			if(valid_life_need(state, nation, c)) {
 				auto weight = need_weight(state, n, c);
 				auto ideal_weighting = weight / total_weights_adjusted * count;
-				if(weight < total_weights * 0.25f * count) {
+				if(weight < total_weights * 0.25f / count) {
 					ideal_weighting = 0;
 				}
 				auto& w = state.world.market_get_life_needs_weights(n, c);
@@ -909,7 +909,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_everyday_need(state, nation, c)) {
 				auto weight = need_weight(state, n, c);
-				if(weight > total_weights * 0.25f * count) {
+				if(weight > total_weights * 0.25f / count) {
 					total_weights_adjusted += weight;
 				}
 			}
@@ -920,7 +920,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 			if(valid_everyday_need(state, nation, c)) {
 				auto weight = need_weight(state, n, c);
 				auto ideal_weighting = weight / total_weights_adjusted * count;
-				if(weight < total_weights * 0.25f * count) {
+				if(weight < total_weights * 0.25f / count) {
 					ideal_weighting = 0;
 				}
 				auto& w = state.world.market_get_everyday_needs_weights(n, c);
@@ -950,7 +950,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_luxury_need(state, nation, c)) {
 				auto weight = need_weight(state, n, c);
-				if(weight > total_weights * 0.25f * count) {
+				if(weight > total_weights * 0.25f / count) {
 					total_weights_adjusted += weight;
 				}
 			}
@@ -961,7 +961,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 			if(valid_luxury_need(state, nation, c)) {
 				auto weight = need_weight(state, n, c);
 				auto ideal_weighting = weight / total_weights_adjusted * count;
-				if(weight < total_weights * 0.25f * count) {
+				if(weight < total_weights * 0.25f / count) {
 					ideal_weighting = 0;
 				}
 				auto& w = state.world.market_get_luxury_needs_weights(n, c);
