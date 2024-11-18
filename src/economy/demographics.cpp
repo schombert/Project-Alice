@@ -97,8 +97,7 @@ void set_employment(sys::state& state, dcon::pop_id p, float v) {
 void set_raw_employment(sys::state& state, dcon::pop_id p, float v) {
 	state.world.pop_set_uemployment(p, to_pu8(v));
 }
-template<typename P, typename V>
-V get_life_needs(sys::state const& state, P p) {
+float get_life_needs(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_ulife_needs_satisfaction(p);
 	return from_pu8(ival);
 }
@@ -106,8 +105,7 @@ template<typename P, typename V>
 void set_life_needs(sys::state& state, P p, V v) {
 	state.world.pop_set_ulife_needs_satisfaction(p, to_pu8(v));
 }
-template<typename P, typename V>
-V get_everyday_needs(sys::state const& state, P p) {
+float get_everyday_needs(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_ueveryday_needs_satisfaction(p);
 	return from_pu8(ival);
 }
@@ -115,8 +113,7 @@ template<typename P, typename V>
 void set_everyday_needs(sys::state& state, P p, V v) {
 	state.world.pop_set_ueveryday_needs_satisfaction(p, to_pu8(v));
 }
-template<typename P, typename V>
-V get_luxury_needs(sys::state const& state, P p) {
+float get_luxury_needs(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uluxury_needs_satisfaction(p);
 	return from_pu8(ival);
 }
