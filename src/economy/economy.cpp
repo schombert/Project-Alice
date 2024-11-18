@@ -2776,7 +2776,7 @@ float rgo_desired_worker_norm_profit(
 	// otherwise everyone works in subsistence and landowners get no money
 	// not exactly an ideal solution but it works and doesn't create goods or wealth out of thin air
 	//float employment_ratio = current_employment / (total_relevant_population + 1.f);
-	desired_profit_by_worker = desired_profit_by_worker; // * employment_ratio; //* employment_ratio;
+	// desired_profit_by_worker = desired_profit_by_worker; // * employment_ratio; //* employment_ratio;
 
 	assert(std::isfinite(desired_profit_by_worker));
 
