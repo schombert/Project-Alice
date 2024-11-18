@@ -5361,7 +5361,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	perform actual consumption / purchasing subject to availability at markets:
 	*/
 
-	state.world.execute_serial_over_market([&](auto ids) {
+	state.world.execute_parallel_over_market([&](auto ids) {
 		auto zones = state.world.market_get_zone_from_local_market(ids);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(zones);
 		auto capital = state.world.nation_get_capital(nations);
@@ -5391,13 +5391,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.nation_get_stockpiles(nations, c),
 				0.f
 			);
-
-			auto total_supply = production + national_stockpile;
-
-			
-
+			auto total_supply = production + national_stockpile;	
 			auto demand = state.world.market_get_demand(ids, c);
-
 			auto old_saturation = state.world.market_get_demand_satisfaction(ids, c);
 			auto new_saturation = ve::select(demand == 0.f, 0.f, total_supply / demand);
 			new_saturation = ve::min(new_saturation, 1.f);
@@ -5632,42 +5627,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				n, nations_commodity_spending * max_sp * spending_level);
 		}
 		{
-			/*
-			
-			//float satisfied = 0.f;
-			//float demanded = 0.f;
-
-			float construction_budget =
-				std::max(0.f,
-				float(state.world.nation_get_construction_spending(n))
-				/ 100.0f
-				* base_budget
-				* state.world.nation_get_spending_level(n));
-
-			//float total_spending = 0.0f;
-			state.world.nation_for_each_state_ownership_as_nation(n, [&](dcon::state_ownership_id soid) {
-				auto local_state = state.world.state_ownership_get_state(soid);
-				auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
-				for(uint32_t k = 1; k < total_commodities; ++k) {
-					dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-					// no refund: adjusted for satisfaction in advance_construction
-					// auto sat = state.world.market_get_demand_satisfaction(local_market, c);
-					auto val = state.world.market_get_construction_demand(local_market, c);
-					//demanded += val;
-					//satisfied += val * sat; //* sat;
-				}
-			});
-
-			//auto satisfied_ratio = 0.f;
-			//if(demanded > 0.f)
-			//	satisfied_ratio = satisfied / demanded;
-
-			//float effective_spending_level = 0.f;
-			//if(total_spending > 0.f)
-			//effective_spending_level = std::clamp(construction_budget / total_spending, 0.f, 1.f);
-
-			*/
-
 			state.world.nation_set_effective_construction_spending(
 				n,
 				nations_commodity_spending
@@ -5741,7 +5700,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	/* now we know demand satisfaction and can set actual satifaction of pops */
 
 	/* prepare needs satisfaction caps */
-	state.world.execute_serial_over_market([&](auto ids) {
+	state.world.execute_parallel_over_market([&](auto ids) {
 		auto states = state.world.market_get_zone_from_local_market(ids);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
 
@@ -5814,7 +5773,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// we can handle each trade good separately: they do not influence each other
 	// 
 	// register trade supply
-	concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
+	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 
 		if(state.world.commodity_get_money_rgo(cid)) {
@@ -6292,7 +6251,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	});
 
 	state.world.execute_serial_over_market([&](auto ids) {
-		concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
+		concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 
 			//handling gold cost separetely
@@ -6321,6 +6280,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto price_speed = 0.0001f * speed_modifer;
 			price_speed = price_speed * current_price;
 			current_price = current_price + price_speed;
+
+			assert(std::isfinite(current_price));
 
 			//the only purpose of upper price bound is to prevent float overflow
 			state.world.market_set_price(ids, cid, ve::min(ve::max(current_price, 0.001f), 1'000'000'000'000.f));
