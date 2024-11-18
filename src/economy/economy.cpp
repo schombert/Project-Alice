@@ -1123,7 +1123,11 @@ auto artisan_input_multiplier(
 	auto nation_input_mod = 1.f + state.world.nation_get_modifier_values(
 		nations, sys::national_mod_offsets::artisan_input);
 
-	return ve::max(alice_input_base * nation_input_mod, 0.01f);
+	if constexpr(std::is_same_v<T, dcon::nation_id>) {
+		return std::max(alice_input_base * nation_input_mod, 0.01f);
+	} else {
+		return ve::max(alice_input_base * nation_input_mod, 0.01f);
+	}
 }
 
 template<typename T>
@@ -1135,7 +1139,11 @@ auto artisan_output_multiplier(
 	auto nation_output_mod = 1.f + state.world.nation_get_modifier_values(
 		nations, sys::national_mod_offsets::artisan_input);
 
-	return ve::max(alice_output_base * nation_output_mod, 0.01f);
+	if constexpr(std::is_same_v<T, dcon::nation_id>) {
+		return std::max(alice_output_base * nation_output_mod, 0.01f);
+	} else {
+		return ve::max(alice_output_base * nation_output_mod, 0.01f);
+	}
 }
 
 template<typename T>
@@ -1195,8 +1203,8 @@ float base_artisan_profit(
 
 	auto output_total = state.world.commodity_get_artisan_output_amount(c) * price(state, market, c);
 
-	auto input_multiplier = artisan_input_multiplier(state, nid);
-	auto output_multiplier = artisan_output_multiplier(state, nid);
+	auto input_multiplier = artisan_input_multiplier<dcon::nation_id>(state, nid);
+	auto output_multiplier = artisan_output_multiplier<dcon::nation_id>(state, nid);
 
 	return output_total * output_multiplier - input_multiplier * input_total;
 }
@@ -3838,7 +3846,10 @@ void update_pop_consumption(
 	sys::state& state,
 	ve::vectorizable_buffer<float, dcon::nation_id> & invention_count
 ) {
-	uint32_t total_commodities = state.world.commodity_size();	
+	uint32_t total_commodities = state.world.commodity_size();
+
+	static const ve::fp_vector zero = ve::fp_vector{ 0.f };
+	static const ve::fp_vector one = ve::fp_vector{ 1.f };
 
 	// satisfaction buffers
 	// they store how well pops satisfy their needs
@@ -3952,9 +3963,9 @@ void update_pop_consumption(
 		auto landowners_mask = pop_type == state.culture_definitions.aristocrat;
 
 		auto investment_ratio =
-			ve::select(capitalists_mask, state.defines.alice_invest_capitalist, 0.f)
-			+ ve::select(landowners_mask, state.defines.alice_invest_aristocrat, 0.f)
-			+ ve::select(artisans_mask, state.defines.alice_invest_aristocrat, 0.f);
+			ve::select(capitalists_mask, state.defines.alice_invest_capitalist, zero)
+			+ ve::select(landowners_mask, state.defines.alice_invest_aristocrat, zero)
+			+ ve::select(artisans_mask, state.defines.alice_invest_aristocrat, zero);
 
 		auto investment = savings * investment_ratio;
 
@@ -4623,6 +4634,9 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
 
+	static const ve::fp_vector zero = ve::fp_vector{ 0.f };
+	static const ve::fp_vector one = ve::fp_vector{ 1.f };
+
 	float average_expected_savings = expected_savings_per_capita(state);
 
 	sanity_check(state);
@@ -4915,7 +4929,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.execute_serial_over_nation([&](auto nations) {
 			auto count =
 				invention_count.get(nations)
-				+ ve::select(state.world.nation_get_active_inventions(nations, iid), 1.f, 0.f);
+				+ ve::select(state.world.nation_get_active_inventions(nations, iid), one, zero);
 			invention_count.set(nations, count);
 		});
 	});
