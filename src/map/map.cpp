@@ -1687,20 +1687,20 @@ void make_sea_path(
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
 
-		buffer.emplace_back(
+		buffer.emplace_back(map::textured_line_with_width_vertex {
 			norm_pos,
 			+start_normal,
 			0.f,
 			0.0f,
 			width
-		);
-		buffer.emplace_back(
+		});
+		buffer.emplace_back(map::textured_line_with_width_vertex {
 			norm_pos,
 			-start_normal,
 			1.f,
 			0.0f,
 			width
-		);
+		});
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
@@ -1763,20 +1763,20 @@ void make_land_path(
 		auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
 
-		buffer.emplace_back(
+		buffer.emplace_back(map::textured_line_with_width_vertex{
 			norm_pos,
 			+start_normal,
 			0.f,
 			0.0f,
 			width
-		);
-		buffer.emplace_back(
+		});
+		buffer.emplace_back(map::textured_line_with_width_vertex{
 			norm_pos,
 			-start_normal,
 			1.f,
 			0.0f,
 			width
-		);
+		});
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_tangent{ 0.0f, 0.0f };
