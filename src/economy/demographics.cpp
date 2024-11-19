@@ -105,6 +105,11 @@ template<typename P, typename V>
 void set_life_needs(sys::state& state, P p, V v) {
 	state.world.pop_set_ulife_needs_satisfaction(p, to_pu8(v));
 }
+template void set_life_needs<dcon::pop_id, float>(sys::state&, dcon::pop_id, float);
+template void set_life_needs<dcon::pop_fat_id, float>(sys::state&, dcon::pop_fat_id, float);
+template void set_life_needs<ve::contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::contiguous_tags<dcon::pop_id>, ve::fp_vector);
+template void set_life_needs<ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector);
+
 float get_everyday_needs(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_ueveryday_needs_satisfaction(p);
 	return from_pu8(ival);
@@ -113,6 +118,11 @@ template<typename P, typename V>
 void set_everyday_needs(sys::state& state, P p, V v) {
 	state.world.pop_set_ueveryday_needs_satisfaction(p, to_pu8(v));
 }
+template void set_everyday_needs<dcon::pop_id, float>(sys::state&, dcon::pop_id, float);
+template void set_everyday_needs<dcon::pop_fat_id, float>(sys::state&, dcon::pop_fat_id, float);
+template void set_everyday_needs<ve::contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::contiguous_tags<dcon::pop_id>, ve::fp_vector);
+template void set_everyday_needs<ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector);
+
 float get_luxury_needs(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uluxury_needs_satisfaction(p);
 	return from_pu8(ival);
@@ -121,6 +131,11 @@ template<typename P, typename V>
 void set_luxury_needs(sys::state& state, P p, V v) {
 	state.world.pop_set_uluxury_needs_satisfaction(p, to_pu8(v));
 }
+template void set_luxury_needs<dcon::pop_id, float>(sys::state&, dcon::pop_id, float);
+template void set_luxury_needs<dcon::pop_fat_id, float>(sys::state&, dcon::pop_fat_id, float);
+template void set_luxury_needs<ve::contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::contiguous_tags<dcon::pop_id>, ve::fp_vector);
+template void set_luxury_needs<ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector);
+
 float get_social_reform_desire(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_usocial_reform_desire(p);
 	return from_pu8(ival);
