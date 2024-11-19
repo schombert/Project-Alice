@@ -154,97 +154,105 @@ void recalculate_markets_distance(sys::state& state) {
 	}
 
 	auto base_speed = total_transport_speed / total_amount_of_transports;
-
-	state.world.for_each_market([&](dcon::market_id market) {
-		auto sid = state.world.market_get_zone_from_local_market(market);
-		auto population = state.world.state_instance_get_demographics(sid, demographics::total);
-		auto naval_base = military::state_naval_base_level(state, sid);
+	
+	state.world.execute_parallel_over_market([&](auto markets) {
+		auto sids = state.world.market_get_zone_from_local_market(markets);
+		auto population = ve::apply([&](auto sid) {
+				return state.world.state_instance_get_demographics(sid, demographics::total);
+			}, sids
+		);
+		auto naval_base = ve::to_float(ve::apply([&](auto sid) {
+				return military::state_naval_base_level(state, sid);
+			}, sids
+		));
 		auto civilian_port = population / 200'000.f;
 		auto throughput = 100.f + 100.f * naval_base + 50.f * civilian_port;
 
-		state.world.market_set_max_throughput(market, throughput);
+		state.world.market_set_max_throughput(markets, throughput);
 	});
 
-	state.world.for_each_trade_route([&](dcon::trade_route_id route) {
+	state.world.execute_parallel_over_trade_route([&](auto routes) {
 		// recalculate effective distance
-		auto market_0 = state.world.trade_route_get_connected_markets(route, 0);
-		auto market_1 = state.world.trade_route_get_connected_markets(route, 1);
+		auto markets_0 = ve::apply([&](auto route) { return state.world.trade_route_get_connected_markets(route, 0); }, routes);
+		auto markets_1 = ve::apply([&](auto route) { return state.world.trade_route_get_connected_markets(route, 1); }, routes);
 
-		auto sid_0 = state.world.market_get_zone_from_local_market(market_0);
-		auto sid_1 = state.world.market_get_zone_from_local_market(market_1);
+		auto sids_0 = state.world.market_get_zone_from_local_market(markets_0);
+		auto sids_1 = state.world.market_get_zone_from_local_market(markets_1);
 
-		if (state.world.trade_route_get_is_sea_route(route)) {
-			std::vector<dcon::province_id> path{ };
-			auto speed = base_speed;
-			dcon::province_id p_prev{ };
+		ve::apply([&](auto sid_0, auto sid_1, auto route) {
+			if (state.world.trade_route_get_is_sea_route(route)) {
+				std::vector<dcon::province_id> path{ };
+				auto speed = base_speed;
+				dcon::province_id p_prev{ };
 
-			auto coast_0 = province::state_get_coastal_capital(state, sid_0);
-			auto coast_1 = province::state_get_coastal_capital(state, sid_1);
-			path = province::make_naval_path(state, coast_0, coast_1);
-			p_prev = coast_0;
+				auto coast_0 = province::state_get_coastal_capital(state, sid_0);
+				auto coast_1 = province::state_get_coastal_capital(state, sid_1);
+				path = province::make_naval_path(state, coast_0, coast_1);
+				p_prev = coast_0;
 
-			auto ps = path.size();
-			auto effective_distance = 0.f;
-			auto worst_movement_cost = 0.f;
+				auto ps = path.size();
+				auto effective_distance = 0.f;
+				auto worst_movement_cost = 0.f;
 
-			for(size_t i = 0; i < ps; i++) {
-				auto p_current = path[i];
-				auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
-				float distance = province::distance(state, adj);
-				float sum_mods =
-					state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
-					+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-				effective_distance += std::max(0.01f, distance * std::max(0.01f, (sum_mods * 2.f + 1.0f)));
-				if(sum_mods > worst_movement_cost)
-					worst_movement_cost = std::max(0.01f, sum_mods);
+				for(size_t i = 0; i < ps; i++) {
+					auto p_current = path[i];
+					auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
+					float distance = province::distance(state, adj);
+					float sum_mods =
+						state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
+						+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
+					effective_distance += std::max(0.01f, distance * std::max(0.01f, (sum_mods * 2.f + 1.0f)));
+					if(sum_mods > worst_movement_cost)
+						worst_movement_cost = std::max(0.01f, sum_mods);
 
-				p_prev = p_current;
-			}
-			state.world.trade_route_set_sea_distance(route, effective_distance / speed);
-		} else {
-			state.world.trade_route_set_sea_distance(route, 99999.f);
-		}
-
-		if(state.world.trade_route_get_is_land_route(route)) {
-			std::vector<dcon::province_id> path{ };
-			auto speed = base_speed;
-			dcon::province_id p_prev{ };
-
-			auto market_0_center = state.world.state_instance_get_capital(sid_0);
-			auto market_1_center = state.world.state_instance_get_capital(sid_1);
-			path = province::make_unowned_path(state, market_0_center, market_1_center);
-			speed *= 0.2f;
-			p_prev = market_0_center;
-
-			auto ps = path.size();
-			auto effective_distance = 0.f;
-			auto worst_movement_cost = 0.f;
-			auto min_railroad_level = 0.f;
-
-			for(size_t i = 0; i < ps; i++) {
-				auto p_current = path[i];
-				auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
-				float distance = province::distance(state, adj);
-				float sum_mods =
-					state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
-					+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-				float local_effective_distance = distance * std::max(0.01f, sum_mods * 3.f);
-				auto railroad_origin = state.world.province_get_building_level(p_prev, uint8_t(economy::province_building_type::railroad));
-				auto railroad_target = state.world.province_get_building_level(p_current, uint8_t(economy::province_building_type::railroad));
-				if(railroad_origin > 0 && railroad_target > 0) {
-					local_effective_distance = local_effective_distance / 2.f;
+					p_prev = p_current;
 				}
-				local_effective_distance -= 0.03f * std::min(railroad_target, railroad_origin) * local_effective_distance;
-				effective_distance += std::max(0.01f, local_effective_distance);
-				if(sum_mods > worst_movement_cost)
-					worst_movement_cost = std::max(0.01f, sum_mods);
-
-				p_prev = p_current;
+				state.world.trade_route_set_sea_distance(route, effective_distance / speed);
+			} else {
+				state.world.trade_route_set_sea_distance(route, 99999.f);
 			}
-			state.world.trade_route_set_land_distance(route, effective_distance / speed);
-		} else {
-			state.world.trade_route_set_land_distance(route, 99999.f);
-		}
+
+			if(state.world.trade_route_get_is_land_route(route)) {
+				std::vector<dcon::province_id> path{ };
+				auto speed = base_speed;
+				dcon::province_id p_prev{ };
+
+				auto market_0_center = state.world.state_instance_get_capital(sid_0);
+				auto market_1_center = state.world.state_instance_get_capital(sid_1);
+				path = province::make_unowned_path(state, market_0_center, market_1_center);
+				speed *= 0.2f;
+				p_prev = market_0_center;
+
+				auto ps = path.size();
+				auto effective_distance = 0.f;
+				auto worst_movement_cost = 0.f;
+				auto min_railroad_level = 0.f;
+
+				for(size_t i = 0; i < ps; i++) {
+					auto p_current = path[i];
+					auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
+					float distance = province::distance(state, adj);
+					float sum_mods =
+						state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
+						+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
+					float local_effective_distance = distance * std::max(0.01f, sum_mods * 3.f);
+					auto railroad_origin = state.world.province_get_building_level(p_prev, uint8_t(economy::province_building_type::railroad));
+					auto railroad_target = state.world.province_get_building_level(p_current, uint8_t(economy::province_building_type::railroad));
+					if(railroad_origin > 0 && railroad_target > 0) {
+						local_effective_distance = local_effective_distance / 2.f;
+					}
+					local_effective_distance -= 0.03f * std::min(railroad_target, railroad_origin) * local_effective_distance;
+					effective_distance += std::max(0.01f, local_effective_distance);
+					if(sum_mods > worst_movement_cost)
+						worst_movement_cost = std::max(0.01f, sum_mods);
+
+					p_prev = p_current;
+				}
+				state.world.trade_route_set_land_distance(route, effective_distance / speed);
+			} else {
+				state.world.trade_route_set_land_distance(route, 99999.f);
+			}
+		}, sids_0, sids_1, routes);
 	});
 }
 

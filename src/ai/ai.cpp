@@ -917,7 +917,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
 							lacking_input = true;
 					} else {
 						break;
@@ -944,7 +944,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
 							lacking_input = true;
 					} else {
 						break;

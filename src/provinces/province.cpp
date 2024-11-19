@@ -667,6 +667,7 @@ void upgrade_colonial_state(sys::state& state, dcon::nation_id source, dcon::sta
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(id);
 	auto old_si = state.world.province_get_state_membership(id);
+	auto old_market = state.world.state_instance_get_market_from_local_market(old_si);
 	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
 
 	if(new_owner == old_owner)
@@ -722,7 +723,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			// set prices to something to avoid infinite demand:
 
 			state.world.for_each_commodity([&](auto cid){
-				state.world.market_set_price(new_market, cid, 10.f);
+				state.world.market_set_price(new_market, cid, state.world.market_get_price(old_market, cid));
 			});
 
 			auto new_local_market = state.world.force_create_local_market(new_market, new_si);

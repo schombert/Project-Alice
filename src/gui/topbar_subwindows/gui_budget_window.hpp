@@ -359,12 +359,16 @@ enum class slider_scaling : uint8_t {
 	quadratic
 };
 
+enum class slider_update_type : uint8_t {
+	autoscalerupdate, manual
+};
+
 struct budget_slider_signal {
 	budget_slider_target target = budget_slider_target::poor_tax;
 	float amount = 0.f;
 };
 
-template<budget_slider_target SliderTarget, slider_scaling SliderDisplayScaling>
+template<budget_slider_target SliderTarget, slider_scaling SliderDisplayScaling, slider_update_type SliderUpdateType>
 class budget_slider : public scrollbar {
 public:
 
@@ -481,16 +485,21 @@ public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
 			float amount = float(v) / 100.0f;
-			switch(SliderDisplayScaling) {
-			case ui::slider_scaling::linear:
-				break;
-			case ui::slider_scaling::quadratic:
-				amount = amount * amount;
-				break;
-			default:
-				break;
+
+			if constexpr(SliderUpdateType == slider_update_type::manual) {
+				send(state, parent, budget_slider_signal{ SliderTarget, 1.f });
+			} else {
+				switch(SliderDisplayScaling) {
+				case ui::slider_scaling::linear:
+					break;
+				case ui::slider_scaling::quadratic:
+					amount = amount * amount;
+					break;
+				default:
+					break;
+				}
+				send(state, parent, budget_slider_signal{ SliderTarget, amount });
 			}
-			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
 		if(state.ui_state.drag_target != slider)
 			commit_changes(state);
@@ -629,18 +638,23 @@ public:
 		}
 
 		if(parent) {
-			float amount = float(v) / 100.f;
-			switch(SliderDisplayScaling) {
-			case ui::slider_scaling::linear:
-				break;
-			case ui::slider_scaling::quadratic:
-				amount = amount * amount;
-				break;
-			default:
-				break;
+			if constexpr(SliderUpdateType == slider_update_type::manual) {
+				Cyto::Any payload = budget_slider_signal{ SliderTarget, 1.f };
+				parent->impl_set(state, payload);
+			} else {
+				float amount = float(v) / 100.f;
+				switch(SliderDisplayScaling) {
+				case ui::slider_scaling::linear:
+					break;
+				case ui::slider_scaling::quadratic:
+					amount = amount * amount;
+					break;
+				default:
+					break;
+				}
+				Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
+				parent->impl_set(state, payload);
 			}
-			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};
-			parent->impl_set(state, payload);
 		}
 	}
 
@@ -707,8 +721,7 @@ private:
 	}
 };
 
-
-class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_tax, slider_scaling::linear> {
+class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_tax, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_poor_tax(state.local_player_nation));
 	}
@@ -727,7 +740,7 @@ class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_t
 	}
 };
 
-class budget_middle_tax_slider : public budget_slider<budget_slider_target::middle_tax, slider_scaling::linear> {
+class budget_middle_tax_slider : public budget_slider<budget_slider_target::middle_tax, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_middle_tax(state.local_player_nation));
 	}
@@ -746,7 +759,7 @@ class budget_middle_tax_slider : public budget_slider<budget_slider_target::midd
 	}
 };
 
-class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_tax, slider_scaling::linear> {
+class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_tax, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_rich_tax(state.local_player_nation));
 	}
@@ -765,7 +778,7 @@ class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_t
 	}
 };
 
-class budget_army_stockpile_slider : public budget_slider<budget_slider_target::army_stock, slider_scaling::linear> {
+class budget_army_stockpile_slider : public budget_slider<budget_slider_target::army_stock, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_land_spending(state.local_player_nation));
 	}
@@ -808,7 +821,7 @@ class budget_army_stockpile_slider : public budget_slider<budget_slider_target::
 	}
 };
 
-class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::navy_stock, slider_scaling::linear> {
+class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::navy_stock, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_naval_spending(state.local_player_nation));
 	}
@@ -850,7 +863,7 @@ class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::
 	}
 };
 
-class budget_construction_stockpile_slider : public budget_slider<budget_slider_target::construction_stock, slider_scaling::linear> {
+class budget_construction_stockpile_slider : public budget_slider<budget_slider_target::construction_stock, slider_scaling::linear, slider_update_type::manual> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_construction_spending(state.local_player_nation));
 	}
@@ -1026,7 +1039,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 	}
 };
 
-class budget_education_slider : public budget_slider<budget_slider_target::education, slider_scaling::quadratic> {
+class budget_education_slider : public budget_slider<budget_slider_target::education, slider_scaling::quadratic, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_education_spending(state.local_player_nation));
 	}
@@ -1041,7 +1054,7 @@ class budget_education_slider : public budget_slider<budget_slider_target::educa
 	}
 };
 
-class budget_administration_slider : public budget_slider<budget_slider_target::admin, slider_scaling::quadratic> {
+class budget_administration_slider : public budget_slider<budget_slider_target::admin, slider_scaling::quadratic, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_administrative_spending(state.local_player_nation));
 	}
@@ -1056,7 +1069,7 @@ class budget_administration_slider : public budget_slider<budget_slider_target::
 	}
 };
 
-class budget_social_spending_slider : public budget_slider<budget_slider_target::social, slider_scaling::linear> {
+class budget_social_spending_slider : public budget_slider<budget_slider_target::social, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_social_spending(state.local_player_nation));
 	}
@@ -1073,7 +1086,7 @@ class budget_social_spending_slider : public budget_slider<budget_slider_target:
 	}
 };
 
-class budget_military_spending_slider : public budget_slider<budget_slider_target::military, slider_scaling::quadratic> {
+class budget_military_spending_slider : public budget_slider<budget_slider_target::military, slider_scaling::quadratic, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_military_spending(state.local_player_nation));
 	}
@@ -1090,7 +1103,7 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 	}
 };
 
-class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs, slider_scaling::linear> {
+class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_tariffs(state.local_player_nation));
 	}
@@ -1841,7 +1854,7 @@ public:
 	}
 };
 
-class domestic_investment_slider : public budget_slider<budget_slider_target::domestic_investment, slider_scaling::quadratic> {
+class domestic_investment_slider : public budget_slider<budget_slider_target::domestic_investment, slider_scaling::quadratic, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_domestic_investment_spending(state.local_player_nation));
 	}
@@ -1891,7 +1904,7 @@ public:
 // overseas_maintenance
 
 
-class overseas_maintenance_slider : public budget_slider<budget_slider_target::overseas, slider_scaling::linear> {
+class overseas_maintenance_slider : public budget_slider<budget_slider_target::overseas, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_overseas_spending(state.local_player_nation));
 	}
