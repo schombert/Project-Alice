@@ -116,9 +116,7 @@ int query_DXT_capability(void) {
 	/*	check for the capability	*/
 	if(has_DXT_capability == SOIL_CAPABILITY_UNKNOWN) {
 		/*	we haven't yet checked for the capability, do so	*/
-		if(NULL == strstr(
-			(char const*)glGetString(GL_EXTENSIONS),
-			"GL_EXT_texture_compression_s3tc")) {
+		if(false) {
 			/*	not there, flag the failure	*/
 			has_DXT_capability = SOIL_CAPABILITY_NONE;
 		} else {

@@ -2002,13 +2002,14 @@ public:
 		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
 		auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
 		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+		auto state_id = fat_id.get_province_from_pop_location().get_state_membership();
 
 		// updated below ...
 		float expenses = 0.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_life_needs(c);
-			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_everyday_needs(c);
-			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_luxury_needs(c);
+			expenses += economy::price(state, state_id, c) * fat_id.get_poptype().get_life_needs(c);
+			expenses += economy::price(state, state_id, c) * fat_id.get_poptype().get_everyday_needs(c);
+			expenses += economy::price(state, state_id, c) * fat_id.get_poptype().get_luxury_needs(c);
 		});
 		expenses_text->set_text(state, text::format_money(expenses));
 		savings_text->set_text(state, text::format_money(state.world.pop_get_savings(fat_id.id)));

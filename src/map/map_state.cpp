@@ -77,6 +77,104 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 
+void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
+	map_data.trade_flow_vertices.clear();
+	map_data.trade_flow_arrow_counts.clear();
+	map_data.trade_flow_arrow_starts.clear();
+
+	auto cid = state.selected_trade_good;
+
+	if(!cid) {
+		return;
+	}
+
+	// we start with getting some stats on trade routes:
+	// we do not want to display too many of them
+
+	auto total = 0.f;
+	auto count = 0.f;
+
+	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
+		auto current_volume = std::abs(state.world.trade_route_get_volume(trade_route, cid));
+		if(current_volume > 0.f) {
+			total = total + current_volume;
+			count += 1.f;
+		}
+	});
+
+	auto average = total / (count + 1);
+
+	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+		auto origin =
+			current_volume > 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto target =
+			current_volume <= 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+		auto s_origin = state.world.market_get_zone_from_local_market(origin);
+		auto s_target = state.world.market_get_zone_from_local_market(target);
+
+		auto p_origin = state.world.state_instance_get_capital(s_origin);
+		auto p_target = state.world.state_instance_get_capital(s_target);
+
+		auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+
+		auto absolute_volume = std::abs(sat * current_volume);
+
+		if(absolute_volume <= std::clamp(average, 0.001f, 5.f)) {
+			return;
+		}
+
+		auto width = std::log(1.f + absolute_volume * 100.f) * 300.f;
+
+		auto old_size = map_data.trade_flow_vertices.size();
+		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+
+		bool is_sea = state.world.trade_route_get_distance(trade_route) == state.world.trade_route_get_sea_distance(trade_route);
+
+		if(is_sea) {
+			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
+			auto coast_target = province::state_get_coastal_capital(state, s_target);
+
+			map::make_sea_path(
+				state,
+				map_data.trade_flow_vertices,
+				coast_origin, coast_target,
+				width,
+				float(map_data.size_x), float(map_data.size_y),
+				std::sin((float)(trade_route.value)) * 50.f,
+				std::cos((float)(trade_route.value)) * 50.f
+			);
+		} else {
+			map::make_land_path(
+				state,
+				map_data.trade_flow_vertices,
+				p_origin, p_target,
+				width,
+				float(map_data.size_x), float(map_data.size_y)
+			);
+		}
+		map_data.trade_flow_arrow_counts.push_back(
+			GLsizei(map_data.trade_flow_vertices.size() - old_size)
+		);
+	});
+
+	if(!map_data.trade_flow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_trade_flow]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof(textured_line_with_width_vertex)
+			* map_data.trade_flow_vertices.size(),
+			map_data.trade_flow_vertices.data(),
+			GL_STATIC_DRAW
+		);
+	}
+}
+
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
 	map_data.unit_arrow_counts.clear();
@@ -970,7 +1068,11 @@ void map_state::update(sys::state& state) {
 	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
 
-	update_unit_arrows(state, map_data);
+	if(state.selected_trade_good && state.update_trade_flow.load(std::memory_order::acquire)) {
+		update_trade_flow_arrows(state, map_data);
+		state.update_trade_flow.store(false, std::memory_order_release);
+	}
+	update_unit_arrows(state, map_data);	
 
 	// Update railroads, only if railroads are being built and we have 'em enabled
 	if(state.user_settings.railroads_enabled && state.railroad_built.load(std::memory_order::acquire)) {

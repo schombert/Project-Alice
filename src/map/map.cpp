@@ -314,6 +314,8 @@ void display_data::create_meshes() {
 	create_textured_line_vbo(vbo_array[vo_railroad], railroad_vertices);
 	glBindVertexArray(vao_array[vo_coastal]);
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
+	glBindVertexArray(vao_array[vo_trade_flow]);
+	create_textured_line_vbo(vbo_array[vo_trade_flow], trade_flow_vertices);
 	glBindVertexArray(vao_array[vo_unit_arrow]);
 	create_unit_arrow_vbo(vbo_array[vo_unit_arrow], unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_attack_unit_arrow]);
@@ -400,6 +402,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
 	shaders[shader_textured_line_with_variable_width] = create_program(*tline_width_vshader, *river_fshader);
+	shaders[shader_trade_flow] = create_program(*tline_width_vshader, *tlineb_fshader);
 	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
 	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
 	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
@@ -769,6 +772,22 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindVertexArray(vao_array[vo_coastal]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_coastal]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
+	}
+
+	// trade flow
+	if(state.selected_trade_good && !trade_flow_vertices.empty()) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_arrow]);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
+
+		load_shader(shader_trade_flow);
+		glUniform1i(shader_uniforms[shader_trade_flow][uniform_line_texture], 0);
+		glUniform1i(shader_uniforms[shader_trade_flow][uniform_provinces_texture_sampler], 3);
+
+		glBindVertexArray(vao_array[vo_trade_flow]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_trade_flow]);
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
 	}
 
 	if(zoom > map::zoom_close) { //only render if close enough
@@ -1441,11 +1460,20 @@ void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::
 	buffer.emplace_back(textured_line_vertex{ end, -next_normal_dir, 1.0f, distance });//D
 }
 
-void add_tl_segment_buffer(std::vector<map::textured_line_with_width_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 next_normal_dir, float size_x, float size_y, float& distance, float width) {
+void add_tl_segment_buffer(
+	std::vector<map::textured_line_with_width_vertex>& buffer,
+	glm::vec2 start,
+	glm::vec2 end,
+	glm::vec2 next_normal_dir,
+	float size_x,
+	float size_y,
+	float& distance,
+	float width
+) {
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 	auto d = start - end;
-	distance += glm::length(d);
+	distance += glm::length(d) * width / 1000.f;
 	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width});//C
 	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width});//D
 }
@@ -1503,11 +1531,31 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm
 	}
 }
 
-void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_tangent, glm::vec2 end_tangent, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance, float width_start, float width_end) {
-	auto control_point_length = glm::length(end - start) * control_point_length_factor * 0.4f;
+void add_tl_bezier_to_buffer(
+	std::vector<map::textured_line_with_width_vertex>& buffer,
+	glm::vec2 start,
+	glm::vec2 end,
+	glm::vec2 start_tangent,
+	glm::vec2 end_tangent,
+	float progress,
+	bool last_curve,
+	float size_x,
+	float size_y,
+	uint32_t num_b_segments,
+	float& distance,
+	float width_start,
+	float width_end
+) {
+	auto control_point_length = glm::length(end - start) * control_point_length_factor;
+
+	//auto start_normal = -glm::vec2{ start_tangent.y, -start_tangent.x };
+	//auto end_normal = -glm::vec2{ end_tangent.y, -end_tangent.x };
+
+	//auto start_control_point = start_normal * control_point_length + start;
+	//auto end_control_point = -end_normal * control_point_length + end;
 
 	auto start_control_point = start_tangent * control_point_length + start;
-	auto end_control_point = -end_tangent * control_point_length + end;
+	auto end_control_point = end_tangent * control_point_length + end;
 
 	auto bpoint = [=](float t) {
 		auto u = 1.0f - t;
@@ -1519,7 +1567,7 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& 
 		};
 
 	auto last_normal = glm::vec2(-start_tangent.y, start_tangent.x);
-	glm::vec2 current_normal{ 0.0f, 0.0f };
+	glm::vec2 next_normal{ 0.0f, 0.0f };
 
 	for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
 		auto t_start = float(i) / float(num_b_segments);
@@ -1530,11 +1578,16 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& 
 		auto end_point = bpoint(t_end);
 		auto next_point = bpoint(t_next);
 
-		auto tangent_part_1 = glm::normalize(end_point - start_point);
-		auto tangent_part_2 = glm::normalize(next_point - end_point);
-		auto current_tangent = glm::normalize(tangent_part_1 + tangent_part_2);
-
-		current_normal = glm::vec2(-current_tangent.y, current_tangent.x);
+		next_normal = glm::normalize(end_point - start_point) + glm::normalize(end_point - next_point);
+		auto temp = glm::normalize(end_point - start_point);
+		if(glm::length(next_normal) < 0.00001f) {
+			next_normal = glm::normalize(glm::vec2(-temp.y, temp.x));
+		} else {
+			next_normal = glm::normalize(next_normal);
+			if(glm::dot(glm::vec2(-temp.y, temp.x), next_normal) < 0) {
+				next_normal = -next_normal;
+			}
+		}
 
 		auto width = t_start * width_end + (1.f - t_start) * width_start;
 
@@ -1542,19 +1595,19 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_with_width_vertex>& 
 			auto help = true;
 		}
 
-		add_tl_segment_buffer(buffer, start_point, end_point, current_normal, size_x, size_y, distance, width);
+		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance, width);
 
-		last_normal = current_normal;
+		last_normal = next_normal;
 	}
 	{
-		current_normal = glm::vec2(-end_tangent.y, end_tangent.x);
+		next_normal = glm::vec2(end_tangent.y, -end_tangent.x);
 		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
 		auto t_end = 1.0f;
 		auto start_point = bpoint(t_start);
 		auto end_point = bpoint(t_end);
 		auto width = t_start * width_end + (1.f - t_start) * width_start;
 
-		add_tl_segment_buffer(buffer, start_point, end_point, current_normal, size_x, size_y, distance, width);
+		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance, width);
 	}
 }
 
@@ -1612,6 +1665,162 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 	}
 }
 
+void make_sea_path(
+	sys::state& state,
+	std::vector<map::textured_line_with_width_vertex>& buffer,
+	dcon::province_id origin,
+	dcon::province_id target,
+	float width,
+	float size_x,
+	float size_y,
+	float shift_x,
+	float shift_y
+) {
+	auto path = province::make_naval_path(state, origin, target);
+	float distance = 0.0f;
+
+	auto shift = glm::vec2(shift_x, shift_y) / glm::vec2(size_x, size_y);
+	if(auto ps = path.size(); ps > 0) {
+		glm::vec2 current_pos = duplicates::get_army_location(state, origin) + shift;
+		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(map::textured_line_with_width_vertex {
+			norm_pos,
+			+start_normal,
+			0.f,
+			0.0f,
+			width
+		});
+		buffer.emplace_back(map::textured_line_with_width_vertex {
+			norm_pos,
+			-start_normal,
+			1.f,
+			0.0f,
+			width
+		});
+
+		for(auto i = ps; i-- > 0;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_army_location(state, path[i]) + shift, current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]) + shift, next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+
+			add_tl_bezier_to_buffer(
+				buffer,
+				current_pos,
+				next_pos,
+				prev_perpendicular,
+				next_perpendicular,
+				0.0f,
+				i == 0,
+				size_x,
+				size_y,
+				default_num_b_segments,
+				distance,
+				width,
+				width
+			);
+
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = duplicates::get_army_location(state, path[i]) + shift;
+		}
+	}
+}
+
+void make_land_path(
+	sys::state& state,
+	std::vector<map::textured_line_with_width_vertex>& buffer,
+	dcon::province_id origin,
+	dcon::province_id target,
+	float width,
+	float size_x,
+	float size_y
+) {
+	auto path = province::make_unowned_land_path(state, origin, target);
+	float distance = 0.0f;
+	if(auto ps = path.size(); ps > 0) {
+		glm::vec2 current_pos = duplicates::get_army_location(state, origin);
+		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
+		auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(map::textured_line_with_width_vertex{
+			norm_pos,
+			+start_normal,
+			0.f,
+			0.0f,
+			width
+		});
+		buffer.emplace_back(map::textured_line_with_width_vertex{
+			norm_pos,
+			-start_normal,
+			1.f,
+			0.0f,
+			width
+		});
+
+		for(auto i = ps; i-- > 0;) {
+			glm::vec2 next_tangent{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_tangent = -a_per;
+				} else {
+					next_tangent = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_tangent) < glm::dot(a_per, next_tangent)) {
+						next_tangent *= -1.0f;
+					}
+				}
+			} else {
+				next_tangent = glm::normalize(current_pos - next_pos);
+			}
+
+			add_tl_bezier_to_buffer(
+				buffer,
+				current_pos,
+				next_pos,
+				prev_tangent,
+				next_tangent,
+				0.0f,
+				i == 0,
+				size_x,
+				size_y,
+				default_num_b_segments,
+				distance,
+				width,
+				width
+			);
+
+			//prev_perpendicular = -1.0f * next_perpendicular;
+			prev_tangent = -next_tangent;
+			current_pos = duplicates::get_army_location(state, path[i]);
+		}
+	}
+}
 
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
 	auto path = state.world.army_get_path(selected_army);
@@ -2466,6 +2675,9 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_arrow] = ogl::make_gl_texture(assets_dir, NATIVE("arrow.png"));
+	ogl::set_gltex_parameters(textures[texture_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_attack_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("attackarrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_attack_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);

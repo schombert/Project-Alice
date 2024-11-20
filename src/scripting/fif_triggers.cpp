@@ -2111,6 +2111,7 @@ TRIGGER_FUNCTION(tf_in_sphere_this_pop) {
 	return ">r dup " + pop_to_owner() + "r> swap >r dup in_sphere_of @ r> = " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_produces_nation) {
+	// TODO: adjust to local economy
 	return "dup " + std::to_string(trigger::payload(tval[1]).com_id.index()) + " >commodity_id domestic_market_pool 0.0 > " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_produces_province) {

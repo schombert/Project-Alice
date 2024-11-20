@@ -1221,6 +1221,7 @@ alice_no_current_support;Currently there is no political support for this reform
 trade_global_data;World
 trade_nation_data;Domestic
 trade_good_stats_global;Nations
+trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
 price;Price
 supply;Supply

@@ -125,6 +125,10 @@ public:
 	std::vector<GLint> static_mesh_starts;
 	std::vector<GLsizei> static_mesh_counts;
 	//
+	std::vector<textured_line_with_width_vertex> trade_flow_vertices;
+	std::vector<GLint> trade_flow_arrow_starts;
+	std::vector<GLsizei> trade_flow_arrow_counts;
+	//
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<GLint> unit_arrow_starts;
 	std::vector<GLsizei> unit_arrow_counts;
@@ -185,7 +189,8 @@ public:
 	static constexpr uint32_t vo_strategy_unit_arrow = 12;
 	static constexpr uint32_t vo_objective_unit_arrow = 13;
 	static constexpr uint32_t vo_other_objective_unit_arrow = 14;
-	static constexpr uint32_t vo_count = 15;
+	static constexpr uint32_t vo_trade_flow = 15;
+	static constexpr uint32_t vo_count = 16;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -215,7 +220,8 @@ public:
 	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
 	static constexpr uint32_t texture_hover_border = 24;
 	static constexpr uint32_t texture_sea_mask = 25;
-	static constexpr uint32_t texture_count = 26;
+	static constexpr uint32_t texture_arrow = 26;
+	static constexpr uint32_t texture_count = 27;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -233,7 +239,8 @@ public:
 	static constexpr uint32_t shader_railroad_line = 7;
 	static constexpr uint32_t shader_map_standing_object = 8;
 	static constexpr uint32_t shader_textured_line_with_variable_width = 9;
-	static constexpr uint32_t shader_count = 10;
+	static constexpr uint32_t shader_trade_flow = 10;
+	static constexpr uint32_t shader_count = 11;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;
@@ -298,6 +305,27 @@ public:
 void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size);
 
 void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
+void make_sea_path(
+	sys::state& state,
+	std::vector<map::textured_line_with_width_vertex>& buffer,
+	dcon::province_id origin,
+	dcon::province_id target,
+	float width,
+	float size_x,
+	float size_y,
+	float shift_x,
+	float shift_y
+);
+void make_land_path(
+	sys::state& state,
+	std::vector<map::textured_line_with_width_vertex>& buffer,
+	dcon::province_id origin,
+	dcon::province_id target,
+	float width,
+	float size_x,
+	float size_y
+);
+
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);

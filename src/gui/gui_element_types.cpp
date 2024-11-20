@@ -2302,21 +2302,39 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 
 void scrollbar_left::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 5, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_left::button_shift_right_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 10000, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 10000, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {

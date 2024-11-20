@@ -472,6 +472,18 @@ bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si) {
 	return false;
 }
 
+uint32_t state_naval_base_level(sys::state const& state, dcon::state_instance_id si) {
+	uint32_t level = 0;
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	auto def = state.world.state_instance_get_definition(si);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(def)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			level += p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base));
+		}
+	}
+	return level;
+}
+
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
@@ -1157,12 +1169,27 @@ float mobilization_size(sys::state const& state, dcon::nation_id n) {
 	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
 	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_size);
 }
+
+ve::fp_vector ve_mobilization_size(sys::state const& state, ve::tagged_vector<dcon::nation_id> nations) {
+	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
+	return state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::mobilization_size);
+}
+
 float mobilization_impact(sys::state const& state, dcon::nation_id n) {
 	// Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier +
 	// technology-mobilization-impact-modifier), to a minimum of zero.
-	return std::clamp(1.0f - mobilization_size(state, n) *
-															 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
-			0.0f, 1.0f);
+	return std::clamp(
+		1.0f - mobilization_size(state, n)
+		* state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
+		0.0f,
+		1.0f
+	);
+}
+
+ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<dcon::nation_id> nations) {
+	auto size = ve_mobilization_size(state, nations);
+	auto impact = (1.f - size) * state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::mobilization_impact);
+	return ve::min(ve::max(impact, 0.f), 1.f);
 }
 
 void update_cbs(sys::state& state) {

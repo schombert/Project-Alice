@@ -70,11 +70,14 @@ float get_raw_employment(sys::state const& state, dcon::pop_id p);
 void set_employment(sys::state& state, dcon::pop_id p, float v);
 void set_raw_employment(sys::state& state, dcon::pop_id p, float v);
 float get_life_needs(sys::state const& state, dcon::pop_id p);
-void set_life_needs(sys::state& state, dcon::pop_id p, float v);
+template<typename P, typename V>
+void set_life_needs(sys::state& state, P p, V v);
 float get_everyday_needs(sys::state const& state, dcon::pop_id p);
-void set_everyday_needs(sys::state& state, dcon::pop_id p, float v);
+template<typename P, typename V>
+void set_everyday_needs(sys::state& state, P p, V v);
 float get_luxury_needs(sys::state const& state, dcon::pop_id p);
-void set_luxury_needs(sys::state& state, dcon::pop_id p, float v);
+template<typename P, typename V>
+void set_luxury_needs(sys::state& state, P p, V v);
 float get_social_reform_desire(sys::state const& state, dcon::pop_id p);
 void set_social_reform_desire(sys::state& state, dcon::pop_id p, float v);
 float get_political_reform_desire(sys::state const& state, dcon::pop_id p);
