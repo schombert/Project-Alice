@@ -597,99 +597,166 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	//glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 
-	// impassible borders
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
+	// a constant, as to not depend on a scenario/save being reloaded
+	std::vector<bool> province_on_screen(state.world.province_size(), false);
+	for(const auto p : state.world.in_province) {
+		glm::vec2 tmp;
+		province_on_screen[p.id.index()] = state.map_state.map_to_screen(state, state.map_state.normalize_map_coord(p.get_mid_point()), screen_size, tmp);
+	}
+	auto const border_is_visible = [&](dcon::province_adjacency_id adj) {
+		auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+		auto p2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+		return province_on_screen[p1.index()] || province_on_screen[p2.index()];
+	};
+	
+	static std::vector<GLint> b_starts;
+	static std::vector<GLint> b_counts;
+	static uint32_t b_index = 0;
+	if(b_starts.size() < borders.size()) {
+		b_starts.resize(borders.size());
+		b_counts.resize(borders.size());
+	}
 	if(zoom > map::zoom_close) {
 		if(zoom > map::zoom_very_close) { // Render province borders
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
-
+			b_index = 0; //reset index
 			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == 0) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				if(border_is_visible(b.adj)
+				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == 0) {
+					b_starts[b_index] = b.start_index;
+					b_counts[b_index] = b.count;
+					++b_index;
 				}
 			}
+			if(b_index > 0) {
+				glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.0001f); // width
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
+				glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
+			}
 		}
-		{ // Render state borders
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
-			glActiveTexture(GL_TEXTURE2);
+		// Render state borders
+		b_index = 0;
+		for(auto b : borders) {
+			if(border_is_visible(b.adj)
+			&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
+				b_starts[b_index] = b.start_index;
+				b_counts[b_index] = b.count;
+				++b_index;
+			}
+		}
+		if(b_index > 0) {
+			glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.0002f); // width
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
+		}
+		// Impassable
+		b_index = 0;
+		for(auto b : borders) {
+			if(border_is_visible(b.adj)
+			&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == province::border::impassible_bit) {
+				b_starts[b_index] = b.start_index;
+				b_counts[b_index] = b.count;
+				++b_index;
 			}
 		}
-		{
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00085f); // width
-			glActiveTexture(GL_TEXTURE2);
+		if(b_index > 0) {
+			glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.00085f); // width
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
-			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == province::border::impassible_bit) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
-			}
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 		}
 		// national borders
-		{
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
-			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::impassible_bit)) == province::border::national_bit) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
+		b_index = 0;
+		for(auto b : borders) {
+			if(border_is_visible(b.adj)
+			&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::impassible_bit)) == province::border::national_bit) {
+				b_starts[b_index] = b.start_index;
+				b_counts[b_index] = b.count;
+				++b_index;
 			}
+		}
+		if(b_index > 0) {
+			glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.0003f); // width
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 		}
 	} else {
 		if(zoom > map::zoom_very_close) { // Render province borders
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
+			b_index = 0;
 			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::state_bit)) == 0) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				if(border_is_visible(b.adj)
+				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::state_bit)) == 0) {
+					b_starts[b_index] = b.start_index;
+					b_counts[b_index] = b.count;
+					++b_index;
 				}
+			}
+			if(b_index > 0) {
+				glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.0001f); // width
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
+				glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 			}
 		}
 		if(zoom > map::zoom_close) { // Render state borders
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+			b_index = 0;
 			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				if(border_is_visible(b.adj)
+				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
+					b_starts[b_index] = b.start_index;
+					b_counts[b_index] = b.count;
+					++b_index;
 				}
+			}
+			if(b_index > 0) {
+				glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.0002f); // width
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+				glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 			}
 		}
 		// national borders
-		{
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-			for(auto b : borders) {
-				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) == province::border::national_bit) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
+		b_index = 0;
+		for(auto b : borders) {
+			if(border_is_visible(b.adj)
+			&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) == province::border::national_bit) {
+				b_starts[b_index] = b.start_index;
+				b_counts[b_index] = b.count;
+				++b_index;
 			}
 		}
+		if(b_index > 0) {
+			glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], 0.0003f); // width
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
+		}
 	}
-	if(state.map_state.selected_province || (state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation)) {
-		glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-		if(state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation) {
-			for(auto b : borders) {
-				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-				if((state.world.province_get_nation_from_province_ownership(p0) == state.local_player_nation
-					|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
-				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+	if(state.map_state.selected_province || state.current_scene.borders == game_scene::borders_granularity::nation) {
+		if(state.current_scene.borders == game_scene::borders_granularity::nation) {
+			auto n = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
+			if(!n)
+				n = state.local_player_nation;
+			if(n) {
+				b_index = 0;
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_nation_from_province_ownership(p0) == n
+						|| state.world.province_get_nation_from_province_ownership(p1) == n)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
+						b_starts[b_index] = b.start_index;
+						b_counts[b_index] = b.count;
+						++b_index;
+					}
+				}
+				if(b_index > 0) {
+					glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+					glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 				}
 			}
 		} else if(state.current_scene.borders == game_scene::borders_granularity::state) {
@@ -697,23 +764,41 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			if(owner) {
 				auto siid = state.world.province_get_state_membership(state.map_state.selected_province);
 				//per state
+				b_index = 0;
 				for(auto b : borders) {
 					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 					if((state.world.province_get_state_membership(p0) == siid
 						|| state.world.province_get_state_membership(p1) == siid)
 					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) != 0) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+						b_starts[b_index] = b.start_index;
+						b_counts[b_index] = b.count;
+						++b_index;
 					}
+				}
+				if(b_index > 0) {
+					glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+					glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 				}
 			}
 		} else if(state.current_scene.borders == game_scene::borders_granularity::province) {
+			b_index = 0;
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 				if(p0 == state.map_state.selected_province || p1 == state.map_state.selected_province) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					b_starts[b_index] = b.start_index;
+					b_counts[b_index] = b.count;
+					++b_index;
 				}
+			}
+			if(b_index > 0) {
+				glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+				glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 			}
 		}
 	}
@@ -725,41 +810,65 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(state.map_state.map_data.province_id_map[idx]));
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
 			if(owner && state.current_scene.borders == game_scene::borders_granularity::nation) {
 				//per nation
+				b_index = 0;
 				for(auto b : borders) {
 					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 					if((state.world.province_get_nation_from_province_ownership(p0) == owner
 						|| state.world.province_get_nation_from_province_ownership(p1) == owner)
 					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+						b_starts[b_index] = b.start_index;
+						b_counts[b_index] = b.count;
+						++b_index;
 					}
+				}
+				if(b_index > 0) {
+					glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
+					glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 				}
 			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::state) {
 				auto siid = state.world.province_get_state_membership(prov);
 				//per state
+				b_index = 0;
 				for(auto b : borders) {
 					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 					if((state.world.province_get_state_membership(p0) == siid
 						|| state.world.province_get_state_membership(p1) == siid)
 					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) != 0) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+						b_starts[b_index] = b.start_index;
+						b_counts[b_index] = b.count;
+						++b_index;
 					}
 				}
-			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::province)  {
+				if(b_index > 0) {
+					glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
+					glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
+				}
+			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::province) {
 				//per province
+				b_index = 0;
 				for(auto b : borders) {
 					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 					if(p0 == prov || p1 == prov) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+						b_starts[b_index] = b.start_index;
+						b_counts[b_index] = b.count;
+						++b_index;
 					}
+				}
+				if(b_index > 0) {
+					glUniform1f(shader_uniforms[uint8_t(map_view_mode)][shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
+					glMultiDrawArrays(GL_TRIANGLE_STRIP, b_starts.data(), b_counts.data(), GLsizei(b_index));
 				}
 			}
 		}
