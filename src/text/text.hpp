@@ -784,13 +784,16 @@ enum class embedded_icon : uint8_t {
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;
 };
+struct embedded_commodity_icon {
+	dcon::commodity_id commodity;
+};
 struct embedded_flag {
 	dcon::national_identity_id tag;
 };
 using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
 		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
 		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum,
-		dcon::state_definition_id, embedded_icon, embedded_flag, embedded_unit_icon>;
+		dcon::state_definition_id, embedded_icon, embedded_flag, embedded_unit_icon, embedded_commodity_icon>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 struct text_chunk {

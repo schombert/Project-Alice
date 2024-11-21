@@ -705,6 +705,12 @@ public:
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
 						auto box = text::open_layout_box(contents, 0);
+
+						auto cid = goods.commodity_type[i];
+						std::string padding = cid.index() < 10 ? "0" : "";
+						std::string description = "@$" + padding + std::to_string(cid.index());
+						text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
@@ -2140,9 +2146,17 @@ inline table::column<dcon::trade_route_id> trade_route_0 = {
 		return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
-		return text::get_name_as_string(
+
+		auto sid = retrieve<dcon::state_instance_id>(state, container);
+		auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
+		auto niid = state.world.nation_get_identity_from_identity_holder(nid);
+		auto ii = state.world.national_identity_get_identifying_int(niid);
+		auto tag = nations::int_to_tag(ii);
+		auto prefix = "@" + tag;
+
+		return prefix + text::get_name_as_string(
 			state,
-			state.world.state_instance_get_capital(retrieve<dcon::state_instance_id>(state, container))
+			state.world.state_instance_get_capital(sid)
 		);
 	},
 	.cell_definition_string = "thin_cell_name",
@@ -2185,9 +2199,16 @@ inline table::column<dcon::trade_route_id> trade_route_1 = {
 			index = 1;
 		}
 
-		return text::get_name_as_string(
+		auto sid = dcon::fatten(state.world, item).get_connected_markets(index).get_zone_from_local_market();
+		auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
+		auto niid = state.world.nation_get_identity_from_identity_holder(nid);
+		auto ii = state.world.national_identity_get_identifying_int(niid);
+		auto tag = nations::int_to_tag(ii);
+		auto prefix = "@" + tag;
+
+		return prefix + text::get_name_as_string(
 			state,
-			dcon::fatten(state.world, item).get_connected_markets(index).get_zone_from_local_market().get_capital()
+			sid.get_capital()
 		);
 	},
 	.cell_definition_string = "thin_cell_name",
@@ -2362,7 +2383,10 @@ inline table::column<dcon::commodity_id> rgo_name = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id item) {
-		return text::get_name_as_string(
+		std::string padding = item.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(item.index());
+
+		return description + text::get_name_as_string(
 			state,
 			dcon::fatten(state.world, item)
 		);

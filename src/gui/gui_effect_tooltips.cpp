@@ -1794,6 +1794,12 @@ uint32_t ef_change_region_name_province(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_trade_goods(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
+
+		auto cid = trigger::payload(tval[1]).com_id;
+		std::string padding = cid.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(cid.index());
+		text::add_unparsed_text_to_layout_box(ws, layout, box, description);
+
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "change_rgo_production_to", m);
@@ -5970,7 +5976,14 @@ uint32_t ef_variable_good_name(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto amount = trigger::read_float_from_payload(tval + 2);
 		auto box = text::open_layout_box(layout, indentation);
+
 		display_value(text::fp_one_place{ amount }, true, ws, layout, box);
+
+		auto cid = trigger::payload(tval[1]).com_id;
+		std::string padding = cid.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(cid.index());
+		text::add_unparsed_text_to_layout_box(ws, layout, box, description);
+
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "stockpile_of", m);
@@ -5983,6 +5996,12 @@ uint32_t ef_variable_good_name_province(EFFECT_DISPLAY_PARAMS) {
 		auto amount = trigger::read_float_from_payload(tval + 2);
 		auto box = text::open_layout_box(layout, indentation);
 		display_value(text::fp_one_place{ amount }, true, ws, layout, box);
+
+		auto cid = trigger::payload(tval[1]).com_id;
+		std::string padding = cid.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(cid.index());
+		text::add_unparsed_text_to_layout_box(ws, layout, box, description);
+
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "stockpile_of", m);

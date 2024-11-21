@@ -1197,6 +1197,17 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, em
 	}
 }
 
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_commodity_icon ico) {
+	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
+
+	if(dest.native_rtl == layout_base::rtl_status::rtl) {
+		box.x_position -= v_amount;
+		dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs{}, box.x_position, ico, int16_t(box.y_position), int16_t(v_amount), int16_t(v_amount), text::text_color::white });
+	} else {
+		dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs{}, box.x_position, ico, int16_t(box.y_position), int16_t(v_amount), int16_t(v_amount), text::text_color::white });
+		box.x_position += v_amount;
+	}
+}
 
 text::alignment localized_alignment(sys::state& state, text::alignment in) {
 	if(in == alignment::left && state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
@@ -1686,8 +1697,15 @@ void add_unparsed_text_to_layout_box(sys::state& state, layout_base& dest, layou
 				uint8_t unit_index = tens * 10 + ones;
 				pos += 4;
 				dcon::unit_type_id given_unit_type_id { unit_index };
-				auto icon = state.military_definitions.unit_base_definitions[given_unit_type_id].icon;
 				add_to_layout_box(state, dest, box, embedded_unit_icon{ given_unit_type_id });
+				section_start = pos;
+			} else if(*(pos + 1) == '$') {
+				uint8_t tens = char(*(pos + 2)) - '0';
+				uint8_t ones = char(*(pos + 3)) - '0';
+				uint8_t commodity_index = tens * 10 + ones;
+				pos += 4;
+				dcon::commodity_id cid{ commodity_index };
+				add_to_layout_box(state, dest, box, embedded_commodity_icon{ cid });
 				section_start = pos;
 			} else {
 				auto tag_int = nations::tag_to_int(char(toupper(*(pos + 1))), char(toupper(*(pos + 2))), char(toupper(*(pos + 3))));

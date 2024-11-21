@@ -536,7 +536,10 @@ public:
 
 
 std::string name_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::get_name_as_string(
+	std::string padding = item.index() < 10 ? "0" : "";
+	std::string description = "@$" + padding + std::to_string(item.index());
+
+	return description + text::get_name_as_string(
 		state,
 		dcon::fatten(state.world, item)
 	);
@@ -948,7 +951,12 @@ inline table::column<dcon::nation_id> nation_name = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::nation_id id) {
-		auto value = text::produce_simple_string(state, text::get_name(state, id));
+		auto niid = state.world.nation_get_identity_from_identity_holder(id);
+		auto ii = state.world.national_identity_get_identifying_int(niid);
+		auto tag = nations::int_to_tag(ii);
+		auto prefix = "@" + tag;
+
+		auto value = prefix + text::produce_simple_string(state, text::get_name(state, id));
 		return value;
 	},
 	.cell_definition_string = "thin_cell_name",

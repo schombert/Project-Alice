@@ -284,6 +284,16 @@ void render_text_chunk(
 			current_font,
 			cmod
 		);
+	} else if(std::holds_alternative<text::embedded_commodity_icon>(t.source)) {
+		ogl::render_text_commodity_icon(
+			state,
+			std::get<text::embedded_commodity_icon>(t.source),
+			x,
+			baseline_y,
+			font_size,
+			current_font,
+			cmod
+		);
 	} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
 		ogl::render_text_icon(
 			state,

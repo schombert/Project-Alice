@@ -814,6 +814,11 @@ class budget_army_stockpile_slider : public budget_slider<budget_slider_target::
 				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost });
 				auto box = text::open_layout_box(contents, 0);
+
+				std::string padding = cid.index() < 10 ? "0" : "";
+				std::string description = "@$" + padding + std::to_string(cid.index());
+				text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
 				text::close_layout_box(contents, box);
 			}
@@ -856,6 +861,11 @@ class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::
 				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost });
 				auto box = text::open_layout_box(contents, 0);
+
+				std::string padding = cid.index() < 10 ? "0" : "";
+				std::string description = "@$" + padding + std::to_string(cid.index());
+				text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
 				text::close_layout_box(contents, box);
 			}
@@ -1031,6 +1041,11 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 					text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ required });
 					text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ amount });
 					auto box = text::open_layout_box(contents, 0);
+
+					std::string padding = cid.index() < 10 ? "0" : "";
+					std::string description = "@$" + padding + std::to_string(cid.index());
+					text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 					text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
 					text::close_layout_box(contents, box);
 				}
