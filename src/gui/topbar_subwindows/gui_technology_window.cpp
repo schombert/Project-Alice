@@ -114,6 +114,12 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 		for(const auto mod : list) {
 			auto box = text::open_layout_box(contents, indent);
 			auto name = state.world.commodity_get_name(mod.type);
+
+			auto cid = mod.type;
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 			text::add_to_layout_box(state, contents, box, name);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name));
@@ -459,6 +465,12 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 		for(const auto mod : list) {
 			auto box = text::open_layout_box(contents, 0);
 			auto name = state.world.commodity_get_name(mod.type);
+
+			auto cid = mod.type;
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 			text::add_to_layout_box(state, contents, box, name);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name));

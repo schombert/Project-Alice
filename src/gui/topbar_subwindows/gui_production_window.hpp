@@ -508,6 +508,10 @@ public:
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
 						auto box = text::open_layout_box(contents, 0);
+						auto cid = goods.commodity_type[i];
+						std::string padding = cid.index() < 10 ? "0" : "";
+						std::string description = "@$" + padding + std::to_string(cid.index());
+						text::add_unparsed_text_to_layout_box(state, contents, box, description);
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
@@ -549,6 +553,10 @@ public:
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
 						auto box = text::open_layout_box(contents, 0);
+						auto cid = goods.commodity_type[i];
+						std::string padding = cid.index() < 10 ? "0" : "";
+						std::string description = "@$" + padding + std::to_string(cid.index());
+						text::add_unparsed_text_to_layout_box(state, contents, box, description);
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
@@ -670,6 +678,11 @@ class normal_factory_background : public opaque_element_base {
 			cost_box.x_position += position_cost;
 
 			name_entry.x_size /= 10;
+
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
+
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
 			
 			auto sat = state.world.market_get_demand_satisfaction(market, cid);
@@ -714,6 +727,9 @@ class normal_factory_background : public opaque_element_base {
 			cost_box.x_position += position_cost;
 
 			name_entry.x_size /= 10;
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
 
 			auto sat = state.world.market_get_demand_satisfaction(market, cid);
@@ -774,6 +790,10 @@ class normal_factory_background : public opaque_element_base {
 			cost.x_position += position_cost;
 
 			name_entry.x_size /= 10;
+
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
 
 			float output_amount =
@@ -1691,7 +1711,11 @@ inline table::column<dcon::factory_type_id> factory_type_name = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = text::produce_simple_string(state,  state.world.factory_type_get_name(id));
+		auto item = state.world.factory_type_get_output(id).id;
+		std::string padding = item.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(item.index());
+
+		auto value = description + text::produce_simple_string(state,  state.world.factory_type_get_name(id));
 		return value;
 	},
 	.cell_definition_string = "thin_cell_name",

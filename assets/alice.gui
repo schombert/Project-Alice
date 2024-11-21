@@ -5,6 +5,12 @@ guiTypes = {
         position = {  -150 -150 }
         Orientation = "UPPER_LEFT"
     }
+	iconType = {
+        name = "gfx_storage_commodity"
+        spriteType = "GFX_resources_big"
+        position = {  -150 -150 }
+        Orientation = "UPPER_LEFT"
+    }
 
 	instantTextBoxType = {
 		name = "alice_investment_text"
@@ -4912,13 +4918,14 @@ guiTypes = {
 		}
 	}  
     
-    textBoxType = {
+    instantTextBoxType = {
         name = "thin_cell_name"
         size = { 100 20 }
         font = "vic_18_black"
+		format = left
     }
     
-    textBoxType = {
+    instantTextBoxType = {
         name = "thin_cell_number"
         size = { 60 20 }
         font = "vic_18_black"
