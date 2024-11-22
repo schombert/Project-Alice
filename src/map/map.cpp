@@ -1700,24 +1700,10 @@ void make_navy_direction(sys::state& state, std::vector<map::curved_line_vertex>
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
 
-			add_tl_bezier_to_buffer(
-				buffer,
-				current_pos,
-				next_pos,
-				prev_perpendicular,
-				next_perpendicular,
-				0.0f,
-				i == 0,
-				size_x,
-				size_y,
-				default_num_b_segments,
-				distance,
-				width,
-				width
-			);
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == path.size() - 1, size_x, size_y, default_num_b_segments);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
-			current_pos = duplicates::get_army_location(state, path[i]) + shift;
+			current_pos = duplicates::get_navy_location(state, path[i]);
 		}
 	}
 }
