@@ -2420,7 +2420,7 @@ inline table::column<dcon::commodity_id> rgo_price = {
 
 inline table::column<dcon::commodity_id> rgo_amount = {
 	.sortable = true,
-	.header = "rgo_production",
+	.header = "rgo_output",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto si = retrieve<dcon::state_instance_id>(state, container);
@@ -2551,7 +2551,7 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 
 inline table::column<dcon::commodity_id> rgo_max_employment = {
 	.sortable = true,
-	.header = "rgo_employment",
+	.header = "rgo_max_employment",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto n = state.world.province_get_nation_from_province_ownership(p);
@@ -2578,7 +2578,7 @@ inline table::column<dcon::commodity_id> rgo_max_employment = {
 
 inline table::column<dcon::commodity_id> rgo_saturation = {
 	.sortable = true,
-	.header = "rgo_employment",
+	.header = "rgo_saturation",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto n = state.world.province_get_nation_from_province_ownership(p);
@@ -2613,15 +2613,27 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 	}
 };
 
+struct province_economy_toggle_signal { };
+
+class economy_data_toggle : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send<province_economy_toggle_signal>(state, parent, { });
+	}
+};
+
 class province_economy_window : public window_element_base {
 
 public:
 	table::display<dcon::commodity_id>* rgo_table = nullptr;
 	table::display<dcon::trade_route_id>* trade_table = nullptr;
+	image_element_base* rgo_bg = nullptr;
 	image_element_base* trade_routes_bg = nullptr;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "table_rgo_data") {
+		if(name == "toggle-economy-province") {
+			return make_element_by_type<economy_data_toggle>(state, id);
+		}else if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
 				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_expected_profit,
 				rgo_desired_profit, rgo_employment, rgo_max_employment, rgo_saturation
@@ -2672,6 +2684,11 @@ public:
 			trade_routes_bg = ptr.get();
 			trade_routes_bg->set_visible(state, true);
 			return ptr;
+		} else if(name == "background") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			rgo_bg = ptr.get();
+			rgo_bg->set_visible(state, true);
+			return ptr;
 		}
 		return nullptr;
 	}
@@ -2693,6 +2710,22 @@ public:
 			trade_table->set_visible(state, false);
 			trade_routes_bg->set_visible(state, false);
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<province_economy_toggle_signal>()) {
+			if(rgo_bg->is_visible()) {
+				trade_table->set_visible(state, false);
+				trade_routes_bg->set_visible(state, false);
+				rgo_table->set_visible(state, false);
+				rgo_bg->set_visible(state, false);
+			} else {
+				rgo_table->set_visible(state, true);
+				rgo_bg->set_visible(state, true);
+			}
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

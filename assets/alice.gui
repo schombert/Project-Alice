@@ -5,7 +5,8 @@ guiTypes = {
         position = {  -150 -150 }
         Orientation = "UPPER_LEFT"
     }
-	iconType = {
+    
+    iconType = {
         name = "gfx_storage_commodity"
         spriteType = "GFX_resources_big"
         position = {  -150 -150 }
@@ -4533,46 +4534,108 @@ guiTypes = {
     windowType = {
         name = "local_economy_view"
         extends = "province_view"
-        position = { 400 -19 }
-        size = { 700 547 }
+        position = { 400 -505 }
+        size = { 700 528 }
+        Orientation = "LOWER_LEFT"
         
         iconType = {
 			name ="background"
 			spriteType = "bg-700-547"
-			position = { x= 0 y = 0 }
+			position = { x= 10 y = 0 }
 			Orientation = "UPPER_LEFT"
 		}      
+               
+        iconType = {
+            name ="header_underline"
+            spriteType = "6-width-header-line"
+            position = { x= 250 y = 20 }
+            Orientation = "UPPER_LEFT"
+        } 
+        
+        instantTextBoxType = {
+			name = "rgo_details_header"
+			position = { 360 5 }
+			borderSize = { 1 1 }
+			maxsize = { 128 24 }
+			format = centre
+            font = "vic_18_black"
+            text = "rgo_details_header"
+		}
+        
+        
+        iconType = {
+            name ="header_underline"
+            spriteType = "3-width-header-line"
+            position = { x= 250 y = 45 }
+            Orientation = "UPPER_LEFT"
+        } 
+        
+        instantTextBoxType = {
+			name = "rgo_profits_header"
+			position = { 280 30 }
+			borderSize = { 1 1 }
+			maxsize = { 128 24 }
+			format = centre
+            font = "vic_18_black"
+            text = "rgo_profits_header"
+		}
+        
+        iconType = {
+            name ="header_underline"
+            spriteType = "3-width-header-line"
+            position = { x= 430 y = 45 }
+            Orientation = "UPPER_LEFT"
+        } 
+        
+        instantTextBoxType = {
+			name = "rgo_employment_header"
+			position = { 450 30 }
+			borderSize = { 1 1 }
+			maxsize = { 128 24 }
+			format = centre
+            font = "vic_18_black"
+            text = "rgo_employment_header"
+		}
+        
         
         windowType = {
             name = "table_rgo_data"
-            position = { 15 15 }	
-            size = { 670 517 }
+            position = { 30 65 }	
+            size = { 670 447 }
             
             listboxType = {
                 name = "table_body"
                 position = { 0 30 }	
-                size = { 670 487 }
+                size = { 660 407 }
             }
         }
         
         iconType = {
-			name ="trade_route_background"
-			spriteType = "bg-700-547"
-			position = { x= 200 y = 0 }
-			Orientation = "UPPER_LEFT"
-		} 
+            name ="trade_route_background"
+            spriteType = "bg-700-547"
+            position = { x= 200 y = 0 }
+            Orientation = "UPPER_LEFT"
+        } 
         
         windowType = {
             name = "table_trade_route_data"
             position = { 215 15 }
-            size = { 670 517 }
+            size = { 670 517 }            
             
             listboxType = {
                 name = "table_body"
                 position = { 0 30 }	
-                size = { 670 487 }
+                size = { 660 487 }
             }
         }
+        
+        guiButtonType = {
+            name = "toggle-economy-province"
+            position = { x=0 y=50}
+            quadTextureSprite ="button-economy-province"
+            buttonText = ""
+            buttonFont = "vic_18_black"
+        }	
     }
     
     
@@ -4922,7 +4985,7 @@ guiTypes = {
         name = "thin_cell_name"
         size = { 100 20 }
         font = "vic_18_black"
-		format = left
+        format = left
     }
     
     instantTextBoxType = {
