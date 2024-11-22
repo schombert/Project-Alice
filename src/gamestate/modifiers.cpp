@@ -369,8 +369,9 @@ void recreate_national_modifiers(sys::state& state) {
 	}
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_civilized() == false) {
-			if(state.national_definitions.unciv_nation)
+			if(state.national_definitions.unciv_nation) {
 				apply_modifier_values_to_nation(state, n, state.national_definitions.unciv_nation);
+			}
 		} else if(nations::is_great_power(state, n)) {
 			if(state.national_definitions.great_power)
 				apply_modifier_values_to_nation(state, n, state.national_definitions.great_power);

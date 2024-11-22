@@ -6,7 +6,7 @@
 #include "gui_chat_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
-
+#include "simple_fs.hpp"
 
 namespace game_scene {
 
@@ -701,26 +701,29 @@ void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers
 	}
 }
 
-void console_log_pick_nation(sys::state& state, std::string_view message) {
-	if(state.ui_state.console_window_r != nullptr) {
-		Cyto::Any payload = std::string(message);
-		state.ui_state.console_window_r->impl_get(state, payload);
-		if(true && !(state.ui_state.console_window_r->is_visible())) {
-			state.ui_state.nation_picker->move_child_to_front(state.ui_state.console_window_r);
-			state.ui_state.console_window_r->set_visible(state, true);
-		}
-	}
-}
-
 void console_log_other(sys::state& state, std::string_view message) {
-	if(state.ui_state.console_window != nullptr) {
+	auto msg = std::string(message);
+	msg = "{" + std::string(state.network_state.nickname.to_string_view()) + "} " + msg;
+	OutputDebugStringA((msg + "\n").c_str());
+
+	auto folder = simple_fs::get_or_create_data_dumps_directory();
+
+	msg += "\n";
+
+	simple_fs::append_file(
+			folder,
+			NATIVE("console_log.txt"),
+			msg.c_str(),
+			uint32_t(msg.size())
+	);
+	/*if(state.ui_state.console_window) {
 		Cyto::Any payload = std::string(message);
 		state.ui_state.console_window->impl_get(state, payload);
 		if(true && !(state.ui_state.console_window->is_visible())) {
 			state.ui_state.root->move_child_to_front(state.ui_state.console_window);
 			state.ui_state.console_window->set_visible(state, true);
 		}
-	}
+	}*/
 }
 
 
@@ -840,10 +843,11 @@ ui::mouse_probe recalculate_mouse_probe_military(sys::state& state, ui::mouse_pr
 ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
 	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
-	float pos_x = state.ui_state.unit_details_box->base_data.position.x;
-	float pos_y = state.ui_state.unit_details_box->base_data.position.y;
-
+	
 	if(state.ui_state.unit_details_box && state.ui_state.unit_details_box->is_visible()) {
+		float pos_x = state.ui_state.unit_details_box->base_data.position.x;
+		float pos_y = state.ui_state.unit_details_box->base_data.position.y;
+
 		tooltip_probe = state.ui_state.unit_details_box->impl_probe_mouse(state,
 			int32_t(scaled_mouse_x - pos_x),
 			int32_t(scaled_mouse_y - pos_y),

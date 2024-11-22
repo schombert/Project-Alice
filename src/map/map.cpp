@@ -1612,6 +1612,49 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 	}
 }
 
+void make_navy_direction(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y) {
+	auto path = state.world.navy_get_path(selected_navy);
+	if(auto ps = path.size(); ps > 0) {
+		auto progress = military::fractional_distance_covered(state, selected_navy);
+
+		glm::vec2 current_pos = duplicates::get_navy_location(state, state.world.navy_get_location_from_navy_location(selected_navy));
+		glm::vec2 next_pos = put_in_local(duplicates::get_navy_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
+		for(auto i = ps; i-- > path.size() - 1;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_navy_location(state, path[i]), current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_navy_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == path.size() - 1, size_x, size_y, default_num_b_segments);
+
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = duplicates::get_navy_location(state, path[i]);
+		}
+	}
+}
+
 
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
 	auto path = state.world.army_get_path(selected_army);
@@ -1649,6 +1692,49 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 			}
 
 			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y, default_num_b_segments);
+
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = duplicates::get_army_location(state, path[i]);
+		}
+	}
+}
+
+void make_army_direction(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
+	auto path = state.world.army_get_path(selected_army);
+	if(auto ps = path.size(); ps > 0) {
+		auto progress = military::fractional_distance_covered(state, selected_army);
+
+		glm::vec2 current_pos = duplicates::get_army_location(state, state.world.army_get_location_from_army_location(selected_army));
+		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
+		for(auto i = ps; i-- > path.size()-1;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == path.size() - 1, size_x, size_y, default_num_b_segments);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = duplicates::get_army_location(state, path[i]);

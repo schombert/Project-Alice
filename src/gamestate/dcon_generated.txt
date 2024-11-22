@@ -3773,6 +3773,16 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ national_bank }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ local_loan }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ stockpile_targets }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -5120,6 +5130,35 @@ object {
 	property{
 		name{ map_font_features }
 		type{vector_pool{1000}{uint32_t}}
+	}
+}
+
+object{
+	name{ mp_player }
+	storage_type{ erasable }
+	size{ 200 }
+
+	property{
+		name{ nickname }
+		type{ std::array<uint8_t,48> }
+	}
+	property{
+		name{ is_online }
+		type{ bitfield }
+	}
+}
+
+relationship{
+	name{ player_nation }
+	link{
+		object{nation}
+		name{nation}
+		type{unique}
+	}
+	link{
+		object{mp_player}
+		name{player}
+		type{unique}
 	}
 }
 

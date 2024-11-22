@@ -236,7 +236,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-name")) {
 					if(i + 1 < num_params) {
 						std::string nickname = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
-						memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
+						memcpy(&game_state.network_state.nickname.data, nickname.c_str(), std::min<size_t>(nickname.length(), 8));
 						i++;
 					}
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-password")) {
@@ -265,6 +265,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();
+				game_state.console_log("Read scenario file " + simple_fs::native_to_utf8(parsed_cmd[1]));
 			} else {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
 				window::emit_error_message(msg, true);

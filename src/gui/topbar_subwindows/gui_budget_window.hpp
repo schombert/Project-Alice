@@ -1663,29 +1663,11 @@ class debt_piechart : public piechart<dcon::nation_id> {
 public:
 	void on_update(sys::state& state) noexcept override {
 		distribution.clear();
-		auto t = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto t = state.world.nation_get_local_loan(state.local_player_nation);
 
-		if(t < 0.0f) {
-			int32_t num_gp = 7;
-			if(t <= 1000.0f) {
-				num_gp = 1;
-			} else if(t <= 2000.0f) {
-				num_gp = 2;
-			} else if(t <= 4000.0f) {
-				num_gp = 4;
-			}
-
+		if(t > 0.0f) {
 			float share = 10.0f;
-			for(auto n : state.nations_by_rank) {
-				if(state.world.nation_get_is_great_power(n) && n != state.local_player_nation) {
-					distribution.emplace_back(n, share);
-					share -= 1.0f;
-
-					--num_gp;
-					if(num_gp <= 0)
-						break;
-				}
-			}
+			distribution.emplace_back(state.local_player_nation, share);
 		}
 		update_chart(state);
 	}
@@ -1743,35 +1725,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
-		auto t = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto t = state.world.nation_get_local_loan(state.local_player_nation);
 
-		if(t < 0.0f) {
-			int32_t num_gp = 7;
-			if(t <= 1000.0f) {
-				num_gp = 1;
-			} else if(t <= 2000.0f) {
-				num_gp = 2;
-			} else if(t <= 4000.0f) {
-				num_gp = 4;
-			}
-
-			float share = 10.0f;
-			float total_shares = 0.0f;
-			for(auto n : state.nations_by_rank) {
-				if(state.world.nation_get_is_great_power(n) && n != state.local_player_nation) {
-					row_contents.push_back(debt_item_data{n, share});
-					total_shares += share;
-					share -= 1.0f;
-
-					--num_gp;
-					if(num_gp <= 0)
-						break;
-				}
-			}
-
-			for(auto& r : row_contents) {
-				r.amount = -t * r.amount / total_shares;
-			}
+		if(t > 0.0f) {
+			row_contents.push_back(debt_item_data{ state.local_player_nation, t });
 		}
 
 		update(state);

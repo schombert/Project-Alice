@@ -3179,6 +3179,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	demographics::regenerate_from_pop_data_full(*this);
 
 	military::reinforce_regiments(*this);
+	military::repair_ships(*this);
 
 	nations::update_administrative_efficiency(*this);
 	military::regenerate_land_unit_average(*this);

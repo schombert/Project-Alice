@@ -62,6 +62,8 @@ native_string get_full_name(directory const& f);
 
 // write_file will clear an existing file, if it exists, will create a new file if it does not
 void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);
+void append_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);
+
 
 // unopened file functions
 std::optional<file> open_file(unopened_file const& f);

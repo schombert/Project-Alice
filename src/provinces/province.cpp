@@ -919,8 +919,8 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 	affect the result.
 	*/
 
-	if(state.world.nation_get_modifier_values(new_owner, sys::national_mod_offsets::research_points_on_conquer) > 0.0f) {
-		auto rp_mod_mod = state.world.nation_get_modifier_values(new_owner, sys::national_mod_offsets::research_points_modifier);
+	if(!state.world.nation_get_is_civilized(new_owner)) {
+		auto rp_mod_mod = 0.75f + state.world.nation_get_modifier_values(new_owner, sys::national_mod_offsets::research_points_modifier);
 
 		float sum_from_pops = 0;
 		float total_pop = state.world.province_get_demographics(id, demographics::total);

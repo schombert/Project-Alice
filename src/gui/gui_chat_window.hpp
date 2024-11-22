@@ -25,7 +25,10 @@ public:
 				false });
 
 
-		std::string sender_name = std::string(state.network_state.map_of_player_names[content.source.index()].to_string_view()) + ": ";
+		auto p = network::find_country_player(state, content.source);
+		auto nickname = state.world.mp_player_get_nickname(p);
+
+		std::string sender_name = sys::player_name{nickname }.to_string() + ": ";
 		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
 		text::add_to_layout_box(state, container, box, sender_name, IsShadow ? text::text_color::black : text::text_color::orange);
@@ -166,7 +169,10 @@ public:
 			set_text(state, text::produce_simple_string(state, "player"));
 		} else {
 			auto n = retrieve<dcon::nation_id>(state, parent);
-			set_text(state, std::string(state.network_state.map_of_player_names[n.index()].to_string_view()));
+
+			auto p = network::find_country_player(state, n);
+			auto nickname = state.world.mp_player_get_nickname(p);
+			set_text(state, sys::player_name{nickname }.to_string());
 		}
 	}
 };
@@ -185,7 +191,10 @@ public:
 			return make_element_by_type<player_name_text>(state, id);
 		} else if(name == "button_kick") {
 			return make_element_by_type<player_kick_button>(state, id);
-		} else {
+		} else if(name == "button_ban") {
+			return make_element_by_type<player_ban_button>(state, id);
+		}
+		else {
 			return nullptr;
 		}
 	}

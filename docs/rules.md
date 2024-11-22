@@ -522,7 +522,9 @@ When a peace offer is accepted, relations between the nations increase by define
 
 If a "good" peace offer is refused, the refusing nation gains define:GOOD_PEACE_REFUSAL_WAREXH war exhaustion and all of its pops gain define:GOOD_PEACE_REFUSAL_MILITANCY. What counts as a good offer, well if the peace offer is considered "better" than expected. This seems to be a complicated thing to calculate involving: the direction the war is going in (sign of the latest war score change), the overall quantity of forces on each side (with navies counting for less), time since the war began, war exhaustion, war score, the peace cost of the offer, and whether the recipient will be annexed as a result.
 
-A peace offer must be accepted when war score reaches 100.
+If winning side has 100 warscore and sends a peace deal <=100 warscore worth in wargoals, it is accepted automatically.
+
+If losing side proposes a peace deal conceding all the wargoals or 100+ warscore worth in wargoals, that peace deal is accepted automatically.
 
 When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose). When a nation exits a war, it takes all of its vassals / substates with it. The nations on the other side of the war get a truce with the nation for define:BASE_TRUCE_MONTHS + the greatest truce months for any CB in the peace deal.
 
@@ -594,6 +596,7 @@ Each war goal has a value that determines how much it is worth in a peace offer 
 #### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
+- po_make_puppet wargoal gives ticking warscore if you occupy the target's capital.
 - limited by define:TWS_CB_LIMIT_DEFAULT
 - to calculate: first you need to figure out the percentage of the war goal complete. This is percentage of provinces occupied or, for war score from battles see Battle score below
 
@@ -878,6 +881,8 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 
 - Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
 - Units start with max strength and org after being built
+- Regiments cannot get experience lower than regular_experience_level given by tech.
+- Regiments can get experience lower than land_unit_start_experience.
 
 ### Unit construction
 
@@ -1282,7 +1287,7 @@ Can only perform if, the nations are not at war, the nation isn't already being 
 
 #### Effect
 
-The sender will give the target `defines:WARSUBSIDIES_PERCENT x total-expenses-of-target` every tick.
+The sender will give the target the minimal between `defines:WARSUBSIDIES_PERCENT x target tax base` and `defines:WARSUBSIDIES_PERCENT x source tax base` every tick.
 
 ### Increase relations
 

@@ -82,7 +82,7 @@ struct network_state {
 	std::vector<char> early_send_buffer;
 	command::payload recv_buffer;
 	std::vector<uint8_t> save_data; //client
-	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
+
 	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;
 	uint32_t current_save_length = 0;
@@ -95,7 +95,7 @@ struct network_state {
 	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
-	bool handshake = true; // if in handshake mode -> send handshake data
+	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
 
 	network_state() : outgoing_commands(1024) {}
@@ -111,6 +111,16 @@ void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old
 void write_network_save(sys::state& state);
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
 void broadcast_to_clients(sys::state& state, command::payload& c);
+void clear_socket(sys::state& state, client_data& client);
+void full_reset_after_oos(sys::state& state);
+dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
+dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation);
+void log_player_nations(sys::state& state);
+void place_host_player_after_saveload(sys::state& state);
+bool pause_game(sys::state& state);
+bool unpause_game(sys::state& state);
+void notify_player_joins(sys::state& state, network::client_data& client);
+void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation);
 
 class port_forwarder {
 private:

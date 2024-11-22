@@ -359,17 +359,17 @@ static std::string_view ro_localised_strings[uint8_t(string_index::count)] = {
 static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Создать сценарий",
 	"Воссоздать сценарий",
-	"Работающий...",
+	"В работе...",
 	"Создать новый сценарий",
 	"Для выбранного мода",
-	"Сцена не найдена",
-	"айпи адрес",
+	"сценарий не найден",
+	"IP адрес",
 	"Пароль",
-	"Псевдоним",
-	"Один игрок",
+	"Никнейм",
+	"Одиночная игра",
 	"Мультиплеер",
 	"Начать игру",
-	"Хозяин",
+	"Сервер",
 	"Присоединиться",
 	"Список модов",
 };
@@ -966,7 +966,7 @@ native_string produce_mod_path() {
 void save_playername() {
 	sys::player_name p;
 	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(p.data));
-	std::memcpy(p.data, launcher::player_name.c_str(), len);
+	std::memcpy(&p.data, launcher::player_name.c_str(), len);
 
 	auto settings_location = simple_fs::get_or_create_settings_directory();
 	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&p, sizeof(p));
@@ -1196,6 +1196,7 @@ void mouse_click() {
 			}
 		}
 	case ui_obj_host_game:
+		[[fallthrough]];
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
 			native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
@@ -2532,7 +2533,7 @@ int WINAPI wWinMain(
 		auto contents = simple_fs::view_contents(*player_name_file);
 		const sys::player_name *p = (const sys::player_name*)contents.data;
 		if(contents.file_size >= sizeof(*p)) {
-			launcher::player_name = std::string(p->data);
+			launcher::player_name = std::string(std::begin(p->data), std::end(p->data));
 		}
 	} else {
 		srand(time(NULL));
