@@ -4590,18 +4590,18 @@ guiTypes = {
                 spriteType = "3-width-header-line"
                 position = { x= 430 y = 45 }
                 Orientation = "UPPER_LEFT"
-            } 
-        }
-        
-        instantTextBoxType = {
-			name = "rgo_employment_header"
-			position = { 450 30 }
-			borderSize = { 1 1 }
-			maxsize = { 128 24 }
-			format = centre
-            font = "vic_18_black"
-            text = "rgo_employment_header"
-		}
+            }
+
+			instantTextBoxType = {
+				name = "rgo_employment_header"
+				position = { 450 30 }
+				borderSize = { 1 1 }
+				maxsize = { 128 24 }
+				format = centre
+				font = "vic_18_black"
+				text = "rgo_employment_header"
+			}
+        }        
         
         
         windowType = {

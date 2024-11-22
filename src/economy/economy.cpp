@@ -6633,6 +6633,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	if(!presimulation) {
 
+		constexpr float courage = 1.0f;
+		constexpr float days_prepaid = 15.f;
+
 		// make new investments
 		for(auto n : state.world.in_nation) {
 			auto nation_rules = n.get_combined_issue_rules();
@@ -6648,7 +6651,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 					total_cost +=
 						state.world.market_get_private_construction_demand(market, c)
-						* price(state, market, c);
+						* price(state, market, c)
+						* days_prepaid;
 				}
 			});
 
@@ -6754,7 +6758,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					if(existing_constructions.begin() != existing_constructions.end())
 						continue; // already building
 
-					if(n.get_private_investment() * 0.1f < total_cost + total_cost_added) {
+					if(n.get_private_investment() * courage < total_cost + total_cost_added) {
 						continue;
 					}
 
@@ -6804,6 +6808,24 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 								if(present_in_location)
 									continue;
 
+								auto costs = state.world.factory_type_get_construction_costs(selected);
+								auto time = state.world.factory_type_get_construction_time(selected);
+								for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+									if(costs.commodity_type[i]) {
+										total_cost_added +=
+											costs.commodity_amounts[i]
+											* price(state, market, costs.commodity_type[i])
+											/ float(time)
+											* days_prepaid;
+									} else {
+										break;
+									}
+								}
+
+								if(n.get_private_investment() * courage < total_cost + total_cost_added) {
+									continue;
+								}
+
 								auto new_up = fatten(
 									state.world,
 									state.world.force_create_state_building_construction(s, n)
@@ -6812,16 +6834,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 								new_up.set_is_pop_project(true);
 								new_up.set_is_upgrade(false);
 								new_up.set_type(selected);
-
-								auto costs = new_up.get_type().get_construction_costs();
-
-								for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-									if(costs.commodity_type[i]) {
-										total_cost_added += price(state, market, costs.commodity_type[i]);
-									} else {
-										break;
-									}
-								}
+								
 								//found_investment = true;
 						}
 					}
@@ -6859,6 +6872,27 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 						for(auto e : provinces_in_order)
 							if(e.second > best_p.second)
 								best_p = e;
+
+						auto sid = state.world.province_get_state_membership(best_p.first);
+						auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+						auto costs = state.economy_definitions.building_definitions[int32_t(province_building_type::railroad)].cost;
+						auto time = state.economy_definitions.building_definitions[int32_t(province_building_type::railroad)].time;
+						for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+							if(costs.commodity_type[i]) {
+								total_cost_added +=
+									costs.commodity_amounts[i]
+									* price(state, market, costs.commodity_type[i])
+									/ float(time)
+									* days_prepaid;
+							} else {
+								break;
+							}
+						}
+
+						if(n.get_private_investment() * courage < total_cost + total_cost_added) {
+							continue;
+						}
 
 						auto new_rr = fatten(
 							state.world,
