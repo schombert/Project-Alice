@@ -1,4 +1,4 @@
-#Powered_by_ParaTranz
+﻿#Powered_by_ParaTranz;
 support_for_blank;支持$text$
 uh_support_for_blank;上议院支持$text$
 up_to;达到
@@ -549,7 +549,7 @@ pop_emg_1;人群只可从开化国家移民
 pop_emg_2;没有殖民地移民
 pop_emg_3;奴隶从不迁徙
 pop_emg_4;没有 ?海外?!文化的人群不能移民
-pop_emg_5;将要移民的人数等于人群的大小乘以移民规模（$x$）乘以此省的移民潮规模修正（$y$，如果大于100%则平方），乘以出境移民系数（$val$）
+pop_emg_5;将要移民的人数等于人群的大小乘以移民规模（$x$）乘以此省的移民潮规模修正（$y$，如果大于100%则则平方），乘以出境移民系数（$val$）
 pop_emg_6;?Y移民因素：
 pop_prom_1;?Y升职系数：
 pop_prom_2;来自国家焦点：?G$val$
@@ -1110,7 +1110,7 @@ alice_factory_worker_1;雇佣：?G$x$?W
 alice_factory_worker_2;失业：?R$x$?W
 alice_rgo_unemployment_country_alert;以下地区有失业的农民和劳工:
 pop_promote_info_on_sel_2;$val$预计下月$who$将变动$where$
-alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活质量功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：TPS（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y宏组建器?W：使用我们的宏组建器构建由不同兵种组成的军队单位\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
+alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活质量功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y宏组建器?W：使用我们的宏组建器构建由不同兵种组成的军队单位\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除
 unit_controls_tooltip_1;?Y左键?W选择（取消选择其它）\n?YSHIFT+左键?W增加到选择中
 unit_controls_tooltip_2;?Y右键点击一个省份?W以局部撤退（?G循环/轮流?W）到此省
@@ -1218,40 +1218,42 @@ alice_battleplanner_delete_army_group;删除集团军群
 fab_explain_8;没有休战
 alice_reform_support_header;该改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
 alice_no_current_support;目前这项改革尚未得到政治支持
-trade_global_data;国际
+leader_prestige;领袖威望
+trade_global_data;世界
 trade_nation_data;国内
 trade_good_stats_global;国家
-trade_good_name_header;商品
+trade_good_stats_markets;市场
+trade_good_name_header;贸易品
 price;价格
-supply;供给
+supply;供应
 demand;需求
-balance;平衡
+balance;结余
 market_stockpiles;库存
-national_stockpile;库存
+national_stockpile;储备
 government_need;政府采购
 factory_need;工厂输入
-pop_need;民众需求
-rgo_production;RGO 产出
-artisan_production;手工业者产出
-factory_production;工厂产出
+pop_need;人口需求
+rgo_production;原料产地输出
+artisan_production;手工业者输出
+factory_production;工厂输出
 artisan_distribution;手工业者优先级
 produced_nation;生产
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
-method_name;名称
-method_input;输入成本
-method_output;产出成本
-method_profit;利润（预计）
-method_margin;差值
-method_cost;建设成本
-method_payback;回本时间
-change_pname_to;将$x$党的名称更改为$text$
-change_rpname_to;将执政党的名称更改为$text$
-change_pposition_to;将$x$党的立场更改为$text$
-change_rpposition_to;将执政党的立场更改为$text$
-pname_is;$x$党的名称
-rpname_is;执政党的名称
-pposition_is;$x$党的立场
-rpposition_is;执政党的立场
-topbar_budget_warning;你无法完全承担昨天的目标预算支出
+method_name;名字
+method_input;输入开销
+method_output;输出开销
+method_profit;期望利润
+method_margin;押金
+method_cost;建造花费
+method_payback;退还时间
+change_pname_to;$x$党派名称变为$text$
+change_rpname_to;执政党名称变为$text$
+change_pposition_to;移动$x$政党位置至$text$
+change_rpposition_to;移动执政党位置至$text$
+pname_is;$x$党派名称
+rpname_is;执政党名称
+pposition_is;$x$政党位置
+rpposition_is;执政党位置
+topbar_budget_warning;你无法完全负担昨天的目标预算支出
