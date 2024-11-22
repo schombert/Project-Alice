@@ -1256,3 +1256,21 @@ rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
 topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
+rgo_output;Output
+rgo_profit;Total
+rgo_expected_profit;Actual
+rgo_desired_profit;Min
+rgo_employment;Actual
+rgo_max_employment;Max
+rgo_saturation;%
+rgo_details_header;RGO details
+rgo_employment_header;Employment
+rgo_profits_header;Profits
+route_origin;Origin
+route_target;Target
+price_origin;Origin price
+price_target;Target price
+trade_distance;Distance
+volume;Volume
+max_throughput;Max volume
+trade_margin;Profit%
