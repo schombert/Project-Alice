@@ -141,6 +141,8 @@
 #define CPPHTTPLIB_LISTEN_BACKLOG 5
 #endif
 
+#define CPPHTTPLIB_NO_EXCEPTION
+
 /*
  * Headers
  */
@@ -1007,6 +1009,8 @@ public:
 
   bool listen(const std::string &host, int port, int socket_flags = 0);
 
+  bool start_server(const std::string& host, int port, int socket_flags = 0);
+
   bool is_running() const;
   void wait_until_ready() const;
   void stop();
@@ -1050,6 +1054,9 @@ private:
                                 SocketOptions socket_options) const;
   int bind_internal(const std::string &host, int port, int socket_flags);
   bool listen_internal();
+
+  bool run_cycle_once();
+
 
   bool routing(Request &req, Response &res, Stream &strm);
   bool handle_file_request(const Request &req, Response &res,
@@ -6326,6 +6333,11 @@ inline bool Server::listen(const std::string &host, int port,
   return bind_to_port(host, port, socket_flags) && listen_internal();
 }
 
+inline bool Server::start_server(const std::string& host, int port,
+						   int socket_flags) {
+	return bind_to_port(host, port, socket_flags) && run_cycle_once();
+}
+
 inline bool Server::is_running() const { return is_running_; }
 
 inline void Server::wait_until_ready() const {
@@ -6823,6 +6835,104 @@ inline bool Server::listen_internal() {
 
   is_decommisioned = !ret;
   return ret;
+}
+
+inline bool Server::run_cycle_once() {
+	if(is_decommisioned) {
+		return false;
+	}
+
+	auto ret = true;
+	is_running_ = true;
+	auto se = detail::scope_exit([&]() { is_running_ = false; });
+
+	{
+		std::unique_ptr<TaskQueue> task_queue(new_task_queue());
+
+		if(svr_sock_ != INVALID_SOCKET) {
+#ifndef _WIN32
+			if(idle_interval_sec_ > 0 || idle_interval_usec_ > 0) {
+#endif
+				auto val = detail::select_read(svr_sock_, idle_interval_sec_,
+											   idle_interval_usec_);
+				if(val == 0) { // Timeout
+					task_queue->on_idle();
+					return true;
+				}
+#ifndef _WIN32
+			}
+#endif
+
+#if defined _WIN32
+			// sockets conneced via WASAccept inherit flags NO_HANDLE_INHERIT,
+			// OVERLAPPED
+			socket_t sock = WSAAccept(svr_sock_, nullptr, nullptr, nullptr, 0);
+#elif defined SOCK_CLOEXEC
+			socket_t sock = accept4(svr_sock_, nullptr, nullptr, SOCK_CLOEXEC);
+#else
+			socket_t sock = accept(svr_sock_, nullptr, nullptr);
+#endif
+
+			if(sock == INVALID_SOCKET) {
+				if(errno == EMFILE) {
+					// The per-process limit of open file descriptors has been reached.
+					// Try to accept new connections after a short sleep.
+					std::this_thread::sleep_for(std::chrono::microseconds{ 1 });
+					return false;
+				} else if(errno == EINTR || errno == EAGAIN) {
+					return false;
+				}
+				if(svr_sock_ != INVALID_SOCKET) {
+					detail::close_socket(svr_sock_);
+					ret = false;
+				} else {
+					; // The server socket was closed by user.
+				}
+				return false;
+			}
+
+			{
+#ifdef _WIN32
+				auto timeout = static_cast<uint32_t>(read_timeout_sec_ * 1000 +
+													 read_timeout_usec_ / 1000);
+				setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+						   reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+#else
+				timeval tv;
+				tv.tv_sec = static_cast<long>(read_timeout_sec_);
+				tv.tv_usec = static_cast<decltype(tv.tv_usec)>(read_timeout_usec_);
+				setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+						   reinterpret_cast<const void*>(&tv), sizeof(tv));
+#endif
+			}
+			{
+
+#ifdef _WIN32
+				auto timeout = static_cast<uint32_t>(write_timeout_sec_ * 1000 +
+													 write_timeout_usec_ / 1000);
+				setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
+						   reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+#else
+				timeval tv;
+				tv.tv_sec = static_cast<long>(write_timeout_sec_);
+				tv.tv_usec = static_cast<decltype(tv.tv_usec)>(write_timeout_usec_);
+				setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
+						   reinterpret_cast<const void*>(&tv), sizeof(tv));
+#endif
+			}
+
+			if(!task_queue->enqueue(
+				[this, sock]() { process_and_close_socket(sock); })) {
+				detail::shutdown_socket(sock);
+				detail::close_socket(sock);
+			}
+		}
+
+		task_queue->shutdown();
+	}
+
+	is_decommisioned = !ret;
+	return ret;
 }
 
 inline bool Server::routing(Request &req, Response &res, Stream &strm) {
