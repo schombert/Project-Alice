@@ -4065,7 +4065,7 @@ void update_pop_consumption(
 	ve::int_vector build_factory = issue_rule::pop_build_factory;
 	ve::int_vector expand_factory = issue_rule::pop_expand_factory;
 	ve::int_vector can_invest = expand_factory | build_factory;
-
+	
 	state.world.execute_serial_over_pop([&](auto ids) {
 		// get all data into vectors
 		auto provs = state.world.pop_get_province_from_pop_location(ids);

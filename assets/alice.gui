@@ -4544,48 +4544,54 @@ guiTypes = {
 			position = { x= 10 y = 0 }
 			Orientation = "UPPER_LEFT"
 		}      
+        
+        windowType = {
+            name = "table_rgo_headers"
+            position = { 0 0 }
+            size = { 700 528 }
                
-        iconType = {
-            name ="header_underline"
-            spriteType = "6-width-header-line"
-            position = { x= 250 y = 20 }
-            Orientation = "UPPER_LEFT"
-        } 
-        
-        instantTextBoxType = {
-			name = "rgo_details_header"
-			position = { 360 5 }
-			borderSize = { 1 1 }
-			maxsize = { 128 24 }
-			format = centre
-            font = "vic_18_black"
-            text = "rgo_details_header"
-		}
-        
-        
-        iconType = {
-            name ="header_underline"
-            spriteType = "3-width-header-line"
-            position = { x= 250 y = 45 }
-            Orientation = "UPPER_LEFT"
-        } 
-        
-        instantTextBoxType = {
-			name = "rgo_profits_header"
-			position = { 280 30 }
-			borderSize = { 1 1 }
-			maxsize = { 128 24 }
-			format = centre
-            font = "vic_18_black"
-            text = "rgo_profits_header"
-		}
-        
-        iconType = {
-            name ="header_underline"
-            spriteType = "3-width-header-line"
-            position = { x= 430 y = 45 }
-            Orientation = "UPPER_LEFT"
-        } 
+            iconType = {
+                name ="header_underline"
+                spriteType = "6-width-header-line"
+                position = { x= 250 y = 20 }
+                Orientation = "UPPER_LEFT"
+            } 
+            
+            instantTextBoxType = {
+                name = "rgo_details_header"
+                position = { 360 5 }
+                borderSize = { 1 1 }
+                maxsize = { 128 24 }
+                format = centre
+                font = "vic_18_black"
+                text = "rgo_details_header"
+            }
+            
+            
+            iconType = {
+                name ="header_underline"
+                spriteType = "3-width-header-line"
+                position = { x= 250 y = 45 }
+                Orientation = "UPPER_LEFT"
+            } 
+            
+            instantTextBoxType = {
+                name = "rgo_profits_header"
+                position = { 280 30 }
+                borderSize = { 1 1 }
+                maxsize = { 128 24 }
+                format = centre
+                font = "vic_18_black"
+                text = "rgo_profits_header"
+            }
+            
+            iconType = {
+                name ="header_underline"
+                spriteType = "3-width-header-line"
+                position = { x= 430 y = 45 }
+                Orientation = "UPPER_LEFT"
+            } 
+        }
         
         instantTextBoxType = {
 			name = "rgo_employment_header"
@@ -4601,7 +4607,7 @@ guiTypes = {
         windowType = {
             name = "table_rgo_data"
             position = { 30 65 }	
-            size = { 670 447 }
+            size = { 670 467 }
             
             listboxType = {
                 name = "table_body"
