@@ -752,6 +752,21 @@ void render_tinted_textured_rect(sys::state const& state, float x, float y, floa
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void render_tinted_rect(
+	sys::state const& state,
+	float x, float y, float width, float height,
+	float r, float g, float b,
+	ui::rotation rot, bool flipped, bool rtl
+) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	bind_vertices_by_rotation(state, rot, flipped, rtl);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, r, g, b);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	GLuint subroutines[2] = { parameters::tint, parameters::transparent_color };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
 void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
 		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped,
 		bool rtl) {
@@ -1085,6 +1100,8 @@ GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t
 }
 GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_name) {
 	auto file = open_file(dir, file_name);
+	if(!file)
+		return 0;
 	auto image = load_stb_image(*file);
 	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
 }

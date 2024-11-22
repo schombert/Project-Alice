@@ -4457,13 +4457,6 @@ guiTypes = {
 		}
 	}
 
-	checkboxType = {
-		name = "alice_buy_from_stockpile"
-		position = { 715 388 }
-		quadTextureSprite = "GFX_trade_stockpile_checkbox"
-		Orientation = "UPPER_LEFT"
-	}
-
 	instantTextBoxType = {
 		name = "alice_readme_text"
 		position = { -235 -180 }
@@ -4534,6 +4527,339 @@ guiTypes = {
 			delayedTooltipText = ""
 			position = { x=228 y =2}
 		}
+    guiButtonType = {
+		name = "alice_budget_warning"
+		extends = "topbar"
+		position = { x= 147 y = 23 }
+		quadTextureSprite = "GFX_gunboats"	
+	}
+    windowType = {
+        name = "table_production_methods"
+        position = { 80 60 }	
+        size = { 800 540 }
+        
+        listboxType = {
+            name = "table_production_methods_body"
+            position = { 0 40 }	
+            size = { 800 500 }
+        }
+        
+        extends = "country_production"
+    }
+    
+    windowType = {
+		name = "alice_country_trade"
+		backGround =""
+		position = { x=-510 y=-400 }
+		size = { x=1022 y=822 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder = "0"
+		verticalBorder = ""
+		fullScreen = no
+		orientation="CENTER"
+        
+        iconType = {
+            name = "bg_market_table_global"
+            position = { x=25 y=800}
+            spriteType ="bg-150-100"
+        }	
+        
+        iconType = {
+            name = "bg_market_table_nation"
+            position = { x=200 y=800}
+            spriteType ="bg-150-100"
+        }
+        
+        iconType = {
+            name = "bg_market_table_trade_good_global"
+            position = { x=375 y=800}
+            spriteType ="bg-150-100"
+        }
+        
+        guiButtonType = {
+            name = "market_table_global"
+            position = { x=50 y=810}
+            quadTextureSprite ="bg-100-60"
+            buttonText = "trade_global_data"
+            buttonFont = "vic_18_black"
+        }	
+        
+        guiButtonType = {
+            name = "market_table_nation"
+            position = { x=225 y=810}
+            quadTextureSprite ="bg-100-60"
+            buttonText = "trade_nation_data"
+            buttonFont = "vic_18_black"
+        }
+        
+        guiButtonType = {
+            name = "market_table_trade_good_global"
+            position = { x=400 y=810}
+            quadTextureSprite ="bg-100-60"
+            buttonText = "trade_good_stats_global"
+            buttonFont = "vic_18_black"
+        }
+				
+		iconType = {
+			name ="bg_trade"
+			spriteType = "bg-1022-822"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		textBoxType = { 
+			name = "headline_trade"
+			position = { x = 770 y = -42 }
+			font = "vic_title"
+			text = "TRADE"	
+			maxWidth = 200
+			maxHeight = 48	
+			format = right
+		}
+		
+		guiButtonType = {
+			name = "close_button"
+			position = { x= -25 y = -5}
+			quadTextureSprite = "GFX_main_close_button"		
+			Orientation = "UPPER_RIGHT"
+			shortcut = "ESCAPE"
+			clicksound = click
+		}
+		
+		###############################################
+		# WORLD MARKET GOODS
+		###############################################	
+        
+        windowType = {
+            name = "commodity_table_nation"
+            position = { 20 20 }	
+            size = { 650 780 }
+            
+            listboxType = {
+                name = "commodity_table_body"
+                position = { 0 40 }	
+                size = { 650 740 }
+            }
+        }
+        
+        windowType = {
+            name = "commodity_table_global"
+            position = { 20 20 }	
+            size = { 650 780 }
+            
+            listboxType = {
+                name = "commodity_table_body"
+                position = { 0 40 }	
+                size = { 650 740 }
+            }
+        }
+        
+        windowType = {
+            name = "trade_good_global_stats"
+            position = { 20 20 }	
+            size = { 650 780 }
+            
+            listboxType = {
+                name = "commodity_table_body"
+                position = { 0 40 }	
+                size = { 650 740 }
+            }
+        }
+        
+		#############################################
+		# TRADE DETAIL 
+		#############################################
+		windowType = {
+			name = "trade_details"
+			position = { x = 710 y = 20 }
+			size = { x = 300 y = 780 }
+			
+			iconType = {
+			name = "goods_icon"
+			spriteType = "GFX_resources"
+			position = { x=5 y =5 }
+			}
+			
+			instantTextBoxType = { 
+				name = "goods_title"
+				position = { x = 10 y = 25 }
+				font = "vic_18_black"
+				text = "GOODS"
+				maxWidth = 300
+				maxHeight = 32	
+				format = left
+			}
+			
+			instantTextBoxType = { 
+				name = "goods_price"
+				position = { x = 100 y = 10 }
+				font = "vic_18_black"
+				text = "99"
+				maxWidth = 150
+				maxHeight = 32	
+				format = right
+			}
+			
+			iconType = {
+				name = "price_linechart"
+				spriteType = "GFX_price_linechart"
+				position = { x = 0 y = 60 }
+			}
+			
+			instantTextBoxType = {
+				position = { x = 10 y = 110 }
+				name = "price_chart_low"
+				font = "vic_18_black"
+				text = "0"	
+				maxWidth = 170
+				maxHeight = 10
+			}
+			
+			instantTextBoxType = {
+				position = { x = 10 y = 50 }
+				name = "price_chart_high"
+				font = "vic_18_black"
+				text = "99"	
+				maxWidth = 170
+				maxHeight = 10
+			}
+			
+			
+			##################		
+        
+            checkboxType = {
+				name = "sell_stockpile"
+				position = {x= 20 y = 290}
+				quadTextureSprite = "GFX_toggle_default"
+				tooltip = ""
+				tooltipText =""
+				delayedTooltipText = ""
+			}
+			
+			instantTextBoxType = {
+				position = {x= 0 y = 312}
+				name = "sell_stockpile_label"
+				font = "vic_18_black"
+				text = "TRADE_SELL"	
+				maxWidth = 60
+				maxHeight = 20
+				format = centre
+			}
+        
+			scrollbarType = {
+				name = "sell_slider"
+				slider = "slider"
+				track= "track"
+				leftbutton = "up"
+				rightbutton = "down"
+				position = {x= 50 y =290}
+				size = {x = 220 y = 20 }
+				priority = 100			
+				minValue = 0
+				maxValue = 2000
+				stepSize = 2
+				startValue = 0
+				horizontal = 1
+				
+				guiButtonType = {
+					name = "slider"	
+					quadTextureSprite = "GFX_slider_circle"
+					position = { x=0 y =0}
+				}
+				guiButtonType = {
+					name = "track"
+					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
+					position = { x=0 y =0}	
+				}	
+				guiButtonType = {
+					name = "up"
+					quadTextureSprite = "GFX_slider_left"
+					position = { x=0 y =0}	
+				}
+				guiButtonType = {
+					name = "down"
+					quadTextureSprite = "GFX_slider_right"
+					position = { x=0 y =220}	
+				}		
+			}
+			
+			instantTextBoxType = {
+				position = {x= 362 y =291}
+				name = "slider_value"
+				font = "vic_22_black"
+				text = "1000"	
+				maxWidth = 50
+				maxHeight = 40
+				format = centre
+			}
+			
+			guiButtonType = {
+				name = "confirm_trade"
+				position = { x=145 y =323}
+				quadTextureSprite ="GFX_button_standard_200"
+				buttonText = "TRADE_CONFIRM_TRADE"
+				buttonFont = "vic_18_black"
+			}
+			
+			guiButtonType = {
+				name = "goods_details"
+				position = { x = 100 y = 135}
+				quadTextureSprite ="GFX_button_standard_144"
+				buttonText = "TRADE_FLOW_DETAILS"
+				buttonFont = "vic_18_black"
+			}
+			
+			instantTextBoxType = {
+				position = { x= 50 y = 178 }
+				name = "goods_need_gov_desc"
+				font = "vic_18_black"
+				text = "GOV_NEED_DETAIL"	
+				maxWidth = 300
+				maxHeight = 40
+			}
+			
+			instantTextBoxType = {
+				position = { x= 50 y = 194 }
+				name = "goods_need_factory_desc"
+				font = "vic_18_black"
+				text = "FACTORY_NEED_DETAIL"	
+				maxWidth = 300
+				maxHeight = 40
+			}
+			instantTextBoxType = {
+				position = { x= 50 y = 210 }
+				name = "produced_detail_desc"
+				font = "vic_18_black"
+				text = "PRODUCED_DETAIL"	
+				maxWidth = 300
+				maxHeight = 40
+			}
+			
+			instantTextBoxType = {
+				position = { x= 50 y = 235 }
+				name = "goods_need_pop_desc"
+				font = "vic_18_black"
+				text = "POP_NEED_DETAIL"	
+				maxWidth = 300
+				maxHeight = 40
+			}
+			
+		}
+	}  
+    
+    textBoxType = {
+        name = "thin_cell_name"
+        size = { 100 20 }
+        font = "vic_18_black"
+    }
+    
+    textBoxType = {
+        name = "thin_cell_number"
+        size = { 60 20 }
+        font = "vic_18_black"
+        format = right
+    }
     
     windowType = {
 		name = "alice_build_up_to_template_window"

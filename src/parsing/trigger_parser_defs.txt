@@ -42,6 +42,14 @@ tr_can_build_railway_in_capital
 tr_work_available
     worker           value           text               member_fn
 
+tr_party_name
+	ideology                       value     text                           member_fn
+	name                            value     text                           member_fn
+
+tr_party_position
+	ideology                       value     text                           member_fn
+	position                            value     text                           member_fn
+
 trigger_body
 	total_sunk_by_us    value     int      member_fn
 	have_core_in   value   text       member_fn
@@ -280,6 +288,8 @@ trigger_body
 	can_build_railway_in_capital group  tr_can_build_railway_in_capital member_fn
 	can_build_fort_in_capital    group  tr_can_build_fort_in_capital    member_fn
 	work_available               group  tr_work_available               member_fn
+	party_name         group         tr_party_name       member_fn
+	party_position     group      tr_party_position    member_fn
 	and                          extern tr_scope_and                    discard
 	or                           extern tr_scope_or                     discard
 	not                          extern tr_scope_not                    discard

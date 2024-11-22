@@ -125,11 +125,12 @@ object {
 	storage_type{contiguous}
 	size{ 15000 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
 		type{ text_key }
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ start_date }
@@ -149,7 +150,7 @@ object {
 	property{
 		name{ party_issues }
 		type{array{issue_id}{issue_option_id}}
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ trigger }
@@ -4627,11 +4628,6 @@ object {
 	size{ 300000 }
 	tag{ save }
 
-	property{
-		name{ name }
-		type{ text_key }
-		tag{ scenario }
-	}
 	property{
 		name{ poptype }
 		type{ pop_type_id }

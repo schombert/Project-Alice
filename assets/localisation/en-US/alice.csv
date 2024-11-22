@@ -1229,3 +1229,40 @@ fab_explain_8;Doesn't have a truce
 alice_reform_support_header;Political support for this reform (a total of 50% or greater is required to choose the reform)
 alice_no_current_support;Currently there is no political support for this reform
 alice_unciv_reform_cost;Reform cost: $x$
+trade_global_data;World
+trade_nation_data;Domestic
+trade_good_stats_global;Nations
+trade_good_name_header;Trade good
+price;Price
+supply;Supply
+demand;Demand
+balance;Balance
+market_stockpiles;In stock
+national_stockpile;Stockpile
+government_need;Government procurement
+factory_need;Factory inputs
+pop_need;Population needs
+rgo_production;RGO output
+artisan_production;Artisans output
+factory_production;Factories output
+artisan_distribution;Artisans priorities
+produced_nation;Production
+consumed_nation;Consumption
+nation_name;Nation
+demanded_nation;Demand
+method_name;Name
+method_input;Inputs cost
+method_output;Outputs cost
+method_profit;Profit (expected)
+method_margin;Margin
+method_cost;Build cost
+method_payback;Payback time
+change_pname_to;Change $x$ party name to $text$
+change_rpname_to;Change ruling party name to $text$
+change_pposition_to;Change $x$ party position to $text$
+change_rpposition_to;Change ruling party position to $text$
+pname_is;$x$ party name
+rpname_is;ruling party name
+pposition_is;$x$ party position
+rpposition_is;ruling party position
+topbar_budget_warning;You were unable to fully afford yesterday's target budget spending

@@ -7,6 +7,7 @@
 #include "province_templates.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "script_constants.hpp"
+#include "politics.hpp"
 
 namespace trigger {
 
@@ -5646,6 +5647,64 @@ TRIGGER_FUNCTION(tf_has_building_bank) {
 }
 TRIGGER_FUNCTION(tf_has_building_university) {
 	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), uint8_t(economy::province_building_type::university)) != 0);
+}
+
+TRIGGER_FUNCTION(tf_party_name) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::text_key new_name{ dcon::text_key::value_base_t(trigger::read_int32_t_from_payload(tval + 2)) };
+
+	if(ideo) {
+		auto nat = trigger::to_nation(primary_slot);
+		auto holder = ws.world.nation_get_identity_from_identity_holder(nat);
+
+		return compare_to_true(tval[0], ve::apply([&ws, ideo, new_name](dcon::national_identity_id h, dcon::nation_id n) {
+			auto start = ws.world.national_identity_get_political_party_first(h).id.index();
+			auto end = start + ws.world.national_identity_get_political_party_count(h);
+
+			for(int32_t i = start; i < end; i++) {
+				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+				if(politics::political_party_is_active(ws, n, pid) && ws.world.political_party_get_ideology(pid) == ideo) {
+					return ws.world.political_party_get_name(pid) == new_name;
+				}
+			}
+			return false;
+
+			}, holder, nat));
+		
+	} else {
+		auto n = trigger::to_nation(primary_slot);
+		auto rp = ws.world.nation_get_ruling_party(n);
+		return compare_to_true(tval[0], ws.world.political_party_get_name(rp) == new_name);
+	}
+}
+
+TRIGGER_FUNCTION(tf_party_position) {
+	auto ideo = trigger::payload(tval[1]).ideo_id;
+	dcon::issue_option_id new_opt = trigger::payload(tval[2]).opt_id;
+	auto popt = ws.world.issue_option_get_parent_issue(new_opt);
+
+	if(ideo) {
+		auto nat = trigger::to_nation(primary_slot);
+		auto holder = ws.world.nation_get_identity_from_identity_holder(nat);
+
+		return compare_to_true(tval[0], ve::apply([&ws, ideo, new_opt, popt](dcon::national_identity_id h, dcon::nation_id n) {
+			auto start = ws.world.national_identity_get_political_party_first(h).id.index();
+			auto end = start + ws.world.national_identity_get_political_party_count(h);
+
+			for(int32_t i = start; i < end; i++) {
+				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+				if(politics::political_party_is_active(ws, n, pid) && ws.world.political_party_get_ideology(pid) == ideo) {
+					return ws.world.political_party_get_party_issues(pid, popt) == new_opt;
+				}
+			}
+			return false;
+
+		}, holder, nat));
+	} else {
+		auto n = trigger::to_nation(primary_slot);
+		auto rp = ws.world.nation_get_ruling_party(n);
+		return compare_to_true(tval[0], ws.world.political_party_get_party_issues(rp, popt) == new_opt);
+	}
 }
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
