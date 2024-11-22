@@ -493,15 +493,21 @@ native_string win1250_to_native(std::string_view data_in) {
 }
 
 native_string utf8_to_native(std::string_view str) {
-	auto buffer = std::unique_ptr<WCHAR[]>(new WCHAR[str.length() * 2]);
-	auto chars_written = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 2));
-	return native_string(buffer.get(), size_t(chars_written));
+	if(str.size() > 0) {
+		auto buffer = std::unique_ptr<WCHAR[]>(new WCHAR[str.length() * 2]);
+		auto chars_written = MultiByteToWideChar(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 2));
+		return native_string(buffer.get(), size_t(chars_written));
+	}
+	return native_string(NATIVE(""));
 }
 
 std::string native_to_utf8(native_string_view str) {
-	auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
-	auto chars_written = WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), nullptr, nullptr);
-	return std::string(buffer.get(), size_t(chars_written));
+	if(str.size() > 0) {
+		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
+		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
+		return std::string(buffer.get(), size_t(chars_written));
+	}
+	return std::string("");
 }
 
 std::string remove_double_backslashes(std::string_view data_in) {

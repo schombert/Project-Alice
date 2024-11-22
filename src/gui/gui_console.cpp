@@ -229,7 +229,7 @@ int32_t* f_set_mil(fif::state_stack& s, int32_t* p, fif::environment* e) {
 
 	for(auto pr : state->world.nation_get_province_ownership(to_nation))
 		for(auto pop : pr.get_province().get_pop_location())
-			pop.get_pop().set_militancy(mvalue);
+			pop_demographics::set_militancy(*state, pop.get_pop().id, mvalue);
 
 	return p + 2;
 }
@@ -256,7 +256,7 @@ int32_t* f_set_con(fif::state_stack& s, int32_t* p, fif::environment* e) {
 
 	for(auto pr : state->world.nation_get_province_ownership(to_nation))
 		for(auto pop : pr.get_province().get_pop_location())
-			pop.get_pop().set_consciousness(mvalue);
+			pop_demographics::set_consciousness(*state, pop.get_pop().id, mvalue);
 
 	return p + 2;
 }

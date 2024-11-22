@@ -858,6 +858,13 @@ relationship_object_def parse_relationship(char const* start, char const* end, c
 					result.composite_indexes.push_back(
 						parse_composite_key(extracted.values[0].start, extracted.values[0].end, global_start, err_out));
 				}
+			} else if(kstr == "swappable") {
+				if(extracted.values.size() != 2) {
+					err_out.add(calculate_line_from_position(global_start, extracted.key.start), 49,
+						std::string("wrong number of parameters for \"swappable\""));
+				} else {
+					// ignore
+				}
 			} else if(kstr == "function") {
 				if(extracted.values.size() != 1) {
 					err_out.add(calculate_line_from_position(global_start, extracted.key.start), 50,
@@ -999,6 +1006,12 @@ relationship_object_def parse_object(char const* start, char const* end, char co
 				} else {
 					result.properties.push_back(
 						parse_property_def(extracted.values[0].start, extracted.values[0].end, global_start, err_out));
+				}
+			} else if(kstr == "swappable") {
+				if(extracted.values.size() != 2) {
+					err_out.add(calculate_line_from_position(global_start, extracted.key.start), 49,
+						std::string("wrong number of parameters for \"swappable\""));
+				} else {
 				}
 			} else if(kstr == "function") {
 				if(extracted.values.size() != 1) {

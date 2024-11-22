@@ -86,16 +86,6 @@ class production_project_info : public listbox_row_element_base<production_proje
 	simple_text_element_base* cost_text = nullptr;
 	production_project_input_listbox* input_listbox = nullptr;
 
-	float get_cost(sys::state& state, economy::commodity_set const& cset) {
-		float total = 0.f;
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			dcon::commodity_id cid = cset.commodity_type[i];
-			if(bool(cid))
-				total += state.world.commodity_get_current_price(cid) * cset.commodity_amounts[i];
-		}
-		return total;
-	}
-
 	dcon::state_instance_id get_state_instance_id(sys::state& state) {
 		if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
@@ -105,6 +95,17 @@ class production_project_info : public listbox_row_element_base<production_proje
 			return fat_id.get_state();
 		}
 		return dcon::state_instance_id{};
+	}
+
+	float get_cost(sys::state& state, economy::commodity_set const& cset) {
+		float total = 0.f;
+		auto s = get_state_instance_id(state);
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			dcon::commodity_id cid = cset.commodity_type[i];
+			if(bool(cid))
+				total += economy::price(state, s, cid) * cset.commodity_amounts[i];
+		}
+		return total;
 	}
 
 public:
@@ -186,11 +187,13 @@ public:
 			input_listbox->update(state);
 		}
 
+		auto s = get_state_instance_id(state);
+
 		float purchased_cost = 0.0f;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			dcon::commodity_id cid = needed_commodities.commodity_type[i];
 			if(bool(cid))
-				purchased_cost += state.world.commodity_get_current_price(cid) * satisfied_commodities.commodity_amounts[i];
+				purchased_cost += economy::price(state, s, cid) * satisfied_commodities.commodity_amounts[i];
 		}
 		float total_cost = get_cost(state, needed_commodities);
 		cost_text->set_text(state, text::format_money(purchased_cost) + "/" + text::format_money(total_cost));

@@ -189,13 +189,28 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 				&& (state.world.nation_get_government_type(state.local_player_nation).get_ideologies_allowed() & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0
 				&& state.world.political_party_get_ideology(pid) == iid) {
 
-				for(uint32_t j = 0; j < count_party_issues; ++j) {
-					auto popt = state.world.political_party_get_party_issues(pid, dcon::issue_id{ dcon::issue_id::value_base_t(j) });
-					auto opt_mod = state.world.issue_option_get_support_modifiers(popt, ref);
+				if(auto special_opt = state.world.political_party_get_party_issues(pid, parent); special_opt) {
+					if(special_opt == ref
+							|| (state.world.issue_get_is_next_step_only(parent.id)
+								&& ((special_opt.id.index() > current.index() && ref.index() > current.index())
+									|| (special_opt.id.index() < current.index() && ref.index() < current.index())
+									)
+								)
+					) {
+						party_special_issues_support_total = upperhouse_weight;
+					} else {
+						party_special_issues_support_total = 0.0f;
+					}
+					count_found = 1.0f;
+				} else {
+					for(uint32_t j = 0; j < count_party_issues; ++j) {
+						auto popt = state.world.political_party_get_party_issues(pid, dcon::issue_id{ dcon::issue_id::value_base_t(j) });
+						auto opt_mod = state.world.issue_option_get_support_modifiers(popt, ref);
 
-					if(opt_mod) {
-						party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
-						count_found += 1.0f;
+						if(opt_mod) {
+							party_special_issues_support_total += upperhouse_weight * trigger::evaluate_additive_modifier(state, opt_mod, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+							count_found += 1.0f;
+						}
 					}
 				}
 

@@ -2676,8 +2676,8 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 
 		for(auto prov : state.world.nation_get_province_ownership(source)) {
 			for(auto pop : prov.get_province().get_pop_location()) {
-				auto& mil = pop.get_pop().get_militancy();
-				mil = std::min(mil + cb_militancy, 10.0f);
+				auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+				pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + cb_militancy, 10.0f));
 			}
 		}
 	}

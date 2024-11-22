@@ -1311,6 +1311,9 @@ public:
 		economy::commodity_set commodities;
 
 		auto owner = state.local_player_nation;
+		auto capital = state.world.nation_get_capital(owner);
+		auto s = state.world.province_get_state_membership(capital);
+		auto m = state.world.state_instance_get_market_from_local_market(s);
 
 		float spending_level = .0f;
 
@@ -1338,7 +1341,7 @@ public:
 
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 
-			auto satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
@@ -1361,6 +1364,9 @@ public:
 
 		float spending_level = .0f;
 		auto owner = state.local_player_nation;
+		auto capital = state.world.nation_get_capital(owner);
+		auto s = state.world.province_get_state_membership(capital);
+		auto m = state.world.state_instance_get_market_from_local_market(s);
 
 		if(army) {
 			commodities = military::get_required_supply(state, state.local_player_nation, army);
@@ -1383,7 +1389,7 @@ public:
 			}
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 
-			auto satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
@@ -1396,7 +1402,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
 				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-				float satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+				float satisfaction = state.world.market_get_demand_satisfaction(m, c);
 				float wanted_commodity = commodities.commodity_amounts[i];
 				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 

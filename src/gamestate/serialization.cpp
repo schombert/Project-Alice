@@ -1078,18 +1078,6 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 			state.cheat_data.demand_dump_buffer.c_str(),
 			uint32_t(state.cheat_data.demand_dump_buffer.size())
 		);
-		simple_fs::write_file(
-			data_dumps_directory,
-			NATIVE("supply_dump.txt"),
-			state.cheat_data.supply_dump_buffer.c_str(),
-			uint32_t(state.cheat_data.supply_dump_buffer.size())
-		);
-		simple_fs::write_file(
-			data_dumps_directory,
-			NATIVE("demand_by_category_dump.txt"),
-			state.cheat_data.demand_by_category_dump_buffer.c_str(),
-			uint32_t(state.cheat_data.demand_by_category_dump_buffer.size())
-		);
 	}
 }
 bool try_read_save_file(sys::state& state, native_string_view name) {

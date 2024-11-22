@@ -297,7 +297,7 @@ static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
 	"单人游戏",
 	"多人游戏",
 	"开始游戏",
-	"主机",
+	"主持",
 	"加入",
 	"模组列表"
 };

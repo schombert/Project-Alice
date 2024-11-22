@@ -284,6 +284,16 @@ void render_text_chunk(
 			current_font,
 			cmod
 		);
+	} else if(std::holds_alternative<text::embedded_commodity_icon>(t.source)) {
+		ogl::render_text_commodity_icon(
+			state,
+			std::get<text::embedded_commodity_icon>(t.source),
+			x,
+			baseline_y,
+			font_size,
+			current_font,
+			cmod
+		);
 	} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
 		ogl::render_text_icon(
 			state,
@@ -1404,7 +1414,7 @@ void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
 				if(obj_id_payload.holds_type<dcon::pop_id>()) {
 					auto demo_key = pop_demographics::to_key(state, demo_id);
 					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
-					volume = state.world.pop_get_demographics(pop_id, demo_key);
+					volume = pop_demographics::get_demo(state, pop_id, demo_key);
 				}
 			}
 			if(volume > 0)
@@ -2302,21 +2312,39 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 
 void scrollbar_left::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 5, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_left::button_shift_right_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 10000, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 10000, true, true });
+	if(parent) {
+		parent->impl_on_drag_finish(state);
+	}
 }
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {

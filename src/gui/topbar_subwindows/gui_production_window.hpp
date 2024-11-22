@@ -508,6 +508,10 @@ public:
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
 						auto box = text::open_layout_box(contents, 0);
+						auto cid = goods.commodity_type[i];
+						std::string padding = cid.index() < 10 ? "0" : "";
+						std::string description = "@$" + padding + std::to_string(cid.index());
+						text::add_unparsed_text_to_layout_box(state, contents, box, description);
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
@@ -549,6 +553,10 @@ public:
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
 						auto box = text::open_layout_box(contents, 0);
+						auto cid = goods.commodity_type[i];
+						std::string padding = cid.index() < 10 ? "0" : "";
+						std::string description = "@$" + padding + std::to_string(cid.index());
+						text::add_unparsed_text_to_layout_box(state, contents, box, description);
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
@@ -581,6 +589,7 @@ class normal_factory_background : public opaque_element_base {
 			if(state.world.state_instance_get_definition(id) == sdef)
 				s = id;
 		});
+		auto market = state.world.state_instance_get_market_from_local_market(s);
 
 		// nation data
 
@@ -598,10 +607,10 @@ class normal_factory_background : public opaque_element_base {
 
 		//inputs
 
-		float input_total = economy::factory_input_total_cost(state, n, type);
-		float min_input_available = economy::factory_min_input_available(state, n, type);
-		float e_input_total = economy::factory_e_input_total_cost(state, n, type);
-		float min_e_input_available = economy::factory_min_e_input_available(state, n, type);
+		float input_total = economy::factory_input_total_cost(state, market, type);
+		float min_input_available = economy::factory_min_input_available(state, market, type);
+		float e_input_total = economy::factory_e_input_total_cost(state, market, type);
+		float min_e_input_available = economy::factory_min_e_input_available(state, market, type);
 
 		//modifiers
 
@@ -609,6 +618,17 @@ class normal_factory_background : public opaque_element_base {
 		float e_input_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
 		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s);
 		float output_multiplier = economy::factory_output_multiplier(state, fac, n, p);
+
+		float bonus_profit_thanks_to_max_e_input = fac.get_building_type().get_output_amount()
+			* 0.25f
+			* throughput_multiplier
+			* output_multiplier
+			* min_input_available
+			* economy::price(state, market, fac.get_building_type().get_output());
+
+		// if efficiency inputs are not worth it, then do not buy them
+		if(bonus_profit_thanks_to_max_e_input < e_input_total * e_input_multiplier * input_multiplier)
+			min_e_input_available = 0.f;
 
 		float max_production_scale = economy::factory_max_production_scale(
 			state,
@@ -658,9 +678,14 @@ class normal_factory_background : public opaque_element_base {
 			cost_box.x_position += position_cost;
 
 			name_entry.x_size /= 10;
+
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
+
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
 			
-			auto sat = state.world.nation_get_demand_satisfaction(n, cid);
+			auto sat = state.world.market_get_demand_satisfaction(market, cid);
 			text::add_to_layout_box(state, contents,
 				demand_satisfaction,
 				text::fp_percentage{ sat },
@@ -675,7 +700,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				state.world.nation_get_effective_prices(n, cid)
+				economy::price(state, market, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -702,9 +727,12 @@ class normal_factory_background : public opaque_element_base {
 			cost_box.x_position += position_cost;
 
 			name_entry.x_size /= 10;
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
 
-			auto sat = state.world.nation_get_demand_satisfaction(n, cid);
+			auto sat = state.world.market_get_demand_satisfaction(market, cid);
 			text::add_to_layout_box(state, contents,
 				demand_satisfaction,
 				text::fp_percentage{ sat },
@@ -719,7 +747,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				state.world.nation_get_effective_prices(n, cid)
+				economy::price(state, market, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -762,6 +790,10 @@ class normal_factory_background : public opaque_element_base {
 			cost.x_position += position_cost;
 
 			name_entry.x_size /= 10;
+
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
 
 			float output_amount =
@@ -773,7 +805,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float output_cost =
-				state.world.nation_get_effective_prices(n, cid)
+				economy::price(state, market, cid)
 				* output_amount;
 
 			text::add_to_layout_box(state, contents, amount, text::fp_two_places{ output_amount });
@@ -806,7 +838,7 @@ class normal_factory_background : public opaque_element_base {
 		text::add_line_break_to_layout(state, contents);
 
 		auto const min_wage_factor = economy::pop_min_wage_factor(state, n);
-		float factory_min_wage = economy::pop_factory_min_wage(state, n, min_wage_factor);
+		float factory_min_wage = economy::factory_min_wage(state, market, s, min_wage_factor);
 
 		float wage_estimation =
 			factory_min_wage
@@ -1082,13 +1114,16 @@ public:
 					e->set_visible(state, is_closed);
 			}
 
+			auto s = retrieve<dcon::state_instance_id>(state, parent);
+			auto market = state.world.state_instance_get_market_from_local_market(s);
+
 			auto& cset = fat_btid.get_inputs();
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 				if(input_icons[size_t(i)]) {
 					dcon::commodity_id cid = cset.commodity_type[size_t(i)];
 					input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
 					input_icons[size_t(i)]->com = cid;
-					bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+					bool is_lack = cid != dcon::commodity_id{} ? state.world.market_get_demand_satisfaction(market, cid) < 0.5f : false;
 					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 				}
 			}
@@ -1660,147 +1695,6 @@ public:
 	}
 };
 
-class commodity_primary_worker_amount : public simple_text_element_base {
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::commodity_id>(state, parent);
-		auto commodity_type = economy::get_commodity_production_type(state, content);
-
-		float total = 0.0f;
-
-		auto nation = dcon::fatten(state.world, state.local_player_nation);
-
-		switch (commodity_type) {
-		case economy::commodity_production_type::primary:
-		case economy::commodity_production_type::both:
-			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
-				auto province = province_ownership.get_province();
-				total += state.world.province_get_rgo_employment(province);
-			}
-			break;
-
-
-		case economy::commodity_production_type::derivative:
-			total += economy::get_artisan_distribution_slow(state, nation, content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
-			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
-				auto province = province_ownership.get_province();
-				for(auto fac : province.get_factory_location()) {
-					if(fac.get_factory().get_building_type().get_output() == content) {
-						total += economy::factory_primary_employment(state, fac.get_factory());
-					}
-				}
-			}
-			break;
-		default:
-			break;
-
-		}
-
-
-		set_text(state, text::prettify(int64_t(total)));
-	}
-};
-
-class commodity_secondary_worker_amount : public simple_text_element_base {
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::commodity_id>(state, parent);
-		auto commodity_type = economy::get_commodity_production_type(state, content);
-
-		float total = 0.0f;
-
-		auto nation = dcon::fatten(state.world, state.local_player_nation);
-		switch(commodity_type) {
-		case economy::commodity_production_type::primary:
-			break;
-
-		case economy::commodity_production_type::derivative:
-			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
-				auto province = province_ownership.get_province();
-				for(auto fac : province.get_factory_location()) {
-					if(fac.get_factory().get_building_type().get_output() == content) {
-						total += economy::factory_secondary_employment(state, fac.get_factory());
-					}
-				}
-			}
-			break;
-
-		case economy::commodity_production_type::both:
-			total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
-			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
-				auto province = province_ownership.get_province();
-				for(auto fac : province.get_factory_location()) {
-					if(fac.get_factory().get_building_type().get_output() == content) {
-						total += economy::factory_primary_employment(state, fac.get_factory()) + economy::factory_secondary_employment(state, fac.get_factory());
-					}
-				}
-			}
-			break;
-		}
-
-
-		set_text(state, text::prettify(int64_t(total)));
-	}
-};
-
-class commodity_player_production_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1));
-	}
-};
-
-class production_good_info : public window_element_base {
-	commodity_player_production_text* good_output_total = nullptr;
-	image_element_base* good_not_producing_overlay = nullptr;
-
-public:
-	dcon::commodity_id commodity_id;
-
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "output_factory") {
-			return make_element_by_type<commodity_image>(state, id);
-		} else if(name == "output_total") {
-			auto ptr = make_element_by_type<commodity_player_production_text>(state, id);
-			good_output_total = ptr.get();
-			return ptr;
-		} else if(name == "prod_producing_not_total") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			good_not_producing_overlay = ptr.get();
-			return ptr;
-		} else if(name == "pop_factory") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = int32_t(dcon::fatten(state.world, state.culture_definitions.primary_factory_worker).get_sprite() - 1);
-			return ptr;
-		} else if(name == "pop_factory2") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame = int32_t(dcon::fatten(state.world, state.culture_definitions.secondary_factory_worker).get_sprite() - 1);
-			return ptr;
-		} else if(name == "output") {
-			return make_element_by_type<commodity_primary_worker_amount>(state, id);
-		} else if(name == "output2") {
-			return make_element_by_type<commodity_secondary_worker_amount>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		bool is_producing = economy::commodity_daily_production_amount(state, commodity_id) > 0.f;
-		// Display red-overlay if not producing
-		good_not_producing_overlay->set_visible(state, !is_producing);
-		good_output_total->set_visible(state, is_producing);
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			payload.emplace<dcon::commodity_id>(commodity_id);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-
 struct open_investment_nation {
 	dcon::nation_id id;
 };
@@ -1817,7 +1711,11 @@ inline table::column<dcon::factory_type_id> factory_type_name = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = text::produce_simple_string(state,  state.world.factory_type_get_name(id));
+		auto item = state.world.factory_type_get_output(id).id;
+		std::string padding = item.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(item.index());
+
+		auto value = description + text::produce_simple_string(state,  state.world.factory_type_get_name(id));
 		return value;
 	},
 	.cell_definition_string = "thin_cell_name",
@@ -1828,15 +1726,21 @@ inline table::column<dcon::factory_type_id> factory_type_input_cost = {
 	.sortable = true,
 	.header = "method_input",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
-		auto av = economy::factory_type_input_cost(state, state.local_player_nation, a);
-		auto bv = economy::factory_type_input_cost(state, state.local_player_nation, b);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto av = economy::factory_type_input_cost(state, nation, market, a);
+		auto bv = economy::factory_type_input_cost(state, nation, market, b);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = economy::factory_type_input_cost(state, state.local_player_nation, id);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = economy::factory_type_input_cost(state, nation, market, id);
 		return text::format_money(value);
 	},
 };
@@ -1845,15 +1749,21 @@ inline table::column<dcon::factory_type_id> factory_type_output_cost = {
 	.sortable = true,
 	.header = "method_output",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
-		auto av = economy::factory_type_output_cost(state, state.local_player_nation, a);
-		auto bv = economy::factory_type_output_cost(state, state.local_player_nation, b);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto av = economy::factory_type_output_cost(state, nation, market, a);
+		auto bv = economy::factory_type_output_cost(state, nation, market, b);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = economy::factory_type_output_cost(state, state.local_player_nation, id);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = economy::factory_type_output_cost(state, nation, market, id);
 		return text::format_money(value);
 	},
 };
@@ -1862,18 +1772,24 @@ inline table::column<dcon::factory_type_id> factory_type_profit = {
 	.sortable = true,
 	.header = "method_profit",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
-		auto av = economy::factory_type_output_cost(state, state.local_player_nation, a)
-			- economy::factory_type_input_cost(state, state.local_player_nation, a);
-		auto bv = economy::factory_type_output_cost(state, state.local_player_nation, b)
-			- economy::factory_type_input_cost(state, state.local_player_nation, b);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto av = economy::factory_type_output_cost(state, nation, market, a)
+			- economy::factory_type_input_cost(state, nation, market, a);
+		auto bv = economy::factory_type_output_cost(state, nation, market, b)
+			- economy::factory_type_input_cost(state, nation, market, b);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = economy::factory_type_output_cost(state, state.local_player_nation, id)
-			- economy::factory_type_input_cost(state, state.local_player_nation, id);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = economy::factory_type_output_cost(state, nation, market, id)
+			- economy::factory_type_input_cost(state, nation, market, id);
 		return text::format_money(value);
 	},
 };
@@ -1882,13 +1798,16 @@ inline table::column<dcon::factory_type_id> factory_type_profit_margin = {
 	.sortable = true,
 	.header = "method_margin",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
-		auto av = economy::factory_type_output_cost(state, state.local_player_nation, a)
-			- economy::factory_type_input_cost(state, state.local_player_nation, a);
-		auto bv = economy::factory_type_output_cost(state, state.local_player_nation, b)
-			- economy::factory_type_input_cost(state, state.local_player_nation, b);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
 
-		av /= economy::factory_type_output_cost(state, state.local_player_nation, a);
-		bv /= economy::factory_type_output_cost(state, state.local_player_nation, b);
+		auto av = economy::factory_type_output_cost(state, nation, market, a)
+			- economy::factory_type_input_cost(state, nation, market, a);
+		auto bv = economy::factory_type_output_cost(state, nation, market, b)
+			- economy::factory_type_input_cost(state, nation, market, b);
+
+		av /= economy::factory_type_output_cost(state, nation, market, a);
+		bv /= economy::factory_type_output_cost(state, nation, market, b);
 
 		if(av != bv)
 			return av > bv;
@@ -1896,9 +1815,12 @@ inline table::column<dcon::factory_type_id> factory_type_profit_margin = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = economy::factory_type_output_cost(state, state.local_player_nation, id)
-			- economy::factory_type_input_cost(state, state.local_player_nation, id);
-		value /= economy::factory_type_output_cost(state, state.local_player_nation, id);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = economy::factory_type_output_cost(state, nation, market, id)
+			- economy::factory_type_input_cost(state, nation, market, id);
+		value /= economy::factory_type_output_cost(state, nation, market, id);
 		return text::format_percentage(value, 2);
 	},
 };
@@ -1907,8 +1829,11 @@ inline table::column<dcon::factory_type_id> factory_type_cost = {
 	.sortable = true,
 	.header = "method_cost",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
-		auto av = economy::factory_type_build_cost(state, state.local_player_nation, a);
-		auto bv = economy::factory_type_build_cost(state, state.local_player_nation, b);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto av = economy::factory_type_build_cost(state, nation, market, a);
+		auto bv = economy::factory_type_build_cost(state, nation, market, b);
 
 		if(av != bv)
 			return av > bv;
@@ -1916,7 +1841,10 @@ inline table::column<dcon::factory_type_id> factory_type_cost = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = economy::factory_type_build_cost(state, state.local_player_nation, id);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = economy::factory_type_build_cost(state, nation, market, id);
 		return text::format_money(value);
 	},
 };
@@ -1925,16 +1853,17 @@ inline table::column<dcon::factory_type_id> factory_type_payback = {
 	.sortable = true,
 	.header = "method_payback",
 	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
 
-
-		auto av = economy::factory_type_output_cost(state, state.local_player_nation, a)
-			- economy::factory_type_input_cost(state, state.local_player_nation, a);
-		auto bv = economy::factory_type_output_cost(state, state.local_player_nation, b)
-			- economy::factory_type_input_cost(state, state.local_player_nation, b);
+		auto av = economy::factory_type_output_cost(state, nation, market, a)
+			- economy::factory_type_input_cost(state, nation, market, a);
+		auto bv = economy::factory_type_output_cost(state, nation, market, b)
+			- economy::factory_type_input_cost(state, nation, market, b);
 		av = std::max(0.f, av);
 		bv = std::max(0.f, bv);
-		av = economy::factory_type_build_cost(state, state.local_player_nation, a) / av;
-		bv = economy::factory_type_build_cost(state, state.local_player_nation, b) / bv;
+		av = economy::factory_type_build_cost(state, nation, market, a) / av;
+		bv = economy::factory_type_build_cost(state, nation, market, b) / bv;
 
 		if(av != bv)
 			return av > bv;
@@ -1942,10 +1871,13 @@ inline table::column<dcon::factory_type_id> factory_type_payback = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
-		auto value = economy::factory_type_output_cost(state, state.local_player_nation, id)
-			- economy::factory_type_input_cost(state, state.local_player_nation, id);
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = economy::factory_type_output_cost(state, nation, market, id)
+			- economy::factory_type_input_cost(state, nation, market, id);
 		value = std::max(0.f, value);
-		value = economy::factory_type_build_cost(state, state.local_player_nation, id) / value;
+		value = economy::factory_type_build_cost(state, nation, market, id) / value;
 
 		return text::format_float(value);
 	},
@@ -1995,63 +1927,6 @@ public:
 
 		// All filters enabled by default
 		commodity_filters.resize(state.world.commodity_size(), true);
-
-		/*
-		for(curr_commodity_group = sys::commodity_group::military_goods; curr_commodity_group != sys::commodity_group::count;
-				curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1)) {
-
-			bool is_empty = true;
-			for(auto id : state.world.in_commodity) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id) || id == economy::money)
-					continue;
-				is_empty = false;
-			}
-			if(is_empty)
-				continue;
-
-			commodity_offset.x = base_commodity_offset.x;
-
-			// Place legend for this category...
-			auto ptr = make_element_by_type<production_goods_category_name>(state,
-					state.ui_state.defs_by_name.find(state.lookup_key("production_goods_name"))->second.definition);
-			ptr->base_data.position = commodity_offset;
-			Cyto::Any payload = curr_commodity_group;
-			ptr->impl_set(state, payload);
-			ptr->set_visible(state, false);
-			commodity_offset.y += ptr->base_data.size.y;
-			good_elements.push_back(ptr.get());
-			add_child_to_front(std::move(ptr));
-
-			int16_t cell_height = 0;
-			// Place infoboxes for each of the goods...
-			for(auto id : state.world.in_commodity) {
-				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group || !bool(id) || id == economy::money)
-					continue;
-
-				auto info_ptr = make_element_by_type<production_good_info>(state,
-						state.ui_state.defs_by_name.find(state.lookup_key("production_info"))->second.definition);
-				info_ptr->base_data.position = commodity_offset;
-				info_ptr->set_visible(state, false);
-
-				int16_t cell_width = info_ptr->base_data.size.x;
-				cell_height = info_ptr->base_data.size.y;
-
-				commodity_offset.x += cell_width;
-				if(commodity_offset.x + cell_width >= base_data.size.x) {
-					commodity_offset.x = base_commodity_offset.x;
-					commodity_offset.y += cell_height;
-				}
-
-				info_ptr.get()->commodity_id = id;
-
-				good_elements.push_back(info_ptr.get());
-				add_child_to_front(std::move(info_ptr));
-			}
-			// Has atleast 1 good on this row? skip to next row then...
-			if(commodity_offset.x > base_commodity_offset.x)
-				commodity_offset.y += cell_height;
-		}
-		*/
 
 		{
 			auto ptr = make_element_by_type<national_focus_window>(state, "state_focus_window");
@@ -2233,6 +2108,12 @@ public:
 				state_listbox_invest->impl_on_update(state);
 		} else if(payload.holds_type<dcon::state_instance_id>()) {
 			payload.emplace<dcon::state_instance_id>(focus_state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::market_id>()) {
+			auto capitol = state.world.nation_get_capital(state.local_player_nation);
+			auto s = state.world.province_get_state_membership(capitol);
+			auto m = state.world.state_instance_get_market_from_local_market(s);
+			payload.emplace<dcon::market_id>(m);
 			return message_result::consumed;
 		} else if(payload.holds_type<production_selection_wrapper>()) {
 			auto data = any_cast<production_selection_wrapper>(payload);

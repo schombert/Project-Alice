@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "rebels.hpp"
 #include "fonts.hpp"
+#include "demographics.hpp"
 
 namespace parsers {
 
@@ -403,22 +404,15 @@ void party::finish(party_context& context) {
 void party::any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line,
 		party_context& context) {
 	if(auto it = context.outer_context.map_of_iissues.find(std::string(issue)); it != context.outer_context.map_of_iissues.end()) {
-		if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
-			if(auto oit = context.outer_context.map_of_ioptions.find(std::string(option));
-					oit != context.outer_context.map_of_ioptions.end()) {
-				context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
-			} else {
-				err.accumulated_errors +=
-						std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
+		if(auto oit = context.outer_context.map_of_ioptions.find(std::string(option)); oit != context.outer_context.map_of_ioptions.end()) {
+			context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
 		} else {
 			err.accumulated_errors +=
-					std::string(issue) + " is not a proper party issue (" + err.file_name + " line " + std::to_string(line) + ")\n";
+						std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 		// context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
 	} else {
-		err.accumulated_errors +=
-				std::string(issue) + " is not a valid issue name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += std::string(issue) + " is not a valid issue name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -493,7 +487,7 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 	new_pop.set_religion(def.rel_id);
 	new_pop.set_size(float(def.size));
 	new_pop.set_poptype(ptype);
-	new_pop.set_militancy(def.militancy);
+	pop_demographics::set_militancy(context.outer_context.state, new_pop, def.militancy);
 	// new_pop.set_rebel_group(def.reb_id);
 
 	auto pop_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
@@ -2846,7 +2840,7 @@ void country_history_file::literacy(association_type, float value, error_handler
 		return;
 	for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
 		for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
-			prov_pop.get_pop().set_literacy(value);
+			pop_demographics::set_literacy(context.outer_context.state, prov_pop.get_pop(), std::clamp(value, 0.0f, 1.0f));
 		}
 	}
 }
@@ -2866,7 +2860,7 @@ void country_history_file::non_state_culture_literacy(association_type, float va
 				return true;
 			}();
 			if(non_accepted)
-				prov_pop.get_pop().set_literacy(value);
+				pop_demographics::set_literacy(context.outer_context.state, prov_pop.get_pop(), std::clamp(value, 0.0f, 1.0f));
 		}
 	}
 }
@@ -2877,7 +2871,7 @@ void country_history_file::consciousness(association_type, float value, error_ha
 		return;
 	for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
 		for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
-			prov_pop.get_pop().set_consciousness(value);
+			pop_demographics::set_consciousness(context.outer_context.state, prov_pop.get_pop(), std::clamp(value, 0.0f, 10.0f));
 		}
 	}
 }
@@ -2889,7 +2883,7 @@ void country_history_file::nonstate_consciousness(association_type, float value,
 	for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
 		if(owned_prov.get_province().get_is_colonial()) {
 			for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
-				prov_pop.get_pop().set_consciousness(value);
+				pop_demographics::set_consciousness(context.outer_context.state, prov_pop.get_pop(), std::clamp(value, 0.0f, 10.0f));
 			}
 		}
 	}

@@ -472,6 +472,18 @@ bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si) {
 	return false;
 }
 
+uint32_t state_naval_base_level(sys::state const& state, dcon::state_instance_id si) {
+	uint32_t level = 0;
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	auto def = state.world.state_instance_get_definition(si);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(def)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			level += p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base));
+		}
+	}
+	return level;
+}
+
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
@@ -1157,12 +1169,27 @@ float mobilization_size(sys::state const& state, dcon::nation_id n) {
 	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
 	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_size);
 }
+
+ve::fp_vector ve_mobilization_size(sys::state const& state, ve::tagged_vector<dcon::nation_id> nations) {
+	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
+	return state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::mobilization_size);
+}
+
 float mobilization_impact(sys::state const& state, dcon::nation_id n) {
 	// Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier +
 	// technology-mobilization-impact-modifier), to a minimum of zero.
-	return std::clamp(1.0f - mobilization_size(state, n) *
-															 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
-			0.0f, 1.0f);
+	return std::clamp(
+		1.0f - mobilization_size(state, n)
+		* state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
+		0.0f,
+		1.0f
+	);
+}
+
+ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<dcon::nation_id> nations) {
+	auto size = ve_mobilization_size(state, nations);
+	auto impact = (1.f - size) * state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::mobilization_impact);
+	return ve::min(ve::max(impact, 0.f), 1.f);
 }
 
 void update_cbs(sys::state& state) {
@@ -2548,8 +2575,8 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	if(pop_militancy > 0) {
 		for(auto prv : state.world.nation_get_province_ownership(n)) {
 			for(auto pop : prv.get_province().get_pop_location()) {
-				auto& mil = pop.get_pop().get_militancy();
-				mil = std::min(mil + pop_militancy, 10.0f);
+				auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+				pop_demographics::set_militancy(state, pop.get_pop(), std::min(mil + pop_militancy, 10.0f));
 			}
 		}
 	}
@@ -3378,13 +3405,12 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 																	state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
 						nations::adjust_prestige(state, par.id, prestige_loss);
 
-						auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult *
-																 state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
+						auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
 						if(pop_militancy > 0) {
 							for(auto prv : state.world.nation_get_province_ownership(par.id)) {
 								for(auto pop : prv.get_province().get_pop_location()) {
-									auto& mil = pop.get_pop().get_militancy();
-									mil = std::min(mil + pop_militancy, 10.0f);
+									auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+									pop_demographics::set_militancy(state, pop.get_pop(), std::min(mil + pop_militancy, 10.0f));
 								}
 							}
 						}
@@ -5233,7 +5259,8 @@ void apply_regiment_damage(sys::state& state) {
 
 				if(!controller) {
 					if(pop_backer) {
-						state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
+						auto mil = pop_demographics::get_militancy(state, pop_backer) / state.defines.reduction_after_defeat;
+						pop_demographics::set_militancy(state, pop_backer, mil);
 					}
 				} else {
 					auto maxr = state.world.nation_get_recruitable_regiments(controller);
@@ -6736,7 +6763,8 @@ void update_siege_progress(sys::state& state) {
 				if(old_rf) {
 					for(auto pop : state.world.province_get_pop_location(prov)) {
 						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
-							pop.get_pop().get_militancy() /= state.defines.reduction_after_defeat;
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
+							pop_demographics::set_militancy(state, pop.get_pop(), mil);
 						//}
 					}
 				}

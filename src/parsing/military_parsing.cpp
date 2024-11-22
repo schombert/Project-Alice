@@ -196,6 +196,9 @@ void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_c
 	context.outer_context.state.world.force_create_army_membership(id, context.id);
 	oob_file_regiment_context new_context{context.outer_context, id};
 	parse_oob_regiment(gen, err, new_context);
+	if(!context.outer_context.state.world.regiment_get_type(id)) {
+		context.outer_context.state.world.delete_regiment(id);
+	}
 }
 void make_oob_ship(token_generator& gen, error_handler& err, oob_file_navy_context& context) {
 	auto id = context.outer_context.state.world.create_ship();
@@ -204,7 +207,9 @@ void make_oob_ship(token_generator& gen, error_handler& err, oob_file_navy_conte
 	context.outer_context.state.world.force_create_navy_membership(id, context.id);
 	oob_file_ship_context new_context{context.outer_context, id};
 	parse_oob_ship(gen, err, new_context);
-	assert(context.outer_context.state.world.ship_get_type(id));
+	if(!context.outer_context.state.world.ship_get_type(id)) {
+		context.outer_context.state.world.delete_ship(id);
+	}
 }
 oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context) {
 	oob_file_context new_context{context.outer_context, context.nation_for};

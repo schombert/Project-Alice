@@ -53,8 +53,8 @@ std::vector<uint32_t> ideology_map_from(sys::state& state) {
 				float total = 0.f;
 				float value = 0.f;
 				for(const auto pl : state.world.province_get_pop_location_as_province(prov_id)) {
-					value += state.world.pop_get_demographics(pl.get_pop(), pkey);
-					total += 1.f;
+					value += pop_demographics::get_demo(state, pl.get_pop(), pkey) * pl.get_pop().get_size();
+					total += pl.get_pop().get_size();
 				}
 				auto ratio = value / total;
 				auto color = ogl::color_gradient(ratio, full_color, empty_color);
@@ -120,8 +120,8 @@ std::vector<uint32_t> issue_map_from(sys::state& state) {
 				float total = 0.f;
 				float value = 0.f;
 				for(const auto pl : state.world.province_get_pop_location_as_province(prov_id)) {
-					value += state.world.pop_get_demographics(pl.get_pop(), pkey);
-					total += 1.f;
+					value += pop_demographics::get_demo(state, pl.get_pop(), pkey) * pl.get_pop().get_size();
+					total += pl.get_pop().get_size();
 				}
 				auto ratio = value / total;
 				auto color = ogl::color_gradient(ratio, full_color, empty_color);
@@ -425,7 +425,7 @@ std::vector<uint32_t> life_needs_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			float population = 0.f;
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
-				population += pl.get_pop().get_life_needs_satisfaction();
+				population += pop_demographics::get_life_needs(state, pl.get_pop()) * pl.get_pop().get_size();
 			auto cid = fat_id.get_continent().id.index();
 			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
@@ -459,7 +459,7 @@ std::vector<uint32_t> everyday_needs_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			float population = 0.f;
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
-				population += pl.get_pop().get_everyday_needs_satisfaction();
+				population += pop_demographics::get_everyday_needs(state, pl.get_pop()) * pl.get_pop().get_size();
 			auto cid = fat_id.get_continent().id.index();
 			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
@@ -493,7 +493,7 @@ std::vector<uint32_t> luxury_needs_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			float population = 0.f;
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
-				population += pl.get_pop().get_luxury_needs_satisfaction();
+				population += pop_demographics::get_luxury_needs(state, pl.get_pop()) * pl.get_pop().get_size();
 			auto cid = fat_id.get_continent().id.index();
 			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);

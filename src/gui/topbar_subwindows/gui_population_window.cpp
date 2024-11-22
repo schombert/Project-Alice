@@ -232,12 +232,12 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 			state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
 	auto types = state.world.pop_get_poptype(ids);
 
-	float lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
+	float lx_mod = pop_demographics::get_luxury_needs(state, ids) * state.defines.con_luxury_goods;
 	float cl_mod = cfrac * (state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor) ?
 														state.defines.con_poor_clergy : state.defines.con_midrich_clergy);
 	float lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 								 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
-								 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
+								 state.defines.con_literacy * pop_demographics::get_literacy(state, ids) *
 								 (state.world.province_get_is_colonial(loc) ? state.defines.con_colonial_factor : 1.0f)) / 10.f;
 
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
@@ -249,7 +249,7 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 
 	float sep_mod = (state.world.pop_get_is_primary_or_accepted_culture(ids) ? 0.0f :
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier));
-	auto old_con = state.world.pop_get_consciousness(ids) * 0.01f;
+	auto old_con = pop_demographics::get_consciousness(state, ids) * 0.01f;
 	auto total = (lx_mod + (cl_mod + lit_mod - old_con)) + (local_mod + sep_mod);
 
 	{
@@ -277,7 +277,7 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 			15);
 	active_modifiers_description(state, contents, owner, 30, sys::national_mod_offsets::literacy_con_impact, false);
 	text::add_line(state, contents, "pop_con_8", text::variable_type::x, text::fp_two_places{state.defines.con_literacy}, 15);
-	text::add_line(state, contents, "pop_con_9", text::variable_type::x, text::fp_percentage{state.world.pop_get_literacy(ids)},
+	text::add_line(state, contents, "pop_con_9", text::variable_type::x, text::fp_percentage{pop_demographics::get_literacy(state, ids)},
 			15);
 	if(state.world.province_get_is_colonial(loc)) {
 		text::add_line(state, contents, "pop_con_10", text::variable_type::x, text::fp_two_places{state.defines.con_colonial_factor},
@@ -333,7 +333,7 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier,
 				false);
 	}
-	text::add_line(state, contents, "alice_con_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_consciousness(ids) * 0.01f });
+	text::add_line(state, contents, "alice_con_decay_description", text::variable_type::x, text::fp_three_places{ pop_demographics::get_consciousness(state, ids) * 0.01f });
 }
 
 void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
@@ -344,14 +344,12 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	auto ruling_party = state.world.nation_get_ruling_party(owner);
 	auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
 
-	float lx_mod = std::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
-	float con_sup = (state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology);
-	float ruling_sup = ruling_ideology ? state.world.pop_get_demographics(ids, pop_demographics::to_key(state, ruling_ideology)) *
-																					 state.defines.mil_ruling_party
-																		 : 0.0f;
+	float lx_mod = std::max(pop_demographics::get_luxury_needs(state, ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
+	float con_sup = (pop_demographics::get_demo(state, ids, conservatism_key) * state.defines.mil_ideology);
+	float ruling_sup = ruling_ideology ? pop_demographics::get_demo(state, ids, pop_demographics::to_key(state, ruling_ideology)) * state.defines.mil_ruling_party : 0.0f;
 	float ref_mod = state.world.province_get_is_colonial(loc)
 											? 0.0f
-											: (state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
+											: (pop_demographics::get_social_reform_desire(state, ids) + pop_demographics::get_political_reform_desire(state, ids)) *
 														(state.defines.mil_require_reform * 0.25f);
 
 	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
@@ -373,15 +371,15 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	float sep_mod = (state.world.pop_get_is_primary_or_accepted_culture(ids) ? 0.0f :
 			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f) *
 					state.defines.mil_non_accepted);
-	float ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
+	float ln_mod = std::min((pop_demographics::get_life_needs(state, ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 	float en_mod_a =
-			std::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
+			std::min(0.0f, (pop_demographics::get_everyday_needs(state, ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
 	float en_mod_b =
-			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
+			std::max(0.0f, (pop_demographics::get_everyday_needs(state, ids) - 0.5f)) * state.defines.mil_has_everyday_need;
 	//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
 	float war_exhaustion =
 		state.world.nation_get_war_exhaustion(owner) * state.defines.mil_war_exhaustion;
-	auto old_mil = state.world.pop_get_militancy(ids) * 0.01f;
+	auto old_mil = pop_demographics::get_militancy(state, ids) * 0.01f;
 	float total = (sub_t + local_mod) + ((sep_mod - ln_mod - old_mil) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil));
 
 	{
@@ -471,7 +469,7 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	}
 	text::close_layout_box(contents, box);
 
-	text::add_line(state, contents, "alice_mil_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_militancy(ids) * state.defines.alice_militancy_decay });
+	text::add_line(state, contents, "alice_mil_decay_description", text::variable_type::x, text::fp_three_places{ pop_demographics::get_militancy(state, ids) * state.defines.alice_militancy_decay });
 }
 
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
@@ -528,9 +526,8 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
 	auto province_factor = lr_factor + state.defines.base_popgrowth;
 
-	auto ln_factor = state.world.pop_get_life_needs_satisfaction(ids) - state.defines.life_need_starvation_limit;
-	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) +
-								 state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
+	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 
 	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
 
@@ -565,7 +562,7 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	text::add_line(state, contents, "pop_growth_7", text::variable_type::x, text::fp_three_places{state.defines.base_popgrowth},
 			30);
 	text::add_line(state, contents, "pop_growth_8", text::variable_type::x, text::fp_two_places{ln_factor},
-			text::variable_type::y, text::fp_two_places{state.world.pop_get_life_needs_satisfaction(ids)}, text::variable_type::val,
+			text::variable_type::y, text::fp_two_places{pop_demographics::get_life_needs(state, ids)}, text::variable_type::val,
 			text::fp_two_places{state.defines.life_need_starvation_limit},
 			15);
 	text::add_line(state, contents, "pop_growth_9", 15);

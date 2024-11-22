@@ -643,7 +643,7 @@ public:
 
 class nation_ppp_gdp_text : public standard_nation_text {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {		
 		return text::format_float(economy::gdp_adjusted(state, nation_id));
 	}
 };
@@ -1427,7 +1427,7 @@ protected:
 				if(vote_size > 0) {
 					state.world.for_each_ideology([&](dcon::ideology_id iid) {
 						auto dkey = pop_demographics::to_key(state, iid);
-						distribution[iid.index()].value += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;
+						distribution[iid.index()].value += pop_demographics::get_demo(state, pop_id.id, dkey) * vote_size;
 					});
 				}
 			}
@@ -1607,6 +1607,8 @@ public:
 		auto p = retrieve<dcon::province_id>(state, parent);
 
 		auto n = state.world.province_get_nation_from_province_ownership(p);
+		auto s = state.world.province_get_state_membership(p);
+		auto m = state.world.state_instance_get_market_from_local_market(s);
 
 		auto row_1 = text::open_layout_box(contents);
 		auto col_1 = row_1;
@@ -1628,7 +1630,7 @@ public:
 			auto rgo_employment = state.world.province_get_rgo_employment_per_good(p, c);
 			auto current_employment = int64_t(rgo_employment);
 			auto max_employment = int64_t(economy::rgo_max_employment(state, n, p, c));
-			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, n, c);
+			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, m, n, c);
 
 			if(max_employment < 1.f) {
 				return;

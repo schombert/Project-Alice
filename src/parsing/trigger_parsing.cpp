@@ -997,11 +997,7 @@ void trigger_body::has_leader(association_type a, std::string_view value, error_
 
 void tr_party_position::position(association_type t, std::string_view v, error_handler& err, int32_t line, trigger_building_context& context) {
 	if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
-		if(context.outer_context.state.world.issue_option_get_parent_issue(it->second.id).get_issue_type() != uint8_t(::culture::issue_type::party)) {
-			err.accumulated_errors += "Trigger checks a party for a non-party issue: " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		} else {
-			opt_ = it->second.id;
-		}
+		opt_ = it->second.id;
 	} else {
 		err.accumulated_errors += "Invalid issue position " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}

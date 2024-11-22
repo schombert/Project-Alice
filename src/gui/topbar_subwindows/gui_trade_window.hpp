@@ -8,615 +8,11 @@
 
 namespace ui {
 
-class commodity_price_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_money(state.world.commodity_get_current_price(commodity_id)));
-	}
-};
-
-class commodity_effective_price_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto c = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_money(state.world.nation_get_effective_prices(n, c)));
-	}
-};
-
-class commodity_player_availability_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id), 2));
-	}
-};
-
-class commodity_player_real_demand_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1));
-	}
-};
-
-class commodity_national_player_stockpile_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, commodity_id), 2));
-	}
-};
-
-class commodity_player_stockpile_increase_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		float amount = economy::stockpile_commodity_daily_increase(state, commodity_id, state.local_player_nation);
-		auto txt = std::string(amount >= 0.f ? "+" : "") + text::format_float(amount, 2);
-		set_text(state, txt);
-	}
-};
-
-class commodity_market_increase_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		float amount = economy::global_market_commodity_daily_increase(state, commodity_id);
-		auto txt = std::string("(") + text::format_float(amount, 0) + ")";
-		set_text(state, txt);
-	}
-};
-
-class commodity_global_market_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(state.world.commodity_get_global_market_pool(commodity_id), 2));
-	}
-};
-
-class commodity_player_domestic_market_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f, 2));
-	}
-};
-
-class commodity_player_factory_needs_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
-	}
-};
-
-class commodity_player_pop_needs_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
-	}
-};
-
-class commodity_player_government_needs_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		if(commodity_id)
-			set_text(state, text::format_float(commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f, 2));
-	}
-};
-
-enum class trade_sort : uint8_t {
-	commodity,
-	stockpile,
-	stockpile_change,
-	price,
-	demand_satisfaction,
-	needs,
-	market,
-	real_demand,
-	domestic_market,
-	global_market_pool,
-};
-enum class trade_sort_assoc : uint8_t {
-	market_activity,
-	stockpile,
-	common_market,
-	needs_government,
-	needs_factories,
-	needs_pops
-};
-struct trade_sort_data {
-	trade_sort sort;
-	trade_sort_assoc assoc;
-};
-
-template<trade_sort Sort, trade_sort_assoc Assoc>
-class trade_sort_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		send(state, parent, trade_sort_data{ Sort, Assoc });
-	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		/*auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "sort_by");
-		text::add_space_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, "trait_speed");
-		text::close_layout_box(contents, box);*/
-	}
-};
-
-class trade_market_activity_entry : public listbox_row_element_base<dcon::commodity_id> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "goods_type") {
-			return make_element_by_type<commodity_image>(state, id);
-		} else if(name == "cost") {
-			return make_element_by_type<commodity_price_text>(state, id);
-		} else if(name == "activity") {
-			return make_element_by_type<commodity_player_availability_text>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-class trade_market_activity_listbox : public listbox_element_base<trade_market_activity_entry, dcon::commodity_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "market_activity_entry";
-	}
-
-public:
-	trade_sort sort = trade_sort::commodity;
-	bool sort_ascend = false;
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base::on_create(state);
-		on_update(state);
-	}
-	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money) {
-				row_contents.push_back(id);
-			}
-		});
-		switch(sort) {
-		case trade_sort::commodity:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				return a.index() < b.index();
-			});
-			break;
-		case trade_sort::price:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = state.world.commodity_get_current_price(a);
-				auto bv = state.world.commodity_get_current_price(b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		case trade_sort::demand_satisfaction:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = state.world.nation_get_demand_satisfaction(state.local_player_nation, a);
-				auto bv = state.world.nation_get_demand_satisfaction(state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		default:
-			break;
-		}
-		if(!sort_ascend) {
-			std::reverse(row_contents.begin(), row_contents.end());
-		}
-		update(state);
-	}
-};
-
-class trade_stockpile_entry : public listbox_row_element_base<dcon::commodity_id> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "goods_type") {
-			return make_element_by_type<commodity_image>(state, id);
-		} else if(name == "value") {
-			return make_element_by_type<commodity_national_player_stockpile_text>(state, id);
-		} else if(name == "change") {
-			return make_element_by_type<commodity_player_stockpile_increase_text>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-class trade_stockpile_listbox : public listbox_element_base<trade_stockpile_entry, dcon::commodity_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "stockpile_entry";
-	}
-
-public:
-	trade_sort sort = trade_sort::commodity;
-	bool sort_ascend = false;
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base::on_create(state);
-		on_update(state);
-	}
-	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money && state.world.nation_get_stockpiles(state.local_player_nation, id) > 0.0f) {
-				row_contents.push_back(id);
-			}
-		});
-		switch(sort) {
-		case trade_sort::commodity:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				return a.index() < b.index();
-			});
-			break;
-		case trade_sort::stockpile:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = state.world.nation_get_stockpiles(state.local_player_nation, a);
-				auto bv = state.world.nation_get_stockpiles(state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		case trade_sort::stockpile_change:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = economy::stockpile_commodity_daily_increase(state, a, state.local_player_nation);
-				auto bv = economy::stockpile_commodity_daily_increase(state, b, state.local_player_nation);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		default:
-			break;
-		}
-		if(!sort_ascend) {
-			std::reverse(row_contents.begin(), row_contents.end());
-		}
-		update(state);
-	}
-};
-
-class trade_common_market_entry : public listbox_row_element_base<dcon::commodity_id> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "goods_type") {
-			return make_element_by_type<commodity_image>(state, id);
-		} else if(name == "total") {
-			return make_element_by_type<commodity_global_market_text>(state, id);
-		} else if(name == "produce_change") {
-			return make_element_by_type<commodity_player_real_demand_text>(state, id);
-		} else if(name == "exported") {
-			return make_element_by_type<commodity_player_domestic_market_text>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-class trade_common_market_listbox : public listbox_element_base<trade_common_market_entry, dcon::commodity_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "common_market_entry";
-	}
-public:
-	trade_sort sort = trade_sort::commodity;
-	bool sort_ascend = false;
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base::on_create(state);
-		on_update(state);
-	}
-	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money) {
-				row_contents.push_back(id);
-			}
-		});
-		switch(sort) {
-		case trade_sort::commodity:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				return a.index() < b.index();
-			});
-			break;
-		case trade_sort::global_market_pool:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = state.world.commodity_get_global_market_pool(a);
-				auto bv = state.world.commodity_get_global_market_pool(b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		case trade_sort::real_demand:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = state.world.nation_get_real_demand(state.local_player_nation, a);
-				auto bv = state.world.nation_get_real_demand(state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		case trade_sort::domestic_market:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = state.world.nation_get_domestic_market_pool(state.local_player_nation, a);
-				auto bv = state.world.nation_get_domestic_market_pool(state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		default:
-			break;
-		}
-		if(!sort_ascend) {
-			std::reverse(row_contents.begin(), row_contents.end());
-		}
-		update(state);
-	}
-};
-
-template<class T>
-class trade_goods_needs_entry : public listbox_row_element_base<dcon::commodity_id> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "goods_type") {
-			return make_element_by_type<commodity_image>(state, id);
-		} else if(name == "value") {
-			return make_element_by_type<T>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-
-class trade_government_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "goods_needs_entry";
-	}
-public:
-	trade_sort sort = trade_sort::commodity;
-	bool sort_ascend = false;
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base::on_create(state);
-		on_update(state);
-	}
-	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money && economy::government_consumption(state, state.local_player_nation, id) > 0.f) {
-				row_contents.push_back(id);
-			}
-		});
-		switch(sort) {
-		case trade_sort::commodity:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				return a.index() < b.index();
-			});
-			break;
-		case trade_sort::needs:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = economy::government_consumption(state, state.local_player_nation, a);
-				auto bv = economy::government_consumption(state, state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		default:
-			break;
-		}
-		if(!sort_ascend) {
-			std::reverse(row_contents.begin(), row_contents.end());
-		}
-		update(state);
-	}
-};
-
-class trade_factory_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "goods_needs_entry";
-	}
-public:
-	trade_sort sort = trade_sort::commodity;
-	bool sort_ascend = false;
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base::on_create(state);
-		on_update(state);
-	}
-	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money && economy::nation_factory_consumption(state, state.local_player_nation, id) > 0.f) {
-				row_contents.push_back(id);
-			}
-		});
-		switch(sort) {
-		case trade_sort::commodity:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				return a.index() < b.index();
-			});
-			break;
-		case trade_sort::needs:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = economy::nation_factory_consumption(state, state.local_player_nation, a);
-				auto bv = economy::nation_factory_consumption(state, state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		default:
-			break;
-		}
-		if(!sort_ascend) {
-			std::reverse(row_contents.begin(), row_contents.end());
-		}
-		update(state);
-	}
-};
-
-class trade_pop_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "goods_needs_entry";
-	}
-public:
-	trade_sort sort = trade_sort::commodity;
-	bool sort_ascend = false;
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base::on_create(state);
-		on_update(state);
-	}
-	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money && economy::nation_pop_consumption(state, state.local_player_nation, id) > 0.f) {
-				row_contents.push_back(id);
-			}
-		});
-		switch(sort) {
-		case trade_sort::commodity:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				return a.index() < b.index();
-			});
-			break;
-		case trade_sort::needs:
-			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
-				auto av = economy::nation_pop_consumption(state, state.local_player_nation, a);
-				auto bv = economy::nation_pop_consumption(state, state.local_player_nation, b);
-				if(av != bv)
-					return av > bv;
-				else
-					return a.index() < b.index();
-			});
-			break;
-		default:
-			break;
-		}
-		if(!sort_ascend) {
-			std::reverse(row_contents.begin(), row_contents.end());
-		}
-		update(state);
-	}
-};
-
 struct trade_details_select_commodity {
 	dcon::commodity_id commodity_id{};
 };
 struct trade_details_open_window {
 	dcon::commodity_id commodity_id{};
-};
-
-class trade_commodity_entry_button : public tinted_right_click_button_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto com = retrieve<dcon::commodity_id>(state, parent);
-		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
-		if(sat < 0.5f) { // shortage
-			color = sys::pack_color(255, 196, 196);
-			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
-				color = sys::pack_color(255, 100, 255); //remap to blue
-			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
-				color = sys::pack_color(196, 196, 196);
-			}
-		} else if(sat >= 1.f) { // full fulfillment
-			color = sys::pack_color(196, 255, 196);
-			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
-				color = sys::pack_color(114, 150, 77); //remap to yellow
-			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
-				color = sys::pack_color(128, 128, 128);
-			}
-		} else {
-			color = sys::pack_color(255, 255, 255);
-		}
-	}
-	
-	void button_action(sys::state& state) noexcept override {
-		trade_details_select_commodity payload{retrieve<dcon::commodity_id>(state, parent)};
-		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
-	}
-
-	void button_right_action(sys::state& state) noexcept override {
-		trade_details_select_commodity payload{ retrieve<dcon::commodity_id>(state, parent) };
-		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
-		Cyto::Any dt_payload = trade_details_open_window{ retrieve<dcon::commodity_id>(state, parent) };
-		state.ui_state.trade_subwindow->impl_get(state, dt_payload);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto com = retrieve<dcon::commodity_id>(state, parent);
-
-		struct tagged_value {
-			float v = 0.0f;
-			dcon::nation_id n;
-		};
-		static std::vector<tagged_value> producers;
-
-		producers.clear();
-		for(auto n : state.world.in_nation) {
-			if(n.get_domestic_market_pool(com) >= 0.05f) {
-				producers.push_back(tagged_value{ n.get_domestic_market_pool(com), n.id });
-			}
-		}
-		if(producers.size() > 0) {
-			std::sort(producers.begin(), producers.end(), [](auto const& a, auto const& b) { return a.v > b.v; });
-			{
-				auto box = text::open_layout_box(contents, 0);
-				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::value, std::min(int32_t(state.defines.great_nations_count), int32_t(producers.size())));
-				text::localised_format_box(state, contents, box, "alice_trade_top_producers", sub);
-				text::close_layout_box(contents, box);
-			}
-			for(uint32_t i = 0; i < producers.size() && i < state.defines.great_nations_count; ++i) {
-				auto box = text::open_layout_box(contents, 15);
-				auto ident = state.world.nation_get_identity_from_identity_holder(producers[i].n);
-				text::add_to_layout_box(state, contents, box, text::embedded_flag{ ident ? ident : state.national_definitions.rebel_id });
-				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, text::get_name(state, producers[i].n));
-				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
-				text::close_layout_box(contents, box);
-			}
-			text::add_line_break_to_layout(state, contents);
-			float r_total = 0.0f;
-
-		} else {
-			text::add_line(state, contents, "alice_trade_no_producers");
-		}
-	}
 };
 
 class commodity_stockpile_indicator : public image_element_base {
@@ -673,39 +69,6 @@ public:
 		} else {
 			frame = 1;
 		}
-	}
-};
-
-class trade_commodity_entry : public window_element_base {
-public:
-	dcon::commodity_id commodity_id{};
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "entry_button") {
-			return make_element_by_type<trade_commodity_entry_button>(state, id);
-		} else if(name == "goods_type") {
-			return make_element_by_type<commodity_image>(state, id);
-		} else if(name == "price") {
-			auto ptr = make_element_by_type<commodity_effective_price_text>(state, id);
-			ptr->base_data.position.y += ptr->base_data.size.y / 2;
-			add_child_to_front(std::move(ptr));
-			return make_element_by_type<commodity_price_text>(state, id);
-		} else if(name == "trend_indicator") {
-			return make_element_by_type<commodity_price_trend>(state, id);
-		} else if(name == "selling_indicator") {
-			return make_element_by_type<commodity_stockpile_indicator>(state, id);
-		} else if(name == "automation_indicator") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			payload.emplace<dcon::commodity_id>(commodity_id);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
 	}
 };
 
@@ -952,7 +315,7 @@ public:
 		distribution.clear();
 		for(auto n : state.world.in_nation)
 			if(n.get_owned_province_count() != 0)
-				distribution.emplace_back(n.id, n.get_domestic_market_pool(com));
+				distribution.emplace_back(n.id, economy::supply(state, n, com));
 		update_chart(state);
 	}
 };
@@ -964,7 +327,7 @@ public:
 		distribution.clear();
 		for(auto n : state.world.in_nation)
 			if(n.get_owned_province_count() != 0)
-				distribution.emplace_back(n.id, n.get_real_demand(com));
+				distribution.emplace_back(n.id, economy::demand(state, n, com));
 		update_chart(state);
 	}
 };
@@ -996,12 +359,20 @@ public:
 			distribution.emplace_back(state.culture_definitions.aristocrat, amount);
 		}
 		{
-			auto amount = state.world.nation_get_artisan_actual_production(state.local_player_nation, com);
+			auto amount = 0.f;
+			state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+				auto sid = state.world.state_ownership_get_state(soid);
+				auto market = state.world.state_instance_get_market_from_local_market(sid);
+				amount += state.world.market_get_artisan_actual_production(market, com);
+			});
 			total += amount;
 			distribution.emplace_back(state.culture_definitions.artisans, amount);
 		}
+
 		// remaining
-		auto produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, com);
+
+		auto produced = economy::supply(state, state.local_player_nation, com);
+
 		if(produced >= total) {
 			distribution.emplace_back(state.culture_definitions.laborers, total - produced);
 		}
@@ -1163,63 +534,43 @@ public:
 	}
 };
 
-template<sys::commodity_group Group>
-class trade_commodity_group_window : public window_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("goods_entry_offset"))->second.definition].position;
-		xy_pair offset{0, 0};
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
-				return;
-			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find(state.lookup_key("goods_entry"))->second.definition);
-			ptr->commodity_id = id;
-			ptr->base_data.position = offset;
-			offset.x += cell_size.x;
-			if(offset.x + cell_size.x - 1 >= base_data.size.x) {
-				offset.x = 0;
-				offset.y += cell_size.y;
-				if(offset.y + cell_size.y >= base_data.size.y) {
-					offset.x += cell_size.x;
-					offset.y = 0;
-				}
-			}
-			add_child_to_front(std::move(ptr));
-		});
-	}
-};
 
 std::string name_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::get_name_as_string(
+	std::string padding = item.index() < 10 ? "0" : "";
+	std::string description = "@$" + padding + std::to_string(item.index());
+
+	return description + text::get_name_as_string(
 		state,
 		dcon::fatten(state.world, item)
 	);
 };
 
 bool compare_price(sys::state& state, element_base* container, const dcon::commodity_id a, const  dcon::commodity_id b) {
-	auto price_a = state.world.commodity_get_current_price(a);
-	auto price_b = state.world.commodity_get_current_price(b);
-	return price_a < price_b;
+	auto av = economy::price(state, a);
+	auto bv = economy::price(state, b);
+	if(av != bv)
+		return av > bv;
+	else
+		return a.index() < b.index();
 }
 
 std::string price_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::format_money(state.world.commodity_get_current_price(item));
+	return text::format_money(economy::price(state, item));
 };
 std::string supply_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::format_float(state.world.commodity_get_total_production(item));
+	return text::format_float(economy::supply(state, item));
 };
 std::string demand_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::format_float(state.world.commodity_get_total_real_demand(item));
+	return text::format_float(economy::demand(state, item));
 };
 std::string balance_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	auto supply = state.world.commodity_get_total_production(item);
-	auto demand = state.world.commodity_get_total_real_demand(item);
+	auto supply = economy::supply(state, item);
+	auto demand = economy::demand(state, item);
 	auto balance = supply - demand;
 	return text::format_float(balance);
 };
 std::string stockpile_market_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::format_float(state.world.commodity_get_global_market_pool(item));
+	return text::format_float(economy::market_pool(state, item));
 };
 std::string stockpile_player_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
 	return text::format_float(state.world.nation_get_stockpiles(state.local_player_nation, item));
@@ -1237,38 +588,57 @@ bool compare_name(sys::state& state, element_base* container, dcon::commodity_id
 		state,
 		dcon::fatten(state.world, b)
 	);
-	return value_a < value_b;
+
+	if(value_a != value_b)
+		return value_a > value_b;
+	else
+		return a.index() < b.index();
 }
 bool compare_supply(sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-	auto value_a = state.world.commodity_get_total_production(a);
-	auto value_b = state.world.commodity_get_total_production(b);
-	return value_a < value_b;
+	auto value_a = economy::supply(state, a);
+	auto value_b = economy::supply(state, b);
+	if(value_a != value_b)
+		return value_a > value_b;
+	else
+		return a.index() < b.index();
 }
 bool compare_demand(sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-	auto value_a = state.world.commodity_get_total_real_demand(a);
-	auto value_b = state.world.commodity_get_total_real_demand(b);
-	return value_a < value_b;
+	auto value_a = economy::demand(state, a);
+	auto value_b = economy::demand(state, b);
+	if(value_a != value_b)
+		return value_a > value_b;
+	else
+		return a.index() < b.index();
 }
 bool compare_balance(sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-	auto supply_a = state.world.commodity_get_total_production(a);
-	auto demand_a = state.world.commodity_get_total_real_demand(a);
+	auto supply_a = economy::supply(state, a);
+	auto demand_a = economy::demand(state, a);
 	auto balance_a = supply_a - demand_a;
 
-	auto supply_b = state.world.commodity_get_total_production(b);
-	auto demand_b = state.world.commodity_get_total_real_demand(b);
+	auto supply_b = economy::supply(state, b);
+	auto demand_b = economy::demand(state, b);
 	auto balance_b = supply_b - demand_b;
 
-	return balance_a < balance_b;
+	if(balance_a != balance_b)
+		return balance_a > balance_b;
+	else
+		return a.index() < b.index();
 }
 bool compare_stockpile_market(sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-	auto value_a = state.world.commodity_get_global_market_pool(a);
-	auto value_b = state.world.commodity_get_global_market_pool(b);
-	return value_a < value_b;
+	auto value_a = economy::market_pool(state, a);
+	auto value_b = economy::market_pool(state, b);
+	if(value_a != value_b)
+		return value_a > value_b;
+	else
+		return a.index() < b.index();
 }
 bool compare_stockpile_player(sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 	auto value_a = state.world.nation_get_stockpiles(state.local_player_nation, a);
 	auto value_b = state.world.nation_get_stockpiles(state.local_player_nation, b);
-	return value_a < value_b;
+	if(value_a != value_b)
+		return value_a > value_b;
+	else
+		return a.index() < b.index();
 }
 
 inline table::column<dcon::commodity_id> trade_good_name_column = {
@@ -1337,6 +707,23 @@ inline table::column<dcon::commodity_id> trade_good_player_gov_needs = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto value = economy::government_consumption(state, state.local_player_nation, id);
+		return text::format_float(value);
+	}
+};
+
+inline table::column<dcon::commodity_id> trade_good_player_price = {
+	.sortable = true,
+	.header = "price_nation",
+	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
+		auto av = economy::price(state, state.local_player_nation, a);
+		auto bv = economy::price(state, state.local_player_nation, b);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
+		auto value = economy::price(state, state.local_player_nation, id);
 		return text::format_float(value);
 	}
 };
@@ -1413,11 +800,11 @@ inline table::column<dcon::commodity_id> trade_good_production_artisan = {
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto av = 0.f;
 		auto bv = 0.f;
-		for(auto n : state.world.in_nation) {
-			av += state.world.nation_get_artisan_actual_production(n, a);
+		for(auto n : state.world.in_market) {
+			av += n.get_artisan_actual_production(a);
 		}
-		for(auto n : state.world.in_nation) {
-			bv += state.world.nation_get_artisan_actual_production(n, b);
+		for(auto n : state.world.in_market) {
+			bv += n.get_artisan_actual_production(b);
 		}
 		if(av != bv)
 			return av > bv;
@@ -1426,8 +813,8 @@ inline table::column<dcon::commodity_id> trade_good_production_artisan = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto value = 0.f;
-		for(auto n : state.world.in_nation) {
-			value += state.world.nation_get_artisan_actual_production(n, id);
+		for(auto n : state.world.in_market) {
+			value += n.get_artisan_actual_production(id);
 		}
 		return text::format_float(value);
 	}
@@ -1462,6 +849,8 @@ inline table::column<dcon::commodity_id> trade_good_production_factory = {
 	}
 };
 
+/*
+table::column<dcon::commodity_id> trade_good_artisan_distribution = {
 inline table::column<dcon::commodity_id> trade_good_artisan_distribution = {
 	.sortable = true,
 	.header = "artisan_distribution",
@@ -1478,20 +867,21 @@ inline table::column<dcon::commodity_id> trade_good_artisan_distribution = {
 		return text::format_float(value, 4);
 	}
 };
+*/
 
 inline table::column<dcon::commodity_id> trade_good_satisfaction = {
 	.sortable = true,
 	.header = "artisan_distribution",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		auto av = state.world.nation_get_demand_satisfaction(state.local_player_nation, a);
-		auto bv = state.world.nation_get_demand_satisfaction(state.local_player_nation, b);
+		auto av = economy::demand_satisfaction(state, state.local_player_nation, a);
+		auto bv = economy::demand_satisfaction(state, state.local_player_nation, b);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
-		auto value = state.world.nation_get_demand_satisfaction(state.local_player_nation, id);
+		auto value = economy::demand_satisfaction(state, state.local_player_nation, id);
 		return text::format_percentage(value, 1);
 	}
 };
@@ -1500,15 +890,15 @@ inline table::column<dcon::commodity_id> trade_good_produced_nation = {
 	.sortable = true,
 	.header = "produced_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		auto av = state.world.nation_get_domestic_market_pool(state.local_player_nation, a);
-		auto bv = state.world.nation_get_domestic_market_pool(state.local_player_nation, b);
+		auto av = economy::supply(state, state.local_player_nation, a);
+		auto bv = economy::supply(state, state.local_player_nation, b);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
-		auto value = state.world.nation_get_domestic_market_pool(state.local_player_nation, id);
+		auto value = economy::supply(state, state.local_player_nation, id);
 		return text::format_float(value, 1);
 	}
 };
@@ -1517,18 +907,34 @@ inline table::column<dcon::commodity_id> trade_good_consumed_nation = {
 	.sortable = true,
 	.header = "consumed_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		auto av = state.world.nation_get_real_demand(state.local_player_nation, a)
-			* state.world.nation_get_demand_satisfaction(state.local_player_nation, a);
-		auto bv = state.world.nation_get_real_demand(state.local_player_nation, b)
-			* state.world.nation_get_demand_satisfaction(state.local_player_nation, b);
+		auto av = economy::consumption(state, state.local_player_nation, a);
+		auto bv = economy::consumption(state, state.local_player_nation, b);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
-		auto value = state.world.nation_get_real_demand(state.local_player_nation, id) *
-			state.world.nation_get_demand_satisfaction(state.local_player_nation, id);
+		auto value = economy::consumption(state, state.local_player_nation, id);
+		return text::format_float(value, 1);
+	}
+};
+
+inline table::column<dcon::nation_id> nation_price = {
+	.sortable = true,
+	.header = "price_nation",
+	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::price(state, a, good);
+		auto bv = economy::price(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::nation_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::price(state, id, good);
 		return text::format_float(value, 1);
 	}
 };
@@ -1545,7 +951,12 @@ inline table::column<dcon::nation_id> nation_name = {
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::nation_id id) {
-		auto value = text::produce_simple_string(state, text::get_name(state, id));
+		auto niid = state.world.nation_get_identity_from_identity_holder(id);
+		auto ii = state.world.national_identity_get_identifying_int(niid);
+		auto tag = nations::int_to_tag(ii);
+		auto prefix = "@" + tag;
+
+		auto value = prefix + text::produce_simple_string(state, text::get_name(state, id));
 		return value;
 	},
 	.cell_definition_string = "thin_cell_name",
@@ -1557,8 +968,8 @@ inline table::column<dcon::nation_id> nation_production = {
 	.header = "produced_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto av = state.world.nation_get_domestic_market_pool(a, good);
-		auto bv = state.world.nation_get_domestic_market_pool(b, good);
+		auto av = economy::supply(state, a, good);
+		auto bv = economy::supply(state, b, good);
 		if(av != bv)
 			return av > bv;
 		else
@@ -1566,7 +977,7 @@ inline table::column<dcon::nation_id> nation_production = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::nation_id id) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto value = state.world.nation_get_domestic_market_pool(id, good);
+		auto value = economy::supply(state, id, good);
 		return text::format_float(value, 1);
 	}
 };
@@ -1576,8 +987,8 @@ inline table::column<dcon::nation_id> nation_demand = {
 	.header = "demanded_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto av = state.world.nation_get_real_demand(a, good);
-		auto bv = state.world.nation_get_real_demand(b, good);
+		auto av = economy::demand(state, a, good);
+		auto bv = economy::demand(state, b, good);
 		if(av != bv)
 			return av > bv;
 		else
@@ -1585,7 +996,7 @@ inline table::column<dcon::nation_id> nation_demand = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::nation_id id) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto value = state.world.nation_get_real_demand(id, good);
+		auto value = economy::demand(state, id, good);
 		return text::format_float(value, 1);
 	}
 };
@@ -1595,10 +1006,8 @@ inline table::column<dcon::nation_id> nation_consumption = {
 	.header = "consumed_nation",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto av = state.world.nation_get_real_demand(a, good)
-			* state.world.nation_get_demand_satisfaction(a, good);
-		auto bv = state.world.nation_get_real_demand(b, good)
-			* state.world.nation_get_demand_satisfaction(b, good);
+		auto av = economy::consumption(state, a, good);
+		auto bv = economy::consumption(state, b, good);
 		if(av != bv)
 			return av > bv;
 		else
@@ -1606,9 +1015,169 @@ inline table::column<dcon::nation_id> nation_consumption = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::nation_id id) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto value = state.world.nation_get_real_demand(id, good)
-			* state.world.nation_get_demand_satisfaction(id, good);
+		auto value = economy::consumption(state, id, good);
 		return text::format_float(value, 1);
+	}
+};
+
+
+inline table::column<dcon::market_id> market_name = {
+	.sortable = true,
+	.header = "market_name",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		auto sa = state.world.market_get_zone_from_local_market(a);
+		auto sb = state.world.market_get_zone_from_local_market(b);
+
+		auto pa = state.world.state_instance_get_capital(sa);
+		auto pb = state.world.state_instance_get_capital(sb);
+
+		auto av = text::produce_simple_string(state, pa.get_name());
+		auto bv = text::produce_simple_string(state, pb.get_name());
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		auto s = state.world.market_get_zone_from_local_market(id);
+		auto p = state.world.state_instance_get_capital(s);
+		auto value = text::produce_simple_string(state, p.get_name());
+		return value;
+	},
+	.cell_definition_string = "thin_cell_name",
+	.header_definition_string = "thin_cell_name"
+};
+
+inline table::column<dcon::market_id> market_production = {
+	.sortable = true,
+	.header = "produced_nation",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::supply(state, a, good);
+		auto bv = economy::supply(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::supply(state, id, good);
+		return text::format_float(value, 1);
+	}
+};
+
+inline table::column<dcon::market_id> market_demand = {
+	.sortable = true,
+	.header = "demanded_nation",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::demand(state, a, good);
+		auto bv = economy::demand(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::demand(state, id, good);
+		return text::format_float(value, 1);
+	}
+};
+
+inline table::column<dcon::market_id> market_consumption = {
+	.sortable = true,
+	.header = "consumed_nation",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::consumption(state, a, good);
+		auto bv = economy::consumption(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::consumption(state, id, good);
+		return text::format_float(value, 1);
+	}
+};
+
+inline table::column<dcon::market_id> market_price = {
+	.sortable = true,
+	.header = "price_market",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::price(state, a, good);
+		auto bv = economy::price(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::price(state, id, good);
+		return text::format_float(value, 1);
+	}
+};
+
+inline table::column<dcon::market_id> market_artisan_distribution = {
+	.sortable = true,
+	.header = "w_artisan_distribution",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::get_artisan_distribution_slow(state, a, good);
+		auto bv = economy::get_artisan_distribution_slow(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::get_artisan_distribution_slow(state, id, good);
+		return text::format_float(value, 3);
+	}
+};
+
+inline table::column<dcon::market_id> market_artisan_profit = {
+	.sortable = true,
+	.header = "w_artisan_profit",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = economy::base_artisan_profit(state, a, good);
+		auto bv = economy::base_artisan_profit(state, b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = economy::base_artisan_profit(state, id, good);
+		return text::format_float(value, 3);
+	}
+};
+
+inline table::column<dcon::market_id> market_artisan_score = {
+	.sortable = true,
+	.header = "w_artisan_score",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = state.world.market_get_artisan_score(a, good);
+		auto bv = state.world.market_get_artisan_score(b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = state.world.market_get_artisan_score(id, good);
+		return text::format_float(value, 3);
 	}
 };
 
@@ -1750,7 +1319,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::val, text::pretty_integer{int64_t(state.world.nation_get_domestic_market_pool(state.local_player_nation, com))});
+		text::add_to_substitution_map(m, text::variable_type::val, text::pretty_integer{int64_t(economy::supply(state, state.local_player_nation, com))});
 		set_text(state, text::resolve_string_substitution(state, "produced_detail_remove", m));
 	}
 };
@@ -1810,6 +1379,13 @@ public:
 	}
 };
 
+class commodity_price_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_money(economy::price(state, commodity_id)));
+	}
+};
 
 class trade_details_window : public window_element_base {
 	simple_text_element_base* slider_value_display = nullptr;
@@ -1930,6 +1506,7 @@ public:
 struct signal_global_table { };
 struct signal_nation_table { };
 struct signal_trade_good_table { };
+struct signal_trade_good_markets_table { };
 
 class switch_to_global_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
@@ -1952,21 +1529,22 @@ class switch_to_trade_good_button : public button_element_base {
 	}
 };
 
+class switch_to_trade_good_markets_button : public button_element_base {
+	void button_action(sys::state& state) noexcept override {
+		signal_trade_good_markets_table signal{};
+		send<signal_trade_good_markets_table>(state, parent, signal);
+	}
+};
+
 class trade_window : public window_element_base {
 	trade_flow_window* trade_flow_win = nullptr;
 	trade_details_window* details_win = nullptr;
 	dcon::commodity_id commodity_id{1};
-
-	trade_market_activity_listbox* list_ma = nullptr;
-	trade_stockpile_listbox* list_sp = nullptr;
-	trade_common_market_listbox* list_cm = nullptr;
-	trade_government_needs_listbox* list_gn = nullptr;
-	trade_factory_needs_listbox* list_fn = nullptr;
-	trade_pop_needs_listbox* list_pn = nullptr;
-	
+		
 	table::display<dcon::commodity_id>* table_nation = nullptr;
 	table::display<dcon::commodity_id>* table_global = nullptr;
 	table::display<dcon::nation_id>* table_trade_good_stats = nullptr;
+	table::display<dcon::market_id>* table_trade_good_stats_market = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1986,29 +1564,17 @@ public:
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
-		} else if(name == "market_activity_list") {
-			auto ptr = make_element_by_type<trade_market_activity_listbox>(state, id);
-			list_ma = ptr.get();
-			return ptr;
-		} else if(name == "common_market_list") {
-			auto ptr = make_element_by_type<trade_common_market_listbox>(state, id);
-			list_cm = ptr.get();
-			return ptr;
-		} else if(name == "stockpile_list") {
-			auto ptr = make_element_by_type<trade_stockpile_listbox>(state, id);
-			list_sp = ptr.get();
-			return ptr;
 		} else if(name == "commodity_table_nation") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
 				trade_good_name_column,
-				trade_good_price_column,
+				trade_good_player_price,
 				trade_good_produced_nation,
 				trade_good_consumed_nation,
 				trade_good_player_stockpile_column,
 				trade_good_player_gov_needs,
 				trade_good_player_factory_needs,
 				trade_good_player_pop_needs,
-				trade_good_artisan_distribution
+				//trade_good_artisan_distribution
 			};
 			auto ptr = make_element_by_type<table::display<dcon::commodity_id>>(
 				state,
@@ -2055,7 +1621,7 @@ public:
 			return ptr;
 		} else if(name == "trade_good_global_stats") {
 			std::vector<table::column<dcon::nation_id>> columns = {
-				nation_name, nation_production, nation_demand, nation_consumption
+				nation_name, nation_price, nation_production, nation_demand, nation_consumption
 			};
 			auto ptr = make_element_by_type<table::display<dcon::nation_id>>(
 				state,
@@ -2069,91 +1635,80 @@ public:
 				table_trade_good_stats->content.data.push_back(id);
 			});
 			return ptr;
+		} else if(name == "trade_good_markets_stats") {
+			std::vector<table::column<dcon::market_id>> columns = {
+				market_name,
+				market_price,
+				market_production, market_demand, market_consumption,
+				market_artisan_distribution, market_artisan_profit, market_artisan_score
+			};
+			auto ptr = make_element_by_type<table::display<dcon::market_id>>(
+				state,
+				id,
+				std::string("commodity_table_body"),
+				columns
+			);
+			table_trade_good_stats_market = ptr.get();
+			table_trade_good_stats_market->set_visible(state, false);
+			state.world.for_each_market([&](dcon::market_id id) {
+				table_trade_good_stats_market->content.data.push_back(id);
+			});
+			return ptr;
 		} else if(name == "market_table_global") {
 			return make_element_by_type<switch_to_global_button>(state, id);
 		} else if(name == "market_table_nation") {
 			return make_element_by_type<switch_to_nation_button>(state, id);
 		} else if(name == "market_table_trade_good_global") {
 			return make_element_by_type<switch_to_trade_good_button>(state, id);
-		/* } else if(name == "group_raw_material_goods") {
-			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::raw_material_goods>>(state, id);
-		} else if(name == "group_industrial_goods") {
-			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::industrial_goods>>(state, id);
-		} else if(name == "group_consumer_goods") {
-			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::consumer_goods>>(state, id);
-		} else if(name == "group_military_goods") {
-			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::military_goods>>(state, id);
-		} else if(name == "government_needs_list") {
-			auto ptr = make_element_by_type<trade_government_needs_listbox>(state, id);
-			list_gn = ptr.get();
-			return ptr;
-		} else if(name == "factory_needs_list") {
-			auto ptr = make_element_by_type<trade_factory_needs_listbox>(state, id);
-			list_fn = ptr.get();
-			return ptr;
-		} else if(name == "pop_needs_list") {
-			auto ptr = make_element_by_type<trade_pop_needs_listbox>(state, id);
-			list_pn = ptr.get();
-			return ptr;
-		*/
+		} else if(name == "market_table_trade_good_markets") {
+			return make_element_by_type<switch_to_trade_good_markets_button>(state, id);
 		} else if(name == "trade_details") {
 			auto ptr = make_element_by_type<trade_details_window>(state, id);
 			details_win = ptr.get();
 			return ptr;
-		} else if(name == "market_activity_sort_by_goods") {
-			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::market_activity>>(state, id);
-		} else if(name == "market_activity_sort_by_activity") {
-			return make_element_by_type<trade_sort_button<trade_sort::demand_satisfaction, trade_sort_assoc::market_activity>>(state, id);
-		} else if(name == "market_activity_sort_by_cost") {
-			return make_element_by_type<trade_sort_button<trade_sort::price, trade_sort_assoc::market_activity>>(state, id);
-		} else if(name == "stockpile_sort_by_goods") {
-			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::stockpile>>(state, id);
-		} else if(name == "stockpile_sort_by_value") {
-			return make_element_by_type<trade_sort_button<trade_sort::stockpile, trade_sort_assoc::stockpile>>(state, id);
-		} else if(name == "stockpile_sort_by_change") {
-			return make_element_by_type<trade_sort_button<trade_sort::stockpile_change, trade_sort_assoc::stockpile>>(state, id);
-		} else if(name == "common_market_sort_by_goods") {
-			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::common_market>>(state, id);
-		} else if(name == "common_market_sort_by_produced") {
-			return make_element_by_type<trade_sort_button<trade_sort::global_market_pool, trade_sort_assoc::common_market>>(state, id);
-		} else if(name == "common_market_sort_by_diff") {
-			return make_element_by_type<trade_sort_button<trade_sort::real_demand, trade_sort_assoc::common_market>>(state, id);
-		} else if(name == "common_market_sort_by_exported") {
-			return make_element_by_type<trade_sort_button<trade_sort::domestic_market, trade_sort_assoc::common_market>>(state, id);
-		} else if(name == "needs_government_sort_by_goods") {
-			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::needs_government>>(state, id);
-		} else if(name == "needs_government_sort_by_value") {
-			return make_element_by_type<trade_sort_button<trade_sort::needs, trade_sort_assoc::needs_government>>(state, id);
-		} else if(name == "needs_factories_sort_by_goods") {
-			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::needs_factories>>(state, id);
-		} else if(name == "needs_factories_sort_by_value") {
-			return make_element_by_type<trade_sort_button<trade_sort::needs, trade_sort_assoc::needs_factories>>(state, id);
-		} else if(name == "needs_pops_sort_by_goods") {
-			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::needs_pops>>(state, id);
-		} else if(name == "needs_pops_sort_by_value") {
-			return make_element_by_type<trade_sort_button<trade_sort::needs, trade_sort_assoc::needs_pops>>(state, id);
-		// Non-vanila
-		} else if(name == "group_industrial_and_consumer_goods") {
-			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::industrial_and_consumer_goods>>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
+	void on_update(sys::state& state) noexcept override  {
+		table_trade_good_stats_market->content.data.clear();
+		state.world.for_each_market([&](dcon::market_id id) {
+			auto sid = state.world.market_get_zone_from_local_market(id);
+			auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
+
+			auto selected_nid = retrieve<dcon::nation_id>(state, this);
+
+			if (selected_nid && selected_nid == nid)
+				table_trade_good_stats_market->content.data.push_back(id);
+
+			if (!selected_nid)
+				table_trade_good_stats_market->content.data.push_back(id);
+		});
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		// Special message rebroadcasted by the details button from the hierarchy
 		if(payload.holds_type<signal_nation_table>()) {
-			table_global->set_visible(state, false);
 			table_nation->set_visible(state, true);
+			table_global->set_visible(state, false);
 			table_trade_good_stats->set_visible(state, false);
+			table_trade_good_stats_market->set_visible(state, false);
 		} else if(payload.holds_type<signal_global_table>()) {
 			table_nation->set_visible(state, false);
 			table_global->set_visible(state, true);
 			table_trade_good_stats->set_visible(state, false);
+			table_trade_good_stats_market->set_visible(state, false);
 		} else if(payload.holds_type<signal_trade_good_table>()) {
 			table_nation->set_visible(state, false);
 			table_global->set_visible(state, false);
 			table_trade_good_stats->set_visible(state, true);
+			table_trade_good_stats_market->set_visible(state, false);
+		} else if(payload.holds_type<signal_trade_good_markets_table>()) {
+			table_nation->set_visible(state, false);
+			table_global->set_visible(state, false);
+			table_trade_good_stats->set_visible(state, false);
+			table_trade_good_stats_market->set_visible(state, true);
 		} else if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(commodity_id);
 			return message_result::consumed;
@@ -2171,62 +1726,7 @@ public:
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
-		} else if(payload.holds_type<trade_sort_data>()) {
-			auto d = any_cast<trade_sort_data>(payload);
-			switch(d.assoc) {
-			case trade_sort_assoc::market_activity:
-				if(list_ma->sort == d.sort)
-					list_ma->sort_ascend = !list_ma->sort_ascend;
-				else
-					list_ma->sort_ascend = false;
-				list_ma->sort = d.sort;
-				list_ma->impl_on_update(state);
-				break;
-			case trade_sort_assoc::stockpile:
-				if(list_sp->sort == d.sort)
-					list_sp->sort_ascend = !list_sp->sort_ascend;
-				else
-					list_sp->sort_ascend = false;
-				list_sp->sort = d.sort;
-				list_sp->impl_on_update(state);
-				break;
-			case trade_sort_assoc::common_market:
-				if(list_cm->sort == d.sort)
-					list_cm->sort_ascend = !list_cm->sort_ascend;
-				else
-					list_cm->sort_ascend = false;
-				list_cm->sort = d.sort;
-				list_cm->impl_on_update(state);
-				break;
-			case trade_sort_assoc::needs_government:
-				if(list_gn->sort == d.sort)
-					list_gn->sort_ascend = !list_gn->sort_ascend;
-				else
-					list_gn->sort_ascend = false;
-				list_gn->sort = d.sort;
-				list_gn->impl_on_update(state);
-				break;
-			case trade_sort_assoc::needs_factories:
-				if(list_fn->sort == d.sort)
-					list_fn->sort_ascend = !list_fn->sort_ascend;
-				else
-					list_fn->sort_ascend = false;
-				list_fn->sort = d.sort;
-				list_fn->impl_on_update(state);
-				break;
-			case trade_sort_assoc::needs_pops:
-				if(list_pn->sort == d.sort)
-					list_pn->sort_ascend = !list_pn->sort_ascend;
-				else
-					list_pn->sort_ascend = false;
-				list_pn->sort = d.sort;
-				list_pn->impl_on_update(state);
-				break;
-			default:
-				break;
-			}
-			return message_result::consumed;
-		}
+		} 
 		return message_result::unseen;
 	}
 };
