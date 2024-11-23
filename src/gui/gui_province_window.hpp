@@ -2629,6 +2629,7 @@ public:
 	table::display<dcon::trade_route_id>* trade_table = nullptr;
 	image_element_base* rgo_bg = nullptr;
 	image_element_base* trade_routes_bg = nullptr;
+	window_element_base* rgo_headers = nullptr;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "toggle-economy-province") {
@@ -2689,6 +2690,11 @@ public:
 			rgo_bg = ptr.get();
 			rgo_bg->set_visible(state, true);
 			return ptr;
+		} else if(name == "table_rgo_headers") {
+			auto ptr = make_element_by_type<window_element_base>(state, id);
+			rgo_headers = ptr.get();
+			rgo_headers->set_visible(state, true);
+			return ptr;
 		}
 		return nullptr;
 	}
@@ -2719,9 +2725,11 @@ public:
 				trade_routes_bg->set_visible(state, false);
 				rgo_table->set_visible(state, false);
 				rgo_bg->set_visible(state, false);
+				rgo_headers->set_visible(state, false);
 			} else {
 				rgo_table->set_visible(state, true);
 				rgo_bg->set_visible(state, true);
+				rgo_headers->set_visible(state, true);
 			}
 			return message_result::consumed;
 		}
