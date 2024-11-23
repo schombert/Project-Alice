@@ -291,6 +291,9 @@ struct checksum_key {
 	std::string to_string() noexcept {
 		return std::string(to_string_view());
 	}
+	const char* to_char() noexcept {
+		return reinterpret_cast<const char*>(&key[0]);
+	}
 };
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 

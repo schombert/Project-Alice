@@ -2576,7 +2576,7 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 		for(auto prv : state.world.nation_get_province_ownership(n)) {
 			for(auto pop : prv.get_province().get_pop_location()) {
 				auto mil = pop_demographics::get_militancy(state, pop.get_pop());
-				pop_demographics::set_militancy(state, pop.get_pop(), std::min(mil + pop_militancy, 10.0f));
+				pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
 			}
 		}
 	}
@@ -2809,7 +2809,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 
 	// po_disarmament: a random define:DISARMAMENT_ARMY_HIT fraction of the nations units are destroyed. All current unit
 	// constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at
-	// war again.
+	// war again. In the addition to the basegame, all military factories are bankrupted and construction of military factories is cancelled.
 	if((bits & cb_flag::po_disarmament) != 0) {
 		int32_t total = 0;
 		int32_t removed = 0;
@@ -2818,6 +2818,11 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			total += int32_t(frange.end() - frange.begin());
 
 			for(auto reg : frange) {
+				// Skip regiments that are in a battle. Yes, this opens up a potential exploit, however the risk is negligable and no preventative measures are to be taken.
+				if(reg.get_army().get_battle_from_army_battle_participation()) {
+					continue;
+				}
+
 				if(removed < total * state.defines.disarmament_army_hit) {
 					state.world.delete_regiment(reg.get_regiment().id);
 				}
@@ -2827,14 +2832,51 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			}
 		}
 		// Stop all army & navy construction in progress
+		std::vector<dcon::province_land_construction_id> province_land_constructions;
+		std::vector<dcon::province_naval_construction_id> province_naval_constructions;
+		std::vector<dcon::state_building_construction_id> mil_factory_constructions;
+
+
 		state.world.nation_for_each_province_land_construction_as_nation(target, [&](dcon::province_land_construction_id c) {
-			auto lc = dcon::fatten(state.world, c);
-			command::cancel_land_unit_construction(state, state.local_player_nation, lc.get_pop().get_province_from_pop_location(), lc.get_pop().get_culture(), lc.get_type());
+			province_land_constructions.push_back(c);
 		});
-			state.world.nation_for_each_province_naval_construction_as_nation(target, [&](dcon::province_naval_construction_id c) {
-			auto lc = dcon::fatten(state.world, c);
-			command::cancel_naval_unit_construction(state, state.local_player_nation, lc.get_province(), lc.get_type());
+		state.world.nation_for_each_province_naval_construction_as_nation(target, [&](dcon::province_naval_construction_id c) {
+			province_naval_constructions.push_back(c);
 		});
+
+		state.world.nation_for_each_state_building_construction_as_nation(target, [&](dcon::state_building_construction_id c) {
+			auto factype = state.world.state_building_construction_get_type(c);
+			if(sys::commodity_group(factype.get_output().get_commodity_group()) == sys::commodity_group::military_goods) {
+				mil_factory_constructions.push_back(c);
+			}
+		});
+
+		auto fat_n = dcon::fatten(state.world, target);
+
+		for(auto prov_owner : fat_n.get_province_ownership()) {
+			auto prov = prov_owner.get_province();
+			for(auto factloc : prov.get_factory_location()) {
+				auto fac = factloc.get_factory();
+				auto factype = state.world.factory_get_building_type(fac);
+				if(sys::commodity_group(factype.get_output().get_commodity_group()) == sys::commodity_group::military_goods) {
+					factloc.get_factory().set_production_scale(0.0f);
+				}
+			}
+		}
+
+		for(auto& c : mil_factory_constructions) {
+			state.world.delete_state_building_construction(c);
+		}
+
+		for(auto& c : province_land_constructions) {
+			auto lc = dcon::fatten(state.world, c);
+			state.world.delete_province_land_construction(c);
+		}
+
+		for(auto& c : province_naval_constructions) {
+			state.world.delete_province_naval_construction(c);
+		}
+		
 		if(state.world.nation_get_owned_province_count(target) > 0)
 			state.world.nation_set_disarmed_until(target, state.current_date + int32_t(state.defines.reparations_years) * 365);
 	}
@@ -3204,7 +3246,7 @@ void add_truce_between_sides(sys::state& state, dcon::war_id w, int32_t months) 
 
 		auto attacker = this_par.get_is_attacker();
 
-		for(int32_t j = 0; j < num_par; ++j) {
+		for(int32_t j = i + 1; j < num_par; ++j) {
 			auto other_par = *(wpar.begin() + j);
 			auto other_nation = other_par.get_nation();
 
@@ -3410,7 +3452,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 							for(auto prv : state.world.nation_get_province_ownership(par.id)) {
 								for(auto pop : prv.get_province().get_pop_location()) {
 									auto mil = pop_demographics::get_militancy(state, pop.get_pop());
-									pop_demographics::set_militancy(state, pop.get_pop(), std::min(mil + pop_militancy, 10.0f));
+									pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
 								}
 							}
 						}
@@ -6764,7 +6806,7 @@ void update_siege_progress(sys::state& state) {
 					for(auto pop : state.world.province_get_pop_location(prov)) {
 						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
 							auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
-							pop_demographics::set_militancy(state, pop.get_pop(), mil);
+							pop_demographics::set_militancy(state, pop.get_pop().id, mil);
 						//}
 					}
 				}

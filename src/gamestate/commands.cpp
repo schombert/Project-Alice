@@ -14,6 +14,8 @@
 #include "ai.hpp"
 #include "gui_console.hpp"
 
+#include "base64encode.hpp"
+
 namespace command {
 
 bool is_console_command(command_type t) {
@@ -4843,7 +4845,8 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 
 #ifndef NDEBUG
-	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + state.session_host_checksum.to_string());
+	auto encodedchecksum = base64_encode(state.session_host_checksum.to_char(), state.session_host_checksum.key_size);
+	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + encodedchecksum);
 #endif
 	 
 	ui::chat_message m{};

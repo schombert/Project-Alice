@@ -541,7 +541,7 @@ po_release_puppet: nation stops being a vassal
 po_make_puppet: the target nation releases all of its vassals and then becomes a vassal of the acting nation.
 po_destory_forts: reduces fort levels to zero in any targeted states
 po_destory_naval_bases: as above
-po_disarmament: a random define:DISARMAMENT_ARMY_HIT fraction of the nations units are destroyed. All current unit constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at war again.
+po_disarmament: a random define:DISARMAMENT_ARMY_HIT fraction of the nations units are destroyed. All current unit constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at war again. In the addition to the basegame, all military factories are bankrupted and construction of military factories is cancelled.
 po_reparations: the nation is set to pay reparations for define:REPARATIONS_YEARS
 po_remove_prestige: the target loses (current-prestige x define:PRESTIGE_REDUCTION) + define:PRESTIGE_REDUCTION_BASE prestige
 po_install_communist_gov: The target switches its government type and ruling ideology (if possible) to that of the nation that added the war goal. Relations with the nation that added the war goal are set to 0. The nation leaves its current sphere and enters the actor's sphere if it is a GP. If the war continues, the war leader on the opposite side gains the appropriate `counter_wargoal_on_install_communist_gov` CB, if any and allowed by the conditions of that CB.
