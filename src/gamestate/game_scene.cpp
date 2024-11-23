@@ -704,7 +704,10 @@ void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers
 void console_log_other(sys::state& state, std::string_view message) {
 	auto msg = std::string(message);
 	msg = "{" + std::string(state.network_state.nickname.to_string_view()) + "} " + msg;
-	OutputDebugStringA((msg + "\n").c_str());
+#ifdef _WIN32
+	OutputDebugStringA(msg);
+	OutputDebugStringA("\n");
+#endif
 
 	auto folder = simple_fs::get_or_create_data_dumps_directory();
 
