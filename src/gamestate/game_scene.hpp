@@ -198,7 +198,7 @@ inline scene_properties nation_picker() {
 .lbutton_up = select_player_nation_from_selected_province,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = nation_picker_hotkeys,
-.console_log = console_log_pick_nation,
+.console_log = console_log_other,
 .open_chat = open_chat_before_game,
 .update_highlight_texture = highlight_player_nation,
 	};

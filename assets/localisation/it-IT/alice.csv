@@ -941,6 +941,7 @@ monthly_emigration_lab;Emigrazione mensile verso (top 10)
 monthly_immigration_lab;Immigrazione mensile da (top 10)
 im_em_header;Immigrazione/emigrazione prevista per
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W attrito
+unit_arrival_time_text;(arriverà il $date$)
 ol_unit_standing_text;$m$ $n$/$x$/$y$
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
 unit_standing_text;$m$ $n$/$x$/$y$ - ?R$costo$?W ($attunit$/$defunit$)

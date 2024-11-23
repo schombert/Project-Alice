@@ -364,10 +364,12 @@ public:
 			text::add_line_with_condition(state, contents, "ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel) == false);
 			text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis == sys::crisis_type::none);
 
-			auto ol = state.world.nation_get_overlord_as_subject(asker);
-			text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
-			auto ol2 = state.world.nation_get_overlord_as_subject(target);
-			text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
+			if(state.defines.alice_allow_subjects_declare_wars == 0) {
+				auto ol = state.world.nation_get_overlord_as_subject(asker);
+				text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
+				auto ol2 = state.world.nation_get_overlord_as_subject(target);
+				text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
+			}
 
 			text::add_line_with_condition(state, contents, "ally_explain_6", !military::are_at_war(state, asker, target));
 
@@ -747,14 +749,18 @@ public:
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 
+		auto lpn_fat = dcon::fatten(state.world, state.local_player_nation);
+		auto target_fat = dcon::fatten(state.world, target);
+		auto subsize = economy::estimate_war_subsidies(state, target_fat, lpn_fat);
+
 		if(subsidies) {
-			text::add_line(state, contents, "cancel_w_sub_explain_1", text::variable_type::x, text::fp_currency{ economy::estimate_war_subsidies(state, target) });
+			text::add_line(state, contents, "cancel_w_sub_explain_1", text::variable_type::x, text::fp_currency{ subsize });
 			if(state.defines.cancelwarsubsidy_diplomatic_cost > 0) {
 				text::add_line_break_to_layout(state, contents);
 				text::add_line_with_condition(state, contents, "cancel_w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelwarsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.cancelwarsubsidy_diplomatic_cost));
 			}
 		} else {
-			text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_one_place{ economy::estimate_war_subsidies(state, target) });
+			text::add_line(state, contents, "warsubsidies_desc", text::variable_type::money, text::fp_one_place{ subsize });
 			text::add_line_break_to_layout(state, contents);
 
 			if(state.local_player_nation == target) {
@@ -764,7 +770,7 @@ public:
 				text::add_line_with_condition(state, contents, "w_sub_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.warsubsidy_diplomatic_cost, text::variable_type::x, int16_t(state.defines.warsubsidy_diplomatic_cost));
 			}
 			text::add_line_with_condition(state, contents, "w_sub_explain_3", !military::are_at_war(state, state.local_player_nation, target));
-			text::add_line_with_condition(state, contents, "w_sub_explain_4", state.world.nation_get_is_at_war(target));
+			// text::add_line_with_condition(state, contents, "w_sub_explain_4", state.world.nation_get_is_at_war(target));
 		}
 	}
 };

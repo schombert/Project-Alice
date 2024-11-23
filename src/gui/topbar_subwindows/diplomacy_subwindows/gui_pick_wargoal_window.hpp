@@ -691,7 +691,7 @@ public:
 				}
 			}
 			text::add_line_with_condition(state, contents, "alice_wg_condition_1", !(!is_attacker && military::defenders_have_status_quo_wargoal(state, w)));
-			text::add_line_with_condition(state, contents, "alice_wg_condition_2", bool(target_in_war));
+			text::add_line_with_condition(state, contents, "alice_wg_condition_2", bool(!target_in_war));
 			text::add_line_with_condition(state, contents, "alice_wg_condition_3", !(military::war_goal_would_be_duplicate(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni))));
 
 			if((state.world.cb_type_get_type_bits(c) & military::cb_flag::always) == 0) {

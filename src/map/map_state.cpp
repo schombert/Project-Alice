@@ -247,6 +247,86 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		}
 	}
 
+	for(auto map_army : state.world.in_army) {
+		// Exclude if out of FOW
+		if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
+			auto pc = map_army.get_army_location().get_location().id;
+			if(!state.map_state.visible_provinces[province::to_map_id(pc)]) {
+				continue;
+			}
+		}
+		// Exclude if in battle
+		if(map_army.get_battle_from_army_battle_participation()) {
+			continue;
+		}
+		// Exclude if selected
+		if(std::find(state.selected_armies.begin(), state.selected_armies.end(), map_army) != state.selected_armies.end()) {
+			continue;
+		}
+		// TODO: arrow for allied units
+		if(auto ps = state.world.army_get_path(map_army); ps.size() > 0) {
+			auto army_controller = state.world.army_get_controller_from_army_control(map_army);
+			if(state.local_player_nation && army_controller && military::are_at_war(state, army_controller, state.local_player_nation)) {
+				if(state.world.army_get_is_retreating(map_army)) {
+					auto old_size = map_data.retreat_unit_arrow_vertices.size();
+					map_data.retreat_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_army_direction(state, map_data.retreat_unit_arrow_vertices, map_army, float(map_data.size_x), float(map_data.size_y));
+					map_data.retreat_unit_arrow_counts.push_back(GLsizei(map_data.retreat_unit_arrow_vertices.size() - old_size));
+				} else {
+					auto old_size = map_data.attack_unit_arrow_vertices.size();
+					map_data.attack_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_army_direction(state, map_data.attack_unit_arrow_vertices, map_army, float(map_data.size_x), float(map_data.size_y));
+					map_data.attack_unit_arrow_counts.push_back(GLsizei(map_data.attack_unit_arrow_vertices.size() - old_size));
+				}
+			}
+			else if (state.local_player_nation == army_controller) {
+				auto old_size = map_data.unit_arrow_vertices.size();
+				map_data.unit_arrow_starts.push_back(GLint(old_size));
+				map::make_army_direction(state, map_data.unit_arrow_vertices, map_army, float(map_data.size_x), float(map_data.size_y));
+				map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
+			}
+		}
+	}
+	for(auto map_navy : state.world.in_navy) {
+		// Exclude if out of FOW
+		if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
+			auto pc = map_navy.get_navy_location().get_location().id;
+			if(!state.map_state.visible_provinces[province::to_map_id(pc)]) {
+				continue;
+			}
+		}
+		// Exclude if in battle
+		if(map_navy.get_battle_from_navy_battle_participation()) {
+			continue;
+		}
+		// Exclude if selected
+		if(std::find(state.selected_navies.begin(), state.selected_navies.end(), map_navy) != state.selected_navies.end()) {
+			continue;
+		}
+		// TODO: arrow for allied units
+		if(auto ps = state.world.navy_get_path(map_navy); ps.size() > 0) {
+			auto navy_controller = state.world.navy_get_controller_from_navy_control(map_navy);
+			if(military::are_at_war(state, navy_controller, state.local_player_nation)) {
+				if(state.world.navy_get_is_retreating(map_navy)) {
+					auto old_size = map_data.retreat_unit_arrow_vertices.size();
+					map_data.retreat_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_navy_direction(state, map_data.retreat_unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
+					map_data.retreat_unit_arrow_counts.push_back(GLsizei(map_data.retreat_unit_arrow_vertices.size() - old_size));
+				} else {
+					auto old_size = map_data.unit_arrow_vertices.size();
+					map_data.unit_arrow_starts.push_back(GLint(old_size));
+					map::make_navy_direction(state, map_data.unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
+					map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
+				}
+			} else if (state.local_player_nation == navy_controller) {
+				auto old_size = map_data.unit_arrow_vertices.size();
+				map_data.unit_arrow_starts.push_back(GLint(old_size));
+				map::make_navy_direction(state, map_data.unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
+				map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
+			}
+		}
+	}
+
 	if(!map_data.unit_arrow_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);

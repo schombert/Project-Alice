@@ -6,8 +6,10 @@
 out/
 docs/out/
 .vscode/
+.idea/
 # Ignore all build* folders in top directory
 build*/
+cmake-build-debug/
 mod[s]/
 
 # Generated parsers

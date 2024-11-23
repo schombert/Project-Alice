@@ -299,9 +299,11 @@ public:
 			return make_element_by_type<decision_desc>(state, id);
 		} else if(name == "requirements") {
 			// Extra button to tell if AI will do
+#ifndef NDebug
 			auto btn1 = make_element_by_type<decision_ai_will_do>(state, id);
 			btn1->base_data.position.x -= btn1->base_data.size.x * 2;
 			add_child_to_front(std::move(btn1));
+#endif
 			auto btn2 = make_element_by_type<decision_potential>(state, id);
 			btn2->base_data.position.x -= btn2->base_data.size.x;
 			add_child_to_front(std::move(btn2));

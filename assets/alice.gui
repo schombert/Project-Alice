@@ -4525,6 +4525,15 @@ guiTypes = {
 		position = { x= 180 y = 3 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
+	guiButtonType = {
+			name = "button_ban"
+			extends = "ingame_multiplayer_entry"
+			quadTextureSprite = "GFX_button_ban"
+			tooltip = ""
+			tooltipText =""	
+			delayedTooltipText = ""
+			position = { x=228 y =2}
+		}
     guiButtonType = {
 		name = "alice_budget_warning"
 		extends = "topbar"

@@ -672,8 +672,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_overhire_multiplier, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_production_scale_neg_delta, 0.001) \
-	LUA_DEFINES_LIST_ELEMENT(alice_invest_capitalist, 0.125) \
-	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.025) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_capitalist, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.0125) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.025) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.0125) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.20) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.40) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.40) \
@@ -692,6 +694,12 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_eval_ai_mil_everyday, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_subjects_declare_wars, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_place_ai_upon_disconnection, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_mode, 0.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_unpause, 12.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_pause, 20.0)                                                          \
+
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

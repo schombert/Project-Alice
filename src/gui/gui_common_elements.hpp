@@ -1238,14 +1238,40 @@ public:
 class nation_military_reform_multiplier_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f);
+		return int32_t(politics::get_military_reform_multiplier(state, nation_id) >= 0.f);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+
+		auto box = text::open_layout_box(contents, 0);
+
+		auto val = politics::get_military_reform_multiplier(state, nation_id) - 1.0f;
+		text::add_line(state, contents, "alice_unciv_reform_cost", text::variable_type::x, text::fp_percentage_one_place{ val });
 	}
 };
 
 class nation_economic_reform_multiplier_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f);
+		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) >= 0.f);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+
+		auto box = text::open_layout_box(contents, 0);
+
+		auto val = politics::get_economic_reform_multiplier(state, nation_id) - 1.0f;
+		text::add_line(state, contents, "alice_unciv_reform_cost", text::variable_type::x, text::fp_percentage_one_place{ val });
 	}
 };
 
