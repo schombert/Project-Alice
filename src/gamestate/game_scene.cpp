@@ -705,7 +705,7 @@ void console_log_other(sys::state& state, std::string_view message) {
 	auto msg = std::string(message);
 	msg = "{" + std::string(state.network_state.nickname.to_string_view()) + "} " + msg;
 #ifdef _WIN32
-	OutputDebugStringA(msg);
+	OutputDebugStringA(msg.c_str());
 	OutputDebugStringA("\n");
 #endif
 

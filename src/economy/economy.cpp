@@ -6855,37 +6855,38 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 								}
 							});
 
-							if(present_in_location)
+							if(present_in_location) {
 								continue;
+							}
 
-								auto costs = state.world.factory_type_get_construction_costs(selected);
-								auto time = state.world.factory_type_get_construction_time(selected);
-								for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-									if(costs.commodity_type[i]) {
-										total_cost_added +=
-											costs.commodity_amounts[i]
-											* price(state, market, costs.commodity_type[i])
-											/ float(time)
-											* days_prepaid;
-									} else {
-										break;
-									}
+							auto costs = state.world.factory_type_get_construction_costs(selected);
+							auto time = state.world.factory_type_get_construction_time(selected);
+							for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+								if(costs.commodity_type[i]) {
+									total_cost_added +=
+										costs.commodity_amounts[i]
+										* price(state, market, costs.commodity_type[i])
+										/ float(time)
+										* days_prepaid;
+								} else {
+									break;
 								}
+							}
 
-								if(n.get_private_investment() * courage < total_cost + total_cost_added) {
-									continue;
-								}
+							if(n.get_private_investment() * courage < total_cost + total_cost_added) {
+								continue;
+							}
 
-								auto new_up = fatten(
-									state.world,
-									state.world.force_create_state_building_construction(s, n)
-								);
+							auto new_up = fatten(
+								state.world,
+								state.world.force_create_state_building_construction(s, n)
+							);
 
-								new_up.set_is_pop_project(true);
-								new_up.set_is_upgrade(false);
-								new_up.set_type(selected);
+							new_up.set_is_pop_project(true);
+							new_up.set_is_upgrade(false);
+							new_up.set_type(selected);
 								
-								//found_investment = true;
+							//found_investment = true;
 						}
 					}
 				}
