@@ -286,6 +286,9 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 	}
 
 	for(auto map_army : state.world.in_army) {
+		if(!state.world.army_is_valid(map_army)) {
+			return;
+		}
 		// Exclude if out of FOW
 		if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
 			auto pc = map_army.get_army_location().get_location().id;
@@ -326,6 +329,9 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		}
 	}
 	for(auto map_navy : state.world.in_navy) {
+		if(!state.world.navy_is_valid(map_navy)) {
+			return;
+		}
 		// Exclude if out of FOW
 		if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
 			auto pc = map_navy.get_navy_location().get_location().id;
