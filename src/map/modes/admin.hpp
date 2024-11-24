@@ -14,10 +14,7 @@ std::vector<uint32_t> admin_map_from(sys::state& state) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		if(!selected_nation || fat_id.get_nation_from_province_ownership() == selected_nation) {
 			auto admin_efficiency = province::state_admin_efficiency(state, fat_id.get_state_membership());
-			uint32_t color = ogl::color_gradient(admin_efficiency,
-				sys::pack_color(46, 247, 15), // red
-				sys::pack_color(247, 15, 15) // green
-			);
+			uint32_t color = ogl::color_gradient_viridis(admin_efficiency);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		} else {

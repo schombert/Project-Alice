@@ -188,8 +188,8 @@ spriteTypes = {
 
 	spriteType = {
 		name = "GFX_legend_gradient"
-		texturefile = "assets\\gradient.dds"
-		noOfFrames = 4
+		texturefile = "assets\\gradient.png"
+		noOfFrames = 6
 		size = { 180 30 }
 	}
 	spriteType = {
