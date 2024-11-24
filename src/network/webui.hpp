@@ -25,10 +25,9 @@ using json = nlohmann::json;
 namespace webui {
 
 // HTTP
+httplib::Server svr;
 
 inline void init(sys::state& state) noexcept {
-
-	httplib::Server svr;
 
 	if(state.defines.alice_expose_webui != 1 || state.network_mode == sys::network_mode_type::client) {
 		return;
@@ -227,7 +226,7 @@ inline void init(sys::state& state) noexcept {
 		res.set_content(jlist.dump(), "text/plain");
 	});
 
-	svr.listen("0.0.0.0", 1234);;
+	svr.listen("0.0.0.0", 1234);
 }
 
 }

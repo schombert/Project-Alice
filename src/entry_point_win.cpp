@@ -327,6 +327,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		}
 
 		network::finish(game_state, true);
+		webui::svr.stop();
 		CoUninitialize();
 	}
 	return 0;
