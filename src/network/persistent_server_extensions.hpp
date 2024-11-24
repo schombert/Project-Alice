@@ -49,7 +49,7 @@ inline void read_player_nations(sys::state& state, char const* start, char const
 }
 
 inline void load_player_nations(sys::state& state) noexcept {
-	if(state.network_mode != sys::network_mode_type::host && state.defines.alice_persistent_server_mode != 1) {
+	if(state.network_mode != sys::network_mode_type::host || state.defines.alice_persistent_server_mode != 1) {
 		return;
 	}
 
@@ -63,7 +63,7 @@ inline void load_player_nations(sys::state& state) noexcept {
 }
 
 inline void write_player_nations(sys::state& state) noexcept {
-	if(state.network_mode != sys::network_mode_type::host && state.defines.alice_persistent_server_mode != 1) {
+	if(state.network_mode != sys::network_mode_type::host || state.defines.alice_persistent_server_mode != 1) {
 		return;
 	}
 
@@ -78,7 +78,7 @@ inline void write_player_nations(sys::state& state) noexcept {
 }
 
 inline void every_tick_checks(sys::state& state) noexcept {
-	if(state.network_mode != sys::network_mode_type::host && state.defines.alice_persistent_server_mode != 1) {
+	if(state.network_mode != sys::network_mode_type::host || state.defines.alice_persistent_server_mode != 1) {
 		return;
 	}
 

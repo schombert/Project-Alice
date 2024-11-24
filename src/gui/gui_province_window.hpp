@@ -2284,7 +2284,7 @@ inline table::column<dcon::trade_route_id> trade_route_4 = {
 
 inline table::column<dcon::trade_route_id> trade_route_5 = {
 	.sortable = true,
-	.header = "volume",
+	.header = "desired_volume",
 	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
 		auto local_market = retrieve<dcon::market_id>(state, container);
 		int32_t index_a = 0;
@@ -2679,6 +2679,38 @@ public:
 
 			trade_table = ptr.get();	
 			trade_table->set_visible(state, true);
+
+			// On click - change selected province to the target of the row
+			trade_table->row_callback = [](sys::state& state, ui::element_base* container, const dcon::trade_route_id t) {
+				auto origin = state.world.trade_route_get_connected_markets(t, 0);
+				auto target = state.world.trade_route_get_connected_markets(t, 1);
+
+				auto s_origin = state.world.market_get_zone_from_local_market(origin);
+				auto s_target = state.world.market_get_zone_from_local_market(target);
+
+				auto p_origin = state.world.state_instance_get_capital(s_origin);
+				auto p_target = state.world.state_instance_get_capital(s_target);
+
+				auto selected_province = state.map_state.get_selected_province();
+				if(selected_province) {
+					auto selected_province_state = state.world.province_get_state_membership(selected_province);
+
+					if(selected_province_state != s_origin) {
+						state.map_state.set_selected_province(p_origin);
+					}
+					else if(selected_province_state != s_target) {
+						state.map_state.set_selected_province(p_target);
+					}
+				}
+
+				state.map_state.center_map_on_province(state, state.map_state.get_selected_province());
+
+				state.update_trade_flow.store(true, std::memory_order::release);
+				
+				if(state.ui_state.province_window) {
+					state.ui_state.province_window->impl_on_update(state);
+				}
+			};
 			return ptr;
 		} else if(name == "trade_route_background") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -2844,6 +2876,8 @@ public:
 		local_buildings_window->impl_on_update(state);
 		colony_window->impl_on_update(state);
 		economy_window->impl_on_update(state);
+
+		active_province = state.map_state.get_selected_province();
 
 		//Hide unit builder if not our province
 		auto n = state.world.province_get_nation_from_province_ownership(active_province);
