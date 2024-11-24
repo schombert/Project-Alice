@@ -52,8 +52,14 @@ float get_random_float(sys::state const& state, uint32_t value_in) {
 	r123::Philox4x32::ctr_type c = {state.current_date.value, value_in, 0, 0 };
 	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23};
 	r123::Philox4x32::ctr_type r = rng(c, k);
-	uint32_t f = ((uint32_t)(r[1] << 8) | (0x3f << 24));
-	return *((float*)&f) * 0.5f;
+	//
+	union {
+		uint32_t u;
+		float f;
+	} pattern;
+	pattern.u = 0x3f800000;
+	pattern.u |= 0x7fffff & r[1];
+	return pattern.f - 1.0f;
 }
 
 float get_random_float(sys::state const& state, uint32_t value_in_hi, uint32_t value_in_lo) {
@@ -61,8 +67,14 @@ float get_random_float(sys::state const& state, uint32_t value_in_hi, uint32_t v
 	r123::Philox4x32::ctr_type c = {value_in_hi, value_in_lo, 0, 0 };
 	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23};
 	r123::Philox4x32::ctr_type r = rng(c, k);
-	uint32_t f = ((uint32_t)(r[1] << 8) | (0x3f << 24));
-	return *((float*)&f) * 0.5f;
+	//
+	union {
+		uint32_t u;
+		float f;
+	} pattern;
+	pattern.u = 0x3f800000;
+	pattern.u |= 0x7fffff & r[1];
+	return pattern.f - 1.0f;
 }
 
 } // namespace rng
