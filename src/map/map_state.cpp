@@ -132,12 +132,19 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			// Always allow big routes
 		}
 		// Show all routes for the selected province
-		else if(selected_province && absolute_volume >= 0.0f) {
+		else if(selected_province) {
 			auto selected_province_state = state.world.province_get_state_membership(selected_province);
+
+			if(absolute_volume <= 0.001f) {
+				return;
+			}
 
 			if(selected_province_state.id != s_origin && selected_province_state.id != s_target) {
 				return;
 			}
+		}
+		else {
+			return;
 		}
 
 		auto width = std::log(1.f + absolute_volume * 100.f) * 300.f;
@@ -150,6 +157,26 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		if(is_sea) {
 			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
+
+			if(coast_origin != p_origin) {
+
+				map::make_land_path(
+					state,
+					map_data.trade_flow_vertices,
+					p_origin, coast_origin,
+					width,
+					float(map_data.size_x), float(map_data.size_y)
+				);
+			}
+			if(coast_target != p_target) {
+				map::make_land_path(
+					state,
+					map_data.trade_flow_vertices,
+					p_target, coast_target,
+					width,
+					float(map_data.size_x), float(map_data.size_y)
+				);
+			}
 
 			map::make_sea_path(
 				state,
