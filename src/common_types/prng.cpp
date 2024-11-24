@@ -52,8 +52,8 @@ float get_random_float(sys::state const& state, uint32_t value_in) {
 	r123::Philox4x32::ctr_type c = {state.current_date.value, value_in, 0, 0 };
 	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23};
 	r123::Philox4x32::ctr_type r = rng(c, k);
-	auto f = float(((uint64_t(r[0]) << 32) | uint64_t(r[1])) & 0xFFFF);
-	return f / float(0xFFFF + 1);
+	uint32_t f = ((uint32_t)(r[1] << 8) | (0x3f << 24));
+	return *((float*)&f) * 0.5f;
 }
 
 float get_random_float(sys::state const& state, uint32_t value_in_hi, uint32_t value_in_lo) {
