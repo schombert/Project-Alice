@@ -12,6 +12,8 @@
 #include "Objbase.h"
 #include "window.hpp"
 
+#include "network/webui.hpp"
+
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
 #pragma comment(lib, "icu.lib")
@@ -280,6 +282,11 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		game_state.load_user_settings();
 		ui::populate_definitions_map(game_state);
 
+		if(game_state.defines.alice_expose_webui != 0) {
+			std::thread web_thread([&]() { webui::init(game_state); });
+			web_thread.detach();
+		}
+
 		if(headless) {
 			game_state.actual_game_speed = headless_speed;
 			game_state.ui_pause.store(false, std::memory_order::release);
@@ -315,7 +322,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			std::thread update_thread([&]() { game_state.game_loop(); });
 			// entire game runs during this line
 			window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
-			game_state.quit_signaled.store(true, std::memory_order_release);
+			game_state.quit_signaled.store(true, std::memory_order_release);			
 			update_thread.join();
 		}
 

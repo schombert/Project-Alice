@@ -699,6 +699,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_mode, 0.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_unpause, 12.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_persistent_server_pause, 20.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_expose_webui, 0.0)                                                          \
+
 
 
 // scales the needs values so that they are needs per this many pops
