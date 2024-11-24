@@ -1283,5 +1283,6 @@ price_origin;Origin price
 price_target;Target price
 trade_distance;Distance
 volume;Volume
+desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%

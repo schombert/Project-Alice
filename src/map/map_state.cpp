@@ -125,7 +125,16 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 		auto absolute_volume = std::abs(sat * current_volume);
 
-		if(absolute_volume <= std::clamp(average, 0.001f, 5.f)) {
+		// If a province selected - show all routes belonging to the state market
+		auto selected_province = state.map_state.get_selected_province();
+		if(selected_province && absolute_volume >= 0.0f) {
+			auto selected_province_state = state.world.province_get_state_membership(selected_province);
+
+			if(selected_province_state.id != s_origin && selected_province_state.id != s_target) {
+				return;
+			}
+		}
+		else if(!selected_province && absolute_volume <= std::clamp(average, 0.001f, 5.f)) {
 			return;
 		}
 
@@ -1297,6 +1306,8 @@ void map_state::update(sys::state& state) {
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
+		state.update_trade_flow.store(true, std::memory_order::release);
+
 		map_data.set_selected_province(state, selected_province);
 		unhandled_province_selection = false;
 	}
