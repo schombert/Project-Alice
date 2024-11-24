@@ -16,37 +16,48 @@ public:
 		set_text(state, text::produce_simple_string(state, get_title_from_mode(state.map_state.active_map_mode)));
 	}
 };
+
+enum class GRADIENT_ICON: int16_t {
+	GRAY = 0,
+	RED_TO_GREEN = 1,
+	YELLOW_TO_GREEN = 2,
+	GREEN_TO_RED = 3,
+	VIRIDIS = 4,
+	MAGMA = 5,
+};
+
 class map_legend_gradient_image : public image_element_base {
 	int16_t get_frame_from_mode(map_mode::mode v) {
 		switch(v) {
+		case map_mode::mode::literacy:
+		case map_mode::mode::life_needs:
+		case map_mode::mode::everyday_needs:
+		case map_mode::mode::luxury_needs:
+		case map_mode::mode::life_rating:
+		case map_mode::mode::admin:
+		case map_mode::mode::supply:
+			return (int16_t)GRADIENT_ICON::VIRIDIS;
+		case map_mode::mode::growth:
 		case map_mode::mode::migration:
 		case map_mode::mode::rank:
 		case map_mode::mode::relation:
 		case map_mode::mode::rgo_output:
-		case map_mode::mode::supply:
-		case map_mode::mode::admin:
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
-		case map_mode::mode::literacy:
-		case map_mode::mode::growth:
 		case map_mode::mode::income:
 		case map_mode::mode::employment:
-		case map_mode::mode::life_needs:
-		case map_mode::mode::everyday_needs:
-		case map_mode::mode::luxury_needs:
 		case map_mode::mode::mobilization:
 		case map_mode::mode::officers:
-		case map_mode::mode::life_rating:
 		case map_mode::mode::clerk_to_craftsmen_ratio:
-			return 1;
+			return (int16_t)GRADIENT_ICON::RED_TO_GREEN;
 		case map_mode::mode::conciousness:
 		case map_mode::mode::militancy:
 		case map_mode::mode::population:
 		case map_mode::mode::crisis:
 		case map_mode::mode::revolt:
-			return 3;
+			return (int16_t)GRADIENT_ICON::MAGMA;
 		default:
-			return 0;
+			return (int16_t)GRADIENT_ICON::GRAY;
 		}
 	}
 public:
