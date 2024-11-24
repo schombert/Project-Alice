@@ -333,4 +333,67 @@ struct macro_builder_template {
 	}
 };
 
+template<typename IT, typename PTR, typename CMP>
+void merge_sort_interior(IT first, IT end, PTR buffer_start, PTR buffer_end, CMP const& cmp) noexcept {
+	auto rng_size = end - first;
+	if(rng_size == 0) {
+		return;
+	} else if(rng_size == 1) {
+		*first = *buffer_start;
+		return;
+	} else if(rng_size == 2) {
+		if(cmp(*buffer_start, *(buffer_start + 1))) {
+			*first = *buffer_start;
+			*(first + 1) = *(buffer_start + 1);
+		} else {
+			*first = *(buffer_start + 1);
+			*(first + 1) = *buffer_start;
+		}
+		return;
+	}
+
+	auto half_way = first + rng_size / 2;
+	auto b_half_way = buffer_start + rng_size / 2;
+
+	merge_sort_interior(buffer_start, b_half_way, first, half_way, cmp);
+	merge_sort_interior(b_half_way, buffer_end, half_way, end, cmp);
+
+	auto temp_index = b_half_way;
+	while(temp_index != buffer_end && buffer_start != b_half_way) {
+		if(cmp(*temp_index, *buffer_start)) {
+			*first = *temp_index;
+			++temp_index;
+			++first;
+		} else {
+			*first = *buffer_start;
+			++buffer_start;
+			++first;
+		}
+	}
+	if(temp_index == buffer_end) {
+		memcpy(&(*first), &(*buffer_start), sizeof(std::remove_cvref_t<decltype(*first)>) * (end - first));
+	} else if(buffer_start == b_half_way) {
+		memcpy(&(*first), &(*temp_index), sizeof(std::remove_cvref_t<decltype(*first)>) * (end - first));
+	}
+}
+
+template<typename IT, typename CMP>
+void merge_sort(IT first, IT end, CMP const& cmp) noexcept {
+	auto rng_size = end - first;
+	if(rng_size == 0 || rng_size == 1) {
+		return;
+	} else if(rng_size == 2) {
+		if(!cmp(*first, *(first + 1))) {
+			std::swap(*first, *(first + 1));
+		}
+		return;
+	}
+
+	using element_type = std::remove_cvref_t<decltype(*first)>;
+	auto buffer = new element_type[rng_size];
+	memcpy(buffer, &(*first), sizeof(element_type) * rng_size);
+	merge_sort_interior(first, end, buffer, buffer + rng_size, cmp);
+	delete[] buffer;
+}
+
 } // namespace sys
