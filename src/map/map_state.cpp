@@ -159,20 +159,10 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
 
 			if(coast_origin != p_origin) {
-
 				map::make_land_path(
 					state,
 					map_data.trade_flow_vertices,
 					p_origin, coast_origin,
-					width,
-					float(map_data.size_x), float(map_data.size_y)
-				);
-			}
-			if(coast_target != p_target) {
-				map::make_land_path(
-					state,
-					map_data.trade_flow_vertices,
-					p_target, coast_target,
 					width,
 					float(map_data.size_x), float(map_data.size_y)
 				);
@@ -187,6 +177,16 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				std::sin((float)(trade_route.value)) * 50.f,
 				std::cos((float)(trade_route.value)) * 50.f
 			);
+
+			if(coast_target != p_target) {
+				map::make_land_path(
+					state,
+					map_data.trade_flow_vertices,
+					coast_target, p_target,
+					width,
+					float(map_data.size_x), float(map_data.size_y)
+				);
+			}
 		} else {
 			map::make_land_path(
 				state,

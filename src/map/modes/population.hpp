@@ -24,7 +24,7 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 		auto i = province::to_map_id(prov_id);
 		float gradient_index = prov_population[i] / continent_max_pop[cid];
 
-		auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
+		auto color = ogl::color_gradient_magma(gradient_index);
 		prov_color[i] = color;
 		prov_color[i + texture_size] = color;
 	});
@@ -62,7 +62,7 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 		uint32_t color = 0xFFAAAAAA;
 		if(prov_population[i] > -1.f) {
 			float gradient_index = prov_population[i] / max_population;
-			color = ogl::color_gradient(gradient_index, 210, 100 << 8);
+			color = ogl::color_gradient_magma(gradient_index);
 		}
 		prov_color[i] = color;
 		prov_color[i + texture_size] = color;

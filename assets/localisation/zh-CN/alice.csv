@@ -915,7 +915,9 @@ chat_player_ban;$playername$被封禁
 chat_player_kick;$playername$被踢除
 chat_player_switch;$playername$选择了$country$
 chat_player_oos;$playername$已断开连接！
+chat_player_reload;$playername$ 已重新加载
 alice_status_stream;存档处理进度：$value$
+alice_receiving_savegame;加载主机存档
 alice_play_pending_client;$playername$未准备好
 alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在?G绿色?W 线看到价格上涨, and ?Rred?W 红线下降, 像往常一样 我 ?Y不是?W 一个折线图所以不总是被注意到: )
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
@@ -1257,3 +1259,22 @@ rpname_is;执政党名称
 pposition_is;$x$政党位置
 rpposition_is;执政党位置
 topbar_budget_warning;你无法完全负担昨天的目标预算支出
+rgo_output;产出
+rgo_profit;总利润
+rgo_expected_profit;实际利润
+rgo_desired_profit;最低期望利润
+rgo_employment;实际雇佣人数
+rgo_max_employment;最大雇佣人数
+rgo_saturation;%
+rgo_details_header;RGO 详情
+rgo_employment_header;就业情况
+rgo_profits_header;盈利情况
+route_origin;起点
+route_target;终点
+price_origin;起点价格
+price_target;终点价格
+trade_distance;贸易距离
+volume;贸易量
+desired_volume;期望贸易量
+max_throughput;最大贸易量
+trade_margin;利润率%

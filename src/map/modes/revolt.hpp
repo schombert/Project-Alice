@@ -31,10 +31,7 @@ std::vector<uint32_t> revolt_map_from(sys::state& state) {
 			uint32_t color = 0xDDDDDD; // white
 			if(rebels_in_province[i] > 0.0f) {
 				float gradient_index = (continent_max_rebels[cid] == 0.f ? 0.f : (rebels_in_province[i] / continent_max_rebels[cid]));
-				color = ogl::color_gradient(gradient_index,
-						sys::pack_color(247, 15, 15), // red
-						sys::pack_color(46, 247, 15) // green
-				);
+				color = ogl::color_gradient_magma(gradient_index);
 			}
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
