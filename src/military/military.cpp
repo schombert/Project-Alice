@@ -2840,7 +2840,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 						++it;
 					} else {
 						military::cleanup_army(state, (*it).get_army());
-						it = ar.begin();
+						delete (&it);
+						new (&it) dcon::internal::iterator_nation_foreach_army_control_as_controller(ar.begin());
 						--rem;
 					}
 				}
