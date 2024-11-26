@@ -2841,6 +2841,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 					} else {
 						military::cleanup_army(state, (*it).get_army());
 						it = ar.begin();
+						--rem;
 					}
 				}
 		}
