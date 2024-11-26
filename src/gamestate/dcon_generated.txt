@@ -3815,6 +3815,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ constructing_cb_target_state }
+		type{ state_definition_id }
+		tag{ save }
+	}
+	property {
 		name{ constructing_cb_progress }
 		type{ float }
 		tag{ save }

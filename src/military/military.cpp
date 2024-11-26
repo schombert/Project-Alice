@@ -1294,7 +1294,16 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 	float total_population = 0.f;
 	auto total_countries = 0;
 
+	auto target_civilized = state.world.nation_get_is_civilized(target);
+
 	for(auto n : state.world.in_nation) {
+		/* Use correct reference group for average country population calculation.
+		Civs are compared vs civs and uncivs vs uncivs as they have just too big a difference in averages.*/
+		auto is_civilized = state.world.nation_get_is_civilized(n);
+
+		if(target_civilized != is_civilized) {
+			continue;
+		}
 		auto n_pop = state.world.nation_get_demographics(n, demographics::total);
 		total_population += n_pop;
 		total_countries += (n_pop > 0) ? 1 : 0;
@@ -1307,15 +1316,26 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 
 float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
 	if(cb_state == dcon::state_definition_id{}) {
-		return 2.0f; // Cap for infamy price
+		// assert(false && "This shouldn't happen");
+		return 2.0f; // Default cap for infamy price
 	}
 
 	float total_population = 0.f;
 	auto total_states = 0;
-
 	float state_population = 0;
 
+	auto target_civilized = state.world.nation_get_is_civilized(target);
+
 	for(auto s : state.world.in_state_instance) {
+		/* Use correct reference group for average state population calculation.
+		Civs are compared vs civs and uncivs vs uncivs as they have just too big a difference in averages.*/
+		auto n = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto is_civilized = state.world.nation_get_is_civilized(n);
+
+		if(target_civilized != is_civilized) {
+			continue;
+		}
+
 		auto s_pop = s.get_demographics(demographics::total);
 		total_population += s_pop;
 		total_states += (s_pop > 0) ? 1 : 0;
