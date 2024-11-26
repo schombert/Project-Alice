@@ -1124,25 +1124,6 @@ inline table::column<dcon::market_id> market_price = {
 	}
 };
 
-inline table::column<dcon::market_id> market_artisan_distribution = {
-	.sortable = true,
-	.header = "w_artisan_distribution",
-	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
-		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto av = economy::get_artisan_distribution_slow(state, a, good);
-		auto bv = economy::get_artisan_distribution_slow(state, b, good);
-		if(av != bv)
-			return av > bv;
-		else
-			return a.index() < b.index();
-	},
-	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
-		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto value = economy::get_artisan_distribution_slow(state, id, good);
-		return text::format_float(value, 3);
-	}
-};
-
 inline table::column<dcon::market_id> market_artisan_profit = {
 	.sortable = true,
 	.header = "w_artisan_profit",
@@ -1164,7 +1145,7 @@ inline table::column<dcon::market_id> market_artisan_profit = {
 
 inline table::column<dcon::market_id> market_artisan_score = {
 	.sortable = true,
-	.header = "w_artisan_score",
+	.header = "w_artisan_distribution",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
 		auto av = state.world.market_get_artisan_score(a, good);
@@ -1640,7 +1621,7 @@ public:
 				market_name,
 				market_price,
 				market_production, market_demand, market_consumption,
-				market_artisan_distribution, market_artisan_profit, market_artisan_score
+				market_artisan_profit, market_artisan_score
 			};
 			auto ptr = make_element_by_type<table::display<dcon::market_id>>(
 				state,

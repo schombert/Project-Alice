@@ -86,12 +86,6 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
-float get_artisan_distribution_slow(
-	sys::state& state,
-	dcon::market_id n,
-	dcon::commodity_id c
-);
-
 // base subsistence
 inline constexpr float subsistence_factor = 15.0f;
 inline constexpr float subsistence_score_life = 30.0f;

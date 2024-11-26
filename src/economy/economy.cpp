@@ -12,6 +12,111 @@
 
 namespace economy {
 
+
+float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
+}
+template<typename T>
+ve::fp_vector ve_pop_min_wage_factor(sys::state& state, T n) {
+	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
+}
+template<typename T>
+ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
+	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.artisans);
+	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
+	return (life + everyday) * 1.1f;
+}
+template<typename T>
+ve::fp_vector ve_farmer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
+	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.farmers);
+	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.farmers);
+	return min_wage_factor * (life + everyday) * 1.1f;
+}
+template<typename T>
+ve::fp_vector ve_laborer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
+	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.laborers);
+	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.laborers);
+	return min_wage_factor * (life + everyday) * 1.1f;
+}
+float farmer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor) {
+	auto life = state.world.market_get_life_needs_costs(m, state.culture_definitions.farmers);
+	auto everyday = state.world.market_get_everyday_needs_costs(m, state.culture_definitions.farmers);
+	return min_wage_factor * (life + everyday) * 1.1f;
+}
+float laborer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor) {
+	auto life = state.world.market_get_life_needs_costs(m, state.culture_definitions.laborers);
+	auto everyday = state.world.market_get_everyday_needs_costs(m, state.culture_definitions.laborers);
+	return min_wage_factor * (life + everyday) * 1.1f;
+}
+float factory_min_wage(sys::state& state, dcon::market_id m, dcon::state_instance_id s, float min_wage_factor) {
+	auto employed = state.world.state_instance_get_demographics(s, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+	auto total = state.world.state_instance_get_demographics(s, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+	auto unemployement_crisis_measures = ve::select(total > 0.f, employed / total, 1.f);
+	auto life = state.world.market_get_life_needs_costs(m, state.culture_definitions.primary_factory_worker);
+	auto everyday = state.world.market_get_everyday_needs_costs(m, state.culture_definitions.primary_factory_worker);
+
+	return min_wage_factor * (life + everyday) * 1.1f * unemployement_crisis_measures * unemployement_crisis_measures * unemployement_crisis_measures;
+}
+template<typename T, typename S>
+ve::fp_vector ve_factory_min_wage(
+	sys::state& state,
+	T markets,
+	S zones,
+	ve::fp_vector min_wage_factor
+) {
+	auto employed = state.world.state_instance_get_demographics(zones, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+	auto total = state.world.state_instance_get_demographics(zones, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+	auto unemployement_crisis_measures = ve::select(total > 0.f, employed / total, 1.f);
+	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.primary_factory_worker);
+	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.primary_factory_worker);
+
+	return min_wage_factor * (life + everyday) * 1.1f * unemployement_crisis_measures * unemployement_crisis_measures * unemployement_crisis_measures;
+}
+
+
+constexpr inline auto utility_decay_p = 0.998f;
+constexpr inline auto current_profits_weight_p =
+utility_decay_p
+/ (1 - utility_decay_p);
+constexpr inline auto short_term_profits_weight_p =
+current_profits_weight_p
+/ (1 - utility_decay_p);
+constexpr inline auto mid_term_profits_weight_p =
+(2 * short_term_profits_weight_p - current_profits_weight_p)
+/ (1.f - utility_decay_p);
+constexpr inline auto long_term_profits_weight_p =
+(3 * mid_term_profits_weight_p - 3 * short_term_profits_weight_p + current_profits_weight_p)
+/ (1.f - utility_decay_p);
+
+//constexpr inline auto utility_decay_n = 0.6f;
+constexpr inline auto utility_decay_n = 0.998f;
+constexpr inline auto current_profits_weight_n =
+utility_decay_n
+/ (1 - utility_decay_n);
+constexpr inline auto short_term_profits_weight_n =
+current_profits_weight_n
+/ (1 - utility_decay_n);
+constexpr inline auto mid_term_profits_weight_n =
+(2 * short_term_profits_weight_n - current_profits_weight_n)
+/ (1.f - utility_decay_n);
+constexpr inline auto long_term_profits_weight_n =
+(3 * mid_term_profits_weight_n - 3 * short_term_profits_weight_n + current_profits_weight_n)
+/ (1.f - utility_decay_n);
+
+constexpr inline auto utility_decay_trade = 0.1f;
+constexpr inline auto current_profits_weight_trade =
+utility_decay_trade
+/ (1 - utility_decay_trade);
+constexpr inline auto short_term_profits_weight_trade =
+current_profits_weight_trade
+/ (1 - utility_decay_trade);
+constexpr inline auto mid_term_profits_weight_trade =
+(2 * short_term_profits_weight_trade - current_profits_weight_trade)
+/ (1.f - utility_decay_trade);
+constexpr inline auto long_term_profits_weight_trade =
+(3 * mid_term_profits_weight_trade - 3 * short_term_profits_weight_trade + current_profits_weight_trade)
+/ (1.f - utility_decay_trade);
+
 enum class economy_reason {
 	pop, factory, rgo, artisan, construction, nation, stockpile, overseas_penalty, trade
 };
@@ -1285,163 +1390,6 @@ ve::fp_vector ve_pseudo_exp_for_negative(ve::fp_vector f) {
 
 	return result;
 }
-template<typename T>
-ve::fp_vector get_artisans_multiplier(
-	sys::state& state,
-	T markets
-) {
-	auto multiplier = 0.000001f * state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return 1.f / (multiplier + 1.f);
-}
-float get_artisans_multiplier(sys::state& state, dcon::market_id markets) {
-	auto multiplier = 0.000001f * state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return 1.f / (multiplier + 1.f);
-}
-
-constexpr float artisan_baseline_score = 0.f;
-
-template<typename T>
-ve::fp_vector max_artisan_score(
-	sys::state& state,
-	T markets,
-	ve::fp_vector multiplier
-) {
-	auto const csize = state.world.commodity_size();
-	auto states = state.world.market_get_zone_from_local_market(markets);
-	auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
-	ve::fp_vector max_score = artisan_baseline_score / multiplier;
-	for(uint32_t i = 1; i < csize; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		auto valid_mask = ve_valid_artisan_good(state, nations, cid);
-		auto score = ve::select(
-			valid_mask,
-			state.world.market_get_artisan_score(markets, cid),
-			std::numeric_limits<float>::lowest()
-		);
-		max_score = ve::max(score, max_score);
-	}
-	return max_score;
-}
-float max_artisan_score(
-	sys::state& state,
-	dcon::market_id markets,
-	float multiplier
-) {
-	auto const csize = state.world.commodity_size();
-	float max_score = artisan_baseline_score / multiplier;
-	auto states = state.world.market_get_zone_from_local_market(markets);
-	auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
-	for(uint32_t i = 1; i < csize; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		auto valid_mask = valid_artisan_good(state, nations, cid);
-		auto score = ve::select(
-			valid_mask,
-			state.world.market_get_artisan_score(markets, cid),
-			std::numeric_limits<float>::lowest()
-		);
-		max_score = std::max(score, max_score);
-	}
-	return max_score;
-}
-
-template<typename T>
-ve::fp_vector total_artisan_exp_score(
-	sys::state& state,
-	T markets,
-	ve::fp_vector multiplier,
-	ve::fp_vector max_score
-) {
-	auto const csize = state.world.commodity_size();
-	ve::fp_vector total = 0.f;
-	ve::fp_vector baseline = artisan_baseline_score / multiplier;
-
-	auto states = state.world.market_get_zone_from_local_market(markets);
-	auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
-
-	// crude approximation of softmax
-	for(uint32_t i = 1; i < csize; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-
-		auto valid_mask = ve_valid_artisan_good(state, nations, cid);
-
-		auto score = state.world.market_get_artisan_score(markets, cid);
-		auto dist = ve_pseudo_exp_for_negative((score - max_score) * multiplier);
-
-		dist = ve::select(valid_mask, dist, 0.f);
-
-		total = total + dist;
-	}
-	total = total + ve_pseudo_exp_for_negative((baseline - max_score) * multiplier);
-	return total;
-}
-float total_artisan_exp_score(
-	sys::state& state,
-	dcon::market_id markets,
-	float multiplier,
-	float max_score
-) {
-	auto const csize = state.world.commodity_size();
-	float total = 0.f;
-	float baseline = artisan_baseline_score / multiplier;
-	auto states = state.world.market_get_zone_from_local_market(markets);
-	auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
-
-	// crude approximation of softmax
-	for(uint32_t i = 1; i < csize; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		auto score = state.world.market_get_artisan_score(markets, cid);
-		if(!valid_artisan_good(state, nations, cid)) {
-			continue;
-		}
-		auto dist = pseudo_exp_for_negative((score - max_score) * multiplier);
-		total = total + dist;
-	}
-	total = total + pseudo_exp_for_negative((baseline - max_score) * multiplier);
-	return total;
-}
-
-template<typename T>
-ve::fp_vector get_artisan_distribution_fast(
-	sys::state& state,
-	T markets,
-	dcon::commodity_id c,
-	ve::fp_vector multiplier,
-	ve::fp_vector max_score,
-	ve::fp_vector total_score
-) {
-	ve::fp_vector score = state.world.market_get_artisan_score(markets, c);
-	ve::fp_vector adj_score = (score - max_score) * multiplier;
-	ve::fp_vector exp_score = ve_pseudo_exp_for_negative(adj_score);
-	return exp_score / (total_score + 0.001f);
-}
-float get_artisan_distribution_fast(
-	sys::state& state,
-	dcon::market_id markets,
-	dcon::commodity_id c,
-	float multiplier,
-	float max_score,
-	float total_score
-) {
-	float score = state.world.market_get_artisan_score(markets, c);
-	return pseudo_exp_for_negative((score - max_score) * multiplier) / (total_score + 0.001f);
-}
-
-float get_artisan_distribution_slow(
-	sys::state& state,
-	dcon::market_id n,
-	dcon::commodity_id c
-) {
-	auto si = state.world.market_get_zone_from_local_market(n);
-	auto nation = state.world.state_instance_get_nation_from_state_ownership(si);
-	if(!valid_artisan_good(state, nation, c)) {
-		return 0.f;
-	}
-	auto const csize = state.world.commodity_size();
-	float multiplier = get_artisans_multiplier(state, n);
-	float max_score = max_artisan_score(state, n, multiplier);
-	float total_score = total_artisan_exp_score(state, n, multiplier, max_score);
-	return get_artisan_distribution_fast(state, n, c, multiplier, max_score, total_score);
-}
 
 template<typename T, typename S>
 void adjust_artisan_balance(
@@ -1452,59 +1400,107 @@ void adjust_artisan_balance(
 	auto const csize = state.world.commodity_size();
 	float distribution_drift_speed = 0.001f;
 
-	std::vector<ve::fp_vector> current_distribution;
-	//std::vector<ve::fp_vector> profits;
-	//profits.resize(csize + 1);
-
-	auto multiplier = get_artisans_multiplier(state, markets);
-	auto max_score = max_artisan_score(state, markets, multiplier);
-	auto total_score = total_artisan_exp_score(state, markets, multiplier, max_score);
+	auto sids = state.world.market_get_zone_from_local_market(markets);
+	auto num_artisans = state.world.state_instance_get_demographics(
+		sids,
+		demographics::to_key(state, state.culture_definitions.artisans)
+	);
+	ve::fp_vector total{  };
+	auto min_wage = ve_artisan_min_wage(state, markets);
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		auto mask = ve_valid_artisan_good(state, nations, cid);
 
 		auto base_profit = base_artisan_profit(state, markets, nations, cid);
-
 		auto const& inputs = state.world.commodity_get_artisan_inputs(cid);
 		ve::fp_vector min_available = 1.0f;
+		ve::fp_vector input_total = 1.0f;
+
 		for(uint32_t j = 0; j < commodity_set::set_size; ++j) {
 			if(inputs.commodity_type[j]) {
 				min_available = ve::min(
 					min_available,
 					state.world.market_get_demand_satisfaction(markets, inputs.commodity_type[j]));
+				input_total =
+					input_total
+					+ inputs.commodity_amounts[j]
+					* ve_price(state, markets, inputs.commodity_type[j]);
 			} else {
 				break;
 			}
 		}
 
+		//auto min_input_importance = ve::min(1.f, 1000.f / (input_total + 0.00001f));
+		//auto min_input_coefficient = min_available + (min_input_importance * (1.f - min_available));
+
 		auto profit = ve::select(
 			mask,
-			base_profit * min_available,
+			base_profit / 10'000.0f - min_wage / state.defines.alice_needs_scaling_factor,
 			std::numeric_limits<float>::lowest()
 		);
 
 		auto w = state.world.market_get_artisan_score(markets, cid);
-		auto last_distribution = get_artisan_distribution_fast(
-			state, markets, cid, multiplier, max_score, total_score
-		);
-		// auto output = state.world.commodity_get_artisan_output_amount(cid);
+		auto current_employment = w * num_artisans;
 
-		auto gradient = profit * (1.f - last_distribution);
-		auto next_score =
-			ve::select(
-				mask,
-				w * 0.99f + distribution_drift_speed * gradient,
-				0.f
-			);
+		auto supply = state.world.market_get_supply(markets, cid)
+			+ state.world.market_get_stockpile(markets, cid) * stockpile_to_supply + price_rigging;
+		auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
+
+		auto price_acceleration_from_additional_supply =
+			price_speed_mod * (demand / supply / supply + 1 / demand);
+		auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
+				
+		auto weight_short_term = ve::select(profit < 0, short_term_profits_weight_n, short_term_profits_weight_p);
+		auto weight_mid_term = ve::select(profit < 0, mid_term_profits_weight_n, mid_term_profits_weight_p);
+		auto weight_long_term = ve::select(profit < 0, long_term_profits_weight_n, long_term_profits_weight_p);
+
+		auto hire_rate_from_income =
+			profit
+			* weight_short_term;
+
+		auto hire_rate_from_predicted_acceleration_of_price =
+			-price_acceleration_from_additional_supply * supply * weight_mid_term;
+
+		auto hire_rate_from_predicted_change_of_price =
+			price_speed_change * weight_mid_term;
+
+		auto money_to_workers_divisor =
+			2
+			* weight_long_term
+			* price_acceleration_from_additional_supply;
+
+		auto optimal_hire_change =
+			(
+				hire_rate_from_income
+				+ hire_rate_from_predicted_acceleration_of_price //overestimate to account for stockpiles
+				+ hire_rate_from_predicted_change_of_price
+			) / money_to_workers_divisor;
+
+		auto change = optimal_hire_change * 1000.f;
+		auto new_employment = ve::max(current_employment + change, 0.0f);
+
+		auto new_weight = ve::select(
+			mask,
+			new_employment / (num_artisans + 1.f),
+			0.f
+		);
+
+		state.world.market_set_artisan_score(markets, cid, new_weight);
+		total = total + new_weight;
 
 		ve::apply(
 			[](float x) {
 				assert(std::isfinite(x));
-			}, next_score
+			}, new_weight
 		);
+	}
 
-		state.world.market_set_artisan_score(markets, cid, next_score);
+	for(uint32_t i = 1; i < csize; ++i) {
+		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+		auto w = state.world.market_get_artisan_score(markets, cid);
+		w = ve::select(total >= 1.f, w / total, w);
+		state.world.market_set_artisan_score(markets, cid, w);
 	}
 }
 
@@ -2802,49 +2798,6 @@ float convex_function(float x) {
 }
 
 
-constexpr inline auto utility_decay_p = 0.998f;
-constexpr inline auto current_profits_weight_p =
-utility_decay_p
-/ (1 - utility_decay_p);
-constexpr inline auto short_term_profits_weight_p =
-current_profits_weight_p
-/ (1 - utility_decay_p);
-constexpr inline auto mid_term_profits_weight_p =
-(2 * short_term_profits_weight_p - current_profits_weight_p)
-/ (1.f - utility_decay_p);
-constexpr inline auto long_term_profits_weight_p =
-(3 * mid_term_profits_weight_p - 3 * short_term_profits_weight_p + current_profits_weight_p)
-/ (1.f - utility_decay_p);
-
-//constexpr inline auto utility_decay_n = 0.6f;
-constexpr inline auto utility_decay_n = 0.998f;
-constexpr inline auto current_profits_weight_n =
-utility_decay_n
-/ (1 - utility_decay_n);
-constexpr inline auto short_term_profits_weight_n =
-current_profits_weight_n
-/ (1 - utility_decay_n);
-constexpr inline auto mid_term_profits_weight_n =
-(2 * short_term_profits_weight_n - current_profits_weight_n)
-/ (1.f - utility_decay_n);
-constexpr inline auto long_term_profits_weight_n =
-(3 * mid_term_profits_weight_n - 3 * short_term_profits_weight_n + current_profits_weight_n)
-/ (1.f - utility_decay_n);
-
-constexpr inline auto utility_decay_trade = 0.1f;
-constexpr inline auto current_profits_weight_trade =
-utility_decay_trade
-/ (1 - utility_decay_trade);
-constexpr inline auto short_term_profits_weight_trade =
-current_profits_weight_trade
-/ (1 - utility_decay_trade);
-constexpr inline auto mid_term_profits_weight_trade =
-(2 * short_term_profits_weight_trade - current_profits_weight_trade)
-/ (1.f - utility_decay_trade);
-constexpr inline auto long_term_profits_weight_trade =
-(3 * mid_term_profits_weight_trade - 3 * short_term_profits_weight_trade + current_profits_weight_trade)
-/ (1.f - utility_decay_trade);
-
 void update_province_rgo_employment(
 	sys::state& state,
 	dcon::province_id p,
@@ -2977,11 +2930,6 @@ void update_artisan_consumption(
 		states, demographics::to_key(state, state.culture_definitions.artisans));
 	ve::fp_vector total_profit = 0.0f;
 
-
-	auto multiplier = get_artisans_multiplier(state, markets);
-	auto max_score = max_artisan_score(state, markets, multiplier);
-	auto total_score = total_artisan_exp_score(state, markets, multiplier, max_score);
-
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		state.world.market_set_artisan_actual_production(markets, cid, 0.0f);
@@ -3013,14 +2961,8 @@ void update_artisan_consumption(
 		ve::fp_vector throughput_multiplier = artisan_throughput_multiplier(state, nations);
 		ve::fp_vector output_multiplier = artisan_output_multiplier(state, nations);
 
-		ve::fp_vector distribution = get_artisan_distribution_fast(
-			state,
-			markets,
-			cid,
-			multiplier,
-			max_score,
-			total_score
-		);
+		ve::fp_vector distribution = state.world.market_get_artisan_score(markets, cid);
+
 		ve::fp_vector max_production_scale =
 			num_artisans
 			* distribution / 10'000.0f
@@ -3616,6 +3558,72 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 	}
 
 	return total_cost;
+}
+
+float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid) {
+	float total = 0.f;
+
+	for(auto c : state.world.in_province_building_construction) {
+		auto owner = c.get_nation().id;
+		if(owner != nid) {
+			continue;
+		}
+
+		auto market = state.world.state_instance_get_market_from_local_market(
+			c.get_province().get_state_membership()
+		);
+
+		// Rationale for not checking building type: Its an invalid state; should not occur under normal circumstances
+		if(owner && owner == c.get_province().get_nation_from_province_control() && c.get_is_pop_project()) {
+			auto t = economy::province_building_type(c.get_type());
+			auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
+			auto& current_purchased = c.get_purchased_goods();
+			float construction_time = global_non_factory_construction_time_modifier(state) *
+				float(state.economy_definitions.building_definitions[int32_t(t)].time);
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
+						total +=
+						base_cost.commodity_amounts[i]
+						* price(state, market, base_cost.commodity_type[i])
+						/ construction_time;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	for(auto c : state.world.in_state_building_construction) {
+		auto owner = c.get_nation().id;
+		if(owner != nid) {
+			continue;
+		}
+
+		auto market = state.world.state_instance_get_market_from_local_market(c.get_state());
+		if(owner && c.get_is_pop_project()) {
+			auto& base_cost = c.get_type().get_construction_costs();
+			auto& current_purchased = c.get_purchased_goods();
+			float construction_time = global_factory_construction_time_modifier(state) *
+				float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
+			float factory_mod = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_cost) + 1.0f) * std::max(0.1f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_owner_cost));
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * factory_mod)
+						total +=
+						base_cost.commodity_amounts[i]
+						* price(state, market, base_cost.commodity_type[i])
+						* factory_mod
+						/ construction_time;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	return total;
 }
 
 void populate_private_construction_consumption(sys::state& state) {
@@ -4610,71 +4618,6 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 	}
 }
 
-float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
-	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
-}
-
-template<typename T>
-ve::fp_vector ve_pop_min_wage_factor(sys::state& state, T n) {
-	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
-}
-template<typename T>
-ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
-	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.farmers);
-	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.farmers);
-	return (life + everyday) * 1.1f;
-}
-template<typename T>
-ve::fp_vector ve_farmer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
-	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.farmers);
-	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.farmers);
-	return min_wage_factor * (life + everyday) * 1.1f;
-}
-template<typename T>
-ve::fp_vector ve_laborer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
-	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.laborers);
-	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.laborers);
-	return min_wage_factor * (life + everyday) * 1.1f;
-}
-
-float farmer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor) {
-	auto life = state.world.market_get_life_needs_costs(m, state.culture_definitions.farmers);
-	auto everyday = state.world.market_get_everyday_needs_costs(m, state.culture_definitions.farmers);
-	return min_wage_factor * (life + everyday) * 1.1f;
-}
-
-float laborer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor) {
-	auto life = state.world.market_get_life_needs_costs(m, state.culture_definitions.laborers);
-	auto everyday = state.world.market_get_everyday_needs_costs(m, state.culture_definitions.laborers);
-	return min_wage_factor * (life + everyday) * 1.1f;
-}
-
-float factory_min_wage(sys::state& state, dcon::market_id m, dcon::state_instance_id s, float min_wage_factor) {
-	auto employed = state.world.state_instance_get_demographics(s, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-	auto total = state.world.state_instance_get_demographics(s, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-	auto unemployement_crisis_measures = ve::select(total > 0.f, employed / total, 1.f);
-	auto life = state.world.market_get_life_needs_costs(m, state.culture_definitions.primary_factory_worker);
-	auto everyday = state.world.market_get_everyday_needs_costs(m, state.culture_definitions.primary_factory_worker);
-
-	return min_wage_factor * (life + everyday) * 1.1f * unemployement_crisis_measures * unemployement_crisis_measures * unemployement_crisis_measures;
-}
-
-template<typename T, typename S>
-ve::fp_vector ve_factory_min_wage(
-	sys::state& state,
-	T markets,
-	S zones,
-	ve::fp_vector min_wage_factor
-) {
-	auto employed = state.world.state_instance_get_demographics(zones, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-	auto total = state.world.state_instance_get_demographics(zones, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-	auto unemployement_crisis_measures = ve::select(total > 0.f, employed / total, 1.f);
-	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.primary_factory_worker);
-	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.primary_factory_worker);
-
-	return min_wage_factor * (life + everyday) * 1.1f * unemployement_crisis_measures * unemployement_crisis_measures * unemployement_crisis_measures;
-}
-
 struct profit_distribution {
 	float per_primary_worker;
 	float per_secondary_worker;
@@ -5566,7 +5509,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			}
 
 			float pi_total = full_private_investment_cost(state, n);
-			float perceived_spending = pi_total * 10.f;
+			float perceived_spending = pi_total;
 			float pi_budget = state.world.nation_get_private_investment(n);
 			auto pi_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
 			//cut away low values:
@@ -6338,7 +6281,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto from_investment_pool = state.world.nation_get_private_investment(n);
 		state.world.nation_set_private_investment(n, from_investment_pool * 0.8f);
 		from_investment_pool *= 0.2f;
-		auto payment_per_pop = from_investment_pool / state.world.nation_get_demographics(n, demographics::total);
+		auto payment_per_pop = from_investment_pool / (1.f + state.world.nation_get_demographics(n, demographics::total));
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			auto province = p.get_province();
@@ -6491,6 +6434,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	state.world.execute_serial_over_market([&](auto ids) {
 		auto local_states = state.world.market_get_zone_from_local_market(ids);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(local_states);
+
 		adjust_artisan_balance(state, ids, nations);
 	});
 
@@ -6684,31 +6628,20 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	if(!presimulation) {
 
 		constexpr float courage = 1.0f;
-		constexpr float days_prepaid = 15.f;
+		constexpr float days_prepaid = 5.f;
 
 		// make new investments
 		for(auto n : state.world.in_nation) {
 			auto nation_rules = n.get_combined_issue_rules();
 
 			// check if current projects are already too expensive for capitalists to manage
-			float total_cost = 0.f;
-
-			state.world.nation_for_each_state_ownership_as_nation(n, [&](auto soid) {
-				auto zone = state.world.state_ownership_get_state(soid);
-				auto market = state.world.state_instance_get_market_from_local_market(zone);
-
-				for(uint32_t i = 1; i < total_commodities; ++i) {
-					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-					total_cost +=
-						state.world.market_get_private_construction_demand(market, c)
-						* price(state, market, c)
-						* days_prepaid;
-				}
-			});
+			float total_cost = estimate_private_construction_spendings(state, n) * days_prepaid * 40.f;
 
 			float total_cost_added = 0.f;
 
-			if(n.get_private_investment() > total_cost
+			float current_inv = n.get_private_investment();
+
+			if(current_inv > total_cost
 				&& n.get_is_civilized()
 				&& (
 					nation_rules
@@ -6808,7 +6741,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					if(existing_constructions.begin() != existing_constructions.end())
 						continue; // already building
 
-					if(n.get_private_investment() * courage < total_cost + total_cost_added) {
+					if(current_inv * courage < total_cost + total_cost_added) {
 						continue;
 					}
 
@@ -6873,7 +6806,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 								}
 							}
 
-							if(n.get_private_investment() * courage < total_cost + total_cost_added) {
+							if(current_inv * courage < total_cost + total_cost_added) {
 								continue;
 							}
 
