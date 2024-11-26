@@ -2834,10 +2834,15 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			auto ar = state.world.nation_get_army_control(target);
 			auto total = int32_t(ar.end() - ar.begin());
 			auto rem = int32_t(float(total) * state.defines.disarmament_army_hit);
-			while(rem-- > 0) {
 				auto it = ar.begin();
-				military::cleanup_army(state, (*it).get_army());
-			}
+				while(it != ar.end() && rem > 0) {
+					if((*it).get_army().get_army_battle_participation()) {
+						++it;
+					} else {
+						military::cleanup_army(state, (*it).get_army());
+						it = ar.begin();
+					}
+				}
 		}
 	}
 
