@@ -198,7 +198,7 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 		}
 	}
 
-	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.wargoal_type, to, offer.target) *
+	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.wargoal_type, to, offer.target, offer.wargoal_state) *
 								state.defines.crisis_wargoal_infamy_mult;
 	state.world.nation_get_infamy(from) += infamy;
 }

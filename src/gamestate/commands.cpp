@@ -2669,7 +2669,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
 
 	if(military::has_truce_with(state, source, real_target)) {
-		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb);
+		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb, target);
 		auto cb_militancy = military::truce_break_cb_militancy(state, primary_cb);
 		auto cb_prestige_loss = military::truce_break_cb_prestige_cost(state, primary_cb);
 
@@ -2792,7 +2792,7 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 	state.world.nation_get_diplomatic_points(source) -= state.defines.addwargoal_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.addwargoal_relation_on_accept);
 
-	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target);
+	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target, cb_state);
 	state.world.nation_get_infamy(source) += infamy;
 
 	military::add_wargoal(state, w, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation);

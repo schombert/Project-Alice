@@ -2090,7 +2090,7 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		// Uncivilized nations are more aggressive to westernize faster
 		float infamy_limit = state.world.nation_get_is_civilized(from) ? state.defines.badboy_limit / 2.f : state.defines.badboy_limit;
-		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c) > infamy_limit)
+		if(state.world.nation_get_infamy(from) + military::cb_infamy(state, c, target) > infamy_limit)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -2540,7 +2540,7 @@ dcon::cb_type_id pick_gw_extra_cb_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
 			continue;
-		if(military::cb_infamy(state, c) * state.defines.gw_justify_cb_badboy_impact > free_infamy)
+		if(military::cb_infamy(state, c, target) * state.defines.gw_justify_cb_badboy_impact > free_infamy)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -2624,7 +2624,7 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	if(!result.empty() && result[0].target) {
 		military::add_wargoal(state, w, n, target, cb, result[0].state_def, result[0].associated_tag, result[0].secondary_nation);
 		nations::adjust_relationship(state, n, target, state.defines.addwargoal_relation_on_accept);
-		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb) * state.defines.gw_justify_cb_badboy_impact;
+		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb, target) * state.defines.gw_justify_cb_badboy_impact;
 	}
 }
 

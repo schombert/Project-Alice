@@ -35,8 +35,8 @@ public:
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
 		auto war = retrieve<dcon::war_id>(state, parent);
 		auto cb_infamy = military::has_truce_with(state, state.local_player_nation, target)
-			? military::truce_break_cb_infamy(state, content)
-			: military::cb_infamy(state, content);
+			? military::truce_break_cb_infamy(state, content, target)
+			: military::cb_infamy(state, content, target);
 		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
 			color = sys::pack_color(255, 196, 196);
 		} else {
@@ -63,8 +63,8 @@ public:
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
 		auto cb_infamy = military::has_truce_with(state, state.local_player_nation, target)
-			? military::truce_break_cb_infamy(state, content)
-			: military::cb_infamy(state, content);
+			? military::truce_break_cb_infamy(state, content, target)
+			: military::cb_infamy(state, content, target);
 		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
 			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
 		}
@@ -133,7 +133,7 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 			text::add_to_substitution_map(sub, text::variable_type::type, fat_cb.get_name());
 			text::add_to_substitution_map(sub, text::variable_type::days, int64_t(fab_time));
-			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb)});
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb, target_nation)});
 			text::localised_format_box(state, contents, box, std::string_view("alice_cb_creation_detail"), sub);
 		} else {
 			text::substitution_map sub{};
