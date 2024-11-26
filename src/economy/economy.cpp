@@ -1451,9 +1451,9 @@ void adjust_artisan_balance(
 			price_speed_mod * (demand / supply / supply + 1 / demand);
 		auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
 
-		auto weight_short_term = ve::select(profit < 0, fp_vector{ short_term_profits_weight_n }, fp_vector { short_term_profits_weight_p });
-		auto weight_mid_term = ve::select(profit < 0, fp_vector{ mid_term_profits_weight_n }, fp_vector{ mid_term_profits_weight_p });
-		auto weight_long_term = ve::select(profit < 0, fp_vector{ long_term_profits_weight_n }, fp_vector{ long_term_profits_weight_p });
+		auto weight_short_term = ve::select(profit < 0, ve::fp_vector{ short_term_profits_weight_n }, ve::fp_vector { short_term_profits_weight_p });
+		auto weight_mid_term = ve::select(profit < 0, ve::fp_vector{ mid_term_profits_weight_n }, ve::fp_vector{ mid_term_profits_weight_p });
+		auto weight_long_term = ve::select(profit < 0, ve::fp_vector{ long_term_profits_weight_n }, ve::fp_vector{ long_term_profits_weight_p });
 
 		auto hire_rate_from_income =
 			profit
