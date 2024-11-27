@@ -11,6 +11,7 @@
 #include "rebels.hpp"
 #include "triggers.hpp"
 #include "container_types.hpp"
+#include "math_fns.hpp"
 
 namespace military {
 
@@ -1230,6 +1231,7 @@ void update_cbs(sys::state& state) {
 				n.set_constructing_cb_progress(0.0f);
 				n.set_constructing_cb_target(dcon::nation_id{});
 				n.set_constructing_cb_type(dcon::cb_type_id{});
+				n.set_constructing_cb_target_state(dcon::state_definition_id{});
 			}
 		}
 
@@ -1263,7 +1265,7 @@ void update_cbs(sys::state& state) {
 			for us). Note that pending CBs have their target nation fixed, but all other parameters are flexible.
 			*/
 			if(n.get_constructing_cb_progress() >= 100.0f) {
-				add_cb(state, n, n.get_constructing_cb_type(), n.get_constructing_cb_target());
+				add_cb(state, n, n.get_constructing_cb_type(), n.get_constructing_cb_target(), n.get_constructing_cb_target_state());
 
 				if(n == state.local_player_nation) {
 					notification::post(state, notification::message{
@@ -1280,73 +1282,132 @@ void update_cbs(sys::state& state) {
 				n.set_constructing_cb_progress(0.0f);
 				n.set_constructing_cb_target(dcon::nation_id{});
 				n.set_constructing_cb_type(dcon::cb_type_id{});
+				n.set_constructing_cb_target_state(dcon::state_definition_id{});
 			}
 		}
 	}
 }
 
-void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target) {
+void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state = dcon::state_definition_id{}) {
 	auto current_cbs = state.world.nation_get_available_cbs(n);
-	current_cbs.push_back(military::available_cb{ state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, target, cb });
+	current_cbs.push_back(military::available_cb{ state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, target, cb, target_state });
 }
 
-float cb_infamy(sys::state const& state, dcon::cb_type_id t) {
+float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
+	float total_population = 0.f;
+	auto total_countries = 0;
+
+	auto target_civilized = state.world.nation_get_is_civilized(target);
+
+	for(auto n : state.world.in_nation) {
+		/* Use correct reference group for average country population calculation.
+		Civs are compared vs civs and uncivs vs uncivs as they have just too big a difference in averages.*/
+		auto is_civilized = state.world.nation_get_is_civilized(n);
+
+		if(target_civilized != is_civilized) {
+			continue;
+		}
+		auto n_pop = state.world.nation_get_demographics(n, demographics::total);
+		total_population += n_pop;
+		total_countries += (n_pop > 0) ? 1 : 0;
+	}
+
+	float country_population = state.world.nation_get_demographics(target, demographics::total);
+
+	return math::sqrt(country_population / (total_population / total_countries));
+}
+
+float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
+	if(cb_state == dcon::state_definition_id{}) {
+		// assert(false && "This shouldn't happen");
+		return 2.0f; // Default cap for infamy price
+	}
+
+	float total_population = 0.f;
+	auto total_states = 0;
+	float state_population = 0;
+
+	auto target_civilized = state.world.nation_get_is_civilized(target);
+
+	for(auto s : state.world.in_state_instance) {
+		/* Use correct reference group for average state population calculation.
+		Civs are compared vs civs and uncivs vs uncivs as they have just too big a difference in averages.*/
+		auto n = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto is_civilized = state.world.nation_get_is_civilized(n);
+
+		if(target_civilized != is_civilized) {
+			continue;
+		}
+
+		auto s_pop = s.get_demographics(demographics::total);
+		total_population += s_pop;
+		total_states += (s_pop > 0) ? 1 : 0;
+
+		if(s.get_definition() == cb_state) {
+			state_population = s_pop;
+		}
+	}
+
+	return math::sqrt(state_population / (total_population / total_states));
+}
+
+float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state) {
 	float total = 0.0f;
 	auto bits = state.world.cb_type_get_type_bits(t);
 
 	if((bits & cb_flag::po_clear_union_sphere) != 0) {
-		total += state.defines.infamy_clear_union_sphere;
+		total += state.defines.infamy_clear_union_sphere * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_gunboat) != 0) {
-		total += state.defines.infamy_gunboat;
+		total += state.defines.infamy_gunboat * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_annex) != 0) {
-		total += state.defines.infamy_annex;
+		total += state.defines.infamy_annex * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_demand_state) != 0) {
-		total += state.defines.infamy_demand_state;
+		total += state.defines.infamy_demand_state * cb_infamy_state_modifier(state, target, cb_state);
 	}
 	if((bits & cb_flag::po_add_to_sphere) != 0) {
-		total += state.defines.infamy_add_to_sphere;
+		total += state.defines.infamy_add_to_sphere * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_disarmament) != 0) {
-		total += state.defines.infamy_disarmament;
+		total += state.defines.infamy_disarmament * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_reparations) != 0) {
-		total += state.defines.infamy_reparations;
+		total += state.defines.infamy_reparations * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_transfer_provinces) != 0) {
-		total += state.defines.infamy_transfer_provinces;
+		total += state.defines.infamy_transfer_provinces * cb_infamy_state_modifier(state, target, cb_state);
 	}
 	if((bits & cb_flag::po_remove_prestige) != 0) {
 		total += state.defines.infamy_prestige;
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
-		total += state.defines.infamy_make_puppet;
+		total += state.defines.infamy_make_puppet * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
-		total += state.defines.infamy_release_puppet;
+		total += state.defines.infamy_release_puppet * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_status_quo) != 0) {
 		total += state.defines.infamy_status_quo;
 	}
 	if((bits & cb_flag::po_install_communist_gov_type) != 0) {
-		total += state.defines.infamy_install_communist_gov_type;
+		total += state.defines.infamy_install_communist_gov_type * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_uninstall_communist_gov_type) != 0) {
-		total += state.defines.infamy_uninstall_communist_gov_type;
+		total += state.defines.infamy_uninstall_communist_gov_type * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_remove_cores) != 0) {
-		total += state.defines.infamy_remove_cores;
+		total += state.defines.infamy_remove_cores * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_colony) != 0) {
-		total += state.defines.infamy_colony;
+		total += state.defines.infamy_colony * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_destroy_forts) != 0) {
-		total += state.defines.infamy_destroy_forts;
+		total += state.defines.infamy_destroy_forts * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_destroy_naval_bases) != 0) {
-		total += state.defines.infamy_destroy_naval_bases;
+		total += state.defines.infamy_destroy_naval_bases * cb_infamy_country_modifier(state, target);
 	}
 
 	return total * state.world.cb_type_get_badboy_factor(t);
@@ -1474,63 +1535,63 @@ float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id t) {
 
 	return total * state.world.cb_type_get_break_truce_militancy_factor(t);
 }
-float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id t) {
+float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state) {
 	float total = 0.0f;
 	auto bits = state.world.cb_type_get_type_bits(t);
 
 	if((bits & cb_flag::po_clear_union_sphere) != 0) {
-		total += state.defines.breaktruce_infamy_clear_union_sphere;
+		total += state.defines.breaktruce_infamy_clear_union_sphere * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_gunboat) != 0) {
-		total += state.defines.breaktruce_infamy_gunboat;
+		total += state.defines.breaktruce_infamy_gunboat * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_annex) != 0) {
-		total += state.defines.breaktruce_infamy_annex;
+		total += state.defines.breaktruce_infamy_annex * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_demand_state) != 0) {
-		total += state.defines.breaktruce_infamy_demand_state;
+		total += state.defines.breaktruce_infamy_demand_state * cb_infamy_state_modifier(state, target, cb_state);
 	}
 	if((bits & cb_flag::po_add_to_sphere) != 0) {
-		total += state.defines.breaktruce_infamy_add_to_sphere;
+		total += state.defines.breaktruce_infamy_add_to_sphere * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_disarmament) != 0) {
-		total += state.defines.breaktruce_infamy_disarmament;
+		total += state.defines.breaktruce_infamy_disarmament * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_reparations) != 0) {
-		total += state.defines.breaktruce_infamy_reparations;
+		total += state.defines.breaktruce_infamy_reparations * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_transfer_provinces) != 0) {
-		total += state.defines.breaktruce_infamy_transfer_provinces;
+		total += state.defines.breaktruce_infamy_transfer_provinces * cb_infamy_state_modifier(state, target, cb_state);
 	}
 	if((bits & cb_flag::po_remove_prestige) != 0) {
 		total += state.defines.breaktruce_infamy_prestige;
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
-		total += state.defines.breaktruce_infamy_make_puppet;
+		total += state.defines.breaktruce_infamy_make_puppet * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
-		total += state.defines.breaktruce_infamy_release_puppet;
+		total += state.defines.breaktruce_infamy_release_puppet * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_status_quo) != 0) {
 		total += state.defines.breaktruce_infamy_status_quo;
 	}
 	if((bits & cb_flag::po_install_communist_gov_type) != 0) {
-		total += state.defines.breaktruce_infamy_install_communist_gov_type;
+		total += state.defines.breaktruce_infamy_install_communist_gov_type * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_uninstall_communist_gov_type) != 0) {
-		total += state.defines.breaktruce_infamy_uninstall_communist_gov_type;
+		total += state.defines.breaktruce_infamy_uninstall_communist_gov_type * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_remove_cores) != 0) {
-		total += state.defines.breaktruce_infamy_remove_cores;
+		total += state.defines.breaktruce_infamy_remove_cores * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_colony) != 0) {
-		total += state.defines.breaktruce_infamy_colony;
+		total += state.defines.breaktruce_infamy_colony * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_destroy_forts) != 0) {
-		total += state.defines.breaktruce_infamy_destroy_forts;
+		total += state.defines.breaktruce_infamy_destroy_forts * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_destroy_naval_bases) != 0) {
-		total += state.defines.breaktruce_infamy_destroy_naval_bases;
+		total += state.defines.breaktruce_infamy_destroy_naval_bases * cb_infamy_country_modifier(state, target);
 	}
 
 	return total * state.world.cb_type_get_break_truce_infamy_factor(t);
@@ -1795,16 +1856,16 @@ float successful_cb_prestige(sys::state& state, dcon::cb_type_id t, dcon::nation
 	return total * state.world.cb_type_get_prestige_factor(t);
 }
 
-float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target) {
+float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state) {
 	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0) {
 		// not a constructible CB
 		return 0.0f;
 	}
 
-	return cb_infamy(state, type);
+	return cb_infamy(state, type, target, cb_state);
 }
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
-		dcon::nation_id target) {
+		dcon::nation_id target, dcon::state_definition_id cb_state) {
 	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0) {
 		// not a constructible CB
 		return 0.0f;
@@ -1817,9 +1878,9 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 	}
 
 	if(state.world.war_get_is_great(war))
-		return cb_infamy(state, type) * state.defines.gw_justify_cb_badboy_impact;
+		return cb_infamy(state, type, target, cb_state) * state.defines.gw_justify_cb_badboy_impact;
 	else
-		return cb_infamy(state, type);
+		return cb_infamy(state, type, target, cb_state);
 }
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t) {
@@ -1842,7 +1903,7 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 	 discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states
 	 with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 	*/
-	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n));
+	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n), state.world.nation_get_constructing_cb_target(n), state.world.nation_get_constructing_cb_target_state(n));
 	auto adj_infamy = std::max(0.0f, ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy);
 	state.world.nation_get_infamy(n) += adj_infamy;
 

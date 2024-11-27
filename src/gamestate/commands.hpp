@@ -324,6 +324,7 @@ struct pending_human_f_p_event_data {
 struct cb_fabrication_data {
 	dcon::nation_id target;
 	dcon::cb_type_id type;
+	dcon::state_definition_id target_state;
 };
 
 struct new_war_data {
@@ -675,8 +676,8 @@ void make_event_choice(sys::state& state, event::pending_human_f_n_event const& 
 void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id);
 void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id);
 
-void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
-bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{});
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{});
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);

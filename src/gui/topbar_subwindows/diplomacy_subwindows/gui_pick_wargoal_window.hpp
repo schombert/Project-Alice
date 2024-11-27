@@ -33,12 +33,14 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
+
 		auto war = retrieve<dcon::war_id>(state, parent);
 		auto cb_infamy = !war
 			? (military::has_truce_with(state, state.local_player_nation, target)
-				? military::truce_break_cb_infamy(state, content)
-				: military::cb_infamy(state, content))
-			: military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, target);
+				? military::truce_break_cb_infamy(state, content, target)
+				: military::cb_infamy(state, content, target, target_state))
+			: military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, target, target_state);
 		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
 			color = sys::pack_color(255, 196, 196);
 		} else {
@@ -58,7 +60,7 @@ public:
 		auto war = retrieve<dcon::war_id>(state, parent);
 		auto cb_infamy = !war
 			? (military::has_truce_with(state, state.local_player_nation, target)
-				? military::truce_break_cb_infamy(state, content)
+				? military::truce_break_cb_infamy(state, content, target)
 				: 0.f)
 			: military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, target);
 		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
@@ -361,6 +363,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
 		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
+
 		auto source = state.local_player_nation;
 
 		dcon::nation_id real_target = target;
@@ -371,12 +375,12 @@ public:
 
 		if(cb) {
 			if(auto w = military::find_war_between(state, source, target); w) {
-				auto cb_infamy = military::cb_addition_infamy_cost(state, w, cb, source, target);
+				auto cb_infamy = military::cb_addition_infamy_cost(state, w, cb, source, target, target_state);
 
 				color = text::text_color::red;
 				set_text(state, text::format_float(cb_infamy, 1));
 			} else if(military::has_truce_with(state, source, real_target)) {
-				auto cb_infamy = military::truce_break_cb_infamy(state, cb);
+				auto cb_infamy = military::truce_break_cb_infamy(state, cb, target, target_state);
 
 				color = text::text_color::red;
 				set_text(state, text::format_float(cb_infamy, 1));
@@ -965,39 +969,54 @@ private:
 		auto war = military::find_war_between(state, actor, target);
 		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
-		if(allowed_substate_regions) {
-			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
-				if(v.get_subject().get_is_substate()) {
-					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-							auto def = si.get_state().get_definition().id;
-							if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
-								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-									seldata.selectable_states.push_back(def);
+
+		if ((state.world.cb_type_get_type_bits(cb) & military::cb_flag::always) == 0) {
+			for(auto available_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+				if(available_cb.cb_type != cb || available_cb.target != target || !available_cb.target_state) {
+					continue;
+				}
+
+				auto def = available_cb.target_state;
+				if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+					seldata.selectable_states.push_back(def);
+				}
+			}
+		}
+		if (seldata.selectable_states.empty()) {
+			if(allowed_substate_regions) {
+				for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+					if(v.get_subject().get_is_substate()) {
+						for(auto si : state.world.nation_get_state_ownership(target)) {
+							if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+								auto def = si.get_state().get_definition().id;
+								if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
+									if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+										seldata.selectable_states.push_back(def);
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-		} else {
-			auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-			if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
-				auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
-				for(auto si : state.world.nation_get_state_ownership(target)) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
-						auto def = si.get_state().get_definition().id;
-						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
-							seldata.selectable_states.push_back(def);
+			} else {
+				auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+				if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+					auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+							auto def = si.get_state().get_definition().id;
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
+								seldata.selectable_states.push_back(def);
+							}
 						}
 					}
-				}
-			} else {
-				for(auto si : state.world.nation_get_state_ownership(target)) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-						auto def = si.get_state().get_definition().id;
-						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-							seldata.selectable_states.push_back(def);
+				} else {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+							auto def = si.get_state().get_definition().id;
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+								seldata.selectable_states.push_back(def);
+							}
 						}
 					}
 				}
@@ -1271,9 +1290,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto cb = retrieve<dcon::cb_type_id>(state, parent);
 		auto target = retrieve<get_target>(state, parent).n;
+		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
 		auto offered = retrieve<get_offer_to>(state, parent).n;
 
-		auto infamy = military::crisis_cb_addition_infamy_cost(state, cb, offered, target) *
+		auto infamy = military::crisis_cb_addition_infamy_cost(state, cb, offered, target, target_state) *
 			state.defines.crisis_wargoal_infamy_mult;
 
 		if(infamy > 0) {
