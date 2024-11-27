@@ -141,7 +141,7 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::days, int64_t(fab_time));
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb, target_nation, target_state)});
 			
-			if(target_state) {
+			if(military::cb_requires_selection_of_a_state(state, fat_cb)) {
 				text::add_to_substitution_map(sub, text::variable_type::state, target_state);
 				text::localised_format_box(state, contents, box, std::string_view("alice_cb_creation_detail_state"), sub);
 			}
@@ -1882,6 +1882,12 @@ public:
 		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_type().get_name(), text::text_color::yellow);
 		text::add_to_layout_box(state, contents, box, std::string_view(": "), text::text_color::yellow);
 		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_target());
+
+		if(military::cb_requires_selection_of_a_state(state, fat.get_constructing_cb_type())) {
+			text::add_to_layout_box(state, contents, box, std::string_view(" ("), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_target_state().get_name());
+			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::yellow);
+		}
 		text::close_layout_box(contents, box);
 	}
 };

@@ -171,11 +171,13 @@ struct available_cb {
 	sys::date expiration; //2
 	dcon::nation_id target; //2
 	dcon::cb_type_id cb_type; //2
+	dcon::state_definition_id target_state;
 };
 static_assert(sizeof(available_cb) ==
 	+sizeof(available_cb::target)
 	+ sizeof(available_cb::expiration)
-	+ sizeof(available_cb::cb_type));
+	+ sizeof(available_cb::cb_type) +
+	sizeof(available_cb::target_state));
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;
@@ -364,7 +366,7 @@ void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
-void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target); // do not call this function directly unless you know what you are doing
+void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);

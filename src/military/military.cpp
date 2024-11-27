@@ -11,6 +11,7 @@
 #include "rebels.hpp"
 #include "triggers.hpp"
 #include "container_types.hpp"
+#include "math_fns.hpp"
 
 namespace military {
 
@@ -1230,6 +1231,7 @@ void update_cbs(sys::state& state) {
 				n.set_constructing_cb_progress(0.0f);
 				n.set_constructing_cb_target(dcon::nation_id{});
 				n.set_constructing_cb_type(dcon::cb_type_id{});
+				n.set_constructing_cb_target_state(dcon::state_definition_id{});
 			}
 		}
 
@@ -1263,7 +1265,7 @@ void update_cbs(sys::state& state) {
 			for us). Note that pending CBs have their target nation fixed, but all other parameters are flexible.
 			*/
 			if(n.get_constructing_cb_progress() >= 100.0f) {
-				add_cb(state, n, n.get_constructing_cb_type(), n.get_constructing_cb_target());
+				add_cb(state, n, n.get_constructing_cb_type(), n.get_constructing_cb_target(), n.get_constructing_cb_target_state());
 
 				if(n == state.local_player_nation) {
 					notification::post(state, notification::message{
@@ -1280,14 +1282,15 @@ void update_cbs(sys::state& state) {
 				n.set_constructing_cb_progress(0.0f);
 				n.set_constructing_cb_target(dcon::nation_id{});
 				n.set_constructing_cb_type(dcon::cb_type_id{});
+				n.set_constructing_cb_target_state(dcon::state_definition_id{});
 			}
 		}
 	}
 }
 
-void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target) {
+void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state = dcon::state_definition_id{}) {
 	auto current_cbs = state.world.nation_get_available_cbs(n);
-	current_cbs.push_back(military::available_cb{ state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, target, cb });
+	current_cbs.push_back(military::available_cb{ state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, target, cb, target_state });
 }
 
 float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
@@ -1311,7 +1314,7 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 
 	float country_population = state.world.nation_get_demographics(target, demographics::total);
 
-	return country_population / (total_population / total_countries);
+	return math::sqrt(country_population / (total_population / total_countries));
 }
 
 float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
@@ -1345,7 +1348,7 @@ float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::
 		}
 	}
 
-	return state_population / (total_population / total_states);
+	return math::sqrt(state_population / (total_population / total_states));
 }
 
 float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state) {
@@ -1900,7 +1903,7 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 	 discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states
 	 with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 	*/
-	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n), state.world.nation_get_constructing_cb_target(n));
+	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n), state.world.nation_get_constructing_cb_target(n), state.world.nation_get_constructing_cb_target_state(n));
 	auto adj_infamy = std::max(0.0f, ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy);
 	state.world.nation_get_infamy(n) += adj_infamy;
 

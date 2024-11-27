@@ -2137,17 +2137,18 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	event::update_future_events(state);
 }
 
-void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{}) {
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
 	p.data.cb_fabrication.type = type;
+	p.data.cb_fabrication.target_state = target_state;
 	add_to_command_queue(state, p);
 }
 
-bool valid_target_state_for_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{})
+bool valid_target_state_for_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state)
 {
 	auto actor = state.local_player_nation;
 	dcon::cb_type_id cb = type;
@@ -2190,9 +2191,10 @@ bool valid_target_state_for_cb(sys::state& state, dcon::nation_id source, dcon::
 			}
 		}
 	}
-		
+
+	return false;
 }
-bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{}) {
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
 	if(source == target)
 		return false;
 
@@ -5471,7 +5473,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_cancel_cb_fabrication(state, c.source);
 		break;
 	case command_type::fabricate_cb:
-		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type);
+		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type, c.data.cb_fabrication.target_state);
 		break;
 	case command_type::ask_for_military_access:
 		execute_ask_for_access(state, c.source, c.data.diplo_action.target);

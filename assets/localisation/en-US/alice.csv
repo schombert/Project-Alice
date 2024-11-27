@@ -1135,7 +1135,7 @@ console_button_tooltip;Open the command console
 demobilize;Demobilize
 mobilize;Mobilize
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
-alice_cb_creation_detail;We will fabricate a casus belli against $country$$state$ with the reason of ?Y$type$?W. This process will take roughly about ?Y$days$ days?W, and being discovered will give us up to ?R$badboy$?W infamy.
+alice_cb_creation_detail;We will fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process will take roughly about ?Y$days$ days?W, and being discovered will give us up to ?R$badboy$?W infamy.
 alice_cb_creation_detail_state;We will fabricate a casus belli against $country$ ($state$ state) with the reason of ?Y$type$?W. This process will take roughly about ?Y$days$ days?W, and being discovered will give us up to ?R$badboy$?W infamy.
 alice_mob_controls;?YRight-click?! to remobilize
 alice_mw_create_1;Add general
@@ -1287,3 +1287,4 @@ volume;Volume
 desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
+investment_pool;Investment pool: ?Y$x$?W

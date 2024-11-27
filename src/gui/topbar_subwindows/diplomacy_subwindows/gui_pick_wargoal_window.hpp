@@ -969,39 +969,54 @@ private:
 		auto war = military::find_war_between(state, actor, target);
 		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
-		if(allowed_substate_regions) {
-			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
-				if(v.get_subject().get_is_substate()) {
-					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-							auto def = si.get_state().get_definition().id;
-							if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
-								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-									seldata.selectable_states.push_back(def);
+
+		if ((state.world.cb_type_get_type_bits(cb) & military::cb_flag::always) == 0) {
+			for(auto available_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+				if(available_cb.cb_type != cb || available_cb.target != target || !available_cb.target_state) {
+					continue;
+				}
+
+				auto def = available_cb.target_state;
+				if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+					seldata.selectable_states.push_back(def);
+				}
+			}
+		}
+		if (seldata.selectable_states.empty()) {
+			if(allowed_substate_regions) {
+				for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+					if(v.get_subject().get_is_substate()) {
+						for(auto si : state.world.nation_get_state_ownership(target)) {
+							if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+								auto def = si.get_state().get_definition().id;
+								if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
+									if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+										seldata.selectable_states.push_back(def);
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-		} else {
-			auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-			if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
-				auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
-				for(auto si : state.world.nation_get_state_ownership(target)) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
-						auto def = si.get_state().get_definition().id;
-						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
-							seldata.selectable_states.push_back(def);
+			} else {
+				auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+				if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+					auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+							auto def = si.get_state().get_definition().id;
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, secondary_tag, dcon::nation_id{})) {
+								seldata.selectable_states.push_back(def);
+							}
 						}
 					}
-				}
-			} else {
-				for(auto si : state.world.nation_get_state_ownership(target)) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-						auto def = si.get_state().get_definition().id;
-						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-							seldata.selectable_states.push_back(def);
+				} else {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+							auto def = si.get_state().get_definition().id;
+							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+								seldata.selectable_states.push_back(def);
+							}
 						}
 					}
 				}
