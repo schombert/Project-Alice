@@ -348,8 +348,13 @@ public:
 				}
 			}
 			total += amount;
-			distribution.emplace_back(state.culture_definitions.capitalists, amount);
+			distribution.emplace_back(state.culture_definitions.primary_factory_worker, amount);
 		}
+
+		float imports = economy::import_volume(state, state.local_player_nation, com);
+		distribution.emplace_back(state.culture_definitions.capitalists, imports);
+		total += imports;
+		
 		{
 			float amount = 0.f;
 			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
