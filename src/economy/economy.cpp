@@ -1028,6 +1028,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 				}
 				auto& w = state.world.market_get_life_needs_weights(n, c);
 				w = ideal_weighting * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
+				w = 1.f;
 
 				assert(std::isfinite(w));
 				assert(w <= count + 0.01f);
@@ -1069,6 +1070,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 				}
 				auto& w = state.world.market_get_everyday_needs_weights(n, c);
 				w = ideal_weighting * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
+				w = 1.f;
 
 				assert(std::isfinite(w));
 				assert(w <= count + 0.01f);
@@ -1110,6 +1112,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 				}
 				auto& w = state.world.market_get_luxury_needs_weights(n, c);
 				w = ideal_weighting * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
+				w = 1.f;
 
 				assert(std::isfinite(w));
 				assert(w <= count + 0.01f);
