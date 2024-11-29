@@ -661,7 +661,7 @@ dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name) {
 }
 
 dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation) {
-	return state.world.nation_get_player_from_player_nation(nation);
+	return state.world.nation_get_mp_player_from_player_nation(nation);
 }
 
 static dcon::nation_id get_player_nation(sys::state& state, sys::player_name name, client_data client) {
