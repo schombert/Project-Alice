@@ -610,6 +610,10 @@ struct check_wg_completion {
 	bool done = false;
 };
 
+enum diplomacy_declare_war_run_state {
+	none, call_allies, run_conference
+};
+
 class diplomacy_declare_war_agree_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -639,13 +643,17 @@ public:
 		dcon::state_definition_id s = retrieve<dcon::state_definition_id>(state, parent);
 		dcon::national_identity_id ni = retrieve<dcon::national_identity_id>(state, parent);
 		dcon::cb_type_id c = retrieve<dcon::cb_type_id>(state, parent);
+
+		auto checkboxes = retrieve<diplomacy_declare_war_run_state>(state, parent);
 		if(military::are_at_war(state, state.local_player_nation, n)) {
 			dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
 			command::add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
 					state.world.national_identity_get_nation_from_identity_holder(ni));
 		} else {
 			command::declare_war(state, state.local_player_nation, n, c, s, ni,
-					state.world.national_identity_get_nation_from_identity_holder(ni), retrieve<bool>(state, parent));
+					state.world.national_identity_get_nation_from_identity_holder(ni),
+				checkboxes == diplomacy_declare_war_run_state::call_allies,
+				checkboxes == diplomacy_declare_war_run_state::run_conference);
 		}
 		parent->set_visible(state, false);
 	}
@@ -863,15 +871,21 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			bool content = retrieve<bool>(state, parent);
-			Cyto::Any b_payload = element_selection_wrapper<bool>{ !content };
+			auto content = retrieve<diplomacy_declare_war_run_state>(state, parent);
+			auto checked = content == diplomacy_declare_war_run_state::call_allies;
+			Cyto::Any b_payload = element_selection_wrapper<diplomacy_declare_war_run_state>{ diplomacy_declare_war_run_state::call_allies };
+
+			if(checked) {
+				b_payload = element_selection_wrapper<diplomacy_declare_war_run_state>{ diplomacy_declare_war_run_state::none };
+			}
 			parent->impl_get(state, b_payload);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		bool content = retrieve<bool>(state, parent);
-		frame = content ? 1 : 0;
+		auto content = retrieve<diplomacy_declare_war_run_state>(state, parent);
+		auto checked = content == diplomacy_declare_war_run_state::call_allies;
+		frame = checked ? 1 : 0;
 		auto war = retrieve<dcon::war_id>(state, parent);
 		show = !bool(war);
 	}
@@ -924,6 +938,45 @@ public:
 	}
 };
 
+class diplomacy_declare_war_run_conference_checkbox : public button_element_base {
+public:
+	bool show = true;
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			auto content = retrieve<diplomacy_declare_war_run_state>(state, parent);
+			auto checked = content == diplomacy_declare_war_run_state::run_conference;
+
+			Cyto::Any b_payload = element_selection_wrapper<diplomacy_declare_war_run_state>{ diplomacy_declare_war_run_state::run_conference };
+
+			if(checked) {
+				b_payload = element_selection_wrapper<diplomacy_declare_war_run_state>{ diplomacy_declare_war_run_state::none };
+			}
+			parent->impl_get(state, b_payload);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<diplomacy_declare_war_run_state>(state, parent);
+		auto checked = content == diplomacy_declare_war_run_state::run_conference;
+		frame = checked ? 1 : 0;
+		auto war = retrieve<dcon::war_id>(state, parent);
+		show = !bool(war);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(show)
+			button_element_base::render(state, x, y);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(!show)
+			return;
+	}
+};
+
 class diplomacy_declare_war_call_allies_text : public simple_text_element_base {
 public:
 	bool show = true;
@@ -957,7 +1010,7 @@ private:
 	dcon::cb_type_id cb_to_use;
 	dcon::state_definition_id target_state;
 	dcon::national_identity_id target_country;
-	bool will_call_allies = false;
+	diplomacy_declare_war_run_state checkboxes_state;
 	bool wargoal_decided_upon = false;
 
 	void select_mode(sys::state& state) {
@@ -1049,7 +1102,7 @@ public:
 		cb_to_use = dcon::cb_type_id{};
 		target_state = dcon::state_definition_id{};
 		target_country = dcon::national_identity_id{};
-		will_call_allies = false;
+		checkboxes_state = diplomacy_declare_war_run_state::none;
 		wargoal_decided_upon = false;
 		wargoal_setup_win->set_visible(state, true);
 		wargoal_country_win->set_visible(state, false);
@@ -1082,6 +1135,8 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "call_allies_checkbox") {
 			return make_element_by_type<diplomacy_declare_war_call_allies_checkbox>(state, id);
+		} else if(name == "run_conference_checkbox") {
+			return make_element_by_type<diplomacy_declare_war_run_conference_checkbox>(state, id);
 		} else if(name == "call_allies_text") {
 			return make_element_by_type<diplomacy_declare_war_call_allies_text>(state, id);
 		} else if(name == "agreebutton") {
@@ -1152,8 +1207,8 @@ public:
 			}
 			impl_on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-			will_call_allies = any_cast<element_selection_wrapper<bool>>(payload).data;
+		} else if(payload.holds_type<element_selection_wrapper<diplomacy_declare_war_run_state>>()) {
+			checkboxes_state = any_cast<element_selection_wrapper<diplomacy_declare_war_run_state>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::cb_type_id>()) {
@@ -1165,8 +1220,8 @@ public:
 		} else if(payload.holds_type<dcon::national_identity_id>()) {
 			payload.emplace<dcon::national_identity_id>(target_country);
 			return message_result::consumed;
-		} else if(payload.holds_type<bool>()) {
-			payload.emplace<bool>(will_call_allies);
+		} else if(payload.holds_type<diplomacy_declare_war_run_state>()) {
+			payload.emplace<diplomacy_declare_war_run_state>(checkboxes_state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -1604,7 +1659,9 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "call_allies_checkbox") {
 			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "call_allies_text") {
+		} if(name == "call_allies_checkbox") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "run_conference_checkbox") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "agreebutton") {
 			return make_element_by_type<wargoal_offer_agree_button>(state, id);

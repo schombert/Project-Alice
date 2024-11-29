@@ -2659,7 +2659,7 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 }
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
 
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2671,6 +2671,7 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 	p.data.new_war.cb_tag = cb_tag;
 	p.data.new_war.cb_secondary_nation = cb_secondary_nation;
 	p.data.new_war.call_attacker_allies = call_attacker_allies;
+	p.data.new_war.run_conference = run_conference;
 	add_to_command_queue(state, p);
 }
 
@@ -2712,8 +2713,8 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 }
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
-	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
+ 	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.declarewar_relation_on_accept);
 
 	dcon::nation_id real_target = target;
@@ -2747,10 +2748,53 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		}
 	}
 
-	auto war = military::create_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation);
-	military::call_defender_allies(state, war);
-	if(call_attacker_allies) {
-		military::call_attacker_allies(state, war);
+	if(run_conference) {
+		nations::cleanup_crisis(state);
+
+		for(auto si : state.world.in_state_instance) {
+			if(si.get_definition() == cb_state && si.get_nation_from_state_ownership() == target) {
+				state.crisis_state = si;
+			}
+		}
+		state.crisis_liberation_tag = state.world.nation_get_identity_from_identity_holder(source);
+		state.world.state_instance_set_flashpoint_tension(state.crisis_state, 0.0f);
+		state.current_crisis = sys::crisis_type::liberation;
+		if(state.world.nation_get_is_great_power(target)) {
+			state.primary_crisis_defender = target;
+		}
+		if(state.world.nation_get_is_great_power(source)) {
+			state.primary_crisis_attacker = source;
+		}
+
+		notification::post(state, notification::message{
+			[st = state.crisis_state](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_new_crisis_1", text::variable_type::x, st);
+			},
+			"msg_new_crisis_title",
+			state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::crisis_starts
+		});
+
+		state.last_crisis_end_date = state.current_date;
+		state.crisis_temperature = 0.0f;
+		if(!state.primary_crisis_attacker) {
+			state.current_crisis_mode = sys::crisis_mode::finding_attacker;
+			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_defender ? 0 : 1;
+			nations::ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		} else if(!state.primary_crisis_defender) {
+			state.current_crisis_mode = sys::crisis_mode::finding_defender;
+			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
+			nations::ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		} else {
+			state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
+		}
+	}
+	else {
+		auto war = military::create_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation);
+		military::call_defender_allies(state, war);
+		if(call_attacker_allies) {
+			military::call_attacker_allies(state, war);
+		}
 	}
 }
 
@@ -5498,7 +5542,7 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::declare_war:
 		execute_declare_war(state, c.source, c.data.new_war.target, c.data.new_war.primary_cb, c.data.new_war.cb_state,
-				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies);
+				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies, c.data.new_war.run_conference);
 		break;
 	case command_type::add_war_goal:
 		execute_add_war_goal(state, c.source, c.data.new_war_goal.war, c.data.new_war_goal.target, c.data.new_war_goal.cb_type,

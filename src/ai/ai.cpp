@@ -3176,7 +3176,7 @@ void make_war_decs(sys::state& state) {
 			sort_available_declaration_cbs(potential, state, n, targets.get(n));
 			if(!potential.empty()) {
 				assert(command::can_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation));
-				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true);
+				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true, false);
 			}
 		}
 	}

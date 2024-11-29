@@ -5353,5 +5353,42 @@ guiTypes = {
 			format = right
 		}
     }
-    
+
+	checkboxType = {
+		name = "call_allies_checkbox"
+		position = { x= 125 y = 471 }
+		quadTextureSprite = "GFX_checkbox_default"
+	}
+		
+	instantTextBoxType = {
+		name = "call_allies_text"
+		position = { x = 128 y = 474 }
+		textureFile = ""
+		font = "vic_18"
+		borderSize = {x = 0 y = 0}
+		text = "DIPLO_CALL_ALLIES"	
+		maxWidth = 200
+		maxHeight = 20
+		format = centre
+	}
+
+	checkboxType = {
+		name = "run_conference_checkbox"
+		position = { x= 357 y = 471 }
+		quadTextureSprite = "GFX_checkbox_default"
+		extends = "DeclareWarDialog"
+	}
+		
+	instantTextBoxType = {
+		name = "run_conferences_text"
+		position = { x = 350 y = 474 }
+		textureFile = ""
+		font = "vic_18"
+		borderSize = {x = 0 y = 0}
+		text = "DIPLO_RUN_CONFERENCE"	
+		maxWidth = 200
+		maxHeight = 20
+		format = centre
+		extends = "DeclareWarDialog"
+	}
 }

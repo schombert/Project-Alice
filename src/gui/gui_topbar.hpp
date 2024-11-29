@@ -20,6 +20,8 @@
 #include "text.hpp"
 #include "gui_event.hpp"
 
+#include "gui_armygroups.hpp"
+
 namespace ui {
 
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
@@ -1948,6 +1950,8 @@ private:
 	std::vector<topbar_commodity_amount_icon*> produced_icons;
 	simple_text_element_base* atpeacetext = nullptr;
 
+	army_management_window* army_mgmt_win = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -1963,6 +1967,13 @@ public:
 		add_child_to_front(std::move(dpi_win));
 
 		state.ui_state.topbar_window = this;
+
+		auto new_win = make_element_by_type<army_management_window>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("army_management_window"))->second.definition);
+		army_mgmt_win = new_win.get();
+		army_mgmt_win->set_visible(state, true);
+		add_child_to_front(std::move(new_win));
+
 		on_update(state);
 	}
 

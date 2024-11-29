@@ -369,6 +369,10 @@ void update_crisis(sys::state& state);
 
 void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
+
+void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n);
+void ask_to_defend_in_crisis(sys::state & state, dcon::nation_id n);
+
 void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);
 void cleanup_crisis_peace_offer(sys::state& state, dcon::peace_offer_id peace);

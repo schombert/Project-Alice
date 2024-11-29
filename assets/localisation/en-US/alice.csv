@@ -1288,3 +1288,4 @@ desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
 investment_pool;Investment pool: ?Y$x$?W
+DIPLO_RUN_CONFERENCE;Run a conference
