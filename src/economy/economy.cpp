@@ -24,7 +24,7 @@ template<typename T>
 ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
 	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.artisans);
 	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return (life + everyday) * 1.1f;
+	return life * 1.5f;
 }
 template<typename T>
 ve::fp_vector ve_farmer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
@@ -995,6 +995,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto zone = state.world.market_get_zone_from_local_market(n);
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 
+	/*
 	{
 		float total_weights = 0.f;
 		uint32_t count = 0;
@@ -1116,6 +1117,20 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 			}
 		});
 	}
+
+	*/
+
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		if(valid_luxury_need(state, nation, c)) {
+			state.world.market_set_luxury_needs_weights(n, c, 1.f);
+		}
+		if(valid_everyday_need(state, nation, c)) {
+			state.world.market_set_everyday_needs_weights(n, c, 1.f);
+		}
+		if(valid_life_need(state, nation, c)) {
+			state.world.market_set_life_needs_weights(n, c, 1.f);
+		}
+	});
 }
 
 
