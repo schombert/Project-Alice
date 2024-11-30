@@ -358,7 +358,7 @@ void generate_sea_trade_routes(sys::state& state) {
 			}
 
 			auto population_target = state.world.state_instance_get_demographics(sid, demographics::total);
-			score += std::min(population_origin, population_target) / (400'000.f + world_population * 0.000'100f);
+			score += std::min(population_origin, population_target) / (400'000.f + world_population * 0.000'500f);
 
 			auto state_target_owner_capital = state.world.nation_get_capital(target_owner);
 			auto state_target_owner_capital_state = state.world.province_get_state_membership(state_target_owner_capital);
@@ -376,11 +376,20 @@ void generate_sea_trade_routes(sys::state& state) {
 					score = score + (
 						state.world.nation_get_demographics(owner, demographics::total)
 						+ state.world.nation_get_demographics(target_owner, demographics::total)
-					) / 2'000'000.f * mod;
+					) / (2'000'000.f * mod + world_population * 0.000'500f);
 
 			bool must_connect = same_owner && different_region && capitals_of_regions;
 
 			if(score < 3.f && !must_connect) {
+				return;
+			}
+
+			auto coast_0 = province::state_get_coastal_capital(state, origin);
+			auto coast_1 = province::state_get_coastal_capital(state, sid);
+
+			auto distance_approximation = province::direct_distance(state, coast_0, coast_1);
+
+			if(!((score / (2.f * distance_approximation / 200.f) >= 4.f) || must_connect)) {
 				return;
 			}
 
@@ -389,9 +398,6 @@ void generate_sea_trade_routes(sys::state& state) {
 				std::vector<dcon::province_id> path{ };
 				auto speed = base_speed;
 				dcon::province_id p_prev{ };
-
-				auto coast_0 = province::state_get_coastal_capital(state, origin);
-				auto coast_1 = province::state_get_coastal_capital(state, sid);
 				path = province::make_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 

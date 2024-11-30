@@ -24,7 +24,7 @@ template<typename T>
 ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
 	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.artisans);
 	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return (life + everyday) * 1.1f;
+	return life * 1.5f;
 }
 template<typename T>
 ve::fp_vector ve_farmer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
