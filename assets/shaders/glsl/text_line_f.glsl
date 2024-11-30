@@ -13,14 +13,14 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 
-float clamp(float x, float lowerlimit = 0.0f, float upperlimit = 1.0f) {
+float clamp(float x, float lowerlimit, float upperlimit) {
   if (x < lowerlimit) return lowerlimit;
   if (x > upperlimit) return upperlimit;
   return x;
 }
 
 float smoothstep (float edge0, float edge1, float x) {
-   x = clamp((x - edge0) / (edge1 - edge0));
+   x = clamp((x - edge0) / (edge1 - edge0), 0.1f, 1.f);
 
    return x * x * (3.0f - 2.0f * x);
 }
