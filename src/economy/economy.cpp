@@ -7652,9 +7652,7 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 
 void resolve_constructions(sys::state& state) {
 
-	for(uint32_t i = state.world.province_land_construction_size(); i-- > 0;) {
-		auto c = fatten(state.world, dcon::province_land_construction_id{ dcon::province_land_construction_id::value_base_t(i) });
-
+	for(auto c : state.world.in_province_land_construction) {
 		float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_land_construction_get_nation(c));
 		float admin_cost_factor = 2.0f - admin_eff;
 
@@ -7749,8 +7747,7 @@ void resolve_constructions(sys::state& state) {
 		}
 	});
 
-	for(uint32_t i = state.world.province_building_construction_size(); i-- > 0;) {
-		dcon::province_building_construction_id c{ dcon::province_building_construction_id::value_base_t(i) };
+	for(auto c : state.world.in_province_building_construction) {
 		auto for_province = state.world.province_building_construction_get_province(c);
 
 		float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_building_construction_get_nation(c));
@@ -7818,8 +7815,7 @@ void resolve_constructions(sys::state& state) {
 		}
 	}
 
-	for(uint32_t i = state.world.state_building_construction_size(); i-- > 0;) {
-		dcon::state_building_construction_id c{ dcon::state_building_construction_id::value_base_t(i) };
+	for(auto c : state.world.in_state_building_construction) {
 		auto n = state.world.state_building_construction_get_nation(c);
 		auto type = state.world.state_building_construction_get_type(c);
 		auto& base_cost = state.world.factory_type_get_construction_costs(type);
