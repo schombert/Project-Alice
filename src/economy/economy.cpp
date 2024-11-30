@@ -995,6 +995,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto zone = state.world.market_get_zone_from_local_market(n);
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 
+	/*
 	{
 		float total_weights = 0.f;
 		uint32_t count = 0;
@@ -1028,7 +1029,6 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 				}
 				auto& w = state.world.market_get_life_needs_weights(n, c);
 				w = ideal_weighting * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
-				w = 1.f;
 
 				assert(std::isfinite(w));
 				assert(w <= count + 0.01f);
@@ -1070,7 +1070,6 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 				}
 				auto& w = state.world.market_get_everyday_needs_weights(n, c);
 				w = ideal_weighting * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
-				w = 1.f;
 
 				assert(std::isfinite(w));
 				assert(w <= count + 0.01f);
@@ -1112,13 +1111,26 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 				}
 				auto& w = state.world.market_get_luxury_needs_weights(n, c);
 				w = ideal_weighting * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
-				w = 1.f;
 
 				assert(std::isfinite(w));
 				assert(w <= count + 0.01f);
 			}
 		});
 	}
+
+	*/
+
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		if(valid_luxury_need(state, nation, c)) {
+			state.world.market_set_luxury_needs_weights(n, c, 1.f);
+		}
+		if(valid_everyday_need(state, nation, c)) {
+			state.world.market_set_everyday_needs_weights(n, c, 1.f);
+		}
+		if(valid_life_need(state, nation, c)) {
+			state.world.market_set_life_needs_weights(n, c, 1.f);
+		}
+	});
 }
 
 
