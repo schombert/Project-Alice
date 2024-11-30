@@ -1,4 +1,4 @@
-﻿#Powered_by_ParaTranz;
+﻿#Powered_by_ParaTranz
 support_for_blank;支持$text$
 uh_support_for_blank;上议院支持$text$
 up_to;达到
@@ -915,9 +915,7 @@ chat_player_ban;$playername$被封禁
 chat_player_kick;$playername$被踢除
 chat_player_switch;$playername$选择了$country$
 chat_player_oos;$playername$已断开连接！
-chat_player_reload;$playername$ 已重新加载
 alice_status_stream;存档处理进度：$value$
-alice_receiving_savegame;加载主机存档
 alice_play_pending_client;$playername$未准备好
 alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在?G绿色?W 线看到价格上涨, and ?Rred?W 红线下降, 像往常一样 我 ?Y不是?W 一个折线图所以不总是被注意到: )
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
@@ -1040,14 +1038,14 @@ alice_rf_siege_won_trigger;如果叛军赢得了一场围城战,以下将会被�
 alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响将会产生，比如你首都$x$：
 may_month_name;5月
 alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
-alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date?W，我们将失去?Y列强?W地位！
+alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去?Y列强?W地位！
 alice_mil_decay_description;自然衰减?G-$x$
 alice_con_decay_description;自然衰减?R-$x$
 x_from_y;$culture$ $x$来自$y$
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
 alice_domestic_investment_button;不推荐投资单个项目，请改用预算屏幕上的国内投资滑块
-alice_domestic_investment_pops;我们有$x$名潜在投资者以让我们间接的慷慨解囊
+alice_domestic_investment_pops;我们有$x$名投资者以让我们间接资助
 alice_domestic_investment_needs;他们每天需要$x$去满足奢侈的生活方式
 alice_budget_scaled_inc;收入：?G$value$
 alice_budget_scaled_1;贫困阶层税：?G$value$
@@ -1195,12 +1193,23 @@ alice_pnt_dominant_religion;?Y主要宗教:?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;购买力平价GDP
 ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
-an_assigned_leader;已分配的将领
-macro_new_template;新建
 make_province_religion;省份人群变为$text$
 make_pop_religion;变为$text$
 make_pop_culture;变为$text$
+an_assigned_leader;已分配的将领
+leader_prestige;领袖威望
+chat_player_reload;$playername$已重新载入
+alice_receiving_savegame;从主机读取存档
+unit_arrival_time_text;（于$date$到达）
+macro_new_template;新建
 x_in_y;$x$来自$y$
+WARSUBSIDIES_BUTTON;战争援助
+CANCEL_WARSUBSIDIES_BUTTON;取消援助
+CANCEL_WARSUBSIDIES_THEY_ACCEPT_LOG;我们现在已停止给与$RECIPIENT$战争援助
+CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$已停止给与我们战争援助
+CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援助
+CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
+CANCEL_WARSUBSIDIES_BUTTON;取消援助
 ledger_standard_of_living;生活水平
 alice_ledger_header_gdp_history;购买力平价GDP历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
@@ -1220,7 +1229,7 @@ alice_battleplanner_delete_army_group;删除集团军群
 fab_explain_8;没有休战
 alice_reform_support_header;该改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
 alice_no_current_support;目前这项改革尚未得到政治支持
-leader_prestige;领袖威望
+alice_unciv_reform_cost;改革花费：$x$
 trade_global_data;世界
 trade_nation_data;国内
 trade_good_stats_global;国家
@@ -1259,22 +1268,22 @@ rpname_is;执政党名称
 pposition_is;$x$政党位置
 rpposition_is;执政党位置
 topbar_budget_warning;你无法完全负担昨天的目标预算支出
-rgo_output;产出
-rgo_profit;总利润
-rgo_expected_profit;实际利润
-rgo_desired_profit;最低期望利润
-rgo_employment;实际雇佣人数
-rgo_max_employment;最大雇佣人数
+rgo_output;输出
+rgo_profit;总量
+rgo_expected_profit;当前
+rgo_desired_profit;最小
+rgo_employment;当前
+rgo_max_employment;最大
 rgo_saturation;%
-rgo_details_header;RGO 详情
-rgo_employment_header;就业情况
-rgo_profits_header;盈利情况
+rgo_details_header;原料产地细节
+rgo_employment_header;雇佣
+rgo_profits_header;利润
 route_origin;起点
 route_target;终点
 price_origin;起点价格
 price_target;终点价格
-trade_distance;贸易距离
-volume;贸易量
-desired_volume;期望贸易量
-max_throughput;最大贸易量
-trade_margin;利润率%
+trade_distance;距离
+volume;容量
+desired_volume;期望容量
+max_throughput;最大容量
+trade_margin;利润率
