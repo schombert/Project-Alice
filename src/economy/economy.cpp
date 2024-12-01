@@ -2428,8 +2428,6 @@ float factory_throughput_multiplier(sys::state& state, dcon::factory_type_fat_id
 		* std::max(0.f, 1.f + provincial_fac_t)
 		* std::max(0.f, 1.f + nationnal_fac_t);
 
-	assert(result > 0.f);
-
 	return production_throughput_multiplier * result;
 }
 
@@ -4968,7 +4966,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
-	static auto coastal_capital_buffer = ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>(state.world.state_instance_size());
+	auto coastal_capital_buffer = ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>(state.world.state_instance_size());
 
 	state.world.execute_parallel_over_state_instance([&](auto ids) {
 		ve::apply([&](auto sid) {

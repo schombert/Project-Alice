@@ -4039,7 +4039,6 @@ void state::single_game_tick() {
 	//
 	// ALTERNATE PAR DEMO START POINT A
 	//
-
 		
 	concurrency::parallel_invoke([&]() {
 		// values updates pass 1 (mostly trivial things, can be done in parallel)
@@ -4110,7 +4109,6 @@ void state::single_game_tick() {
 
 		economy::daily_update(*this, false, 1.f);
 
-	
 		//
 		// ALTERNATE PAR DEMO START POINT B
 		//
@@ -4138,7 +4136,6 @@ void state::single_game_tick() {
 		nations::update_crisis(*this);
 		politics::update_elections(*this);
 
-		
 		if(current_date.value % 4 == 0) {
 			ai::update_ai_colonial_investment(*this);
 		}
@@ -4352,7 +4349,6 @@ void state::single_game_tick() {
 		province::update_connected_regions(*this);
 		province::update_cached_values(*this);
 		nations::update_cached_values(*this);
-
 		
 	},
 	[&]() {
