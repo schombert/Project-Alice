@@ -597,7 +597,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	//glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 
-	// impassible borders
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
 	glActiveTexture(GL_TEXTURE1);
@@ -624,8 +623,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
+		// impassible borders
 		{
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00085f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0004f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 			for(auto b : borders) {
