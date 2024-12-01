@@ -122,7 +122,7 @@ inline constexpr float rgo_owners_cut = 0.05f;
 inline constexpr float price_speed_mod = 0.0001f;
 inline constexpr float price_rigging = 0.015f;
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float production_throughput_multiplier = 2.f;
+inline constexpr float production_throughput_multiplier = 3.f;
 
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
