@@ -3866,6 +3866,8 @@ void state::single_game_tick() {
 	static demographics::migration_buffer cmbuf;
 	static demographics::migration_buffer imbuf;
 
+	assert(_CrtCheckMemory());
+
 	// calculate complex changes in parallel where we can, but don't actually apply the results
 	// instead, the changes are saved to be applied only after all triggers have been evaluated
 	concurrency::parallel_for(0, 7, [&](int32_t index) {
@@ -3995,6 +3997,8 @@ void state::single_game_tick() {
 		}
 	});
 
+	assert(_CrtCheckMemory());
+
 	// because they may add pops, these changes must be applied sequentially
 	{
 		auto o = uint32_t(ymd_date.day + 6);
@@ -4040,6 +4044,7 @@ void state::single_game_tick() {
 	// ALTERNATE PAR DEMO START POINT A
 	//
 
+	assert(_CrtCheckMemory());
 		
 	concurrency::parallel_invoke([&]() {
 		// values updates pass 1 (mostly trivial things, can be done in parallel)
@@ -4108,8 +4113,11 @@ void state::single_game_tick() {
 			}
 		});
 
+		assert(_CrtCheckMemory());
+
 		economy::daily_update(*this, false, 1.f);
 
+		assert(_CrtCheckMemory());
 	
 		//
 		// ALTERNATE PAR DEMO START POINT B
@@ -4138,7 +4146,8 @@ void state::single_game_tick() {
 		nations::update_crisis(*this);
 		politics::update_elections(*this);
 
-		
+		assert(_CrtCheckMemory());
+
 		if(current_date.value % 4 == 0) {
 			ai::update_ai_colonial_investment(*this);
 		}
@@ -4275,6 +4284,8 @@ void state::single_game_tick() {
 			break;
 		}
 
+		assert(_CrtCheckMemory());
+
 		military::apply_regiment_damage(*this);
 
 		if(ymd_date.day == 1) {
@@ -4342,6 +4353,8 @@ void state::single_game_tick() {
 			}
 		}
 
+		assert(_CrtCheckMemory());
+
 		ai::general_ai_unit_tick(*this);
 
 		military::run_gc(*this);
@@ -4353,6 +4366,7 @@ void state::single_game_tick() {
 		province::update_cached_values(*this);
 		nations::update_cached_values(*this);
 
+		assert(_CrtCheckMemory());
 		
 	},
 	[&]() {

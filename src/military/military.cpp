@@ -5280,23 +5280,30 @@ void apply_regiment_damage(sys::state& state) {
 				}
 
 				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
-#ifndef NDEBUG
-					for(auto e : state.world.land_battle_get_attacker_back_line(b))
-						assert(e != s);
-					for(auto e : state.world.land_battle_get_attacker_front_line(b))
-						assert(e != s);
-					for(auto e : state.world.land_battle_get_defender_back_line(b))
-						assert(e != s);
-					for(auto e : state.world.land_battle_get_defender_front_line(b))
-						assert(e != s);
-#endif
+					for(auto& e : state.world.land_battle_get_attacker_back_line(b)) {
+						if(e == s) {
+							e = dcon::regiment_id{};
+						}
+					}
+					for(auto& e : state.world.land_battle_get_attacker_front_line(b)) {
+						if(e == s) {
+							e = dcon::regiment_id{};
+						}
+					}
+					for(auto& e : state.world.land_battle_get_defender_back_line(b)) {
+						if(e == s) {
+							e = dcon::regiment_id{};
+						}
+					}
+					for(auto& e : state.world.land_battle_get_defender_front_line(b)) {
+						if(e == s) {
+							e = dcon::regiment_id{};
+						}
+					}
+
 					auto reserves = state.world.land_battle_get_reserves(b);
-					// failsafe, some conditions can lead to this invalid state
-					// where a rebel stack/stack has 0 strength but is still on a battle
-					// (damage could've been dealt by attrition for ex.)
-					// so prevent OOS by removing them from reserves!
+
 					for(uint32_t j = reserves.size(); j-- > 0;) {
-						assert(reserves[j].regiment != s);
 						if(reserves[j].regiment == s) {
 							std::swap(reserves[j], reserves[reserves.size() - 1]);
 							reserves.pop_back();

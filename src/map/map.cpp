@@ -1965,6 +1965,8 @@ void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railr
 bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited_adj, std::vector<bool>& visited_prov, std::vector<dcon::province_id>& provinces, dcon::province_id p) {
 	if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad)) == 0)
 		return false;
+	if(!p)
+		return false;
 	if(visited_prov[p.index()])
 		return false;
 	visited_prov[p.index()] = true;
@@ -1980,6 +1982,7 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 		if((adj.get_type() & province::border::impassible_bit) != 0
 			|| (adj.get_type() & province::border::non_adjacent_bit) != 0)
 			continue;
+		assert(adj.id);
 		valid_adj.push_back(adj.id);
 	}
 	std::sort(valid_adj.begin(), valid_adj.end(), [&](auto const a, auto const b) -> bool {
@@ -2014,6 +2017,8 @@ void display_data::update_railroad_paths(sys::state& state) {
 				railroad.emplace_back(state.world.province_get_mid_point(provinces.back()));
 				assert(!railroad.empty());
 				railroads.push_back(railroad);
+				assert(provinces.front());
+				assert(provinces.back());
 				rr_ends[provinces.front().index()] = true;
 				rr_ends[provinces.back().index()] = true;
 			}
@@ -2035,6 +2040,8 @@ void display_data::update_railroad_paths(sys::state& state) {
 				if(p2.get_building_level(uint8_t(economy::province_building_type::railroad)) == 0)
 					continue;
 				max_adj--;
+				assert(adj.id);
+				assert(p2);
 				if(visited_adj[adj.id.index()])
 					continue;
 				if(rr_ends[p1.id.index()] != rr_ends[p2.id.index()]
