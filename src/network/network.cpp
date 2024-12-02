@@ -532,7 +532,7 @@ void log_player_nations(sys::state& state) {
 	}
 }
 
-std::map<int, std::string> readableCommandTypes = {
+static std::map<int, std::string> readableCommandTypes = {
 	{0,"invalid"},
 {1,"change_nat_focus"},
 {2,"start_research"},
