@@ -2860,6 +2860,7 @@ public:
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
+			state.map_state.set_selected_province(map_province);
 			if(!is_visible())
 				set_visible(state, true);
 			else

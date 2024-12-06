@@ -2137,16 +2137,64 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	event::update_future_events(state);
 }
 
-void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
 	p.data.cb_fabrication.type = type;
+	p.data.cb_fabrication.target_state = target_state;
 	add_to_command_queue(state, p);
 }
-bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+
+bool valid_target_state_for_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state)
+{
+	auto actor = state.local_player_nation;
+	dcon::cb_type_id cb = type;
+	auto war = military::find_war_between(state, actor, target);
+	auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+	if(allowed_substate_regions) {
+		for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+			if(v.get_subject().get_is_substate()) {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+	} else {
+		auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+		if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+			auto in_nation = target;
+			auto target_identity = state.world.nation_get_identity_from_identity_holder(target);
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+					auto def = si.get_state().get_definition().id;
+					if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, target_identity, dcon::nation_id{})) {
+						return true;
+					}
+				}
+			}
+		} else {
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+					auto def = si.get_state().get_definition().id;
+					if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
 	if(source == target)
 		return false;
 
@@ -2186,12 +2234,17 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(!military::cb_conditions_satisfied(state, source, target, type))
 		return false;
 
+	if(military::cb_requires_selection_of_a_state(state, type) && !valid_target_state_for_cb(state, source, target, type, target_state)) {
+		return false;
+	}
+
 	return true;
 }
 
-void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{}) {
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
+	state.world.nation_set_constructing_cb_target_state(source, target_state);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
 }
 
@@ -2210,6 +2263,7 @@ void execute_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_constructing_cb_target(source, dcon::nation_id{});
 	state.world.nation_set_constructing_cb_is_discovered(source, false);
 	state.world.nation_set_constructing_cb_progress(source, 0.0f);
+	state.world.nation_set_constructing_cb_target_state(source, dcon::state_definition_id{});
 	state.world.nation_set_constructing_cb_type(source, dcon::cb_type_id{});
 }
 
@@ -2669,7 +2723,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
 
 	if(military::has_truce_with(state, source, real_target)) {
-		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb);
+		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb, target);
 		auto cb_militancy = military::truce_break_cb_militancy(state, primary_cb);
 		auto cb_prestige_loss = military::truce_break_cb_prestige_cost(state, primary_cb);
 
@@ -2792,7 +2846,7 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 	state.world.nation_get_diplomatic_points(source) -= state.defines.addwargoal_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.addwargoal_relation_on_accept);
 
-	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target);
+	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target, cb_state);
 	state.world.nation_get_infamy(source) += infamy;
 
 	military::add_wargoal(state, w, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation);
@@ -5419,7 +5473,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_cancel_cb_fabrication(state, c.source);
 		break;
 	case command_type::fabricate_cb:
-		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type);
+		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type, c.data.cb_fabrication.target_state);
 		break;
 	case command_type::ask_for_military_access:
 		execute_ask_for_access(state, c.source, c.data.diplo_action.target);
