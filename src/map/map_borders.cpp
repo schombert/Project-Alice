@@ -279,14 +279,33 @@ bool order_indifferent_compare(uint16_t a, uint16_t b, uint16_t c, uint16_t d) {
 std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state, std::vector<bool>& visited, uint16_t prov_prim, uint16_t prov_sec, int32_t start_x, int32_t start_y) {
 	std::vector<glm::vec2> points;
 
-	auto add_next = [&](int32_t i, int32_t j, bool& next_found) {
+	auto add_next = [&](glm::ivec2 prev, glm::ivec2 shift, glm::ivec2 prev_shift, bool& next_found, bool corner_candidate) {
 		if(next_found)
 			return glm::ivec2(0, 0);
+
+		auto i = prev.x + shift.x;
+		auto j = prev.y + shift.y;
+		auto prev_i = prev.x;
+		auto prev_j = prev.y;
+
+		bool corner = corner_candidate && (shift.x != prev_shift.x) && (shift.y != prev_shift.y) && !(prev_shift.y == 0 && prev_shift.x == 0);
+
 		if(visited[i + j * dat.size_x])
 			return glm::ivec2(0, 0);
 		if(j % 2 == 0) {
 			if(order_indifferent_compare(prov_prim, prov_sec, dat.safe_get_province(glm::ivec2(i, j / 2)), dat.safe_get_province(glm::ivec2(i - 1, j / 2)))) {
 				visited[i + j * dat.size_x] = true;
+
+				if(corner) {
+					float prev_x = float(prev_i) + 0.5f;
+					float prev_y = 0.5f + float(prev_j) / 2.0f;
+
+					float next_x = float(i);
+					float next_y = 0.5f + float(j) / 2.0f;
+
+					points.push_back(glm::vec2((prev_x + next_x) / 2.f, prev_y));
+					points.push_back(glm::vec2(next_x, (prev_y + next_y) / 2.f));
+				}
 
 				points.push_back(glm::vec2(float(i), 0.5f + float(j) / 2.0f));
 				next_found = true;
@@ -295,6 +314,17 @@ std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state,
 		} else {
 			if(order_indifferent_compare(prov_prim, prov_sec, dat.safe_get_province(glm::ivec2(i, j / 2)), dat.safe_get_province(glm::ivec2(i, j / 2 + 1)))) {
 				visited[i + j * dat.size_x] = true;
+
+				if(corner) {
+					float prev_x = float(prev_i);
+					float prev_y = 0.5f + float(prev_j) / 2.0f;
+
+					float next_x = float(i) + 0.5f;
+					float next_y = 0.5f + float(j) / 2.0f;
+
+					points.push_back(glm::vec2(prev_x, (prev_y + next_y) / 2.f));
+					points.push_back(glm::vec2((prev_x + next_x) / 2.f, next_y));
+				}
 
 				points.push_back(glm::vec2(float(i) + 0.5f, 0.5f + float(j) / 2.0f));
 				next_found = true;
@@ -309,8 +339,8 @@ std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state,
 	points.push_back(glm::vec2(float(start_x) + (start_y % 2 == 0 ? 0.0f : 0.5f), 0.5f + float(start_y) / 2.0f));
 	visited[start_x + start_y * dat.size_x] = true;
 
-	int32_t cur_x = start_x;
-	int32_t cur_y = start_y;
+	glm::ivec2 current{ start_x, start_y };
+	glm::ivec2 prev_direction{ 0, 0 };
 
 	bool progress = false;
 	// clockwise
@@ -318,54 +348,56 @@ std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state,
 		progress = false;
 		glm::ivec2 temp{ 0, 0 };
 
-		if(cur_y % 2 == 0) {
-			bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+		if(current.y % 2 == 0) {
+			bool left_is_s = dat.safe_get_province(glm::ivec2(current.x - 1, current.y / 2)) == prov_sec;
 			if(left_is_s) {
-				temp += add_next(cur_x, cur_y + 1, progress);
-				temp += add_next(cur_x, cur_y + 2, progress);
-				temp += add_next(cur_x - 1, cur_y + 1, progress);
+				temp += add_next(current, { 0, 1 }, prev_direction, progress, true);
+				temp += add_next(current, { 0, 2 }, prev_direction, progress, false);
+				temp += add_next(current, { -1, 1 }, prev_direction, progress, true);
 			} else {
-				temp += add_next(cur_x - 1, cur_y - 1, progress);
-				temp += add_next(cur_x, cur_y - 2, progress);
-				temp += add_next(cur_x, cur_y - 1, progress);
+				temp += add_next(current, { -1, -1}, prev_direction, progress, true);
+				temp += add_next(current, { 0, -2}, prev_direction, progress, false);
+				temp += add_next(current, { 0, -1}, prev_direction, progress, true);
 			}
 		} else {
-			bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+			bool top_is_s = dat.safe_get_province(glm::ivec2(current.x, current.y / 2)) == prov_sec;
 			if(top_is_s) {
-				temp += add_next(cur_x, cur_y + 1, progress);
-				temp += add_next(cur_x - 1, cur_y, progress);
-				temp += add_next(cur_x, cur_y - 1, progress);
+				temp += add_next(current, { 0, 1 }, prev_direction, progress, true);
+				temp += add_next(current, { -1, 0 }, prev_direction, progress, false);
+				temp += add_next(current, { 0, -1}, prev_direction, progress, true);
 			} else {
-				temp += add_next(cur_x + 1, cur_y - 1, progress);
-				temp += add_next(cur_x + 1, cur_y, progress);
-				temp += add_next(cur_x + 1, cur_y + 1, progress);
+				temp += add_next(current, { +1, -1}, prev_direction, progress, true);
+				temp += add_next(current, { +1, 0}, prev_direction, progress, false);
+				temp += add_next(current, { +1, +1}, prev_direction, progress, true);
 			}
 		}
 		if(progress) {
-			cur_x = temp.x;
-			cur_y = temp.y;
+			prev_direction = temp - current;
+			current = temp;
 		}
 	} while(progress);
 
 	//terminal point
-	if(cur_y % 2 == 0) {
-		bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+	if(current.y % 2 == 0) {
+		bool left_is_s = dat.safe_get_province(glm::ivec2(current.x - 1, current.y / 2)) == prov_sec;
 		if(left_is_s) {
-			points.push_back(glm::vec2(float(cur_x), 1.0f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(float(current.x), 1.0f + float(current.y) / 2.0f));
 		} else {
-			points.push_back(glm::vec2(float(cur_x), 0.0f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(float(current.x), 0.0f + float(current.y) / 2.0f));
 		}
 	} else {
-		bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+		bool top_is_s = dat.safe_get_province(glm::ivec2(current.x, current.y / 2)) == prov_sec;
 		if(top_is_s) {
-			points.push_back(glm::vec2(float(cur_x), 0.5f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(float(current.x), 0.5f + float(current.y) / 2.0f));
 		} else {
-			points.push_back(glm::vec2(1.0f + float(cur_x), 0.5f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(1.0f + float(current.x), 0.5f + float(current.y) / 2.0f));
 		}
 	}
 
-	cur_x = start_x;
-	cur_y = start_y;
+	current.x = start_x;
+	current.y = start_y;
+	prev_direction.x = 0;
+	prev_direction.y = 0;
 
 	std::reverse(points.begin(), points.end());
 	//counter clockwise
@@ -374,49 +406,49 @@ std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state,
 		progress = false;
 		glm::ivec2 temp{ 0, 0 };
 
-		if(cur_y % 2 == 0) {
-			bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+		if(current.y % 2 == 0) {
+			bool left_is_s = dat.safe_get_province(glm::ivec2(current.x - 1, current.y / 2)) == prov_sec;
 			if(!left_is_s) {
-				temp += add_next(cur_x, cur_y + 1, progress);
-				temp += add_next(cur_x, cur_y + 2, progress);
-				temp += add_next(cur_x - 1, cur_y + 1, progress);
+				temp += add_next(current, { 0, 1 }, prev_direction, progress, true);
+				temp += add_next(current, { 0, 2 }, prev_direction, progress, false);
+				temp += add_next(current, { -1, 1 }, prev_direction, progress, true);
 			} else {
-				temp += add_next(cur_x - 1, cur_y - 1, progress);
-				temp += add_next(cur_x, cur_y - 2, progress);
-				temp += add_next(cur_x, cur_y - 1, progress);
+				temp += add_next(current, { -1, -1 }, prev_direction, progress, true);
+				temp += add_next(current, { 0, -2 }, prev_direction, progress, false);
+				temp += add_next(current, { 0, -1 }, prev_direction, progress, true);
 			}
 		} else {
-			bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+			bool top_is_s = dat.safe_get_province(glm::ivec2(current.x, current.y / 2)) == prov_sec;
 			if(!top_is_s) {
-				temp += add_next(cur_x, cur_y + 1, progress);
-				temp += add_next(cur_x - 1, cur_y, progress);
-				temp += add_next(cur_x, cur_y - 1, progress);
+				temp += add_next(current, { 0, 1 }, prev_direction, progress, true);
+				temp += add_next(current, { -1, 0 }, prev_direction, progress, false);
+				temp += add_next(current, { 0, -1 }, prev_direction, progress, true);
 			} else {
-				temp += add_next(cur_x + 1, cur_y - 1, progress);
-				temp += add_next(cur_x + 1, cur_y, progress);
-				temp += add_next(cur_x + 1, cur_y + 1, progress);
+				temp += add_next(current, { +1, -1 }, prev_direction, progress, true);
+				temp += add_next(current, { +1, 0 }, prev_direction, progress, false);
+				temp += add_next(current, { +1, +1 }, prev_direction, progress, true);
 			}
 		}
 		if(progress) {
-			cur_x = temp.x;
-			cur_y = temp.y;
+			prev_direction = temp - current;
+			current = temp;
 		}
 	} while(progress);
 
 	//terminal point
-	if(cur_y % 2 == 0) {
-		bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+	if(current.y % 2 == 0) {
+		bool left_is_s = dat.safe_get_province(glm::ivec2(current.x - 1, current.y / 2)) == prov_sec;
 		if(!left_is_s) {
-			points.push_back(glm::vec2(float(cur_x), 1.0f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(float(current.x), 1.0f + float(current.y) / 2.0f));
 		} else {
-			points.push_back(glm::vec2(float(cur_x), 0.0f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(float(current.x), 0.0f + float(current.y) / 2.0f));
 		}
 	} else {
-		bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+		bool top_is_s = dat.safe_get_province(glm::ivec2(current.x, current.y / 2)) == prov_sec;
 		if(!top_is_s) {
-			points.push_back(glm::vec2(float(cur_x), 0.5f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(float(current.x), 0.5f + float(current.y) / 2.0f));
 		} else {
-			points.push_back(glm::vec2(1.0f + float(cur_x), 0.5f + float(cur_y) / 2.0f));
+			points.push_back(glm::vec2(1.0f + float(current.x), 0.5f + float(current.y) / 2.0f));
 		}
 	}
 
@@ -555,7 +587,7 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 	int32_t dropped_points_counter = 0;
 	constexpr int32_t dropped_points_max = 64;
 
-	auto add_next = [&](int32_t i, int32_t j, bool& next_found) {
+	auto add_next = [&](int32_t i, int32_t j, bool& next_found, int32_t prev_i, int32_t prev_j, bool corner) {
 		if(next_found)
 			return glm::ivec2(0, 0);
 		if(visited[i + j  * dat.size_x])
@@ -567,7 +599,7 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 				// test for colinearity
 				// this works, but it can result in the border textures being "slanted" because the normals are carried over between two corners
 	
-				if(points.size() > 2) {
+				if(points.size() > 2 && !corner) {
 					auto l = points[points.size() - 1];
 					auto n = points[points.size() - 2];
 					if(dropped_points_counter < dropped_points_max &&
@@ -578,6 +610,17 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 					} else {
 						dropped_points_counter = 0;
 					}
+				}
+
+				if(corner) {
+					float prev_x = float(prev_i) + 0.5f;
+					float prev_y = 0.5f + float(prev_j) / 2.0f;
+
+					float next_x = float(i);
+					float next_y = 0.5f + float(j) / 2.0f;
+
+					points.push_back(glm::vec2((prev_x + next_x) / 2.f, prev_y));
+					points.push_back(glm::vec2(next_x, (prev_y + next_y) / 2.f));
 				}
 				
 				points.push_back(glm::vec2(float(i), 0.5f + float(j) / 2.0f));
@@ -591,7 +634,7 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 				// test for colinearity
 				// this works, but it can result in the border textures being "slanted" because the normals are carried over between two corners
 				
-				if(points.size() > 2) {
+				if(points.size() > 2 && !corner) {
 					auto l = points[points.size() - 1];
 					auto n = points[points.size() - 2];
 					if(dropped_points_counter < dropped_points_max &&
@@ -602,6 +645,17 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 					} else {
 						dropped_points_counter = 0;
 					}
+				}
+
+				if(corner) {
+					float prev_x = float(prev_i);
+					float prev_y = 0.5f + float(prev_j) / 2.0f;
+
+					float next_x = float(i) + 0.5f;
+					float next_y = 0.5f + float(j) / 2.0f;
+
+					points.push_back(glm::vec2(prev_x, (prev_y + next_y) / 2.f));
+					points.push_back(glm::vec2((prev_x + next_x) / 2.f, next_y));
 				}
 				
 				points.push_back(glm::vec2(float(i) + 0.5f, 0.5f + float(j) / 2.0f));
@@ -624,24 +678,24 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 		if(start_y % 2 == 0) {
 			bool left_is_sea = dat.safe_get_province(glm::ivec2(start_x - 1, start_y / 2)) == 0 || province::from_map_id(dat.safe_get_province(glm::ivec2(start_x - 1, start_y / 2))).index() >= state.province_definitions.first_sea_province.index();
 			if(left_is_sea) {
-				temp += add_next(start_x, start_y + 1, progress);
-				temp += add_next(start_x, start_y + 2, progress);
-				temp += add_next(start_x - 1, start_y + 1, progress);
+				temp += add_next(start_x, start_y + 1, progress, start_x, start_y, true);
+				temp += add_next(start_x, start_y + 2, progress, start_x, start_y, false);
+				temp += add_next(start_x - 1, start_y + 1, progress, start_x, start_y, true);
 			} else {
-				temp += add_next(start_x - 1, start_y - 1, progress);
-				temp += add_next(start_x, start_y - 2, progress);
-				temp += add_next(start_x, start_y - 1, progress);
+				temp += add_next(start_x - 1, start_y - 1, progress, start_x, start_y, true);
+				temp += add_next(start_x, start_y - 2, progress, start_x, start_y, false);
+				temp += add_next(start_x, start_y - 1, progress, start_x, start_y, true);
 			}
 		} else {
 			bool top_is_sea = dat.safe_get_province(glm::ivec2(start_x, start_y / 2)) == 0 || province::from_map_id(dat.safe_get_province(glm::ivec2(start_x, start_y / 2))).index() >= state.province_definitions.first_sea_province.index();
 			if(top_is_sea) {
-				temp += add_next(start_x, start_y + 1, progress);
-				temp += add_next(start_x - 1, start_y, progress);
-				temp += add_next(start_x, start_y - 1, progress);
+				temp += add_next(start_x, start_y + 1, progress, start_x, start_y, true);
+				temp += add_next(start_x - 1, start_y, progress, start_x, start_y, false);
+				temp += add_next(start_x, start_y - 1, progress, start_x, start_y, true);
 			} else {
-				temp += add_next(start_x + 1, start_y - 1, progress);
-				temp += add_next(start_x + 1, start_y, progress);
-				temp += add_next(start_x + 1, start_y + 1, progress);
+				temp += add_next(start_x + 1, start_y - 1, progress, start_x, start_y, true);
+				temp += add_next(start_x + 1, start_y, progress, start_x, start_y, false);
+				temp += add_next(start_x + 1, start_y + 1, progress, start_x, start_y, true);
 			}
 		}
 		if(progress) {
@@ -708,7 +762,6 @@ void add_coastal_loop_vertices(display_data& dat, std::vector<glm::vec2> const& 
 		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 		raw_dist.x *= 2.0f;
 		distance += glm::length(raw_dist);
-
 	}
 
 	// wrap-around

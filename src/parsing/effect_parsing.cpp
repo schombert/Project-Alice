@@ -1858,7 +1858,6 @@ void effect_body::any_value(std::string_view label, association_type t, std::str
 			else
 				context.compiled_effect.push_back(effect::variable_tech_name_no);
 			context.compiled_effect.push_back(trigger::payload(itb->second.id).value);
-			context.add_float_to_payload(parse_float(value, line, err));
 		} else {
 			err.accumulated_errors += "variable technology name effect used in an incorrect scope type (" + err.file_name +
 				", line " + std::to_string(line) + ")\n";

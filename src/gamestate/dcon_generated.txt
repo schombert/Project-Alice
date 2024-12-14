@@ -25,6 +25,7 @@ make_index{demographics_key}{uint16_t}
 make_index{provincial_modifier_value}{uint8_t}
 make_index{national_modifier_value}{uint8_t}
 
+
 object{
 	name{ national_identity }
 	storage_type{contiguous}
@@ -2749,7 +2750,7 @@ object {
 }
 relationship{
 	name{ war_participant }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
 
@@ -4323,7 +4324,7 @@ relationship{
 
 object {
 	name { factory }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 10000 }
 	tag{ save }
 
@@ -4456,7 +4457,7 @@ relationship{
 
 relationship{
 	name{ province_land_construction }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 16000 }
 	tag{ save }
 
@@ -4492,7 +4493,7 @@ relationship{
 
 relationship{
 	name{ province_naval_construction }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 16000 }
 	tag{ save }
 
@@ -4528,7 +4529,7 @@ relationship{
 
 relationship{
 	name{ province_building_construction }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 16000 }
 	tag{ save }
 
@@ -4564,7 +4565,7 @@ relationship{
 
 relationship{
 	name{ state_building_construction }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 16000 }
 	tag{ save }
 
@@ -5298,7 +5299,7 @@ relationship{
 	}
 	link{
 		object{mp_player}
-		name{player}
+		name{mp_player}
 		type{unique}
 	}
 }

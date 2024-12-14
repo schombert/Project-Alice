@@ -24,7 +24,7 @@ template<typename T>
 ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
 	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.artisans);
 	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return (life + everyday) * 1.1f;
+	return life * 1.5f;
 }
 template<typename T>
 ve::fp_vector ve_farmer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
@@ -222,8 +222,50 @@ float supply(
 		total_supply += local_supply;
 	});
 
-	return total_supply;
+	return total_supply - domestic_trade_volume(state, s, c);
 }
+
+float domestic_trade_volume(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+) {
+	auto total_volume = 0.f;
+
+	state.world.nation_for_each_state_ownership(s, [&](auto soid) {
+		auto sid = state.world.state_ownership_get_state(soid);
+		auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+			auto origin =
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			if(target != market) return;
+
+			auto s_origin = state.world.market_get_zone_from_local_market(origin);
+			auto s_target = state.world.market_get_zone_from_local_market(target);
+			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+
+			if(n_origin != n_target) return;
+
+			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto absolute_volume = std::abs(current_volume);
+
+			total_volume += sat * absolute_volume;
+		});
+	});
+
+	return total_volume;
+}
+
 float supply(
 	sys::state& state,
 	dcon::commodity_id c
@@ -953,6 +995,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto zone = state.world.market_get_zone_from_local_market(n);
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 
+	/*
 	{
 		float total_weights = 0.f;
 		uint32_t count = 0;
@@ -1074,6 +1117,20 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 			}
 		});
 	}
+
+	*/
+
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		if(valid_luxury_need(state, nation, c)) {
+			state.world.market_set_luxury_needs_weights(n, c, 1.f);
+		}
+		if(valid_everyday_need(state, nation, c)) {
+			state.world.market_set_everyday_needs_weights(n, c, 1.f);
+		}
+		if(valid_life_need(state, nation, c)) {
+			state.world.market_set_life_needs_weights(n, c, 1.f);
+		}
+	});
 }
 
 
@@ -2371,8 +2428,6 @@ float factory_throughput_multiplier(sys::state& state, dcon::factory_type_fat_id
 		* std::max(0.f, 1.f + provincial_fac_t)
 		* std::max(0.f, 1.f + nationnal_fac_t);
 
-	assert(result > 0.f);
-
 	return production_throughput_multiplier * result;
 }
 
@@ -2733,11 +2788,9 @@ float rgo_desired_worker_norm_profit(
 	subsistence -= subsistence_life;
 	float subsistence_everyday = std::clamp(subsistence, 0.f, subsistence_score_everyday);
 	subsistence -= subsistence_everyday;
-	float subsistence_luxury = std::clamp(subsistence, 0.f, subsistence_score_luxury);
 
 	subsistence_life = subsistence_life / subsistence_score_life;
 	subsistence_everyday = subsistence_everyday / subsistence_score_everyday;
-	subsistence_luxury = subsistence_luxury / subsistence_score_luxury;
 
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 
@@ -2749,8 +2802,7 @@ float rgo_desired_worker_norm_profit(
 
 	float subsistence_based_min_wage =
 		subsistence_life * ln_costs
-		+ subsistence_everyday * en_costs
-		+ subsistence_luxury * lx_costs;
+		+ subsistence_everyday * en_costs;
 
 	// 1000.f to prevent deflation spirals due to
 	// high lower bound on prices
@@ -4106,9 +4158,7 @@ void update_pop_consumption(
 		subsistence = subsistence - available_subsistence;
 		auto everyday_needs_satisfaction = available_subsistence / subsistence_score_everyday;
 
-		available_subsistence = ve::min(subsistence_score_luxury, subsistence);
-		subsistence = subsistence - available_subsistence;
-		auto luxury_needs_satisfaction = available_subsistence / subsistence_score_luxury;
+		auto luxury_needs_satisfaction = ve::fp_vector{ 0.f };
 
 		// calculate market expenses
 
@@ -4190,32 +4240,35 @@ void update_pop_consumption(
 		savings = savings - spend_on_everyday_needs;
 
 		//handle savings before luxury goods spending
-		auto savingsdelta = ve::apply(
-			[&](float s, dcon::pop_type_id pt, auto ln, dcon::nation_id n, bool ai) {
-				if(ai && (pt == state.culture_definitions.aristocrat || pt == state.culture_definitions.capitalists)) {
-					if(s > 0) {
-						if(pt == state.culture_definitions.capitalists) {
-							return -s * state.defines.alice_save_capitalist;
-						} else {
-							return -s * state.defines.alice_save_aristocrat;
-						}
-					}
-					else if(state.world.nation_get_national_bank(n) > ln - s) {
-						return ln - s;
-					}
-				}
+		ve::fp_vector bank_to_pop_money_transfer { 0.f };
+		auto enough_savings = savings > required_spendings_for_luxury_needs;
+		auto savings_for_transfer = required_spendings_for_luxury_needs - savings;
 
-				return 0.0f;
-			}, savings, pop_type, required_spendings_for_luxury_needs, nations, nation_allows_investment
+		auto enough_in_bank = state.world.nation_get_national_bank(nations) > ve::max(required_spendings_for_luxury_needs + 10000.f, savings_for_transfer);
+		bank_to_pop_money_transfer = ve::select(
+			enough_savings && nation_allows_investment && capitalists_mask,
+			bank_to_pop_money_transfer - savings_for_transfer * state.defines.alice_save_aristocrat,
+			bank_to_pop_money_transfer
 		);
-		auto nationalbankdelta = ve::apply(
-			[&](float s, dcon::nation_id n) {
-				state.world.nation_get_national_bank(n) -= s;
+		bank_to_pop_money_transfer = ve::select(
+			enough_savings && nation_allows_investment && landowners_mask,
+			bank_to_pop_money_transfer - savings_for_transfer * state.defines.alice_save_capitalist,
+			bank_to_pop_money_transfer
+		);
+		bank_to_pop_money_transfer = ve::select(
+			!enough_savings && nation_allows_investment && enough_in_bank,
+			bank_to_pop_money_transfer + savings_for_transfer,
+			bank_to_pop_money_transfer
+		);
+
+		ve::apply(
+			[&](float transfer, dcon::nation_id n) {
+				state.world.nation_get_national_bank(n) -= transfer;
 				return 0;
-			}, savingsdelta, nations
+			}, bank_to_pop_money_transfer, nations
 		);
 
-		savings = savings + savingsdelta;
+		savings = savings + bank_to_pop_money_transfer;
 
 		// buy luxury needs
 
@@ -4913,6 +4966,25 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
+	auto coastal_capital_buffer = ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>(state.world.state_instance_size());
+
+	state.world.execute_parallel_over_state_instance([&](auto ids) {
+		ve::apply([&](auto sid) {
+			coastal_capital_buffer.set(sid, province::state_get_coastal_capital(state, sid));
+		}, ids);
+	});
+
+	//static auto export_tariff = state.world.nation_make_vectorizable_float_buffer();
+	//static auto import_tariff = state.world.nation_make_vectorizable_float_buffer();
+
+	static auto tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
+
+	state.world.execute_parallel_over_nation([&](auto ids) {
+		ve::apply([&](auto nid) {
+			tariff_buffer.set(nid, effective_tariff_rate(state, nid));
+		}, ids);
+	});
+
 	// update trade volume based on potential profits right at the start
 	// we can't put it between demand and supply generation!
 	concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
@@ -4922,144 +4994,106 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			return;
 		}
 
-		state.world.for_each_trade_route([&](auto trade_route) {
+		state.world.execute_serial_over_trade_route([&](auto trade_route) {
 			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
-			auto A = state.world.trade_route_get_connected_markets(trade_route, 0);
-			auto B = state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto A = ve::apply([&](auto route) {
+				return state.world.trade_route_get_connected_markets(route, 0);
+			}, trade_route);
 
-			auto absolute_volume = std::abs(current_volume);
+			auto B = ve::apply([&](auto route) {
+				return state.world.trade_route_get_connected_markets(route, 1);
+			}, trade_route);
+
+			auto absolute_volume = ve::abs(current_volume);
 			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
 
 			auto s_A = state.world.market_get_zone_from_local_market(A);
 			auto s_B = state.world.market_get_zone_from_local_market(B);
 
-			if(A == B) {
-				return;
-			}
-
 			auto n_A = state.world.state_instance_get_nation_from_state_ownership(s_A);
 			auto n_B = state.world.state_instance_get_nation_from_state_ownership(s_B);
 
-			auto at_war = military::are_at_war(state, n_A, n_B);
+			auto at_war = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, n_A, n_B);
 
 			auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
 			auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
-
-			auto import_tariff_A = effective_tariff_rate(state, n_A);
-			auto export_tariff_A = effective_tariff_rate(state, n_A);
-			auto import_tariff_B = effective_tariff_rate(state, n_B);
-			auto export_tariff_B = effective_tariff_rate(state, n_B);
-
+			
 			auto is_A_civ = state.world.nation_get_is_civilized(n_A);
 			auto is_B_civ = state.world.nation_get_is_civilized(n_B);
 
 			auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
 			auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
 
-			if(is_sea_route) {
-				auto port_A = province::state_get_coastal_capital(state, s_A);
-				if(state.world.province_get_is_blockaded(port_A)) {
-					is_sea_route = false;
-				}
-				auto port_B = province::state_get_coastal_capital(state, s_B);
-				if(state.world.province_get_is_blockaded(port_B)) {
-					is_sea_route = false;
-				}
-			}
+			auto port_A = coastal_capital_buffer.get(s_A);
+			auto port_B = coastal_capital_buffer.get(s_B);
 
-			if(!(is_sea_route || is_land_route)) {
-				state.world.trade_route_set_volume(trade_route, c, 0.f);
-				return;
-			}
+			auto is_A_blockaded = state.world.province_get_is_blockaded(port_A);
+			auto is_B_blockaded = state.world.province_get_is_blockaded(port_B);
 
-			auto merchant_cut = 1.05f;
+			is_sea_route = is_sea_route & !is_A_blockaded & !is_B_blockaded;
 
-			if(n_A == n_B) {
-				import_tariff_A = 0.f;
-				export_tariff_A = 0.f;
-				import_tariff_B = 0.f;
-				export_tariff_B = 0.f;
-				merchant_cut = 1.001f;
-			}
-			if(n_A == sphere_B) {
-				import_tariff_A = 0.f;
-				export_tariff_A = 0.f;
-				import_tariff_B = 0.f;
-				export_tariff_B = 0.f;
-			}
-			if(n_B == sphere_A) {
-				import_tariff_A = 0.f;
-				export_tariff_A = 0.f;
-				import_tariff_B = 0.f;
-				export_tariff_B = 0.f;
-			}
+			auto same_nation = n_A == n_B;
+			auto same_sphere = (n_A == sphere_B) || (n_B == sphere_A) || (sphere_A == sphere_B);
 
-			auto distance = 999999.f;
+			auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.001f }, ve::fp_vector{ 1.05f });
 
-			if(is_land_route) {
-				distance = std::min(distance, state.world.trade_route_get_land_distance(trade_route));
-			}
-			if(is_sea_route) {
-				distance = std::min(distance, state.world.trade_route_get_sea_distance(trade_route));
-			}
+			auto import_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_A));
+			auto export_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_A));
+			auto import_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_B));
+			auto export_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_B));
+
+			ve::fp_vector distance = 999999.f;
+			auto land_distance = state.world.trade_route_get_land_distance(trade_route);
+			auto sea_distance = state.world.trade_route_get_sea_distance(trade_route);
+
+			distance = ve::select(is_land_route, ve::min(distance, land_distance), distance);
+			distance = ve::select(is_sea_route, ve::min(distance, sea_distance), distance);
 
 			state.world.trade_route_set_distance(trade_route, distance);
 
-			auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+			auto trade_good_loss_mult = ve::max(0.f, 1.f - 0.0001f * distance);
 
+			// todo: transport cost should be variable?
 			auto transport_cost = distance * 0.05f;
+
 			// effect of scale
 			// volume reduces transport costs
-			auto effect_of_scale = std::max(0.1f, 1.f - absolute_volume * 0.0005f);
+			auto effect_of_scale = ve::max(0.1f, 1.f - absolute_volume * 0.0005f);
 
-			auto price_A_export = price(state, A, c) * (1.f + export_tariff_A);
-			auto price_B_export = price(state, B, c) * (1.f + export_tariff_B);
+			auto price_A_export = ve_price(state, A, c) * (1.f + export_tariff_A);
+			auto price_B_export = ve_price(state, B, c) * (1.f + export_tariff_B);
 
-			auto price_A_import = price(state, A, c) * (1.f - import_tariff_A) * trade_good_loss_mult;
-			auto price_B_import = price(state, B, c) * (1.f - import_tariff_B) * trade_good_loss_mult;
-
-
+			auto price_A_import = ve_price(state, A, c) * (1.f - import_tariff_A) * trade_good_loss_mult;
+			auto price_B_import = ve_price(state, B, c) * (1.f - import_tariff_B) * trade_good_loss_mult;
 
 			auto current_profit_A_to_B = price_B_import - price_A_export * merchant_cut - transport_cost * effect_of_scale;
 			auto current_profit_B_to_A = price_A_import - price_B_export * merchant_cut - transport_cost * effect_of_scale;
 
-			auto change = 0.f;
-
-			if(current_profit_A_to_B > 0.f) {
-				change = current_profit_A_to_B / price_A_export;
-			} else if(current_profit_B_to_A > 0.f) {
-				change = -current_profit_B_to_A / price_B_export;
-			} else {
-				state.world.trade_route_set_volume(trade_route, c, 0.f);
-				return;
-			}
+			auto none_is_profiable = (current_profit_A_to_B <= 0.f) && (current_profit_B_to_A <= 0.f);
 
 			auto max_change = 0.1f + absolute_volume * 0.1f;
-
-			change = std::clamp(change, -max_change, max_change);
+			auto change = ve::select(current_profit_A_to_B > 0.f, current_profit_A_to_B / price_A_export, 0.f);
+			change = ve::select(current_profit_B_to_A > 0.f, -current_profit_B_to_A / price_B_export, change);
+			change = ve::min(ve::max(change, -max_change), max_change);
+			change = ve::select(none_is_profiable, -current_volume, change);
+			change = ve::select(at_war, -current_volume, change);
 
 			// trade slowly decays to create soft limit on transportation
 			// essentially, regularisation of trade weights
-			auto decay = 0.99f;
-
-			if(at_war) {
-				state.world.trade_route_set_volume(trade_route, c, 0);
-				return;
-			}
+			ve::fp_vector decay = 0.99f;
 
 			// dirty, embarassing and disgusting hack
 			// to avoid trade generating too much demand
 			// on already expensive goods
 			// but it works well
-
-			if(current_volume > 0.f) {
-				decay = decay * std::min(1.f, 10000.f / price_A_export);
-			} else {
-				decay = decay * std::min(1.f, 10000.f / price_B_export);
-			}
+			decay = ve::select(current_volume > 0.f, decay * ve::min(1.f, 10000.f / price_A_export), decay * ve::min(1.f, 10000.f / price_B_export));
 			state.world.trade_route_set_volume(trade_route, c, (current_volume + change) * decay);
 
-			assert(std::isfinite(state.world.trade_route_get_volume(trade_route, c)));
+			ve::apply([&](auto route) {
+				assert(std::isfinite(state.world.trade_route_get_volume(route, c)));
+			}, trade_route);
 		});
 	});
 
@@ -6066,11 +6100,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			subsistence -= subsistence_life;
 			float subsistence_everyday = std::clamp(subsistence, 0.f, subsistence_score_everyday);
 			subsistence -= subsistence_everyday;
-			float subsistence_luxury = std::clamp(subsistence, 0.f, subsistence_score_luxury);
 
 			subsistence_life /= subsistence_score_life;
 			subsistence_everyday /= subsistence_score_everyday;
-			subsistence_luxury /= subsistence_score_luxury;
 
 			for(auto pl : p.get_province().get_pop_location()) {
 				auto t = pl.get_pop().get_poptype();
@@ -6083,7 +6115,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				// sat = raw + sub ## first summand is "raw satisfaction"
 				ln -= subsistence_life;
 				en -= subsistence_everyday;
-				lx -= subsistence_luxury;
 
 				// as it a very rough estimation based on very rough values,
 				// we have to sanitise values:
@@ -6101,7 +6132,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				ln += subsistence_life;
 				en += subsistence_everyday;
-				lx += subsistence_luxury;
 
 				pop_demographics::set_life_needs(state, pl.get_pop(), ln);
 				pop_demographics::set_everyday_needs(state, pl.get_pop(), en);
@@ -7632,9 +7662,7 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 
 void resolve_constructions(sys::state& state) {
 
-	for(uint32_t i = state.world.province_land_construction_size(); i-- > 0;) {
-		auto c = fatten(state.world, dcon::province_land_construction_id{ dcon::province_land_construction_id::value_base_t(i) });
-
+	for(auto c : state.world.in_province_land_construction) {
 		float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_land_construction_get_nation(c));
 		float admin_cost_factor = 2.0f - admin_eff;
 
@@ -7729,8 +7757,7 @@ void resolve_constructions(sys::state& state) {
 		}
 	});
 
-	for(uint32_t i = state.world.province_building_construction_size(); i-- > 0;) {
-		dcon::province_building_construction_id c{ dcon::province_building_construction_id::value_base_t(i) };
+	for(auto c : state.world.in_province_building_construction) {
 		auto for_province = state.world.province_building_construction_get_province(c);
 
 		float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_building_construction_get_nation(c));
@@ -7798,8 +7825,7 @@ void resolve_constructions(sys::state& state) {
 		}
 	}
 
-	for(uint32_t i = state.world.state_building_construction_size(); i-- > 0;) {
-		dcon::state_building_construction_id c{ dcon::state_building_construction_id::value_base_t(i) };
+	for(auto c : state.world.in_state_building_construction) {
 		auto n = state.world.state_building_construction_get_nation(c);
 		auto type = state.world.state_building_construction_get_type(c);
 		auto& base_cost = state.world.factory_type_get_construction_costs(type);
@@ -8053,6 +8079,9 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 			}
 		}
 	}
+
+	// RESET MONEY: POTENTIAL MERGE CONFLICT WITH SNEAKBUG'S FUTURE CHANGES
+	state.world.nation_set_stockpiles(n, economy::money, 0.f);
 
 	sys::add_modifier_to_nation(state, n, state.national_definitions.in_bankrupcy, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
 	sys::add_modifier_to_nation(state, n, state.national_definitions.bad_debter, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));

@@ -90,8 +90,7 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 inline constexpr float subsistence_factor = 15.0f;
 inline constexpr float subsistence_score_life = 30.0f;
 inline constexpr float subsistence_score_everyday = 30.0f;
-inline constexpr float subsistence_score_luxury = 30.0f;
-inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday + subsistence_score_luxury;
+inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday;
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
@@ -123,7 +122,7 @@ inline constexpr float rgo_owners_cut = 0.05f;
 inline constexpr float price_speed_mod = 0.0001f;
 inline constexpr float price_rigging = 0.015f;
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float production_throughput_multiplier = 2.f;
+inline constexpr float production_throughput_multiplier = 3.f;
 
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
@@ -234,6 +233,12 @@ float export_volume(
 	dcon::commodity_id c
 );
 float export_volume(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
+
+float domestic_trade_volume(
 	sys::state& state,
 	dcon::nation_id s,
 	dcon::commodity_id c

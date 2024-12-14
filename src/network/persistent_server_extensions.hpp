@@ -16,7 +16,7 @@
 
 namespace network {
 
-int lastchange = 0;
+static int lastchange = 0;
 
 inline void read_player_nations(sys::state& state, char const* start, char const* end) noexcept {
 	char const* cpos = start;
