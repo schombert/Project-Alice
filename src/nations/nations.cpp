@@ -2305,9 +2305,13 @@ void reject_crisis_participation(sys::state& state) {
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
 		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
-			// no defender -- attacker wins
+			// no GP defender -- target becomes defender
 			// TODO: notify resolution
 
+			auto target = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+			state.primary_crisis_defender = target;
+
+			/*
 			notification::post(state, notification::message{
 				[](sys::state& state, text::layout_base& contents) {
 					text::add_line(state, contents, "msg_crisis_fizzle_2");
@@ -2334,6 +2338,7 @@ void reject_crisis_participation(sys::state& state) {
 			}
 
 			cleanup_crisis(state);
+			*/
 		} else {
 			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		}

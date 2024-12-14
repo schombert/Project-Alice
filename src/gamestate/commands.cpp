@@ -2748,7 +2748,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		}
 	}
 
-	if(run_conference) {
+	if(run_conference && state.current_crisis == sys::crisis_type::none) {
 		nations::cleanup_crisis(state);
 
 		for(auto si : state.world.in_state_instance) {
