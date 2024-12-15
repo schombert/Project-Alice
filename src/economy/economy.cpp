@@ -3059,6 +3059,7 @@ void populate_army_consumption(sys::state& state) {
 		auto location = pop.get_pop_location().get_province().get_state_membership();
 		auto market = location.get_market_from_local_market();
 		auto scale = owner.get_spending_level();
+		auto strength = reg.get_strength();
 
 		if(owner && type) {
 			auto o_sc_mod = std::max(
@@ -3069,10 +3070,27 @@ void populate_army_consumption(sys::state& state) {
 			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(supply_cost.commodity_type[i]) {
+					// Day-to-day consumption
+					// Strength under 100% reduces unit supply consumption
 					state.world.market_get_army_demand(market, supply_cost.commodity_type[i]) +=
 						supply_cost.commodity_amounts[i]
 						* state.world.nation_get_unit_stats(owner, type).supply_consumption
-						* o_sc_mod;
+						* o_sc_mod * strength;
+				} else {
+					break;
+				}
+			}
+			auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(build_cost.commodity_type[i]) {
+					auto reinforcement = military::calculate_unit_reinforcement(state, reg);
+					if(reinforcement > 0) {
+						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
+						state.world.market_get_army_demand(market, build_cost.commodity_type[i]) +=
+							build_cost.commodity_amounts[i]
+							* reinforcement;
+					}
 				} else {
 					break;
 				}

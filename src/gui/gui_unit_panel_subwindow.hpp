@@ -63,14 +63,63 @@ public:
 			text::add_to_layout_box(state, contents, box, text::fp_percentage{ fat.get_strength() }, color);
 			text::close_layout_box(contents, box);
 		}
+
 		auto fat_id = dcon::fatten(state.world, retrieve<T>(state, parent));
+		float total_cost = 0.f;
+
+		// Reinforcement cost as % of construction cost
+		// Shows how many goods will it take to fully reinforce the unit
+		auto& build_cost = state.military_definitions.unit_base_definitions[fat_id.get_type()].build_cost;
+		auto hadheader = false;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(build_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(build_cost.commodity_type[i]);
+				float curstr = military::get_strength(state, fat_id);
+				if(curstr >= 1.0f) {
+					continue;
+				}
+				auto box = text::open_layout_box(contents, 0);
+
+				if(!hadheader) {
+					hadheader = true;
+
+					text::localised_format_box(state, contents, box, "unit_reinforcement_needs");
+					text::close_layout_box(contents, box);
+					box = text::open_layout_box(contents, 0);
+				}
+
+				float amount = build_cost.commodity_amounts[i] * (1.0f - curstr);
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(build_cost.commodity_type[i]));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+
+				auto cid = build_cost.commodity_type[i];
+				std::string padding = cid.index() < 10 ? "0" : "";
+				std::string description = "@$" + padding + std::to_string(cid.index());
+				text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
+				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+				text::close_layout_box(contents, box);
+				total_cost += cost * amount;
+			} else {
+				break;
+			}
+		}
+		// Everyday supply costs
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "unit_supply_needs");
+			text::close_layout_box(contents, box);
+		}
 		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_consumption) + 1.0f);
 		auto& supply_cost = state.military_definitions.unit_base_definitions[fat_id.get_type()].supply_cost;
-		float total_cost = 0.f;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(supply_cost.commodity_type[i]) {
 				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
-				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(state.local_player_nation, fat_id.get_type()).supply_consumption * o_sc_mod;
+				float curstr = military::get_strength(state, fat_id);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(state.local_player_nation, fat_id.get_type()).supply_consumption * o_sc_mod * curstr;
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(supply_cost.commodity_type[i]));
 				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });

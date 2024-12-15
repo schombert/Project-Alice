@@ -1289,3 +1289,5 @@ max_throughput;Max volume
 trade_margin;Profit%
 investment_pool;Investment pool: ?Y$x$?W
 DIPLO_RUN_CONFERENCE;Run a conference
+unit_reinforcement_needs;Goods for reinforcement:
+unit_supply_needs;Daily supply:

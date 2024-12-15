@@ -7114,6 +7114,40 @@ float reinforce_amount(sys::state& state, dcon::army_id a) {
 	return combined;
 }
 
+float calculate_regiment_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
+	auto pop = reg.get_pop_from_regiment_source();
+	auto pop_size = pop.get_size();
+	auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
+	auto curstr = reg.get_strength();
+	auto newstr = std::min(curstr + combined, limit_fraction);
+
+	return newstr - curstr;
+}
+
+float calculate_unit_reinforcement(sys::state& state, dcon::regiment_id reg_id) {
+	auto reg = dcon::fatten(state.world, reg_id);
+	auto ar = reg.get_army_from_army_membership();
+	auto in_nation = ar.get_controller_from_army_control();
+	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
+
+	auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
+
+	float location_modifier = 1.0f;
+	if(ar.get_location_from_army_location().get_nation_from_province_ownership() == in_nation) {
+		location_modifier = 2.0f;
+	} else if(ar.get_location_from_army_location().get_nation_from_province_control() == in_nation) {
+		location_modifier = 1.0f;
+	} else {
+		location_modifier = 0.1f;
+	}
+
+	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
+		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
+		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+
+	return calculate_regiment_reinforcement(state, reg, combined);
+}
+
 void reinforce_regiments(sys::state& state) {
 	/*
 	A unit that is not retreating, not embarked, not in combat is reinforced (has its strength increased) by:
@@ -7130,6 +7164,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 		auto in_nation = ar.get_controller_from_army_control();
 		auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
+		// Effective spending accounts for unfulfilled demand
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 
 		float location_modifier = 1.0f;
@@ -7142,19 +7177,44 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 		}
 
 		auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
-										(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
-										(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+			(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
+			(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
 
 		for(auto reg : ar.get_army_membership()) {
-			auto pop = reg.get_regiment().get_pop_from_regiment_source();
-			auto pop_size = pop.get_size();
-			auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
-			auto curstr = reg.get_regiment().get_strength();
-			auto newstr = std::min(curstr + combined, limit_fraction);
-			reg.get_regiment().set_strength(newstr);
-			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
+			auto reinforcement = calculate_regiment_reinforcement(state, reg.get_regiment(), combined);
+			reg.get_regiment().get_strength() += reinforcement;
+			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), reinforcement * 5.f * state.defines.exp_gain_div);
 		}
 	}
+}
+
+float get_strength(sys::state& state, dcon::regiment_id regiment_id) {
+	return state.world.regiment_get_strength(regiment_id);
+}
+
+float get_strength(sys::state& state, dcon::ship_id ship_id) {
+	return state.world.ship_get_strength(ship_id);
+}
+
+float calculate_unit_reinforcement(sys::state& state, dcon::ship_id ship_id) {
+	auto navy_id = state.world.ship_get_navy_from_navy_membership(ship_id);
+	auto n = dcon::fatten(state.world, navy_id);
+	auto in_nation = n.get_controller_from_navy_control();
+
+	float oversize_amount =
+		in_nation.get_naval_supply_points() > 0
+		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
+		: 1.75f;
+	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
+	auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
+
+	auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
+	auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
+	auto repair_val = rr_mod * reinf_mod * spending_level;
+
+	auto curstr = state.world.ship_get_strength(ship_id);
+	auto newstr = std::min(curstr + repair_val, 1.0f);
+	return newstr - curstr;
 }
 
 void repair_ships(sys::state& state) {
