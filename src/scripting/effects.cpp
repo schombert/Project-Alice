@@ -3567,6 +3567,8 @@ uint32_t ef_add_country_modifier_no_duration(EFFECT_PARAMTERS) {
 	sys::add_modifier_to_nation(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).mod_id, sys::date{});
 	return 0;
 }
+// Effects give "white check" CBs that can be used on any state, thus target state is empty.
+// Scenario of a CB without target state is to be correctly handled in the UI and game logic.
 uint32_t ef_casus_belli_tag(EFFECT_PARAMTERS) {
 	auto type = trigger::payload(tval[1]).cb_id;
 	auto months = trigger::payload(tval[2]).signed_value;
@@ -3594,7 +3596,7 @@ uint32_t ef_casus_belli_this_nation(EFFECT_PARAMTERS) {
 
 	ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
 		.push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(this_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(this_slot), type, dcon::state_definition_id{} });
 
 	return 0;
 }
@@ -3721,7 +3723,7 @@ uint32_t ef_add_casus_belli_from_province(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-			military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+			military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
