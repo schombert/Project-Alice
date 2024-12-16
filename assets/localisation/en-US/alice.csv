@@ -949,8 +949,8 @@ im_em_header;Predicted immigration/emigration for
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W attrition
 unit_arrival_time_text;(arrive on $date$)
 ol_unit_standing_text;$m$ $n$/$x$/$y$
-unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
-unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ by $date$ (ATK $attunit$ DEF $defunit$ Upkeep ?R$cost$?W)
+unit_standing_text;$m$ $n$/$x$/$y$ (ATK $attunit$ DEF $defunit$ Upkeep ?R$cost$?W)
 disarmed_pop;a member of a disarmed nation
 cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
