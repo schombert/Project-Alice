@@ -937,9 +937,11 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		province::for_each_province_in_state_instance(state, old_si, [&](auto p) { a_province = p; });
 		if(!a_province) {
 
-			auto first_wg = state.crisis_attacker_wargoals.at(0);
-			if(old_si.get_definition() == first_wg.state)
-				nations::cleanup_crisis(state);
+			if(state.crisis_attacker_wargoals.size() > 0) {
+				auto first_wg = state.crisis_attacker_wargoals.at(0);
+				if(old_si.get_definition() == first_wg.state)
+					nations::cleanup_crisis(state);
+			}
 			auto local_market = state.world.state_instance_get_market_from_local_market(old_si);
 
 			state.world.delete_market(local_market);
