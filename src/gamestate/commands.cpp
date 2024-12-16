@@ -2748,7 +2748,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		}
 	}
 
-	if(run_conference && state.current_crisis_state != sys::crisis_state::inactive) {
+	if(run_conference && state.current_crisis_state == sys::crisis_state::inactive) {
 		nations::cleanup_crisis(state);
 
 		state.crisis_attacker_wargoals.push_back(sys::full_wg{
