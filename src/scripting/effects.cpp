@@ -3567,7 +3567,7 @@ uint32_t ef_add_country_modifier_no_duration(EFFECT_PARAMTERS) {
 	sys::add_modifier_to_nation(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).mod_id, sys::date{});
 	return 0;
 }
-// Effects give "white check" CBs that can be used on any state, thus target state is empty.
+// Effects give "blank check" CBs that can be used on any state, thus target state is empty.
 // Scenario of a CB without target state is to be correctly handled in the UI and game logic.
 uint32_t ef_casus_belli_tag(EFFECT_PARAMTERS) {
 	auto type = trigger::payload(tval[1]).cb_id;
