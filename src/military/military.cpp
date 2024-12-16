@@ -7088,7 +7088,17 @@ void recover_org(sys::state& state) {
 	}
 }
 
-float reinforce_amount(sys::state& state, dcon::army_id a) {
+// Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
+float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
+	return state.world.regiment_get_strength(regiment_id);
+}
+// Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
+float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
+	return state.world.ship_get_strength(ship_id);
+}
+/* === Army reinforcement === */
+// Calculates max reinforcement for units in the army
+float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
 	if(ar.get_battle_from_army_battle_participation() || ar.get_navy_from_army_transport() || ar.get_is_retreating())
 		return 0.0f;
@@ -7114,7 +7124,9 @@ float reinforce_amount(sys::state& state, dcon::army_id a) {
 	return combined;
 }
 
-float calculate_regiment_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
+// Calculates reinforcement for a particular regiment
+// Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
+float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
 	auto pop = reg.get_pop_from_regiment_source();
 	auto pop_size = pop.get_size();
 	auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
@@ -7124,28 +7136,13 @@ float calculate_regiment_reinforcement(sys::state& state, dcon::regiment_fat_id 
 	return newstr - curstr;
 }
 
-float calculate_unit_reinforcement(sys::state& state, dcon::regiment_id reg_id) {
+// Calculates reinforcement for a particular unit from scratch, unit type is unknown
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg_id) {
 	auto reg = dcon::fatten(state.world, reg_id);
 	auto ar = reg.get_army_from_army_membership();
-	auto in_nation = ar.get_controller_from_army_control();
-	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
+	auto combined = calculate_army_combined_reinforce(state, ar);
 
-	auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
-
-	float location_modifier = 1.0f;
-	if(ar.get_location_from_army_location().get_nation_from_province_ownership() == in_nation) {
-		location_modifier = 2.0f;
-	} else if(ar.get_location_from_army_location().get_nation_from_province_control() == in_nation) {
-		location_modifier = 1.0f;
-	} else {
-		location_modifier = 0.1f;
-	}
-
-	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
-		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
-		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
-
-	return calculate_regiment_reinforcement(state, reg, combined);
+	return regiment_calculate_reinforcement(state, reg, combined);
 }
 
 void reinforce_regiments(sys::state& state) {
@@ -7162,42 +7159,19 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
-		auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
-
-		// Effective spending accounts for unfulfilled demand
-		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
-
-		float location_modifier = 1.0f;
-		if(ar.get_location_from_army_location().get_nation_from_province_ownership() == in_nation) {
-			location_modifier = 2.0f;
-		} else if(ar.get_location_from_army_location().get_nation_from_province_control() == in_nation) {
-			location_modifier = 1.0f;
-		} else {
-			location_modifier = 0.1f;
-		}
-
-		auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
-			(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
-			(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+		auto combined = calculate_army_combined_reinforce(state, ar);
 
 		for(auto reg : ar.get_army_membership()) {
-			auto reinforcement = calculate_regiment_reinforcement(state, reg.get_regiment(), combined);
+			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
 			reg.get_regiment().get_strength() += reinforcement;
 			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), reinforcement * 5.f * state.defines.exp_gain_div);
 		}
 	}
 }
 
-float get_strength(sys::state& state, dcon::regiment_id regiment_id) {
-	return state.world.regiment_get_strength(regiment_id);
-}
-
-float get_strength(sys::state& state, dcon::ship_id ship_id) {
-	return state.world.ship_get_strength(ship_id);
-}
-
-float calculate_unit_reinforcement(sys::state& state, dcon::ship_id ship_id) {
-	auto navy_id = state.world.ship_get_navy_from_navy_membership(ship_id);
+/* === Navy reinforcement === */
+// Calculates max reinforcement for units in the navy
+float calculate_navy_combined_reinforce(sys::state& state, dcon::navy_id navy_id) {
 	auto n = dcon::fatten(state.world, navy_id);
 	auto in_nation = n.get_controller_from_navy_control();
 
@@ -7210,10 +7184,23 @@ float calculate_unit_reinforcement(sys::state& state, dcon::ship_id ship_id) {
 
 	auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
 	auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
-	auto repair_val = rr_mod * reinf_mod * spending_level;
+	auto combined = rr_mod * reinf_mod * spending_level;
 
+	return combined;
+}
+// Calculates reinforcement for a particular unit from scratch, unit type is unknown
+float unit_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id) {
+	auto combined = calculate_navy_combined_reinforce(state, state.world.ship_get_navy_from_navy_membership(ship_id));
 	auto curstr = state.world.ship_get_strength(ship_id);
-	auto newstr = std::min(curstr + repair_val, 1.0f);
+	auto newstr = std::min(curstr + combined, 1.0f);
+	return newstr - curstr;
+}
+
+// Calculates reinforcement for a particular ship
+// Combined = max reinforcement for units in the navy from calculate_navy_combined_reinforce
+float ship_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id, float combined) {
+	auto curstr = state.world.ship_get_strength(ship_id);
+	auto newstr = std::min(curstr + combined, 1.0f);
 	return newstr - curstr;
 }
 
@@ -7226,30 +7213,20 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 	for(auto n : state.world.in_navy) {
 		auto nb_level = n.get_location_from_navy_location().get_building_level(uint8_t(economy::province_building_type::naval_base));
 		if(!n.get_arrival_time() && nb_level > 0) {
-
 			auto in_nation = n.get_controller_from_navy_control();
-
-			float oversize_amount =
-					in_nation.get_naval_supply_points() > 0
-							? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
-							: 1.75f;
-			float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
-			auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
-
-			auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
-			auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
-			auto repair_val = rr_mod * reinf_mod * spending_level;
+			auto combined = calculate_navy_combined_reinforce(state, n);
 
 			for(auto reg : n.get_navy_membership()) {
-				auto curstr = reg.get_ship().get_strength();
-				auto newstr = std::min(curstr + repair_val, 1.0f);
-				reg.get_ship().set_strength(newstr);
-				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
+				auto ship = reg.get_ship();
+				auto reinforcement = ship_calculate_reinforcement(state, ship, combined);
+				ship.get_strength() += reinforcement;
+				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, reinforcement * 5.f * state.defines.exp_gain_div));
 			}
 		}
 	}
 }
 
+/* === Mobilization === */
 void start_mobilization(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_is_mobilized(n))
 		return;

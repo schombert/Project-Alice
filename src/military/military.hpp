@@ -159,6 +159,7 @@ struct global_military_state {
 
 	dcon::cb_type_id crisis_colony;
 	dcon::cb_type_id crisis_liberate;
+	dcon::cb_type_id crisis_annex;
 
 	dcon::unit_type_id irregular;
 	dcon::unit_type_id infantry;
@@ -443,7 +444,7 @@ float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dco
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
-float reinforce_amount(sys::state& state, dcon::army_id a);
+float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
@@ -472,10 +473,10 @@ void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
 void recover_org(sys::state& state);
-float get_strength(sys::state& state, dcon::regiment_id regiment_id);
-float get_strength(sys::state & state, dcon::ship_id ship_id);
-float calculate_unit_reinforcement(sys::state& state, dcon::regiment_id reg);
-float calculate_unit_reinforcement(sys::state& state, dcon::ship_id reg);
+float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
+float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg);
+float unit_calculate_reinforcement(sys::state& state, dcon::ship_id reg);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
 void run_gc(sys::state& state);

@@ -3084,7 +3084,7 @@ void populate_army_consumption(sys::state& state) {
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(build_cost.commodity_type[i]) {
-					auto reinforcement = military::calculate_unit_reinforcement(state, reg);
+					auto reinforcement = military::unit_calculate_reinforcement(state, reg);
 					if(reinforcement > 0) {
 						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
 						state.world.market_get_army_demand(market, build_cost.commodity_type[i]) +=
@@ -3128,6 +3128,22 @@ void populate_navy_consumption(sys::state& state) {
 						supply_cost.commodity_amounts[i]
 						* state.world.nation_get_unit_stats(owner, type).supply_consumption
 						* o_sc_mod;
+				} else {
+					break;
+				}
+			}
+
+			auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(build_cost.commodity_type[i]) {
+					auto reinforcement = military::unit_calculate_reinforcement(state, shp);
+					if(reinforcement > 0) {
+						// Ship needs repair - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
+						state.world.market_get_army_demand(market, build_cost.commodity_type[i]) +=
+							build_cost.commodity_amounts[i]
+							* reinforcement;
+					}
 				} else {
 					break;
 				}

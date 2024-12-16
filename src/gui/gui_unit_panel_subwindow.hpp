@@ -74,7 +74,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(build_cost.commodity_type[i]) {
 				float cost = state.world.commodity_get_cost(build_cost.commodity_type[i]);
-				float curstr = military::get_strength(state, fat_id);
+				float curstr = military::unit_get_strength(state, fat_id);
 				if(curstr >= 1.0f) {
 					continue;
 				}
@@ -118,7 +118,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(supply_cost.commodity_type[i]) {
 				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
-				float curstr = military::get_strength(state, fat_id);
+				float curstr = military::unit_get_strength(state, fat_id);
 				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(state.local_player_nation, fat_id.get_type()).supply_consumption * o_sc_mod * curstr;
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(supply_cost.commodity_type[i]));
@@ -190,7 +190,7 @@ public:
 			);
 
 			auto a = state.world.regiment_get_army_from_army_membership(reg_id);
-			auto reinf = state.defines.pop_size_per_regiment * military::reinforce_amount(state, a);
+			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce(state, a);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
