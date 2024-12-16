@@ -2124,7 +2124,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		checkbox_button::on_update(state);
-		disabled = state.current_crisis == sys::crisis_type::none;
+		disabled = state.current_crisis_state == sys::crisis_state::inactive;
 	}
 };
 
@@ -2287,7 +2287,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis == sys::crisis_type::none) {
+		if(active_tab == diplomacy_window_tab::crisis && state.current_crisis_state == sys::crisis_state::inactive) {
 			send<diplomacy_window_tab>(state, this, diplomacy_window_tab::great_powers);
 		}
 	}

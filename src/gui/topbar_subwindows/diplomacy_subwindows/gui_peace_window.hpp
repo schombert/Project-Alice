@@ -498,14 +498,24 @@ public:
 
 class crisis_peace_wg_from : public flag_button {
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto wg = nations::get_nth_crisis_war_goal(state, retrieve<int32_t>(state, parent));
+		auto is_concession = retrieve<bool>(state, parent);
+		bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
+
+		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+		auto ind = retrieve<int32_t>(state, parent);
+		auto wg = wargoalslist.at(ind);
 		return state.world.nation_get_identity_from_identity_holder(wg.target_nation);
 	}
 };
 
 class crisis_peace_wg_to : public flag_button {
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto wg = nations::get_nth_crisis_war_goal(state, retrieve<int32_t>(state, parent));
+		auto is_concession = retrieve<bool>(state, parent);
+		bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
+
+		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+		auto ind = retrieve<int32_t>(state, parent);
+		auto wg = wargoalslist.at(ind);
 		return state.world.nation_get_identity_from_identity_holder(wg.added_by);
 	}
 };
@@ -513,7 +523,12 @@ class crisis_peace_wg_to : public flag_button {
 class diplomacy_crisis_peace_wargoal_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto wg = nations::get_nth_crisis_war_goal(state, retrieve<int32_t>(state, parent));
+		auto is_concession = retrieve<bool>(state, parent);
+		bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
+
+		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+		auto ind = retrieve<int32_t>(state, parent);
+		auto wg = wargoalslist.at(ind);
 		dcon::cb_type_id cbt = wg.cb;
 
 		text::substitution_map sub;
@@ -532,7 +547,12 @@ public:
 class diplomacy_crisis_peace_wargoal_score_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto wg = nations::get_nth_crisis_war_goal(state, retrieve<int32_t>(state, parent));
+		auto is_concession = retrieve<bool>(state, parent);
+		bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
+
+		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+		auto ind = retrieve<int32_t>(state, parent);
+		auto wg = wargoalslist.at(ind);
 		int32_t score = military::peace_cost(state, dcon::war_id{}, wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
 		set_text(state, std::to_string(score));
 	}
@@ -586,11 +606,11 @@ public:
 		auto is_concession = retrieve<bool>(state, parent);
 
 		bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
-		auto count = nations::num_crisis_wargoals(state);
-		for(int32_t i = 0; i < count; ++i) {
-			if(nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
-				row_contents.push_back(i);
-			}
+
+		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+		auto count = wargoalslist.size();
+		for(unsigned i = 0; i < count; ++i) {
+			row_contents.push_back(i);
 		}
 
 		update(state);
@@ -617,8 +637,10 @@ class crisis_resolution_dialog : public window_element_base { // eu3dialogtype
 public:
 	void open_window(sys::state& state) {
 		wargoals.clear();
-		wargoals.resize(nations::num_crisis_wargoals(state), false);
-		is_concession = false;
+		bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
+
+		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+		wargoals.resize(wargoalslist.size(), false);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -681,11 +703,9 @@ public:
 			int32_t total = 0;
 
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
-			for(uint32_t i = 0; i < wargoals.size(); ++i) {
-				if(wargoals[i] && nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
-					auto wg = nations::get_nth_crisis_war_goal(state, i);
-					total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
-				}
+			auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+			for(auto wg : wargoalslist) {
+				total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
 			}
 
 			payload.emplace<offer_cost>(offer_cost{ total });
@@ -693,14 +713,10 @@ public:
 		} else if(payload.holds_type<send_offer>()) {
 			command::start_crisis_peace_offer(state, state.local_player_nation, is_concession);
 
-			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
-			auto count = nations::num_crisis_wargoals(state);
-			for(uint32_t i = 0; i < wargoals.size(); ++i) {
-				if(wargoals[i] && nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
-					auto wg = nations::get_nth_crisis_war_goal(state, i);
-					command::add_to_crisis_peace_offer(state, state.local_player_nation,wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
-				}
+			for(auto wg : state.crisis_attacker_wargoals) {
+				command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
 			}
+
 			command::send_crisis_peace_offer(state, state.local_player_nation);
 			set_visible(state, false);
 
@@ -710,11 +726,13 @@ public:
 			bool missing_wargoal = false;
 
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
-			auto count = nations::num_crisis_wargoals(state);
+			auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
 			for(uint32_t i = 0; i < wargoals.size(); ++i) {
-				if(nations::nth_crisis_war_goal_is_for_attacker(state, i) == attacker_filter) {
-					missing_wargoal = missing_wargoal || !wargoals[i];
-				}
+				missing_wargoal = missing_wargoal || !wargoals[i];
+			}
+
+			for(auto wg : state.crisis_attacker_wargoals) {
+				command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
 			}
 
 			bool acceptance = ai::will_accept_crisis_peace_offer(state, target, is_concession, missing_wargoal);

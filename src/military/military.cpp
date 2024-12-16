@@ -3152,7 +3152,7 @@ void run_gc(sys::state& state) {
 		} else if(!po.get_war_from_war_settlement() && !po.get_is_crisis_offer()) {
 			remove_pending_offer(po);
 			state.world.delete_peace_offer(po);
-		} else if(state.current_crisis == sys::crisis_type::none && po.get_is_crisis_offer()) {
+		} else if(state.current_crisis_state == sys::crisis_state::inactive && po.get_is_crisis_offer()) {
 			remove_pending_offer(po);
 			state.world.delete_peace_offer(po);
 		}
@@ -3456,68 +3456,119 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	} else { // crisis offer
 		bool crisis_attackers_won = (from == state.primary_crisis_attacker) == (state.world.peace_offer_get_is_concession(offer) == false);
 
+		for(auto swg : state.crisis_attacker_wargoals) {
+			bool was_part_of_offer = false;
+			for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+				if(wg.get_wargoal().get_added_by() == swg.added_by)
+					was_part_of_offer = true;
+			}
+
+			if(!was_part_of_offer) {
+				float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
+																	state.defines.war_failed_goal_prestige * state.defines.crisis_wargoal_prestige_mult *
+																			nations::prestige_score(state, swg.added_by)) *
+					state.world.cb_type_get_penalty_factor(swg.cb);
+				nations::adjust_prestige(state, swg.added_by, prestige_loss);
+
+				auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(swg.cb);
+				if(pop_militancy > 0) {
+					for(auto prv : state.world.nation_get_province_ownership(swg.added_by)) {
+						for(auto pop : prv.get_province().get_pop_location()) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+							pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
+						}
+					}
+				}
+
+				if(crisis_attackers_won) {
+					// Wargoal added by attacker. They won, but leader ignored wargoal
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							-state.defines.crisis_winner_relations_impact);
+				}
+				else {
+					// Wargoal added by attacker. They lost
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							-state.defines.crisis_winner_relations_impact);
+				}
+			} else {
+				if(crisis_attackers_won) {
+					// Wargoal added by attacker. They won and leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							state.defines.crisis_winner_relations_impact);
+				} else {
+					// Wargoal added by attacker. They lost and defender leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							state.defines.crisis_winner_relations_impact);
+				}
+			}
+		}
+
+		for(auto swg : state.crisis_attacker_wargoals) {
+			bool was_part_of_offer = false;
+			for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+				if(wg.get_wargoal().get_added_by() == swg.added_by)
+					was_part_of_offer = true;
+			}
+
+			if(!was_part_of_offer) {
+				float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
+																	state.defines.war_failed_goal_prestige * state.defines.crisis_wargoal_prestige_mult *
+																			nations::prestige_score(state, swg.added_by)) *
+					state.world.cb_type_get_penalty_factor(swg.cb);
+				nations::adjust_prestige(state, swg.added_by, prestige_loss);
+
+				auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(swg.cb);
+				if(pop_militancy > 0) {
+					for(auto prv : state.world.nation_get_province_ownership(swg.added_by)) {
+						for(auto pop : prv.get_province().get_pop_location()) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+							pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
+						}
+					}
+				}
+
+				if(crisis_attackers_won) {
+					// Wargoal added by defender. They lost, but leader ignored wargoal
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							-state.defines.crisis_winner_relations_impact);
+				} else {
+					// Wargoal added by defender. They won and defender leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							-state.defines.crisis_winner_relations_impact);
+				}
+			} else {
+				if(crisis_attackers_won) {
+					// Wargoal added by defender. They lost and attacker leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							state.defines.crisis_winner_relations_impact);
+				} else {
+					// Wargoal added by defender. They won and defender leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							state.defines.crisis_winner_relations_impact);
+				}
+			}
+		}
+
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
 				break;
 
 			if(par.merely_interested == false && par.id != state.primary_crisis_attacker && par.id != state.primary_crisis_defender) {
-				if(par.joined_with_offer.wargoal_type) {
-
-					bool was_part_of_offer = false;
-					for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
-						if(wg.get_wargoal().get_added_by() == par.id)
-							was_part_of_offer = true;
-					}
-					if(!was_part_of_offer) {
-						float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
-																			state.defines.war_failed_goal_prestige * state.defines.crisis_wargoal_prestige_mult *
-																					nations::prestige_score(state, par.id)) *
-																	state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
-						nations::adjust_prestige(state, par.id, prestige_loss);
-
-						auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
-						if(pop_militancy > 0) {
-							for(auto prv : state.world.nation_get_province_ownership(par.id)) {
-								for(auto pop : prv.get_province().get_pop_location()) {
-									auto mil = pop_demographics::get_militancy(state, pop.get_pop());
-									pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
-								}
-							}
-						}
-
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									-state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									-state.defines.crisis_winner_relations_impact);
-						}
+				if(crisis_attackers_won != par.supports_attacker) {
+					if(par.supports_attacker) {
+						nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
+								-state.defines.crisis_winner_relations_impact);
 					} else {
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									state.defines.crisis_winner_relations_impact);
-						}
+						nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
+								-state.defines.crisis_winner_relations_impact);
 					}
 				} else {
-					if(crisis_attackers_won != par.supports_attacker) {
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									-state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									-state.defines.crisis_winner_relations_impact);
-						}
+					if(par.supports_attacker) {
+						nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
+								state.defines.crisis_winner_relations_impact);
 					} else {
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									state.defines.crisis_winner_relations_impact);
-						}
+						nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
+								state.defines.crisis_winner_relations_impact);
 					}
 				}
 			}
@@ -7281,7 +7332,7 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 	/*
 	Mobilizing increases crisis tension by define:CRISIS_TEMPERATURE_ON_MOBILIZE
 	*/
-	if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+	if(state.current_crisis_state == sys::crisis_state::heating_up) {
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
 				break;

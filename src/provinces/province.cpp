@@ -936,7 +936,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		dcon::province_id a_province;
 		province::for_each_province_in_state_instance(state, old_si, [&](auto p) { a_province = p; });
 		if(!a_province) {
-			if(old_si == state.crisis_state)
+
+			auto first_wg = state.crisis_attacker_wargoals.at(0);
+			if(old_si.get_definition() == first_wg.state)
 				nations::cleanup_crisis(state);
 			auto local_market = state.world.state_instance_get_market_from_local_market(old_si);
 
@@ -1130,7 +1132,9 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 		return false; // too late
 
 	// The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
-	if(state.crisis_colony == d)
+
+	auto first_wg = state.crisis_attacker_wargoals.at(0);
+	if(first_wg.state == d)
 		return false;
 	for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
 		if(par.get_nation() == n)
@@ -1208,11 +1212,14 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		return false; // too low rank to colonize;
 
 	// The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
-	if(state.crisis_colony == d)
-		return false;
-	for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
-		if(par.get_nation() == n)
+	if(state.crisis_attacker_wargoals.size() > 0) {
+		auto first_wg = state.crisis_attacker_wargoals.at(0);
+		if(first_wg.state == d)
 			return false;
+		for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
+			if(par.get_nation() == n)
+				return false;
+		}
 	}
 
 	float max_life_rating = -1.0f;
@@ -1337,8 +1344,11 @@ bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_def
 		return false; // too low rank to colonize;
 
 	// The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
-	if(state.crisis_colony == d)
-		return false;
+	if(state.crisis_attacker_wargoals.size() > 0) {
+		auto first_wg = state.crisis_attacker_wargoals.at(0);
+		if(first_wg.state == d)
+			return false;
+	}
 
 	float max_life_rating = -1.0f;
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
@@ -1529,7 +1539,7 @@ void update_colonization(sys::state& state) {
 
 			float adjust = state.defines.colonization_influence_temperature_per_day +
 										 float(max_points) * state.defines.colonization_influence_temperature_per_level +
-										 (state.current_crisis != sys::crisis_type::none ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+										 (state.current_crisis_state == sys::crisis_state::inactive ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
 
 			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
 		} else if(num_colonizers == 1 &&

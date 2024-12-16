@@ -702,7 +702,7 @@ military_score_explain_7;Общее количество лидеров: $x$
 industry_score_explain_2;Следующие иностранные инвестиции также суммируются (весовой коэффициент $x$):
 industry_score_explain_3;$y$ в $x$
 war_goal_1;Добавил: $x$
-war_goal_2;Таргетинг: $x$
+war_goal_2;Цель: $x$
 war_goal_3;Для состояния: $x$
 war_goal_4;Вторичная нация: $x$
 war_goal_5;Тикающий счет войны: $x$

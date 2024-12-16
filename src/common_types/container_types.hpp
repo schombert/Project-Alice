@@ -133,20 +133,6 @@ struct modifier_hash {
 	}
 };
 
-struct crisis_join_offer {
-	dcon::nation_id target;
-	dcon::state_definition_id wargoal_state;
-	dcon::national_identity_id wargoal_tag;
-	dcon::nation_id wargoal_secondary_nation;
-	dcon::cb_type_id wargoal_type;
-};
-static_assert(sizeof(crisis_join_offer) ==
-	sizeof(crisis_join_offer::target)
-	+ sizeof(crisis_join_offer::wargoal_type)
-	+ sizeof(crisis_join_offer::wargoal_state)
-	+ sizeof(crisis_join_offer::wargoal_tag)
-	+ sizeof(crisis_join_offer::wargoal_secondary_nation));
-
 } // namespace sys
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
@@ -395,5 +381,14 @@ void merge_sort(IT first, IT end, CMP const& cmp) noexcept {
 	merge_sort_interior(first, end, buffer, buffer + rng_size, cmp);
 	delete[] buffer;
 }
+
+struct full_wg {
+	dcon::nation_id added_by;
+	dcon::nation_id target_nation;
+	dcon::nation_id secondary_nation;
+	dcon::national_identity_id wg_tag;
+	dcon::state_definition_id state;
+	dcon::cb_type_id cb;
+};
 
 } // namespace sys

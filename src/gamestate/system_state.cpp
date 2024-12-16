@@ -4041,9 +4041,7 @@ void state::single_game_tick() {
 	//
 
 		
-	concurrency::parallel_invoke([&]() {
-		// values updates pass 1 (mostly trivial things, can be done in parallel)
-		concurrency::parallel_for(0, 17, [&](int32_t index) {
+	for(int index = 0; index < 17; index++) {
 			switch(index) {
 			case 0:
 				ai::refresh_home_ports(*this);
@@ -4106,7 +4104,7 @@ void state::single_game_tick() {
 				military::update_blockade_status(*this);
 				break;
 			}
-		});
+		}
 
 		economy::daily_update(*this, false, 1.f);
 
@@ -4352,14 +4350,11 @@ void state::single_game_tick() {
 		province::update_connected_regions(*this);
 		province::update_cached_values(*this);
 		nations::update_cached_values(*this);
-
 		
-	},
 	[&]() {
 		if(network_mode == network_mode_type::single_player)
 			demographics::alt_regenerate_from_pop_data_daily(*this);
-	}
-	);
+		}();
 
 	if(network_mode == network_mode_type::single_player) {
 		world.nation_swap_demographics_demographics_alt();
