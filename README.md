@@ -16,7 +16,7 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md), [Deutsch](https://github.com/schombert/Project-Alice/blob/main/docs/de-de/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
 
 ## Updates
-
+- [PA 1.2 PlayGuide](https://sneakbug8.com/project-alice) [简中](docs/zh-cn/PA 1.2 玩法指南.md)
 - [2024 04](docs/Devlogs/2024-04/log_en.md), [简中](docs/Devlogs/2024-04/log_cn.md)
 - [2024 02](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-02/log_en.md), [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-02/log_cn.md)
 - [January 2024 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_en.md) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_cn.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_es.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_pt.md))
