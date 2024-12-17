@@ -3456,6 +3456,12 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	} else { // crisis offer
 		bool crisis_attackers_won = (from == state.primary_crisis_attacker) == (state.world.peace_offer_get_is_concession(offer) == false);
 
+		auto truce_months = military::peace_offer_truce_months(state, offer);
+
+		for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+			add_truce(state, wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), truce_months * 31);
+		}
+
 		for(auto swg : state.crisis_attacker_wargoals) {
 			bool was_part_of_offer = false;
 			for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
