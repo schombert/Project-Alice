@@ -940,10 +940,10 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 			c.source = state.local_player_nation;
 			c.data.notify_reload.checksum = state.get_save_checksum();
 			for(auto& other_client : state.network_state.clients) {
-				if(other_client.playing_as != client.playing_as) {
+				if(other_client.playing_as != client.playing_as && other_client.is_active()) {
 					socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
-					state.console_log("host:send:cmd: (new->reload)");
+					state.console_log("host:send:cmd: (new->reload) | to:" + std::to_string(other_client.playing_as.index()));
 #endif
 				}
 			}
@@ -991,7 +991,8 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		/* Lobby - existing savegame */
 		notify_player_joins(state, client);
 		if(!state.network_state.is_new_game) {
-			send_savegame(state, client, false);
+			network::write_network_save(state);
+			send_savegame(state, client, true);
 		}
 		notify_player_joins_discovery(state, client);
 
@@ -1582,15 +1583,22 @@ void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old
 }
 
 void place_host_player_after_saveload(sys::state& state) {
-		command::payload c;
-		memset(&c, 0, sizeof(c));
-		c.type = command::command_type::notify_player_joins;
+	load_player_nations(state);
 
-		auto p = find_mp_player(state, state.network_state.nickname);
-		auto n = state.world.mp_player_get_nation_from_player_nation(p);
-		c.source = n;
-		c.data.player_name = state.network_state.nickname;
-		state.network_state.outgoing_commands.push(c);
+	auto n = choose_nation_for_player(state);
+	state.local_player_nation = n;
+	assert(bool(state.local_player_nation));
+	state.world.nation_set_is_player_controlled(n, true);
+
+	command::payload c;
+	memset(&c, 0, sizeof(c));
+	c.type = command::command_type::notify_player_joins;
+	c.source = n;
+	c.data.player_name = state.network_state.nickname;
+	state.local_player_nation = c.source;
+	state.network_state.outgoing_commands.push(c);
+
+	log_player_nations(state);
 }
 
 }

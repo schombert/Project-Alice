@@ -7375,7 +7375,7 @@ float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n) {
 
 	for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
 		if(uni.get_war_subsidies()) {
-			total += uni.get_target().get_maximum_military_costs() * state.defines.warsubsidies_percent;
+			total += estimate_war_subsidies(state, uni.get_target(), uni.get_source());
 		}
 	}
 	return total;
@@ -7401,7 +7401,7 @@ float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n) {
 
 	for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
 		if(uni.get_war_subsidies()) {
-			total += uni.get_target().get_maximum_military_costs() * state.defines.warsubsidies_percent;
+			total += estimate_war_subsidies(state, uni.get_target(), uni.get_source());
 		}
 	}
 

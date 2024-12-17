@@ -396,6 +396,11 @@ public:
 				text::fp_two_places{ economy::estimate_daily_income(state, nation_id) });
 
 		*/
+
+		text::add_line(state, contents, std::string_view("investment_pool"),
+					text::variable_type::x,
+					text::fp_currency{
+							state.world.nation_get_private_investment(state.local_player_nation) });
 	}
 
 };
