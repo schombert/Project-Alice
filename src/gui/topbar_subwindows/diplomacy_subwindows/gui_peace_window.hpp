@@ -610,7 +610,12 @@ public:
 		auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
 		auto count = wargoalslist.size();
 		for(unsigned i = 0; i < count; ++i) {
-			row_contents.push_back(i);
+			if(wargoalslist[i].cb) {
+				row_contents.push_back(i);
+			}
+			else {
+				break;
+			}
 		}
 
 		update(state);
@@ -705,7 +710,12 @@ public:
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
 			auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
 			for(auto wg : wargoalslist) {
-				total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
+				if(wg.cb) {
+					total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
+				}
+				else {
+					break;
+				}
 			}
 
 			payload.emplace<offer_cost>(offer_cost{ total });
@@ -714,7 +724,12 @@ public:
 			command::start_crisis_peace_offer(state, state.local_player_nation, is_concession);
 
 			for(auto wg : state.crisis_attacker_wargoals) {
-				command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+				if(wg.cb) {
+					command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+				}
+				else {
+					break;
+				}
 			}
 
 			command::send_crisis_peace_offer(state, state.local_player_nation);
@@ -732,7 +747,12 @@ public:
 			}
 
 			for(auto wg : state.crisis_attacker_wargoals) {
-				command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+				if(wg.cb) {
+					command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+				}
+				else {
+					break;
+				}
 			}
 
 			bool acceptance = ai::will_accept_crisis_peace_offer(state, target, is_concession, missing_wargoal);

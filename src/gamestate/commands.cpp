@@ -2974,13 +2974,18 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 		(source != state.primary_crisis_attacker && is_concession);
 	auto wargoalslist = (defender_victory) ? state.crisis_defender_wargoals : state.crisis_attacker_wargoals;
 	for(auto wg : wargoalslist) {
-		auto new_wg = fatten(state.world, state.world.create_wargoal());
-		new_wg.set_added_by(wg.added_by);
-		new_wg.set_associated_tag(wg.wg_tag);
-		new_wg.set_peace_offer_from_peace_offer_item(offer);
-		new_wg.set_associated_state(wg.state);
-		new_wg.set_target_nation(wg.target_nation);
-		new_wg.set_type(wg.cb);
+		if(wg.cb) {
+			auto new_wg = fatten(state.world, state.world.create_wargoal());
+			new_wg.set_added_by(wg.added_by);
+			new_wg.set_associated_tag(wg.wg_tag);
+			new_wg.set_peace_offer_from_peace_offer_item(offer);
+			new_wg.set_associated_state(wg.state);
+			new_wg.set_target_nation(wg.target_nation);
+			new_wg.set_type(wg.cb);
+		}
+		else {
+			break;
+		}
 	}
 }
 
@@ -3074,7 +3079,7 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 		dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
 
-	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+ 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending)
 		return false;
 
@@ -3084,13 +3089,13 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 
 	bool found = [&]() {
 		for(auto wg : state.crisis_attacker_wargoals) {
-			if(wg.added_by == source && cb_state == wg.state && cb_tag == wg.wg_tag &&
+			if(wg.added_by == wargoal_from && cb_state == wg.state && cb_tag == wg.wg_tag &&
 						cb_secondary_nation == wg.secondary_nation && target == wg.target_nation &&
 						primary_cb == wg.cb)
 				return true;
 		}
 		for(auto wg : state.crisis_defender_wargoals) {
-			if(wg.added_by == source && cb_state == wg.state && cb_tag == wg.wg_tag &&
+			if(wg.added_by == wargoal_from && cb_state == wg.state && cb_tag == wg.wg_tag &&
 						cb_secondary_nation == wg.secondary_nation && target == wg.target_nation &&
 						primary_cb == wg.cb)
 				return true;
@@ -4442,6 +4447,7 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = data.invited;
 	m.from = source;
+	m.data.crisis_offer.added_by = m.to;
 	m.data.crisis_offer.target_nation = data.target;
 	m.data.crisis_offer.secondary_nation = data.cb_secondary_nation;
 	m.data.crisis_offer.state = data.cb_state;

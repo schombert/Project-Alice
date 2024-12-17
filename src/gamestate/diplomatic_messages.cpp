@@ -194,10 +194,10 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 			par.merely_interested = false;
 			par.supports_attacker = (from == state.primary_crisis_attacker);
 			if(par.supports_attacker) {
-				state.crisis_attacker_wargoals.push_back(offer);
+				nations::crisis_add_wargoal(state.crisis_attacker_wargoals, offer);
 			}
 			else {
-				state.crisis_defender_wargoals.push_back(offer);
+				nations::crisis_add_wargoal(state.crisis_defender_wargoals, offer);
 			}
 			break;
 		}

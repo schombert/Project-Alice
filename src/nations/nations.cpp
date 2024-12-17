@@ -2193,6 +2193,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 }
 
 void crisis_add_wargoal(std::vector<sys::full_wg>& list, sys::full_wg wg) {
+	assert(wg.cb && wg.added_by && wg.target_nation);
 	for(unsigned i = 0; i < list.size(); i++) {
 		if(!list[i].cb) {
 			list[i] = wg;

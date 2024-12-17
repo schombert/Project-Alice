@@ -235,7 +235,12 @@ public:
 		row_contents.clear();
 
 		for(auto wg : state.crisis_attacker_wargoals) {
-			row_contents.push_back(wg);
+			if(wg.cb) {
+				row_contents.push_back(wg);
+			}
+			else {
+				break;
+			}
 		}
 
 		update(state);
@@ -367,7 +372,12 @@ public:
 		row_contents.clear();
 
 		for(auto wg : state.crisis_defender_wargoals) {
-			row_contents.push_back(wg);
+			if(wg.cb) {
+				row_contents.push_back(wg);
+			}
+			else {
+				break;
+			}
 		}
 
 		update(state);
