@@ -382,7 +382,8 @@ void merge_sort(IT first, IT end, CMP const& cmp) noexcept {
 	delete[] buffer;
 }
 
-struct full_wg {
+class full_wg {
+public:
 	dcon::nation_id added_by;
 	dcon::nation_id target_nation;
 	dcon::nation_id secondary_nation;

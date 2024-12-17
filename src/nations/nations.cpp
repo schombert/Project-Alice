@@ -5,6 +5,7 @@
 #include "modifiers.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
+#include "container_types.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "triggers.hpp"
 #include "politics.hpp"
@@ -2191,7 +2192,33 @@ void daily_update_flashpoint_tension(sys::state& state) {
 	}
 }
 
+void crisis_add_wargoal(std::vector<sys::full_wg>& list, sys::full_wg wg) {
+	for(unsigned i = 0; i < list.size(); i++) {
+		if(!list[i].cb) {
+			list[i] = wg;
+			break;
+		}
+	}
+}
+
 void cleanup_crisis(sys::state& state) {
+	for(unsigned i = 0; i < state.crisis_attacker_wargoals.size(); i++) {
+		if(state.crisis_attacker_wargoals[i].cb) {
+			state.crisis_attacker_wargoals[i] = sys::full_wg{};
+		}
+		else {
+			break;
+		}
+	}
+	for(unsigned i = 0; i < state.crisis_defender_wargoals.size(); i++) {
+		if(state.crisis_defender_wargoals[i].cb) {
+			state.crisis_defender_wargoals[i] = sys::full_wg{};
+		}
+		else {
+			break;
+		}
+	}
+
 	state.current_crisis = sys::crisis_type::none;
 	state.crisis_state_instance = dcon::state_instance_id{};
 	state.last_crisis_end_date = state.current_date;
@@ -2214,8 +2241,6 @@ void cleanup_crisis(sys::state& state) {
 	state.crisis_war = dcon::war_id{};
 	state.primary_crisis_attacker = dcon::nation_id{};
 	state.primary_crisis_defender = dcon::nation_id{};
-	state.crisis_attacker_wargoals = std::vector<sys::full_wg>{};
-	state.crisis_defender_wargoals = std::vector<sys::full_wg>{};
 }
 
 void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
@@ -2549,7 +2574,7 @@ void update_crisis(sys::state& state) {
 				}
 				state.crisis_defender = owner;
 
-				state.crisis_attacker_wargoals.push_back(sys::full_wg{
+				crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
 					dcon::nation_id{}, // added_by;
 						owner, // target_nation;
 						dcon::nation_id{}, //  secondary_nation;
@@ -2587,7 +2612,7 @@ void update_crisis(sys::state& state) {
 						state.current_crisis = sys::crisis_type::colonial;
 						sd.set_colonization_temperature(0.0f);
 
-						state.crisis_attacker_wargoals.push_back(sys::full_wg{
+						crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
 							attacking_colonizer, // added_by;
 								defending_colonizer, // target_nation;
 								dcon::nation_id{}, //  secondary_nation;
@@ -2595,6 +2620,7 @@ void update_crisis(sys::state& state) {
 								sd, // state;
 								state.military_definitions.crisis_colony // cb
 						});
+
 						state.crisis_attacker = attacking_colonizer;
 						if(attacking_colonizer.get_is_great_power()) {
 							state.primary_crisis_attacker = attacking_colonizer;
@@ -2693,13 +2719,11 @@ void update_crisis(sys::state& state) {
 				}
 			}
 
-			for(unsigned i = 1; i < state.crisis_attacker_wargoals.size(); i++) {
-				auto wg = state.crisis_attacker_wargoals.at(i);
+			for(auto wg : state.crisis_attacker_wargoals) {
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}
-			for(unsigned i = 0; i < state.crisis_defender_wargoals.size(); i++) {
-				auto wg = state.crisis_defender_wargoals.at(i);
+			for(auto wg : state.crisis_defender_wargoals) {
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}

@@ -367,6 +367,7 @@ void monthly_flashpoint_update(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
 void crisis_state_transition(sys::state& state, sys::crisis_state new_state);
 void update_crisis(sys::state& state);
+void crisis_add_wargoal(std::vector<sys::full_wg>& list, sys::full_wg wg);
 
 void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);

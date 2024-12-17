@@ -221,7 +221,7 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 	// check: all goals in offer are part of the crisis
 	for(auto wg : state.world.peace_offer_get_peace_offer_item(peace)) {
 		bool found = [&]() {
-			for(auto& par : state.crisis_attacker_wargoals) {
+			for(auto par : state.crisis_attacker_wargoals) {
 				if(par.added_by == wg.get_wargoal().get_added_by()) {
 					if(wg.get_wargoal().get_associated_state() == par.state &&
 							wg.get_wargoal().get_associated_tag() == par.wg_tag &&
@@ -233,7 +233,7 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 						return false;
 				}
 			}
-			for(auto& par : state.crisis_defender_wargoals) {
+			for(auto par : state.crisis_defender_wargoals) {
 				if(par.added_by == wg.get_wargoal().get_added_by()) {
 					if(wg.get_wargoal().get_associated_state() == par.state &&
 							wg.get_wargoal().get_associated_tag() == par.wg_tag &&

@@ -2879,6 +2879,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	nations_by_military_score.resize(2000);
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
+	crisis_attacker_wargoals.resize(2000);
+	crisis_defender_wargoals.resize(2000);
 
 	for(auto t : world.in_technology) {
 		for(auto n : world.in_nation) {
@@ -3637,6 +3639,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
 	nations_by_military_score.resize(2000);
+	crisis_attacker_wargoals.resize(2000);
+	crisis_defender_wargoals.resize(2000);
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
