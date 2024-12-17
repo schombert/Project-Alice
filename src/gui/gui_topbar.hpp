@@ -1684,7 +1684,7 @@ public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		if(state.current_crisis_state == sys::crisis_state::inactive) {
 			return 2;
-		} else if(state.crisis_temperature > 0.8f) {
+		} else if(state.crisis_temperature > 80.f) {
 			return 1;
 		} else {
 			return 0;

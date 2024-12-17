@@ -2969,24 +2969,6 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 	offer.set_is_concession(is_concession);
 	offer.set_nation_from_pending_peace_offer(source);
 	offer.set_is_crisis_offer(true);
-
-	auto defender_victory = (source == state.primary_crisis_attacker && is_concession) ||
-		(source != state.primary_crisis_attacker && is_concession);
-	auto wargoalslist = (defender_victory) ? state.crisis_defender_wargoals : state.crisis_attacker_wargoals;
-	for(auto wg : wargoalslist) {
-		if(wg.cb) {
-			auto new_wg = fatten(state.world, state.world.create_wargoal());
-			new_wg.set_added_by(wg.added_by);
-			new_wg.set_associated_tag(wg.wg_tag);
-			new_wg.set_peace_offer_from_peace_offer_item(offer);
-			new_wg.set_associated_state(wg.state);
-			new_wg.set_target_nation(wg.target_nation);
-			new_wg.set_type(wg.cb);
-		}
-		else {
-			break;
-		}
-	}
 }
 
 void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
@@ -3107,8 +3089,11 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 		return false;
 
 	// no duplicates
-	for(auto wg : state.world.peace_offer_get_peace_offer_item(pending)) {
-		if(wg.get_wargoal().get_added_by() == wargoal_from)
+	for(auto item : state.world.peace_offer_get_peace_offer_item(pending)) {
+		auto wg = item.get_wargoal();
+		if(wg.get_added_by() == wargoal_from && cb_state == wg.get_associated_state() && cb_tag == wg.get_associated_tag() &&
+						cb_secondary_nation == wg.get_secondary_nation() && target == wg.get_target_nation() &&
+						primary_cb == wg.get_type())
 			return false;
 	}
 
