@@ -693,8 +693,8 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_last_checked_gp);
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_war);
 	ptr_in = memcpy_deserialize(ptr_in, state.last_crisis_end_date);
-	// ptr_in = memcpy_deserialize(ptr_in, state.crisis_defender_wargoals);
-	// ptr_in = memcpy_deserialize(ptr_in, state.crisis_attacker_wargoals);
+	ptr_in = deserialize(ptr_in, state.crisis_defender_wargoals);
+	ptr_in = deserialize(ptr_in, state.crisis_attacker_wargoals);
 	ptr_in = memcpy_deserialize(ptr_in, state.inflation);
 	ptr_in = deserialize(ptr_in, state.great_nations);
 	ptr_in = deserialize(ptr_in, state.pending_n_event);
@@ -746,8 +746,8 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_last_checked_gp);
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_war);
 	ptr_in = memcpy_serialize(ptr_in, state.last_crisis_end_date);
-	// ptr_in = memcpy_serialize(ptr_in, state.crisis_defender_wargoals);
-	// ptr_in = memcpy_serialize(ptr_in, state.crisis_attacker_wargoals);
+	ptr_in = serialize(ptr_in, state.crisis_defender_wargoals);
+	ptr_in = serialize(ptr_in, state.crisis_attacker_wargoals);
  	ptr_in = memcpy_serialize(ptr_in, state.inflation);
 	ptr_in = serialize(ptr_in, state.great_nations);
 	ptr_in = serialize(ptr_in, state.pending_n_event);
@@ -793,8 +793,8 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.crisis_last_checked_gp);
 	sz += sizeof(state.crisis_war);
 	sz += sizeof(state.last_crisis_end_date);
-	// sz += sizeof(state.crisis_defender_wargoals);
-	// sz += sizeof(state.crisis_attacker_wargoals);
+	sz += serialize_size(state.crisis_defender_wargoals);
+	sz += serialize_size(state.crisis_attacker_wargoals);
 	sz += sizeof(state.inflation);
 	sz += serialize_size(state.great_nations);
 	sz += serialize_size(state.pending_n_event);
