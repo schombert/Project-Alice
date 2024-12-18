@@ -2533,7 +2533,7 @@ public:
 				command::cancel_military_access(state, state.local_player_nation, facts_nation_id);
 				break;
 			case diplomacy_action::give_military_access:
-				// TODO: Give military access
+				command::give_military_access(state, state.local_player_nation, facts_nation_id);
 				break;
 			case diplomacy_action::cancel_give_military_access:
 				command::cancel_given_military_access(state, state.local_player_nation, facts_nation_id);

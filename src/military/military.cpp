@@ -841,6 +841,8 @@ int32_t main_culture_regiments_under_construction_in_province(sys::state& state,
 	return total;
 }
 
+// Calculates whether province can support more regiments
+// Considers existing regiments and construction as well
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture) {
 	if(state.world.province_get_is_colonial(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
