@@ -162,6 +162,8 @@ void diplomatic_message_topbar_button::button_action(sys::state& state) noexcept
 }
 
 void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noexcept {
+
+	// TODO: right click must remove message
 	if(parent) {
 		auto win = static_cast<diplomatic_message_topbar_entry_window*>(parent);
 		if(win->btn)

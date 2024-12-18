@@ -2151,6 +2151,7 @@ private:
 	diplomacy_casus_belli_window* casus_belli_window = nullptr;
 	// element_base* casus_belli_window = nullptr;
 	diplomacy_crisis_info_window* crisis_window = nullptr;
+	crisis_add_wargoal_window* crisis_add_wargoal_win = nullptr;
 
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
 	std::vector<element_base*> action_buttons{};
@@ -2169,6 +2170,7 @@ private:
 	}
 
 public:
+
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 		state.ui_state.diplomacy_subwindow = this;
@@ -2277,6 +2279,12 @@ public:
 		new_win6->set_visible(state, false);
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
+
+		auto new_winc7 = make_element_by_type<crisis_add_wargoal_window>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("declarewardialog"))->second.definition);
+		new_winc7->set_visible(state, false);
+		crisis_add_wargoal_win = new_winc7.get();
+		add_child_to_front(std::move(new_winc7));
 
 		if(state.great_nations.size() > 1) {
 			Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.great_nations[0].nation };
@@ -2585,6 +2593,11 @@ public:
 				crisis_backdown_win->impl_on_update(state);
 				break;
 			case diplomacy_action::crisis_support:
+				break;
+			case diplomacy_action::crisis_add_wargoal:
+				crisis_add_wargoal_win->set_visible(state, false);
+				crisis_add_wargoal_win->reset_window(state);
+				crisis_add_wargoal_win->set_visible(state, true);
 				break;
 			default:
 				action_dialog_win->set_visible(state, true);

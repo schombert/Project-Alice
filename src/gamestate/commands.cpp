@@ -4470,6 +4470,8 @@ void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_w
 		data.cb_state, // state;
 		data.cb_type // cb
 	});
+
+	state.world.nation_get_diplomatic_points(source) -= 1.0f;
 }
 
 bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {

@@ -229,8 +229,6 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 							wg.get_wargoal().get_target_nation() == par.target_nation &&
 							wg.get_wargoal().get_type() == par.cb)
 						return true;
-					else
-						return false;
 				}
 			}
 			for(auto par : state.crisis_defender_wargoals) {
@@ -241,8 +239,6 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 							wg.get_wargoal().get_target_nation() == par.target_nation &&
 							wg.get_wargoal().get_type() == par.cb)
 						return true;
-					else
-						return false;
 				}
 			}
 			return false;

@@ -210,7 +210,7 @@ class attacker_add_wg_button : public button_element_base {
 	}
 	void button_action(sys::state& state) noexcept override {
 		if(show)
-			send(state, parent, diplomacy_action::add_wargoal);
+			send(state, parent, diplomacy_action::crisis_add_wargoal);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -244,7 +244,7 @@ class defender_add_wg_button : public button_element_base {
 	}
 	void button_action(sys::state& state) noexcept override {
 		if(show)
-			send(state, parent, diplomacy_action::add_wargoal);
+			send(state, parent, diplomacy_action::crisis_add_wargoal);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1083,16 +1083,6 @@ public:
 
 class diplomacy_crisis_info_window : public window_element_base {
 public:
-	crisis_add_wargoal_window* crisis_add_wargoal_win = nullptr;
-
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-
-		auto new_winc = make_element_by_type<crisis_add_wargoal_window>(state,
-				state.ui_state.defs_by_name.find(state.lookup_key("declarewardialog"))->second.definition);
-		new_winc->set_visible(state, false);
-		crisis_add_wargoal_win = new_winc.get();
-	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "crisis_title") {
@@ -1112,23 +1102,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<diplomacy_action>()) {
-			auto v = any_cast<diplomacy_action>(payload);
-
-			if(v == diplomacy_action::add_wargoal) {
-				crisis_add_wargoal_win->set_visible(state, false);
-				crisis_add_wargoal_win->reset_window(state);
-				crisis_add_wargoal_win->set_visible(state, true);
-				move_child_to_front(crisis_add_wargoal_win);
-			}
-
-			return message_result::consumed;
-		}
-
-		return message_result::unseen;
 	}
 };
 

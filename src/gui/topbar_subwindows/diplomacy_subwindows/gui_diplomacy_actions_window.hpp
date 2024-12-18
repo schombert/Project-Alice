@@ -30,6 +30,7 @@ enum class diplomacy_action : uint8_t {
 	crisis_support,
 	add_wargoal,
 	state_transfer,
+	crisis_add_wargoal
 };
 
 enum class gp_choice_actions {
