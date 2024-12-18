@@ -106,6 +106,7 @@ enum class command_type : uint8_t {
 	toggle_interested_in_alliance = 97,
 	pbutton_script = 98,
 	nbutton_script = 99,
+	crisis_add_wargoal = 100,
 
 	// network
 	notify_player_ban = 106,
@@ -793,6 +794,10 @@ bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id
 
 void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+
+bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg);
+void queue_crisis_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg);
+void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_war_goal_data const& data);
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
 

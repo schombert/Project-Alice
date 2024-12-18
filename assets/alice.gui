@@ -5356,13 +5356,13 @@ guiTypes = {
 
 	checkboxType = {
 		name = "call_allies_checkbox"
-		position = { x= 125 y = 471 }
+		position = { x= 115 y = 471 }
 		quadTextureSprite = "GFX_checkbox_default"
 	}
 		
 	instantTextBoxType = {
 		name = "call_allies_text"
-		position = { x = 128 y = 474 }
+		position = { x = 118 y = 474 }
 		textureFile = ""
 		font = "vic_18"
 		borderSize = {x = 0 y = 0}
@@ -5374,14 +5374,14 @@ guiTypes = {
 
 	checkboxType = {
 		name = "run_conference_checkbox"
-		position = { x= 357 y = 471 }
+		position = { x= 347 y = 471 }
 		quadTextureSprite = "GFX_checkbox_default"
 		extends = "DeclareWarDialog"
 	}
 		
 	instantTextBoxType = {
 		name = "run_conferences_text"
-		position = { x = 350 y = 474 }
+		position = { x = 340 y = 474 }
 		textureFile = ""
 		font = "vic_18"
 		borderSize = {x = 0 y = 0}
@@ -5390,5 +5390,27 @@ guiTypes = {
 		maxHeight = 20
 		format = centre
 		extends = "DeclareWarDialog"
+	}
+
+	guiButtonType = {
+		name = "crisis_add_wg"
+		position = { x = 10 y = 110 }
+		quadTextureSprite = "GFX_button_thin_160"
+		buttonFont = "vic_18_black"
+		Orientation = "UPPER_LEFT"
+		buttonText = "DIPLOMACY_ADD_WARGOAL"
+		clicksound = click
+		extends = "attacker_win"
+	}
+
+	guiButtonType = {
+		name = "crisis_add_wg"
+		position = { x = 10 y = 110 }
+		quadTextureSprite = "GFX_button_thin_160"
+		buttonFont = "vic_18_black"
+		Orientation = "UPPER_LEFT"
+		buttonText = "DIPLOMACY_ADD_WARGOAL"
+		clicksound = click
+		extends = "defender_win"
 	}
 }

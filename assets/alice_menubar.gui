@@ -518,11 +518,11 @@ guiTypes = {
         
         guiButtonType = {
 			name = "new_army_group_button"
-			quadTextureSprite = "unitframes"
+			quadTextureSprite = "GFX_alice_unit_frames"
 			position = { 0 0 }
 			buttonText = "alice_battleplanner_new_army_group"
 			buttonFont = "vic_22_black"
-			Orientation = "CENTER_BOTTOM"
+			Orientation = "LOWER_LEFT"
 		}
     }
 }

@@ -4444,6 +4444,81 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	diplomatic_message::post(state, m);
 }
 
+void queue_crisis_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::crisis_add_wargoal;
+	p.source = source;
+	p.data.new_war_goal.target = wg.target_nation;
+	p.data.new_war_goal.cb_type = wg.cb;
+	p.data.new_war_goal.cb_state = wg.state;
+	p.data.new_war_goal.cb_tag = wg.wg_tag;
+	p.data.new_war_goal.cb_secondary_nation = wg.secondary_nation;
+	add_to_command_queue(state, p);
+}
+
+void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_war_goal_data const& data) {
+	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
+		return;
+
+	auto& wargoalslist = (source == state.primary_crisis_attacker) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+	nations::crisis_add_wargoal(wargoalslist, sys::full_wg{
+		source, // added_by;
+		data.target, // target_nation;
+		data.cb_secondary_nation, //  secondary_nation;
+		data.cb_tag, // wg_tag;
+		data.cb_state, // state;
+		data.cb_type // cb
+	});
+}
+
+bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
+
+	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
+		return false;
+
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
+		return false;
+	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
+		return false;
+
+	// target must be in crisis
+	for(auto& par : state.crisis_participants) {
+		if(!par.id) {
+			return false; // not in crisis
+		}
+		if(par.id == wg.target_nation) {
+			if(par.merely_interested)
+				return false;
+			if(par.supports_attacker && source == state.primary_crisis_attacker)
+				return false;
+			if(!par.supports_attacker && source == state.primary_crisis_defender)
+				return false;
+
+			break;
+		}
+	}
+
+	auto cb_type = state.world.cb_type_get_type_bits(wg.cb);
+	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
+		return false;
+
+	if(!military::cb_instance_conditions_satisfied(state, source, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation)) {
+		return false;
+	}
+
+	// no duplicates
+	auto wargoalslist = (source == state.primary_crisis_attacker) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+	for(auto ewg : wargoalslist) {
+		if(ewg.added_by == wg.added_by && ewg.state == wg.state && ewg.wg_tag == wg.wg_tag &&
+						ewg.secondary_nation == wg.secondary_nation && ewg.target_nation == wg.target_nation &&
+						ewg.cb == wg.cb)
+			return false;
+	}
+
+	return true;
+}
+
 void toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5210,6 +5285,16 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::add_wargoal_to_crisis_offer:
 		return true; // can_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
 
+	case command_type::crisis_add_wargoal:
+		return crisis_can_add_wargoal(state, c.source, sys::full_wg{
+		c.source, // added_by;
+		c.data.new_war_goal.target, // target_nation;
+		c.data.new_war_goal.cb_secondary_nation, //  secondary_nation;
+		c.data.new_war_goal.cb_tag, // wg_tag;
+		c.data.new_war_goal.cb_state, // state;
+		c.data.new_war_goal.cb_type // cb
+	});
+
 	case command_type::send_crisis_peace_offer:
 		return can_send_crisis_peace_offer(state, c.source);
 
@@ -5563,6 +5648,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::add_wargoal_to_crisis_offer:
 		execute_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
+		break;
+	case command_type::crisis_add_wargoal:
+		execute_crisis_add_wargoal(state, c.source, c.data.new_war_goal);
 		break;
 	case command_type::send_crisis_peace_offer:
 		execute_send_crisis_peace_offer(state, c.source);
