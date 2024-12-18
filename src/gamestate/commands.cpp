@@ -4412,6 +4412,19 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 		}
 	}
 
+	// no duplicates
+	auto wargoalslist = (source == state.primary_crisis_attacker) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+	for(auto ewg : wargoalslist) {
+		// Different added_by, similar everything else
+		if (ewg.state == cb_state && ewg.wg_tag == cb_tag &&
+						ewg.secondary_nation == cb_secondary_nation && ewg.target_nation == target)
+			return false;
+
+		if(!ewg.cb) {
+			break;
+		}
+	}
+
 	auto cb_type = state.world.cb_type_get_type_bits(primary_cb);
 	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
 		return false;
@@ -4516,6 +4529,9 @@ bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full
 						ewg.secondary_nation == wg.secondary_nation && ewg.target_nation == wg.target_nation &&
 						ewg.cb == wg.cb)
 			return false;
+		if(!ewg.cb) {
+			break;
+		}
 	}
 
 	return true;

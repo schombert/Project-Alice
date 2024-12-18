@@ -1575,10 +1575,12 @@ private:
 		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
 		if(allowed_substate_regions) {
+			auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
 			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
 				if(v.get_subject().get_is_substate()) {
 					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor)) &&
+							command::can_invite_to_crisis(state, actor, offer_made_to, wargoal_against, cb_to_use, si.get_state().get_definition(), target_country, in_nation)) {
 							seldata.selectable_states.push_back(si.get_state().get_definition().id);
 						}
 					}
@@ -1589,13 +1591,16 @@ private:
 			if(auto allowed_countries = state.world.cb_type_get_allowed_countries(cb); allowed_countries) {
 				auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
 				for(auto si : state.world.nation_get_state_ownership(target)) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation)) &&
+						command::can_invite_to_crisis(state, actor, offer_made_to, wargoal_against, cb_to_use, si.get_state().get_definition(), target_country, in_nation)) {
 						seldata.selectable_states.push_back(si.get_state().get_definition().id);
 					}
 				}
 			} else {
+				auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
 				for(auto si : state.world.nation_get_state_ownership(target)) {
-					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor)) &&
+						command::can_invite_to_crisis(state, actor, offer_made_to, wargoal_against, cb_to_use, si.get_state().get_definition(), target_country, in_nation)) {
 						seldata.selectable_states.push_back(si.get_state().get_definition().id);
 					}
 				}

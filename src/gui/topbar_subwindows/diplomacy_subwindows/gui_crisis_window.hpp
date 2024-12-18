@@ -218,8 +218,6 @@ class attacker_add_wg_button : public button_element_base {
 	}
 	
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "crisis_offer_button");
-		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "crisis_offer_button_ex_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= 1.0f);
 	}
 
@@ -252,8 +250,6 @@ class defender_add_wg_button : public button_element_base {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "crisis_offer_button");
-		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "crisis_offer_button_ex_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= 1.0f);
 	}
 
@@ -328,7 +324,6 @@ private:
 	dcon::national_identity_id secondary_tag_identity;
 	dcon::national_identity_id wg_tag;
 
-	bool will_call_allies = false;
 	bool wargoal_decided_upon = false;
 
 	void select_mode(sys::state& state) {
@@ -424,7 +419,6 @@ public:
 		cb_to_use = dcon::cb_type_id{};
 		target_state = dcon::state_definition_id{};
 		secondary_tag_identity = dcon::national_identity_id{};
-		will_call_allies = false;
 		wargoal_decided_upon = false;
 
 		wargoal_setup_win->set_visible(state, false);
@@ -579,9 +573,6 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::national_identity_id>()) {
 			payload.emplace<dcon::national_identity_id>(secondary_tag_identity);
-			return message_result::consumed;
-		} else if(payload.holds_type<bool>()) {
-			payload.emplace<bool>(will_call_allies);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
