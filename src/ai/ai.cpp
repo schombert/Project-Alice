@@ -12,6 +12,10 @@
 
 namespace ai {
 
+enum ai_strategies {
+	industrious, militant, technological
+};
+
 float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
@@ -962,6 +966,69 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	}
 }
 
+void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+	assert(desired_types.empty());
+	auto n = dcon::fatten(state.world, nid);
+	auto m = dcon::fatten(state.world, mid);
+
+	auto treasury = n.get_stockpiles(economy::money);
+
+	// first pass: try to create factories which will pay back investment fast - in a year at most:
+	if(desired_types.empty()) {
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
+
+				if((lacking_output || ((output - input) / cost < 365.f)))
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
+
+	// second pass: try to create factories which have a good profit margin
+	if(desired_types.empty()) {
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
+				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
+
+				if((lacking_output || ((output - input) / input > profitabilitymark)))
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
+}
+
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
@@ -1063,7 +1130,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 						auto m = state.world.state_instance_get_market_from_local_market(si);
 						desired_types.clear();
-						get_desired_factory_types(state, n, m, desired_types);
+						get_state_desired_factory_types(state, n, m, desired_types);
 
 						// check -- either unemployed factory workers or no factory workers
 						auto pw_num = state.world.state_instance_get_demographics(si,
@@ -3188,6 +3255,18 @@ void make_war_decs(sys::state& state) {
 	}
 }
 
+int32_t future_rebels_in_nation(sys::state& state, dcon::nation_id n) {
+	auto total = 0;
+	for(auto fac : state.world.nation_get_rebellion_within(n)) {
+		for(auto ar : state.world.rebel_faction_get_army_rebel_control(fac.get_rebels())) {
+			auto regs = ar.get_army().get_army_membership();
+			total += int32_t(regs.end() - regs.begin());
+		}
+	}
+
+	return total;
+}
+
 void update_budget(sys::state& state) {
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id nid{ dcon::nation_id::value_base_t(i) };
@@ -3247,6 +3326,11 @@ void update_budget(sys::state& state) {
 
 		ratio_land = std::clamp(ratio_land, 0.f, 100.f);
 		ratio_naval = std::clamp(ratio_naval, 0.f, 100.f);
+		// Reduce spending at peace
+		if(!state.world.nation_get_is_at_war(n) && future_rebels_in_nation(state, n) == 0) {
+			ratio_land /= 10.f;
+			ratio_naval /= 10.f;
+		}
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 
@@ -3262,7 +3346,9 @@ void update_budget(sys::state& state) {
 		ratio_education = std::clamp(ratio_education, 0.f, 100.f);
 		n.set_education_spending(int8_t(ratio_education));		
 
-		if(n.get_is_civilized()) {
+		// If State can build factories - why subsidize capitalists
+		auto rules = n.get_combined_issue_rules();
+		if(n.get_is_civilized() && (rules & issue_rule::build_factory) == 0) {
 			float investment_budget = investments_budget_ratio * base_income;
 			float max_investment_budget = 1.f + economy::estimate_domestic_investment(state, n);
 			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
@@ -3286,7 +3372,6 @@ void update_budget(sys::state& state) {
 		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::middle_total))) / 10.f;
 		float rich_militancy = (state.world.nation_get_demographics(n, demographics::rich_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::rich_total))) / 10.f;
 
-		auto rules = n.get_combined_issue_rules();
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
 			int max_poor_tax = int(10.f + 70.f * (1.f - poor_militancy));
@@ -5083,6 +5168,47 @@ void move_gathered_attackers(sys::state& state) {
 	}
 }
 
+int32_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
+	auto factor = 1.0f;
+
+	if(state.world.nation_get_ai_is_threatened(nation)) {
+		factor *= 2.0f;
+	}
+
+	if(state.world.nation_get_ai_strategy(nation) == ai_strategies::militant) {
+		factor *= 1.5f;
+	}
+	else {
+		factor *= 0.75f;
+	}
+
+	auto in_sphere_of = state.world.nation_get_in_sphere_of(nation);
+
+	// Most dangerous neighbor
+	dcon::nation_id greatest_neighbor;
+	auto greatest_neighbor_strength = 0.0f;
+	for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(nation)) {
+		auto other = b.get_connected_nations(0) != nation ? b.get_connected_nations(0) : b.get_connected_nations(1);
+		if(!nations::are_allied(state, nation, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
+
+			auto other_str = estimate_strength(state, other);
+			if(other_str > greatest_neighbor_strength) {
+				greatest_neighbor_strength = other_str;
+				greatest_neighbor = other;
+			}
+		}
+	}
+
+	// How many regiments it has
+	int32_t total = 0;
+	for(auto p : state.world.nation_get_army_control(greatest_neighbor)) {
+		auto frange = p.get_army().get_army_membership();
+		total += int32_t(frange.end() - frange.begin());
+	}
+
+	return int32_t(total * factor);
+}
+
 void update_land_constructions(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
@@ -5125,8 +5251,9 @@ void update_land_constructions(sys::state& state) {
 				} else {
 					++num_frontline;
 				}
-				if(can_make_inf && type == state.military_definitions.irregular) { // free ai upgrades
+				if(can_make_inf && type == state.military_definitions.irregular) { // ai upgrades
 					r.get_regiment().set_type(state.military_definitions.infantry);
+					r.get_regiment().set_strength(0.01f);
 				}
 			}
 		}
@@ -5145,6 +5272,8 @@ void update_land_constructions(sys::state& state) {
 			}
 		};
 
+		auto num_to_build_nation = calculate_desired_army_size(state, n) - num_frontline - num_support;
+
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(p.get_province().get_nation_from_province_control() != n)
 				continue;
@@ -5159,13 +5288,14 @@ void update_land_constructions(sys::state& state) {
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
-							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-							while(num_to_make > 0) {
+							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
 								c.set_type(t);
-								--num_to_make;
+								--num_to_make_local;
+								--num_to_build_nation;
 							}
 						}
 					}
@@ -5181,13 +5311,14 @@ void update_land_constructions(sys::state& state) {
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
-							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-							while(num_to_make > 0) {
+							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
 								c.set_type(t);
-								--num_to_make;
+								--num_to_make_local;
+								--num_to_build_nation;
 							}
 						}
 					}
@@ -5203,13 +5334,14 @@ void update_land_constructions(sys::state& state) {
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
-							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-							while(num_to_make > 0) {
+							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make_local > 0 && num_to_build_nation) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
 								c.set_type(t);
-								--num_to_make;
+								--num_to_make_local;
+								--num_to_build_nation;
 							}
 						}
 					}
@@ -5357,6 +5489,23 @@ void general_ai_unit_tick(sys::state& state) {
 	case 7:
 		move_gathered_attackers(state);
 		break;
+	}
+
+	auto d = v % 100;
+
+	if(d == 0) {
+		for(auto nation : state.world.in_nation) {
+			if(state.world.nation_get_is_player_controlled(nation)) {
+				continue;
+			}
+
+			if(nation.get_is_great_power()) {
+				nation.set_ai_strategy(ai_strategies::militant);
+			}
+			else {
+				nation.set_ai_strategy(ai_strategies::industrious);
+			}
+		}
 	}
 }
 
