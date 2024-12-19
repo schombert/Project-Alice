@@ -32,8 +32,8 @@ template<class T>
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		// No selected Regiments
-		if(!state.selected_regiments[0]) {
+		// No selected Regiments or Ships
+		if(!state.selected_regiments[0] && !state.selected_ships[0]) {
 			send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
 		}
 		else {
@@ -968,6 +968,15 @@ public:
 					color = sys::pack_color(255, 255, 255);
 				}
 			}
+			else if constexpr(std::is_same_v<T, dcon::ship_id>) {
+				dcon::ship_id sh = any_cast<dcon::ship_id>(payload);
+
+				if(std::find(state.selected_ships.begin(), state.selected_ships.end(), sh) != state.selected_ships.end()) {
+					color = sys::pack_color(255, 200, 200);
+				} else {
+					color = sys::pack_color(255, 255, 255);
+				}
+			}
 		}
 	}
 
@@ -984,6 +993,22 @@ public:
 				} else {
 					sys::selected_regiments_clear(state);
 					sys::selected_regiments_add(state, reg);
+					parent->impl_on_update(state);
+				}
+			}
+		}
+		else if constexpr(std::is_same_v<T, dcon::ship_id>) {
+			if(parent) {
+				Cyto::Any payload = dcon::ship_id{};
+				parent->impl_get(state, payload);
+				dcon::ship_id reg = any_cast<dcon::ship_id>(payload);
+
+				if(mods == sys::key_modifiers::modifiers_shift) {
+					sys::selected_ships_add(state, reg);
+					parent->impl_on_update(state);
+				} else {
+					sys::selected_ships_clear(state);
+					sys::selected_ships_add(state, reg);
 					parent->impl_on_update(state);
 				}
 			}
