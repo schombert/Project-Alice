@@ -5640,6 +5640,12 @@ void state::build_up_to_template_land(
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
 	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+		// Toggle selection
+		if(state.selected_regiments[i] == reg) {
+			state.selected_regiments[i] = dcon::regiment_id{};
+			break;
+		}
+		// Add to selection
 		if(!state.selected_regiments[i]) {
 			state.selected_regiments[i] = reg;
 			break;
@@ -5658,6 +5664,12 @@ void selected_regiments_clear(sys::state& state) {
 
 void selected_ships_add(sys::state& state, dcon::ship_id sh) {
 	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+		// Toggle selection
+		if(state.selected_ships[i] == sh) {
+			state.selected_ships[i] = dcon::ship_id{};
+			break;
+		}
+		// Add to selection
 		if(!state.selected_ships[i]) {
 			state.selected_ships[i] = sh;
 			break;

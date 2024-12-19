@@ -32,7 +32,49 @@ template<class T>
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
+		// No selected Regiments
+		if(!state.selected_regiments[0]) {
+			send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
+		}
+		else {
+			auto content = retrieve<T>(state, parent);
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
+				for(size_t i = 0; i < state.selected_regiments.size(); i++) {
+					if(state.selected_regiments[i]) {
+						tosplit[i % command::num_packed_units] = state.selected_regiments[i];
+					} else {
+						break;
+					}
+					if(i % command::num_packed_units == command::num_packed_units - 1) {
+						command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
+						tosplit = {};
+					}
+				}
+
+				command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
+				command::split_army(state, state.local_player_nation, content);
+				sys::selected_regiments_clear(state);
+			} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+				std::array<dcon::ship_id, command::num_packed_units> tosplit{};
+				for(size_t i = 0; i < state.selected_ships.size(); i++) {
+					if(state.selected_ships[i]) {
+						tosplit[i % command::num_packed_units] = state.selected_ships[i];
+					}
+					else {
+						break;
+					}
+					if(i % command::num_packed_units == command::num_packed_units - 1) {
+						command::mark_ships_to_split(state, state.local_player_nation, tosplit);
+						tosplit = {};
+					}
+				}
+
+				command::mark_ships_to_split(state, state.local_player_nation, tosplit);
+				command::split_navy(state, state.local_player_nation, content);
+				sys::selected_ships_clear(state);
+			}
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -941,6 +983,7 @@ public:
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_regiments_clear(state);
+					sys::selected_regiments_add(state, reg);
 					parent->impl_on_update(state);
 				}
 			}
@@ -1053,6 +1096,8 @@ protected:
 		return "subunit_entry";
 	}
 
+	dcon::army_id cached_id;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("subunit_entry"))->second.definition].size.y; //nudge - allows for the extra element in the lb
@@ -1061,6 +1106,12 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::army_id>(state, parent);
+
+		if(content != cached_id) {
+			cached_id = content;
+			sys::selected_regiments_clear(state);
+		}
+
 		row_contents.clear();
 		state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id amid) {
 			auto rid = state.world.army_membership_get_regiment(amid);
