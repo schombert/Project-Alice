@@ -2882,6 +2882,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	crisis_attacker_wargoals.resize(2000);
 	crisis_defender_wargoals.resize(2000);
 
+	selected_regiments.resize(1000);
+	selected_ships.resize(1000);
+
+
 	for(auto t : world.in_technology) {
 		for(auto n : world.in_nation) {
 			if(n.get_active_technologies(t))
@@ -3643,6 +3647,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	crisis_defender_wargoals.resize(2000);
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
+
+	selected_regiments.resize(1000);
+	selected_ships.resize(1000);
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {
@@ -5628,6 +5635,42 @@ void state::build_up_to_template_land(
 			build.u,
 			target_province
 		);
+	}
+}
+
+void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
+	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+		if(!state.selected_regiments[i]) {
+			state.selected_regiments[i] = reg;
+			break;
+		}
+	}
+}
+void selected_regiments_clear(sys::state& state) {
+	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+		if(state.selected_regiments[i]) {
+			state.selected_regiments[i] = dcon::regiment_id{};
+		} else {
+			break;
+		}
+	}
+}
+
+void selected_ships_add(sys::state& state, dcon::ship_id sh) {
+	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+		if(!state.selected_ships[i]) {
+			state.selected_ships[i] = sh;
+			break;
+		}
+	}
+}
+void selected_ships_clear(sys::state& state) {
+	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+		if(state.selected_ships[i]) {
+			state.selected_ships[i] = dcon::ship_id{};
+		} else {
+			break;
+		}
 	}
 }
 

@@ -903,11 +903,86 @@ public:
 	}
 };
 
+template<class T>
+class subunit_entry_bg : public tinted_button_element_base {
+public:
+	uint32_t color = 0;
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T content = any_cast<T>(payload);
+			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
+			if(utid)
+				frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+
+			if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+				dcon::regiment_id reg = any_cast<dcon::regiment_id>(payload);
+
+				if(std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg) != state.selected_regiments.end()) {
+					color = sys::pack_color(255, 200, 200);
+				} else {
+					color = sys::pack_color(255, 255, 255);
+				}
+			}
+		}
+	}
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			if(parent) {
+				Cyto::Any payload = dcon::regiment_id{};
+				parent->impl_get(state, payload);
+				dcon::regiment_id reg = any_cast<dcon::regiment_id>(payload);
+
+				if(mods == sys::key_modifiers::modifiers_shift) {
+					sys::selected_regiments_add(state, reg);
+					parent->impl_on_update(state);
+				} else {
+					sys::selected_regiments_clear(state);
+					parent->impl_on_update(state);
+				}
+			}
+		}
+
+		return message_result::consumed;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid) {
+			auto const& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				if(gfx_def.number_of_frames > 1) {
+					ogl::render_tinted_subsprite(state, frame,
+						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				} else {
+					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				}
+			}
+		}
+	}
+};
+
 class subunit_details_entry_regiment : public listbox_row_element_base<dcon::regiment_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<subunit_entry_bg<dcon::regiment_id>>(state, id);
 		} else if(name == "select_naval") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "sunit_icon") {
@@ -942,7 +1017,7 @@ public:
 		if(name == "select") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "select_naval") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<subunit_entry_bg<dcon::ship_id>>(state, id);
 		} else if(name == "sunit_icon") {
 			return make_element_by_type<subunit_details_type_icon<dcon::ship_id>>(state, id);
 		} else if(name == "subunit_name") {
