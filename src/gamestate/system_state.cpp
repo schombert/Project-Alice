@@ -5651,6 +5651,7 @@ void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
 			break;
 		}
 	}
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 void selected_regiments_clear(sys::state& state) {
 	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
@@ -5660,6 +5661,7 @@ void selected_regiments_clear(sys::state& state) {
 			break;
 		}
 	}
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 
 void selected_ships_add(sys::state& state, dcon::ship_id sh) {
@@ -5675,6 +5677,7 @@ void selected_ships_add(sys::state& state, dcon::ship_id sh) {
 			break;
 		}
 	}
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 void selected_ships_clear(sys::state& state) {
 	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
@@ -5684,6 +5687,7 @@ void selected_ships_clear(sys::state& state) {
 			break;
 		}
 	}
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 
 } // namespace sys

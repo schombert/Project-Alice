@@ -1110,9 +1110,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void on_update(sys::state& state) noexcept override { 
-	}
 };
 
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry_regiment, dcon::regiment_id> {
