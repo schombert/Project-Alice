@@ -3858,6 +3858,72 @@ void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_i
 	state.world.nation_set_mobilized_is_ai_controlled(source, !state.world.nation_get_mobilized_is_ai_controlled(source));
 }
 
+// Converts vectors into bit-sized arrays
+void change_unit_type(sys::state& state, dcon::nation_id source, std::vector<dcon::regiment_id> regiments, std::vector<dcon::ship_id> ships, dcon::unit_type_id new_type) {
+	while(regiments.size() > 0 || ships.size() > 0) {
+		payload p;
+		memset(&p, 0, sizeof(payload));
+		p.type = command_type::change_unit_type;
+		p.source = source;
+		p.data.change_unit_type.new_type = new_type;
+
+		for(int i = 0; i < num_packed_units; i++) {
+			if(regiments.size() > 0) {
+				p.data.change_unit_type.regs[i] = regiments.at(regiments.size() - 1);
+				regiments.pop_back();
+			}
+			if(ships.size() > 0) {
+				p.data.change_unit_type.ships[i] = ships.at(ships.size() - 1);
+				ships.pop_back();
+			}
+		}
+		add_to_command_queue(state, p);
+	}
+}
+// Uses arrays (after cmd network sending) but must be ready for null elements in the array (from local UI)
+bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type) {
+	if(regiments[0] && ships[0]) {
+		// One type can't suit both land and sea units
+		return false;
+	}
+
+	auto ut = state.military_definitions.unit_base_definitions[new_type];
+	if(ut.is_land && ships[0]) {
+		return false; // Land unit used for ships
+	}
+	else if(!ut.is_land && regiments[0]) {
+		return false; // Sea unit used for land
+	}
+
+	// Small ships can't become big ships
+	if(!ut.is_land && ut.type == military::unit_type::big_ship) {
+		for(int i = 0; i < sizeof(ships) / sizeof(*ships); i++) {
+			if(!ships[i]) {
+				break;
+			}
+			auto shiptype = state.world.ship_get_type(ships[i]);
+			auto st = state.military_definitions.unit_base_definitions[shiptype];
+			if(st.type != military::unit_type::big_ship) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+// Uses filled bit-sized arrays from cmd
+void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type) {
+	for(int i = 0; i < num_packed_units; i++) {
+		if(regiments[i]) {
+			state.world.regiment_set_type(regiments[i], new_type);
+			state.world.regiment_set_strength(regiments[i], 0.01f);
+		}
+		if(ships[i]) {
+			state.world.ship_set_type(ships[i], new_type);
+			state.world.ship_set_strength(ships[i], 0.01f);
+		}
+	}
+}
+
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5276,6 +5342,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::split_navy:
 		return can_split_navy(state, c.source, c.data.navy_movement.n);
 
+	case command_type::change_unit_type:
+		return can_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
+
 	case command_type::delete_army:
 		return can_delete_army(state, c.source, c.data.army_movement.a);
 
@@ -5639,6 +5708,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::split_navy:
 		execute_split_navy(state, c.source, c.data.navy_movement.n);
+		break;
+	case command_type::change_unit_type:
+		execute_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
 		break;
 	case command_type::delete_army:
 		execute_delete_army(state, c.source, c.data.army_movement.a);

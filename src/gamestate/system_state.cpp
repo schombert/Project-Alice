@@ -3648,8 +3648,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
-	selected_regiments.resize(1000);
-	selected_ships.resize(1000);
+	selected_regiments.resize(num_selected_units);
+	selected_ships.resize(num_selected_units);
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {

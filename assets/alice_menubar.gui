@@ -518,7 +518,7 @@ guiTypes = {
         
         guiButtonType = {
 			name = "new_army_group_button"
-			quadTextureSprite = "GFX_alice_unit_frames"
+			quadTextureSprite = "GFX_leader_generic0"
 			position = { 0 0 }
 			buttonText = "alice_battleplanner_new_army_group"
 			buttonFont = "vic_22_black"

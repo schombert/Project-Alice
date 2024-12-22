@@ -1971,7 +1971,7 @@ public:
 		auto new_win = make_element_by_type<army_management_window>(state,
 				state.ui_state.defs_by_name.find(state.lookup_key("army_management_window"))->second.definition);
 		army_mgmt_win = new_win.get();
-		army_mgmt_win->set_visible(state, true);
+		army_mgmt_win->set_visible(state, false);
 		add_child_to_front(std::move(new_win));
 
 		on_update(state);

@@ -842,6 +842,8 @@ struct alignas(64) state {
 	);
 };
 
+constexpr inline size_t num_selected_units = 1000;
+
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg);
 void selected_regiments_clear(sys::state& state);
 

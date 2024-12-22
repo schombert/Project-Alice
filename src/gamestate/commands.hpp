@@ -107,6 +107,7 @@ enum class command_type : uint8_t {
 	pbutton_script = 98,
 	nbutton_script = 99,
 	crisis_add_wargoal = 100,
+	change_unit_type = 101,
 
 	// network
 	notify_player_ban = 106,
@@ -414,6 +415,12 @@ struct split_ships_data {
 	dcon::ship_id ships[num_packed_units];
 };
 
+struct change_unit_type_data {
+	dcon::regiment_id regs[num_packed_units];
+	dcon::ship_id ships[num_packed_units];
+	dcon::unit_type_id new_type;
+};
+
 struct cheat_data {
 	float value;
 };
@@ -498,6 +505,7 @@ struct payload {
 		merge_navy_data merge_navy;
 		split_regiments_data split_regiments;
 		split_ships_data split_ships;
+		change_unit_type_data change_unit_type;
 		naval_battle_data naval_battle;
 		land_battle_data land_battle;
 		crisis_invitation_data crisis_invitation;
@@ -755,6 +763,10 @@ bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source
 
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
+
+void change_unit_type(sys::state& state, dcon::nation_id source, std::vector<dcon::regiment_id> regiments, std::vector<dcon::ship_id> ships, dcon::unit_type_id new_type);
+bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type);
+void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type);
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);

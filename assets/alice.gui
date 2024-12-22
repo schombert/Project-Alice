@@ -5413,4 +5413,62 @@ guiTypes = {
 		clicksound = click
 		extends = "defender_win"
 	}
+
+	windowType = {
+		name = "unit_upgrade_window"
+		position = { x=320 y=-80 }	
+		size = { x=260 y=355 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+
+		iconType =
+		{
+			name ="unit_upgrade_window"
+			spriteType = "GFX_attach_bg"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+			
+		listboxType = 	{
+			name ="unit_type_list"
+			position = { x = 2 y = 2 }
+			backGround=""
+			size = { x=260 y =355 }
+			Orientation = "UPPER_LEFT"
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 0 y = 0}
+		}
+	}
+
+	windowType = {
+		name = "unit_type_item"
+		position = { x=0 y=0 }	
+		size = { x=240 y=40 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+		
+		iconType =	{
+			name ="unit_type_icon"
+			spriteType = "GFX_unit_strip"
+			position = { x= 0 y = 0 }
+		}
+	
+		guiButtonType = {
+			name = "unit_type_select"
+			position = { x = 40 y = 0 }
+			size = { x=200 y=40 }
+			quadTextureSprite ="GFX_diplo_wargoal_button"
+			buttonFont = "vic_18_black"
+			buttonText = "Test"
+			clicksound = click
+		}
+	}
+
+	guiButtonType = {
+		name = "unit_upgrade_button"
+		position = { x = 193 y = 6 }
+		quadTextureSprite ="GFX_unit_upgrade_button"
+		extends="unitpanel"
+	}
 }
