@@ -1011,10 +1011,12 @@ public:
 				dcon::regiment_id reg = any_cast<dcon::regiment_id>(payload);
 
 				if(mods == sys::key_modifiers::modifiers_shift) {
+					sys::selected_ships_clear(state);
 					sys::selected_regiments_add(state, reg);
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_regiments_clear(state);
+					sys::selected_ships_clear(state);
 					sys::selected_regiments_add(state, reg);
 					parent->impl_on_update(state);
 				}
@@ -1027,10 +1029,12 @@ public:
 				dcon::ship_id reg = any_cast<dcon::ship_id>(payload);
 
 				if(mods == sys::key_modifiers::modifiers_shift) {
+					sys::selected_regiments_clear(state);
 					sys::selected_ships_add(state, reg);
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_ships_clear(state);
+					sys::selected_regiments_clear(state);
 					sys::selected_ships_add(state, reg);
 					parent->impl_on_update(state);
 				}
@@ -1757,6 +1761,36 @@ class unit_type_listbox_entry_label : public button_element_base {
 			auto name_string_def = state.military_definitions.unit_base_definitions[regiment_type].name;
 			set_button_text(state, text::produce_simple_string(state, name_string_def));
 		}
+
+		auto const& ut = state.military_definitions.unit_base_definitions[regiment_type];
+		if(!ut.active && !state.world.nation_get_active_unit(state.local_player_nation, regiment_type)) {
+			disabled = true;
+			return;
+		}
+
+		dcon::regiment_id regs[sys::num_selected_units];
+		dcon::ship_id ships[sys::num_selected_units];
+
+		for(unsigned j = 0; j < state.selected_regiments.size(); j++) {
+			if(!state.selected_regiments[j]) {
+				break;
+			}
+			regs[j] = state.selected_regiments[j];
+		}
+		for(unsigned j = 0; j < state.selected_navies.size(); j++) {
+			if(!state.selected_ships[j]) {
+				break;
+			}
+			ships[j] = state.selected_ships[j];
+		}
+
+		auto allowed_transition = command::can_change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+		if(!allowed_transition) {
+			disabled = true;
+			return;
+		}
+
+		disabled = false;
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -1803,30 +1837,11 @@ public:
 			}
 		}
 
-		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+		for(dcon::unit_type_id::value_base_t i = 2; i < state.military_definitions.unit_base_definitions.size(); i++) {
 			auto const utid = dcon::unit_type_id(i);
 			auto const& ut = state.military_definitions.unit_base_definitions[utid];
-			if(ut.is_land == is_land && (ut.active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
-				dcon::regiment_id regs[sys::num_selected_units];
-				dcon::ship_id ships[sys::num_selected_units];
-
-				for(unsigned j = 0; j < state.selected_regiments.size(); j++) {
-					if(!state.selected_regiments[j]) {
-						break;
-					}
-					regs[j] = state.selected_regiments[j];
-				}
-				for(unsigned j = 0; j < state.selected_navies.size(); j++) {
-					if(!state.selected_ships[j]) {
-						break;
-					}
-					ships[j] = state.selected_ships[j];
-				}
-
-				auto allowed_transition = command::can_change_unit_type(state, state.local_player_nation, regs, ships, utid);
-				if(allowed_transition) {
-					row_contents.push_back(utid);
-				}
+			if(ut.is_land == is_land) {
+				row_contents.push_back(utid);
 			}
 		}
 

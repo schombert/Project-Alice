@@ -3887,7 +3887,8 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 		return false;
 	}
 
-	auto ut = state.military_definitions.unit_base_definitions[new_type];
+	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+	
 	if(ut.is_land && ships[0]) {
 		return false; // Land unit used for ships
 	}
@@ -3895,7 +3896,10 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 		return false; // Sea unit used for land
 	}
 
-	// Small ships can't become big ships
+	if(!ut.active && !state.world.nation_get_active_unit(state.local_player_nation, new_type)) {
+		return false; // Unit is not yet unlocked
+	}
+
 	if(!ut.is_land && ut.type == military::unit_type::big_ship) {
 		for(int i = 0; i < sizeof(ships) / sizeof(*ships); i++) {
 			if(!ships[i]) {
@@ -3904,7 +3908,7 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 			auto shiptype = state.world.ship_get_type(ships[i]);
 			auto st = state.military_definitions.unit_base_definitions[shiptype];
 			if(st.type != military::unit_type::big_ship) {
-				return false;
+				return false; // Small ships can't become big ships
 			}
 		}
 	}
