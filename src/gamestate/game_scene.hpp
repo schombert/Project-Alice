@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 
+#include "economy_viewer.hpp"
+
 namespace game_scene {
 
 enum class scene_id : uint8_t {
@@ -9,6 +11,7 @@ enum class scene_id : uint8_t {
 	in_game_military,
 	in_game_state_selector,
 	in_game_military_selector,
+	in_game_economy_viewer,
 	end_screen,
 	count
 };
@@ -60,6 +63,8 @@ void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_mo
 void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void economy_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+
 
 void console_log_pick_nation(sys::state& state, std::string_view message);
 void console_log_other(sys::state& state, std::string_view message);
@@ -105,6 +110,9 @@ ui::element_base* root_game_battleplanner(sys::state& state);
 ui::element_base* root_game_battleplanner_unit_selection(sys::state& state);
 ui::element_base* root_game_wargoal_state_selection(sys::state& state);
 ui::element_base* root_game_battleplanner_add_army(sys::state& state);
+ui::element_base* root_game_economy_viewer(sys::state& state);
+
+void economy_scene_update(sys::state& state);
 
 struct scene_properties {
 	scene_id id;
@@ -281,6 +289,33 @@ inline scene_properties battleplan_editor_add_army() {
 .on_game_state_update = update_add_units_game_scene,
 .on_game_state_update_update_ui = update_ui_unit_details,
 .update_highlight_texture = highlight_defensive_positions
+	};
+}
+
+inline scene_properties economy_viewer_scene() {
+	return scene_properties{
+.id = scene_id::in_game_economy_viewer,
+
+.get_root = root_game_economy_viewer,
+
+.rbutton_selected_units = do_nothing_province_target,
+.rbutton_province = do_nothing_province_target,
+.allow_drag_selection = false,
+.on_drag_start = do_nothing_screen,
+.drag_selection = do_nothing_screen,
+.lbutton_up = do_nothing,
+.keycode_mapping = replace_keycodes_map_movement,
+.handle_hotkeys = economy_screen_hotkeys,
+.console_log = console_log_other,
+
+.render_ui = economy_viewer::render,
+
+.recalculate_mouse_probe = recalculate_mouse_probe_units_and_details,
+.recalculate_tooltip_probe = recalculate_tooltip_probe_units_and_details,
+
+.on_game_state_update = generic_map_scene_update,
+.on_game_state_update_update_ui = economy_scene_update,
+.update_highlight_texture = highlight_given_province
 	};
 }
 

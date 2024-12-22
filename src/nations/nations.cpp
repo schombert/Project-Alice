@@ -166,7 +166,7 @@ void recalculate_markets_distance(sys::state& state) {
 			}, sids
 		));
 		auto civilian_port = population / 200'000.f;
-		auto throughput = 100.f + 100.f * naval_base + 50.f * civilian_port;
+		auto throughput = 100.f + 1000.f * naval_base + 1000.f * civilian_port;
 
 		state.world.market_set_max_throughput(markets, throughput);
 	});
@@ -614,6 +614,26 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 	return std::max(0.0f, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f));
 }
 
+float priority_national(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid) {
+	float total_priority = 0.f;
+	state.world.for_each_factory_type([&](auto factory_type_id) {
+		total_priority =
+			total_priority
+			+ state.world.nation_get_factory_type_experience_priority_national(n, factory_type_id);
+	});
+	return (state.world.nation_get_factory_type_experience_priority_national(n, ftid) + 0.0001f) / (total_priority + 0.0001f);
+}
+
+float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid) {
+	float total_priority = 0.f;
+	state.world.for_each_factory_type([&](auto factory_type_id) {
+		total_priority =
+			total_priority
+			+ state.world.nation_get_factory_type_experience_priority_private(n, factory_type_id);
+	});
+	return (state.world.nation_get_factory_type_experience_priority_private(n, ftid) + 0.0001f) / (total_priority + 0.0001f);
+}
+
 void update_research_points(sys::state& state) {
 	/*
 	Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
@@ -630,22 +650,74 @@ void update_research_points(sys::state& state) {
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 			auto rp = state.world.pop_type_get_research_points(t);
 			if(rp > 0) {
-				sum_from_pops = ve::multiply_and_add(rp,
-						ve::min(1.0f, state.world.nation_get_demographics(ids, demographics::to_key(state, t)) /
-															(total_pop * state.world.pop_type_get_research_optimum(t))),
-						sum_from_pops);
+				sum_from_pops = ve::multiply_and_add(
+					rp,
+					ve::min(
+						1.0f,
+						state.world.nation_get_demographics(
+							ids, demographics::to_key(state, t)
+						)
+						/
+						(total_pop * state.world.pop_type_get_research_optimum(t))
+					),
+					sum_from_pops
+				);
 			}
 		});
-		auto amount = ve::select(total_pop > 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
-				ve::max((sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f), 0.0f);
+		auto amount =
+			ve::select(
+				total_pop > 0.0f
+				&&
+				state.world.nation_get_owned_province_count(ids) != 0,
+				ve::max(
+					(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f),
+					0.0f
+				),
+				0.0f
+			);
 		/*
-		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x
+		If a nation is not currently researching a tech (or is an unciv),
+		research points will be banked, up to a total of 365 x
 		daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
 		*/
 		auto current_points = state.world.nation_get_research_points(ids);
-		auto capped_value = ve::min(amount + current_points,
-				ve::select(state.world.nation_get_is_civilized(ids), ve::select(state.world.nation_get_current_research(ids) == dcon::technology_id{}, amount * 365.0f, amount + current_points), state.defines.max_research_points));
+		auto capped_value = ve::min(
+			amount + current_points,
+			ve::select(
+				state.world.nation_get_is_civilized(ids),
+				ve::select(
+					state.world.nation_get_current_research(ids) == dcon::technology_id{},
+					amount * 365.0f,
+					amount + current_points
+				),
+				state.defines.max_research_points
+			)
+		);
 		state.world.nation_set_research_points(ids, capped_value);
+
+		ve::fp_vector total_priority_national { };
+		ve::fp_vector total_priority_private { };
+
+		state.world.for_each_factory_type([&](auto factory_type_id) {
+			total_priority_national =
+				total_priority_national
+				+ state.world.nation_get_factory_type_experience_priority_national(ids, factory_type_id);
+			total_priority_private =
+				total_priority_private
+				+ state.world.nation_get_factory_type_experience_priority_private(ids, factory_type_id);
+		});
+
+		state.world.for_each_factory_type([&](auto factory_type_id) {
+			auto priority =
+				(state.world.nation_get_factory_type_experience_priority_national(ids, factory_type_id) + 0.0001f)
+				/ (total_priority_national + 0.0001f)
+				+ (state.world.nation_get_factory_type_experience_priority_private(ids, factory_type_id) + 0.0001f)
+				/ (total_priority_private + 0.0001f);
+
+			auto exp = state.world.nation_get_factory_type_experience(ids, factory_type_id);
+
+			state.world.nation_set_factory_type_experience(ids, factory_type_id, (exp * 0.999f) + (priority * amount));
+		});
 	});
 }
 

@@ -2339,7 +2339,30 @@ inline table::column<dcon::trade_route_id> trade_route_6 = {
 			dcon::fatten(state.world, item).get_connected_markets(0).get_max_throughput(),
 			dcon::fatten(state.world, item).get_connected_markets(1).get_max_throughput()
 		));
-	}
+	},
+	.update_tooltip = [](
+		sys::state& state,
+		element_base* container,
+		text::columnar_layout& contents,
+		const dcon::trade_route_id& a,
+		std::string fallback
+	) {
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		float total = 0.f;
+		state.world.for_each_commodity([&](auto commodity) {
+			state.world.market_for_each_trade_route(local_market, [&](auto trade_route) {
+				total += std::abs(state.world.trade_route_get_volume(trade_route, commodity));
+			});
+		});
+		float max = state.world.market_get_max_throughput(local_market);
+
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::fp_two_places{ total });
+		text::add_to_layout_box(state, contents, box, std::string("/"));
+		text::add_to_layout_box(state, contents, box, text::fp_two_places{ max });
+		text::close_layout_box(contents, box);
+	},
+	.has_tooltip = true,
 };
 
 float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_route_id route, dcon::commodity_id c);

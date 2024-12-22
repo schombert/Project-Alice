@@ -1883,6 +1883,31 @@ inline table::column<dcon::factory_type_id> factory_type_payback = {
 	},
 };
 
+inline table::column<dcon::factory_type_id> factory_type_research = {
+	.sortable = true,
+	.header = "method_research",
+	.compare = [](sys::state& state, element_base* container, dcon::factory_type_id a, dcon::factory_type_id b) {
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto av = state.world.nation_get_factory_type_experience(nation, a);
+		auto bv = state.world.nation_get_factory_type_experience(nation, b);
+
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::factory_type_id id) {
+		auto nation = retrieve<dcon::nation_id>(state, container);
+		auto market = retrieve<dcon::market_id>(state, container);
+
+		auto value = state.world.nation_get_factory_type_experience(nation, id);
+
+		return text::format_float(value);
+	},
+};
+
 class production_window : public generic_tabbed_window<production_window_tab> {
 	bool show_empty_states = true;
 	std::unique_ptr<bool[]> show_output_commodity;
@@ -1959,7 +1984,8 @@ public:
 				factory_type_output_cost,
 				factory_type_profit,
 				factory_type_profit_margin,
-				factory_type_payback
+				factory_type_payback,
+				factory_type_research
 			};
 
 			auto ptr = make_element_by_type<table::display<dcon::factory_type_id>>(

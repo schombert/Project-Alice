@@ -24,7 +24,7 @@ template<typename T>
 ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
 	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.artisans);
 	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return life * 1.5f;
+	return (life + everyday) * artisans_greed;
 }
 template<typename T>
 ve::fp_vector ve_farmer_min_wage(sys::state& state, T markets, ve::fp_vector min_wage_factor) {
@@ -2377,8 +2377,15 @@ float factory_e_input_total_cost(sys::state& state, dcon::market_id m, dcon::fac
 	return e_input_total;
 }
 
-float nation_factory_input_multiplier(sys::state& state, dcon::nation_id n) {
-	return std::max(
+float priority_multiplier(sys::state& state, dcon::factory_type_id fac_type, dcon::nation_id n) {
+	auto exp = state.world.nation_get_factory_type_experience(n, fac_type);
+	return 100000.f / (100000.f + exp);
+}
+
+float nation_factory_input_multiplier(sys::state& state, dcon::factory_type_id fac_type, dcon::nation_id n) {
+	auto mult = priority_multiplier(state, fac_type, n);
+
+	return mult * std::max(
 		0.1f,
 		state.defines.alice_inputs_base_factor
 		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)
@@ -2407,14 +2414,19 @@ float factory_input_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon
 			capitalists / total_state_pop)
 		: 0.0f;
 
+	auto mult = priority_multiplier(state, fac.get_building_type(), n);
+
 	return small_size_effect *
 		fac.get_triggered_modifiers() *
 		std::max(
 			0.1f,
-			(state.defines.alice_inputs_base_factor
+			mult
+			* (
+				state.defines.alice_inputs_base_factor
 				+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_input)
 				+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)
-				+ owner_fraction * -2.5f)
+				+ owner_fraction * -2.5f
+			)
 		);
 }
 
@@ -2775,7 +2787,7 @@ float rgo_desired_worker_norm_profit(
 	//we assume a "perfect ratio" of 1 aristo per N pops
 	float perfect_aristos_amount = total_relevant_population / 1000.f;
 	float perfect_aristos_amount_adjusted = perfect_aristos_amount / state.defines.alice_needs_scaling_factor;
-	float aristos_desired_cut = 2.f * perfect_aristos_amount_adjusted * (
+	float aristos_desired_cut = aristocrats_greed * perfect_aristos_amount_adjusted * (
 		state.world.market_get_everyday_needs_costs(m, state.culture_definitions.aristocrat)
 		+ state.world.market_get_life_needs_costs(m, state.culture_definitions.aristocrat)
 		//+ state.world.market_get_luxury_needs_costs(m, state.culture_definitions.aristocrat)
@@ -2815,7 +2827,7 @@ float rgo_desired_worker_norm_profit(
 	float min_wage_burden_per_worker =
 		(1000.f + min_wage + subsistence_based_min_wage) / state.defines.alice_needs_scaling_factor;
 
-	float desired_profit_by_worker = aristo_burden_per_worker + min_wage_burden_per_worker / (1.f - rgo_owners_cut);
+	float desired_profit_by_worker = aristo_burden_per_worker + min_wage_burden_per_worker;
 
 	// we want to employ at least someone, so we decrease our desired profits when employment is low
 	// otherwise everyone works in subsistence and landowners get no money
@@ -4702,21 +4714,29 @@ profit_distribution distribute_factory_profit(
 	auto per_owner_profit = 0.0f;
 
 	if(total_min_to_pworkers + total_min_to_sworkers <= total_profit && num_owners > 0) {
+		// profit higher than miin wage
+		// owners present
 		auto surplus = total_profit - (total_min_to_pworkers + total_min_to_sworkers);
-		per_pworker_profit = num_pworkers > 0 ? (total_min_to_pworkers + surplus * 0.1f) / num_pworkers : 0.0f;
-		per_sworker_profit = num_sworkers > 0 ? (total_min_to_sworkers + surplus * 0.2f) / num_sworkers : 0.0f;
-		per_owner_profit = (surplus * 0.7f) / num_owners;
+		per_pworker_profit = num_pworkers > 0 ? (total_min_to_pworkers + surplus * factory_pworkers_cut) / num_pworkers : 0.0f;
+		per_sworker_profit = num_sworkers > 0 ? (total_min_to_sworkers + surplus * factory_sworkers_cut) / num_sworkers : 0.0f;
+		per_owner_profit = (surplus * factory_owners_cut) / num_owners;
 	} else if(total_min_to_pworkers + total_min_to_sworkers <= total_profit && num_sworkers > 0) {
+		// profit higher than miin wage
+		// no owners
+		// sworkers present
 		auto surplus = total_profit - (total_min_to_pworkers + total_min_to_sworkers);
-		per_pworker_profit = num_pworkers > 0 ? (total_min_to_pworkers + surplus * 0.5f) / num_pworkers : 0.0f;
-		per_sworker_profit = num_sworkers > 0 ? (total_min_to_sworkers + surplus * 0.5f) / num_sworkers : 0.0f;
+		per_pworker_profit = num_pworkers > 0 ? (total_min_to_pworkers + surplus * factory_pworkers_cut / factory_workers_cut) / num_pworkers : 0.0f;
+		per_sworker_profit = num_sworkers > 0 ? (total_min_to_sworkers + surplus * factory_sworkers_cut / factory_workers_cut) / num_sworkers : 0.0f;
 	} else if(total_min_to_pworkers + total_min_to_sworkers <= total_profit) {
+		// profit higher than min wage
+		// no owners
+		// no sworkers
 		per_pworker_profit = num_pworkers > 0 ? total_profit / num_pworkers : 0.0f;
 	} else if(num_pworkers + num_sworkers > 0) {
-		per_pworker_profit = total_profit / (num_pworkers + num_sworkers);
-		per_sworker_profit = total_profit / (num_pworkers + num_sworkers);
+		// profit lower than min wage
+		per_pworker_profit = total_profit * factory_pworkers_cut / factory_workers_cut / (num_pworkers + num_sworkers);
+		per_sworker_profit = total_profit * factory_sworkers_cut / factory_workers_cut / (num_pworkers + num_sworkers);
 	}
-
 
 	return {
 		.per_primary_worker = per_pworker_profit,
@@ -6243,14 +6263,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 							total_rgo_profit = (1.f - rgo_owners_cut) * total_rgo_profit;
 						}
 
-						if(total_min_to_workers <= total_rgo_profit && num_rgo_owners > 0) {
-							total_worker_wage =
-								total_min_to_workers
-								+ (total_rgo_profit - total_min_to_workers) * 0.2f;
-							rgo_owner_profit += (total_rgo_profit - total_min_to_workers) * 0.8f;
-						} else {
-							total_worker_wage = total_rgo_profit;
-						}
+						total_worker_wage = total_rgo_profit;
 
 						auto per_worker_profit = num_workers > 0 ? total_worker_wage / num_workers : 0.0f;
 
@@ -6489,12 +6502,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto t = state.culture_definitions.laborers;
 					float base_life = state.world.pop_type_get_life_needs(t, _cid);
 
-					life_cost = life_cost
+					life_cost =
+						life_cost
 						+ base_life * state.defines.alice_lf_needs_scale * price;
 				}
 			}
 
-			state.world.market_set_price(ids, c, life_cost * state.world.commodity_get_cost(c) * state.inflation);
+			state.world.market_set_price(ids, c, life_cost * state.world.commodity_get_cost(c) / 50.f);
 		});
 	});
 
@@ -7103,7 +7117,7 @@ float factory_type_input_cost(
 
 	//modifiers
 	auto const maint_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-	float input_multiplier = nation_factory_input_multiplier(state, n);
+	float input_multiplier = nation_factory_input_multiplier(state, fac_type, n);
 
 	return input_total * input_multiplier + e_input_total * input_multiplier * maint_multiplier;
 }

@@ -39,7 +39,7 @@ struct sort_data {
 };
 
 template<typename item_type>
-void tooltip_fallback (sys::state& state, text::columnar_layout& contents, const item_type& a, std::string fallback) {
+void tooltip_fallback (sys::state& state, ui::element_base* container, text::columnar_layout& contents, const item_type& a, std::string fallback) {
 	auto box = text::open_layout_box(contents, 0);
 	text::localised_format_box(state, contents, box, std::string_view(fallback));
 	text::close_layout_box(contents, box);
@@ -53,6 +53,7 @@ struct column {
 	std::function<std::string(sys::state& state, ui::element_base* container, const item_type& a)> view;
 	std::function<void(
 		sys::state& state,
+		ui::element_base* container,
 		text::columnar_layout& contents,
 		const item_type& a,
 		std::string fallback
@@ -467,6 +468,7 @@ public:
 			table_tooltip_callback_signal signal = any_cast<table_tooltip_callback_signal>(payload);
 			content.columns[signal.column].update_tooltip(
 				state,
+				this,
 				*(signal.tooltip_layout),
 				content.data[signal.row],
 				content.columns[signal.column].header

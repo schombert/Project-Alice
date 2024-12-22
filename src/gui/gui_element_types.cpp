@@ -291,8 +291,7 @@ void render_text_chunk(
 			x,
 			baseline_y,
 			font_size,
-			current_font,
-			cmod
+			current_font
 		);
 	} else if(std::holds_alternative<text::embedded_icon>(t.source)) {
 		ogl::render_text_icon(

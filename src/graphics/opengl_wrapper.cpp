@@ -538,16 +538,27 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 	}
 }
 
-void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl) {
+void render_colored_rect(
+	sys::state const& state,
+	float x, float y, float width, float height,
+	float red, float green, float blue,
+	ui::rotation r, bool flipped, bool rtl
+) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 	bind_vertices_by_rotation(state, r, flipped, rtl);
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
-	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::linegraph_color };
+	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::solid_color };
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, red, green, blue);
 	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 	glLineWidth(2.0f);
-	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, 1.f, 0.f, 0.f);
-	glDrawArrays(GL_LINE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl) {
+	render_colored_rect(
+		state, x, y, width, height, 1.0f, 1.0f, 1.0f, r, flipped, rtl
+	);
 }
 
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
@@ -945,11 +956,10 @@ void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, floa
 	);
 }
 
-void render_text_commodity_icon(sys::state& state, text::embedded_commodity_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
-
-	auto id = ico.commodity;
-
+void render_commodity_icon(
+	sys::state& state, dcon::commodity_id cid,
+	float x, float y, float w, float h
+) {
 	auto gfx_id =
 		state.ui_defs.gui[
 			state.ui_state.defs_by_name.find(
@@ -959,21 +969,35 @@ void render_text_commodity_icon(sys::state& state, text::embedded_commodity_icon
 
 	auto& gfx_def = state.ui_defs.gfx[gfx_id];
 
-	auto frame = state.world.commodity_get_icon(id);
+	auto frame = state.world.commodity_get_icon(cid);
 
 	render_subsprite(
 		state,
-		cmod,
+		ogl::color_modification::none,
 		frame,
 		gfx_def.number_of_frames,
-		float(x),
-		baseline_y,
-		font_size,
-		font_size,
+		x,
+		y,
+		w,
+		h,
 		ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 		ui::rotation::upright,
 		gfx_def.is_vertically_flipped(),
 		false
+	);
+}
+
+void render_text_commodity_icon(
+	sys::state& state, text::embedded_commodity_icon ico,
+	float x, float baseline_y,
+	float font_size, text::font& f
+) {
+	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+
+	render_commodity_icon(
+		state, ico.commodity,
+		x, baseline_y,
+		font_size, font_size
 	);
 }
 
