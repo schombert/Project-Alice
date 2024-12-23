@@ -1295,3 +1295,4 @@ unit_upgrade_button;Change unit type
 subjectpayments_income;Subject Payments Received: ?G$VAL$?W
 subjectpayments_expense;Subject Payments Paid: ?R$VAL$?W
 alice_unit_builder_apply_button;Build in selected province
+unit_macro_template_tooltip;Unit macro builder template

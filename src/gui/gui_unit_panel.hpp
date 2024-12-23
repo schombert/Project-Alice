@@ -1635,6 +1635,14 @@ public:
 
 		text::close_layout_box(contents, box);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "unit_macro_template_tooltip");
+	}
 };
 
 class apply_template_to_army_location_button : public button_element_base {
