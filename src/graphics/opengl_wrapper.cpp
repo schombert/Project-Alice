@@ -914,7 +914,10 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 }
 
 void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	auto ascender_size = f.ascender(int32_t(font_size));
+	auto top_adj = f.top_adjustment(int32_t(font_size));
+	float icon_baseline = baseline_y + top_adj + ascender_size;
+	//float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
 
 	auto id = ico.unit_type;
 
@@ -934,10 +937,10 @@ void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, floa
 		cmod,
 		frame,
 		gfx_def.number_of_frames,
-		float(x),
-		baseline_y,
-		font_size,
-		font_size,
+		float(x) - ascender_size * 0.125f,
+		icon_baseline - ascender_size,
+		ascender_size * 1.25f,
+		ascender_size * 1.25f,
 		ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 		ui::rotation::upright,
 		gfx_def.is_vertically_flipped(),

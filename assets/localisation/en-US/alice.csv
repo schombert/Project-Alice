@@ -1010,7 +1010,7 @@ meets_the_conditions_of;meets the conditions of
 does_not_meet_the_conditions_of;does not meet the conditions of 
 fab_finish_date;CB fabrication is expected to finish on $date$
 fab_is_paused;CB fabrication is currently paused
-macro_builder;Macro-builder
+macro_builder;Unit Builder
 macro_total_desc;Total unit stats:
 macro_new_template;New
 macro_switch_type_land;Build army
@@ -1286,3 +1286,4 @@ volume;Volume
 desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
+alice_unit_builder_apply_button;Build in selected province

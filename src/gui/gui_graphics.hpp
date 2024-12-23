@@ -43,6 +43,7 @@ struct gfx_object {
 	constexpr static uint8_t type_mask = 0x0F;
 
 	xy_pair size; // 4bytes
+	dcon::text_key name;
 	dcon::texture_id primary_texture_handle; // 6bytes
 	uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
 	uint8_t flags = 0; // 9bytes
@@ -64,7 +65,7 @@ struct gfx_object {
 		return (flags & do_transparency_check) != 0;
 	}
 };
-static_assert(sizeof(gfx_object) == 10);
+static_assert(sizeof(gfx_object) == 16);
 
 enum class element_type : uint8_t { // 3 bits
 	button = 0x01,
@@ -436,6 +437,9 @@ struct state {
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;
 	ankerl::unordered_dense::map<dcon::text_key, element_target, hash_text_key> defs_by_name;
+	ankerl::unordered_dense::map<dcon::text_key, dcon::gfx_object_id, hash_text_key> gfx_by_name;
+	ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes> new_ui_windows;
+	std::vector<simple_fs::file> held_open_ui_files;
 
 	// elements we are keeping track of
 	element_base* main_menu = nullptr; // Settings window
@@ -500,10 +504,11 @@ struct state {
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
 
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
-	sys::macro_builder_template current_template; // used as the currently edited template
-	sys::macro_builder_template main_template;
+	int32_t current_template = -1; // used as the currently edited template
 	std::vector<sys::macro_builder_template> templates;
 	uint16_t tooltip_font = 0;
+	uint16_t default_header_font = 0;
+	uint16_t default_body_font = 0;
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
 

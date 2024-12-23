@@ -888,5 +888,25 @@ void font_manager::set_classic_fonts(bool v) {
 	}
 }
 
+uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size) {
+	if(state.user_settings.use_classic_fonts) {
+		if(as_header) {
+			return state.ui_state.default_header_font;
+		} else {
+			return state.ui_state.default_body_font;
+		}
+	}
+	int32_t calculated_size = 1;
+	if(as_header) {
+		auto jvalue = state.font_collection.get_font(state, font_selection::header_font).line_height(1);
+		calculated_size = int32_t((target_line_size / jvalue) * 4.0f / 3.0f);
+		return uint16_t((1 << 7) | (0x3F & calculated_size));
+	} else {
+		auto jvalue = state.font_collection.get_font(state, font_selection::body_font).line_height(1);
+		calculated_size = int32_t((target_line_size / jvalue) * 6.0f / 5.0f);
+		return uint16_t((0 << 7) | (0x3F & calculated_size));
+	}
+}
+
 } // namespace text
 

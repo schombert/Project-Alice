@@ -18,6 +18,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/main.cpp"
+	"src/gui/alice_ui.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"

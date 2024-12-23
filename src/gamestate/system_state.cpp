@@ -38,6 +38,7 @@
 #include "gui_unit_grid_box.hpp"
 #include "blake2.h"
 #include "fif_common.hpp"
+#include "gui_deserialize.hpp"
 
 namespace ui {
 
@@ -1118,6 +1119,25 @@ void state::render() { // called to render the frame may (and should) delay retu
 }
 
 void state::on_create() {
+	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
+	ui_state.default_header_font = text::name_into_font_id(*this, "vic_22");
+	ui_state.default_body_font = text::name_into_font_id(*this, "vic_18");
+
+	// Load late ui defs
+	auto root = get_root(common_fs);
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+	for(auto gui_file : list_files(assets, NATIVE(".aui"))) {
+		auto file_name = simple_fs::get_file_name(gui_file);
+		auto opened_file = open_file(gui_file);
+		if(opened_file) {
+			file_name.pop_back(); file_name.pop_back(); file_name.pop_back(); file_name.pop_back();
+			auto afile_name = simple_fs::native_to_utf8(file_name);
+			auto content = view_contents(*opened_file);
+			bytes_to_windows(content.data, content.file_size, afile_name, ui_state.new_ui_windows);
+			ui_state.held_open_ui_files.emplace_back(std::move(*opened_file));
+		}
+	}
+
 	// Clear "center" property so they don't look messed up!
 	{
 		static const std::string_view elem_names[] = {
@@ -1186,8 +1206,6 @@ void state::on_create() {
 		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
 	}
 	map_mode::set_map_mode(*this, map_mode::mode::political);
-	
-	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 }
 //
 // string pool functions
@@ -5534,7 +5552,7 @@ struct build_queue_data {
 };
 
 void state::build_up_to_template_land(
-	macro_builder_template & target_template,
+	macro_builder_template const& target_template,
 	dcon::province_id target_province,
 	std::vector<dcon::province_id> & available_provinces,
 	std::array<uint8_t, sys::macro_builder_template::max_types> & current_distribution

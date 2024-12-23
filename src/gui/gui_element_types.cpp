@@ -58,9 +58,11 @@ message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_
 }
 void container_base::impl_on_update(sys::state& state) noexcept {
 	on_update(state);
-	for(auto& c : children) {
-		if(c->is_visible()) {
-			c->impl_on_update(state);
+	if(is_visible()) {
+		for(auto& c : children) {
+			if(c->is_visible() || (c->flags & element_base::wants_update_when_hidden_mask) != 0) {
+				c->impl_on_update(state);
+			}
 		}
 	}
 }
