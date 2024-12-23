@@ -1198,3 +1198,10 @@ rpname_is;правящая партия
 pposition_is;политика партии $x$
 rpposition_is;политика правящей партии
 topbar_budget_warning;Вчера вы не смогли полностью оплатить расходы бюджета
+investment_pool;Инвестиционный фонд: ?Y$x$?W
+DIPLO_RUN_CONFERENCE;Конференция
+unit_reinforcement_needs;Товары для пополнения:
+unit_supply_needs;Дневное снабжение:
+unit_upgrade_button;Сменить тип
+subjectpayments_income;Выплаты субъектов: ?G$VAL$?W
+subjectpayments_expense;Плата метрополии: ?R$VAL$?W

@@ -6456,6 +6456,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_stockpiles(n, money) += t_total;
 		}
 
+		// Subject money transfers
+		auto rel = state.world.nation_get_overlord_as_subject(n);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord) {
+			auto transferamt = estimate_subject_payments_paid(state, n, collected_tax);
+			state.world.nation_get_stockpiles(n, money) -= transferamt;
+			state.world.nation_get_stockpiles(overlord, money) += transferamt;
+		}
+
 		// shift needs weights
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			float total_profit = 0.f;
@@ -7432,7 +7442,10 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 	float w_sub = estimate_war_subsidies_income(state, n) - estimate_war_subsidies_spending(state, n);
 	float w_reps = estimate_reparations_income(state, n) - estimate_reparations_spending(state, n);
-	return w_sub + w_reps;
+
+	float subject_payments = estimate_subject_payments_paid(state, n) + estimate_subject_payments_received(state, n);
+
+	return w_sub + w_reps + subject_payments;
 }
 
 float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
@@ -7504,6 +7517,60 @@ float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon
 	auto target_m_costs = (target.get_total_rich_income() + target.get_total_middle_income() + target.get_total_poor_income()) * state.defines.warsubsidies_percent;
 	auto source_m_costs = (source.get_total_rich_income() + source.get_total_middle_income() + source.get_total_poor_income()) * state.defines.warsubsidies_percent;
 	return std::min(target_m_costs, source_m_costs);
+}
+
+float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n) {
+	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto collected_tax = state.world.nation_get_total_poor_income(n) * tax_eff * float(state.world.nation_get_poor_tax(n)) / 100.0f +
+		state.world.nation_get_total_middle_income(n) * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f +
+		state.world.nation_get_total_rich_income(n) * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
+
+	return estimate_subject_payments_paid(state, n, collected_tax);
+}
+
+float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n, float collected_tax) {
+	auto rel = state.world.nation_get_overlord_as_subject(n);
+	auto overlord = state.world.overlord_get_ruler(rel);
+
+	if(overlord) {
+		auto transferamt = collected_tax;
+
+		if(state.world.nation_get_is_substate(n)) {
+			transferamt *= state.defines.alice_substate_subject_money_transfer;
+		} else {
+			transferamt *= state.defines.alice_puppet_subject_money_transfer;
+		}
+
+		return transferamt;
+	}
+
+	return 0;
+}
+
+float estimate_subject_payments_received(sys::state& state, dcon::nation_id o) {
+	auto res = 0.0f;
+	for(auto n : state.world.in_nation) {
+		auto rel = state.world.nation_get_overlord_as_subject(n);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord == o) {
+			auto const tax_eff = nations::tax_efficiency(state, n);
+			auto const collected_tax = state.world.nation_get_total_poor_income(n) * tax_eff * float(state.world.nation_get_poor_tax(n)) / 100.0f +
+				state.world.nation_get_total_middle_income(n) * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f +
+				state.world.nation_get_total_rich_income(n) * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
+			auto transferamt = collected_tax;
+
+			if(state.world.nation_get_is_substate(n)) {
+				transferamt *= state.defines.alice_substate_subject_money_transfer;
+			} else {
+				transferamt *= state.defines.alice_puppet_subject_money_transfer;
+			}
+
+			res += transferamt;
+		}
+	}
+
+	return res;
 }
 
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {

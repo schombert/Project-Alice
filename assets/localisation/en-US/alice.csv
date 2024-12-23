@@ -1292,3 +1292,5 @@ DIPLO_RUN_CONFERENCE;Run a conference
 unit_reinforcement_needs;Goods for reinforcement:
 unit_supply_needs;Daily supply:
 unit_upgrade_button;Change unit type
+subjectpayments_income;Subject Payments Received: ?G$VAL$?W
+subjectpayments_expense;Subject Payments Paid: ?R$VAL$?W
