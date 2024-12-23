@@ -4462,7 +4462,7 @@ relationship{
 relationship{
 	name{ province_land_construction }
 	storage_type{ compactable }
-	size{ 16000 }
+	size{ 32000 }
 	tag{ save }
 
 	link{

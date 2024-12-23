@@ -988,7 +988,7 @@ alice_trade_flow_label;Обзор рынка:
 alice_trade_flow_piechart_producers;Производители
 alice_trade_flow_piechart_consumers;Потребители
 alice_trade_flow_piechart_workforce;Инвесторы
-alice_diplo_release_subject;Тема выпуска
+alice_diplo_release_subject;Освободить субъект
 alice_diplo_release_subject_desc;Освобождает одного из наших субъектов, делая его больше не нашим субъектом, союзы необходимо разрывать отдельно
 alice_diplo_release_subject_0;Наш объект?
 kill_leader;Убить лидера

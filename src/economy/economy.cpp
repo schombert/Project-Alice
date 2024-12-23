@@ -6355,12 +6355,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto pt = pop.get_poptype();
 					auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
 					if(ln_type == culture::income_type::administration) {
-						float ratio = pop.get_size() / local_managers;
+						float ratio = (local_managers > 0.f) ? pop.get_size() / local_managers : 0.f;
 						pop.set_savings(pop.get_savings() + current * (1.f - local_education_ratio) * ratio);
 						assert(std::isfinite(pop.get_savings()));
 						adm_money += current * (1.f - local_education_ratio) * ratio;
 					} else if(ln_type == culture::income_type::education) {
-						float ratio = pop.get_size() / local_teachers;
+						float ratio = (local_teachers > 0.f) ? pop.get_size() / local_teachers : 0.f;
 						pop.set_savings(pop.get_savings() + current * local_education_ratio * ratio);
 						assert(std::isfinite(pop.get_savings()));
 						edu_money += current * local_education_ratio * ratio;

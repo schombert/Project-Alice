@@ -414,6 +414,20 @@ void update_ai_research(sys::state& state) {
 			if(state.world.nation_get_ai_is_threatened(n) && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::army) {
 				base *= 2.0f;
 			}
+
+			if(state.world.nation_get_ai_strategy(n) == ai_strategies::militant && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::army) {
+				base *= 2.0f;
+			}
+			if(state.world.nation_get_ai_strategy(n) == ai_strategies::industrious && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::industry) {
+				base *= 2.0f;
+			}
+			if(state.world.nation_get_ai_strategy(n) == ai_strategies::industrious && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::commerce) {
+				base *= 2.0f;
+			}
+			if(state.world.nation_get_ai_strategy(n) == ai_strategies::technological && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::culture) {
+				base *= 2.0f;
+			}
+
 			auto cost = std::max(1.0f, culture::effective_technology_cost(state, year, n, pt.id));
 			pt.weight = base / cost;
 		}
