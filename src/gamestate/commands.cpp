@@ -3867,7 +3867,7 @@ void change_unit_type(sys::state& state, dcon::nation_id source, std::vector<dco
 		p.source = source;
 		p.data.change_unit_type.new_type = new_type;
 
-		for(int i = 0; i < num_packed_units; i++) {
+		for(unsigned i = 0; i < num_packed_units; i++) {
 			if(regiments.size() > 0) {
 				p.data.change_unit_type.regs[i] = regiments.at(regiments.size() - 1);
 				regiments.pop_back();
@@ -3901,7 +3901,7 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 	}
 
 	if(!ut.is_land && ut.type == military::unit_type::big_ship) {
-		for(int i = 0; i < sizeof(ships) / sizeof(*ships); i++) {
+		for(unsigned i = 0; i < sizeof(ships) / sizeof(*ships); i++) {
 			if(!ships[i]) {
 				break;
 			}
@@ -3916,7 +3916,7 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 }
 // Uses filled bit-sized arrays from cmd
 void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type) {
-	for(int i = 0; i < num_packed_units; i++) {
+	for(unsigned i = 0; i < num_packed_units; i++) {
 		if(regiments[i]) {
 			state.world.regiment_set_type(regiments[i], new_type);
 			state.world.regiment_set_strength(regiments[i], 0.01f);
