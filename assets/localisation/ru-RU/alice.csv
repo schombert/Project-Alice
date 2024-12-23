@@ -160,28 +160,28 @@ from_nation;from nation
 from_state;from state
 from_province;from province
 from_pop;from pop
-province_in;province in
+province_in;провинция в
 this_nation_culture;The primary culture of this nation
 from_nation_culture;The primary culture of the from nation
 cultural_union_nation;The cultural union nation for its primary culture
 core_of;core of
-state_of;state of
+state_of;провинция в
 chance_of;шанс:
 owner_of;владелец
-controller_of;controller of
-location_of_pop;location of that pop
-nation_of_pop;nation containing that pop
+controller_of;контролёр
+location_of_pop;местоположение попа
+nation_of_pop;нация попа
 capital_of;столица
 containing_state;штат содержащий
 adjacent_sea;соседняя морская зона
 cultural_union_of;культурный союз
 overlord_of;overlord of
 sphere_leader_of;лидер сферы влияния
-crisis_state;crisis state
+crisis_state;цель кризиса
 reb_independence_nation;rebel independence nation
 flashpoint_nation;flashpoint nation
 rebel;Повстанцы
-flashpoint_tension_label;Flashpoint tension
+flashpoint_tension_label;Накалённость
 for_text; for $text$
 where_ideology_is;Где его идеология — $text$
 where_culture_is;где ее культура — $text$
@@ -226,9 +226,9 @@ minimum_state_life_raing;минимальный рейтинг жизни в ш�
 an_empy_adj_prov;пустая соседняя провинция
 belongs_to_same_state;принадлежит тому же состоянию, что и $text$
 does_not_belong_to_same_state;не принадлежит тому же состоянию, что и $text$
-contains_blank;contains $text$
-does_not_contain_blank;does not contain $text$
-times_target_needs_spending;times desired needs spending
+contains_blank;содержит $text$
+does_not_contain_blank;не содержит $text$
+times_target_needs_spending;раз траты на нужды
 unemployment;безработица
 slavery;рабство
 allowed;допустимый
@@ -280,8 +280,8 @@ does_not_control;не контролирует
 a_core_in;ядро в
 a_core_of;ядро
 a_core_of_owner;ядро его владельца
-located_in_a_core_of;located in a core of
-percentage_reb_control;percentage of rebel controlled provinces
+located_in_a_core_of;расположен в коренной провинции
+percentage_reb_control;доля провинций контролируемы повстанцами
 num_of_reb_control;количество провинций, контролируемых повстанцами
 num_owned_provinces;количество принадлежащих провинций
 num_provinces_owned_by;количество провинций, принадлежащих
@@ -291,13 +291,13 @@ num_of_vassals;количество вассалов
 owned_by;принадлежит
 exists;существует
 does_not_exist;не существует
-att_set;set
+att_set;назначить
 in;in
 located_in;расположен в
-the_owner_of_region;the owner of every province in
+the_owner_of_region;владелец каждой провинции в
 a_casus_belli_against;основание войны против
 military_access_with;проход войск к
-prestige_of;the prestige of
+prestige_of;престиж
 prestige;Престиж
 a_railroad;железная дорога
 a_fort;форт
@@ -519,7 +519,7 @@ reform_effect_if_desc;Когда активирован, если
 reform_effect_then_desc;Тогда:
 reform_effect_desc;Когда активирован:
 special_rules;Special rules:
-voting_rules;Voting rules:
+voting_rules;Правила голосования:
 hide_decision;Hide the notification for this decision
 sup_point_gain;Monthly suppression point increase: ?G+$val$
 sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
@@ -531,9 +531,9 @@ pop_size_5;Из внутренней миграции:
 pop_size_6;От колониальной миграции:
 pop_size_7;Из эмиграции:
 pop_size_8;Из преобразования:
-pop_l_migration_header;?YMigration away: $val$
-pop_l_c_migration_header;?YColonial migration away: $val$
-pop_l_emigration_header;?YEmigration away: $val$
+pop_l_migration_header;?YМигрировало отсюда: $val$
+pop_l_c_migration_header;?YКолониальная миграция отсюда: $val$
+pop_l_emigration_header;?YЭмиграция отсюда: $val$
 pop_mig_1;Внутренней миграции из колониальных провинций нет
 pop_mig_2;Подчиненные устройства не мигрируют внутри страны
 pop_mig_3;Количество людей, которые будут мигрировать внутри страны, равно размеру населения, умноженному на масштаб иммиграции ($x$), умноженному на модификатор притока иммигрантов в провинции ($y$), умноженному на коэффициент миграции ($val$).
@@ -905,7 +905,7 @@ et_if;Если
 et_else_if;Иначе
 modifier_province_selector;Province selector
 modifier_province_immigrator;Province immigrator
-modifier_conversion_rate;Conversion Rate
+modifier_conversion_rate;Скорость конверсии
 modifier_attrition;Истощение
 chat_player_joins;$playername$ присоединился
 chat_player_leaves;$playername$ отключился
@@ -976,12 +976,12 @@ as_a_vassal;как вассал
 Change_state_name_to;изменить имя состояния на $text$
 alice_join_crisis_offer;$ACTOR$ даст нам следующее, если мы присоединимся на их сторону в текущем кризисе:
 alice_unit_disable_rebel_hunt;Прекратить охоту на повстанцев
-alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nOrganisation: ?Y$organisation$?W\nStrength: ?Y$strength$?W
-understaffed_regiment;?RThis regiment is understaffed and will only have $value$ soldiers!?W
-tech_queue_explain;Press ?YSHIFT?W to add to queue, ?YRight-click?W to remove
-alice_province_building_build;?YSHIFT?W to build on the entire ?Gstate?W.\n?YSHIFT-Right-click?W to build on the entire ?Gcountry?W.
-commodity_shortage;?RThere is a shortage of this commodity
-commodity_surplus;?GThere is a surplus of this commodity
+alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nОрганизация: ?Y$organisation$?W\nСила: ?Y$strength$?W
+understaffed_regiment;?RЭтот батальон не полон и имеет лишь $value$ солдат!?W
+tech_queue_explain;Нажатие с ?YSHIFT?W добавляет в очередь, ?YRight-click?W исключает
+alice_province_building_build;Нажатие с ?YSHIFT?W построит во всей ?Gпровинции?W.\n?YSHIFT-Right-click?W построит во всей стране ?Gcountry?W.
+commodity_shortage;?RНехватка товара
+commodity_surplus;?GИзбыток товара
 alice_trade_flow_produced;?YВнутреннее производство:
 alice_trade_flow_consumed;?YВнутреннее потребление:
 alice_trade_flow_label;Обзор рынка:
@@ -990,7 +990,7 @@ alice_trade_flow_piechart_consumers;Потребители
 alice_trade_flow_piechart_workforce;Инвесторы
 alice_diplo_release_subject;Освободить субъект
 alice_diplo_release_subject_desc;Освобождает одного из наших субъектов, делая его больше не нашим субъектом, союзы необходимо разрывать отдельно
-alice_diplo_release_subject_0;Наш объект?
+alice_diplo_release_subject_0;Наш субъект
 kill_leader;Убить лидера
 annex_null;становится ничейным
 meets_the_conditions_of;соответствует условиям
@@ -1037,8 +1037,8 @@ alice_mil_decay_description;Естественный распад ?G-$x$
 alice_con_decay_description;Естественный распад ?R-$x$
 x_from_y;$culture$ $x$ из $y$
 x_in_y;$x$ в $y$
-reinforce_rate;Этот полк может пополнять до $x$ солдат в месяц.
-reinforce_rate_none;Этот полк в настоящее время не может быть усилен.
+reinforce_rate;Этот полк будет пополнять до $x$ солдат в месяц.
+reinforce_rate_none;Этот полк не будет пополняться.
 alice_domestic_investment_button;Инвестирование в отдельные проекты ?Rустарело?W, вместо этого используйте ползунок ?Yвнутренние инвестиции?W на экране бюджета
 alice_domestic_investment_pops;У нас есть $x$ капиталистов, которым мы можем косвенно сделать щедрые пожертвования
 alice_domestic_investment_needs;Им требуется $x$ каждый день, чтобы удовлетворить свой роскошный образ жизни
@@ -1082,14 +1082,14 @@ alice_slider_controls;?YLeft-Click?! для увеличения на ?Y$value$?
 alice_slider_controls_2;?YLeft-Click?! для уменьшения на ?Y$value$?!\n?YSHIFT-щелкните левой кнопкой мыши?! уменьшить на ?Y$x$?!\n?YSHIFT-щелчок правой кнопкой мыши?! уменьшить до минимума
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
 alice_lobby_back;Вернуться в лобби
-alice_lobby_back_tt_1;Ты уже в чертовом вестибюле
+alice_lobby_back_tt_1;Ты уже в лоббие
 alice_lobby_back_tt_2;Только хост может вернуться в лобби
 reopen_with_tab;Вы можете повторно открыть это окно с помощью ?YTAB?W
 alice_topbar_tab_1;Открыть или закрыть эту вкладку
 alice_topbar_tab_2;Открыть или закрыть вкладку населения
 colonial_points_from_technology;От технологий:
-colonial_points_from_naval_bases;С военно-морских баз:
-colonial_points_from_ships;С кораблей:
+colonial_points_from_naval_bases;От военно-морских баз:
+colonial_points_from_ships;От кораблей:
 used_colonial_maintenance;Поддержание существующих колоний:
 topbar_pause_speed;Приостанавливает игру, нажмите еще раз, чтобы возобновить паузу
 att_call_will_accept;$x$ присоединится к вашей войне
@@ -1100,8 +1100,8 @@ att_call_no_allies;У вас нет союзников!
 modifier_min_domestic_investment;Минимальная ставка внутренних инвестиций
 modifier_max_domestic_investment;Максимальный уровень внутренних инвестиций
 alice_supply_limit_desc;Лимит предложения: $x$
-alice_factory_worker_1;Занят: ?G$x$?W
-alice_factory_worker_2;Безработный: ?R$x$?W
+alice_factory_worker_1;Трудоустроено: ?G$x$?W
+alice_factory_worker_2;Безработных: ?R$x$?W
 alice_rgo_unemployment_country_alert;В следующих штатах есть безработные ГГО:
 pop_promote_info_on_sel_2;$val$ ожидает изменения $who$ в $where$ в течение следующего месяца.
 alice_readme;?GДобро пожаловать в Project Alice!?W\nProject Alice — это эмуляция (не симулятор!) вашей любимой видеоигры викторианской эпохи. Другими словами, мы настраиваем некоторые механики, чтобы их было легче понять новым игрокам, одновременно делая мир более динамичным и интересным, исправляя старые ошибки (например, связанные с кризисами) и внедряя новые функции качества жизни.\n?GНовые функции!?W\n?YGlobe?W: ?GLLove?W многими, ? Некоторые оценили?W, выключите его, если это вас беспокоит!\n?YТехническая очередь:?W SHIFT-щелкните правой кнопкой мыши, чтобы добавить технологии в техническую очередь! (Нажмите правой кнопкой мыши, чтобы выйти из очереди)\n?YВнутренние инвестиции:?W Вместо того, чтобы инвестировать в отдельные проекты, делайте это за один раз.\n?YПроизводительность:?W Количество тиков в секунду (не FPS) как минимум в 10 раз быстрее\n? YLinter:?W Получайте ошибки покрытия и предупреждения в своих модах, легко выявляйте ошибки и опечатки.\n?YМакросборщик:?W Создавайте юниты с различным составом, используя наш конструктор макросов.\n?Y11 новые режимы карты:?W Религия, форт, занятость, etc\n?YСтроить по всей стране:?W SHIFT Щелкните правой кнопкой мыши, чтобы построить по всей стране!\n?GControls:?W\n?YTAB?W: Открыть окно чата\n?YESC?W: Открыть главное меню и меню настроек\n?YTilde (`)?W или ?YTilde (~)?W: Открыть консоль\n?GНаслаждайтесь игрой! =^w^=?W
@@ -1110,11 +1110,12 @@ unit_controls_tooltip_1;?YЩелкните левой кнопкой мыши?W 
 unit_controls_tooltip_2;?YЩелкните правой кнопкой мыши по провинции?W частичное отступление (?Gcycling/rotation?W) в провинцию
 unit_control_group_tooltip;Нажмите от ?YCTRL-1?W до ?YCTRL-9?W, чтобы назначить/отменить назначение этого устройства в группу управления, которую затем можно нажать от ?Y1?W до ?Y9?W, чтобы выбрать
 console_button_tooltip;Открыть командную консоль
-demobilize;Демобилизировать
-mobilize;Мобилизировать
-alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
-alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
-alice_mob_controls;?YRight-click?W to remobilize
+demobilize;Демобилизация
+mobilize;Мобилизация
+alice_cb_creation_detail_none;Выберите цель фабрикации против $country$.
+alice_cb_creation_detail;Мы можем сфабрицировать цель ?Y$type$?W против $country$. Это займёт ?Y$days$?W дней. Разоблачение даст до ?R$badboy$?W infamy.
+alice_cb_creation_detail_state;Мы сфабрикуем цель войны противt $country$ (провинции $state$) с причиной ?Y$type$?W. Это займёт ?Y$days$ дней?W. Разоблачение даст до ?R$badboy$?W infamy.
+alice_mob_controls;?YRight-click?W для мобилизации
 alice_mw_create_1;Добавить генерала
 alice_mw_create_2;Добавить адмирала
 alice_mw_create_lpb;?YLeadership points?W will automatically be used to create generals or admirals when hitting the cap
@@ -1126,14 +1127,14 @@ unit_current_supply;This unit received ?Y$val$%?W of the supplies needed in the 
 unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l demand satisfaction)
 unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l demand satisfaction)
 unit_current_supply_low;$what$: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l demand satisfaction)
-alice_crisis_inactive;Нет текущего активного кризиса
-alice_crisis_finding_attacker;Нахождение злоумышленника для текущего кризиса
-alice_crisis_finding_defender;Найти защитника от текущего кризиса
-alice_crisis_heating_up;Температура кризиса накаляется, сейчас она составляет ?R$temperature$?W
-alice_last_crisis;Последний кризис произошел в $date$ (между кризисами существует период времени $time$ в месяц)
+alice_crisis_inactive;Нет активного кризиса
+alice_crisis_finding_attacker;Поиск агрессора для текущего кризиса
+alice_crisis_finding_defender;Поиск защитника для текущего кризиса
+alice_crisis_heating_up;Температура накаляется, сейчас она составляет ?R$temperature$?W
+alice_last_crisis;Последний кризис произошел в $date$ (между кризисами обязательная задержка $time$)
 alice_crisis_par_1;?RНападавшие?!:
 alice_crisis_par_2;?BЗащитники?!:
-alice_crisis_par_3;?YПросто интересно (нет стороны)?!:
+alice_crisis_par_3;?YИнтересующиеся (нет стороны)?!:
 alice_commodity_cprice;Текущая цена: $x$
 alice_commodity_cost;Стоимость: $x$
 alice_commodity_eprice;Эффективная цена: $x$
@@ -1251,7 +1252,6 @@ CANCEL_WARSUBSIDIES_DESC;Отменить денежную помощь стра
 CANCEL_WARSUBSIDIES_BUTTON;Отменить субсидии
 domestic_investment_label;Поддержка предпринимательства:
 mouse_left_click_mode_label;Нажать, зажать, отпустить
-alice_cb_creation_detail_state;Мы сфабрикуем цель войны противt $country$ (провинции $state$) с причиной ?Y$type$?W. Это займёт ?Y$days$ дней?W. Разоблачение даст до ?R$badboy$?W infamy.
 alice_political_party_trigger;Доступна от ?Y$date_long_0$?W до ?Y$date_long_1$?W, со следующими условиями:
 alice_political_party_no_trigger;Доступна от ?Y$date_long_0$?W до ?Y$date_long_1$?W
 alice_mobilized_is_ai_controlled;Будут ли мобилизованные юниты под контролем ИИ
