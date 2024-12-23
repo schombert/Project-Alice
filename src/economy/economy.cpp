@@ -7566,9 +7566,9 @@ float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n, float
 		auto transferamt = collected_tax;
 
 		if(state.world.nation_get_is_substate(n)) {
-			transferamt *= state.defines.alice_substate_subject_money_transfer;
+			transferamt *= state.defines.alice_substate_subject_money_transfer / 100.f;
 		} else {
-			transferamt *= state.defines.alice_puppet_subject_money_transfer;
+			transferamt *= state.defines.alice_puppet_subject_money_transfer / 100.f;
 		}
 
 		return transferamt;
@@ -7591,9 +7591,9 @@ float estimate_subject_payments_received(sys::state& state, dcon::nation_id o) {
 			auto transferamt = collected_tax;
 
 			if(state.world.nation_get_is_substate(n)) {
-				transferamt *= state.defines.alice_substate_subject_money_transfer;
+				transferamt *= state.defines.alice_substate_subject_money_transfer / 100.f;
 			} else {
-				transferamt *= state.defines.alice_puppet_subject_money_transfer;
+				transferamt *= state.defines.alice_puppet_subject_money_transfer / 100.f;
 			}
 
 			res += transferamt;

@@ -128,11 +128,30 @@ public:
 		auto subjectpayments_expense = economy::estimate_subject_payments_paid(state, n);
 
 		if(subjectpayments_income != 0.0f) {
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ subjectpayments_income });
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "subjectpayments_income", m);
-			text::close_layout_box(contents, box);
+			{
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ subjectpayments_income });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "subjectpayments_income", m);
+				text::close_layout_box(contents, box);
+			}
+
+			for(auto on : state.world.in_nation) {
+				auto rel = state.world.nation_get_overlord_as_subject(on);
+				auto overlord = state.world.overlord_get_ruler(rel);
+
+				if(overlord == n) {
+					auto paid = economy::estimate_subject_payments_paid(state, on);
+
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ paid });
+					text::add_to_substitution_map(m, text::variable_type::country, on);
+
+					auto box = text::open_layout_box(contents, 1);
+					text::localised_format_box(state, contents, box, "subjectpayments_income_row", m);
+					text::close_layout_box(contents, box);
+				}
+			}
 		}
 		if(subjectpayments_expense != 0.0f) {
 			text::substitution_map m;
