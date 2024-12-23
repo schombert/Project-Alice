@@ -692,6 +692,7 @@ void macrobuilder2_main_unit_grid_t::on_create(sys::state& state) noexcept {
 // END
 }
 ui::message_result macrobuilder2_main_list_page_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::list_page_left::lbutton_action
@@ -720,6 +721,7 @@ void macrobuilder2_main_list_page_left_t::on_create(sys::state& state) noexcept 
 // END
 }
 ui::message_result macrobuilder2_main_list_page_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::list_page_right::lbutton_action
@@ -748,6 +750,7 @@ void macrobuilder2_main_list_page_right_t::on_create(sys::state& state) noexcept
 // END
 }
 ui::message_result macrobuilder2_main_grid_page_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::grid_page_left::lbutton_action
@@ -776,6 +779,7 @@ void macrobuilder2_main_grid_page_left_t::on_create(sys::state& state) noexcept 
 // END
 }
 ui::message_result macrobuilder2_main_grid_page_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::grid_page_right::lbutton_action
@@ -876,6 +880,7 @@ void macrobuilder2_main_grid_page_number_t::on_create(sys::state& state) noexcep
 // END
 }
 ui::message_result macrobuilder2_main_apply_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::apply_button::lbutton_action
@@ -1442,7 +1447,7 @@ void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int3
 		text::add_line(state, contents, "macro_warn_culture");
 	if(warn_active)
 		text::add_line(state, contents, "macro_warn_unlocked");
-
+	
 	if(maximum_speed == std::numeric_limits<float>::max()) maximum_speed = 0.f;
 	if(discipline_or_evasion == std::numeric_limits<float>::max()) discipline_or_evasion = 0.f;
 	if(maneuver == std::numeric_limits<float>::max()) maneuver = 0.f;
@@ -1509,6 +1514,7 @@ void macrobuilder2_grid_item_unit_icon_t::on_create(sys::state& state) noexcept 
 // END
 }
 ui::message_result macrobuilder2_grid_item_decrease_count_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
@@ -1556,6 +1562,7 @@ void macrobuilder2_grid_item_decrease_count_t::on_create(sys::state& state) noex
 // END
 }
 ui::message_result macrobuilder2_grid_item_increase_count_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
