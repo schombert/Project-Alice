@@ -382,14 +382,18 @@ void merge_sort(IT first, IT end, CMP const& cmp) noexcept {
 	delete[] buffer;
 }
 
-class full_wg {
-public:
+struct full_wg {
 	dcon::nation_id added_by;
 	dcon::nation_id target_nation;
 	dcon::nation_id secondary_nation;
 	dcon::national_identity_id wg_tag;
 	dcon::state_definition_id state;
 	dcon::cb_type_id cb;
+}
+
+struct aui_pending_bytes {
+	char const* data = nullptr;
+	size_t size = 0;
 };
 
 } // namespace sys

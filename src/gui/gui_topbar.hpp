@@ -2193,8 +2193,11 @@ public:
 			e->set_visible(state, false);
 
 		{
-			std::vector<economy::trade_volume_data_detailed> exported;
-			std::vector<economy::trade_volume_data_detailed> imported;
+			static std::vector<economy::trade_volume_data_detailed> exported;
+			static std::vector<economy::trade_volume_data_detailed> imported;
+
+			exported.clear();
+			imported.clear();
 
 			for(dcon::commodity_id cid : state.world.in_commodity) {
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods &&
@@ -2207,10 +2210,10 @@ public:
 				imported.push_back(economy::import_volume_detailed(state, state.local_player_nation, cid));
 			}
 
-			std::sort(exported.begin(), exported.end(), [&](auto& a, auto& b) {
+			sys::merge_sort(exported.begin(), exported.end(), [&](auto& a, auto& b) {
 				return a.volume > b.volume;
 			});
-			std::sort(imported.begin(), imported.end(), [&](auto& a, auto& b) {
+			sys::merge_sort(imported.begin(), imported.end(), [&](auto& a, auto& b) {
 				return a.volume > b.volume;
 			});
 
@@ -2245,7 +2248,7 @@ public:
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
-				v.insert({economy::supply(state, state.local_player_nation, cid), cid.index()});
+				v.insert({economy::supply(state, state.local_player_nation, cid) - economy::import_volume(state, state.local_player_nation, cid), cid.index() });
 			}
 
 			uint8_t slot = 0;

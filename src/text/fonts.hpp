@@ -197,5 +197,6 @@ public:
 };
 
 std::string_view classic_unligate_utf8(text::font& font, char32_t c);
+uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size);
 
 } // namespace text

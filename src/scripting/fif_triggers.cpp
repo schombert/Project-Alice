@@ -2906,7 +2906,7 @@ TRIGGER_FUNCTION(tf_number_of_states) {
 	return "dup owned_state_count @ >i32 " + std::to_string(tval[1]) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_war_score) {
-	return "true " + truth_inversion(tval[0]);
+	return "dup >index state-ptr @ avg-warscore " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_releasable_vassal_from) {
 	return ">r >r dup " + nation_to_tag() + "is_not_releasable @ not r> swap r> swap" + truth_inversion(tval[0]);

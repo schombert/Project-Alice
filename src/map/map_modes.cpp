@@ -404,8 +404,7 @@ std::vector<uint32_t> militancy_map_from(sys::state& state) {
 // Even newer mapmodes!
 //
 std::vector<uint32_t> life_needs_map_from(sys::state& state) {
-	std::vector<float> prov_population(state.world.province_size() + 1);
-	std::unordered_map<int32_t, float> continent_max_pop = {};
+	std::vector<float> prov_satisfaction(state.world.province_size() + 1);
 	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
@@ -415,9 +414,8 @@ std::vector<uint32_t> life_needs_map_from(sys::state& state) {
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
 				population += pop_demographics::get_life_needs(state, pl.get_pop()) * pl.get_pop().get_size();
 			auto cid = fat_id.get_continent().id.index();
-			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
-			prov_population[i] = population;
+			prov_satisfaction[i] = population / state.world.province_get_demographics(prov_id, demographics::total);
 		}
 	});
 	uint32_t province_size = state.world.province_size() + 1;
@@ -429,8 +427,7 @@ std::vector<uint32_t> life_needs_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = prov_population[i] / continent_max_pop[cid];
-			auto color = ogl::color_gradient_viridis(gradient_index);
+			auto color = ogl::color_gradient_viridis(prov_satisfaction[i]);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		}
@@ -438,8 +435,7 @@ std::vector<uint32_t> life_needs_map_from(sys::state& state) {
 	return prov_color;
 }
 std::vector<uint32_t> everyday_needs_map_from(sys::state& state) {
-	std::vector<float> prov_population(state.world.province_size() + 1);
-	std::unordered_map<int32_t, float> continent_max_pop = {};
+	std::vector<float> prov_satisfaction(state.world.province_size() + 1);
 	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
@@ -449,9 +445,8 @@ std::vector<uint32_t> everyday_needs_map_from(sys::state& state) {
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
 				population += pop_demographics::get_everyday_needs(state, pl.get_pop()) * pl.get_pop().get_size();
 			auto cid = fat_id.get_continent().id.index();
-			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
-			prov_population[i] = population;
+			prov_satisfaction[i] = population / state.world.province_get_demographics(prov_id, demographics::total);
 		}
 	});
 	uint32_t province_size = state.world.province_size() + 1;
@@ -463,7 +458,7 @@ std::vector<uint32_t> everyday_needs_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = prov_population[i] / continent_max_pop[cid];
+			float gradient_index = prov_satisfaction[i];
 			auto color = ogl::color_gradient_viridis(gradient_index);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
@@ -472,8 +467,7 @@ std::vector<uint32_t> everyday_needs_map_from(sys::state& state) {
 	return prov_color;
 }
 std::vector<uint32_t> luxury_needs_map_from(sys::state& state) {
-	std::vector<float> prov_population(state.world.province_size() + 1);
-	std::unordered_map<int32_t, float> continent_max_pop = {};
+	std::vector<float> prov_satisfaction(state.world.province_size() + 1);
 	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
@@ -483,9 +477,8 @@ std::vector<uint32_t> luxury_needs_map_from(sys::state& state) {
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
 				population += pop_demographics::get_luxury_needs(state, pl.get_pop()) * pl.get_pop().get_size();
 			auto cid = fat_id.get_continent().id.index();
-			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
-			prov_population[i] = population;
+			prov_satisfaction[i] = population / state.world.province_get_demographics(prov_id, demographics::total);
 		}
 	});
 	uint32_t province_size = state.world.province_size() + 1;
@@ -497,8 +490,7 @@ std::vector<uint32_t> luxury_needs_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = prov_population[i] / continent_max_pop[cid];
-			auto color = ogl::color_gradient_viridis(gradient_index);
+			auto color = ogl::color_gradient_viridis(prov_satisfaction[i]);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		}

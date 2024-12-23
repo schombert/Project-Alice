@@ -25,7 +25,7 @@ using json = nlohmann::json;
 namespace webui {
 
 // HTTP
-httplib::Server svr;
+static httplib::Server svr;
 
 inline void init(sys::state& state) noexcept {
 

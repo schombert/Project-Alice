@@ -4437,8 +4437,22 @@ TRIGGER_FUNCTION(tf_number_of_states) {
 	return compare_values(tval[0], ws.world.nation_get_owned_state_count(to_nation(primary_slot)), tval[1]);
 }
 TRIGGER_FUNCTION(tf_war_score) {
-	// unimplemented: which war would this be for?
-	return compare_to_true(tval[0], true);
+	auto result = ve::apply([&](dcon::nation_id n) {
+		auto score = 0.f;
+		auto wp = ws.world.nation_get_war_participant(n);
+		if(wp.begin() == wp.end()) {
+			return 0.f;
+		}
+		for(auto w : wp) {
+			if(w.get_is_attacker()) {
+				score += military::primary_warscore(ws, w.get_war());
+			} else {
+				score -= military::primary_warscore(ws, w.get_war());
+			}
+		}
+		return score / float(wp.end() - wp.begin());
+	}, to_nation(primary_slot));
+	return compare_values(tval[0], result, read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_is_releasable_vassal_from) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot));

@@ -1616,7 +1616,7 @@ public:
 		auto box = text::open_layout_box(contents);
 
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			auto amount = state.ui_state.main_template.amounts[i];
+			auto amount = state.ui_state.current_template == -1 ? uint8_t(0) : state.ui_state.templates[state.ui_state.current_template].amounts[i];
 
 			if(amount < 1) {
 				continue;
@@ -1647,6 +1647,9 @@ public:
 		disabled = false;
 	}
 	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.current_template == -1)
+			return;
+
 		auto army = retrieve<dcon::army_id>(state, parent);
 		auto army_location = state.world.army_get_location_from_army_location(army);
 
@@ -1662,7 +1665,7 @@ public:
 		}
 
 		state.build_up_to_template_land(
-			state.ui_state.main_template,
+			state.ui_state.templates[state.ui_state.current_template],
 			army_location,
 			provinces,
 			current_distribution

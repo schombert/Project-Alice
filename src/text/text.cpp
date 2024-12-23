@@ -1692,6 +1692,9 @@ void add_unparsed_text_to_layout_box(sys::state& state, layout_base& dest, layou
 					++pos;
 				}
 			} else if(*(pos + 1) == '*') {
+				if(section_start < pos)
+					add_text_range(std::string_view(section_start, pos - section_start));
+
 				uint8_t tens = char(*(pos + 2)) - '0';
 				uint8_t ones = char(*(pos + 3)) - '0';
 				uint8_t unit_index = tens * 10 + ones;
@@ -1700,6 +1703,9 @@ void add_unparsed_text_to_layout_box(sys::state& state, layout_base& dest, layou
 				add_to_layout_box(state, dest, box, embedded_unit_icon{ given_unit_type_id });
 				section_start = pos;
 			} else if(*(pos + 1) == '$') {
+				if(section_start < pos)
+					add_text_range(std::string_view(section_start, pos - section_start));
+
 				uint8_t tens = char(*(pos + 2)) - '0';
 				uint8_t ones = char(*(pos + 3)) - '0';
 				uint8_t commodity_index = tens * 10 + ones;

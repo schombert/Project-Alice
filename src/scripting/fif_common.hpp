@@ -1096,6 +1096,41 @@ inline int32_t* f_relations_b(fif::state_stack& s, int32_t* p, fif::environment*
 	s.push_back_main(fif::fif_f32, data, nullptr);
 	return p + 2;
 }
+inline float f_avg_warscore(sys::state* state, int32_t n_index) {
+	dcon::nation_id n{ dcon::nation_id::value_base_t(n_index) };
+
+	auto wp = state->world.nation_get_war_participant(n);
+	if(wp.begin() == wp.end()) {
+		return 0.f;
+	}
+	auto score = 0.f;
+	for(auto w : wp) {
+		if(w.get_is_attacker()) {
+			score += military::primary_warscore(*state, w.get_war());
+		} else {
+			score -= military::primary_warscore(*state, w.get_war());
+		}
+	}
+	return score / float(wp.end() - wp.begin());
+}
+inline int32_t* f_avg_warscore_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main(); s.pop_main();
+		s.push_back_main(fif::fif_f32, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	int32_t nindex = int32_t(s.main_data_back(0)); s.pop_main();
+
+	auto fres = f_avg_warscore(state, nindex);
+	int64_t data = 0;
+	memcpy(&data, &fres, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+	return p + 2;
+}
 inline bool f_has_union_sphere(sys::state* state, int32_t s_index) {
 	dcon::nation_id n{ dcon::nation_id::value_base_t(s_index) };
 	auto prim_culture = state->world.nation_get_primary_culture(n);
@@ -1394,6 +1429,7 @@ inline void common_fif_environment(sys::state& state, fif::environment& env) {
 	fif::add_import("ranked-nation-array", (void *) f_ranked_nations, f_ranked_nations_b, { fif::fif_opaque_ptr }, { fif::fif_opaque_ptr }, env);
 	fif::add_import("has-named-party?", (void*)f_party_name, f_party_name_b, { fif::fif_i32, fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 	fif::add_import("has-positioned-party?", (void*)f_party_pos, f_party_pos_b, { fif::fif_i32, fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("avg-warscore", (void*)f_avg_warscore, f_avg_warscore_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
 
 	fif::run_fif_interpreter(env,
 		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "
