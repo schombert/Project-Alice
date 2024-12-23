@@ -20,6 +20,8 @@
 #include "text.hpp"
 #include "gui_event.hpp"
 
+#include "gui_armygroups.hpp"
+
 namespace ui {
 
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
@@ -1680,9 +1682,9 @@ public:
 class topbar_crisis_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		if(state.current_crisis == sys::crisis_type::none) {
+		if(state.current_crisis_state == sys::crisis_state::inactive) {
 			return 2;
-		} else if(state.crisis_temperature > 0.8f) {
+		} else if(state.crisis_temperature > 80.f) {
 			return 1;
 		} else {
 			return 0;
@@ -1700,19 +1702,19 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::defender, state.primary_crisis_defender);
 		text::add_to_substitution_map(sub, text::variable_type::date, state.last_crisis_end_date);
 		text::add_to_substitution_map(sub, text::variable_type::time, int32_t(state.defines.crisis_cooldown_months));
-		if(state.current_crisis_mode == sys::crisis_mode::inactive) {
+		if(state.current_crisis_state == sys::crisis_state::inactive) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_inactive"), sub);
 			text::close_layout_box(contents, box);
-		} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+		} else if(state.current_crisis_state == sys::crisis_state::finding_attacker) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_attacker"), sub);
 			text::close_layout_box(contents, box);
-		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+		} else if(state.current_crisis_state == sys::crisis_state::finding_defender) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_defender"), sub);
 			text::close_layout_box(contents, box);
-		} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+		} else if(state.current_crisis_state == sys::crisis_state::heating_up) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_heating_up"), sub);
 			text::close_layout_box(contents, box);
@@ -1948,6 +1950,8 @@ private:
 	std::vector<topbar_commodity_amount_icon*> produced_icons;
 	simple_text_element_base* atpeacetext = nullptr;
 
+	army_management_window* army_mgmt_win = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -1963,6 +1967,13 @@ public:
 		add_child_to_front(std::move(dpi_win));
 
 		state.ui_state.topbar_window = this;
+
+		auto new_win = make_element_by_type<army_management_window>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("army_management_window"))->second.definition);
+		army_mgmt_win = new_win.get();
+		army_mgmt_win->set_visible(state, false);
+		add_child_to_front(std::move(new_win));
+
 		on_update(state);
 	}
 

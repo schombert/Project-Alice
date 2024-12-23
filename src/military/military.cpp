@@ -841,6 +841,8 @@ int32_t main_culture_regiments_under_construction_in_province(sys::state& state,
 	return total;
 }
 
+// Calculates whether province can support more regiments
+// Considers existing regiments and construction as well
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture) {
 	if(state.world.province_get_is_colonial(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
@@ -3152,7 +3154,7 @@ void run_gc(sys::state& state) {
 		} else if(!po.get_war_from_war_settlement() && !po.get_is_crisis_offer()) {
 			remove_pending_offer(po);
 			state.world.delete_peace_offer(po);
-		} else if(state.current_crisis == sys::crisis_type::none && po.get_is_crisis_offer()) {
+		} else if(state.current_crisis_state == sys::crisis_state::inactive && po.get_is_crisis_offer()) {
 			remove_pending_offer(po);
 			state.world.delete_peace_offer(po);
 		}
@@ -3456,68 +3458,125 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	} else { // crisis offer
 		bool crisis_attackers_won = (from == state.primary_crisis_attacker) == (state.world.peace_offer_get_is_concession(offer) == false);
 
+		auto truce_months = military::peace_offer_truce_months(state, offer);
+
+		for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+			add_truce(state, wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), truce_months * 31);
+		}
+
+		for(auto swg : state.crisis_attacker_wargoals) {
+			bool was_part_of_offer = false;
+			for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+				if(wg.get_wargoal().get_added_by() == swg.added_by)
+					was_part_of_offer = true;
+			}
+
+			if(!was_part_of_offer) {
+				float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
+																	state.defines.war_failed_goal_prestige * state.defines.crisis_wargoal_prestige_mult *
+																			nations::prestige_score(state, swg.added_by)) *
+					state.world.cb_type_get_penalty_factor(swg.cb);
+				nations::adjust_prestige(state, swg.added_by, prestige_loss);
+
+				auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(swg.cb);
+				if(pop_militancy > 0) {
+					for(auto prv : state.world.nation_get_province_ownership(swg.added_by)) {
+						for(auto pop : prv.get_province().get_pop_location()) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+							pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
+						}
+					}
+				}
+
+				if(crisis_attackers_won) {
+					// Wargoal added by attacker. They won, but leader ignored wargoal
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							-state.defines.crisis_winner_relations_impact);
+				}
+				else {
+					// Wargoal added by attacker. They lost
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							-state.defines.crisis_winner_relations_impact);
+				}
+			} else {
+				if(crisis_attackers_won) {
+					// Wargoal added by attacker. They won and leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							state.defines.crisis_winner_relations_impact);
+				} else {
+					// Wargoal added by attacker. They lost and defender leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							state.defines.crisis_winner_relations_impact);
+				}
+			}
+		}
+
+		for(auto swg : state.crisis_attacker_wargoals) {
+			bool was_part_of_offer = false;
+			for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
+				if(wg.get_wargoal().get_added_by() == swg.added_by)
+					was_part_of_offer = true;
+			}
+
+			if(!was_part_of_offer) {
+				float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
+																	state.defines.war_failed_goal_prestige * state.defines.crisis_wargoal_prestige_mult *
+																			nations::prestige_score(state, swg.added_by)) *
+					state.world.cb_type_get_penalty_factor(swg.cb);
+				nations::adjust_prestige(state, swg.added_by, prestige_loss);
+
+				auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(swg.cb);
+				if(pop_militancy > 0) {
+					for(auto prv : state.world.nation_get_province_ownership(swg.added_by)) {
+						for(auto pop : prv.get_province().get_pop_location()) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop());
+							pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
+						}
+					}
+				}
+
+				if(crisis_attackers_won) {
+					// Wargoal added by defender. They lost, but leader ignored wargoal
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							-state.defines.crisis_winner_relations_impact);
+				} else {
+					// Wargoal added by defender. They won and defender leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							-state.defines.crisis_winner_relations_impact);
+				}
+			} else {
+				if(crisis_attackers_won) {
+					// Wargoal added by defender. They lost and attacker leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_attacker,
+							state.defines.crisis_winner_relations_impact);
+				} else {
+					// Wargoal added by defender. They won and defender leader enforced WG
+					nations::adjust_relationship(state, swg.added_by, state.primary_crisis_defender,
+							state.defines.crisis_winner_relations_impact);
+				}
+			}
+		}
+
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
 				break;
 
 			if(par.merely_interested == false && par.id != state.primary_crisis_attacker && par.id != state.primary_crisis_defender) {
-				if(par.joined_with_offer.wargoal_type) {
-
-					bool was_part_of_offer = false;
-					for(auto wg : state.world.peace_offer_get_peace_offer_item(offer)) {
-						if(wg.get_wargoal().get_added_by() == par.id)
-							was_part_of_offer = true;
-					}
-					if(!was_part_of_offer) {
-						float prestige_loss = std::min(state.defines.war_failed_goal_prestige_base,
-																			state.defines.war_failed_goal_prestige * state.defines.crisis_wargoal_prestige_mult *
-																					nations::prestige_score(state, par.id)) *
-																	state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
-						nations::adjust_prestige(state, par.id, prestige_loss);
-
-						auto pop_militancy = state.defines.war_failed_goal_militancy * state.defines.crisis_wargoal_militancy_mult * state.world.cb_type_get_penalty_factor(par.joined_with_offer.wargoal_type);
-						if(pop_militancy > 0) {
-							for(auto prv : state.world.nation_get_province_ownership(par.id)) {
-								for(auto pop : prv.get_province().get_pop_location()) {
-									auto mil = pop_demographics::get_militancy(state, pop.get_pop());
-									pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + pop_militancy, 10.0f));
-								}
-							}
-						}
-
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									-state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									-state.defines.crisis_winner_relations_impact);
-						}
+				if(crisis_attackers_won != par.supports_attacker) {
+					if(par.supports_attacker) {
+						nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
+								-state.defines.crisis_winner_relations_impact);
 					} else {
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									state.defines.crisis_winner_relations_impact);
-						}
+						nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
+								-state.defines.crisis_winner_relations_impact);
 					}
 				} else {
-					if(crisis_attackers_won != par.supports_attacker) {
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									-state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									-state.defines.crisis_winner_relations_impact);
-						}
+					if(par.supports_attacker) {
+						nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
+								state.defines.crisis_winner_relations_impact);
 					} else {
-						if(par.supports_attacker) {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_attacker,
-									state.defines.crisis_winner_relations_impact);
-						} else {
-							nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
-									state.defines.crisis_winner_relations_impact);
-						}
+						nations::adjust_relationship(state, par.id, state.primary_crisis_defender,
+								state.defines.crisis_winner_relations_impact);
 					}
 				}
 			}
@@ -7095,7 +7154,17 @@ void recover_org(sys::state& state) {
 	}
 }
 
-float reinforce_amount(sys::state& state, dcon::army_id a) {
+// Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
+float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
+	return state.world.regiment_get_strength(regiment_id);
+}
+// Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
+float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
+	return state.world.ship_get_strength(ship_id);
+}
+/* === Army reinforcement === */
+// Calculates max reinforcement for units in the army
+float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
 	if(ar.get_battle_from_army_battle_participation() || ar.get_navy_from_army_transport() || ar.get_is_retreating())
 		return 0.0f;
@@ -7121,6 +7190,27 @@ float reinforce_amount(sys::state& state, dcon::army_id a) {
 	return combined;
 }
 
+// Calculates reinforcement for a particular regiment
+// Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
+float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
+	auto pop = reg.get_pop_from_regiment_source();
+	auto pop_size = pop.get_size();
+	auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
+	auto curstr = reg.get_strength();
+	auto newstr = std::min(curstr + combined, limit_fraction);
+
+	return newstr - curstr;
+}
+
+// Calculates reinforcement for a particular unit from scratch, unit type is unknown
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg_id) {
+	auto reg = dcon::fatten(state.world, reg_id);
+	auto ar = reg.get_army_from_army_membership();
+	auto combined = calculate_army_combined_reinforce(state, ar);
+
+	return regiment_calculate_reinforcement(state, reg, combined);
+}
+
 void reinforce_regiments(sys::state& state) {
 	/*
 	A unit that is not retreating, not embarked, not in combat is reinforced (has its strength increased) by:
@@ -7135,33 +7225,49 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
-		auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
-
-		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
-
-		float location_modifier = 1.0f;
-		if(ar.get_location_from_army_location().get_nation_from_province_ownership() == in_nation) {
-			location_modifier = 2.0f;
-		} else if(ar.get_location_from_army_location().get_nation_from_province_control() == in_nation) {
-			location_modifier = 1.0f;
-		} else {
-			location_modifier = 0.1f;
-		}
-
-		auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
-										(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
-										(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+		auto combined = calculate_army_combined_reinforce(state, ar);
 
 		for(auto reg : ar.get_army_membership()) {
-			auto pop = reg.get_regiment().get_pop_from_regiment_source();
-			auto pop_size = pop.get_size();
-			auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
-			auto curstr = reg.get_regiment().get_strength();
-			auto newstr = std::min(curstr + combined, limit_fraction);
-			reg.get_regiment().set_strength(newstr);
-			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
+			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
+			reg.get_regiment().get_strength() += reinforcement;
+			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), reinforcement * 5.f * state.defines.exp_gain_div);
 		}
 	}
+}
+
+/* === Navy reinforcement === */
+// Calculates max reinforcement for units in the navy
+float calculate_navy_combined_reinforce(sys::state& state, dcon::navy_id navy_id) {
+	auto n = dcon::fatten(state.world, navy_id);
+	auto in_nation = n.get_controller_from_navy_control();
+
+	float oversize_amount =
+		in_nation.get_naval_supply_points() > 0
+		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
+		: 1.75f;
+	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
+	auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
+
+	auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
+	auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
+	auto combined = rr_mod * reinf_mod * spending_level;
+
+	return combined;
+}
+// Calculates reinforcement for a particular unit from scratch, unit type is unknown
+float unit_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id) {
+	auto combined = calculate_navy_combined_reinforce(state, state.world.ship_get_navy_from_navy_membership(ship_id));
+	auto curstr = state.world.ship_get_strength(ship_id);
+	auto newstr = std::min(curstr + combined, 1.0f);
+	return newstr - curstr;
+}
+
+// Calculates reinforcement for a particular ship
+// Combined = max reinforcement for units in the navy from calculate_navy_combined_reinforce
+float ship_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id, float combined) {
+	auto curstr = state.world.ship_get_strength(ship_id);
+	auto newstr = std::min(curstr + combined, 1.0f);
+	return newstr - curstr;
 }
 
 void repair_ships(sys::state& state) {
@@ -7173,30 +7279,20 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 	for(auto n : state.world.in_navy) {
 		auto nb_level = n.get_location_from_navy_location().get_building_level(uint8_t(economy::province_building_type::naval_base));
 		if(!n.get_arrival_time() && nb_level > 0) {
-
 			auto in_nation = n.get_controller_from_navy_control();
-
-			float oversize_amount =
-					in_nation.get_naval_supply_points() > 0
-							? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
-							: 1.75f;
-			float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
-			auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
-
-			auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
-			auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
-			auto repair_val = rr_mod * reinf_mod * spending_level;
+			auto combined = calculate_navy_combined_reinforce(state, n);
 
 			for(auto reg : n.get_navy_membership()) {
-				auto curstr = reg.get_ship().get_strength();
-				auto newstr = std::min(curstr + repair_val, 1.0f);
-				reg.get_ship().set_strength(newstr);
-				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, (newstr - curstr) * 5.f * state.defines.exp_gain_div));
+				auto ship = reg.get_ship();
+				auto reinforcement = ship_calculate_reinforcement(state, ship, combined);
+				ship.get_strength() += reinforcement;
+				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, reinforcement * 5.f * state.defines.exp_gain_div));
 			}
 		}
 	}
 }
 
+/* === Mobilization === */
 void start_mobilization(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_is_mobilized(n))
 		return;
@@ -7251,7 +7347,7 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 	/*
 	Mobilizing increases crisis tension by define:CRISIS_TEMPERATURE_ON_MOBILIZE
 	*/
-	if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+	if(state.current_crisis_state == sys::crisis_state::heating_up) {
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
 				break;

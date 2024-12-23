@@ -3111,6 +3111,7 @@ void populate_army_consumption(sys::state& state) {
 		auto location = pop.get_pop_location().get_province().get_state_membership();
 		auto market = location.get_market_from_local_market();
 		auto scale = owner.get_spending_level();
+		auto strength = reg.get_strength();
 
 		if(owner && type) {
 			auto o_sc_mod = std::max(
@@ -3121,10 +3122,27 @@ void populate_army_consumption(sys::state& state) {
 			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(supply_cost.commodity_type[i]) {
+					// Day-to-day consumption
+					// Strength under 100% reduces unit supply consumption
 					state.world.market_get_army_demand(market, supply_cost.commodity_type[i]) +=
 						supply_cost.commodity_amounts[i]
 						* state.world.nation_get_unit_stats(owner, type).supply_consumption
-						* o_sc_mod;
+						* o_sc_mod * strength;
+				} else {
+					break;
+				}
+			}
+			auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(build_cost.commodity_type[i]) {
+					auto reinforcement = military::unit_calculate_reinforcement(state, reg);
+					if(reinforcement > 0) {
+						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
+						state.world.market_get_army_demand(market, build_cost.commodity_type[i]) +=
+							build_cost.commodity_amounts[i]
+							* reinforcement;
+					}
 				} else {
 					break;
 				}
@@ -3162,6 +3180,22 @@ void populate_navy_consumption(sys::state& state) {
 						supply_cost.commodity_amounts[i]
 						* state.world.nation_get_unit_stats(owner, type).supply_consumption
 						* o_sc_mod;
+				} else {
+					break;
+				}
+			}
+
+			auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(build_cost.commodity_type[i]) {
+					auto reinforcement = military::unit_calculate_reinforcement(state, shp);
+					if(reinforcement > 0) {
+						// Ship needs repair - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
+						state.world.market_get_army_demand(market, build_cost.commodity_type[i]) +=
+							build_cost.commodity_amounts[i]
+							* reinforcement;
+					}
 				} else {
 					break;
 				}
@@ -6351,12 +6385,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto pt = pop.get_poptype();
 					auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
 					if(ln_type == culture::income_type::administration) {
-						float ratio = pop.get_size() / local_managers;
+						float ratio = (local_managers > 0.f) ? pop.get_size() / local_managers : 0.f;
 						pop.set_savings(pop.get_savings() + current * (1.f - local_education_ratio) * ratio);
 						assert(std::isfinite(pop.get_savings()));
 						adm_money += current * (1.f - local_education_ratio) * ratio;
 					} else if(ln_type == culture::income_type::education) {
-						float ratio = pop.get_size() / local_teachers;
+						float ratio = (local_teachers > 0.f) ? pop.get_size() / local_teachers : 0.f;
 						pop.set_savings(pop.get_savings() + current * local_education_ratio * ratio);
 						assert(std::isfinite(pop.get_savings()));
 						edu_money += current * local_education_ratio * ratio;
@@ -6450,6 +6484,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			assert(std::isfinite(t_total));
 			assert(t_total >= 0);
 			state.world.nation_get_stockpiles(n, money) += t_total;
+		}
+
+		// Subject money transfers
+		auto rel = state.world.nation_get_overlord_as_subject(n);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord) {
+			auto transferamt = estimate_subject_payments_paid(state, n, collected_tax);
+			state.world.nation_get_stockpiles(n, money) -= transferamt;
+			state.world.nation_get_stockpiles(overlord, money) += transferamt;
 		}
 
 		// shift needs weights
@@ -7428,7 +7472,10 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 	float w_sub = estimate_war_subsidies_income(state, n) - estimate_war_subsidies_spending(state, n);
 	float w_reps = estimate_reparations_income(state, n) - estimate_reparations_spending(state, n);
-	return w_sub + w_reps;
+
+	float subject_payments = estimate_subject_payments_paid(state, n) + estimate_subject_payments_received(state, n);
+
+	return w_sub + w_reps + subject_payments;
 }
 
 float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
@@ -7500,6 +7547,60 @@ float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon
 	auto target_m_costs = (target.get_total_rich_income() + target.get_total_middle_income() + target.get_total_poor_income()) * state.defines.warsubsidies_percent;
 	auto source_m_costs = (source.get_total_rich_income() + source.get_total_middle_income() + source.get_total_poor_income()) * state.defines.warsubsidies_percent;
 	return std::min(target_m_costs, source_m_costs);
+}
+
+float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n) {
+	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto collected_tax = state.world.nation_get_total_poor_income(n) * tax_eff * float(state.world.nation_get_poor_tax(n)) / 100.0f +
+		state.world.nation_get_total_middle_income(n) * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f +
+		state.world.nation_get_total_rich_income(n) * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
+
+	return estimate_subject_payments_paid(state, n, collected_tax);
+}
+
+float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n, float collected_tax) {
+	auto rel = state.world.nation_get_overlord_as_subject(n);
+	auto overlord = state.world.overlord_get_ruler(rel);
+
+	if(overlord) {
+		auto transferamt = collected_tax;
+
+		if(state.world.nation_get_is_substate(n)) {
+			transferamt *= state.defines.alice_substate_subject_money_transfer;
+		} else {
+			transferamt *= state.defines.alice_puppet_subject_money_transfer;
+		}
+
+		return transferamt;
+	}
+
+	return 0;
+}
+
+float estimate_subject_payments_received(sys::state& state, dcon::nation_id o) {
+	auto res = 0.0f;
+	for(auto n : state.world.in_nation) {
+		auto rel = state.world.nation_get_overlord_as_subject(n);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord == o) {
+			auto const tax_eff = nations::tax_efficiency(state, n);
+			auto const collected_tax = state.world.nation_get_total_poor_income(n) * tax_eff * float(state.world.nation_get_poor_tax(n)) / 100.0f +
+				state.world.nation_get_total_middle_income(n) * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f +
+				state.world.nation_get_total_rich_income(n) * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
+			auto transferamt = collected_tax;
+
+			if(state.world.nation_get_is_substate(n)) {
+				transferamt *= state.defines.alice_substate_subject_money_transfer;
+			} else {
+				transferamt *= state.defines.alice_puppet_subject_money_transfer;
+			}
+
+			res += transferamt;
+		}
+	}
+
+	return res;
 }
 
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {

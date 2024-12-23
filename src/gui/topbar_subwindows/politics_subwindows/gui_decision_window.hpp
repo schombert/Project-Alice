@@ -37,10 +37,11 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::overlord, state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n)));
 	text::add_to_substitution_map(m, text::variable_type::nationalvalue, state.world.nation_get_national_value(n).get_name());
 	// Crisis stuff
-	text::add_to_substitution_map(m, text::variable_type::crisistaker, state.crisis_liberation_tag);
-	text::add_to_substitution_map(m, text::variable_type::crisistaker_adj, state.world.national_identity_get_adjective(state.crisis_liberation_tag));
-	text::add_to_substitution_map(m, text::variable_type::crisistaker_capital, state.world.national_identity_get_capital(state.crisis_liberation_tag));
-	text::add_to_substitution_map(m, text::variable_type::crisistaker_continent, state.world.national_identity_get_capital(state.crisis_liberation_tag).get_continent().get_name());
+	auto first_wg = state.crisis_attacker_wargoals.at(0);
+	text::add_to_substitution_map(m, text::variable_type::crisistaker, first_wg.wg_tag);
+	text::add_to_substitution_map(m, text::variable_type::crisistaker_adj, state.world.national_identity_get_adjective(first_wg.wg_tag));
+	text::add_to_substitution_map(m, text::variable_type::crisistaker_capital, state.world.national_identity_get_capital(first_wg.wg_tag));
+	text::add_to_substitution_map(m, text::variable_type::crisistaker_continent, state.world.national_identity_get_capital(first_wg.wg_tag).get_continent().get_name());
 	text::add_to_substitution_map(m, text::variable_type::crisisattacker, state.primary_crisis_attacker);
 	text::add_to_substitution_map(m, text::variable_type::crisisattacker_capital, state.world.nation_get_capital(state.primary_crisis_attacker));
 	text::add_to_substitution_map(m, text::variable_type::crisisattacker_continent, state.world.nation_get_capital(state.primary_crisis_attacker).get_continent().get_name());
@@ -49,7 +50,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(m, text::variable_type::crisistarget, state.primary_crisis_defender);
 	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
-	text::add_to_substitution_map(m, text::variable_type::crisisarea, state.crisis_state);
+	text::add_to_substitution_map(m, text::variable_type::crisisarea, first_wg.state);
 	text::add_to_substitution_map(m, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// TODO: Is this correct? I remember in vanilla it could vary
 	auto pc = state.world.nation_get_primary_culture(n);

@@ -474,7 +474,7 @@ public:
 		auto source = state.local_player_nation;
 		auto p = retrieve<dcon::province_id>(state, parent);
 		text::add_line(state, contents, "alice_mvcap_1");
-		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis != sys::crisis_type::none));
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis_state == sys::crisis_state::inactive));
 		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
 		text::add_line_with_condition(state, contents, "alice_mvcap_4", !(state.world.nation_get_capital(source) == p));
 		text::add_line_with_condition(state, contents, "alice_mvcap_5", !(state.world.province_get_is_colonial(p)));
@@ -1818,9 +1818,11 @@ public:
 			text::add_line(state, contents, "col_start_title");
 			text::add_line_break_to_layout(state, contents);
 
+			auto first_wg = state.crisis_attacker_wargoals.at(0);
+
 			text::add_line_with_condition(state, contents, "col_start_1", state.world.state_definition_get_colonization_stage(sdef) <= uint8_t(1));
 			text::add_line_with_condition(state, contents, "col_start_2", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
-			text::add_line_with_condition(state, contents, "col_start_3", state.crisis_colony != sdef);
+			text::add_line_with_condition(state, contents, "col_start_3", first_wg.state != sdef);
 
 			bool war_participant = false;
 			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
@@ -1898,8 +1900,8 @@ public:
 			text::add_line_break_to_layout(state, contents);
 
 			text::add_line_with_condition(state, contents, "col_invest_1", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
-
-			text::add_line_with_condition(state, contents, "col_invest_2", state.crisis_colony != sdef);
+			auto first_wg = state.crisis_attacker_wargoals.at(0);
+			text::add_line_with_condition(state, contents, "col_invest_2", first_wg.state != sdef);
 
 			bool war_participant = false;
 			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {

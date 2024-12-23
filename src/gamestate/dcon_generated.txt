@@ -3933,6 +3933,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property {
+		name{ ai_strategy }
+		type{ int }
+		tag{ save }
+	}
 }
 
 object{
@@ -4458,7 +4463,7 @@ relationship{
 relationship{
 	name{ province_land_construction }
 	storage_type{ erasable }
-	size{ 16000 }
+	size{ 32000 }
 	tag{ save }
 
 	link{

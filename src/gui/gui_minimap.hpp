@@ -10,6 +10,7 @@
 #include "map.hpp"
 #include "map_modes.hpp"
 #include <glm/glm.hpp>
+#include "alice_ui.hpp"
 
 namespace ui {
 
@@ -91,6 +92,7 @@ public:
 	}
 };
 
+/*
 class macro_builder_template_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -368,7 +370,7 @@ public:
 				warn_active = true;
 			if(state.military_definitions.unit_base_definitions[utid].primary_culture)
 				warn_culture = true;
-			if(state.military_definitions.unit_base_definitions[utid].can_build_overseas)
+			if(!state.military_definitions.unit_base_definitions[utid].can_build_overseas)
 				warn_overseas = true;
 
 			reconnaissance_or_fire_range += state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range * float(t.amounts[i]);
@@ -713,11 +715,14 @@ public:
 		return message_result::consumed;// window_element_base::impl_get(state, payload);
 	}
 };
+*/
 class minimap_macro_builder_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(!state.ui_state.macro_builder_window) {
-			auto window = make_element_by_type<macro_builder_window>(state, "alice_macro_builder");
+			auto window = alice_ui::make_macrobuilder2_main(state);
+			//auto window = make_element_by_type<macro_builder_window>(state, "alice_macro_builder");
+			window->impl_on_update(state);
 			state.ui_state.macro_builder_window = window.get();
 			state.ui_state.root->add_child_to_front(std::move(window));
 		} else if(state.ui_state.macro_builder_window->is_visible()) {

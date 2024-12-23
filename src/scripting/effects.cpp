@@ -1295,7 +1295,7 @@ uint32_t es_flashpoint_tag_scope(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t es_crisis_state_scope(EFFECT_PARAMTERS) {
-	auto cstate = ws.crisis_state;
+	auto cstate = ws.crisis_state_instance;
 	if(cstate)
 		return apply_subeffects(tval, ws, trigger::to_generic(cstate), this_slot, from_slot, r_hi, r_lo, els);
 	return 0;
@@ -3281,7 +3281,7 @@ uint32_t ef_literacy(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_add_crisis_interest(EFFECT_PARAMTERS) {
-	if(ws.current_crisis != sys::crisis_type::none && ws.current_crisis_mode == sys::crisis_mode::heating_up) {
+	if(ws.current_crisis_state != sys::crisis_state::inactive && ws.current_crisis_state == sys::crisis_state::heating_up) {
 		for(auto& im : ws.crisis_participants) {
 			if(im.id == trigger::to_nation(primary_slot)) {
 				return 0;

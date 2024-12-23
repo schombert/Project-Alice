@@ -3,6 +3,10 @@
 #include "culture.hpp"
 #include "military.hpp"
 
+namespace sys {
+enum class crisis_state : uint32_t;
+}
+
 namespace nations {
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
@@ -325,10 +329,6 @@ bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 bool is_landlocked(sys::state& state, dcon::nation_id n);
 
-bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index);
-military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index);
-int32_t num_crisis_wargoals(sys::state& state);
-
 void get_active_political_parties(sys::state& state, dcon::nation_id n, std::vector<dcon::political_party_id>& parties);
 
 void update_monthly_points(sys::state& state);
@@ -365,10 +365,16 @@ void update_revanchism(sys::state& state);
 
 void monthly_flashpoint_update(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
+void crisis_state_transition(sys::state& state, sys::crisis_state new_state);
 void update_crisis(sys::state& state);
+void crisis_add_wargoal(std::vector<sys::full_wg>& list, sys::full_wg wg);
 
 void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
+
+void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n);
+void ask_to_defend_in_crisis(sys::state & state, dcon::nation_id n);
+
 void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);
 void cleanup_crisis_peace_offer(sys::state& state, dcon::peace_offer_id peace);

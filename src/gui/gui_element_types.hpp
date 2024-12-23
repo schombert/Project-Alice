@@ -1075,4 +1075,14 @@ struct element_selection_wrapper {
 
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept;
 
+void render_text_chunk(
+	sys::state& state,
+	text::text_chunk t,
+	float x,
+	float baseline_y,
+	uint16_t font_id,
+	ogl::color3f text_color,
+	ogl::color_modification cmod
+);
+
 } // namespace ui

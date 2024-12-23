@@ -22,6 +22,7 @@ obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_c
 	context.ui_defs.gfx.emplace_back();
 	ui::gfx_object& new_obj = context.ui_defs.gfx.back();
 
+	new_obj.name = context.full_state.add_key_win1252(obj_in.name);
 	context.map_of_names.insert_or_assign(std::string(obj_in.name), dcon::gfx_object_id(uint16_t(gfxindex)));
 
 	if(obj_in.allwaystransparent) {

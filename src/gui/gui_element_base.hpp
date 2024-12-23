@@ -15,6 +15,7 @@ enum class mouse_probe_type { click, tooltip, scroll };
 class element_base {
 public:
 	static constexpr uint8_t is_invisible_mask = 0x01;
+	static constexpr uint8_t wants_update_when_hidden_mask = 0x02;
 
 	element_data base_data;
 	element_base* parent = nullptr;
@@ -48,6 +49,9 @@ public:
 	virtual message_result impl_on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual void impl_on_update(sys::state& state) noexcept;
 	message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
+	virtual message_result set_by_name(sys::state& state, std::string_view name, Cyto::Any& payload) noexcept {
+		return message_result::unseen;
+	}
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
 	virtual void impl_on_reset_text(sys::state& state) noexcept;
