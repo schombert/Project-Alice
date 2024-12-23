@@ -561,4 +561,64 @@ spriteTypes = {
         name = "6-width-header-line"
         texturefile = "assets\\6-width-header-line.png"
     }
+
+
+	spriteType = {
+        name = "button-25-15"
+        texturefile = "assets\\button-25-15.png"
+        noOfFrames = 3
+	}
+    spriteType = {
+        name = "button-25-25"
+        texturefile = "assets\\button-25-25.png"
+        noOfFrames = 3
+	}
+    spriteType = {
+        name = "economy-item-selector"
+        texturefile = "assets\\economy-item-selector.png"
+        noOfFrames = 3
+	}
+    spriteType = {
+        name = "economy-close-button"
+        texturefile = "assets\\economy-close-button.png"
+        noOfFrames = 3
+	}
+    spriteType = {
+        name = "economy-top-bar-button"
+        texturefile = "assets\\economy-top-bar-button.png"
+        noOfFrames = 3
+	}
+    
+    spriteType = {
+        name = "bg-page-selector"
+        texturefile = "assets\\bg-page-selector.png"
+        noOfFrames = 1
+	}
+    spriteType = {
+        name = "bg-factory-type"
+        texturefile = "assets\\bg-factory-type.png"
+        noOfFrames = 1
+	}
+    spriteType = {
+        name = "bg-commodity"
+        texturefile = "assets\\bg-commodity.png"
+        noOfFrames = 1
+	}
+    
+    spriteType = {
+        name = "bg-factory-type-name"
+        texturefile = "assets\\bg-factory-type-name.png"
+        noOfFrames = 1
+	}
+    
+    spriteType = {
+        name = "bg-factory-type-priority-info"
+        texturefile = "assets\\bg-factory-type-priority-info.png"
+        noOfFrames = 1
+	}
+    spriteType = {
+        name = "map-label"
+        texturefile = "assets\\map-label.png"
+        noOfFrames = 1
+	}
 }

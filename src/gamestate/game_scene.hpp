@@ -310,9 +310,6 @@ inline scene_properties economy_viewer_scene() {
 
 .render_ui = economy_viewer::render,
 
-.recalculate_mouse_probe = recalculate_mouse_probe_units_and_details,
-.recalculate_tooltip_probe = recalculate_tooltip_probe_units_and_details,
-
 .on_game_state_update = generic_map_scene_update,
 .on_game_state_update_update_ui = economy_scene_update,
 .update_highlight_texture = highlight_given_province

@@ -37,8 +37,18 @@ enum class static_elements : int32_t {
 	priority_value_national = 10000011,
 	priority_value_private = 10000012,
 	priority_value_bonus = 10000013,
+
+	tab_name_commodity = 10005000,
+	tab_name_factory_type = 10005001,
+	tab_name_production_chain = 10005002,
 };
+
 void update(sys::state& state) {
+
+	auto key = state.lookup_key("alice_button_factory_type_priority");
+	auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+	auto& data = state.ui_defs.gui[def];
+
 	if(state.iui_state.per_market_data.size() != state.world.market_size()) {
 		state.iui_state.per_market_data.resize(state.world.market_size());
 	}
@@ -80,13 +90,12 @@ void update(sys::state& state) {
 }
 
 void commodity_panel(sys::state& state, int32_t identifier_amount, int32_t identifier_cost, dcon::commodity_id cid, float amount, float price, iui::rect& r) {
-	state.iui_state.panel(state, r);
 	auto icon_size = 20.f;
 	ogl::render_commodity_icon(
 		state, cid,
 		r.x + 5.f, r.y + r.h / 2.f - icon_size / 2.f, icon_size, icon_size
 	);
-	iui::rect data{ r.x + 15.f, r.y + 4.f, r.w - 18.f, r.h / 2.f };
+	iui::rect data{ r.x + 15.f, r.y, r.w - 18.f, r.h / 2.f };
 	state.iui_state.float_2(
 		state, identifier_amount,
 		data, amount
@@ -105,6 +114,71 @@ void render(sys::state& state) {
 
 	state.iui_state.frame_start();
 
+	if(!state.iui_state.loaded_descriptions) {
+		state.iui_state.load_description(
+			state,
+			"alice_button_factory_type_priority",
+			state.iui_state.priority_button
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_button_economy_viewer_page",
+			state.iui_state.page_button
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_page_selector_bg",
+			state.iui_state.page_selector_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_button_economy_item_selector",
+			state.iui_state.item_selector_bg
+		);		
+		state.iui_state.load_description(
+			state,
+			"alice_factory_type_bg",
+			state.iui_state.factory_type_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"commodity_bg",
+			state.iui_state.commodity_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_factory_type_name_bg",
+			state.iui_state.factory_type_name_bg
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_factory_type_priority_bg",
+			state.iui_state.factory_type_priority_bg
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_economy_view_close_button",
+			state.iui_state.close_button
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_economy_view_top_bar",
+			state.iui_state.top_bar_button
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_economy_view_map_label",
+			state.iui_state.map_label
+		);
+
+		
+		state.iui_state.loaded_descriptions = true;
+	}
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glUseProgram(state.open_gl.ui_shader_program);
@@ -117,7 +191,7 @@ void render(sys::state& state) {
 	glDepthRange(-1.0f, 1.0f);
 
 	auto zoom = state.map_state.zoom;
-	auto screen_size = glm::vec2(state.x_size, state.y_size);
+	auto screen_size = glm::vec2(state.x_size, state.y_size) / state.user_settings.ui_scale;
 
 	// render market data
 	if(zoom > map::zoom_close) {
@@ -127,8 +201,10 @@ void render(sys::state& state) {
 			state.iui_state.current_font = text::name_into_font_id(state, "garamond_16");
 		}
 
-		iui::rect market_label_rect{ 0.f, 0.f, 80.f, 30.f };
-		iui::rect market_label_rect_text{ 0.f, 0.f, 70.f, 20.f };
+		iui::rect market_label_rect{ 0.f, 0.f, state.iui_state.map_label.w, state.iui_state.map_label.h };
+		iui::rect market_label_rect_text = market_label_rect;
+		iui::shrink(market_label_rect_text, 2.f);
+		market_label_rect_text.w -= 5.f;
 
 		state.world.for_each_market([&](dcon::market_id mid) {
 			auto sid = state.world.market_get_zone_from_local_market(mid);
@@ -153,10 +229,17 @@ void render(sys::state& state) {
 				return;
 			}
 
-			iui::move_to(market_label_rect, screen_pos.x - 40.f, screen_pos.y - 15.f);
-			iui::move_to(market_label_rect_text, screen_pos.x - 40.f + 5.f, screen_pos.y - 15.f + 5.f);
+			iui::move_to(
+				market_label_rect,
+				screen_pos.x - market_label_rect.w / 2.f, screen_pos.y - market_label_rect.h / 2.f
+			);
 
-			state.iui_state.panel(state, market_label_rect);
+			iui::move_to(
+				market_label_rect_text,
+				screen_pos.x - market_label_rect.w / 2.f + 5.f, screen_pos.y - market_label_rect.h / 2.f + 2.f
+			);
+
+			state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
 
 			if(state.selected_factory_type) {
 				if(mid.index() < (int32_t)(state.iui_state.per_market_data.size())) {
@@ -177,30 +260,44 @@ void render(sys::state& state) {
 	}
 
 	{
-		float tabs_layout_start = 200.f;
-		float tabs_layout_margin = 50.f;
-		float tab_height = 60.f;
-		float tab_width = 120.f;
+		float tabs_layout_start = 0.f;
+		float tabs_layout_margin = 0.f;
+		float tab_height = state.iui_state.top_bar_button.h;
+		float tab_width = state.iui_state.top_bar_button.w;
 
-		iui::rect tab_rect{ tabs_layout_start, tabs_layout_margin, tab_height, tab_width };
+		iui::rect tab_rect{ tabs_layout_start, tabs_layout_margin, tab_width, tab_height };
 
-		if(state.iui_state.button(
+		iui::rect tab_name_rect = tab_rect;
+		iui::shrink(tab_name_rect, 10.f);
+
+		if(state.iui_state.button_textured(
 			state, (int32_t)(static_elements::commodities_button),
-			tab_rect,
+			tab_rect, 3, state.iui_state.top_bar_button.texture_handle,
 			state.iui_state.tab == iui::iui_tab::commodities_markets
 		)) {
 			state.iui_state.tab = iui::iui_tab::commodities_markets;
 		}
 
-		tab_rect.x += tab_width + tabs_layout_margin;
+		state.iui_state.localized_string(
+			state, (int32_t)static_elements::tab_name_commodity, tab_name_rect, "alice_commodity_tab",
+			ui::get_text_color(state, text::text_color::gold)
+		);
 
-		if(state.iui_state.button(
+		tab_rect.x += tab_width + tabs_layout_margin;
+		tab_name_rect.x += tab_width + tabs_layout_margin;
+
+		if(state.iui_state.button_textured(
 			state, (int32_t)(static_elements::factory_types_button),
-			tab_rect,
+			tab_rect, 3, state.iui_state.top_bar_button.texture_handle,
 			state.iui_state.tab == iui::iui_tab::factory_types
 		)) {
 			state.iui_state.tab = iui::iui_tab::factory_types;
 		}
+
+		state.iui_state.localized_string(
+			state, (int32_t)static_elements::tab_name_commodity, tab_name_rect, "alice_factory_type_tab",
+			ui::get_text_color(state, text::text_color::gold)
+		);
 	}
 
 	if(state.iui_state.tab == iui::iui_tab::commodities_markets) {
@@ -211,14 +308,9 @@ void render(sys::state& state) {
 		float size_panel_h = 500.f;
 		float margin = 5.f;
 		float size_selector_w = 150.f;
-		float size_page_selector_h = 40.f;
-		float page_selector_item_size_h = 25.f;
-		float page_selector_item_size_w = 25.f;
+		float size_page_selector_h = 50.f;
 		float top = screen_size.y - size_panel_h;
-		float priority_settings_height = 120.f;
-
-		float priority_button_height = 15.f;
-		float priority_button_width = 25.f;
+		float priority_settings_height = 80.f;
 
 		// calculated
 		float size_view_w = size_panel_w - size_selector_w;
@@ -230,12 +322,14 @@ void render(sys::state& state) {
 		iui::shrink(page_selector_rect, margin);
 		iui::shrink(view_panel, margin);
 
-		uint32_t factories_on_a_page = 8;
+		uint32_t factories_on_a_page = 10;
 		iui::rect selector_button = selector_panel;
 		selector_button.h = selector_panel.h / float(factories_on_a_page);
 		auto page = state.iui_state.page_production_methods;
 
+
 		{
+			auto icon_size = 20.f;
 			state.iui_state.panel(state, selector_panel);
 			float y = 10.f;
 			for(
@@ -249,14 +343,17 @@ void render(sys::state& state) {
 				}
 				dcon::factory_type_id ftid{ (dcon::factory_type_id::value_base_t)factory_index };
 				selector_button.y = selector_panel.y + i * selector_button.h;
-				if(state.iui_state.button(
+				if(state.iui_state.button_textured(
 					state, (int32_t)static_elements::factory_type_selector + ftid.index(),
-					selector_button, state.selected_factory_type == ftid
+					selector_button,
+					3, state.iui_state.item_selector_bg.texture_handle,
+					state.selected_factory_type == ftid
 				)) {
 					if(state.selected_factory_type == ftid) {
 						state.selected_factory_type = { };
 					} else {
 						state.selected_factory_type = ftid;
+						update(state);
 					}
 				}
 				state.iui_state.localized_string_r(
@@ -266,29 +363,36 @@ void render(sys::state& state) {
 				);
 				ogl::render_commodity_icon(
 					state, state.world.factory_type_get_output(ftid),
-					selector_button.x + 5.f, selector_button.y + 5.f, 20.f, 20.f
+					selector_button.x + 5.f,
+					selector_button.y + selector_button.h / 2.f - icon_size / 2.f, icon_size, icon_size
 				);
 			}
 
-			state.iui_state.panel(state, page_selector_rect);
+			state.iui_state.panel_textured(
+				state, page_selector_rect, state.iui_state.page_selector_bg.texture_handle
+			);
+
 			int pages = (state.world.factory_type_size() - 1) / factories_on_a_page + 1;
 
 			iui::rect page_button{
 				0.f,
-				page_selector_rect.y - page_selector_item_size_h / 2.f + page_selector_rect.h / 2.f,
-				page_selector_item_size_w,
-				page_selector_item_size_h
+				page_selector_rect.y - state.iui_state.page_button.h / 2.f + page_selector_rect.h / 2.f,
+				state.iui_state.page_button.w,
+				state.iui_state.page_button.h
 			};
 
-			if(pages * page_selector_item_size_w <= page_selector_rect.w) {
-				float margin_pages = (page_selector_rect.w - pages * page_selector_item_size_w) / (pages + 1);
+			if(pages * state.iui_state.page_button.w <= page_selector_rect.w) {
+				float margin_pages = (page_selector_rect.w - pages * page_button.w) / (pages + 1);
 
 				for(int i = 0; i < pages; i++) {
 					page_button.x = page_selector_rect.x + (page_button.w + margin_pages) * i + margin_pages;
 
-					if(state.iui_state.button(
-						state, (int32_t)static_elements::factory_type_page + i,
-						page_button, state.iui_state.page_production_methods == i
+					if(state.iui_state.button_textured(
+						state,
+						(int32_t)static_elements::factory_type_page + i,
+						page_button,
+						3, state.iui_state.page_button.texture_handle,
+						state.iui_state.page_production_methods == i
 					)) {
 						state.iui_state.page_production_methods = i;
 					}
@@ -301,17 +405,17 @@ void render(sys::state& state) {
 				}
 			} else {
 				page_button.x = page_selector_rect.x + margin;
-				if(state.iui_state.button(
+				if(state.iui_state.button_textured(
 					state, (int32_t)static_elements::factory_type_page,
-					page_button, false
+					page_button, 3, state.iui_state.page_button.texture_handle, false
 				)) {
 					state.iui_state.page_production_methods = std::max(0, state.iui_state.page_production_methods - 1);
 				}
 
 				page_button.x = page_selector_rect.x + page_selector_rect.w - page_button.w - margin;
-				if(state.iui_state.button(
+				if(state.iui_state.button_textured(
 					state, (int32_t)static_elements::factory_type_page + 2,
-					page_button, false
+					page_button, 3, state.iui_state.page_button.texture_handle, false
 				)) {
 					state.iui_state.page_production_methods = std::min(
 						pages - 1, state.iui_state.page_production_methods + 1
@@ -334,7 +438,7 @@ void render(sys::state& state) {
 				page_selector_page_current.x += page_selector_page_current.w;
 				state.iui_state.int_whole(
 					state,
-					(int32_t)static_elements::factory_type_page_number + 1,
+					(int32_t)static_elements::factory_type_page_number + 2,
 					page_selector_page_current, pages
 				);
 			}
@@ -351,24 +455,38 @@ void render(sys::state& state) {
 			auto input_mult = economy::nation_factory_input_multiplier(state, ftid, nid);
 			auto output_mult = economy::nation_factory_output_multiplier(state, ftid, nid);
 
-			state.iui_state.panel(state, view_panel);
+			state.iui_state.panel_textured(state, view_panel, state.iui_state.factory_type_bg.texture_handle);
+
+			iui::rect name_labels{
+				view_panel.x + 5.f, view_panel.y + 5.f, 200.f, 40.f
+			};
+
+			state.iui_state.panel_textured(state, name_labels, state.iui_state.factory_type_name_bg.texture_handle);
 
 			state.iui_state.localized_string_r(
 				state,
 				(int32_t)static_elements::state_def_name,
-				{ view_panel.x + 5.f, view_panel.y + 5.f, view_panel.w, view_panel.h },
+				{ view_panel.x + 10.f, view_panel.y + 7.f, view_panel.w, 18.f },
 				text::produce_simple_string(state, state.world.state_definition_get_name(sdif))
 			);
 
 			state.iui_state.localized_string_r(
 				state,
 				(int32_t)static_elements::factory_type_name,
-				{ view_panel.x + 5.f, view_panel.y + 25.f, view_panel.w, view_panel.h },
+				{ view_panel.x + 10.f, view_panel.y + 25.f, view_panel.w, 18.f },
 				text::produce_simple_string(state, state.world.factory_type_get_name(ftid))
 			);
 
-			iui::rect close{ view_panel.x + view_panel.w - 20.f, view_panel.y, 20.f, 20.f };
-			if(state.iui_state.button(state, (int32_t)static_elements::close_factory_type_description, close, false)) {
+			iui::rect close{
+				view_panel.x + view_panel.w - state.iui_state.close_button.w,
+				view_panel.y,
+				state.iui_state.close_button.w,
+				state.iui_state.close_button.h
+			};
+			if(state.iui_state.button_textured(
+				state, (int32_t)static_elements::close_factory_type_description, close,
+				3, state.iui_state.close_button.texture_handle, false
+			)) {
 				state.selected_factory_type = { };
 			}
 
@@ -392,6 +510,7 @@ void render(sys::state& state) {
 			int items_per_row = 3;
 
 			iui::rect commodity_rect{ 0.f, 0.f, (view_panel.w - grid_margin) / float(items_per_row) - grid_margin, 40.f };
+			iui::rect commodity_labels{ 0.f, 0.f, ((view_panel.w - grid_margin) / float(items_per_row) - grid_margin) - 5.f, 40.f };
 
 			int rows_input = ((inputs_size - 1) / items_per_row) + 1;
 			int rows_e_input = ((e_inputs_size - 1) / items_per_row) + 1;
@@ -401,7 +520,7 @@ void render(sys::state& state) {
 				// inputs
 				float total = 0.f;
 
-				float current_y = view_panel.y + 40.f;
+				float current_y = view_panel.y + 50.f;
 
 				for(auto i = 0; i < inputs.set_size; i++) {
 					if(inputs.commodity_type[i]) {
@@ -412,6 +531,10 @@ void render(sys::state& state) {
 						commodity_rect.x = view_panel.x + grid_margin + column * (grid_margin + commodity_rect.w);
 						commodity_rect.y = current_y + grid_margin + row * (grid_margin + commodity_rect.h);
 
+						commodity_labels.x = commodity_rect.x;
+						commodity_labels.y = commodity_rect.y;
+
+						state.iui_state.panel_textured(state, commodity_rect, state.iui_state.commodity_bg.texture_handle);
 						commodity_panel(
 							state,
 							(int32_t)static_elements::commodities_inputs_amount + cid.index(),
@@ -419,7 +542,7 @@ void render(sys::state& state) {
 							cid,
 							inputs.commodity_amounts[i] * input_mult,
 							state.world.market_get_price(mid, cid),
-							commodity_rect
+							commodity_labels
 						);
 
 						total -= inputs.commodity_amounts[i] * input_mult * state.world.market_get_price(mid, cid);
@@ -439,14 +562,18 @@ void render(sys::state& state) {
 						commodity_rect.x = view_panel.x + grid_margin + column * (grid_margin + commodity_rect.w);
 						commodity_rect.y = current_y + grid_margin + row * (grid_margin + commodity_rect.h);
 
+						commodity_labels.x = commodity_rect.x;
+						commodity_labels.y = commodity_rect.y;
+
+						state.iui_state.panel_textured(state, commodity_rect, state.iui_state.commodity_bg.texture_handle);
 						commodity_panel(
 							state,
-							(int32_t)static_elements::commodities_e_inputs_amount + cid.index(),
-							(int32_t)static_elements::commodities_e_inputs_cost + cid.index(),
+							(int32_t)static_elements::commodities_inputs_amount + cid.index(),
+							(int32_t)static_elements::commodities_inputs_cost + cid.index(),
 							cid,
 							e_inputs.commodity_amounts[i] * input_mult * e_input_mult,
 							state.world.market_get_price(mid, cid),
-							commodity_rect
+							commodity_labels
 						);
 
 						total -= e_inputs.commodity_amounts[i] * input_mult * e_input_mult * state.world.market_get_price(mid, cid);
@@ -461,31 +588,38 @@ void render(sys::state& state) {
 				// output
 				auto cid = state.world.factory_type_get_output(ftid).id;
 
+				commodity_labels.x = commodity_rect.x;
+				commodity_labels.y = commodity_rect.y;
+
+				state.iui_state.panel_textured(state, commodity_rect, state.iui_state.commodity_bg.texture_handle);
 				commodity_panel(
 					state,
-					(int32_t)static_elements::commodities_e_inputs_amount + cid.index(),
-					(int32_t)static_elements::commodities_e_inputs_cost + cid.index(),
+					(int32_t)static_elements::commodities_inputs_amount + cid.index(),
+					(int32_t)static_elements::commodities_inputs_cost + cid.index(),
 					cid,
 					state.world.factory_type_get_output_amount(ftid) * output_mult,
 					state.world.market_get_price(mid, cid),
-					commodity_rect
+					commodity_labels
 				);
 
 				commodity_rect.x += commodity_rect.w + grid_margin;
-				total += state.world.factory_type_get_output_amount(ftid) * output_mult * state.world.market_get_price(mid, cid);
+				commodity_labels.x = commodity_rect.x;
+				commodity_labels.y = commodity_rect.y;
 
+				total += state.world.factory_type_get_output_amount(ftid) * output_mult * state.world.market_get_price(mid, cid);
+				state.iui_state.panel_textured(state, commodity_rect, state.iui_state.commodity_bg.texture_handle);
 				state.iui_state.price(
 					state, (int32_t)static_elements::factory_type_total,
-					commodity_rect, total
+					commodity_labels, total
 				);
 
 
-				iui::rect priority_settings{ view_panel.x, view_panel.y + view_panel.h - priority_settings_height, view_panel.w, priority_settings_height };
+				iui::rect priority_settings{ view_panel.x, view_panel.y + view_panel.h - priority_settings_height - 30.f, view_panel.w, priority_settings_height };
 				iui::shrink(priority_settings, margin);
-				state.iui_state.panel(state, priority_settings);
+				state.iui_state.panel_textured(state, priority_settings, state.iui_state.factory_type_priority_bg.texture_handle);
 				iui::shrink(priority_settings, margin);
 
-				iui::rect priority_description{ priority_settings.x, priority_settings.y, priority_settings.w, 20.f };
+				iui::rect priority_description{ priority_settings.x, priority_settings.y, priority_settings.w - 10.f, 20.f };
 
 				state.iui_state.localized_string(
 					state,
@@ -494,7 +628,7 @@ void render(sys::state& state) {
 					text::produce_simple_string(state, "alice_factory_type_viewer_priority")
 				);
 
-				priority_description.y += 20.f;
+				priority_description.y += 15.f;
 				state.iui_state.localized_string(
 					state,
 					(int32_t)static_elements::priority_text_national,
@@ -507,7 +641,7 @@ void render(sys::state& state) {
 					priority_description, nations::priority_national(state, nid, ftid)
 				);
 
-				priority_description.y += 20.f;
+				priority_description.y += 15.f;
 				state.iui_state.localized_string(
 					state,
 					(int32_t)static_elements::priority_text_private,
@@ -520,7 +654,7 @@ void render(sys::state& state) {
 					priority_description, nations::priority_private(state, nid, ftid)
 				);
 
-				priority_description.y += 20.f;
+				priority_description.y += 15.f;
 				state.iui_state.localized_string(
 					state,
 					(int32_t)static_elements::priority_text_bonus,
@@ -534,23 +668,23 @@ void render(sys::state& state) {
 					economy::priority_multiplier(state, ftid, nid)
 				);
 
-				priority_description.y += 20.f;
-
 				iui::rect button_priority{
-					priority_description.x, priority_description.y,
-					priority_button_width, priority_button_height
+					view_panel.x + 7.f, view_panel.y + view_panel.h - 30.f,
+					state.iui_state.priority_button.w, state.iui_state.priority_button.h
 				};
 
 				auto current_priority = state.world.nation_get_factory_type_experience_priority_national(
 					state.local_player_nation, ftid
 				);
 
-				for(int i = 0; i < 5; i++) {
-					if(state.iui_state.button(
+				for(int i = 0; i < 9; i++) {
+					if(state.iui_state.button_textured(
 						state, (int32_t)static_elements::factory_type_priority_button + i,
-						button_priority, current_priority >= (float)(i) * 10.f
-					)) {						
-						command::set_factory_type_priority(state, state.local_player_nation, ftid, (float)(i) * 10.f);
+						button_priority,
+						3, state.iui_state.priority_button.texture_handle,
+						current_priority >= (float)(i) * 100.f
+					)) {
+						command::set_factory_type_priority(state, state.local_player_nation, ftid, (float)(i) * 100.f);
 					}
 					button_priority.x += button_priority.w;
 				}

@@ -1286,3 +1286,9 @@ volume;Volume
 desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
+alice_factory_type_viewer_priority;Research priority
+alice_factory_type_viewer_priority_national;National research priority:
+alice_factory_type_viewer_priority_private;Private research priority:
+alice_factory_type_viewer_priority_bonus;Inputs multiplier:
+alice_commodity_tab;Commodities
+alice_factory_type_tab;Factory types

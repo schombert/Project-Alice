@@ -5353,5 +5353,109 @@ guiTypes = {
 			format = right
 		}
     }
+
+
+    guiButtonType = {
+        name = "alice_button_factory_type_priority"
+        position = { 0 0 }
+        size = { 25 15 }
+        quadTextureSprite ="button-25-15"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_button_economy_viewer_page"
+        position = { 0 0 }
+        size = { 25 25 }
+        quadTextureSprite ="button-25-25"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_button_economy_item_selector"
+        position = { 0 0 }
+        size = { 0 0 }
+        quadTextureSprite ="economy-item-selector"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_page_selector_bg"
+        position = { 0 0 }
+        size = { 0 0 }
+        quadTextureSprite ="bg-page-selector"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_factory_type_bg"
+        position = { 0 0 }
+        size = { 0 0 }
+        quadTextureSprite ="bg-factory-type"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "commodity_bg"
+        position = { 0 0 }
+        size = { 0 0 }
+        quadTextureSprite ="bg-commodity"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
     
+    guiButtonType = {
+        name = "alice_factory_type_name_bg"
+        position = { 0 0 }
+        size = { 0 0 }
+        quadTextureSprite ="bg-factory-type-name"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    
+    guiButtonType = {
+        name = "alice_factory_type_priority_bg"
+        position = { 0 0 }
+        size = { 0 0 }
+        quadTextureSprite ="bg-factory-type-priority-info"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    
+    guiButtonType = {
+        name = "alice_economy_view_close_button"
+        position = { 0 0 }
+        size = { 20 20 }
+        quadTextureSprite ="economy-close-button"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    guiButtonType = {
+        name = "alice_economy_view_top_bar"
+        position = { 0 0 }
+        size = { 150 100 }
+        quadTextureSprite ="economy-top-bar-button"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
+    
+    guiButtonType = {
+        name = "alice_economy_view_map_label"
+        position = { 0 0 }
+        size = { 60 20 }
+        quadTextureSprite ="map-label"
+        Orientation = "UPPER_LEFT"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+    }
 }
