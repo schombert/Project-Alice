@@ -100,8 +100,6 @@ struct network_state {
 	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
 
-	sys::date server_date;
-
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
 };

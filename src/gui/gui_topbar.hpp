@@ -901,14 +901,6 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		else if(state.network_mode == sys::network_mode_type::client) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::date, state.network_state.server_date);
-
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, "alice_host_date", sub);
-			text::close_layout_box(contents, box);
-		}
 	}
 };
 

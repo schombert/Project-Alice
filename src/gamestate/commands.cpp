@@ -5021,7 +5021,6 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 			}
 		}
 		state.actual_game_speed = speed;
-		state.network_state.server_date = dt;
 
 		// Notify server that we're still here
 		if(state.current_date.value % 7 == 0) {
