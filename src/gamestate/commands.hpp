@@ -106,10 +106,9 @@ enum class command_type : uint8_t {
 	toggle_interested_in_alliance = 97,
 	pbutton_script = 98,
 	nbutton_script = 99,
-	crisis_add_wargoal = 100,
-	change_unit_type = 101,
-
 	set_factory_type_priority = 100,
+	crisis_add_wargoal = 101,
+	change_unit_type = 102,
 
 	// network
 	notify_player_ban = 106,
