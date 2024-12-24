@@ -5287,7 +5287,7 @@ object{
 
 	property{
 		name{ nickname }
-		type{ std::array<uint8_t,48> }
+		type{ std::array<uint8_t,24> }
 	}
 	property{
 		name{ is_online }

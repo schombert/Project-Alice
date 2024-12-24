@@ -284,7 +284,7 @@ struct checksum_key {
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
 struct player_name {
-	std::array<uint8_t, 48> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	std::array<uint8_t, 24> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	std::string_view to_string_view() noexcept {
 		for(uint32_t i = 0; i < sizeof(data); i++) {
@@ -303,6 +303,30 @@ struct player_name {
 
 	std::string to_string() noexcept {
 		return std::string(to_string_view());
+	}
+
+	bool empty() noexcept {
+		return data[0] == ' ' || data[0] == '\0';
+	}
+
+	void append(char c) noexcept {
+		for(uint32_t i = 0; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				data[i] = c;
+				return;
+			}
+		}
+	}
+
+	char pop() noexcept {
+		for(uint32_t i = 1; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				auto pop = data[i - 1];
+				data[i - 1] = ' ';
+				return pop;
+			}
+		}
+		return ' ';
 	}
 };
 static_assert(sizeof(player_name) == sizeof(player_name::data));
