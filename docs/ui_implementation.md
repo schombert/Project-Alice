@@ -271,3 +271,23 @@ where `x` and `y` are amounts that you want to adjust the position of the layout
 ##### Hit testing a text layout
 
 For implementing things such as hyperlinks, it may be necessary to determine what chunk of text, if any, a particular coordinate position is inside. To do this, use the `text_chunk const* get_chunk_from_position(int32_t x, int32_t y)` member of the `layout` object, keeping in mind that `x` and `y` are in terms of the layout's internal coordinate space. This function will return `nullptr` if there is no text being rendered at the given position. In terms of making hyperlinks work, the most important member of the returned object is `source`, which holds the `substitution` variant that created the text, if any. Inspecting the contents of this variant will allow you to find the id of the province, nation, etc that was put into the original substitution map.
+
+
+##### Allowing child elements to retrieve data from parents
+
+To allow child elements to retrieve data from parents using the following functions:
+
+```
+auto target_state = retrieve<dcon::state_definition_id>(state, parent);
+```
+
+Inside the parent class, you need to implement the following logic:
+
+```
+message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+	if(payload.holds_type<dcon::state_definition_id>()) {
+		payload.emplace<dcon::state_definition_id>(target_state);
+		return message_result::consumed;
+	}
+}
+```

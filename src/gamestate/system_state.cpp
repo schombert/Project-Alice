@@ -2907,6 +2907,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	nations_by_military_score.resize(2000);
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
+	crisis_attacker_wargoals.resize(2000);
+	crisis_defender_wargoals.resize(2000);
+
+	selected_regiments.resize(1000);
+	selected_ships.resize(1000);
+
 
 	for(auto t : world.in_technology) {
 		for(auto n : world.in_nation) {
@@ -3665,8 +3671,13 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
 	nations_by_military_score.resize(2000);
+	crisis_attacker_wargoals.resize(2000);
+	crisis_defender_wargoals.resize(2000);
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
+
+	selected_regiments.resize(num_selected_units);
+	selected_ships.resize(num_selected_units);
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {
@@ -4068,9 +4079,7 @@ void state::single_game_tick() {
 	// ALTERNATE PAR DEMO START POINT A
 	//
 		
-	concurrency::parallel_invoke([&]() {
-		// values updates pass 1 (mostly trivial things, can be done in parallel)
-		concurrency::parallel_for(0, 17, [&](int32_t index) {
+	for(int index = 0; index < 17; index++) {
 			switch(index) {
 			case 0:
 				ai::refresh_home_ports(*this);
@@ -4133,7 +4142,7 @@ void state::single_game_tick() {
 				military::update_blockade_status(*this);
 				break;
 			}
-		});
+		}
 
 		economy::daily_update(*this, false, 1.f);
 
@@ -4379,12 +4388,10 @@ void state::single_game_tick() {
 		province::update_cached_values(*this);
 		nations::update_cached_values(*this);
 		
-	},
 	[&]() {
 		if(network_mode == network_mode_type::single_player)
 			demographics::alt_regenerate_from_pop_data_daily(*this);
-	}
-	);
+		}();
 
 	if(network_mode == network_mode_type::single_player) {
 		world.nation_swap_demographics_demographics_alt();
@@ -5655,6 +5662,58 @@ void state::build_up_to_template_land(
 			target_province
 		);
 	}
+}
+
+void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
+	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+		// Toggle selection
+		if(state.selected_regiments[i] == reg) {
+			state.selected_regiments[i] = dcon::regiment_id{};
+			break;
+		}
+		// Add to selection
+		if(!state.selected_regiments[i]) {
+			state.selected_regiments[i] = reg;
+			break;
+		}
+	}
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+void selected_regiments_clear(sys::state& state) {
+	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+		if(state.selected_regiments[i]) {
+			state.selected_regiments[i] = dcon::regiment_id{};
+		} else {
+			break;
+		}
+	}
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+void selected_ships_add(sys::state& state, dcon::ship_id sh) {
+	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+		// Toggle selection
+		if(state.selected_ships[i] == sh) {
+			state.selected_ships[i] = dcon::ship_id{};
+			break;
+		}
+		// Add to selection
+		if(!state.selected_ships[i]) {
+			state.selected_ships[i] = sh;
+			break;
+		}
+	}
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+void selected_ships_clear(sys::state& state) {
+	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+		if(state.selected_ships[i]) {
+			state.selected_ships[i] = dcon::ship_id{};
+		} else {
+			break;
+		}
+	}
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 
 } // namespace sys

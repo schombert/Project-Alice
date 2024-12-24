@@ -1435,7 +1435,7 @@ inline void common_fif_environment(sys::state& state, fif::environment& env) {
 		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "
 		" : start-date " + std::to_string(offsetof(sys::state, start_date)) + " state-ptr @ buf-add ptr-cast ptr(i64) ; "
 		" : current-date " + std::to_string(offsetof(sys::state, current_date)) + " state-ptr @ buf-add ptr-cast ptr(u16) ; "
-		" : crisis-state " + std::to_string(offsetof(sys::state, crisis_state)) + " state-ptr @ buf-add ptr-cast ptr(state_instance_id) ; "
+		" : crisis-state " + std::to_string(offsetof(sys::state, crisis_state_instance)) + " state-ptr @ buf-add ptr-cast ptr(state_instance_id) ; "
 		" : sea-province? >index first-sea-province @ >index >= ; "
 		" :s >owner pop_id s: " + pop_to_owner() + " ; "
 		" :s >owner province_id s: " + province_to_owner() + " ; "

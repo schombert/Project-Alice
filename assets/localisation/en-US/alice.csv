@@ -949,8 +949,8 @@ im_em_header;Predicted immigration/emigration for
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W attrition
 unit_arrival_time_text;(arrive on $date$)
 ol_unit_standing_text;$m$ $n$/$x$/$y$
-unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
-unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ by $date$ (ATK $attunit$ DEF $defunit$ Upkeep ?R$cost$?W)
+unit_standing_text;$m$ $n$/$x$/$y$ (ATK $attunit$ DEF $defunit$ Upkeep ?R$cost$?W)
 disarmed_pop;a member of a disarmed nation
 cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
@@ -1135,7 +1135,8 @@ console_button_tooltip;Open the command console
 demobilize;Demobilize
 mobilize;Mobilize
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
-alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
+alice_cb_creation_detail;We will fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process will take roughly about ?Y$days$ days?W, and being discovered will give us up to ?R$badboy$?W infamy.
+alice_cb_creation_detail_state;We will fabricate a casus belli against $country$ ($state$ state) with the reason of ?Y$type$?W. This process will take roughly about ?Y$days$ days?W, and being discovered will give us up to ?R$badboy$?W infamy.
 alice_mob_controls;?YRight-click?! to remobilize
 alice_mw_create_1;Add general
 alice_mw_create_2;Add admiral
@@ -1286,10 +1287,22 @@ volume;Volume
 desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
+investment_pool;Investment pool: ?Y$x$?W
+DIPLO_RUN_CONFERENCE;Run a conference
+unit_reinforcement_needs;Goods for reinforcement:
+unit_supply_needs;Daily supply:
+unit_upgrade_button;Change unit type
+subjectpayments_income;Subject Payments Received: ?G$VAL$?W
+subjectpayments_income_row;?G$VAL$?W from ?Y$country$?W
+subjectpayments_expense;Subject Payments Paid: ?R$VAL$?W
 alice_unit_builder_apply_button;Build in selected province
+unit_macro_template_tooltip;Unit macro builder template
 alice_factory_type_viewer_priority;Research priority
 alice_factory_type_viewer_priority_national;National research priority:
 alice_factory_type_viewer_priority_private;Private research priority:
 alice_factory_type_viewer_priority_bonus;Inputs multiplier:
 alice_commodity_tab;Commodities
 alice_factory_type_tab;Factory types
+alice_player_date_sync;Player $name$ ($country$), last command: $date$
+alice_only_host_speed;Only host can change speed
+alice_host_date;Host date: $date$

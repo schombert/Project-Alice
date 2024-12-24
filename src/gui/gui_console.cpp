@@ -178,7 +178,7 @@ int32_t* f_make_crisis(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	auto state_global = fif::get_global_var(*e, "state-ptr");
 	sys::state* state = (sys::state*)(state_global->data);
 
-	if(state->current_crisis == sys::crisis_type::none) {
+	if(state->current_crisis_state == sys::crisis_state::inactive) {
 		state->last_crisis_end_date = sys::date{};
 		nations::monthly_flashpoint_update(*state);
 		nations::daily_update_flashpoint_tension(*state);

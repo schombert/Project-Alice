@@ -62,6 +62,8 @@ struct client_data {
 	size_t save_stream_size = 0;
 	bool handshake = true;
 
+	sys::date last_seen;
+
 	bool is_banned(sys::state& state) const;
 	inline bool is_active() const {
 		return socket_fd > 0;

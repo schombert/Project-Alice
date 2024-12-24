@@ -2149,7 +2149,7 @@ public:
 class full_wg_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<military::full_wg>(state, parent).cb;
+		auto content = retrieve<sys::full_wg>(state, parent).cb;
 		frame = state.world.cb_type_get_sprite_index(content) - 1;
 	}
 
@@ -2158,7 +2158,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto wg = retrieve<military::full_wg>(state, parent);
+		auto wg = retrieve<sys::full_wg>(state, parent);
 		text::add_line(state, contents, state.world.cb_type_get_name(wg.cb));
 
 		text::add_line_break_to_layout(state, contents);
@@ -2175,7 +2175,7 @@ public:
 	}
 };
 
-class overlapping_full_wg_icon : public listbox_row_element_base<military::full_wg> {
+class overlapping_full_wg_icon : public listbox_row_element_base<sys::full_wg> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {

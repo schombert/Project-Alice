@@ -139,16 +139,16 @@ class diplomacy_request_desc_text : public scrollable_text {
 		case diplomatic_message::type_t::take_crisis_side_offer:
 			text::add_line(state, contents, "alice_join_crisis_offer", text::variable_type::actor, diplomacy_request.from);
 			{
-				dcon::cb_type_id cbt = diplomacy_request.data.crisis_offer.wargoal_type;
+				dcon::cb_type_id cbt = diplomacy_request.data.crisis_offer.cb;
 
 				text::substitution_map sub;
-				text::add_to_substitution_map(sub, text::variable_type::recipient, diplomacy_request.data.crisis_offer.target);
+				text::add_to_substitution_map(sub, text::variable_type::recipient, diplomacy_request.data.crisis_offer.target_nation);
 				text::add_to_substitution_map(sub, text::variable_type::from, diplomacy_request.to);
-				if(diplomacy_request.data.crisis_offer.wargoal_secondary_nation)
-					text::add_to_substitution_map(sub, text::variable_type::third, diplomacy_request.data.crisis_offer.wargoal_secondary_nation);
-				else if(diplomacy_request.data.crisis_offer.wargoal_tag)
-					text::add_to_substitution_map(sub, text::variable_type::third, diplomacy_request.data.crisis_offer.wargoal_tag);
-				text::add_to_substitution_map(sub, text::variable_type::state, diplomacy_request.data.crisis_offer.wargoal_state);
+				if(diplomacy_request.data.crisis_offer.secondary_nation)
+					text::add_to_substitution_map(sub, text::variable_type::third, diplomacy_request.data.crisis_offer.secondary_nation);
+				else if(diplomacy_request.data.crisis_offer.wg_tag)
+					text::add_to_substitution_map(sub, text::variable_type::third, diplomacy_request.data.crisis_offer.wg_tag);
+				text::add_to_substitution_map(sub, text::variable_type::state, diplomacy_request.data.crisis_offer.state);
 
 				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(cbt), sub);

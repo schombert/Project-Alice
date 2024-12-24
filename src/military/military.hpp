@@ -90,7 +90,9 @@ constexpr inline uint8_t defender_bonus_crossing_river = 0x40;
 constexpr inline uint8_t defender_bonus_crossing_sea = 0x80;
 constexpr inline uint8_t defender_bonus_dig_in_mask = 0x3F;
 
-enum class unit_type : uint8_t { support, big_ship, cavalry, transport, light_ship, special, infantry };
+enum class unit_type : uint8_t {
+	support, big_ship, cavalry, transport, light_ship, special, infantry
+};
 
 struct unit_definition : public sys::unit_variable_stats {
 	economy::commodity_set build_cost;
@@ -157,6 +159,7 @@ struct global_military_state {
 
 	dcon::cb_type_id crisis_colony;
 	dcon::cb_type_id crisis_liberate;
+	dcon::cb_type_id crisis_annex;
 
 	dcon::unit_type_id irregular;
 	dcon::unit_type_id infantry;
@@ -169,21 +172,15 @@ struct available_cb {
 	sys::date expiration; //2
 	dcon::nation_id target; //2
 	dcon::cb_type_id cb_type; //2
+	dcon::state_definition_id target_state;
 };
 static_assert(sizeof(available_cb) ==
-	+ sizeof(available_cb::target)
+	+sizeof(available_cb::target)
 	+ sizeof(available_cb::expiration)
-	+ sizeof(available_cb::cb_type));
+	+ sizeof(available_cb::cb_type) +
+	sizeof(available_cb::target_state));
 
 struct wg_summary {
-	dcon::nation_id secondary_nation;
-	dcon::national_identity_id wg_tag;
-	dcon::state_definition_id state;
-	dcon::cb_type_id cb;
-};
-struct full_wg {
-	dcon::nation_id added_by;
-	dcon::nation_id target_nation;
 	dcon::nation_id secondary_nation;
 	dcon::national_identity_id wg_tag;
 	dcon::state_definition_id state;
@@ -256,7 +253,9 @@ struct land_battle_report {
 
 constexpr inline int32_t days_before_retreat = 11;
 
-enum class battle_result { indecisive, attacker_won, defender_won };
+enum class battle_result {
+	indecisive, attacker_won, defender_won
+};
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
@@ -304,7 +303,9 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 
 bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg);
 
-enum class war_role { none, attacker, defender };
+enum class war_role {
+	none, attacker, defender
+};
 war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n);
 
 bool province_is_blockaded(sys::state const& state, dcon::province_id ids);
@@ -358,7 +359,7 @@ void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
-void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target); // do not call this function directly unless you know what you are doing
+void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
@@ -376,7 +377,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
-float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type);
+float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{});
+
 
 int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
 		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
@@ -386,10 +388,11 @@ int32_t attacker_peace_cost(sys::state& state, dcon::war_id war);
 int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
-float cb_infamy(sys::state const& state, dcon::cb_type_id t); // the fabrication cost in infamy
+float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{}); // the fabrication cost in infamy
+
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
-		dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
-float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target);
+		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
+float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t);
 bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t);
@@ -433,7 +436,7 @@ float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dco
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
-float reinforce_amount(sys::state& state, dcon::army_id a);
+float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
@@ -462,6 +465,10 @@ void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
 void recover_org(sys::state& state);
+float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
+float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg);
+float unit_calculate_reinforcement(sys::state& state, dcon::ship_id reg);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
 void run_gc(sys::state& state);
