@@ -660,6 +660,23 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 	}
 }
 
+GLuint get_late_load_texture_handle(sys::state& state, dcon::texture_id& id, std::string_view asset_name) {
+	if(id && state.open_gl.asset_textures[id].loaded) {
+		return state.open_gl.asset_textures[id].texture_handle;
+	} else {
+		if(auto it = state.open_gl.late_loaded_map.find(std::string(asset_name)); it != state.open_gl.late_loaded_map.end()) {
+			id = it->second;
+			return state.open_gl.asset_textures[id].texture_handle;
+		}
+		dcon::texture_id new_id{ dcon::texture_id::value_base_t(state.open_gl.asset_textures.size()) };
+		state.open_gl.asset_textures.emplace_back();
+		id = new_id;
+		state.open_gl.late_loaded_map.insert_or_assign(std::string(asset_name), new_id);
+		native_string nname = native_string(NATIVE("assets")) + NATIVE_DIR_SEPARATOR + simple_fs::utf8_to_native(asset_name);
+		return load_file_and_return_handle(nname, state.common_fs, state.open_gl.asset_textures.back(), false);
+	}
+}
+
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data) {
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;

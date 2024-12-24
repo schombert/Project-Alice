@@ -396,4 +396,10 @@ void merge_sort(IT first, IT end, CMP const& cmp) noexcept {
 	delete[] buffer;
 }
 
+
+struct aui_pending_bytes {
+	char const* data = nullptr;
+	size_t size = 0;
+};
+
 } // namespace sys

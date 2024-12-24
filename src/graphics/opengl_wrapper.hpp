@@ -195,6 +195,7 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 
 struct data {
 	tagged_vector<texture, dcon::texture_id> asset_textures;
+	ankerl::unordered_dense::map<std::string, dcon::texture_id> late_loaded_map;
 
 	void* context = nullptr;
 	bool legacy_mode = false;

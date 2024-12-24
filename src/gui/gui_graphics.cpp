@@ -321,6 +321,10 @@ void populate_definitions_map(sys::state& state) {
 			state.ui_state.defs_by_name.insert_or_assign(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name, value);
 		}
 	}
+	for(size_t i = state.ui_defs.gfx.size(); i-- > 0;) {
+		auto value = dcon::gfx_object_id(dcon::gfx_object_id::value_base_t(i));
+		state.ui_state.gfx_by_name.insert_or_assign(state.ui_defs.gfx[value].name, value);
+	}
 }
 
 } // namespace ui

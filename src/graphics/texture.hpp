@@ -15,6 +15,7 @@ GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data
 native_string flag_type_to_name(sys::state& state, culture::flag_type type);
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type);
 GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data);
+GLuint get_late_load_texture_handle(sys::state& state, dcon::texture_id& id, std::string_view asset_name);
 
 enum {
 	SOIL_FLAG_TEXTURE_REPEATS = 4,
@@ -47,6 +48,7 @@ public:
 	friend GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs,
 			texture& asset_texture, bool keep_data);
 	friend GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type);
+	friend GLuint get_late_load_texture_handle(sys::state& state, dcon::texture_id& id, std::string_view asset_name);
 };
 
 class data_texture {
