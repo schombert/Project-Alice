@@ -3931,7 +3931,7 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 	return true;
 }
 // Uses filled bit-sized arrays from cmd
-void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type) {
+void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
 	for(unsigned i = 0; i < num_packed_units; i++) {
 		if(regiments[i]) {
 			state.world.regiment_set_type(regiments[i], new_type);
