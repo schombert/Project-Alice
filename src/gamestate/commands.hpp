@@ -455,6 +455,7 @@ struct nation_pick_data {
 struct advance_tick_data {
 	sys::checksum_key checksum;
 	int32_t speed;
+	sys::date date;
 };
 
 struct notify_save_loaded_data {

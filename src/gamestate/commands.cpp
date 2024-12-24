@@ -5005,6 +5005,7 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 	// Postponed until it is sent!
 	//p.data.advance_tick.checksum = state.get_save_checksum();
 	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
+	p.data.advance_tick.date = state.current_date;
 	add_to_command_queue(state, p);
 }
 
@@ -5893,7 +5894,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_oos(state, c.source);
 		break;
 	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed, c.data.advance_tick.date);
+		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 		break;
 	case command_type::notify_save_loaded:
 		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
