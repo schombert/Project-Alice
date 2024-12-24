@@ -109,6 +109,8 @@ enum class command_type : uint8_t {
 	crisis_add_wargoal = 100,
 	change_unit_type = 101,
 
+	set_factory_type_priority = 100,
+
 	// network
 	notify_player_ban = 106,
 	notify_player_kick = 107,
@@ -436,6 +438,11 @@ struct cheat_invention_data_t {
 	dcon::invention_id invention;
 };
 
+struct set_factory_priority_data {
+	dcon::factory_type_id factory;
+	float value;
+};
+
 struct chat_message_data {
 	char body[ui::max_chat_message_len];
 	dcon::nation_id target;
@@ -526,6 +533,8 @@ struct payload {
 		nbutton_data nbutton;
 		pbutton_data pbutton;
 		cheat_invention_data_t cheat_invention_data;
+		set_factory_priority_data set_factory_priority_data;
+
 		dtype() { }
 	} data;
 	dcon::nation_id source;
@@ -548,6 +557,9 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 
 void make_leader(sys::state& state, dcon::nation_id source, bool general);
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general);
+
+void set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value);
+bool can_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value);
 
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);

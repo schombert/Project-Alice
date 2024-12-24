@@ -16,6 +16,16 @@
 
 namespace ui {
 
+void render_text_chunk(
+	sys::state& state,
+	text::text_chunk t,
+	float x,
+	float baseline_y,
+	uint16_t font_id,
+	ogl::color3f text_color,
+	ogl::color_modification cmod
+);
+
 template<typename T, typename ...Params>
 std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name, Params&&... params) { // also bypasses global creation hooks
 	auto it = state.ui_state.defs_by_name.find(state.lookup_key(name));

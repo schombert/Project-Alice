@@ -35,6 +35,8 @@
 #include "gui_province_window.cpp"
 #include "gui_population_window.cpp"
 #include "gui_budget_window.cpp"
+#include "immediate_mode.cpp"
+#include "economy_viewer.cpp"
 #include "gui_technology_window.cpp"
 #include "gui_error_window.cpp"
 #include "game_scene.cpp"

@@ -118,11 +118,22 @@ inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
-inline constexpr float rgo_owners_cut = 0.05f;
 inline constexpr float price_speed_mod = 0.0001f;
 inline constexpr float price_rigging = 0.015f;
 inline constexpr float stockpile_to_supply = 0.1f;
 inline constexpr float production_throughput_multiplier = 3.f;
+
+// greed drives incomes of corresponding pops up
+// while making life worse on average
+// profit cuts change distribution of incomes
+inline constexpr float rgo_owners_cut = 0.2f;
+inline constexpr float factory_owners_cut = 0.5f;
+inline constexpr float factory_sworkers_cut = 0.4f;
+inline constexpr float factory_pworkers_cut = 0.1f;
+inline constexpr float factory_workers_cut = factory_sworkers_cut + factory_pworkers_cut;
+inline constexpr float aristocrats_greed = 0.5f;
+inline constexpr float artisans_greed = 0.001f;
+// inline constexpr float capitalists_greed = 1.f; // for future use
 
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
@@ -363,6 +374,10 @@ float rgo_expected_worker_norm_profit(
 	dcon::nation_id n,
 	dcon::commodity_id c
 );
+
+float priority_multiplier(sys::state& state, dcon::factory_type_id fac_type, dcon::nation_id n);
+float nation_factory_input_multiplier(sys::state& state, dcon::factory_type_id fac_type, dcon::nation_id n);
+float nation_factory_output_multiplier(sys::state& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 
 float factory_type_output_cost(
 	sys::state& state,

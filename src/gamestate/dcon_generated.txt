@@ -3451,6 +3451,21 @@ object {
 		type{array{factory_type_id}{bitfield}}
 	}
 	property{
+		name{ factory_type_experience }
+		type{array{factory_type_id}{float}}
+		tag{ save }
+	}
+	property{
+		name{ factory_type_experience_priority_national }
+		type{array{factory_type_id}{float}}
+		tag{ save }
+	}
+	property{
+		name{ factory_type_experience_priority_private }
+		type{array{factory_type_id}{float}}
+		tag{ save }
+	}
+	property{
 		name{ has_gas_attack }
 		type{ bitfield }
 	}

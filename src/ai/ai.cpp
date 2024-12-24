@@ -490,6 +490,110 @@ void initialize_ai_tech_weights(sys::state& state) {
 	}
 }
 
+void update_factory_types_priority(sys::state& state) {
+	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t id) {
+		dcon::nation_id n{ dcon::nation_id::value_base_t(id) };
+
+		if(state.world.nation_get_owned_province_count(n) == 0) {
+			// skip -- do not need experience
+			return;
+		}
+		// private research
+
+		std::vector<float> employment;
+		employment.resize(state.world.factory_type_size());
+
+		state.world.nation_for_each_province_ownership_as_nation(n, [&](dcon::province_ownership_id province_ownership) {
+			auto province = state.world.province_ownership_get_province(province_ownership);
+			auto sid = state.world.province_get_state_membership(province);
+			auto market = state.world.state_instance_get_market_from_local_market(sid);
+			state.world.province_for_each_factory_location_as_province(province, [&](auto location) {
+				auto factory = state.world.factory_location_get_factory(location);
+				auto type = state.world.factory_get_building_type(factory);
+				auto level = state.world.factory_get_level(factory);
+				employment[type.id.index()] +=
+					state.world.factory_get_primary_employment(factory)
+					* level
+					* economy::factory_type_input_cost(
+						state, n, market, type
+					);
+			});
+		});
+
+		state.world.for_each_factory_type([&](dcon::factory_type_id factory_type_id) {
+
+			if(
+				!state.world.nation_get_active_building(n, factory_type_id)
+				&& !state.world.factory_type_get_is_available_from_start(factory_type_id)
+			) {
+				state.world.nation_set_factory_type_experience_priority_private(n, factory_type_id, 0.f);
+				return;
+			}
+
+			// capitalists want to minimise costs related to current factories
+			// so they choose factory types
+			// according to:
+			// 1) current amount of workers in factories of a given type
+			// 2) costs of inputs
+
+			auto costs = employment[factory_type_id.index()];
+			state.world.nation_set_factory_type_experience_priority_private(n, factory_type_id, costs);
+		});
+
+		if(state.world.nation_get_is_player_controlled(n)) {
+			// skip -- do not need AI
+			return;
+		}
+		// national research
+
+		std::vector<float> supply;
+		supply.resize(state.world.commodity_size());
+
+		state.world.for_each_commodity([&](dcon::commodity_id cid) {
+			supply[cid.index()] = economy::supply(state, n, cid);
+		});
+
+		state.world.for_each_factory_type([&](dcon::factory_type_id factory_type_id) {
+			if(
+				!state.world.nation_get_active_building(n, factory_type_id)
+				&& !state.world.factory_type_get_is_available_from_start(factory_type_id)
+			) {
+				state.world.nation_set_factory_type_experience_priority_private(n, factory_type_id, 0.f);
+				return;
+			}
+
+			// auto priority = 0.5f + float(rng::get_random(state, uint32_t(id) ^ uint32_t(factory_type_id)) & 0xFFFF) / float(0xFFFF);
+
+			auto& inputs = state.world.factory_type_get_inputs(factory_type_id);
+
+			auto min_effective_supply = std::numeric_limits<float>::infinity();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				auto input = inputs.commodity_type[i];
+				if(input) {
+					min_effective_supply = std::min(supply[input.index()] / inputs.commodity_amounts[i], min_effective_supply);
+				} else {
+					break;
+				}
+			}
+
+			//check if there are "rivals" which would push you away from the industry
+			auto local_price = economy::price(state, n, state.world.factory_type_get_output(factory_type_id));
+			auto rival_price = local_price * 2.f;
+			for(auto adj : state.world.nation_get_nation_adjacency(n)) {
+				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
+				rival_price = std::min(rival_price, economy::price(state, other, state.world.factory_type_get_output(factory_type_id)));
+			}
+
+			auto rival_modifier = (rival_price + 0.01f) / (local_price + 0.01f);
+
+			// we want this modifier to be really strong
+			rival_modifier = (rival_modifier * rival_modifier) * (rival_modifier * rival_modifier) * rival_modifier;
+
+			state.world.nation_set_factory_type_experience_priority_national(n, factory_type_id, min_effective_supply * rival_modifier);
+		});
+	});
+}
+
 void update_influence_priorities(sys::state& state) {
 	struct weighted_nation {
 		dcon::nation_id id;

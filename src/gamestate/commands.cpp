@@ -228,6 +228,22 @@ void execute_make_leader(sys::state& state, dcon::nation_id source, bool general
 	military::make_new_leader(state, source, general);
 }
 
+void set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::set_factory_type_priority;
+	p.source = source;
+	p.data.set_factory_priority_data.value = value;
+	p.data.set_factory_priority_data.factory = ftid;
+	add_to_command_queue(state, p);
+};
+bool can_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
+	return (value >= 0.f);
+};
+void execute_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
+	state.world.nation_set_factory_type_experience_priority_national(source, ftid, value);
+}
+
 
 void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
@@ -5146,6 +5162,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::make_leader:
 		return can_make_leader(state, c.source, c.data.make_leader.is_general);
 
+	case command_type::set_factory_type_priority:
+		return can_set_factory_type_priority(state, c.source, c.data.set_factory_priority_data.factory, c.data.set_factory_priority_data.value);
+
 	case command_type::begin_province_building_construction:
 		return can_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
 				c.data.start_province_building.type);
@@ -5511,6 +5530,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::make_leader:
 		execute_make_leader(state, c.source, c.data.make_leader.is_general);
+		break;
+	case command_type::set_factory_type_priority:
+		execute_set_factory_type_priority(state, c.source, c.data.set_factory_priority_data.factory, c.data.set_factory_priority_data.value);
 		break;
 	case command_type::begin_province_building_construction:
 		execute_begin_province_building_construction(state, c.source, c.data.start_province_building.location,

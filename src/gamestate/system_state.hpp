@@ -31,6 +31,7 @@
 #include "notifications.hpp"
 #include "network.hpp"
 #include "fif.hpp"
+#include "immediate_mode.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -588,6 +589,7 @@ struct alignas(64) state {
 	std::vector<dcon::ship_id> selected_ships; // selected ships inside the navy
 
 	dcon::commodity_id selected_trade_good;
+	dcon::factory_type_id selected_factory_type;
 	std::mutex ugly_ui_game_interaction_hack;
 
 	//control groups
@@ -649,6 +651,9 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
+
+	// data for immediate mode gui
+	iui::iui_state iui_state;
 	
 	// graphics data
 	ogl::data open_gl;

@@ -1297,3 +1297,9 @@ subjectpayments_income_row;?G$VAL$?W from ?Y$country$?W
 subjectpayments_expense;Subject Payments Paid: ?R$VAL$?W
 alice_unit_builder_apply_button;Build in selected province
 unit_macro_template_tooltip;Unit macro builder template
+alice_factory_type_viewer_priority;Research priority
+alice_factory_type_viewer_priority_national;National research priority:
+alice_factory_type_viewer_priority_private;Private research priority:
+alice_factory_type_viewer_priority_bonus;Inputs multiplier:
+alice_commodity_tab;Commodities
+alice_factory_type_tab;Factory types

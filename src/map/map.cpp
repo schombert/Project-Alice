@@ -788,7 +788,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindVertexArray(vao_array[vo_trade_flow]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_trade_flow]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
-	}
+	}	
 
 	if(zoom > map::zoom_close) { //only render if close enough
 		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()
