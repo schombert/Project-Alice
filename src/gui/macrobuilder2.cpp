@@ -640,6 +640,8 @@ void macrobuilder2_main_template_list_t::on_create(sys::state& state) noexcept {
 		for(int32_t i = -1; i < int32_t(num_templates); ++i) {
 			values.push_back(i);
 		}
+	} else {
+		values.push_back(-1);
 	}
 // END
 }
