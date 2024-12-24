@@ -124,6 +124,7 @@ enum class command_type : uint8_t {
 	notify_reload = 116,
 	advance_tick = 120,
 	chat_message = 121,
+	network_inactivity_ping = 122,
 
 	// console cheats
 	console_command = 255,
@@ -454,6 +455,7 @@ struct nation_pick_data {
 struct advance_tick_data {
 	sys::checksum_key checksum;
 	int32_t speed;
+	sys::date date;
 };
 
 struct notify_save_loaded_data {
@@ -776,8 +778,8 @@ void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 
 void change_unit_type(sys::state& state, dcon::nation_id source, std::vector<dcon::regiment_id> regiments, std::vector<dcon::ship_id> ships, dcon::unit_type_id new_type);
-bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type);
-void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type);
+bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
+void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
@@ -909,6 +911,8 @@ void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, payload& c);
 
 void notify_console_command(sys::state& state);
+void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
+void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
 
 } // namespace command
 

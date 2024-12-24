@@ -504,6 +504,7 @@ void clear_socket(sys::state& state, client_data& client) {
 	client.playing_as = dcon::nation_id{};
 	client.recv_count = 0;
 	client.handshake = true;
+	client.last_seen = sys::date{};
 }
 
 static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
@@ -632,6 +633,9 @@ static std::map<int, std::string> readableCommandTypes = {
 {97,"toggle_interested_in_alliance"},
 {98,"pbutton_script"},
 {99,"nbutton_script"},
+{100,"set_factory_type_priority"},
+{101,"crisis_add_wargoal" },
+{102,"change_unit_type" },
 {106,"notify_player_ban"},
 {107,"notify_player_kick"},
 {108,"notify_player_picks_nation"},
@@ -645,6 +649,7 @@ static std::map<int, std::string> readableCommandTypes = {
 {116,"notify_reload"},
 {120,"advance_tick"},
 {121,"chat_message"},
+{122,"network_inactivity_ping"},
 {255,"console_command"},
 };
 
@@ -1288,6 +1293,7 @@ static void accept_new_clients(sys::state& state) {
 			continue;
 		socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
 		client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
+		client.last_seen = state.current_date;
 		if(client.is_banned(state)) {
 			disconnect_client(state, client, false);
 			break;
@@ -1338,6 +1344,18 @@ void send_and_receive_commands(sys::state& state) {
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
+		}
+
+		// Clear lost sockets
+		if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			for(auto& client : state.network_state.clients) {
+				if(!client.is_active())
+					continue;
+
+				if(state.current_scene.game_in_progress && state.current_date.value > 30 && state.current_date.value - client.last_seen.value > 30) {
+					disconnect_client(state, client, true);
+				}
+			}
 		}
 
 		for(auto& client : state.network_state.clients) {

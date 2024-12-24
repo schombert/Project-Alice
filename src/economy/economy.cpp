@@ -3161,7 +3161,7 @@ void populate_army_consumption(sys::state& state) {
 				} else {
 					break;
 				}
-			}
+		}
 		}
 	});
 }
@@ -6502,16 +6502,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_stockpiles(n, money) += t_total;
 		}
 
-		// Subject money transfers
-		auto rel = state.world.nation_get_overlord_as_subject(n);
-		auto overlord = state.world.overlord_get_ruler(rel);
-
-		if(overlord) {
-			auto transferamt = estimate_subject_payments_paid(state, n, collected_tax);
-			state.world.nation_get_stockpiles(n, money) -= transferamt;
-			state.world.nation_get_stockpiles(overlord, money) += transferamt;
-		}
-
 		// shift needs weights
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			float total_profit = 0.f;
@@ -6633,6 +6623,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	*/
 
 	for(auto n : state.world.in_nation) {
+		// Subject money transfers
+		auto rel = state.world.nation_get_overlord_as_subject(n);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord) {
+			auto transferamt = estimate_subject_payments_paid(state, n);
+			state.world.nation_get_stockpiles(n, money) -= transferamt;
+			state.world.nation_get_stockpiles(overlord, money) += transferamt;
+		}
+
 		for(auto uni : n.get_unilateral_relationship_as_source()) {
 			if(uni.get_war_subsidies()) {
 				auto sub_size = estimate_war_subsidies(state, uni.get_target(), uni.get_source());
@@ -7572,10 +7572,6 @@ float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n) {
 		state.world.nation_get_total_middle_income(n) * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f +
 		state.world.nation_get_total_rich_income(n) * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
 
-	return estimate_subject_payments_paid(state, n, collected_tax);
-}
-
-float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n, float collected_tax) {
 	auto rel = state.world.nation_get_overlord_as_subject(n);
 	auto overlord = state.world.overlord_get_ruler(rel);
 

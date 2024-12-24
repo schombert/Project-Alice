@@ -4993,7 +4993,6 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		// Send new save to all clients
-		notify_player_oos(state, source);
 		network::full_reset_after_oos(state);
 	}
 }
@@ -5006,10 +5005,11 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 	// Postponed until it is sent!
 	//p.data.advance_tick.checksum = state.get_save_checksum();
 	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
+	p.data.advance_tick.date = state.current_date;
 	add_to_command_queue(state, p);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date dt) {
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
 			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
@@ -5021,6 +5021,12 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 			}
 		}
 		state.actual_game_speed = speed;
+		state.network_state.server_date = dt;
+
+		// Notify server that we're still here
+		if(state.current_date.value % 7 == 0) {
+			network_inactivity_ping(state, state.local_player_nation, dt);
+		}
 	}
 	state.single_game_tick();
 }
@@ -5145,6 +5151,26 @@ void notify_pause_game(sys::state& state, dcon::nation_id source) {
 	p.type = command::command_type::notify_pause_game;
 	p.source = source;
 	add_to_command_queue(state, p);
+}
+
+void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::network_inactivity_ping;
+	p.source = source;
+	p.data.advance_tick.date = date;
+	add_to_command_queue(state, p);
+}
+void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date) {
+	// Update last seen of the client
+	if(state.network_mode == sys::network_mode_type::host) {
+		for(auto& client : state.network_state.clients) {
+			if(client.playing_as == source) {
+				client.last_seen = date;
+			}
+		}
+	}
+	return;
 }
 
 bool can_perform_command(sys::state& state, payload& c) {
@@ -5509,6 +5535,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_pause_game(state, c.source);
 	case command_type::release_subject:
 		return can_release_subject(state, c.source, c.data.diplo_action.target);
+	case command_type::network_inactivity_ping:
+		return true;
 	case command_type::console_command:
 		return true;
 	}
@@ -5867,7 +5895,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_oos(state, c.source);
 		break;
 	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
+		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed, c.data.advance_tick.date);
 		break;
 	case command_type::notify_save_loaded:
 		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
@@ -5883,6 +5911,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_pause_game:
 		execute_notify_pause_game(state, c.source);
+		break;
+	case command_type::network_inactivity_ping:
+		execute_network_inactivity_ping(state, c.source, c.data.advance_tick.date);
 		break;
 	case command_type::console_command:
 		execute_console_command(state);

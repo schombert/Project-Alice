@@ -1303,3 +1303,6 @@ alice_factory_type_viewer_priority_private;Private research priority:
 alice_factory_type_viewer_priority_bonus;Inputs multiplier:
 alice_commodity_tab;Commodities
 alice_factory_type_tab;Factory types
+alice_player_date_sync;Player $name$ ($country$), last command: $date$
+alice_only_host_speed;Only host can change speed
+alice_host_date;Host date: $date$

@@ -62,6 +62,8 @@ struct client_data {
 	size_t save_stream_size = 0;
 	bool handshake = true;
 
+	sys::date last_seen;
+
 	bool is_banned(sys::state& state) const;
 	inline bool is_active() const {
 		return socket_fd > 0;
@@ -97,6 +99,8 @@ struct network_state {
 	bool reported_oos = false; // has oos been reported to host yet?
 	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
+
+	sys::date server_date;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
