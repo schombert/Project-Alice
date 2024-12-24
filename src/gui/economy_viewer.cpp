@@ -75,13 +75,13 @@ void update(sys::state& state) {
 			auto output_mult = economy::nation_factory_output_multiplier(state, ftid, nid);
 
 			float total = 0.f;
-			for(auto i = 0; i < inputs.set_size; i++) {
+			for(unsigned i = 0; i < inputs.set_size; i++) {
 				if(inputs.commodity_type[i]) {
 					auto cid = inputs.commodity_type[i];
 					total -= inputs.commodity_amounts[i] * input_mult * state.world.market_get_price(mid, cid);
 				}
 			}
-			for(auto i = 0; i < e_inputs.set_size; i++) {
+			for(unsigned i = 0; i < e_inputs.set_size; i++) {
 				if(e_inputs.commodity_type[i]) {
 					auto cid = e_inputs.commodity_type[i];
 					total -= e_inputs.commodity_amounts[i] * input_mult * e_input_mult * state.world.market_get_price(mid, cid);
@@ -505,14 +505,14 @@ void render(sys::state& state) {
 			//retrieve data
 			auto& inputs = state.world.factory_type_get_inputs(ftid);
 			int inputs_size = 0;
-			for(auto i = 0; i < inputs.set_size; i++) {
+			for(unsigned i = 0; i < inputs.set_size; i++) {
 				if(inputs.commodity_type[i]) {
 					inputs_size++;
 				}
 			}
 			auto& e_inputs = state.world.factory_type_get_efficiency_inputs(ftid);
 			int e_inputs_size = 0;
-			for(auto i = 0; i < e_inputs.set_size; i++) {
+			for(unsigned i = 0; i < e_inputs.set_size; i++) {
 				if(e_inputs.commodity_type[i]) {
 					e_inputs_size++;
 				}
@@ -534,7 +534,7 @@ void render(sys::state& state) {
 
 				float current_y = view_panel.y + 50.f;
 
-				for(auto i = 0; i < inputs.set_size; i++) {
+				for(unsigned i = 0; i < inputs.set_size; i++) {
 					if(inputs.commodity_type[i]) {
 						auto cid = inputs.commodity_type[i];
 
@@ -565,7 +565,7 @@ void render(sys::state& state) {
 
 				// maintenance
 
-				for(auto i = 0; i < e_inputs.set_size; i++) {
+				for(unsigned i = 0; i < e_inputs.set_size; i++) {
 					if(e_inputs.commodity_type[i]) {
 						auto cid = e_inputs.commodity_type[i];
 
