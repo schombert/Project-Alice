@@ -64,7 +64,7 @@ void update(sys::state& state) {
 		auto& e_inputs = state.world.factory_type_get_efficiency_inputs(state.selected_factory_type);
 		auto ftid = state.selected_factory_type;
 
-		state.world.for_each_market([&](auto market) {
+		state.world.for_each_market([&](dcon::market_id market) {
 			auto sid = state.world.market_get_zone_from_local_market(market);
 			auto sdif = state.world.state_instance_get_definition(sid);
 			auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
@@ -93,7 +93,7 @@ void update(sys::state& state) {
 			state.iui_state.per_market_data[market.index()] = total;
 		});
 
-		state.world.for_each_nation([&](auto nid) {
+		state.world.for_each_nation([&](dcon::nation_id nid) {
 			if(economy::priority_multiplier(state, ftid, nid) < 0.85f) {
 				state.iui_state.input_efficiency_leaders.push_back(nid);
 			}
