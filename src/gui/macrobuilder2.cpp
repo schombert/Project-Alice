@@ -463,6 +463,24 @@ struct macrobuilder2_main_t : public ui::container_base {
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
+	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		auto location_abs = get_absolute_location(state, *this);
+		if(location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x && location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y) {
+			ui::xy_pair new_abs_pos = location_abs;
+			new_abs_pos.x += int16_t(x - oldx);
+			new_abs_pos.y += int16_t(y - oldy);
+			if(ui::ui_width(state) > base_data.size.x)
+				new_abs_pos.x = int16_t(std::clamp(int32_t(new_abs_pos.x), 0, ui::ui_width(state) - base_data.size.x));
+			if(ui::ui_height(state) > base_data.size.y)
+				new_abs_pos.y = int16_t(std::clamp(int32_t(new_abs_pos.y), 0, ui::ui_height(state) - base_data.size.y));
+			if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+				base_data.position.x -= int16_t(new_abs_pos.x - location_abs.x);
+			} else {
+				base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
+			}
+		base_data.position.y += int16_t(new_abs_pos.y - location_abs.y);
+		}
+	}
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
@@ -682,6 +700,9 @@ void macrobuilder2_main_unit_grid_t::on_create(sys::state& state) noexcept {
 		if(state.military_definitions.unit_base_definitions[id].is_land) {
 			values.push_back(id);
 		}
+	}
+	while((values.size() % visible_items.size()) != 0) {
+		values.push_back(dcon::unit_type_id{});
 	}
 	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size() && i < sys::macro_builder_template::max_types; ++i) {
 		dcon::unit_type_id id{ dcon::unit_type_id::value_base_t(i) };
@@ -1001,6 +1022,7 @@ void macrobuilder2_main_apply_button_t::on_create(sys::state& state) noexcept {
 // END
 }
 ui::message_result macrobuilder2_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
 }
 ui::message_result macrobuilder2_main_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -1099,7 +1121,7 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-		cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
 			this->add_child_to_back(std::move(cptr));
@@ -1113,7 +1135,7 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-		cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
 			this->add_child_to_back(std::move(cptr));
@@ -1127,7 +1149,7 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-		cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
 			this->add_child_to_back(std::move(cptr));
@@ -1141,7 +1163,7 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-		cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
 			this->add_child_to_back(std::move(cptr));
@@ -1372,7 +1394,7 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-		cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
 			cptr->on_create(state);
@@ -1577,6 +1599,7 @@ ui::message_result macrobuilder2_grid_item_increase_count_t::on_lbutton_down(sys
 			main.template_list->values.push_back(int32_t(state.ui_state.templates.size() - 1));
 			auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
 			v = uint8_t(std::clamp(v + 10, 0, 255));
+			main.template_list->page = main.template_list->max_page();
 		}
 		bool is_land = state.military_definitions.unit_base_definitions[grid_item.value].is_land;
 		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size() && i < sys::macro_builder_template::max_types; ++i) {
@@ -1599,6 +1622,7 @@ ui::message_result macrobuilder2_grid_item_increase_count_t::on_lbutton_down(sys
 		main.template_list->values.push_back(int32_t(state.ui_state.templates.size() - 1));
 		auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
 		v = uint8_t(std::clamp(v + 1, 0, 255));
+		main.template_list->page = main.template_list->max_page();
 	}
 	bool is_land = state.military_definitions.unit_base_definitions[grid_item.value].is_land;
 	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size() && i < sys::macro_builder_template::max_types; ++i) {
@@ -1679,6 +1703,9 @@ void macrobuilder2_grid_item_t::render(sys::state & state, int32_t x, int32_t y)
 void macrobuilder2_grid_item_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
 // BEGIN grid_item::update
+	if(!value) {
+		flags |= element_base::is_invisible_mask;
+	}
 // END
 }
 void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
@@ -1692,6 +1719,7 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
+	ui::element_base::flags |= ui::element_base::wants_update_when_hidden_mask;
 	auto name_key = state.lookup_key("macrobuilder2::grid_item");
 	for(auto ex : state.ui_defs.extensions) {
 		if(name_key && ex.window == name_key) {
