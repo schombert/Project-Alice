@@ -1304,3 +1304,9 @@ method_profit;Ожид. прибыль
 method_margin;Маржа
 method_cost;Стоимость строительства
 method_payback;Окупаемость
+alice_factory_type_viewer_priority;Приоритет исследований
+alice_factory_type_viewer_priority_national;Гос. приоритет:
+alice_factory_type_viewer_priority_private;Частный приоритет:
+alice_factory_type_viewer_priority_bonus;Требуется сырья:
+alice_commodity_tab;Товары
+alice_factory_type_tab;Типы заводов
