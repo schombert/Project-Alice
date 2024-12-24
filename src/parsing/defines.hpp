@@ -702,6 +702,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_expose_webui, 0.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_substate_subject_money_transfer, 40.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_puppet_subject_money_transfer, 30.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_lagging_behind_days_to_drop, 90.0)                                                          \
 
 
 

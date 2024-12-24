@@ -1352,7 +1352,7 @@ void send_and_receive_commands(sys::state& state) {
 				if(!client.is_active())
 					continue;
 
-				if(state.current_scene.game_in_progress && state.current_date.value > 30 && state.current_date.value - client.last_seen.value > 30) {
+				if(state.current_scene.game_in_progress && state.current_date.value > state.defines.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.defines.alice_lagging_behind_days_to_drop) {
 					disconnect_client(state, client, true);
 				}
 			}

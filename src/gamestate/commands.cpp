@@ -5005,11 +5005,10 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 	// Postponed until it is sent!
 	//p.data.advance_tick.checksum = state.get_save_checksum();
 	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
-	p.data.advance_tick.date = state.current_date;
 	add_to_command_queue(state, p);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date dt) {
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
 			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
@@ -5021,13 +5020,13 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 			}
 		}
 		state.actual_game_speed = speed;
-
-		// Notify server that we're still here
-		if(state.current_date.value % 7 == 0) {
-			network_inactivity_ping(state, state.local_player_nation, dt);
-		}
 	}
 	state.single_game_tick();
+
+	// Notify server that we're still here
+	if(state.current_date.value % 7 == 0) {
+		network_inactivity_ping(state, state.local_player_nation, state.current_date);
+	}
 }
 
 void notify_save_loaded(sys::state& state, dcon::nation_id source) {
