@@ -547,17 +547,30 @@ void update_factory_types_priority(sys::state& state) {
 
 			auto& inputs = state.world.factory_type_get_inputs(factory_type_id);
 
-			auto sum_of_effective_supply = 0.f;
+			auto min_effective_supply = std::numeric_limits<float>::infinity();
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 				auto input = inputs.commodity_type[i];
 				if(input) {
-					sum_of_effective_supply += supply[input.index()] / inputs.commodity_amounts[i];
+					min_effective_supply = std::min(supply[input.index()] / inputs.commodity_amounts[i], min_effective_supply);
 				} else {
 					break;
 				}
 			}
 
-			state.world.nation_set_factory_type_experience_priority_national(n, factory_type_id, sum_of_effective_supply);
+			//check if there are "rivals" which would push you away from the industry
+			auto local_price = economy::price(state, n, state.world.factory_type_get_output(factory_type_id));
+			auto rival_price = local_price * 2.f;
+			for(auto adj : state.world.nation_get_nation_adjacency(n)) {
+				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
+				rival_price = std::min(rival_price, economy::price(state, other, state.world.factory_type_get_output(factory_type_id)));
+			}
+
+			auto rival_modifier = (rival_price + 0.01f) / (local_price + 0.01f);
+
+			// we want this modifier to be really strong
+			rival_modifier = (rival_modifier * rival_modifier) * (rival_modifier * rival_modifier) * rival_modifier;
+
+			state.world.nation_set_factory_type_experience_priority_national(n, factory_type_id, min_effective_supply * rival_modifier);
 		});
 	});
 }

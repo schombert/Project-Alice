@@ -621,7 +621,12 @@ float priority_national(sys::state& state, dcon::nation_id n, dcon::factory_type
 			total_priority
 			+ state.world.nation_get_factory_type_experience_priority_national(n, factory_type_id);
 	});
-	return (state.world.nation_get_factory_type_experience_priority_national(n, ftid) + 0.0001f) / (total_priority + 0.0001f);
+
+	if(total_priority == 0.f) {
+		return 0.f;
+	} else {
+		return state.world.nation_get_factory_type_experience_priority_national(n, ftid) / total_priority;
+	}
 }
 
 float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid) {
@@ -631,7 +636,12 @@ float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_
 			total_priority
 			+ state.world.nation_get_factory_type_experience_priority_private(n, factory_type_id);
 	});
-	return (state.world.nation_get_factory_type_experience_priority_private(n, ftid) + 0.0001f) / (total_priority + 0.0001f);
+
+	if(total_priority == 0.f) {
+		return 0.f;
+	} else {
+		return state.world.nation_get_factory_type_experience_priority_private(n, ftid) / total_priority;
+	}
 }
 
 void update_research_points(sys::state& state) {
@@ -708,11 +718,12 @@ void update_research_points(sys::state& state) {
 		});
 
 		state.world.for_each_factory_type([&](auto factory_type_id) {
+			auto national_p = state.world.nation_get_factory_type_experience_priority_national(ids, factory_type_id);
+			auto private_p = state.world.nation_get_factory_type_experience_priority_private(ids, factory_type_id);
 			auto priority =
-				(state.world.nation_get_factory_type_experience_priority_national(ids, factory_type_id) + 0.0001f)
-				/ (total_priority_national + 0.0001f)
-				+ (state.world.nation_get_factory_type_experience_priority_private(ids, factory_type_id) + 0.0001f)
-				/ (total_priority_private + 0.0001f);
+				ve::select(total_priority_national > 0.f, national_p / total_priority_national, 0.f)
+				+
+				ve::select(total_priority_private > 0.f, private_p / total_priority_private, 0.f);
 
 			auto exp = state.world.nation_get_factory_type_experience(ids, factory_type_id);
 

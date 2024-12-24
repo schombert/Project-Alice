@@ -41,6 +41,9 @@ enum class static_elements : int32_t {
 	tab_name_commodity = 10005000,
 	tab_name_factory_type = 10005001,
 	tab_name_production_chain = 10005002,
+
+
+	input_efficiency_leaders = 10006000
 };
 
 void update(sys::state& state) {
@@ -53,12 +56,15 @@ void update(sys::state& state) {
 		state.iui_state.per_market_data.resize(state.world.market_size());
 	}
 
+	state.iui_state.input_efficiency_leaders.clear();
+	state.iui_state.input_efficiency_leaders_string.clear();
+
 	if(state.selected_factory_type) {
 		auto& inputs = state.world.factory_type_get_inputs(state.selected_factory_type);
 		auto& e_inputs = state.world.factory_type_get_efficiency_inputs(state.selected_factory_type);
+		auto ftid = state.selected_factory_type;
 
 		state.world.for_each_market([&](auto market) {
-			auto ftid = state.selected_factory_type;
 			auto sid = state.world.market_get_zone_from_local_market(market);
 			auto sdif = state.world.state_instance_get_definition(sid);
 			auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
@@ -85,6 +91,12 @@ void update(sys::state& state) {
 			auto cid = state.world.factory_type_get_output(ftid).id;
 			total += state.world.factory_type_get_output_amount(ftid) * output_mult * state.world.market_get_price(mid, cid);
 			state.iui_state.per_market_data[market.index()] = total;
+		});
+
+		state.world.for_each_nation([&](auto nid) {
+			if(economy::priority_multiplier(state, ftid, nid) < 0.85f) {
+				state.iui_state.input_efficiency_leaders.push_back(nid);
+			}
 		});
 	}
 }
@@ -612,6 +624,31 @@ void render(sys::state& state) {
 					state, (int32_t)static_elements::factory_type_total,
 					commodity_labels, total
 				);
+
+				iui::rect leader_rect{ view_panel.x + margin, commodity_labels.y + commodity_labels.h + 5.f, 20.f, 20.f };
+
+				auto font_size = float(text::size_from_font_id(state.iui_state.current_font));
+				auto font_index = text::font_index_from_font_id(state, state.iui_state.current_font);
+				auto& current_font = state.font_collection.get_font(state, font_index);
+
+				for(unsigned i = 0; i < state.iui_state.input_efficiency_leaders.size(); i++) {
+					auto leader = state.iui_state.input_efficiency_leaders[i];
+					ogl::render_text_flag(
+						state,
+						{ state.world.nation_get_identity_from_identity_holder(leader) },
+						leader_rect.x,
+						leader_rect.y,
+						font_size,
+						current_font
+					);
+
+					leader_rect.x += leader_rect.w;
+
+					if(leader_rect.x + leader_rect.w > view_panel.x + view_panel.w - margin) {
+						leader_rect.y += leader_rect.h;
+						leader_rect.x = view_panel.x + margin;
+					}
+				}
 
 
 				iui::rect priority_settings{ view_panel.x, view_panel.y + view_panel.h - priority_settings_height - 30.f, view_panel.w, priority_settings_height };

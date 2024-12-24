@@ -168,7 +168,10 @@ float price(sys::state& state, dcon::nation_id s, dcon::commodity_id c) {
 	});
 
 	if(total_supply == 0.f) {
-		return 0.f;
+		auto capital = state.world.nation_get_capital(s);
+		auto sid = state.world.province_get_state_membership(capital);
+		auto market = state.world.state_instance_get_market_from_local_market(sid);
+		return state.world.market_get_price(market, c);
 	}
 
 	return total_cost / total_supply;

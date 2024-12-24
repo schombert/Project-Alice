@@ -59,6 +59,8 @@ struct iui_state {
 	int page_production_methods = 0;
 
 	std::vector<float> per_market_data;
+	std::vector<dcon::nation_id> input_efficiency_leaders;
+	std::vector<text::text_chunk> input_efficiency_leaders_string;
 
 	bool loaded_descriptions = false;
 	element_description priority_button;
