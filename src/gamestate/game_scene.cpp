@@ -46,6 +46,11 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		return;
 
+	case scene_id::in_game_economy_viewer:
+		state.current_scene = economy_viewer_scene();
+
+		return;
+
 	case scene_id::in_game_military:
 		state.current_scene = battleplan_editor();
 
@@ -274,6 +279,10 @@ void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 	// Lose focus on text
 	state.ui_state.edit_target = nullptr;
 
+	if(state.iui_state.over_ui) {
+		return;
+	}
+
 	bool under_mouse_belongs_on_map = belongs_on_map(state, state.ui_state.under_mouse);
 
 	//if we clicked on UI element, handle it
@@ -288,6 +297,10 @@ void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 void on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	// Lose focus on text
 	state.ui_state.edit_target = nullptr;
+
+	if(state.iui_state.over_ui) {
+		return;
+	}
 
 	if(state.ui_state.under_mouse != nullptr) {
 		ui_lbutton(state, mod);
@@ -467,7 +480,7 @@ void on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers m
 
 	on_lbutton_up_map(state, x, y, mod);
 
-	if(!state.ui_state.under_mouse) {		
+	if(!state.ui_state.under_mouse && !state.iui_state.over_ui) {
 		state.current_scene.lbutton_up(state);
 	}
 
@@ -589,6 +602,17 @@ void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::k
 	}
 }
 
+void economy_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
+		state.map_state.on_key_down(keycode, mod);
+		if(keycode == sys::virtual_key::ESCAPE) {
+			state.iui_state.over_ui = false;
+			switch_scene(state, scene_id::in_game_basic);
+			state.ui_state.root->impl_on_update(state);
+		}
+	}
+}
+
 void handle_escape_basic(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(state.ui_state.console_window->is_visible()) {
 		ui::console_window::show_toggle(state);
@@ -621,6 +645,8 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 			ui::open_chat_window(state);
 		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
 			switch_scene(state, scene_id::in_game_military);
+		} else if(keycode == sys::virtual_key::N && state.ui_state.ctrl_held_down) {
+			switch_scene(state, scene_id::in_game_economy_viewer);
 		} else if(keycode == sys::virtual_key::NUMPAD1 || keycode == sys::virtual_key::NUM_1) {
 			ctrl_group = 1;
 		} else if(keycode == sys::virtual_key::NUMPAD2 || keycode == sys::virtual_key::NUM_2) {
@@ -1022,6 +1048,10 @@ void generic_map_scene_update(sys::state& state) {
 	state.map_state.map_data.update_borders(state);
 }
 
+void economy_scene_update(sys::state& state) {
+	economy_viewer::update(state);
+}
+
 void open_chat_during_game(sys::state& state) {
 	ui::open_chat_during_game(state);
 }
@@ -1080,6 +1110,10 @@ ui::element_base* root_game_battleplanner_add_army(sys::state& state) {
 
 ui::element_base* root_game_battleplanner_unit_selection(sys::state& state) {
 	return state.ui_state.army_group_selector_root.get();
+}
+
+ui::element_base* root_game_economy_viewer(sys::state& state) {
+	return state.ui_state.economy_viewer_root.get();
 }
 
 ui::element_base* root_game_wargoal_state_selection(sys::state& state) {

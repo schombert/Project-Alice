@@ -47,6 +47,10 @@ void create_in_game_windows(sys::state& state) {
 
 	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_grid_panel"))->second.definition);
 	state.ui_state.unit_details_box->set_visible(state, false);
+
+	// dummy ui root for economy explorer
+	state.ui_state.economy_viewer_root = std::make_unique<ui::element_base>();
+
 	//
 	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
 
@@ -334,7 +338,10 @@ void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 }
 
 void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-	game_scene::on_lbutton_down(*this, x, y, mod);
+	if (iui_state.over_ui)
+		iui_state.mouse_pressed = true;
+	else
+		game_scene::on_lbutton_down(*this, x, y, mod);
 }
 
 void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) { }
@@ -2857,6 +2864,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.trade_route_resize_volume(world.commodity_size());
+	world.nation_resize_factory_type_experience(world.factory_type_size());
+	world.nation_resize_factory_type_experience_priority_national(world.factory_type_size());
+	world.nation_resize_factory_type_experience_priority_private(world.factory_type_size());
 
 	world.market_resize_price(world.commodity_size());
 	world.market_resize_supply(world.commodity_size());
@@ -4319,6 +4329,7 @@ void state::single_game_tick() {
 			}
 			if(ymd_date.month == 5) {
 				ai::prune_alliances(*this);
+				ai::update_factory_types_priority(*this);
 			}
 			if(ymd_date.month == 6 && !national_definitions.on_quarterly_pulse.empty()) {
 				for(auto n : world.in_nation) {

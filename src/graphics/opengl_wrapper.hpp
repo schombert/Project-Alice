@@ -42,6 +42,7 @@ inline constexpr GLuint subsprite_b = 15;
 inline constexpr GLuint alternate_tint = 16;
 inline constexpr GLuint linegraph_color = 17;
 inline constexpr GLuint transparent_color = 18;
+inline constexpr GLuint solid_color = 19;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -294,7 +295,8 @@ public:
 	void set_y(float* v);
 	void bind_buffer();
 };
-void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped);
+void render_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, ui::rotation r, bool flipped, bool rtl);
+void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl);
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
@@ -324,7 +326,15 @@ void render_text(sys::state& state, text::stored_glyphs const& txt, color_modifi
 void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
-void render_text_commodity_icon(sys::state& state, text::embedded_commodity_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
+void render_commodity_icon(
+	sys::state& state, dcon::commodity_id cid,
+	float x, float y, float w, float h
+);
+void render_text_commodity_icon(
+	sys::state& state, text::embedded_commodity_icon ico,
+	float x, float baseline_y,
+	float font_size, text::font& f
+);
 
 bool msaa_enabled(sys::state const& state);
 void initialize_msaa(sys::state& state, int32_t x, int32_t y);
