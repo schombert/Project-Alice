@@ -5431,9 +5431,9 @@ guiTypes = {
 			
 		listboxType = 	{
 			name ="unit_type_list"
-			position = { x = 2 y = 2 }
+			position = { x = 10 y = 10 }
 			backGround=""
-			size = { x=260 y =355 }
+			size = { x=260 y =340 }
 			Orientation = "UPPER_LEFT"
 			spacing = 1
 			scrollbartype = "standardlistbox_slider"
@@ -5444,7 +5444,7 @@ guiTypes = {
 	windowType = {
 		name = "unit_type_item"
 		position = { x=0 y=0 }	
-		size = { x=240 y=40 }
+		size = { x=220 y=40 }
 		horizontalBorder = "0"
 		orientation="UPPER_LEFT"
 		
@@ -5457,7 +5457,7 @@ guiTypes = {
 		guiButtonType = {
 			name = "unit_type_select"
 			position = { x = 40 y = 0 }
-			size = { x=200 y=40 }
+			size = { x=180 y=40 }
 			quadTextureSprite ="GFX_diplo_wargoal_button"
 			buttonFont = "vic_18_black"
 			buttonText = "Test"
