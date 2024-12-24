@@ -3881,7 +3881,7 @@ void change_unit_type(sys::state& state, dcon::nation_id source, std::vector<dco
 	}
 }
 // Uses arrays (after cmd network sending) but must be ready for null elements in the array (from local UI)
-bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[], dcon::ship_id ships[], dcon::unit_type_id new_type) {
+bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
 	if(regiments[0] && ships[0]) {
 		// One type can't suit both land and sea units
 		return false;
@@ -3901,7 +3901,7 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 	}
 
 	if(!ut.is_land && ut.type == military::unit_type::big_ship) {
-		for(unsigned i = 0; i < sizeof(ships) / sizeof(*ships); i++) {
+		for(unsigned i = 0; i < num_packed_units; i++) {
 			if(!ships[i]) {
 				break;
 			}
