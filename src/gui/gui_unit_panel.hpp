@@ -1814,8 +1814,27 @@ class unit_type_listbox_entry_label : public button_element_base {
 
 	void button_action(sys::state& state) noexcept override {
 		auto regiment_type = retrieve<dcon::unit_type_id>(state, parent);
+		dcon::regiment_id regs[command::num_packed_units];
+		dcon::ship_id ships[command::num_packed_units];
 
-		command::change_unit_type(state, state.local_player_nation, state.selected_regiments, state.selected_ships, regiment_type);
+		for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+			if(state.selected_regiments[i]) {
+				regs[i % command::num_packed_units] = state.selected_regiments[i];
+			}
+			if(state.selected_ships[i]) {
+				ships[i % command::num_packed_units] = state.selected_ships[i];
+			}
+
+			if(i % command::num_packed_units == 0) {
+				command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+			}
+
+			if(!state.selected_regiments[i] && !state.selected_ships[i]) {
+				break;
+			}
+		}
+
+		command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
 		sys::selected_regiments_clear(state);
 		sys::selected_ships_clear(state);
 	}
