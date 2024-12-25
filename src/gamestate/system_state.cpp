@@ -120,12 +120,12 @@ void create_in_game_windows(sys::state& state) {
 			state.ui_state.units_root->add_child_to_front(std::move(ptr));
 		}
 	});
-	
+
 	state.world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(state, "alice_map_unit");
 		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
 		state.ui_state.units_root->add_child_to_front(std::move(ptr));
-	});	
+	});
 	state.world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(state, "alice_rgo_mapicon");
 		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
@@ -196,7 +196,7 @@ void create_in_game_windows(sys::state& state) {
 		new_elm_navy->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(new_elm_navy));
 	}
-	
+
 	{
 		auto mselection = ui::make_element_by_type<ui::mulit_unit_selection_panel>(state, "alice_multi_unitpanel");
 		state.ui_state.multi_unit_selection_window = mselection.get();
@@ -294,7 +294,7 @@ namespace sys {
 void state::start_state_selection(state_selection_data& data) {
 	if(state_selection) {
 		state_selection->on_cancel(*this);
-	}	
+	}
 	state_selection = data;
 
 	game_scene::switch_scene(*this, game_scene::scene_id::in_game_state_selector);
@@ -338,7 +338,7 @@ void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 }
 
 void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-	if (iui_state.over_ui)
+	if(iui_state.over_ui)
 		iui_state.mouse_pressed = true;
 	else
 		game_scene::on_lbutton_down(*this, x, y, mod);
@@ -416,7 +416,7 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 			b = b->parent;
 		}
 		return false;
-	};
+		};
 
 	if(ui_state.scroll_target != nullptr) {
 		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
@@ -984,9 +984,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 				(
 					map_state.active_map_mode == map_mode::mode::political
 					&& !current_scene.overwrite_map_tooltip
-				)
+					)
 				|| map_state.active_map_mode == map_mode::mode::terrain
-			)
+				)
 			&& map_state.get_zoom() <= map::zoom_close
 		) {
 			prov = dcon::province_id{};
@@ -1252,7 +1252,7 @@ void state::reset_locale_pool() {
 
 void state::load_locale_strings(std::string_view locale_name) {
 	auto root_dir = get_root(common_fs);
-    auto assets_dir = open_directory(root_dir, NATIVE("assets/localisation"));
+	auto assets_dir = open_directory(root_dir, NATIVE("assets/localisation"));
 
 	auto load_base_files = [&](int32_t column) {
 		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
@@ -1268,7 +1268,7 @@ void state::load_locale_strings(std::string_view locale_name) {
 				text::consume_csv_file(*this, content.data, content.file_size, column, false);
 			}
 		}
-	};
+		};
 
 	if(locale_name.starts_with("en")) {
 		load_base_files(1);
@@ -1644,24 +1644,24 @@ void state::load_user_settings() {
 		//NaN will not get clamped, so use special std::isfinite test to set to reasonable values
 		if(!std::isfinite(user_settings.interface_volume)) user_settings.interface_volume = 0.0f;
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
-		
+
 		if(!std::isfinite(user_settings.music_volume)) user_settings.music_volume = 0.0f;
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
-		
+
 		if(!std::isfinite(user_settings.effects_volume)) user_settings.effects_volume = 0.0f;
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
-		
+
 		if(!std::isfinite(user_settings.master_volume)) user_settings.master_volume = 0.0f;
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
-		
+
 		if(user_settings.antialias_level > 16) user_settings.antialias_level = 0;
-		
+
 		if(!std::isfinite(user_settings.gaussianblur_level)) user_settings.gaussianblur_level = 1.0f;
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
-		
+
 		if(!std::isfinite(user_settings.gamma)) user_settings.gamma = 0.5f;
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
-		
+
 		if(!std::isfinite(user_settings.zoom_speed)) user_settings.zoom_speed = 15.0f;
 		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
 	}
@@ -2675,7 +2675,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
-		
+
 		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(oob_file);
 			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
@@ -2910,8 +2910,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	crisis_attacker_wargoals.resize(2000);
 	crisis_defender_wargoals.resize(2000);
 
-	selected_regiments.resize(1000);
-	selected_ships.resize(1000);
+	selected_regiments.resize(num_selected_units);
+	selected_ships.resize(num_selected_units);
 
 
 	for(auto t : world.in_technology) {
@@ -3822,7 +3822,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(*this);
 
-	
+
 
 
 #ifndef NDEBUG
@@ -4078,8 +4078,10 @@ void state::single_game_tick() {
 	//
 	// ALTERNATE PAR DEMO START POINT A
 	//
-		
-	for(int index = 0; index < 17; index++) {
+
+	concurrency::parallel_invoke([&]() {
+		// values updates pass 1 (mostly trivial things, can be done in parallel)
+		concurrency::parallel_for(0, 17, [&](int32_t index) {
 			switch(index) {
 			case 0:
 				ai::refresh_home_ports(*this);
@@ -4142,7 +4144,7 @@ void state::single_game_tick() {
 				military::update_blockade_status(*this);
 				break;
 			}
-		}
+		});
 
 		economy::daily_update(*this, false, 1.f);
 
@@ -4387,11 +4389,13 @@ void state::single_game_tick() {
 		province::update_connected_regions(*this);
 		province::update_cached_values(*this);
 		nations::update_cached_values(*this);
-		
+
+	},
 	[&]() {
 		if(network_mode == network_mode_type::single_player)
 			demographics::alt_regenerate_from_pop_data_daily(*this);
-		}();
+	}
+	);
 
 	if(network_mode == network_mode_type::single_player) {
 		world.nation_swap_demographics_demographics_alt();
@@ -4534,7 +4538,7 @@ void state::game_loop() {
 					if(network_mode == sys::network_mode_type::host) {
 						command::advance_tick(*this, local_player_nation);
 					} else {
-						std::lock_guard l{ugly_ui_game_interaction_hack};
+						std::lock_guard l{ ugly_ui_game_interaction_hack };
 						single_game_tick();
 					}
 				} else {
@@ -4853,7 +4857,7 @@ float state::army_group_available_supply(dcon::automated_army_group_id group, dc
 				|| regiment.get_status() == army_group_regiment_status::await_transport
 				|| regiment.get_status() == army_group_regiment_status::is_transported
 				|| regiment.get_status() == army_group_regiment_status::disembark
-			)
+				)
 		) {
 			current_weight += 3.f;
 		} else if(
@@ -4861,7 +4865,7 @@ float state::army_group_available_supply(dcon::automated_army_group_id group, dc
 			&& (
 				regiment.get_status() == army_group_regiment_status::move_to_port
 				|| regiment.get_status() == army_group_regiment_status::await_transport
-			)
+				)
 		) {
 			current_weight += 3.f;
 		}
@@ -4932,7 +4936,7 @@ dcon::province_id state::find_available_ferry_origin(dcon::automated_army_group_
 
 		l += 1;
 	}
-	
+
 
 	dcon::province_id invalid_province{};
 	return invalid_province;
@@ -5039,7 +5043,7 @@ void state::army_group_update_tasks(dcon::automated_army_group_id group) {
 			break;
 		default:
 			break;
-		}		
+		}
 	}
 }
 
@@ -5072,7 +5076,7 @@ void state::army_group_distribute_tasks(dcon::automated_army_group_id group) {
 
 
 	// handle "defence line" orders
-	{	
+	{
 		if(army_group_recalculate_distribution(group, regiments_distribution)) {
 			// find empty defensive position
 			dcon::province_id candidate{};
@@ -5416,7 +5420,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 				}
 			}
 		}
-			break;
+		break;
 		case army_group_regiment_status::is_transported:
 			if(location.value >= province_definitions.first_sea_province.value) {
 				// handle disembarking:
@@ -5467,7 +5471,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 dcon::regiment_automation_data_id state::fill_province(
 	dcon::automated_army_group_id group_id,
 	dcon::province_id target,
-	std::vector<float> & regiments_expectation_ideal
+	std::vector<float>& regiments_expectation_ideal
 ) {
 	static std::vector<float> regiments_expectation_current;
 	static std::vector<float> regiments_in_candidate_army;
@@ -5541,7 +5545,7 @@ dcon::regiment_automation_data_id state::fill_province(
 	return {};
 }
 
-void state::fill_vector_of_connected_provinces(dcon::province_id p1, bool is_land, std::vector<dcon::province_id> & provinces) {
+void state::fill_vector_of_connected_provinces(dcon::province_id p1, bool is_land, std::vector<dcon::province_id>& provinces) {
 	provinces.clear();
 	if(world.province_get_nation_from_province_ownership(p1) == local_player_nation) {
 		if(is_land) {
@@ -5572,8 +5576,8 @@ struct build_queue_data {
 void state::build_up_to_template_land(
 	macro_builder_template const& target_template,
 	dcon::province_id target_province,
-	std::vector<dcon::province_id> & available_provinces,
-	std::array<uint8_t, sys::macro_builder_template::max_types> & current_distribution
+	std::vector<dcon::province_id>& available_provinces,
+	std::array<uint8_t, sys::macro_builder_template::max_types>& current_distribution
 ) {
 	// Have to queue commands [temporarily on UI side] or it may mess calculations up
 	std::vector<build_queue_data> build_queue;
@@ -5616,7 +5620,7 @@ void state::build_up_to_template_land(
 			}
 
 			auto unit_types = military_definitions.unit_base_definitions.size();
-			
+
 			for(dcon::unit_type_id::value_base_t i = 0; i < unit_types; i++) {
 				dcon::unit_type_id utid = dcon::unit_type_id(i);
 
@@ -5640,7 +5644,7 @@ void state::build_up_to_template_land(
 				if(!can_build) {
 					continue;
 				}
-				
+
 				for(int32_t j = 0; j < int32_t(remaining_to_build[i]) && j < avail; j++) {
 					build_queue.push_back(build_queue_data{ prov, pop.get_culture(), utid });
 					remaining_to_build[i]--;
@@ -5711,7 +5715,7 @@ void selected_ships_clear(sys::state& state) {
 			state.selected_ships[i] = dcon::ship_id{};
 		} else {
 			break;
-		}
+}
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
