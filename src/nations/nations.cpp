@@ -256,6 +256,12 @@ void recalculate_markets_distance(sys::state& state) {
 	});
 }
 
+struct parent_link {
+	dcon::market_id leaf;
+	dcon::market_id parent;
+	float dist;
+};
+
 void generate_sea_trade_routes(sys::state& state) {
 	float total_transport_speed = 0.f;
 	float total_amount_of_transports = 0.f;
@@ -271,26 +277,48 @@ void generate_sea_trade_routes(sys::state& state) {
 	auto base_speed = total_transport_speed / total_amount_of_transports;
 
 	// buffer for "capitals" of connected regions:
-	std::array<dcon::state_instance_id, 2000> capital_of_region = {};
+	std::array<dcon::state_instance_id, 4000> capital_of_region = {};
+	std::array<float, 10000> population_of_region = { };
+	std::vector<float> nation_to_max_population = { };
+	nation_to_max_population.resize(state.world.nation_size());
 
 	state.world.for_each_state_instance([&](auto candidate) {
-		auto capital = state.world.state_instance_get_capital(candidate);
-		auto connected_region = state.world.province_get_connected_region_id(capital);
-
-		if(!capital_of_region[connected_region]) {
-			capital_of_region[connected_region] = candidate;
-		} else {
-			auto candidate_population = state.world.state_instance_get_demographics(
+		// auto capital = state.world.state_instance_get_capital(candidate);
+		auto capital = province::state_get_coastal_capital(state, candidate);
+		if(capital) {
+			auto connected_region = state.world.province_get_connected_coast_id(capital);
+			auto size = state.world.state_instance_get_demographics(
 				candidate, demographics::total
 			);
-			auto current_population = state.world.state_instance_get_demographics(
-				capital_of_region[connected_region], demographics::total
-			);
-			if(candidate_population > current_population) {
+
+			population_of_region[connected_region] += size;
+
+			if(!capital_of_region[connected_region]) {
 				capital_of_region[connected_region] = candidate;
+			} else {
+				auto current_population = state.world.state_instance_get_demographics(
+					capital_of_region[connected_region], demographics::total
+				);
+				if(size > current_population) {
+					capital_of_region[connected_region] = candidate;
+				}
 			}
+		}		
+	});
+
+	state.world.for_each_state_instance([&](auto candidate) {
+		auto capital = province::state_get_coastal_capital(state, candidate);
+		if(capital) {
+			auto connected_region = state.world.province_get_connected_coast_id(capital);
+			auto owner = state.world.province_get_nation_from_province_ownership(capital);
+			auto size = population_of_region[connected_region];
+			nation_to_max_population[owner.index()] = std::max(nation_to_max_population[owner.index()], size);
 		}
 	});
+
+	// baseline: connection between new york and london
+
+	constexpr float M = 0.17f * 0.000'000'1f;
 
 	float world_population = 0.f;
 	state.world.for_each_nation([&](auto nation) {
@@ -310,7 +338,8 @@ void generate_sea_trade_routes(sys::state& state) {
 
 		auto naval_base_origin = military::state_naval_base_level(state, origin);
 		auto population_origin = state.world.state_instance_get_demographics(origin, demographics::total);
-		auto connected_region = state.world.province_get_connected_region_id(capital);
+		auto coast_0 = province::state_get_coastal_capital(state, origin);
+		auto connected_region = state.world.province_get_connected_coast_id(coast_0);
 		auto connected_region_size = 0.f;
 
 		state.world.for_each_state_instance([&](auto sid) {
@@ -318,6 +347,8 @@ void generate_sea_trade_routes(sys::state& state) {
 				return;
 			if(!province::state_is_coastal(state, sid))
 				return;
+
+			auto coast_1 = province::state_get_coastal_capital(state, sid);
 
 			auto target_market = state.world.state_instance_get_market_from_local_market(sid);
 			auto route = state.world.get_trade_route_by_province_pair(market, target_market);
@@ -328,7 +359,7 @@ void generate_sea_trade_routes(sys::state& state) {
 
 			bool same_owner = false;
 			bool different_region = false;
-			bool capitals_of_regions = false;
+			bool capital_and_connected_region = false;
 
 			auto target_owner = state.world.state_instance_get_nation_from_state_ownership(sid);
 			if(target_owner == owner) {
@@ -336,60 +367,52 @@ void generate_sea_trade_routes(sys::state& state) {
 			}
 
 			auto capital_target = state.world.state_instance_get_capital(sid);
-			auto connected_region_target = state.world.province_get_connected_region_id(capital_target);
+			auto connected_region_target = state.world.province_get_connected_coast_id(coast_1);
 			if(connected_region != connected_region_target) {
 				different_region = true;
 			}
 
 			if(
-				capital_of_region[connected_region_target] == sid
-				&& capital_of_region[connected_region] == origin
+				(
+					capital_of_region[connected_region_target] == sid
+					&&
+					state_owner_capital_state == origin
+				)
+				||
+				(
+					state_owner_capital_state == sid
+					&&
+					capital_of_region[connected_region] == origin
+				)
 			) {
-				capitals_of_regions = true;
+				capital_and_connected_region = true;
 			}
-
-			float score = 0.f;
 
 			auto naval_base_target = military::state_naval_base_level(state, sid);
-			score += std::min(naval_base_origin, naval_base_target) * 0.25f;
-
-			if(naval_base_origin > 0 && naval_base_target > 0) {
-				score = score + 1.f;
-			}
-
-			auto population_target = state.world.state_instance_get_demographics(sid, demographics::total);
-			score += std::min(population_origin, population_target) / (400'000.f + world_population * 0.000'500f);
-
 			auto state_target_owner_capital = state.world.nation_get_capital(target_owner);
 			auto state_target_owner_capital_state = state.world.province_get_state_membership(state_target_owner_capital);
-
-			auto continent_target = state.world.province_get_continent(state_target_owner_capital);
+			auto continent_target = state.world.province_get_continent(coast_1);
 			auto continent_origin = state.world.province_get_continent(state_owner_capital);
 
-			float mod = 1.f;
-			if(continent_origin == continent_target) {
-				mod = 2.f;
+			float mult = 1.f;
+			mult += std::min(naval_base_origin, naval_base_target) * 0.25f;
+			bool must_connect = same_owner && different_region && capital_and_connected_region;
+
+			
+			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
+
+
+			float score_origin = population_origin;
+			float score_target = state.world.state_instance_get_demographics(sid, demographics::total);
+			if(capital_of_region[connected_region_target] == sid && capital_of_region[connected_region] == origin) {
+				score_origin = population_of_region[connected_region];
+				score_target = population_of_region[connected_region_target];
+				mult *= 20.f;
 			}
 
-			if(state_target_owner_capital_state == sid)
-				if(state_owner_capital_state == origin)
-					score = score + (
-						state.world.nation_get_demographics(owner, demographics::total)
-						+ state.world.nation_get_demographics(target_owner, demographics::total)
-					) / (2'000'000.f * mod + world_population * 0.000'500f);
+			float score_approximation = mult * M * score_origin * score_target / distance_approximation / distance_approximation / distance_approximation;
 
-			bool must_connect = same_owner && different_region && capitals_of_regions;
-
-			if(score < 3.f && !must_connect) {
-				return;
-			}
-
-			auto coast_0 = province::state_get_coastal_capital(state, origin);
-			auto coast_1 = province::state_get_coastal_capital(state, sid);
-
-			auto distance_approximation = province::direct_distance(state, coast_0, coast_1);
-
-			if(!((score / (2.f * distance_approximation / 200.f) >= 4.f) || must_connect)) {
+			if(!(score_approximation >= 1.f || must_connect)) {
 				return;
 			}
 
@@ -421,12 +444,115 @@ void generate_sea_trade_routes(sys::state& state) {
 				distance = effective_distance / speed;
 			}
 
-			if((score / (distance / 200.f) >= 4.f) || must_connect) {
+			float score = mult * M * score_origin * score_target / distance / distance / distance;
+
+			if(score >= 1.f || must_connect) {
 				auto new_route = state.world.force_create_trade_route(market, target_market);
 				state.world.trade_route_set_is_sea_route(new_route, true);
 			}
 		});
 	});
+
+	// connect to each other coastal connectivity components:
+	std::vector<parent_link> best_parent;
+	std::vector<bool> parent_found;
+	parent_found.resize(state.world.market_size());
+
+	state.world.for_each_state_instance([&](auto origin) {
+		if(!province::state_is_coastal(state, origin))
+			return;
+		auto origin_market = state.world.state_instance_get_market_from_local_market(origin);
+		auto origin_capital = state.world.state_instance_get_capital(origin);
+		auto origin_owner = state.world.state_instance_get_nation_from_state_ownership(origin);
+		auto origin_connected_region = state.world.province_get_connected_coast_id(origin_capital);
+		auto origin_connected_region_population = population_of_region[origin_connected_region];
+		if(origin != capital_of_region[origin_connected_region]) {
+			return;
+		}
+
+		auto origin_coast = province::state_get_coastal_capital(state, origin);
+
+		parent_found[origin_market.index()] = false;
+
+		bool origin_is_major_node = origin_connected_region_population > 0.7f * nation_to_max_population[origin_owner.index()];
+
+		state.world.for_each_state_instance([&](auto target) {
+			if(origin == target) {
+				return;
+			}
+			if(!province::state_is_coastal(state, target))
+				return;
+			auto target_market = state.world.state_instance_get_market_from_local_market(target);
+			auto target_capital = state.world.state_instance_get_capital(target);
+			auto target_owner = state.world.state_instance_get_nation_from_state_ownership(target);
+			auto target_coast = province::state_get_coastal_capital(state, target);
+			auto target_connected_region = state.world.province_get_connected_coast_id(target_coast);
+			auto target_connected_region_population = population_of_region[target_connected_region];
+
+			if(target != capital_of_region[target_connected_region]) {
+				return;
+			}
+
+			if(target_owner != origin_owner) {
+				return;
+			}
+
+
+			auto route = state.world.get_trade_route_by_province_pair(origin_market, target_market);
+			if(route) {
+				state.world.trade_route_set_is_sea_route(route, true);
+				return;
+			}
+
+			bool target_is_major_node = target_connected_region_population > 0.7f * nation_to_max_population[target_owner.index()];
+
+			if(origin_is_major_node && target_is_major_node) {
+				auto new_route = state.world.force_create_trade_route(origin_market, target_market);
+				state.world.trade_route_set_is_sea_route(new_route, true);
+				return;
+			}
+
+			if(origin_is_major_node) {
+				best_parent.push_back({
+					target_market,
+					origin_market,
+					province::direct_distance(state, target_capital, origin_capital)
+				});
+				return;
+			}
+
+			if(target_is_major_node) {
+				best_parent.push_back({
+					origin_market,
+					target_market,
+					province::direct_distance(state, target_capital, origin_capital)
+				});
+				return;
+			}
+		});
+	});
+
+	std::sort(best_parent.begin(), best_parent.end(), [&](parent_link& a, parent_link& b) {
+		if(a.dist < b.dist) {
+			return true;
+		}
+		if(a.dist > b.dist) {
+			return false;
+		}
+
+		return (a.leaf.index() < b.leaf.index());
+	});
+
+	for(unsigned i = 0; i < best_parent.size(); i++) {
+		if(parent_found[best_parent[i].leaf.index()]) {
+			continue;
+		}
+
+		parent_found[best_parent[i].leaf.index()] = true;
+
+		auto new_route = state.world.force_create_trade_route(best_parent[i].leaf, best_parent[i].parent);
+		state.world.trade_route_set_is_sea_route(new_route, true);
+	}
 }
 
 void generate_initial_trade_routes(sys::state& state) {
