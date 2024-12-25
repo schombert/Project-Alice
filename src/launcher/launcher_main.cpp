@@ -132,7 +132,7 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"for the selected mods",
 	"No scenario found",
 	"IP Address",
-	"Lobby Passw",
+	"Lobby Password",
 	"Nickname",
 	"Singleplayer",
 	"Multiplayer",

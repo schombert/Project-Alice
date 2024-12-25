@@ -3874,29 +3874,23 @@ void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_i
 	state.world.nation_set_mobilized_is_ai_controlled(source, !state.world.nation_get_mobilized_is_ai_controlled(source));
 }
 
-// Converts vectors into bit-sized arrays
-void change_unit_type(sys::state& state, dcon::nation_id source, std::vector<dcon::regiment_id> regiments, std::vector<dcon::ship_id> ships, dcon::unit_type_id new_type) {
-	while(regiments.size() > 0 || ships.size() > 0) {
-		payload p;
-		memset(&p, 0, sizeof(payload));
-		p.type = command_type::change_unit_type;
-		p.source = source;
-		p.data.change_unit_type.new_type = new_type;
+void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_unit_type;
+	p.source = source;
+	p.data.change_unit_type.new_type = new_type;
 
-		for(unsigned i = 0; i < num_packed_units; i++) {
-			if(regiments.size() > 0) {
-				p.data.change_unit_type.regs[i] = regiments.at(regiments.size() - 1);
-				regiments.pop_back();
-			}
-			if(ships.size() > 0) {
-				p.data.change_unit_type.ships[i] = ships.at(ships.size() - 1);
-				ships.pop_back();
-			}
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(regiments[i]) {
+			p.data.change_unit_type.regs[i] = regiments[i];
 		}
-		add_to_command_queue(state, p);
+		if(ships[i]) {
+			p.data.change_unit_type.ships[i] = ships[i];
+		}
 	}
+	add_to_command_queue(state, p);
 }
-// Uses arrays (after cmd network sending) but must be ready for null elements in the array (from local UI)
 bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
 	if(regiments[0] && ships[0]) {
 		// One type can't suit both land and sea units
@@ -3930,16 +3924,19 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 	}
 	return true;
 }
-// Uses filled bit-sized arrays from cmd
 void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
 	for(unsigned i = 0; i < num_packed_units; i++) {
 		if(regiments[i]) {
-			state.world.regiment_set_type(regiments[i], new_type);
-			state.world.regiment_set_strength(regiments[i], 0.01f);
+			if(state.world.regiment_get_type(regiments[i]) != new_type) {
+				state.world.regiment_set_type(regiments[i], new_type);
+				state.world.regiment_set_strength(regiments[i], 0.01f);
+			}
 		}
 		if(ships[i]) {
-			state.world.ship_set_type(ships[i], new_type);
-			state.world.ship_set_strength(ships[i], 0.01f);
+			if(state.world.ship_get_type(ships[i]) != new_type) {
+				state.world.ship_set_type(ships[i], new_type);
+				state.world.ship_set_strength(ships[i], 0.01f);
+			}
 		}
 	}
 }

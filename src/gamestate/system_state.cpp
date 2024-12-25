@@ -2910,8 +2910,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	crisis_attacker_wargoals.resize(2000);
 	crisis_defender_wargoals.resize(2000);
 
-	selected_regiments.resize(num_selected_units);
-	selected_ships.resize(num_selected_units);
+	selected_regiments.resize(const_max_selected_units);
+	selected_ships.resize(const_max_selected_units);
 
 
 	for(auto t : world.in_technology) {
@@ -3676,8 +3676,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
-	selected_regiments.resize(num_selected_units);
-	selected_ships.resize(num_selected_units);
+	selected_regiments.resize(const_max_selected_units);
+	selected_ships.resize(const_max_selected_units);
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {
