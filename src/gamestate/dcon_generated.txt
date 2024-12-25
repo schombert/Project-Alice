@@ -1451,6 +1451,10 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ connected_coast_id }
+		type{ uint16_t }
+	}
+	property {
 		name{ state_membership }
 		type{ state_instance_id }
 	}
