@@ -106,8 +106,9 @@ enum class command_type : uint8_t {
 	toggle_interested_in_alliance = 97,
 	pbutton_script = 98,
 	nbutton_script = 99,
-
 	set_factory_type_priority = 100,
+	crisis_add_wargoal = 101,
+	change_unit_type = 102,
 
 	// network
 	notify_player_ban = 106,
@@ -123,6 +124,7 @@ enum class command_type : uint8_t {
 	notify_reload = 116,
 	advance_tick = 120,
 	chat_message = 121,
+	network_inactivity_ping = 122,
 
 	// console cheats
 	console_command = 255,
@@ -326,6 +328,7 @@ struct pending_human_f_p_event_data {
 struct cb_fabrication_data {
 	dcon::nation_id target;
 	dcon::cb_type_id type;
+	dcon::state_definition_id target_state;
 };
 
 struct new_war_data {
@@ -335,6 +338,7 @@ struct new_war_data {
 	dcon::nation_id cb_secondary_nation;
 	dcon::cb_type_id primary_cb;
 	bool call_attacker_allies;
+	bool run_conference;
 };
 
 struct new_war_goal_data {
@@ -413,6 +417,12 @@ struct split_ships_data {
 	dcon::ship_id ships[num_packed_units];
 };
 
+struct change_unit_type_data {
+	dcon::regiment_id regs[num_packed_units];
+	dcon::ship_id ships[num_packed_units];
+	dcon::unit_type_id new_type;
+};
+
 struct cheat_data {
 	float value;
 };
@@ -445,6 +455,7 @@ struct nation_pick_data {
 struct advance_tick_data {
 	sys::checksum_key checksum;
 	int32_t speed;
+	sys::date date;
 };
 
 struct notify_save_loaded_data {
@@ -502,6 +513,7 @@ struct payload {
 		merge_navy_data merge_navy;
 		split_regiments_data split_regiments;
 		split_ships_data split_ships;
+		change_unit_type_data change_unit_type;
 		naval_battle_data naval_battle;
 		land_battle_data land_battle;
 		crisis_invitation_data crisis_invitation;
@@ -687,8 +699,8 @@ void make_event_choice(sys::state& state, event::pending_human_f_n_event const& 
 void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id);
 void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id);
 
-void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
-bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{});
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{});
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
@@ -722,9 +734,9 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost = false);
 
-void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies);
+void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference);
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
-void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies);
+void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference);
 
 void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
@@ -765,6 +777,10 @@ bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 
+void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
+bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
+void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
+
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 
@@ -803,6 +819,10 @@ bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id
 
 void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+
+bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg);
+void queue_crisis_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg);
+void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_war_goal_data const& data);
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
@@ -891,6 +911,8 @@ void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, payload& c);
 
 void notify_console_command(sys::state& state);
+void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
+void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
 
 } // namespace command
 

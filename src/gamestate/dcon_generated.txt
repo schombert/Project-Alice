@@ -3831,6 +3831,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ constructing_cb_target_state }
+		type{ state_definition_id }
+		tag{ save }
+	}
+	property {
 		name{ constructing_cb_progress }
 		type{ float }
 		tag{ save }
@@ -3941,6 +3946,11 @@ object {
 	property{
 		name{ mobilized_is_ai_controlled }
 		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ ai_strategy }
+		type{ int }
 		tag{ save }
 	}
 }
@@ -4468,7 +4478,7 @@ relationship{
 relationship{
 	name{ province_land_construction }
 	storage_type{ erasable }
-	size{ 16000 }
+	size{ 32000 }
 	tag{ save }
 
 	link{
@@ -5292,7 +5302,7 @@ object{
 
 	property{
 		name{ nickname }
-		type{ std::array<uint8_t,48> }
+		type{ std::array<uint8_t,24> }
 	}
 	property{
 		name{ is_online }

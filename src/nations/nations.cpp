@@ -5,6 +5,7 @@
 #include "modifiers.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
+#include "container_types.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "triggers.hpp"
 #include "politics.hpp"
@@ -2237,7 +2238,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			/*
 			- Tension increased by define:TENSION_WHILE_CRISIS per day while a crisis is ongoing.
 			*/
-			if(state.current_crisis != sys::crisis_type::none) {
+			if(state.current_crisis_state == sys::crisis_state::inactive) {
 				total_increase += state.defines.tension_while_crisis;
 			}
 
@@ -2280,22 +2281,47 @@ void daily_update_flashpoint_tension(sys::state& state) {
 	}
 }
 
+void crisis_add_wargoal(std::vector<sys::full_wg>& list, sys::full_wg wg) {
+	assert(wg.cb && wg.added_by && wg.target_nation);
+	for(unsigned i = 0; i < list.size(); i++) {
+		if(!list[i].cb) {
+			list[i] = wg;
+			break;
+		}
+	}
+}
+
 void cleanup_crisis(sys::state& state) {
-	state.last_crisis_end_date = state.current_date;
+	for(unsigned i = 0; i < state.crisis_attacker_wargoals.size(); i++) {
+		if(state.crisis_attacker_wargoals[i].cb) {
+			state.crisis_attacker_wargoals[i] = sys::full_wg{};
+		}
+		else {
+			break;
+		}
+	}
+	for(unsigned i = 0; i < state.crisis_defender_wargoals.size(); i++) {
+		if(state.crisis_defender_wargoals[i].cb) {
+			state.crisis_defender_wargoals[i] = sys::full_wg{};
+		}
+		else {
+			break;
+		}
+	}
+
 	state.current_crisis = sys::crisis_type::none;
-	state.current_crisis_mode = sys::crisis_mode::inactive;
+	state.crisis_state_instance = dcon::state_instance_id{};
+	state.last_crisis_end_date = state.current_date;
+	state.current_crisis_state = sys::crisis_state::inactive;
 	state.crisis_last_checked_gp = 0;
+	state.crisis_attacker = dcon::nation_id{};
+	state.crisis_defender = dcon::nation_id{};
 
 	for(auto& par : state.crisis_participants) {
 		if(par.id) {
 			par.id = dcon::nation_id{};
 			par.merely_interested = false;
 			par.supports_attacker = false;
-			par.joined_with_offer.target = dcon::nation_id{};
-			par.joined_with_offer.wargoal_secondary_nation = dcon::nation_id{};
-			par.joined_with_offer.wargoal_state = dcon::state_definition_id{};
-			par.joined_with_offer.wargoal_tag = dcon::national_identity_id{};
-			par.joined_with_offer.wargoal_type = dcon::cb_type_id{};
 		} else {
 			break;
 		}
@@ -2305,9 +2331,6 @@ void cleanup_crisis(sys::state& state) {
 	state.crisis_war = dcon::war_id{};
 	state.primary_crisis_attacker = dcon::nation_id{};
 	state.primary_crisis_defender = dcon::nation_id{};
-	state.crisis_state = dcon::state_instance_id{};
-	state.crisis_colony = dcon::state_definition_id{};
-	state.crisis_liberation_tag = dcon::national_identity_id{};
 }
 
 void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
@@ -2346,9 +2369,7 @@ void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
 		memset(&m, 0, sizeof(diplomatic_message::message));
 		m.type = diplomatic_message::type::be_crisis_primary_defender;
 		m.to = n;
-		if(state.crisis_state) {
-			m.from = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
-		}
+		m.from = state.crisis_defender;
 		diplomatic_message::post(state, m);
 	}
 }
@@ -2361,9 +2382,7 @@ void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
 		memset(&m, 0, sizeof(diplomatic_message::message));
 		m.type = diplomatic_message::type::be_crisis_primary_attacker;
 		m.to = n;
-		if(state.crisis_liberation_tag) {
-			m.from = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
-		}
+		m.from = state.crisis_attacker;
 		diplomatic_message::post(state, m);
 	}
 }
@@ -2375,54 +2394,54 @@ void reject_crisis_participation(sys::state& state) {
 					state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_defender)) {
 		++state.crisis_last_checked_gp;
 	}
-	if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+	if(state.current_crisis_state == sys::crisis_state::finding_attacker && !state.primary_crisis_attacker) {
 		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
-			// no attacker -- fizzle
+			// If initiated by some non-GP country and no GP backer - let the initiator run the crisis
+			if(state.crisis_attacker) {
+				state.primary_crisis_attacker = state.crisis_attacker;
+			}
+			// else - fizzle
+			else {
+				notification::post(state, notification::message{
+					[](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_crisis_fizzle_1");
+					},
+					"msg_crisis_fizzle_title",
+					state.local_player_nation,dcon::nation_id{}, dcon::nation_id{},
+					sys::message_base_type::crisis_fizzle
+				});
 
-			notification::post(state, notification::message{
-				[](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_fizzle_1");
-				},
-				"msg_crisis_fizzle_title",
-				state.local_player_nation,dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::crisis_fizzle
-			});
-
-			cleanup_crisis(state);
+				cleanup_crisis(state);
+			}
 		} else {
 			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		}
-	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+	} else if(state.current_crisis_state == sys::crisis_state::finding_defender && !state.primary_crisis_defender) {
 		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
-			// no defender -- attacker wins
 			// TODO: notify resolution
 
-			notification::post(state, notification::message{
-				[](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_fizzle_2");
-				},
-				"msg_crisis_fizzle_title",
-				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::crisis_fizzle
-			});
-
-			if(state.current_crisis == sys::crisis_type::liberation) {
-				military::implement_war_goal(state, dcon::war_id{}, state.military_definitions.crisis_liberate,
-						state.primary_crisis_attacker, state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
-						dcon::nation_id{}, state.world.state_instance_get_definition(state.crisis_state), state.crisis_liberation_tag);
-			} else { // colonial
-				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-
-				if((colonizers.end() - colonizers.begin()) >= 2) {
-					auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
-					auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
-
-					military::implement_war_goal(state, dcon::war_id{}, state.military_definitions.crisis_colony, attacking_colonizer,
-							defending_colonizer, dcon::nation_id{}, state.crisis_colony, dcon::national_identity_id{});
-				}
+			// If initiated against some non-GP country and no GP backer - let the target run the crisis
+			if(state.crisis_defender) {
+				state.primary_crisis_defender = state.crisis_defender;
 			}
+			// else - fizzle
+			else {
+				notification::post(state, notification::message{
+					[](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_crisis_fizzle_2");
+					},
+					"msg_crisis_fizzle_title",
+					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+					sys::message_base_type::crisis_fizzle
+				});
 
-			cleanup_crisis(state);
+				auto first_wg = state.crisis_attacker_wargoals.at(0);
+				military::implement_war_goal(state, dcon::war_id{}, first_wg.cb, first_wg.added_by,
+							first_wg.target_nation, first_wg.secondary_nation, first_wg.state,
+							first_wg.wg_tag);
+
+				cleanup_crisis(state);
+			}
 		} else {
 			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		}
@@ -2445,6 +2464,131 @@ void accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::na
 	cleanup_crisis(state);
 }
 
+void crisis_state_transition(sys::state& state, sys::crisis_state new_state) {
+	state.current_crisis_state = new_state;
+
+	if(new_state == sys::crisis_state::finding_attacker) {
+		if(!state.primary_crisis_attacker) {
+			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_defender ? 0 : 1;
+			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		}
+	}
+	else if(new_state == sys::crisis_state::finding_defender) {
+		if(!state.primary_crisis_defender) {
+			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
+			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		}
+	}
+	else if(new_state == sys::crisis_state::heating_up) {
+		state.crisis_last_checked_gp = 0;
+
+		/*
+		A GP that is not disarmed and not at war with war exhaustion less than define:CRISIS_INTEREST_WAR_EXHAUSTION_LIMIT and
+		is either on the same continent as the crisis target, crisis attacker, or state (or with a few other special cases: I
+		think European GPs are interested in everything, and I think north and south America are considered one continent
+		here) is considered to be interested. When a GP becomes interested it gets a `on_crisis_declare_interest` event.
+		*/
+		/*
+		When a GP becomes interested it gets a `on_crisis_declare_interest` event.
+		*/
+		state.crisis_participants[0].id = state.primary_crisis_attacker;
+		state.crisis_participants[0].supports_attacker = true;
+		state.crisis_participants[0].merely_interested = false;
+		state.crisis_participants[1].id = state.primary_crisis_defender;
+		state.crisis_participants[1].supports_attacker = false;
+		state.crisis_participants[1].merely_interested = false;
+
+		auto first_wg = state.crisis_attacker_wargoals.at(0);
+
+		auto crisis_state_continent = [&]() {
+			if(auto p = state.world.state_definition_get_abstract_state_membership(first_wg.state); p.begin() != p.end()) {
+				return (*p.begin()).get_province().get_continent().id;
+			}
+			return dcon::modifier_id{};
+			}();
+
+		auto crisis_defender_continent =
+			state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
+		uint32_t added_count = 2;
+
+		for(auto& gp : state.great_nations) {
+			if(gp.nation != state.primary_crisis_attacker && gp.nation != state.primary_crisis_defender &&
+					!state.world.nation_get_is_at_war(gp.nation) &&
+					state.world.nation_get_war_exhaustion(gp.nation) < state.defines.crisis_interest_war_exhaustion_limit) {
+				auto cap_con = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
+				if(cap_con == state.province_definitions.europe || cap_con == crisis_state_continent ||
+						cap_con == crisis_defender_continent ||
+						(cap_con == state.province_definitions.north_america &&
+							crisis_state_continent == state.province_definitions.south_america) ||
+						(cap_con == state.province_definitions.north_america &&
+							crisis_defender_continent == state.province_definitions.south_america) ||
+						(cap_con == state.province_definitions.south_america &&
+							crisis_state_continent == state.province_definitions.north_america) ||
+						(cap_con == state.province_definitions.south_america &&
+							crisis_defender_continent == state.province_definitions.north_america)) {
+
+					/*
+					// apparently the event takes care of adding people
+					state.crisis_participants[added_count].id = gp.nation;
+					state.crisis_participants[added_count].supports_attacker = false;
+					state.crisis_participants[added_count].merely_interested = true;
+					++added_count;
+					*/
+
+					event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation),
+							event::slot_type::nation, gp.nation, -1, event::slot_type::none);
+				}
+			}
+		}
+
+		// auto join ais
+		dcon::nation_id secondary_attacker = state.crisis_attacker;
+		dcon::nation_id secondary_defender = state.crisis_defender;
+
+		for(auto& i : state.crisis_participants) {
+			if(i.id && i.merely_interested == true && state.world.nation_get_is_player_controlled(i.id) == false) {
+				if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_attacker
+					|| nations::are_allied(state, i.id, state.primary_crisis_defender)
+					|| state.world.nation_get_ai_rival(i.id) == secondary_attacker
+					|| nations::are_allied(state, i.id, secondary_defender)
+					|| state.world.nation_get_in_sphere_of(secondary_defender) == i.id) {
+
+					i.merely_interested = false;
+					i.supports_attacker = false;
+
+					notification::post(state, notification::message{
+						[source = i.id](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_crisis_vol_join_2", text::variable_type::x, source);
+						},
+						"msg_crisis_vol_join_title",
+						i.id, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::crisis_voluntary_join
+					});
+				} else if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_defender
+					|| nations::are_allied(state, i.id, state.primary_crisis_attacker)
+					|| state.world.nation_get_ai_rival(i.id) == secondary_defender
+					|| nations::are_allied(state, i.id, secondary_attacker)
+					|| state.world.nation_get_in_sphere_of(secondary_attacker) == i.id) {
+
+					i.merely_interested = false;
+					i.supports_attacker = true;
+
+					notification::post(state, notification::message{
+						[source = i.id](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_crisis_vol_join_1", text::variable_type::x, source);
+						},
+						"msg_crisis_vol_join_title",
+						i.id, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::crisis_voluntary_join
+					});
+				}
+			}
+			if(!i.id)
+				break;;
+		}
+	}
+}
+
 void update_crisis(sys::state& state) {
 	/*
 	A crisis may not start until define:CRISIS_COOLDOWN_MONTHS months after the last crisis or crisis war has ended.
@@ -2454,21 +2598,23 @@ void update_crisis(sys::state& state) {
 		return; // not enough nations obviously
 
 	// filter out invalid crises
-	if(state.current_crisis == sys::crisis_type::colonial) {
+	// TODO: Go over each wargoal. If both sides have no valid wargoals - cleanup
+	/*if(state.current_crisis == sys::crisis_type::colonial) {
 		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
 		auto num_colonizers = colonizers.end() - colonizers.begin();
 		if(num_colonizers < 2) {
 			cleanup_crisis(state);
 		}
 	} else if(state.current_crisis == sys::crisis_type::liberation) {
-		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.current_crisis_state);
 		if(state_owner == state.primary_crisis_attacker ||
 				state.world.nation_get_identity_from_identity_holder(state_owner) == state.crisis_liberation_tag) {
 			cleanup_crisis(state);
 		}
-	}
+	}*/
 
-	if(state.current_crisis == sys::crisis_type::none && !state.crisis_war && (!state.last_crisis_end_date ||
+	// Current crisis state = no crisis
+	if(state.current_crisis_state == sys::crisis_state::inactive && !state.crisis_war && (!state.last_crisis_end_date ||
 			state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date)) {
 		// try to start a crisis
 		// determine type if any
@@ -2506,18 +2652,30 @@ void update_crisis(sys::state& state) {
 														 state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
 			auto rvalue = rng::get_random(state, uint32_t(most_likely_states[i].index())) % 10000;
 			if(rvalue < chance) {
-				state.crisis_state = most_likely_states[i];
-				state.crisis_liberation_tag = state.world.state_instance_get_flashpoint_tag(state.crisis_state);
-				state.world.state_instance_set_flashpoint_tension(state.crisis_state, 0.0f);
+				state.crisis_state_instance = most_likely_states[i];
+				auto crisis_liberation_tag = state.world.state_instance_get_flashpoint_tag(state.crisis_state_instance);
+				state.world.state_instance_set_flashpoint_tension(state.crisis_state_instance, 0.0f);
 				state.current_crisis = sys::crisis_type::liberation;
-				if(auto owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
-						state.world.nation_get_is_great_power(owner)) {
+				auto crisis_state_instance = most_likely_states[i];
+				state.world.state_instance_set_flashpoint_tension(crisis_state_instance, 0.0f);
+				auto owner = state.world.state_instance_get_nation_from_state_ownership(crisis_state_instance);
+				if (owner && state.world.nation_get_is_great_power(owner)) {
 					state.primary_crisis_defender = owner;
 				}
+				state.crisis_defender = owner;
 
+				crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
+					dcon::nation_id{}, // added_by;
+						owner, // target_nation;
+						dcon::nation_id{}, //  secondary_nation;
+						crisis_liberation_tag, // wg_tag;
+						state.world.state_instance_get_definition(crisis_state_instance), // state;
+						state.military_definitions.crisis_liberate // cb
+				});
 
+				crisis_state_transition(state, sys::crisis_state::finding_attacker);
 				notification::post(state, notification::message{
-					[st = state.crisis_state](sys::state& state, text::layout_base& contents) {
+					[st = crisis_state_instance](sys::state& state, text::layout_base& contents) {
 						text::add_line(state, contents, "msg_new_crisis_1", text::variable_type::x, st);
 					},
 					"msg_new_crisis_title",
@@ -2528,7 +2686,7 @@ void update_crisis(sys::state& state) {
 				break;
 			}
 		}
-		if(state.current_crisis == sys::crisis_type::none) {
+		if(state.current_crisis_state == sys::crisis_state::inactive) {
 			/*
 			Failing that, any contested colonial region where neither colonizer is at war will become a crisis and the colonial
 			"temperature" has reached 100.
@@ -2539,19 +2697,32 @@ void update_crisis(sys::state& state) {
 					auto colonizers = sd.get_colonization();
 					auto num_colonizers = colonizers.end() - colonizers.begin();
 					if(num_colonizers == 2) {
-						state.crisis_colony = sd;
-						sd.set_colonization_temperature(0.0f);
+						auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
+						auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
 						state.current_crisis = sys::crisis_type::colonial;
+						sd.set_colonization_temperature(0.0f);
 
-						if((*colonizers.begin()).get_colonizer().get_is_great_power()) {
-							state.primary_crisis_attacker = (*colonizers.begin()).get_colonizer();
+						crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
+							attacking_colonizer, // added_by;
+								defending_colonizer, // target_nation;
+								dcon::nation_id{}, //  secondary_nation;
+								dcon::national_identity_id{}, // wg_tag;
+								sd, // state;
+								state.military_definitions.crisis_colony // cb
+						});
+
+						state.crisis_attacker = attacking_colonizer;
+						if(attacking_colonizer.get_is_great_power()) {
+							state.primary_crisis_attacker = attacking_colonizer;
 						}
-						if((*(colonizers.begin() + 1)).get_colonizer().get_is_great_power()) {
-							state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
+						state.crisis_defender = defending_colonizer;
+						if(defending_colonizer.get_is_great_power()) {
+							state.primary_crisis_defender = defending_colonizer;
 						}
 
+						crisis_state_transition(state, sys::crisis_state::finding_attacker);
 						notification::post(state, notification::message{
-							[st = state.crisis_colony](sys::state& state, text::layout_base& contents) {
+							[st = sd](sys::state& state, text::layout_base& contents) {
 								text::add_line(state, contents, "msg_new_crisis_2", text::variable_type::x, st);
 							},
 							"msg_new_crisis_title",
@@ -2564,154 +2735,28 @@ void update_crisis(sys::state& state) {
 			}
 		}
 
-		if(state.current_crisis == sys::crisis_type::none) {
+		if(state.current_crisis_state == sys::crisis_state::inactive) {
 			state.last_crisis_end_date = state.current_date;
 			return;
 		}
 
 		state.crisis_temperature = 0.0f;
-		if(!state.primary_crisis_attacker) {
-			state.current_crisis_mode = sys::crisis_mode::finding_attacker;
-			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_defender ? 0 : 1;
-			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
-		} else if(!state.primary_crisis_defender) {
-			state.current_crisis_mode = sys::crisis_mode::finding_defender;
-			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
-			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
-		} else {
-			state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
-		}
-	} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+		crisis_state_transition(state, sys::crisis_state::finding_attacker);
+	}
+	// Current crisis state = sys::crisis_state::finding_attacker
+	else if(state.current_crisis_state == sys::crisis_state::finding_attacker) {
 		if(state.primary_crisis_attacker) { // found an attacker
-			if(!state.primary_crisis_defender) {
-				state.current_crisis_mode = sys::crisis_mode::finding_defender;
-				state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
-				ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
-			} else {	// defender is already a gp
-				state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
-				state.crisis_last_checked_gp = 0;
-			}
+			crisis_state_transition(state, sys::crisis_state::finding_defender);
 		}
-	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
-		if(state.primary_crisis_defender) { // found a defender
-			state.current_crisis_mode = sys::crisis_mode::heating_up;
-			state.crisis_last_checked_gp = 0;
-
-			/*
-			A GP that is not disarmed and not at war with war exhaustion less than define:CRISIS_INTEREST_WAR_EXHAUSTION_LIMIT and
-			is either on the same continent as the crisis target, crisis attacker, or state (or with a few other special cases: I
-			think European GPs are interested in everything, and I think north and south America are considered one continent
-			here) is considered to be interested. When a GP becomes interested it gets a `on_crisis_declare_interest` event.
-			*/
-			/*
-			When a GP becomes interested it gets a `on_crisis_declare_interest` event.
-			*/
-			state.crisis_participants[0].id = state.primary_crisis_attacker;
-			state.crisis_participants[0].supports_attacker = true;
-			state.crisis_participants[0].merely_interested = false;
-			state.crisis_participants[1].id = state.primary_crisis_defender;
-			state.crisis_participants[1].supports_attacker = false;
-			state.crisis_participants[1].merely_interested = false;
-
-			auto crisis_state_continent = state.crisis_state
-				? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state))
-				: [&]() {
-					if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony); p.begin() != p.end()) {
-						return (*p.begin()).get_province().get_continent().id;
-					}
-					return dcon::modifier_id{};
-				}();
-
-			auto crisis_defender_continent =
-					state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
-			uint32_t added_count = 2;
-
-			for(auto& gp : state.great_nations) {
-				if(gp.nation != state.primary_crisis_attacker && gp.nation != state.primary_crisis_defender &&
-						!state.world.nation_get_is_at_war(gp.nation) &&
-						state.world.nation_get_war_exhaustion(gp.nation) < state.defines.crisis_interest_war_exhaustion_limit) {
-					auto cap_con = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
-					if(cap_con == state.province_definitions.europe || cap_con == crisis_state_continent ||
-							cap_con == crisis_defender_continent ||
-							(cap_con == state.province_definitions.north_america &&
-									crisis_state_continent == state.province_definitions.south_america) ||
-							(cap_con == state.province_definitions.north_america &&
-									crisis_defender_continent == state.province_definitions.south_america) ||
-							(cap_con == state.province_definitions.south_america &&
-									crisis_state_continent == state.province_definitions.north_america) ||
-							(cap_con == state.province_definitions.south_america &&
-									crisis_defender_continent == state.province_definitions.north_america)) {
-
-						/*
-						// apparently the event takes care of adding people
-						state.crisis_participants[added_count].id = gp.nation;
-						state.crisis_participants[added_count].supports_attacker = false;
-						state.crisis_participants[added_count].merely_interested = true;
-						++added_count;
-						*/
-
-						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation),
-								event::slot_type::nation, gp.nation, -1, event::slot_type::none);
-					}
-				}
-			}
-
-			// auto join ais
-			dcon::nation_id secondary_attacker;
-			dcon::nation_id secondary_defender;
-
-			if(state.current_crisis == sys::crisis_type::colonial) {
-				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-				secondary_defender = (*(colonizers.begin() + 1)).get_colonizer();
-				secondary_attacker = (*(colonizers.begin())).get_colonizer();
-			} else if(state.current_crisis == sys::crisis_type::liberation) {
-				secondary_defender = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
-				secondary_attacker = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
-			}
-
-			for(auto& i : state.crisis_participants) {
-				if(i.id && i.merely_interested == true && state.world.nation_get_is_player_controlled(i.id) == false) {
-					if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_attacker
-						|| nations::are_allied(state, i.id, state.primary_crisis_defender)
-						|| state.world.nation_get_ai_rival(i.id) == secondary_attacker
-						|| nations::are_allied(state, i.id, secondary_defender)
-						|| state.world.nation_get_in_sphere_of(secondary_defender) == i.id) {
-
-						i.merely_interested = false;
-						i.supports_attacker = false;
-
-						notification::post(state, notification::message{
-							[source = i.id](sys::state& state, text::layout_base& contents) {
-								text::add_line(state, contents, "msg_crisis_vol_join_2", text::variable_type::x, source);
-							},
-							"msg_crisis_vol_join_title",
-							i.id, dcon::nation_id{}, dcon::nation_id{},
-							sys::message_base_type::crisis_voluntary_join
-						});
-					} else if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_defender
-						|| nations::are_allied(state, i.id, state.primary_crisis_attacker)
-						|| state.world.nation_get_ai_rival(i.id) == secondary_defender
-						|| nations::are_allied(state, i.id, secondary_attacker)
-						|| state.world.nation_get_in_sphere_of(secondary_attacker) == i.id) {
-
-						i.merely_interested = false;
-						i.supports_attacker = true;
-
-						notification::post(state, notification::message{
-							[source = i.id](sys::state& state, text::layout_base& contents) {
-								text::add_line(state, contents, "msg_crisis_vol_join_1", text::variable_type::x, source);
-							},
-							"msg_crisis_vol_join_title",
-							i.id, dcon::nation_id{}, dcon::nation_id{},
-							sys::message_base_type::crisis_voluntary_join
-						});
-					}
-				}
-				if(!i.id)
-					break;;
-			}
+	}
+	// Current crisis state = sys::crisis_state::finding_defender
+	else if(state.current_crisis_state == sys::crisis_state::finding_defender) {
+		if(state.primary_crisis_defender) { // found defender
+			crisis_state_transition(state, sys::crisis_state::heating_up);
 		}
-	} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+	}
+	// Current crisis state = sys::crisis_state::heating_up
+	else if(state.current_crisis_state == sys::crisis_state::heating_up) {
 		/*
 		Every day where there is at least one defending GP and one attacking GP, the crisis temperature increases by
 		define:CRISIS_TEMPERATURE_INCREASE x define:CRISIS_TEMPERATURE_PARTICIPANT_FACTOR x the ratio of GPs currently involved in
@@ -2733,37 +2778,25 @@ void update_crisis(sys::state& state) {
 		assert(total != 0);
 		state.crisis_temperature += state.defines.crisis_temperature_increase * state.defines.crisis_temperature_participant_factor *
 																float(participants) / float(total);
-
+		// Start crisis war
 		if(state.crisis_temperature >= 100) {
 			dcon::war_id war;
-			if(state.current_crisis == sys::crisis_type::liberation) {
-				war = military::create_war(state, state.primary_crisis_attacker,
-						state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
-						state.military_definitions.crisis_liberate, state.world.state_instance_get_definition(state.crisis_state),
-						state.crisis_liberation_tag, dcon::nation_id{});
-				if(state.world.state_instance_get_nation_from_state_ownership(state.crisis_state) != state.primary_crisis_defender) {
-					military::add_to_war(state, war, state.primary_crisis_defender, false);
-					state.world.war_set_primary_defender(war, state.primary_crisis_defender);
-				}
-			} else { // colonial
-				auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
 
-				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
-				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
+			assert(state.crisis_attacker_wargoals.size() > 0);
 
-				war = military::create_war(state, attacking_colonizer, defending_colonizer, state.military_definitions.crisis_colony,
-						state.crisis_colony, dcon::national_identity_id{}, dcon::nation_id{});
-				military::add_wargoal(state, war, defending_colonizer, attacking_colonizer, state.military_definitions.crisis_colony,
-						state.crisis_colony, dcon::national_identity_id{}, dcon::nation_id{});
+			auto first_wg = state.crisis_attacker_wargoals.at(0);
+			war = military::create_war(state, state.crisis_attacker,
+						state.crisis_defender,
+						first_wg.cb, first_wg.state,
+						first_wg.wg_tag, first_wg.secondary_nation);
 
-				if(state.primary_crisis_defender != attacking_colonizer && state.primary_crisis_defender != defending_colonizer) {
-					military::add_to_war(state, war, state.primary_crisis_defender, false);
-					state.world.war_set_primary_defender(war, state.primary_crisis_defender);
-				}
-				if(state.primary_crisis_attacker != attacking_colonizer && state.primary_crisis_attacker != defending_colonizer) {
-					military::add_to_war(state, war, state.primary_crisis_attacker, true);
-					state.world.war_set_primary_attacker(war, state.primary_crisis_attacker);
-				}
+			if(state.crisis_attacker != state.primary_crisis_attacker) {
+				military::add_to_war(state, war, state.primary_crisis_attacker, true);
+				state.world.war_set_primary_attacker(war, state.primary_crisis_attacker);
+			}
+			if(state.crisis_defender != state.primary_crisis_defender) {
+				military::add_to_war(state, war, state.primary_crisis_defender, false);
+				state.world.war_set_primary_defender(war, state.primary_crisis_defender);
 			}
 
 			for(auto& par : state.crisis_participants) {
@@ -2776,21 +2809,15 @@ void update_crisis(sys::state& state) {
 				}
 			}
 
-			// add wargoals
-			for(auto& par : state.crisis_participants) {
-				if(par.id) {
-					if(!par.merely_interested && par.id != state.primary_crisis_attacker && par.id != state.primary_crisis_defender) {
-						if(par.joined_with_offer.wargoal_type) {
-							military::add_wargoal(state, war, par.id, par.joined_with_offer.target, par.joined_with_offer.wargoal_type,
-									par.joined_with_offer.wargoal_state, par.joined_with_offer.wargoal_tag,
-									par.joined_with_offer.wargoal_secondary_nation);
-						}
-					}
-				} else {
-					break;
-				}
+			for(auto wg : state.crisis_attacker_wargoals) {
+				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
+						wg.state, wg.wg_tag, wg.secondary_nation);
 			}
-
+			for(auto wg : state.crisis_defender_wargoals) {
+				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
+						wg.state, wg.wg_tag, wg.secondary_nation);
+			}
+			
 			/*
 			If the crisis becomes a war, any interested GP which did not take a side loses
 			(years-after-start-date x define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_YEAR +
@@ -2811,7 +2838,6 @@ void update_crisis(sys::state& state) {
 			}
 
 			cleanup_crisis(state);
-
 			state.world.war_set_is_crisis_war(war, true);
 
 			if(state.military_definitions.great_wars_enabled) {
@@ -2857,150 +2883,6 @@ void update_crisis(sys::state& state) {
 			});
 		}
 	}
-}
-
-int32_t num_crisis_wargoals(sys::state& state) {
-	int32_t total = 0;
-
-	for(auto& par : state.crisis_participants) {
-		if(!par.id)
-			break;
-		if(par.joined_with_offer.wargoal_type) {
-			++total;
-		}
-	}
-
-	if(state.current_crisis == sys::crisis_type::liberation) {
-		return total + 1;
-	} else if(state.current_crisis == sys::crisis_type::colonial) {
-		return total + 2;
-	}
-	return 0;
-}
-
-bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index) {
-	if(state.current_crisis == sys::crisis_type::liberation) {
-		if(index == 0) {
-			return true;
-		} else {
-			int32_t count = 1;
-			for(auto& par : state.crisis_participants) {
-				if(!par.id)
-					break;
-				if(par.joined_with_offer.wargoal_type) {
-					if(count == index) {
-						return par.supports_attacker;
-					}
-					++count;
-				}
-			}
-		}
-	} else if(state.current_crisis == sys::crisis_type::colonial) {
-		if(index == 0) {
-			return true;
-		} else if(index == 1) {
-			return false;
-		} else {
-			int32_t count = 2;
-			for(auto& par : state.crisis_participants) {
-				if(!par.id)
-					break;
-				if(par.joined_with_offer.wargoal_type) {
-					if(count == index) {
-						return par.supports_attacker;
-					}
-					++count;
-				}
-			}
-		}
-	}
-	return false;
-}
-
-military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index) {
-	if(state.current_crisis == sys::crisis_type::liberation) {
-		if(index == 0) {
-			return military::full_wg{
-				state.primary_crisis_attacker,
-					state.world.state_instance_get_nation_from_state_ownership(state.crisis_state),
-					dcon::nation_id{},
-					state.crisis_liberation_tag,
-					state.world.state_instance_get_definition(state.crisis_state),
-					state.military_definitions.crisis_liberate
-			};
-		} else {
-			int32_t count = 1;
-			for(auto& par : state.crisis_participants) {
-				if(!par.id)
-					break;
-				if(par.joined_with_offer.wargoal_type) {
-					if(count == index) {
-						return military::full_wg{
-							par.id,
-								par.joined_with_offer.target,
-								par.joined_with_offer.wargoal_secondary_nation,
-								par.joined_with_offer.wargoal_tag,
-								par.joined_with_offer.wargoal_state,
-								par.joined_with_offer.wargoal_type
-						};
-					}
-					++count;
-				}
-			}
-		}
-	} else if(state.current_crisis == sys::crisis_type::colonial) {
-		if(index == 0) {
-			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-			if(colonizers.end() - colonizers.begin() >= 2) {
-				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
-				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
-
-				return military::full_wg{
-					attacking_colonizer,
-						defending_colonizer,
-						dcon::nation_id{},
-						dcon::national_identity_id{},
-						state.crisis_colony,
-						state.military_definitions.crisis_colony
-				};
-			}
-		} else if(index == 1) {
-			auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-			if(colonizers.end() - colonizers.begin() >= 2) {
-				auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
-				auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
-
-				return military::full_wg{
-					defending_colonizer,
-						attacking_colonizer,
-						dcon::nation_id{},
-						dcon::national_identity_id{},
-						state.crisis_colony,
-						state.military_definitions.crisis_colony
-				};
-			}
-		} else {
-			int32_t count = 2;
-			for(auto& par : state.crisis_participants) {
-				if(!par.id)
-					break;
-				if(par.joined_with_offer.wargoal_type) {
-					if(count == index) {
-						return military::full_wg{
-							par.id,
-								par.joined_with_offer.target,
-								par.joined_with_offer.wargoal_secondary_nation,
-								par.joined_with_offer.wargoal_tag,
-								par.joined_with_offer.wargoal_state,
-								par.joined_with_offer.wargoal_type
-						};
-					}
-					++count;
-				}
-			}
-		}
-	}
-	return military::full_wg{};
 }
 
 void update_pop_acceptance(sys::state& state, dcon::nation_id n) {

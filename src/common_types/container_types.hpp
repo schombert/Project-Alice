@@ -133,20 +133,6 @@ struct modifier_hash {
 	}
 };
 
-struct crisis_join_offer {
-	dcon::nation_id target;
-	dcon::state_definition_id wargoal_state;
-	dcon::national_identity_id wargoal_tag;
-	dcon::nation_id wargoal_secondary_nation;
-	dcon::cb_type_id wargoal_type;
-};
-static_assert(sizeof(crisis_join_offer) ==
-	sizeof(crisis_join_offer::target)
-	+ sizeof(crisis_join_offer::wargoal_type)
-	+ sizeof(crisis_join_offer::wargoal_state)
-	+ sizeof(crisis_join_offer::wargoal_tag)
-	+ sizeof(crisis_join_offer::wargoal_secondary_nation));
-
 } // namespace sys
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
@@ -298,7 +284,7 @@ struct checksum_key {
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
 struct player_name {
-	std::array<uint8_t, 48> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	std::array<uint8_t, 24> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	std::string_view to_string_view() noexcept {
 		for(uint32_t i = 0; i < sizeof(data); i++) {
@@ -317,6 +303,30 @@ struct player_name {
 
 	std::string to_string() noexcept {
 		return std::string(to_string_view());
+	}
+
+	bool empty() noexcept {
+		return data[0] == ' ' || data[0] == '\0';
+	}
+
+	void append(char c) noexcept {
+		for(uint32_t i = 0; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				data[i] = c;
+				return;
+			}
+		}
+	}
+
+	char pop() noexcept {
+		for(uint32_t i = 1; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				auto pop = data[i - 1];
+				data[i - 1] = ' ';
+				return pop;
+			}
+		}
+		return ' ';
 	}
 };
 static_assert(sizeof(player_name) == sizeof(player_name::data));
@@ -396,6 +406,14 @@ void merge_sort(IT first, IT end, CMP const& cmp) noexcept {
 	delete[] buffer;
 }
 
+struct full_wg {
+	dcon::nation_id added_by;
+	dcon::nation_id target_nation;
+	dcon::nation_id secondary_nation;
+	dcon::national_identity_id wg_tag;
+	dcon::state_definition_id state;
+	dcon::cb_type_id cb;
+};
 
 struct aui_pending_bytes {
 	char const* data = nullptr;

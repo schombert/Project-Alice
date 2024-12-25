@@ -91,11 +91,17 @@ public:
     }
 
 	void button_action(sys::state& state) noexcept override;
+
+	// Right click must remove message
+	void button_right_action(sys::state& state) noexcept override;
 };
+
 class diplomatic_message_topbar_flag_button : public flag_button {
 public:
 	void button_action(sys::state& state) noexcept override;
+	void button_right_action(sys::state& state) noexcept override;
 };
+
 class diplomatic_message_topbar_entry_window : public listbox_row_element_base<diplomatic_message::message> {
 public:
 	diplomatic_message_topbar_button* btn = nullptr;
@@ -159,7 +165,18 @@ void diplomatic_message_topbar_button::button_action(sys::state& state) noexcept
 	auto r = std::distance(it, dmtl->messages.end());
 	dmtl->messages.erase(it, dmtl->messages.end());
 	dmtl->impl_on_update(state);
-}
+};
+
+void diplomatic_message_topbar_button::button_right_action(sys::state& state) noexcept {
+	auto const m = retrieve<diplomatic_message::message>(state, parent);
+	//Remove from listbox
+	auto dmtl = static_cast<diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox);
+	auto it = std::remove_if(dmtl->messages.begin(), dmtl->messages.end(),
+			[&](auto& e) { return e.from == m.from && e.to == m.to && e.type == m.type && e.when == m.when; });
+	auto r = std::distance(it, dmtl->messages.end());
+	dmtl->messages.erase(it, dmtl->messages.end());
+	dmtl->impl_on_update(state);
+};
 
 void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noexcept {
 	if(parent) {
@@ -167,6 +184,14 @@ void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noe
 		if(win->btn)
 			win->btn->button_action(state);
 	}
-}
+};
+
+void diplomatic_message_topbar_flag_button::button_right_action(sys::state& state) noexcept {
+	if(parent) {
+		auto win = static_cast<diplomatic_message_topbar_entry_window*>(parent);
+		if(win->btn)
+			win->btn->button_right_action(state);
+	}
+};
 
 }

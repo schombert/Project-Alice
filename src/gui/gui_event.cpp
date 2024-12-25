@@ -149,10 +149,12 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
 
 	// Global crisis stuff
-	text::add_to_substitution_map(sub, text::variable_type::crisistaker, state.crisis_liberation_tag);
-	text::add_to_substitution_map(sub, text::variable_type::crisistaker_adj, state.world.national_identity_get_adjective(state.crisis_liberation_tag));
-	text::add_to_substitution_map(sub, text::variable_type::crisistaker_capital, state.world.national_identity_get_capital(state.crisis_liberation_tag));
-	text::add_to_substitution_map(sub, text::variable_type::crisistaker_continent, state.world.national_identity_get_capital(state.crisis_liberation_tag).get_continent().get_name());
+
+	auto first_wg = state.crisis_attacker_wargoals.at(0);
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker, first_wg.wg_tag);
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker_adj, state.world.national_identity_get_adjective(first_wg.wg_tag));
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker_capital, state.world.national_identity_get_capital(first_wg.wg_tag));
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker_continent, state.world.national_identity_get_capital(first_wg.wg_tag).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisisattacker, state.primary_crisis_attacker);
 	text::add_to_substitution_map(sub, text::variable_type::crisisattacker_capital, state.world.nation_get_capital(state.primary_crisis_attacker));
 	text::add_to_substitution_map(sub, text::variable_type::crisisattacker_continent, state.world.nation_get_capital(state.primary_crisis_attacker).get_continent().get_name());
@@ -161,7 +163,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.primary_crisis_defender);
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
-	text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_state);
+	text::add_to_substitution_map(sub, text::variable_type::crisisarea, first_wg.state);
 	text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// Dates
 	text::add_to_substitution_map(sub, text::variable_type::year, int32_t(event_date.to_ymd(state.start_date).year));

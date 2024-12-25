@@ -11,7 +11,7 @@
 
 namespace ui {
 
-enum class unitpanel_action : uint8_t { close, reorg, split, disband, changeleader, temp };
+enum class unitpanel_action : uint8_t { close, reorg, split, disband, changeleader, temp, upgrade };
 
 class unit_selection_close_button : public button_element_base {
 public:
@@ -32,7 +32,49 @@ template<class T>
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
+		// No selected Regiments or Ships
+		if(!state.selected_regiments[0] && !state.selected_ships[0]) {
+			send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
+		}
+		else {
+			auto content = retrieve<T>(state, parent);
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
+				for(size_t i = 0; i < state.selected_regiments.size(); i++) {
+					if(state.selected_regiments[i]) {
+						tosplit[i % command::num_packed_units] = state.selected_regiments[i];
+					} else {
+						break;
+					}
+					if(i % command::num_packed_units == command::num_packed_units - 1) {
+						command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
+						tosplit = {};
+					}
+				}
+
+				command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
+				command::split_army(state, state.local_player_nation, content);
+				sys::selected_regiments_clear(state);
+			} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+				std::array<dcon::ship_id, command::num_packed_units> tosplit{};
+				for(size_t i = 0; i < state.selected_ships.size(); i++) {
+					if(state.selected_ships[i]) {
+						tosplit[i % command::num_packed_units] = state.selected_ships[i];
+					}
+					else {
+						break;
+					}
+					if(i % command::num_packed_units == command::num_packed_units - 1) {
+						command::mark_ships_to_split(state, state.local_player_nation, tosplit);
+						tosplit = {};
+					}
+				}
+
+				command::mark_ships_to_split(state, state.local_player_nation, tosplit);
+				command::split_navy(state, state.local_player_nation, content);
+				sys::selected_ships_clear(state);
+			}
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -132,6 +174,22 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "disband_too_small_unit");
+	}
+};
+
+class unit_selection_unit_upgrade_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		disabled = !(state.selected_regiments[0] || state.selected_ships[0]);
+	}
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::upgrade }});
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "unit_upgrade_button");
 	}
 };
 
@@ -660,6 +718,10 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leader_photo") {
 			return make_element_by_type<unit_selection_leader_image<T>>(state, id);
+		} else if(name == "unit_upgrade_button") {
+			auto ptr = make_element_by_type<unit_selection_unit_upgrade_button>(state, id);
+			move_child_to_front(ptr.get());
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -681,9 +743,12 @@ public:
 				reorg_window->impl_on_update(state);
 				break;
 			} case unitpanel_action::changeleader: {
-				
 				break;
-			} default: {
+			} case unitpanel_action::upgrade:
+			{
+				return message_result::unseen;
+			}
+			default: {
 				break;
 			}
 			}
@@ -903,11 +968,116 @@ public:
 	}
 };
 
+template<class T>
+class subunit_entry_bg : public tinted_button_element_base {
+public:
+	uint32_t color = 0;
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T content = any_cast<T>(payload);
+			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
+			if(utid)
+				frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+
+			if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+				dcon::regiment_id reg = any_cast<dcon::regiment_id>(payload);
+
+				if(std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg) != state.selected_regiments.end()) {
+					color = sys::pack_color(255, 200, 200);
+				} else {
+					color = sys::pack_color(255, 255, 255);
+				}
+			}
+			else if constexpr(std::is_same_v<T, dcon::ship_id>) {
+				dcon::ship_id sh = any_cast<dcon::ship_id>(payload);
+
+				if(std::find(state.selected_ships.begin(), state.selected_ships.end(), sh) != state.selected_ships.end()) {
+					color = sys::pack_color(255, 200, 200);
+				} else {
+					color = sys::pack_color(255, 255, 255);
+				}
+			}
+		}
+	}
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			if(parent) {
+				Cyto::Any payload = dcon::regiment_id{};
+				parent->impl_get(state, payload);
+				dcon::regiment_id reg = any_cast<dcon::regiment_id>(payload);
+
+				if(mods == sys::key_modifiers::modifiers_shift) {
+					sys::selected_ships_clear(state);
+					sys::selected_regiments_add(state, reg);
+					parent->impl_on_update(state);
+				} else {
+					sys::selected_regiments_clear(state);
+					sys::selected_ships_clear(state);
+					sys::selected_regiments_add(state, reg);
+					parent->impl_on_update(state);
+				}
+			}
+		}
+		else if constexpr(std::is_same_v<T, dcon::ship_id>) {
+			if(parent) {
+				Cyto::Any payload = dcon::ship_id{};
+				parent->impl_get(state, payload);
+				dcon::ship_id reg = any_cast<dcon::ship_id>(payload);
+
+				if(mods == sys::key_modifiers::modifiers_shift) {
+					sys::selected_regiments_clear(state);
+					sys::selected_ships_add(state, reg);
+					parent->impl_on_update(state);
+				} else {
+					sys::selected_ships_clear(state);
+					sys::selected_regiments_clear(state);
+					sys::selected_ships_add(state, reg);
+					parent->impl_on_update(state);
+				}
+			}
+		}
+
+		return message_result::consumed;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid) {
+			auto const& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				if(gfx_def.number_of_frames > 1) {
+					ogl::render_tinted_subsprite(state, frame,
+						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				} else {
+					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(color), sys::green_from_int(color), sys::blue_from_int(color),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+						state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+				}
+			}
+		}
+	}
+};
+
 class subunit_details_entry_regiment : public listbox_row_element_base<dcon::regiment_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<subunit_entry_bg<dcon::regiment_id>>(state, id);
 		} else if(name == "select_naval") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "sunit_icon") {
@@ -942,7 +1112,7 @@ public:
 		if(name == "select") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "select_naval") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<subunit_entry_bg<dcon::ship_id>>(state, id);
 		} else if(name == "sunit_icon") {
 			return make_element_by_type<subunit_details_type_icon<dcon::ship_id>>(state, id);
 		} else if(name == "subunit_name") {
@@ -967,9 +1137,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void on_update(sys::state& state) noexcept override { 
-	}
 };
 
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry_regiment, dcon::regiment_id> {
@@ -977,6 +1144,8 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "subunit_entry";
 	}
+
+	dcon::army_id cached_id;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -986,6 +1155,12 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::army_id>(state, parent);
+
+		if(content != cached_id) {
+			cached_id = content;
+			sys::selected_regiments_clear(state);
+		}
+
 		row_contents.clear();
 		state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id amid) {
 			auto rid = state.world.army_membership_get_regiment(amid);
@@ -1460,6 +1635,14 @@ public:
 
 		text::close_layout_box(contents, box);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "unit_macro_template_tooltip");
+	}
 };
 
 class apply_template_to_army_location_button : public button_element_base {
@@ -1571,6 +1754,158 @@ public:
 	}
 };
 
+class unit_type_listbox_entry_image : public image_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto regiment_type = retrieve<dcon::unit_type_id>(state, parent);
+
+		if(regiment_type) {
+			frame = state.military_definitions.unit_base_definitions[regiment_type].icon - 1;
+		}
+	}
+};
+
+class unit_type_listbox_entry_label : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto regiment_type = retrieve<dcon::unit_type_id>(state, parent);
+
+		if(regiment_type) {
+			auto name_string_def = state.military_definitions.unit_base_definitions[regiment_type].name;
+			set_button_text(state, text::produce_simple_string(state, name_string_def));
+		}
+
+		auto const& ut = state.military_definitions.unit_base_definitions[regiment_type];
+		if(!ut.active && !state.world.nation_get_active_unit(state.local_player_nation, regiment_type)) {
+			disabled = true;
+			return;
+		}
+
+		dcon::regiment_id regs[command::num_packed_units];
+		dcon::ship_id ships[command::num_packed_units];
+		auto allowed_transition = true;
+
+		for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+			if(state.selected_regiments[i]) {
+				regs[i % command::num_packed_units] = state.selected_regiments[i];
+			}
+			if(state.selected_ships[i]) {
+				ships[i % command::num_packed_units] = state.selected_ships[i];
+			}
+
+			if(i % command::num_packed_units == 0) {
+				allowed_transition = command::can_change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+				if(!allowed_transition) {
+					disabled = true; return;
+				}
+			}
+
+			if(!state.selected_regiments[i] && !state.selected_ships[i]) {
+				break;
+			}
+		}
+
+		allowed_transition = command::can_change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+		if(!allowed_transition) {
+			disabled = true;
+			return;
+		}
+
+		disabled = false;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto regiment_type = retrieve<dcon::unit_type_id>(state, parent);
+		dcon::regiment_id regs[command::num_packed_units];
+		dcon::ship_id ships[command::num_packed_units];
+
+		for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+			if(state.selected_regiments[i]) {
+				regs[i % command::num_packed_units] = state.selected_regiments[i];
+			}
+			if(state.selected_ships[i]) {
+				ships[i % command::num_packed_units] = state.selected_ships[i];
+			}
+
+			if(i % command::num_packed_units == 0) {
+				command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+			}
+
+			if(!state.selected_regiments[i] && !state.selected_ships[i]) {
+				break;
+			}
+		}
+
+		command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+		sys::selected_regiments_clear(state);
+		sys::selected_ships_clear(state);
+	}
+};
+
+class unit_type_listbox_entry : public listbox_row_element_base<dcon::unit_type_id> {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "unit_type_icon") {
+			return make_element_by_type<unit_type_listbox_entry_image>(state, id);
+		} else if(name == "unit_type_select") {
+			return make_element_by_type<unit_type_listbox_entry_label>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+template<class T>
+class unit_type_listbox : public listbox_element_base<unit_type_listbox_entry, dcon::unit_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "unit_type_item";
+	}
+
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		auto is_land = true;
+
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			if(parent) {
+				
+			}
+		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			if(parent) {
+				is_land = false;
+			}
+		}
+
+		for(dcon::unit_type_id::value_base_t i = 2; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto const utid = dcon::unit_type_id(i);
+			auto const& ut = state.military_definitions.unit_base_definitions[utid];
+			if(ut.is_land == is_land) {
+				row_contents.push_back(utid);
+			}
+		}
+
+		update(state);
+	}
+};
+
+template<class T>
+class unit_upgrade_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "unit_type_list") {
+			return make_element_by_type<unit_type_listbox<T>>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(!state.selected_regiments.at(0) && !state.selected_ships.at(0)) {
+			set_visible(state, false);
+			return;
+		}
+	}
+};
+
 template<class T>
 class unit_details_window : public window_element_base {
 	simple_text_element_base* unitspeed_text = nullptr;
@@ -1582,7 +1917,7 @@ class unit_details_window : public window_element_base {
 	image_element_base* unitdugin_icon = nullptr;
 	unit_selection_panel<T>* unit_selection_win = nullptr;
 
-	
+	unit_upgrade_window<T>* unit_upgrade_win = nullptr;
 
 public:
 	T unit_id;
@@ -1645,6 +1980,14 @@ public:
 			unit_selection_win = ptr.get();
 			ptr->base_data.position.y = -80;
 			add_child_to_front(std::move(ptr));
+		}
+
+		{
+			auto ptr =
+				make_element_by_type<unit_upgrade_window<T>>(state, state.ui_state.defs_by_name.find(state.lookup_key("unit_upgrade_window"))->second.definition);
+			unit_upgrade_win = ptr.get();
+			add_child_to_front(std::move(ptr));
+			unit_upgrade_win->set_visible(state, false);
 		}
 	}
 
@@ -1737,6 +2080,11 @@ public:
 				state.selected_navies.clear();
 				set_visible(state, false);
 				state.game_state_updated.store(true, std::memory_order_release);
+				break;
+			}
+			case unitpanel_action::upgrade: {
+				unit_upgrade_win->is_visible() ? unit_upgrade_win->set_visible(state, false) : unit_upgrade_win->set_visible(state, true);
+				unit_upgrade_win->impl_on_update(state);
 				break;
 			}
 			default: 
