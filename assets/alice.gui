@@ -5354,6 +5354,123 @@ guiTypes = {
 		}
     }
 
+	checkboxType = {
+		name = "call_allies_checkbox"
+		position = { x= 115 y = 471 }
+		quadTextureSprite = "GFX_checkbox_default"
+	}
+		
+	instantTextBoxType = {
+		name = "call_allies_text"
+		position = { x = 118 y = 474 }
+		textureFile = ""
+		font = "vic_18"
+		borderSize = {x = 0 y = 0}
+		text = "DIPLO_CALL_ALLIES"	
+		maxWidth = 200
+		maxHeight = 20
+		format = centre
+	}
+
+	checkboxType = {
+		name = "run_conference_checkbox"
+		position = { x= 347 y = 471 }
+		quadTextureSprite = "GFX_checkbox_default"
+		extends = "DeclareWarDialog"
+	}
+		
+	instantTextBoxType = {
+		name = "run_conferences_text"
+		position = { x = 340 y = 474 }
+		textureFile = ""
+		font = "vic_18"
+		borderSize = {x = 0 y = 0}
+		text = "DIPLO_RUN_CONFERENCE"	
+		maxWidth = 200
+		maxHeight = 20
+		format = centre
+		extends = "DeclareWarDialog"
+	}
+
+	guiButtonType = {
+		name = "crisis_add_wg"
+		position = { x = 10 y = 110 }
+		quadTextureSprite = "GFX_button_thin_160"
+		buttonFont = "vic_18_black"
+		Orientation = "UPPER_LEFT"
+		buttonText = "DIPLOMACY_ADD_WARGOAL"
+		clicksound = click
+		extends = "attacker_win"
+	}
+
+	guiButtonType = {
+		name = "crisis_add_wg"
+		position = { x = 10 y = 110 }
+		quadTextureSprite = "GFX_button_thin_160"
+		buttonFont = "vic_18_black"
+		Orientation = "UPPER_LEFT"
+		buttonText = "DIPLOMACY_ADD_WARGOAL"
+		clicksound = click
+		extends = "defender_win"
+	}
+
+	windowType = {
+		name = "unit_upgrade_window"
+		position = { x=320 y=-80 }	
+		size = { x=260 y=355 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+
+		iconType =
+		{
+			name ="unit_upgrade_window"
+			spriteType = "GFX_attach_bg"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+			
+		listboxType = 	{
+			name ="unit_type_list"
+			position = { x = 10 y = 10 }
+			backGround=""
+			size = { x=260 y =340 }
+			Orientation = "UPPER_LEFT"
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 0 y = 0}
+		}
+	}
+
+	windowType = {
+		name = "unit_type_item"
+		position = { x=0 y=0 }	
+		size = { x=220 y=40 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+		
+		iconType =	{
+			name ="unit_type_icon"
+			spriteType = "GFX_unit_strip"
+			position = { x= 0 y = 0 }
+		}
+	
+		guiButtonType = {
+			name = "unit_type_select"
+			position = { x = 40 y = 0 }
+			size = { x=180 y=40 }
+			quadTextureSprite ="GFX_diplo_wargoal_button"
+			buttonFont = "vic_18_black"
+			buttonText = "Test"
+			clicksound = click
+		}
+	}
+
+	guiButtonType = {
+		name = "unit_upgrade_button"
+		position = { x = 193 y = 6 }
+		quadTextureSprite ="GFX_unit_upgrade_button"
+		extends="unitpanel"
+	}
 
     guiButtonType = {
         name = "alice_button_factory_type_priority"

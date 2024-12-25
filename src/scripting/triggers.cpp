@@ -1124,7 +1124,7 @@ TRIGGER_FUNCTION(tf_flashpoint_tag_scope) {
 			this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_crisis_state_scope) {
-	return apply_subtriggers<return_type, int32_t, this_type, from_type>(tval, ws, to_generic(ws.crisis_state), this_slot,
+	return apply_subtriggers<return_type, int32_t, this_type, from_type>(tval, ws, to_generic(ws.crisis_state_instance), this_slot,
 			from_slot);
 }
 TRIGGER_FUNCTION(tf_state_scope_province) {
@@ -4821,13 +4821,16 @@ TRIGGER_FUNCTION(tf_flashpoint_tension_province) {
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_crisis_exist) {
-	return compare_to_true(tval[0], ws.current_crisis != sys::crisis_type::none);
+	return compare_to_true(tval[0], ws.current_crisis_state == sys::crisis_state::inactive);
 }
 TRIGGER_FUNCTION(tf_is_liberation_crisis) {
-	return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::liberation);
+
+	auto first_wg = ws.crisis_attacker_wargoals.at(0);
+	return compare_to_true(tval[0], first_wg.cb == ws.military_definitions.crisis_liberate);
 }
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
-	return compare_to_true(tval[0], ws.current_crisis == sys::crisis_type::claim);
+	assert(false && "Claim crisis is not part of PA");
+	return compare_to_true(tval[0], false);
 }
 TRIGGER_FUNCTION(tf_crisis_temperature) {
 	return compare_values(tval[0], ws.crisis_temperature, read_float_from_payload(tval + 1));

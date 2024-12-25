@@ -30,6 +30,7 @@ enum class diplomacy_action : uint8_t {
 	crisis_support,
 	add_wargoal,
 	state_transfer,
+	crisis_add_wargoal
 };
 
 enum class gp_choice_actions {
@@ -362,7 +363,7 @@ public:
 			}
 			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
 			text::add_line_with_condition(state, contents, "ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel) == false);
-			text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis == sys::crisis_type::none);
+			text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis_state == sys::crisis_state::inactive);
 
 			if(state.defines.alice_allow_subjects_declare_wars == 0) {
 				auto ol = state.world.nation_get_overlord_as_subject(asker);
@@ -1876,7 +1877,7 @@ public:
 		text::add_line(state, contents, "state_transfer_desc");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "state_transfer_explain_1", state.world.nation_get_is_player_controlled(target));
-		text::add_line_with_condition(state, contents, "state_transfer_explain_2", state.current_crisis == sys::crisis_type::none);
+		text::add_line_with_condition(state, contents, "state_transfer_explain_2", state.current_crisis_state == sys::crisis_state::inactive);
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));

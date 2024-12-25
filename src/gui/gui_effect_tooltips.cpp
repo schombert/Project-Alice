@@ -1354,8 +1354,19 @@ uint32_t es_crisis_state_scope(EFFECT_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
-	auto cstate = ws.crisis_state ? trigger::to_generic(ws.crisis_state) : -1;
-	return display_subeffects(ws, tval, layout, cstate, this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
+	if(ws.crisis_attacker_wargoals.size() > 0) {
+		auto first_wg = ws.crisis_attacker_wargoals.at(0);
+		auto target_nation = first_wg.target_nation;
+		auto target_state_def = first_wg.state;
+
+		for(auto st : ws.world.in_state_instance) {
+			if(st.get_nation_from_state_ownership() == target_nation && st.get_definition() == target_state_def) {
+				auto cstate = first_wg.state ? trigger::to_generic(st) : -1;
+				return display_subeffects(ws, tval, layout, cstate, this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
+			}
+		}
+	}
+	return 0;
 }
 uint32_t es_state_scope_province(EFFECT_DISPLAY_PARAMS) {
 	{

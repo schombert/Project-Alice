@@ -216,11 +216,12 @@ public:
 			if(state.network_mode == sys::network_mode_type::host) {
 				/* Save the buffer before we fill the unsaved data */
 				state.local_player_nation = dcon::nation_id{ };
+				network::place_host_player_after_saveload(state);
+
 				network::write_network_save(state);
 				state.fill_unsaved_data();
 
-				network::place_host_player_after_saveload(state);
-				// assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 				/* Now send the saved buffer before filling the unsaved data to the clients
 				henceforth. */
 				command::payload c;

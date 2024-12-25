@@ -561,8 +561,10 @@ spriteTypes = {
         name = "6-width-header-line"
         texturefile = "assets\\6-width-header-line.png"
     }
-
-
+	spriteType = {
+		name = "GFX_unit_upgrade_button"
+		texturefile = "assets\\unit_upgrade_button.dds"
+	}
 	spriteType = {
         name = "button-25-15"
         texturefile = "assets\\button-25-15.png"

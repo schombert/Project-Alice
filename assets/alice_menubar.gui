@@ -510,4 +510,19 @@ guiTypes = {
 		position = { -328 -110 }
 		Orientation = "LOWER_RIGHT"
 	}
+
+	windowType = {
+        name = "army_management_window"
+        position = { 0 -200 }
+        size = { 400 200 } 
+        
+        guiButtonType = {
+			name = "new_army_group_button"
+			quadTextureSprite = "GFX_leader_generic0"
+			position = { 0 0 }
+			buttonText = "alice_battleplanner_new_army_group"
+			buttonFont = "vic_22_black"
+			Orientation = "LOWER_LEFT"
+		}
+    }
 }

@@ -102,7 +102,7 @@ static int32_t mouse_y = 0;
 
 static std::string ip_addr = "127.0.0.1";
 static std::string password = "";
-static std::string player_name = "AnonAnon";
+static sys::player_name player_name;
 
 enum class string_index : uint8_t {
 	create_scenario,
@@ -132,7 +132,7 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"for the selected mods",
 	"No scenario found",
 	"IP Address",
-	"Password",
+	"Lobby Password",
 	"Nickname",
 	"Singleplayer",
 	"Multiplayer",
@@ -366,7 +366,7 @@ static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Для выбранного мода",
 	"сценарий не найден",
 	"IP адрес",
-	"Пароль",
+	"Пароль лобби",
 	"Никнейм",
 	"Одиночная игра",
 	"Мультиплеер",
@@ -966,12 +966,8 @@ native_string produce_mod_path() {
 }
 
 void save_playername() {
-	sys::player_name p;
-	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(p.data));
-	std::memcpy(&p.data, launcher::player_name.c_str(), len);
-
 	auto settings_location = simple_fs::get_or_create_settings_directory();
-	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&p, sizeof(p));
+	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&player_name, sizeof(player_name));
 }
 
 native_string to_hex(uint64_t v) {
@@ -1205,13 +1201,13 @@ void mouse_click() {
 			if(obj_under_mouse == ui_obj_host_game) {
 				temp_command_line += NATIVE(" -host");
 				temp_command_line += NATIVE(" -name ");
-				temp_command_line += simple_fs::utf8_to_native(player_name);
+				temp_command_line += simple_fs::utf8_to_native(player_name.to_string());
 			} else if(obj_under_mouse == ui_obj_join_game) {
 				temp_command_line += NATIVE(" -join");
 				temp_command_line += NATIVE(" ");
 				temp_command_line += simple_fs::utf8_to_native(ip_addr);
 				temp_command_line += NATIVE(" -name ");
-				temp_command_line += simple_fs::utf8_to_native(player_name);
+				temp_command_line += simple_fs::utf8_to_native(player_name.to_string());
 
 				// IPv6 address
 				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
@@ -1923,7 +1919,7 @@ void render() {
 	float ps_x_pos = ui_rects[ui_obj_password].x + 6.f;
 	launcher::ogl::render_new_text(password.c_str(), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(player_name.c_str(), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
+	launcher::ogl::render_new_text(player_name.to_string_view(), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::mod_list)];
 	auto ml_xoffset = list_text_right_align - base_text_extent(sv.data(), uint32_t(sv.size()), 24, fonts[1]);
@@ -2373,11 +2369,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 					} else if(obj_under_mouse == ui_obj_player_name) {
 						if(turned_into == '\b') {
 							if(!player_name.empty()) {
-								player_name.pop_back();
+								player_name.pop();
 								save_playername();
 							}
-						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 24) {
-							player_name.push_back(turned_into);
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ') {
+							player_name.append(turned_into);
 							save_playername();
 						}
 					} else if(obj_under_mouse == ui_obj_password) {
@@ -2535,11 +2531,11 @@ int WINAPI wWinMain(
 		auto contents = simple_fs::view_contents(*player_name_file);
 		const sys::player_name *p = (const sys::player_name*)contents.data;
 		if(contents.file_size >= sizeof(*p)) {
-			launcher::player_name = std::string(std::begin(p->data), std::end(p->data));
+			launcher::player_name = launcher::player_name.from_string_view(std::string(std::begin(p->data), std::end(p->data)));
 		}
 	} else {
 		srand(time(NULL));
-		launcher::player_name = std::to_string(int32_t(rand()));
+		launcher::player_name = launcher::player_name.from_string_view(std::to_string(int32_t(rand())));
 	}
 
 	launcher::m_hwnd = CreateWindowEx(

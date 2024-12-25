@@ -28,7 +28,8 @@ public:
 		auto old_visibility = is_visible();
 		flags = uint8_t((flags & ~is_invisible_mask) | (vis ? 0 : is_invisible_mask));
 		if(vis && !old_visibility) {
-			impl_on_update(state);
+			if((wants_update_when_hidden_mask & flags) == 0)
+				impl_on_update(state);
 			on_visible(state);
 		} else if(!vis && old_visibility) {
 			on_hide(state);
@@ -49,8 +50,8 @@ public:
 	virtual message_result impl_on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual void impl_on_update(sys::state& state) noexcept;
 	message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
-	virtual message_result set_by_name(sys::state& state, std::string_view name, Cyto::Any& payload) noexcept {
-		return message_result::unseen;
+	virtual void* get_by_name(sys::state& state, std::string_view name) noexcept {
+		return nullptr;
 	}
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;

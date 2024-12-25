@@ -504,6 +504,7 @@ void clear_socket(sys::state& state, client_data& client) {
 	client.playing_as = dcon::nation_id{};
 	client.recv_count = 0;
 	client.handshake = true;
+	client.last_seen = sys::date{};
 }
 
 static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
@@ -632,6 +633,9 @@ static std::map<int, std::string> readableCommandTypes = {
 {97,"toggle_interested_in_alliance"},
 {98,"pbutton_script"},
 {99,"nbutton_script"},
+{100,"set_factory_type_priority"},
+{101,"crisis_add_wargoal" },
+{102,"change_unit_type" },
 {106,"notify_player_ban"},
 {107,"notify_player_kick"},
 {108,"notify_player_picks_nation"},
@@ -645,6 +649,7 @@ static std::map<int, std::string> readableCommandTypes = {
 {116,"notify_reload"},
 {120,"advance_tick"},
 {121,"chat_message"},
+{122,"network_inactivity_ping"},
 {255,"console_command"},
 };
 
@@ -940,10 +945,10 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 			c.source = state.local_player_nation;
 			c.data.notify_reload.checksum = state.get_save_checksum();
 			for(auto& other_client : state.network_state.clients) {
-				if(other_client.playing_as != client.playing_as) {
+				if(other_client.playing_as != client.playing_as && other_client.is_active()) {
 					socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
-					state.console_log("host:send:cmd: (new->reload)");
+					state.console_log("host:send:cmd: (new->reload) | to:" + std::to_string(other_client.playing_as.index()));
 #endif
 				}
 			}
@@ -991,7 +996,8 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		/* Lobby - existing savegame */
 		notify_player_joins(state, client);
 		if(!state.network_state.is_new_game) {
-			send_savegame(state, client, false);
+			network::write_network_save(state);
+			send_savegame(state, client, true);
 		}
 		notify_player_joins_discovery(state, client);
 
@@ -1287,6 +1293,7 @@ static void accept_new_clients(sys::state& state) {
 			continue;
 		socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
 		client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
+		client.last_seen = state.current_date;
 		if(client.is_banned(state)) {
 			disconnect_client(state, client, false);
 			break;
@@ -1337,6 +1344,18 @@ void send_and_receive_commands(sys::state& state) {
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
+		}
+
+		// Clear lost sockets
+		if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			for(auto& client : state.network_state.clients) {
+				if(!client.is_active())
+					continue;
+
+				if(state.current_scene.game_in_progress && state.current_date.value > state.defines.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.defines.alice_lagging_behind_days_to_drop) {
+					disconnect_client(state, client, true);
+				}
+			}
 		}
 
 		for(auto& client : state.network_state.clients) {
@@ -1582,15 +1601,22 @@ void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old
 }
 
 void place_host_player_after_saveload(sys::state& state) {
-		command::payload c;
-		memset(&c, 0, sizeof(c));
-		c.type = command::command_type::notify_player_joins;
+	load_player_nations(state);
 
-		auto p = find_mp_player(state, state.network_state.nickname);
-		auto n = state.world.mp_player_get_nation_from_player_nation(p);
-		c.source = n;
-		c.data.player_name = state.network_state.nickname;
-		state.network_state.outgoing_commands.push(c);
+	auto n = choose_nation_for_player(state);
+	state.local_player_nation = n;
+	assert(bool(state.local_player_nation));
+	state.world.nation_set_is_player_controlled(n, true);
+
+	command::payload c;
+	memset(&c, 0, sizeof(c));
+	c.type = command::command_type::notify_player_joins;
+	c.source = n;
+	c.data.player_name = state.network_state.nickname;
+	state.local_player_nation = c.source;
+	state.network_state.outgoing_commands.push(c);
+
+	log_player_nations(state);
 }
 
 }

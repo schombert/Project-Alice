@@ -1295,7 +1295,7 @@ uint32_t es_flashpoint_tag_scope(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t es_crisis_state_scope(EFFECT_PARAMTERS) {
-	auto cstate = ws.crisis_state;
+	auto cstate = ws.crisis_state_instance;
 	if(cstate)
 		return apply_subeffects(tval, ws, trigger::to_generic(cstate), this_slot, from_slot, r_hi, r_lo, els);
 	return 0;
@@ -3281,7 +3281,7 @@ uint32_t ef_literacy(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_add_crisis_interest(EFFECT_PARAMTERS) {
-	if(ws.current_crisis != sys::crisis_type::none && ws.current_crisis_mode == sys::crisis_mode::heating_up) {
+	if(ws.current_crisis_state != sys::crisis_state::inactive && ws.current_crisis_state == sys::crisis_state::heating_up) {
 		for(auto& im : ws.crisis_participants) {
 			if(im.id == trigger::to_nation(primary_slot)) {
 				return 0;
@@ -3567,6 +3567,8 @@ uint32_t ef_add_country_modifier_no_duration(EFFECT_PARAMTERS) {
 	sys::add_modifier_to_nation(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).mod_id, sys::date{});
 	return 0;
 }
+// Effects give "blank check" CBs that can be used on any state, thus target state is empty.
+// Scenario of a CB without target state is to be correctly handled in the UI and game logic.
 uint32_t ef_casus_belli_tag(EFFECT_PARAMTERS) {
 	auto type = trigger::payload(tval[1]).cb_id;
 	auto months = trigger::payload(tval[2]).signed_value;
@@ -3574,7 +3576,7 @@ uint32_t ef_casus_belli_tag(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag_target); holder) {
 		ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
-			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type });
+			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type , dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3584,7 +3586,7 @@ uint32_t ef_casus_belli_int(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::payload(tval[3]).prov_id); holder) {
 		ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
-			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type });
+			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3594,7 +3596,7 @@ uint32_t ef_casus_belli_this_nation(EFFECT_PARAMTERS) {
 
 	ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
 		.push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(this_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(this_slot), type, dcon::state_definition_id{} });
 
 	return 0;
 }
@@ -3604,7 +3606,7 @@ uint32_t ef_casus_belli_this_state(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)); holder) {
 		ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
-			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type });
+			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3614,7 +3616,7 @@ uint32_t ef_casus_belli_this_province(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)); holder) {
 		ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
-			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type });
+			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3624,7 +3626,7 @@ uint32_t ef_casus_belli_this_pop(EFFECT_PARAMTERS) {
 
 	if(auto holder = nations::owner_of_pop(ws, trigger::to_pop(this_slot)); holder) {
 		ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
-			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type });
+			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3634,7 +3636,7 @@ uint32_t ef_casus_belli_from_nation(EFFECT_PARAMTERS) {
 
 	ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
 		.push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(from_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(from_slot), type, dcon::state_definition_id{} });
 
 	return 0;
 }
@@ -3644,7 +3646,7 @@ uint32_t ef_casus_belli_from_province(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)); holder) {
 		ws.world.nation_get_available_cbs(trigger::to_nation(primary_slot))
-			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type });
+			.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, holder, type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3655,7 +3657,7 @@ uint32_t ef_add_casus_belli_tag(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag_target); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3665,7 +3667,7 @@ uint32_t ef_add_casus_belli_int(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::payload(tval[3]).prov_id); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3674,7 +3676,7 @@ uint32_t ef_add_casus_belli_this_nation(EFFECT_PARAMTERS) {
 	auto months = trigger::payload(tval[2]).signed_value;
 
 	ws.world.nation_get_available_cbs(trigger::to_nation(this_slot))
-		.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+		.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	return 0;
 }
 uint32_t ef_add_casus_belli_this_state(EFFECT_PARAMTERS) {
@@ -3683,7 +3685,7 @@ uint32_t ef_add_casus_belli_this_state(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3693,7 +3695,7 @@ uint32_t ef_add_casus_belli_this_province(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3703,7 +3705,7 @@ uint32_t ef_add_casus_belli_this_pop(EFFECT_PARAMTERS) {
 
 	if(auto holder = nations::owner_of_pop(ws, trigger::to_pop(this_slot)); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+				military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }
@@ -3712,7 +3714,7 @@ uint32_t ef_add_casus_belli_from_nation(EFFECT_PARAMTERS) {
 	auto months = trigger::payload(tval[2]).signed_value;
 
 	ws.world.nation_get_available_cbs(trigger::to_nation(from_slot))
-		.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+		.push_back(military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	return 0;
 }
 uint32_t ef_add_casus_belli_from_province(EFFECT_PARAMTERS) {
@@ -3721,7 +3723,7 @@ uint32_t ef_add_casus_belli_from_province(EFFECT_PARAMTERS) {
 
 	if(auto holder = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)); holder) {
 		ws.world.nation_get_available_cbs(holder).push_back(
-			military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type });
+			military::available_cb{ months > 0 ? ws.current_date + 31 * months : sys::date{}, trigger::to_nation(primary_slot), type, dcon::state_definition_id{} });
 	}
 	return 0;
 }

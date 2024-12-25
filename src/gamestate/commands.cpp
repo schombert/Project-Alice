@@ -1938,7 +1938,7 @@ bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source) 
 	if(state.world.nation_get_disarmed_until(source) && state.current_date < state.world.nation_get_disarmed_until(source))
 		return false;
 
-	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
 
 	for(auto& i : state.crisis_participants) {
@@ -1974,7 +1974,7 @@ bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool jo
 	crisis must have already gotten its initial backers.
 	*/
 
-	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
 
 	for(auto& i : state.crisis_participants) {
@@ -2153,16 +2153,64 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	event::update_future_events(state);
 }
 
-void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
 	p.data.cb_fabrication.type = type;
+	p.data.cb_fabrication.target_state = target_state;
 	add_to_command_queue(state, p);
 }
-bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+
+bool valid_target_state_for_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state)
+{
+	auto actor = state.local_player_nation;
+	dcon::cb_type_id cb = type;
+	auto war = military::find_war_between(state, actor, target);
+	auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+	if(allowed_substate_regions) {
+		for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+			if(v.get_subject().get_is_substate()) {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+	} else {
+		auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+		if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+			auto in_nation = target;
+			auto target_identity = state.world.nation_get_identity_from_identity_holder(target);
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+					auto def = si.get_state().get_definition().id;
+					if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, target_identity, dcon::nation_id{})) {
+						return true;
+					}
+				}
+			}
+		} else {
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+					auto def = si.get_state().get_definition().id;
+					if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
 	if(source == target)
 		return false;
 
@@ -2202,12 +2250,17 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(!military::cb_conditions_satisfied(state, source, target, type))
 		return false;
 
+	if(military::cb_requires_selection_of_a_state(state, type) && !valid_target_state_for_cb(state, source, target, type, target_state)) {
+		return false;
+	}
+
 	return true;
 }
 
-void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state = dcon::state_definition_id{}) {
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
+	state.world.nation_set_constructing_cb_target_state(source, target_state);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
 }
 
@@ -2226,6 +2279,7 @@ void execute_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_constructing_cb_target(source, dcon::nation_id{});
 	state.world.nation_set_constructing_cb_is_discovered(source, false);
 	state.world.nation_set_constructing_cb_progress(source, 0.0f);
+	state.world.nation_set_constructing_cb_target_state(source, dcon::state_definition_id{});
 	state.world.nation_set_constructing_cb_type(source, dcon::cb_type_id{});
 }
 
@@ -2329,7 +2383,7 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 		return false;
 
 	if(state.world.nation_get_is_great_power(asker) && state.world.nation_get_is_great_power(target) &&
-			state.current_crisis != sys::crisis_type::none) {
+			state.current_crisis_state != sys::crisis_state::inactive) {
 		return false;
 	}
 
@@ -2397,7 +2451,7 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 		return false;
 	if(!state.world.nation_get_is_player_controlled(asker) || !state.world.nation_get_is_player_controlled(target))
 		return false;
-	if(state.current_crisis != sys::crisis_type::none)
+	if(state.current_crisis_state != sys::crisis_state::inactive)
 		return false;
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
 	if(state.world.overlord_get_ruler(ol))
@@ -2621,7 +2675,7 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 }
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
 
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2633,6 +2687,7 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 	p.data.new_war.cb_tag = cb_tag;
 	p.data.new_war.cb_secondary_nation = cb_secondary_nation;
 	p.data.new_war.call_attacker_allies = call_attacker_allies;
+	p.data.new_war.run_conference = run_conference;
 	add_to_command_queue(state, p);
 }
 
@@ -2674,8 +2729,8 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 }
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
-	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
+		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
+ 	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.declarewar_relation_on_accept);
 
 	dcon::nation_id real_target = target;
@@ -2685,7 +2740,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
 
 	if(military::has_truce_with(state, source, real_target)) {
-		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb);
+		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb, target);
 		auto cb_militancy = military::truce_break_cb_militancy(state, primary_cb);
 		auto cb_prestige_loss = military::truce_break_cb_prestige_cost(state, primary_cb);
 
@@ -2709,10 +2764,45 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		}
 	}
 
-	auto war = military::create_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation);
-	military::call_defender_allies(state, war);
-	if(call_attacker_allies) {
-		military::call_attacker_allies(state, war);
+	if(run_conference && state.current_crisis_state == sys::crisis_state::inactive) {
+		nations::cleanup_crisis(state);
+
+		nations::crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
+					source,
+						target,
+						cb_secondary_nation,
+						cb_tag,
+						cb_state,
+						primary_cb
+		});
+
+		state.crisis_defender = target;
+		state.crisis_attacker = source;
+		if(state.world.nation_get_is_great_power(target)) {
+			state.primary_crisis_defender = target;
+		}
+		if(state.world.nation_get_is_great_power(source)) {
+			state.primary_crisis_attacker = source;
+		}
+
+		notification::post(state, notification::message{
+			[st = cb_state](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_new_crisis_1", text::variable_type::x, st);
+			},
+			"msg_new_crisis_title",
+			state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::crisis_starts
+		});
+
+		state.last_crisis_end_date = state.current_date;
+		nations::crisis_state_transition(state, sys::crisis_state::finding_attacker);
+	}
+	else {
+		auto war = military::create_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation);
+		military::call_defender_allies(state, war);
+		if(call_attacker_allies) {
+			military::call_attacker_allies(state, war);
+		}
 	}
 }
 
@@ -2808,7 +2898,7 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 	state.world.nation_get_diplomatic_points(source) -= state.defines.addwargoal_diplomatic_cost;
 	nations::adjust_relationship(state, source, target, state.defines.addwargoal_relation_on_accept);
 
-	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target);
+	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target, cb_state);
 	state.world.nation_get_infamy(source) += infamy;
 
 	military::add_wargoal(state, w, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation);
@@ -2884,7 +2974,7 @@ void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is
 bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
 	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
 		return false;
-	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
 
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
@@ -2895,43 +2985,6 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 	offer.set_is_concession(is_concession);
 	offer.set_nation_from_pending_peace_offer(source);
 	offer.set_is_crisis_offer(true);
-
-	if(state.current_crisis == sys::crisis_type::liberation) {
-		if((source == state.primary_crisis_attacker && !is_concession) ||
-				(source != state.primary_crisis_attacker && is_concession)) {
-			auto new_wg = fatten(state.world, state.world.create_wargoal());
-			new_wg.set_added_by(state.primary_crisis_attacker);
-			new_wg.set_associated_state(state.world.state_instance_get_definition(state.crisis_state));
-			new_wg.set_associated_tag(state.crisis_liberation_tag);
-			new_wg.set_peace_offer_from_peace_offer_item(offer);
-			new_wg.set_target_nation(state.world.state_instance_get_nation_from_state_ownership(state.crisis_state));
-			new_wg.set_type(state.military_definitions.crisis_liberate);
-		}
-	} else { // colonial
-		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
-
-		if((colonizers.end() - colonizers.begin()) >= 2) {
-			auto attacking_colonizer = (*colonizers.begin()).get_colonizer();
-			auto defending_colonizer = (*(colonizers.begin() + 1)).get_colonizer();
-
-			if((source == state.primary_crisis_attacker && !is_concession) ||
-					(source != state.primary_crisis_attacker && is_concession)) {
-				auto new_wg = fatten(state.world, state.world.create_wargoal());
-				new_wg.set_added_by(attacking_colonizer);
-				new_wg.set_associated_state(state.crisis_colony);
-				new_wg.set_peace_offer_from_peace_offer_item(offer);
-				new_wg.set_target_nation(defending_colonizer);
-				new_wg.set_type(state.military_definitions.crisis_colony);
-			} else {
-				auto new_wg = fatten(state.world, state.world.create_wargoal());
-				new_wg.set_added_by(defending_colonizer);
-				new_wg.set_associated_state(state.crisis_colony);
-				new_wg.set_peace_offer_from_peace_offer_item(offer);
-				new_wg.set_target_nation(attacking_colonizer);
-				new_wg.set_type(state.military_definitions.crisis_colony);
-			}
-		}
-	}
 }
 
 void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
@@ -3024,7 +3077,7 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 		dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
 
-	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+ 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending)
 		return false;
 
@@ -3033,32 +3086,34 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 		return false;
 
 	bool found = [&]() {
-		for(auto& par : state.crisis_participants) {
-			if(!par.id) {
-				return false; // not in crisis
-			}
-			if(par.id == wargoal_from) {
-				if(cb_state == par.joined_with_offer.wargoal_state && cb_tag == par.joined_with_offer.wargoal_tag &&
-						cb_secondary_nation == par.joined_with_offer.wargoal_secondary_nation && target == par.joined_with_offer.target &&
-						primary_cb == par.joined_with_offer.wargoal_type)
-					return true;
-				else
-					return false;
-			}
+		for(auto wg : state.crisis_attacker_wargoals) {
+			if(wg.added_by == wargoal_from && cb_state == wg.state && cb_tag == wg.wg_tag &&
+						cb_secondary_nation == wg.secondary_nation && target == wg.target_nation &&
+						primary_cb == wg.cb)
+				return true;
+		}
+		for(auto wg : state.crisis_defender_wargoals) {
+			if(wg.added_by == wargoal_from && cb_state == wg.state && cb_tag == wg.wg_tag &&
+						cb_secondary_nation == wg.secondary_nation && target == wg.target_nation &&
+						primary_cb == wg.cb)
+				return true;
 		}
 		return false;
-		}();
+	}();
 
-		if(!found)
+	if(!found)
+		return false;
+
+	// no duplicates
+	for(auto item : state.world.peace_offer_get_peace_offer_item(pending)) {
+		auto wg = item.get_wargoal();
+		if(wg.get_added_by() == wargoal_from && cb_state == wg.get_associated_state() && cb_tag == wg.get_associated_tag() &&
+						cb_secondary_nation == wg.get_secondary_nation() && target == wg.get_target_nation() &&
+						primary_cb == wg.get_type())
 			return false;
+	}
 
-		// no duplicates
-		for(auto wg : state.world.peace_offer_get_peace_offer_item(pending)) {
-			if(wg.get_wargoal().get_added_by() == wargoal_from)
-				return false;
-		}
-
-		return true;
+	return true;
 }
 void execute_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, crisis_invitation_data const& data) {
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
@@ -3155,7 +3210,7 @@ bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
 		return false;
 	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
 		return false;
-	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
 
 	return true;
@@ -3819,6 +3874,73 @@ void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_i
 	state.world.nation_set_mobilized_is_ai_controlled(source, !state.world.nation_get_mobilized_is_ai_controlled(source));
 }
 
+void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_unit_type;
+	p.source = source;
+	p.data.change_unit_type.new_type = new_type;
+
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(regiments[i]) {
+			p.data.change_unit_type.regs[i] = regiments[i];
+		}
+		if(ships[i]) {
+			p.data.change_unit_type.ships[i] = ships[i];
+		}
+	}
+	add_to_command_queue(state, p);
+}
+bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
+	if(regiments[0] && ships[0]) {
+		// One type can't suit both land and sea units
+		return false;
+	}
+
+	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+	
+	if(ut.is_land && ships[0]) {
+		return false; // Land unit used for ships
+	}
+	else if(!ut.is_land && regiments[0]) {
+		return false; // Sea unit used for land
+	}
+
+	if(!ut.active && !state.world.nation_get_active_unit(state.local_player_nation, new_type)) {
+		return false; // Unit is not yet unlocked
+	}
+
+	if(!ut.is_land && ut.type == military::unit_type::big_ship) {
+		for(unsigned i = 0; i < num_packed_units; i++) {
+			if(!ships[i]) {
+				break;
+			}
+			auto shiptype = state.world.ship_get_type(ships[i]);
+			auto st = state.military_definitions.unit_base_definitions[shiptype];
+			if(st.type != military::unit_type::big_ship) {
+				return false; // Small ships can't become big ships
+			}
+		}
+	}
+	return true;
+}
+void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(regiments[i]) {
+			if(state.world.regiment_get_type(regiments[i]) != new_type) {
+				state.world.regiment_set_type(regiments[i], new_type);
+				state.world.regiment_set_strength(regiments[i], 0.01f);
+			}
+		}
+		if(ships[i]) {
+			if(state.world.ship_get_type(ships[i]) != new_type) {
+				state.world.ship_set_type(ships[i], new_type);
+				state.world.ship_set_strength(ships[i], 0.01f);
+			}
+		}
+	}
+}
+
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4336,7 +4458,7 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
 		return false;
 
-	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
 	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
 		return false;
@@ -4373,6 +4495,19 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 		}
 	}
 
+	// no duplicates
+	auto wargoalslist = (source == state.primary_crisis_attacker) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+	for(auto ewg : wargoalslist) {
+		// Different added_by, similar everything else
+		if (ewg.state == cb_state && ewg.wg_tag == cb_tag &&
+						ewg.secondary_nation == cb_secondary_nation && ewg.target_nation == target)
+			return false;
+
+		if(!ewg.cb) {
+			break;
+		}
+	}
+
 	auto cb_type = state.world.cb_type_get_type_bits(primary_cb);
 	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
 		return false;
@@ -4393,15 +4528,96 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = data.invited;
 	m.from = source;
-	m.data.crisis_offer.target = data.target;
-	m.data.crisis_offer.wargoal_secondary_nation = data.cb_secondary_nation;
-	m.data.crisis_offer.wargoal_state = data.cb_state;
-	m.data.crisis_offer.wargoal_tag = data.cb_tag;
-	m.data.crisis_offer.wargoal_type = data.cb_type;
+	m.data.crisis_offer.added_by = m.to;
+	m.data.crisis_offer.target_nation = data.target;
+	m.data.crisis_offer.secondary_nation = data.cb_secondary_nation;
+	m.data.crisis_offer.state = data.cb_state;
+	m.data.crisis_offer.wg_tag = data.cb_tag;
+	m.data.crisis_offer.cb = data.cb_type;
 
 	m.type = diplomatic_message::type::take_crisis_side_offer;
 
 	diplomatic_message::post(state, m);
+}
+
+void queue_crisis_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::crisis_add_wargoal;
+	p.source = source;
+	p.data.new_war_goal.target = wg.target_nation;
+	p.data.new_war_goal.cb_type = wg.cb;
+	p.data.new_war_goal.cb_state = wg.state;
+	p.data.new_war_goal.cb_tag = wg.wg_tag;
+	p.data.new_war_goal.cb_secondary_nation = wg.secondary_nation;
+	add_to_command_queue(state, p);
+}
+
+void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_war_goal_data const& data) {
+	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
+		return;
+
+	auto& wargoalslist = (source == state.primary_crisis_attacker) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+	nations::crisis_add_wargoal(wargoalslist, sys::full_wg{
+		source, // added_by;
+		data.target, // target_nation;
+		data.cb_secondary_nation, //  secondary_nation;
+		data.cb_tag, // wg_tag;
+		data.cb_state, // state;
+		data.cb_type // cb
+	});
+
+	state.world.nation_get_diplomatic_points(source) -= 1.0f;
+}
+
+bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
+
+	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
+		return false;
+
+	if(state.current_crisis_state != sys::crisis_state::heating_up)
+		return false;
+	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
+		return false;
+
+	// target must be in crisis
+	for(auto& par : state.crisis_participants) {
+		if(!par.id) {
+			return false; // not in crisis
+		}
+		if(par.id == wg.target_nation) {
+			if(par.merely_interested)
+				return false;
+			if(par.supports_attacker && source == state.primary_crisis_attacker)
+				return false;
+			if(!par.supports_attacker && source == state.primary_crisis_defender)
+				return false;
+
+			break;
+		}
+	}
+
+	auto cb_type = state.world.cb_type_get_type_bits(wg.cb);
+	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
+		return false;
+
+	if(!military::cb_instance_conditions_satisfied(state, source, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation)) {
+		return false;
+	}
+
+	// no duplicates
+	auto wargoalslist = (source == state.primary_crisis_attacker) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
+	for(auto ewg : wargoalslist) {
+		if(ewg.added_by == wg.added_by && ewg.state == wg.state && ewg.wg_tag == wg.wg_tag &&
+						ewg.secondary_nation == wg.secondary_nation && ewg.target_nation == wg.target_nation &&
+						ewg.cb == wg.cb)
+			return false;
+		if(!ewg.cb) {
+			break;
+		}
+	}
+
+	return true;
 }
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source) {
@@ -4443,7 +4659,7 @@ void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p
 }
 
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	if(state.current_crisis != sys::crisis_type::none)
+	if(state.current_crisis_state != sys::crisis_state::inactive)
 		return false;
 	if(state.world.nation_get_is_at_war(source))
 		return false;
@@ -4774,7 +4990,6 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		// Send new save to all clients
-		notify_player_oos(state, source);
 		network::full_reset_after_oos(state);
 	}
 }
@@ -4787,6 +5002,7 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 	// Postponed until it is sent!
 	//p.data.advance_tick.checksum = state.get_save_checksum();
 	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
+	p.data.advance_tick.date = state.current_date;
 	add_to_command_queue(state, p);
 }
 
@@ -4804,6 +5020,11 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 		state.actual_game_speed = speed;
 	}
 	state.single_game_tick();
+
+	// Notify server that we're still here
+	if(state.current_date.value % 7 == 0) {
+		network_inactivity_ping(state, state.local_player_nation, state.current_date);
+	}
 }
 
 void notify_save_loaded(sys::state& state, dcon::nation_id source) {
@@ -4926,6 +5147,26 @@ void notify_pause_game(sys::state& state, dcon::nation_id source) {
 	p.type = command::command_type::notify_pause_game;
 	p.source = source;
 	add_to_command_queue(state, p);
+}
+
+void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::network_inactivity_ping;
+	p.source = source;
+	p.data.advance_tick.date = date;
+	add_to_command_queue(state, p);
+}
+void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date) {
+	// Update last seen of the client
+	if(state.network_mode == sys::network_mode_type::host) {
+		for(auto& client : state.network_state.clients) {
+			if(client.playing_as == source) {
+				client.last_seen = date;
+			}
+		}
+	}
+	return;
 }
 
 bool can_perform_command(sys::state& state, payload& c) {
@@ -5146,6 +5387,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::split_navy:
 		return can_split_navy(state, c.source, c.data.navy_movement.n);
 
+	case command_type::change_unit_type:
+		return can_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
+
 	case command_type::delete_army:
 		return can_delete_army(state, c.source, c.data.army_movement.a);
 
@@ -5172,6 +5416,16 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::add_wargoal_to_crisis_offer:
 		return true; // can_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
+
+	case command_type::crisis_add_wargoal:
+		return crisis_can_add_wargoal(state, c.source, sys::full_wg{
+		c.source, // added_by;
+		c.data.new_war_goal.target, // target_nation;
+		c.data.new_war_goal.cb_secondary_nation, //  secondary_nation;
+		c.data.new_war_goal.cb_tag, // wg_tag;
+		c.data.new_war_goal.cb_state, // state;
+		c.data.new_war_goal.cb_type // cb
+	});
 
 	case command_type::send_crisis_peace_offer:
 		return can_send_crisis_peace_offer(state, c.source);
@@ -5277,6 +5531,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_pause_game(state, c.source);
 	case command_type::release_subject:
 		return can_release_subject(state, c.source, c.data.diplo_action.target);
+	case command_type::network_inactivity_ping:
+		return true;
 	case command_type::console_command:
 		return true;
 	}
@@ -5441,7 +5697,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_cancel_cb_fabrication(state, c.source);
 		break;
 	case command_type::fabricate_cb:
-		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type);
+		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type, c.data.cb_fabrication.target_state);
 		break;
 	case command_type::ask_for_military_access:
 		execute_ask_for_access(state, c.source, c.data.diplo_action.target);
@@ -5466,7 +5722,7 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::declare_war:
 		execute_declare_war(state, c.source, c.data.new_war.target, c.data.new_war.primary_cb, c.data.new_war.cb_state,
-				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies);
+				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies, c.data.new_war.run_conference);
 		break;
 	case command_type::add_war_goal:
 		execute_add_war_goal(state, c.source, c.data.new_war_goal.war, c.data.new_war_goal.target, c.data.new_war_goal.cb_type,
@@ -5503,6 +5759,9 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::split_navy:
 		execute_split_navy(state, c.source, c.data.navy_movement.n);
 		break;
+	case command_type::change_unit_type:
+		execute_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
+		break;
 	case command_type::delete_army:
 		execute_delete_army(state, c.source, c.data.army_movement.a);
 		break;
@@ -5529,6 +5788,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::add_wargoal_to_crisis_offer:
 		execute_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
+		break;
+	case command_type::crisis_add_wargoal:
+		execute_crisis_add_wargoal(state, c.source, c.data.new_war_goal);
 		break;
 	case command_type::send_crisis_peace_offer:
 		execute_send_crisis_peace_offer(state, c.source);
@@ -5645,6 +5907,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_pause_game:
 		execute_notify_pause_game(state, c.source);
+		break;
+	case command_type::network_inactivity_ping:
+		execute_network_inactivity_ping(state, c.source, c.data.advance_tick.date);
 		break;
 	case command_type::console_command:
 		execute_console_command(state);

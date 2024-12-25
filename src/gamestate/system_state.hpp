@@ -422,19 +422,16 @@ struct cheat_data_s {
 struct crisis_member_def {
 	dcon::nation_id id;
 
-	crisis_join_offer joined_with_offer;
-
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };
 static_assert(sizeof(crisis_member_def) ==
 	sizeof(crisis_member_def::id)
-	+ sizeof(crisis_member_def::joined_with_offer)
 	+ sizeof(crisis_member_def::supports_attacker)
 	+ sizeof(crisis_member_def::merely_interested));
 
-enum class crisis_type : uint32_t { none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4 };
-enum class crisis_mode : uint32_t { inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3 };
+enum class crisis_type : uint32_t { none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4, wargoals = 5 };
+enum class crisis_state : uint32_t { inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3 };
 
 struct great_nation {
 	sys::date last_greatness = sys::date(0);
@@ -521,18 +518,22 @@ struct alignas(64) state {
 	// Crisis data
 	//
 
-	dcon::state_instance_id crisis_state;
-	std::vector<crisis_member_def> crisis_participants;
+	dcon::nation_id crisis_attacker;
+	dcon::nation_id crisis_defender;
+	// For legacy reasons (compatibility with mods) save state_instance_id separately. It's only filled for Liberation crises.
+	dcon::state_instance_id crisis_state_instance;
+	// For legacy triggers save crisis type separately
 	crisis_type current_crisis = crisis_type::none;
+	std::vector<crisis_member_def> crisis_participants;
+	std::vector<sys::full_wg> crisis_attacker_wargoals;
+	std::vector<sys::full_wg> crisis_defender_wargoals;
 	float crisis_temperature = 0;
 	dcon::nation_id primary_crisis_attacker;
 	dcon::nation_id primary_crisis_defender;
-	crisis_mode current_crisis_mode = crisis_mode::inactive;
+	crisis_state current_crisis_state = crisis_state::inactive;
 	uint32_t crisis_last_checked_gp = 0;
 	dcon::war_id crisis_war;
 	sys::date last_crisis_end_date{0}; // initial grace period
-	dcon::national_identity_id crisis_liberation_tag;
-	dcon::state_definition_id crisis_colony;
 
 	//
 	// Messages
@@ -582,7 +583,11 @@ struct alignas(64) state {
 	float inflation = 1.0f;
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
+	std::vector<dcon::regiment_id> selected_regiments; // selected regiments inside the army
+
 	std::vector<dcon::navy_id> selected_navies;
+	std::vector<dcon::ship_id> selected_ships; // selected ships inside the navy
+
 	dcon::commodity_id selected_trade_good;
 	dcon::factory_type_id selected_factory_type;
 	std::mutex ugly_ui_game_interaction_hack;
@@ -839,4 +844,12 @@ struct alignas(64) state {
 		std::array<uint8_t, sys::macro_builder_template::max_types>& current_distribution
 	);
 };
+
+constexpr inline size_t const_max_selected_units = 1000;
+
+void selected_regiments_add(sys::state& state, dcon::regiment_id reg);
+void selected_regiments_clear(sys::state& state);
+
+void selected_ships_add(sys::state& state, dcon::ship_id sh);
+void selected_ships_clear(sys::state& state);
 } // namespace sys
