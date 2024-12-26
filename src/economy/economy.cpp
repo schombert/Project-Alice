@@ -6351,8 +6351,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto const edu_adm_effect = 1.f - edu_adm_spending;
 		auto const education_ratio = 0.8f;
 		auto from_investment_pool = state.world.nation_get_private_investment(n);
-		state.world.nation_set_private_investment(n, from_investment_pool * 0.8f);
-		from_investment_pool *= 0.2f;
+		state.world.nation_set_private_investment(n, from_investment_pool * 0.999f);
+		from_investment_pool *= 0.001f;
 		auto payment_per_pop = from_investment_pool / (1.f + state.world.nation_get_demographics(n, demographics::total));
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
