@@ -49,7 +49,11 @@ public:
 		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		if(parent) {
 			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
-			disabled = selected == content;
+			if (selected == content) {
+				color = sys::pack_color(196, 196, 196);
+			} else {
+				color = sys::pack_color(255, 255, 255);
+			}
 		}
 	}
 
@@ -118,6 +122,12 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto wargoal_decided_upon = retrieve<bool>(state, parent);
+
+		if(!wargoal_decided_upon) {
+			disabled = true;
+			return;
+		}
 		auto content = retrieve<dcon::cb_type_id>(state, parent);
 		auto target_nation = retrieve<dcon::nation_id>(state, parent);
 		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
@@ -169,6 +179,8 @@ private:
 	dcon::cb_type_id root_cb{};
 	dcon::state_definition_id target_state = dcon::state_definition_id{};
 public:
+	bool wargoal_decided_upon = false;
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
@@ -195,73 +207,88 @@ public:
 		}
 	}
 
+	void reset_window(sys::state& state) {
+		target_state = dcon::state_definition_id{};
+		wargoal_decided_upon = false;
+	}
+
+	void select_state(sys::state& state) {
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto cb_to_use = root_cb;
+		target_state = dcon::state_definition_id{};
+
+		sys::state_selection_data seldata;
+		seldata.single_state_select = true;
+		auto actor = state.local_player_nation;
+		dcon::cb_type_id cb = cb_to_use;
+		auto war = military::find_war_between(state, actor, target);
+		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+		if(allowed_substate_regions) {
+			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+				if(v.get_subject().get_is_substate()) {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+							auto def = si.get_state().get_definition().id;
+							if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
+								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+									seldata.selectable_states.push_back(def);
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {
+			auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+			if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+				auto in_nation = target;
+				auto target_identity = state.world.nation_get_identity_from_identity_holder(target);
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, target_identity, dcon::nation_id{})) {
+							seldata.selectable_states.push_back(def);
+						}
+					}
+				}
+			} else {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+							seldata.selectable_states.push_back(def);
+						}
+					}
+				}
+			}
+		}
+		seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
+			target_state = sdef;
+			wargoal_decided_upon = true;
+			impl_on_update(state);
+			};
+		seldata.on_cancel = [&](sys::state& state) {
+			target_state = dcon::state_definition_id{};
+			cb_to_use = dcon::cb_type_id{};
+			wargoal_decided_upon = false;
+			impl_on_update(state);
+			};
+		state.start_state_selection(seldata);
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
-
-			dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
-			auto cb_to_use = root_cb;
-
-			if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
-				sys::state_selection_data seldata;
-				seldata.single_state_select = true;
-				auto actor = state.local_player_nation;
-				dcon::cb_type_id cb = cb_to_use;
-				auto war = military::find_war_between(state, actor, target);
-				auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
-				if(allowed_substate_regions) {
-					for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
-						if(v.get_subject().get_is_substate()) {
-							for(auto si : state.world.nation_get_state_ownership(target)) {
-								if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-									auto def = si.get_state().get_definition().id;
-									if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
-										if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-											seldata.selectable_states.push_back(def);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				else {
-					auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-					if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
-						auto in_nation = target;
-						auto target_identity = state.world.nation_get_identity_from_identity_holder(target);
-						for(auto si : state.world.nation_get_state_ownership(target)) {
-							if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
-								auto def = si.get_state().get_definition().id;
-								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, target_identity, dcon::nation_id{})) {
-									seldata.selectable_states.push_back(def);
-								}
-							}
-						}
-					} else {
-						for(auto si : state.world.nation_get_state_ownership(target)) {
-							if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-								auto def = si.get_state().get_definition().id;
-								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-									seldata.selectable_states.push_back(def);
-								}
-							}
-						}
-					}
-				}
-				seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
-					target_state = sdef;
-					impl_on_update(state);
-					};
-				seldata.on_cancel = [&](sys::state& state) {
-					target_state = dcon::state_definition_id{};
-					cb_to_use = dcon::cb_type_id{};
-					impl_on_update(state);
-					};
-				state.start_state_selection(seldata);
+			if(military::cb_requires_selection_of_a_state(state, root_cb)) {
+				select_state(state);
 			}
-
+			else {
+				wargoal_decided_upon = true;
+			}
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<bool>()) {
+			payload.emplace<bool>(wargoal_decided_upon);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::cb_type_id>()) {
 			payload.emplace<dcon::cb_type_id>(root_cb);
@@ -2583,6 +2610,7 @@ public:
 				setup_peace_win->impl_on_update(state);
 				break;
 			case diplomacy_action::justify_war:
+				make_cb_win->reset_window(state);
 				make_cb_win->impl_set(state, new_payload);
 				make_cb_win->impl_set(state, payload);
 				make_cb_win->set_visible(state, true);
