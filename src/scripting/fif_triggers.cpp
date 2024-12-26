@@ -3075,13 +3075,13 @@ TRIGGER_FUNCTION(tf_flashpoint_tension_province) {
 	return "dup state_membership @ flashpoint_tension @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_crisis_exist) {
-	return std::to_string(offsetof(sys::state, current_crisis)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_type::none)) + " <> " + truth_inversion(tval[0]);
+	return std::to_string(offsetof(sys::state, current_crisis_state)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_state::inactive)) + " <> " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_liberation_crisis) {
-	return std::to_string(offsetof(sys::state, current_crisis)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_type::liberation)) + "  " + compare_values_eq(tval[0]);
+	return "state-ptr @ liberation-crisis? " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
-	return std::to_string(offsetof(sys::state, current_crisis)) + " state-ptr @ buf-add ptr-cast ptr(i32) @ " + std::to_string(int32_t(sys::crisis_type::claim)) + "  " + compare_values_eq(tval[0]);
+	return " false " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_crisis_temperature) {
 	return std::to_string(offsetof(sys::state, crisis_temperature)) + " state-ptr @ buf-add ptr-cast ptr(f32) @ " + std::to_string(read_float_from_payload(tval + 1)) + "  " + compare_values(tval[0]);

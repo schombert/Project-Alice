@@ -353,7 +353,7 @@ struct macrobuilder2_grid_item_unit_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -493,6 +493,12 @@ struct macrobuilder2_list_item_t : public ui::container_base {
 		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
+		if(name == "value") {
+			return (void*)(&value);
+		}
+		return nullptr;
+	}
 };
 std::unique_ptr<ui::element_base> make_macrobuilder2_list_item(sys::state& state);
 struct macrobuilder2_grid_item_t : public ui::container_base {
@@ -511,6 +517,12 @@ struct macrobuilder2_grid_item_t : public ui::container_base {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
+		if(name == "value") {
+			return (void*)(&value);
+		}
+		return nullptr;
+	}
 };
 std::unique_ptr<ui::element_base> make_macrobuilder2_grid_item(sys::state& state);
 ui::message_result macrobuilder2_main_close_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -600,13 +612,8 @@ void macrobuilder2_main_template_list_t::on_update(sys::state& state) noexcept {
 	auto fill_start = size_t(page) * fill_count;
 	for(size_t fill_position = 0; fill_position < fill_count; ++fill_position) {
 		if(fill_position + fill_start < values.size()) {
-			if( ((macrobuilder2_list_item_t*)visible_items[fill_position])->value != values[fill_position + fill_start] && visible_items[fill_position]->is_visible()) {
-				((macrobuilder2_list_item_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
-				visible_items[fill_position]->impl_on_update(state);
-			} else {
-				((macrobuilder2_list_item_t*)visible_items[fill_position])->value = values[fill_position+ fill_start];
-				visible_items[fill_position]->set_visible(state, true);
-			}
+			((macrobuilder2_list_item_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
+			visible_items[fill_position]->flags &= ~ui::element_base::is_invisible_mask;
 		} else {
 			visible_items[fill_position]->set_visible(state, false);
 		}
@@ -667,13 +674,8 @@ void macrobuilder2_main_unit_grid_t::on_update(sys::state& state) noexcept {
 	auto fill_start = size_t(page) * fill_count;
 	for(size_t fill_position = 0; fill_position < fill_count; ++fill_position) {
 		if(fill_position + fill_start < values.size()) {
-			if( ((macrobuilder2_grid_item_t*)visible_items[fill_position])->value != values[fill_position + fill_start] && visible_items[fill_position]->is_visible()) {
-				((macrobuilder2_grid_item_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
-				visible_items[fill_position]->impl_on_update(state);
-			} else {
-				((macrobuilder2_grid_item_t*)visible_items[fill_position])->value = values[fill_position+ fill_start];
-				visible_items[fill_position]->set_visible(state, true);
-			}
+			((macrobuilder2_grid_item_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
+			visible_items[fill_position]->flags &= ~ui::element_base::is_invisible_mask;
 		} else {
 			visible_items[fill_position]->set_visible(state, false);
 		}
@@ -1413,10 +1415,10 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_list_item(sys::state& state
 	return ptr;
 }
 ui::message_result macrobuilder2_grid_item_unit_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
+	return ui::message_result::unseen;
 }
 ui::message_result macrobuilder2_grid_item_unit_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
+	return ui::message_result::unseen;
 }
 void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 

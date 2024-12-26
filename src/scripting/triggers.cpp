@@ -4830,8 +4830,7 @@ TRIGGER_FUNCTION(tf_is_liberation_crisis) {
 }
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
 	assert(false && "Claim crisis is not part of PA");
-	auto first_wg = ws.crisis_attacker_wargoals.at(0);
-	return compare_to_true(tval[0], first_wg.cb == ws.military_definitions.crisis_liberate);
+	return compare_to_true(tval[0], false);
 }
 TRIGGER_FUNCTION(tf_crisis_temperature) {
 	return compare_values(tval[0], ws.crisis_temperature, read_float_from_payload(tval + 1));

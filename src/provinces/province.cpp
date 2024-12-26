@@ -32,57 +32,106 @@ void update_connected_regions(sys::state& state) {
 		return;
 
 	state.adjacency_data_out_of_date = false;
-
 	state.world.nation_adjacency_resize(0);
 
-	state.world.for_each_province([&](dcon::province_id id) { state.world.province_set_connected_region_id(id, 0); });
-	// TODO get a better allocator
-	static std::vector<dcon::province_id> to_fill_list;
-	uint16_t current_fill_id = 0;
-	state.province_definitions.connected_region_is_coastal.clear();
+	{
+		state.world.for_each_province([&](dcon::province_id id) { state.world.province_set_connected_region_id(id, 0); });
+		// TODO get a better allocator
+		static std::vector<dcon::province_id> to_fill_list;
+		uint16_t current_fill_id = 0;
+		state.province_definitions.connected_region_is_coastal.clear();
 
-	to_fill_list.reserve(state.world.province_size());
+		to_fill_list.reserve(state.world.province_size());
 
-	for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0;) {
-		dcon::province_id id{dcon::province_id::value_base_t(i)};
-		if(state.world.province_get_connected_region_id(id) == 0) {
-			++current_fill_id;
+		for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0;) {
+			dcon::province_id id{dcon::province_id::value_base_t(i)};
+			if(state.world.province_get_connected_region_id(id) == 0) {
+				++current_fill_id;
 
-			bool found_coast = false;
+				bool found_coast = false;
 
-			to_fill_list.push_back(id);
+				to_fill_list.push_back(id);
 
-			while(!to_fill_list.empty()) {
-				auto current_id = to_fill_list.back();
-				to_fill_list.pop_back();
+				while(!to_fill_list.empty()) {
+					auto current_id = to_fill_list.back();
+					to_fill_list.pop_back();
 
-				found_coast = found_coast || state.world.province_get_is_coast(current_id);
+					found_coast = found_coast || state.world.province_get_is_coast(current_id);
 
-				state.world.province_set_connected_region_id(current_id, current_fill_id);
-				for(auto rel : state.world.province_get_province_adjacency(current_id)) {
-					if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) ==
-							0) { // not entering sea, not impassible
-						auto owner_a = rel.get_connected_provinces(0).get_nation_from_province_ownership();
-						auto owner_b = rel.get_connected_provinces(1).get_nation_from_province_ownership();
-						if(owner_a == owner_b) { // both have the same owner
-							if(rel.get_connected_provinces(0).get_connected_region_id() == 0)
-								to_fill_list.push_back(rel.get_connected_provinces(0));
-							if(rel.get_connected_provinces(1).get_connected_region_id() == 0)
-								to_fill_list.push_back(rel.get_connected_provinces(1));
-						} else {
-							state.world.try_create_nation_adjacency(owner_a, owner_b);
+					state.world.province_set_connected_region_id(current_id, current_fill_id);
+					for(auto rel : state.world.province_get_province_adjacency(current_id)) {
+						if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) ==
+								0) { // not entering sea, not impassible
+							auto owner_a = rel.get_connected_provinces(0).get_nation_from_province_ownership();
+							auto owner_b = rel.get_connected_provinces(1).get_nation_from_province_ownership();
+							if(owner_a == owner_b) { // both have the same owner
+								if(rel.get_connected_provinces(0).get_connected_region_id() == 0)
+									to_fill_list.push_back(rel.get_connected_provinces(0));
+								if(rel.get_connected_provinces(1).get_connected_region_id() == 0)
+									to_fill_list.push_back(rel.get_connected_provinces(1));
+							} else {
+								state.world.try_create_nation_adjacency(owner_a, owner_b);
+							}
 						}
 					}
 				}
-			}
 
-			state.province_definitions.connected_region_is_coastal.push_back(found_coast);
-			to_fill_list.clear();
+				state.province_definitions.connected_region_is_coastal.push_back(found_coast);
+				to_fill_list.clear();
+			}
+		}
+
+		// we also invalidate wargoals here that are now unowned
+		military::invalidate_unowned_wargoals(state);
+	}
+
+	{
+		state.world.for_each_province([&](dcon::province_id id) { state.world.province_set_connected_coast_id(id, 0); });
+
+		static std::vector<dcon::province_id> to_fill_list;
+		uint16_t current_fill_id = 0;
+		to_fill_list.reserve(state.world.province_size());
+
+		for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0;) {
+			dcon::province_id id{ dcon::province_id::value_base_t(i) };
+			if(state.world.province_get_connected_coast_id(id) == 0 && state.world.province_get_is_coast(id)) {
+				++current_fill_id;
+
+				to_fill_list.push_back(id);
+				while(!to_fill_list.empty()) {
+					auto current_id = to_fill_list.back();
+					to_fill_list.pop_back();
+
+					state.world.province_set_connected_coast_id(current_id, current_fill_id);
+					for(auto rel : state.world.province_get_province_adjacency(current_id)) {
+						if(
+							(
+								rel.get_type()
+								&
+								(province::border::coastal_bit | province::border::impassible_bit)
+							) == 0
+						) { // not entering sea, not impassible
+							auto owner_a = rel.get_connected_provinces(0).get_nation_from_province_ownership();
+							auto owner_b = rel.get_connected_provinces(1).get_nation_from_province_ownership();
+
+							auto coast_a = rel.get_connected_provinces(0).get_is_coast();
+							auto coast_b = rel.get_connected_provinces(1).get_is_coast();
+
+							if(owner_a == owner_b && coast_a == coast_b) { // both have the same owner and are coastal
+								if(rel.get_connected_provinces(0).get_connected_coast_id() == 0)
+									to_fill_list.push_back(rel.get_connected_provinces(0));
+								if(rel.get_connected_provinces(1).get_connected_coast_id() == 0)
+									to_fill_list.push_back(rel.get_connected_provinces(1));
+							}
+						}
+					}
+				}
+
+				to_fill_list.clear();
+			}
 		}
 	}
 
-	// we also invalidate wargoals here that are now unowned
-	military::invalidate_unowned_wargoals(state);
 
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }

@@ -297,7 +297,7 @@ public:
 		for(size_t current_row = 0; current_row < rows_visible; current_row++) {
 			for(uint8_t current_column = 0; current_column < columns; current_column++) {
 				auto cell_index = current_row * columns + current_column;
-				if(current_row > rows) {
+				if(current_row >= rows) {
 					cells[cell_index]->set_visible(state, false);
 				} else {
 					cells[cell_index]->set_visible(state, true);
