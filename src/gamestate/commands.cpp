@@ -2214,6 +2214,10 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(source == target)
 		return false;
 
+	if(!type) {
+		return false;
+	}
+
 	if(state.world.nation_get_constructing_cb_type(source))
 		return false;
 
@@ -2250,7 +2254,7 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(!military::cb_conditions_satisfied(state, source, target, type))
 		return false;
 
-	if(military::cb_requires_selection_of_a_state(state, type) && !valid_target_state_for_cb(state, source, target, type, target_state)) {
+	if(military::cb_requires_selection_of_a_state(state, type) && target_state && !valid_target_state_for_cb(state, source, target, type, target_state)) {
 		return false;
 	}
 

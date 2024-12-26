@@ -1357,6 +1357,9 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 	float total = 0.0f;
 	auto bits = state.world.cb_type_get_type_bits(t);
 
+	if((bits & cb_flag::po_remove_prestige) != 0) {
+		total += state.defines.infamy_prestige;
+	}
 	if((bits & cb_flag::po_clear_union_sphere) != 0) {
 		total += state.defines.infamy_clear_union_sphere * cb_infamy_country_modifier(state, target);
 	}
@@ -1365,24 +1368,6 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 	}
 	if((bits & cb_flag::po_annex) != 0) {
 		total += state.defines.infamy_annex * cb_infamy_country_modifier(state, target);
-	}
-	if((bits & cb_flag::po_demand_state) != 0) {
-		total += state.defines.infamy_demand_state * cb_infamy_state_modifier(state, target, cb_state);
-	}
-	if((bits & cb_flag::po_add_to_sphere) != 0) {
-		total += state.defines.infamy_add_to_sphere * cb_infamy_country_modifier(state, target);
-	}
-	if((bits & cb_flag::po_disarmament) != 0) {
-		total += state.defines.infamy_disarmament * cb_infamy_country_modifier(state, target);
-	}
-	if((bits & cb_flag::po_reparations) != 0) {
-		total += state.defines.infamy_reparations * cb_infamy_country_modifier(state, target);
-	}
-	if((bits & cb_flag::po_transfer_provinces) != 0) {
-		total += state.defines.infamy_transfer_provinces * cb_infamy_state_modifier(state, target, cb_state);
-	}
-	if((bits & cb_flag::po_remove_prestige) != 0) {
-		total += state.defines.infamy_prestige;
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.infamy_make_puppet * cb_infamy_country_modifier(state, target);
@@ -1411,7 +1396,28 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 	if((bits & cb_flag::po_destroy_naval_bases) != 0) {
 		total += state.defines.infamy_destroy_naval_bases * cb_infamy_country_modifier(state, target);
 	}
+	if((bits & cb_flag::po_add_to_sphere) != 0) {
+		total += state.defines.infamy_add_to_sphere * cb_infamy_country_modifier(state, target);
+	}
+	if((bits & cb_flag::po_disarmament) != 0) {
+		total += state.defines.infamy_disarmament * cb_infamy_country_modifier(state, target);
+	}
+	if((bits & cb_flag::po_reparations) != 0) {
+		total += state.defines.infamy_reparations * cb_infamy_country_modifier(state, target);
+	}
 
+	auto infamy_state_mod = 1.0f;
+	if(military::cb_requires_selection_of_a_state(state, t)) {
+		infamy_state_mod = cb_infamy_state_modifier(state, target, cb_state);
+	}
+
+	if((bits & cb_flag::po_demand_state) != 0) {
+		total += state.defines.infamy_demand_state * infamy_state_mod;
+	}
+	if((bits & cb_flag::po_transfer_provinces) != 0) {
+		total += state.defines.infamy_transfer_provinces * infamy_state_mod;
+	}
+	
 	return total * state.world.cb_type_get_badboy_factor(t);
 }
 
