@@ -399,10 +399,34 @@ public:
 
 		*/
 
-		text::add_line(state, contents, std::string_view("investment_pool"),
-					text::variable_type::x,
-					text::fp_currency{
-							state.world.nation_get_private_investment(state.local_player_nation) });
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ state.world.nation_get_private_investment(state.local_player_nation) });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "investment_pool", sub);
+			text::close_layout_box(contents, box);
+		}
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ state.ui_state.last_tick_investment_pool_change });
+			auto box = text::open_layout_box(contents, 3);
+			text::localised_format_box(state, contents, box, "investment_pool_growth", sub);
+			text::close_layout_box(contents, box);
+		}
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ economy::estimate_investment_pool_daily_loss(state, state.local_player_nation) });
+			auto box = text::open_layout_box(contents, 3);
+			text::localised_format_box(state, contents, box, "investment_pool_spending_1", sub);
+			text::close_layout_box(contents, box);
+		}
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ economy::estimate_private_construction_spendings(state, state.local_player_nation) });
+			auto box = text::open_layout_box(contents, 3);
+			text::localised_format_box(state, contents, box, "investment_pool_spending_2", sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 
 };

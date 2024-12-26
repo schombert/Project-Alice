@@ -514,6 +514,8 @@ struct state {
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
 
+	float last_tick_investment_pool_change;
+
 	state();
 	~state();
 };

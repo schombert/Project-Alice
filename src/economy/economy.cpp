@@ -4157,6 +4157,8 @@ void update_pop_consumption(
 ) {
 	uint32_t total_commodities = state.world.commodity_size();
 
+	state.ui_state.last_tick_investment_pool_change = 0;
+
 	static const ve::fp_vector zero = ve::fp_vector{ 0.f };
 	static const ve::fp_vector one = ve::fp_vector{ 1.f };
 
@@ -4421,6 +4423,9 @@ void update_pop_consumption(
 				auto zone = state.world.market_get_zone_from_local_market(m);
 				auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 				state.world.nation_get_private_investment(nation) += investment;
+				if(nation == state.local_player_nation) {
+					state.ui_state.last_tick_investment_pool_change += investment;
+				}
 		},
 			markets,
 			final_demand_scale_life,
@@ -8224,6 +8229,10 @@ commodity_production_type get_commodity_production_type(sys::state& state, dcon:
 		return commodity_production_type::primary;
 
 
+}
+
+float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_private_investment(n) * 0.2f;
 }
 
 } // namespace economy
