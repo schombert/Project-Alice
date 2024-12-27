@@ -27,9 +27,77 @@ namespace webui {
 // HTTP
 static httplib::Server svr;
 
+json format_color(sys::state& state, uint32_t c) {
+	json j = json::object();
+
+	j["r"] = sys::int_red_from_int(c);
+	j["g"] = sys::int_green_from_int(c);
+	j["b"] = sys::int_blue_from_int(c);
+
+
+	return j;
+}
+
+json format_nation(sys::state& state, dcon::nation_id n) {
+	json j = json::object();
+
+	j["id"] = n.index();
+	j["name"] = text::produce_simple_string(state, text::get_name(state, n));
+
+	auto identity = state.world.nation_get_identity_from_identity_holder(n);
+	auto color = state.world.national_identity_get_color(identity);
+
+	j["color"] = format_color(state, color);
+
+	return j;
+}
+
+json format_nation(sys::state& state, dcon::national_identity_id n) {
+	json j = json::object();
+
+	auto fid = dcon::fatten(state.world, n);
+
+	j["name"] = text::produce_simple_string(state, fid.get_name());
+	j["color"] = format_color(state, fid.get_color());
+
+	return j;
+}
+
+json format_wargoal(sys::state& state, dcon::wargoal_id wid) {
+	json j = json::object();
+
+	auto fid = dcon::fatten(state.world, wid);
+
+	j["added_by"] = format_nation(state, fid.get_added_by());
+	j["state"] = text::produce_simple_string(state, fid.get_associated_state().get_name());
+	j["target"] = format_nation(state, fid.get_target_nation());
+	j["cb"] = text::produce_simple_string(state, fid.get_type().get_name());
+
+	j["secondary_nation"] = format_nation(state, fid.get_secondary_nation());
+	j["associated_tag"] = format_nation(state, fid.get_associated_tag());
+
+	j["ticking_warscore"] = fid.get_ticking_war_score();
+
+	return j;
+}
+
+json format_wargoal(sys::state& state, sys::full_wg wid) {
+	json j = json::object();
+
+	j["added_by"] = format_nation(state, wid.added_by);
+	j["state"] = text::produce_simple_string(state, state.world.state_definition_get_name(wid.state));
+	j["target"] = format_nation(state, wid.target_nation);
+	j["cb"] = text::produce_simple_string(state, state.world.cb_type_get_name(wid.cb));
+
+	j["secondary_nation"] = format_nation(state, wid.secondary_nation);
+	j["associated_tag"] = format_nation(state, wid.wg_tag);
+
+	return j;
+}
+
 inline void init(sys::state& state) noexcept {
 
-	if(state.defines.alice_expose_webui != 1 || state.network_mode == sys::network_mode_type::client) {
+	if(state.host_settings.alice_expose_webui != 1 || state.network_mode == sys::network_mode_type::client) {
 		return;
 	}
 
@@ -53,8 +121,6 @@ inline void init(sys::state& state) noexcept {
 		json jlist = json::array();
 
 		for(auto nation : state.world.in_nation) {
-				auto nation_name = text::produce_simple_string(state, text::get_name(state, nation.id));
-
 				auto nation_ppp_gdp_text = text::format_float(economy::gdp_adjusted(state, nation.id));
 				float population = state.world.nation_get_demographics(nation.id, demographics::total);
 				auto nation_ppp_gdp_per_capita_text = text::format_float(economy::gdp_adjusted(state, nation.id) / population * 1000000.f);
@@ -63,10 +129,8 @@ inline void init(sys::state& state) noexcept {
 				auto national_bank = state.world.nation_get_national_bank(nation);
 				auto state_debt = nations::get_debt(state, nation);
 
-				json j = json::object();
+				json j = format_nation(state, nation);
 
-				j["id"] = nation.id.index();
-				j["name"] = nation_name;
 				j["population"] = population;
 				j["nation_ppp_gdp"] = nation_ppp_gdp_text;
 				j["nation_ppp_gdp_per_capita"] = nation_ppp_gdp_per_capita_text;
@@ -94,18 +158,28 @@ inline void init(sys::state& state) noexcept {
 
 				j["id"] = id;
 				j["name"] = commodity_name;
-				
-				json jp = json::array();
 
-				struct tagged_value {
-					float v = 0.0f;
-					dcon::nation_id n;
-				};
-				static std::vector<tagged_value> producers;
+				{
+					json jplist = json::array();
+					for(auto n : state.world.in_nation)
+						if(n.get_owned_province_count() != 0) {
+							json jel = format_nation(state, n);
+							jel["supply"] = economy::supply(state, n, commodity);
+							jplist.push_back(jel);
+						}
+					j["producers"] = jplist;
+				}
+				{
+					json jblist = json::array();
+					for(auto n : state.world.in_nation)
+						if(n.get_owned_province_count() != 0) {
+							json jel = format_nation(state, n);
+							jel["demand"] = economy::demand(state, n, commodity);
+							jblist.push_back(jel);
+						}
 
-				producers.clear();
-
-				j["producers"] = jp;
+					j["consumers"] = jblist;
+				}
 
 				jlist.push_back(j);
 		}
@@ -211,19 +285,121 @@ inline void init(sys::state& state) noexcept {
 
 			j["id"] = id;
 			j["name"] = province_name;
-			j["owner"] = text::produce_simple_string(state, text::get_name(state, owner));
+			j["owner"] = format_nation(state, owner);
 			j["population"]["total"] = prov_population;
 			j["population"]["capitalist"] = num_capitalist;
 			j["population"]["aristocrat"] = num_aristocrat;
 
 			j["rgo"] = text::produce_simple_string(state, state.world.commodity_get_name(rgo));
 
-			json jp = json::array();
+			jlist.push_back(j);
+		}
+
+		res.set_content(jlist.dump(), "text/plain");
+	});
+
+	svr.Get("/wars", [&](const httplib::Request& req, httplib::Response& res) {
+		json jlist = json::array();
+
+		for(auto war : state.world.in_war) {
+			auto id = war.id.index();
+
+			json j = json::object();
+
+			j["id"] = id;
+			j["name"] = text::produce_simple_string(state, war.get_name());
+			j["is_great"] = war.get_is_great();
+			j["is_crisis"] = war.get_is_crisis_war();
+			j["attacker_battle_score"] = war.get_attacker_battle_score();
+			j["defender_battle_score"] = war.get_defender_battle_score();
+			j["primary_attacker"] = format_nation(state, war.get_primary_attacker());
+			j["primary_defender"] = format_nation(state, war.get_primary_defender());
+
+			j["over_state"] = text::produce_simple_string(state, war.get_over_state().get_name());
+
+			json jalist = json::array();
+			json jdlist = json::array();
+			std::vector<dcon::nation_id> attackers;
+
+			for(auto wp : state.world.war_get_war_participant(war)) {
+				if(wp.get_is_attacker()) { 
+					jalist.push_back(format_nation(state, wp.get_nation()));
+					attackers.push_back(wp.get_nation());
+				} else {
+					jdlist.push_back(format_nation(state, wp.get_nation()));
+				}
+			}
+
+			j["attackers"] = jalist;
+			j["defenders"] = jdlist;
+
+			json jawgslist = json::array();
+			json jdwgslist = json::array();
+
+			for(auto el : war.get_wargoals_attached()) {
+				auto wg = el.get_wargoal();
+				if(std::find(attackers.begin(), attackers.end(), wg.get_added_by()) != attackers.end()) {
+					jawgslist.push_back(format_wargoal(state, wg));
+				}
+				else {
+					jdwgslist.push_back(format_wargoal(state, wg));
+				}
+			}
+
+			j["attacker_wargoals"] = jawgslist;
+			j["defender_wargoals"] = jdwgslist;
 
 			jlist.push_back(j);
 		}
 
 		res.set_content(jlist.dump(), "text/plain");
+	});
+
+	svr.Get("/crisis", [&](const httplib::Request& req, httplib::Response& res) {
+		json j = json::object();
+
+		j["attacker"] = format_nation(state, state.crisis_attacker);
+		j["defender"] = format_nation(state, state.crisis_defender);
+
+		j["primary_attacker"] = format_nation(state, state.primary_crisis_attacker);
+		j["primary_defender"] = format_nation(state, state.primary_crisis_defender);
+
+		if(state.crisis_state_instance) {
+			auto fid = dcon::fatten(state.world, state.crisis_state_instance);
+			auto defid = fid.get_definition();
+			j["over_state"] = text::produce_simple_string(state, defid.get_name());
+		}
+
+		j["temperature"] = state.crisis_temperature;
+
+		json jalist = json::array();
+		json jdlist = json::array();
+
+		for(auto cp : state.crisis_participants) {
+			if(cp.supports_attacker) {
+				jalist.push_back(format_nation(state, cp.id));
+			} else if (!cp.merely_interested) {
+				jdlist.push_back(format_nation(state, cp.id));
+			}
+		}
+
+		j["attackers"] = jalist;
+		j["defenders"] = jdlist;
+
+		json jawgslist = json::array();
+		json jdwgslist = json::array();
+
+		for(auto awg : state.crisis_attacker_wargoals) {
+			jawgslist.push_back(format_wargoal(state, awg));
+		}
+		for(auto dwg : state.crisis_attacker_wargoals) {
+			jdwgslist.push_back(format_wargoal(state, dwg));
+		}
+
+		j["attacker_wargoals"] = jawgslist;
+		j["defender_wargoals"] = jdwgslist;
+
+		res.set_content(j.dump(), "text/plain");
 	});
 
 	svr.listen("0.0.0.0", 1234);

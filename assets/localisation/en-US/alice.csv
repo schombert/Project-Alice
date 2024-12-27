@@ -1288,6 +1288,11 @@ desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
 investment_pool;Investment pool: ?Y$x$?W
+investment_pool_income_1;Reinvestment: ?G$x$?W
+investment_pool_income_2;Transfer from subject $country$: ?G$x$W
+investment_pool_spending_1;"Incentives" spending: ?R$x$?W
+investment_pool_spending_2;Construction spending: ?R$x$?W
+investment_pool_spending_3;Transfer to subjects: ?R$x$?W
 DIPLO_RUN_CONFERENCE;Run a conference
 unit_reinforcement_needs;Goods for reinforcement:
 unit_supply_needs;Daily supply:

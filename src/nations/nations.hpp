@@ -257,6 +257,8 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 
 } // namespace influence
 
+std::vector<dcon::nation_id> nation_get_subjects(sys::state& state, dcon::nation_id n);
+
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
 dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids);
