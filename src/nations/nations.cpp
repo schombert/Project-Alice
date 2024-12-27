@@ -37,6 +37,22 @@ template auto central_reb_controlled_fraction<ve::tagged_vector<dcon::nation_id>
 template auto central_has_crime_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
 template auto occupied_provinces_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
 
+std::vector<dcon::nation_id> nation_get_subjects(sys::state& state, dcon::nation_id n) {
+	std::vector<dcon::nation_id> subjects;
+	for(auto s : state.world.in_nation) {
+		auto rel = state.world.nation_get_overlord_as_subject(s);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord != n) {
+			continue;
+		}
+
+		subjects.push_back(s);
+	}
+
+	return subjects;
+}
+
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
 	/* TODO -
 	 * This should return the differance of the population of a nation between this month and next month, or this month and last

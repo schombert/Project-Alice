@@ -540,19 +540,24 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	if(state.world.nation_get_is_civilized(source) == false)
 		return false;
 
+
 	if(owner != source) {
 		/*
 		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great
 		power while the target is not a great power, and the nation doing the investing must not be at war with the target nation.
 		The nation being invested in must be civilized.
+		Overlord can invest in its subjects ignoring GP and owner's rules.
 		*/
-		if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
-			return false;
+		auto rel = state.world.nation_get_overlord_as_subject(owner);
+		auto overlord = state.world.overlord_get_ruler(rel);
+		if(overlord != source) {
+			if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
+				return false;
+			auto rules = state.world.nation_get_combined_issue_rules(owner);
+			if((rules & issue_rule::allow_foreign_investment) == 0)
+				return false;
+		}
 		if(state.world.nation_get_is_civilized(owner) == false)
-			return false;
-
-		auto rules = state.world.nation_get_combined_issue_rules(owner);
-		if((rules & issue_rule::allow_foreign_investment) == 0)
 			return false;
 
 		if(military::are_at_war(state, source, owner))
@@ -3926,6 +3931,32 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 			}
 		}
 	}
+
+	// Army-level checks
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(!regiments[i]) {
+			break;
+		}
+		auto a = state.world.regiment_get_army_from_army_membership(regiments[i]);
+
+		if(state.world.army_get_controller_from_army_control(a) != source || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
+		bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+			return false;
+		}
+	}
+	// Navy-level checks
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(!ships[i]) {
+			break;
+		}
+		auto n = state.world.ship_get_navy_from_navy_membership(ships[i]);
+		auto embarked = state.world.navy_get_army_transport(n);
+		if(state.world.navy_get_controller_from_navy_control(n) != source || state.world.navy_get_is_retreating(n) ||
+			bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
+			return false;
+		}
+	}
+
 	return true;
 }
 void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
