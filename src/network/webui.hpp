@@ -29,7 +29,7 @@ static httplib::Server svr;
 
 inline void init(sys::state& state) noexcept {
 
-	if(state.defines.alice_expose_webui != 1 || state.network_mode == sys::network_mode_type::client) {
+	if(state.host_settings.alice_expose_webui != 1 || state.network_mode == sys::network_mode_type::client) {
 		return;
 	}
 

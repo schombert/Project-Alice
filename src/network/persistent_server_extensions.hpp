@@ -49,7 +49,7 @@ inline void read_player_nations(sys::state& state, char const* start, char const
 }
 
 inline void load_player_nations(sys::state& state) noexcept {
-	if(state.network_mode != sys::network_mode_type::host || state.defines.alice_persistent_server_mode != 1) {
+	if(state.network_mode != sys::network_mode_type::host || state.host_settings.alice_persistent_server_mode != 1) {
 		return;
 	}
 
@@ -63,7 +63,7 @@ inline void load_player_nations(sys::state& state) noexcept {
 }
 
 inline void write_player_nations(sys::state& state) noexcept {
-	if(state.network_mode != sys::network_mode_type::host || state.defines.alice_persistent_server_mode != 1) {
+	if(state.network_mode != sys::network_mode_type::host || state.host_settings.alice_persistent_server_mode != 1) {
 		return;
 	}
 
@@ -78,7 +78,7 @@ inline void write_player_nations(sys::state& state) noexcept {
 }
 
 inline void every_tick_checks(sys::state& state) noexcept {
-	if(state.network_mode != sys::network_mode_type::host || state.defines.alice_persistent_server_mode != 1) {
+	if(state.network_mode != sys::network_mode_type::host || state.host_settings.alice_persistent_server_mode != 1) {
 		return;
 	}
 
@@ -87,13 +87,13 @@ inline void every_tick_checks(sys::state& state) noexcept {
 	int h = (curtime / 3600) % 24;
 	tm local_tm = *localtime(&curtime);
 
-	if(h >= state.defines.alice_persistent_server_pause && state.actual_game_speed != 0 && local_tm.tm_yday != lastchange) {
+	if(h >= state.host_settings.alice_persistent_server_pause && state.actual_game_speed != 0 && local_tm.tm_yday != lastchange) {
 		pause_game(state);
 
 		lastchange = local_tm.tm_yday;
 	}
 
-	if(h >= state.defines.alice_persistent_server_unpause && h < state.defines.alice_persistent_server_pause && state.actual_game_speed != state.ui_state.held_game_speed && local_tm.tm_yday != lastchange) {
+	if(h >= state.host_settings.alice_persistent_server_unpause && h < state.host_settings.alice_persistent_server_pause && state.actual_game_speed != state.ui_state.held_game_speed && local_tm.tm_yday != lastchange) {
 		unpause_game(state);
 
 		lastchange = local_tm.tm_yday;

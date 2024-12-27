@@ -282,9 +282,14 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		game_state.load_user_settings();
 		ui::populate_definitions_map(game_state);
 
-		if(game_state.defines.alice_expose_webui != 0) {
-			std::thread web_thread([&]() { webui::init(game_state); });
-			web_thread.detach();
+		if(game_state.network_mode == sys::network_mode_type::host) {
+			network::save_host_settings(game_state);
+			network::load_host_settings(game_state);
+
+			if(game_state.host_settings.alice_expose_webui != 0) {
+				std::thread web_thread([&]() { webui::init(game_state); });
+				web_thread.detach();
+			}
 		}
 
 		if(headless) {
