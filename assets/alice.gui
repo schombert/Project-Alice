@@ -5435,7 +5435,7 @@ guiTypes = {
 
 		iconType =
 		{
-			name ="unit_upgrade_window"
+			name ="unit_upgrade_window_bg"
 			spriteType = "GFX_attach_bg"
 			position = { x= 0 y = 0 }
 			Orientation = "UPPER_LEFT"
@@ -5587,4 +5587,36 @@ guiTypes = {
         buttonText = ""
         buttonFont = "vic_22_black"
     }
+	listboxType = {
+		name = "diplomacy_actions_list"
+		position = { x=677 y =395 }
+        size = { 320 216 }
+	}
+	windowType = {
+		name = "diplomacy_actions_list_entry"
+		position = { x=0 y=0 }	
+		size = { x=320 y=24 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+
+		guiButtonType = {
+				position = { x=0 y=0 }	
+				size = { x=160 y=24 }
+				name = "action_option_1"
+				quadTextureSprite = "GFX_button_thin_160"
+				buttonFont = "vic_18_black"
+				Orientation = "UPPER_LEFT"
+				clicksound = click
+		}
+
+		guiButtonType = {
+				position = { x=160 y=0 }	
+				size = { x=160 y=24 }
+				name = "action_option_2"
+				quadTextureSprite = "GFX_button_thin_160"
+				buttonFont = "vic_18_black"
+				Orientation = "UPPER_LEFT"
+				clicksound = click
+		}
+	}
 }

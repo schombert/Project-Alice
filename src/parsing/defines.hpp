@@ -698,6 +698,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_substate_subject_money_transfer, 40.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_puppet_subject_money_transfer, 30.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_privateinvestment_subject_transfer, 2.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_allow_revoke_subject_states, 0.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_subject, 2.0)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_all_subjects, 1.0)                                                          \
 

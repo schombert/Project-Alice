@@ -496,6 +496,10 @@ public:
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.defines.alice_allow_revoke_subject_states == 0.0f) {
+			return;
+		}
+
 		auto p = retrieve<dcon::province_id>(state, parent);
 		auto fid = dcon::fatten(state.world, p);
 		auto owner = fid.get_nation_from_province_ownership();
