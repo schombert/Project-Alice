@@ -33,6 +33,7 @@ bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon:
 void update_crisis_leaders(sys::state& state);
 bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::full_wg offer);
 void update_war_intervention(sys::state& state);
+void state_target_list(std::vector<dcon::state_instance_id>& result, sys::state& state, dcon::nation_id for_nation, dcon::nation_id within);
 void update_cb_fabrication(sys::state& state);
 bool will_join_war(sys::state& state, dcon::nation_id, dcon::war_id, bool as_attacker);
 void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w);

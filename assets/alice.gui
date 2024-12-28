@@ -4526,6 +4526,18 @@ guiTypes = {
 		quadTextureSprite = "GFX_move_capital"	
 	}
 	guiButtonType = {
+		name = "alice_take_province"
+		extends = "province_view_header"
+		position = { x= 148 y = 3 }
+		quadTextureSprite = "GFX_take_province"	
+	}
+	guiButtonType = {
+		name = "alice_grant_province"
+		extends = "province_view_header"
+		position = { x= 148 y = 3 }
+		quadTextureSprite = "GFX_grant_province"	
+	}
+	guiButtonType = {
 			name = "button_ban"
 			extends = "ingame_multiplayer_entry"
 			quadTextureSprite = "GFX_button_ban"

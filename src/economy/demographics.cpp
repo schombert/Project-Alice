@@ -3976,4 +3976,14 @@ void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount
 	}
 }
 
+void modify_militancy(sys::state& state, dcon::nation_id n, float v) {
+	for(auto pr : state.world.nation_get_province_ownership(n)) {
+		for(auto pop : pr.get_province().get_pop_location()) {
+			auto base_mil = pop_demographics::get_militancy(state, pop.get_pop());
+			auto adj_mil = base_mil + v;
+			pop_demographics::set_militancy(state, pop.get_pop().id, std::clamp(adj_mil, 0.0f, 10.0f));
+		}
+	}
+}
+
 } // namespace demographics

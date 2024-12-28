@@ -165,7 +165,10 @@ inline void init(sys::state& state) noexcept {
 						if(n.get_owned_province_count() != 0) {
 							json jel = format_nation(state, n);
 							jel["supply"] = economy::supply(state, n, commodity);
-							jplist.push_back(jel);
+
+							if(jel["supply"] > 0.0f) {
+								jplist.push_back(jel);
+							}
 						}
 					j["producers"] = jplist;
 				}
@@ -175,7 +178,10 @@ inline void init(sys::state& state) noexcept {
 						if(n.get_owned_province_count() != 0) {
 							json jel = format_nation(state, n);
 							jel["demand"] = economy::demand(state, n, commodity);
-							jblist.push_back(jel);
+
+							if(jel["demand"] > 0.0f) {
+								jblist.push_back(jel);
+							}
 						}
 
 					j["consumers"] = jblist;

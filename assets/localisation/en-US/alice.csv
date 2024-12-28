@@ -1200,6 +1200,13 @@ alice_mvcap_9;The current capital not being sieged
 alice_mvcap_10;Is owned by you
 alice_mvcap_11;Is controlled by you
 alice_mvcap_12;Is owner core
+alice_take_province_1;Takes target province from the subject
+alice_take_province_2;This will give ?R$val$ years of nationalism?W to population of the state
+alice_take_province_3;This will give ?R$val$ militancy?W to population of the subject
+alice_take_province_4;This will give ?R$val$ militancy?W to population of other subjects
+alice_take_province_5;Is subject of player nation
+alice_take_province_6;Subject is not at war
+alice_take_province_7;Is controlled by subject
 alice_pnt_pops;?YPopulation:?! $x$
 alice_pnt_rpops;?YRich strata:?! $x$ ($y$)
 alice_pnt_mpops;?YMiddle strata:?! $x$ ($y$)
