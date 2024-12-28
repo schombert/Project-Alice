@@ -1816,7 +1816,7 @@ relationship{
 object {
 	name{ ship }
 	storage_type{ erasable }
-	size{ 16000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
@@ -4031,6 +4031,11 @@ object{
 	}
 	property {
 		name{ demand_satisfaction }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ supply_sold_ratio }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}

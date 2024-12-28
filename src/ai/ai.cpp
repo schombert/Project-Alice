@@ -829,7 +829,7 @@ void update_focuses(sys::state& state) {
 				} else {
 					auto total = state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 					auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / total;
-					if(cfrac < state.defines.max_clergy_for_literacy * 0.8f) {
+					if(cfrac < state.defines.max_clergy_for_literacy * 0.8f && !state.world.province_get_is_colonial(state.world.state_instance_get_capital(ordered_states[i]))) {
 						auto nf = state.national_definitions.clergy_focus;
 						auto k = state.world.national_focus_get_limit(nf);
 						if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
@@ -842,7 +842,7 @@ void update_focuses(sys::state& state) {
 			} else {
 				// If we haven't maxxed out clergy on this state, then our number 1 priority is to maximize clergy
 				auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
-				if(cfrac < base_opt * 1.2f) {
+				if(cfrac < base_opt * 1.2f && !state.world.province_get_is_colonial(state.world.state_instance_get_capital(ordered_states[i]))) {
 					auto nf = state.national_definitions.clergy_focus;
 					auto k = state.world.national_focus_get_limit(nf);
 					if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
@@ -856,6 +856,11 @@ void update_focuses(sys::state& state) {
 
 		for(uint32_t i = 0; num_focuses_total > 0 && i < ordered_states.size(); ++i) {
 			auto prov = state.world.state_instance_get_capital(ordered_states[i]);
+
+			if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(ordered_states[i]))) {
+				continue;
+			}
+
 			auto total = state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 			auto pw_num = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.primary_factory_worker));
 			auto pw_employed = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
@@ -1030,7 +1035,37 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 
+	// pass zero:
+	// factories with stupid income margins
+	// which are impossible to ignore if you are sane
+	if(desired_types.empty()) {
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
+
+				if((output - input) / input > 2.f)
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
+
 	// first pass: try to create factories which will pay back investment fast - in a year at most:
+	// or have very high margins
 	if(desired_types.empty()) { 
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
@@ -1051,7 +1086,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if(!lacking_input && (lacking_output || ((output - input) / cost < 365.f)))
+				if(!lacking_input && (lacking_output || ((output - input) / cost < 365.f)) || (output - input) / input > 1.00f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1077,7 +1112,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if(!lacking_input && (lacking_output || ((output - input) / input > 0.3f)))
+				if((output - input) / input > 0.3f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}

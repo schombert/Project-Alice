@@ -117,6 +117,7 @@ void update_cached_values(sys::state& state) {
 
 void restore_unsaved_values(sys::state& state) {
 	state.world.market_resize_demand_satisfaction(state.world.commodity_size());
+	state.world.market_resize_supply_sold_ratio(state.world.commodity_size());
 	state.world.market_resize_direct_demand_satisfaction(state.world.commodity_size());
 
 	for(auto n : state.world.in_nation)

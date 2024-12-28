@@ -121,7 +121,15 @@ inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.0001f;
 inline constexpr float price_rigging = 0.015f;
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float production_throughput_multiplier = 3.f;
+inline constexpr float production_throughput_multiplier = 1.f;
+
+// stockpile related things:
+inline constexpr float stockpile_spoilage = 0.01f;
+inline constexpr float stockpile_expected_spending_per_commodity = 1000.f;
+
+// trade related
+inline constexpr float merchant_cut_foreign = 0.05f;
+inline constexpr float merchant_cut_domestic = 0.001f;
 
 // greed drives incomes of corresponding pops up
 // while making life worse on average
