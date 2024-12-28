@@ -4738,6 +4738,9 @@ bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province
 	auto rel = state.world.nation_get_overlord_as_subject(owner);
 	auto overlord = state.world.overlord_get_ruler(rel);
 
+	if(state.defines.alice_allow_revoke_subject_states == 0.0f)
+		return false;
+
 	if(overlord != source)
 		return false;
 	if(state.current_crisis_state != sys::crisis_state::inactive)
