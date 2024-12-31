@@ -1316,7 +1316,7 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 
 	float country_population = state.world.nation_get_demographics(target, demographics::total);
 
-	return math::sqrt(country_population / (total_population / total_countries));
+	return std::clamp(math::sqrt(country_population / (total_population / total_countries)), 0.5f, 2.0f);
 }
 
 float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
@@ -1350,7 +1350,7 @@ float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::
 		}
 	}
 
-	return math::sqrt(state_population / (total_population / total_states));
+	return std::clamp(math::sqrt(state_population / (total_population / total_states)), 0.5f, 2.0f);
 }
 
 float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state) {

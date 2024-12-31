@@ -641,6 +641,10 @@ class normal_factory_background : public opaque_element_base {
 
 		auto amount = (0.75f + 0.25f * min_e_input_available) * min_input_available * state.world.factory_get_production_scale(fid);
 
+		text::add_line(state, contents, state.world.factory_type_get_name(type));
+
+		text::add_line_break_to_layout(state, contents);
+
 		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
 
 		text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
