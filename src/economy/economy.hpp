@@ -510,6 +510,5 @@ bool can_take_loans(sys::state& state, dcon::nation_id n);
 float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
-commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
 } // namespace economy

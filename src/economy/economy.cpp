@@ -903,13 +903,12 @@ void initialize_artisan_distribution(sys::state& state) {
 
 		for(uint32_t i = 1; i < csize; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
 
 			if(
 				state.world.commodity_get_artisan_output_amount(cid) > 0.0f
 				&& (
 					state.world.commodity_get_is_available_from_start(cid)
-					|| (kf && state.world.nation_get_active_building(nation, kf))
+					|| state.world.nation_get_unlocked_commodities(nation, cid)
 					)
 			) {
 				m.set_artisan_score(cid, 0.f);
@@ -918,44 +917,36 @@ void initialize_artisan_distribution(sys::state& state) {
 	}
 }
 bool valid_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_available_from_start(c)
-		|| (kf && state.world.nation_get_active_building(n, kf));
+		|| state.world.nation_get_unlocked_commodities(n, c);
 }
 
 template<typename T>
 ve::mask_vector valid_need(sys::state& state, T n, dcon::commodity_id c) {
 	ve::mask_vector available_at_start = state.world.commodity_get_is_available_from_start(c);
-	ve::mask_vector active_mask = false;
-	auto kf = state.world.commodity_get_key_factory(c);
-	if(kf) {
-		active_mask = state.world.nation_get_active_building(n, kf);
-	}
+	ve::mask_vector active_mask = state.world.nation_get_unlocked_commodities(n, c);
 	return available_at_start || active_mask;
 }
 
 bool valid_life_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_life_need(c)
 		&& (
 			state.world.commodity_get_is_available_from_start(c)
-			|| (kf && state.world.nation_get_active_building(n, kf))
+			|| state.world.nation_get_unlocked_commodities(n, c)
 		);
 }
 bool valid_everyday_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_everyday_need(c)
 		&& (
 			state.world.commodity_get_is_available_from_start(c)
-			|| (kf && state.world.nation_get_active_building(n, kf))
+			|| state.world.nation_get_unlocked_commodities(n, c)
 		);
 }
 bool valid_luxury_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_luxury_need(c)
 		&& (
 			state.world.commodity_get_is_available_from_start(c)
-			|| (kf && state.world.nation_get_active_building(n, kf))
+			|| state.world.nation_get_unlocked_commodities(n, c)
 		);
 }
 
@@ -972,7 +963,6 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 	}
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto kf = state.world.commodity_get_key_factory(c);
 			if(valid_everyday_need(state, nation, c)) {
 				auto& w = state.world.market_get_everyday_needs_weights(n, c);
 				w = 0.001f;
@@ -981,7 +971,6 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 	}
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto kf = state.world.commodity_get_key_factory(c);
 			if(valid_luxury_need(state, nation, c)) {
 				auto& w = state.world.market_get_luxury_needs_weights(n, c);
 				w = 0.001f;
@@ -1377,12 +1366,8 @@ ve::mask_vector ve_valid_artisan_good(
 	T nations,
 	dcon::commodity_id cid
 ) {
-	auto kf = state.world.commodity_get_key_factory(cid);
 	ve::mask_vector from_the_start = state.world.commodity_get_is_available_from_start(cid);
-	ve::mask_vector active = false;
-	if(kf) {
-		active = state.world.nation_get_active_building(nations, kf);
-	}
+	ve::mask_vector active = state.world.nation_get_unlocked_commodities(nations, cid);
 	auto can_produce = state.world.commodity_get_artisan_output_amount(cid) > 0.0f;
 
 	return can_produce && (from_the_start || active);
@@ -1393,12 +1378,8 @@ bool valid_artisan_good(
 	dcon::nation_id nations,
 	dcon::commodity_id cid
 ) {
-	auto kf = state.world.commodity_get_key_factory(cid);
 	auto from_the_start = state.world.commodity_get_is_available_from_start(cid);
-	auto active = false;
-	if(kf) {
-		active = state.world.nation_get_active_building(nations, kf);
-	}
+	auto active = state.world.nation_get_unlocked_commodities(nations, cid);
 	auto can_produce = state.world.commodity_get_artisan_output_amount(cid) > 0.0f;
 
 	return can_produce && (from_the_start || active);
@@ -3863,8 +3844,7 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 	if(overseas_factor > 0) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 				total += overseas_factor * price(state, capital_market, cid) * o_spending;
 			}
 		}
@@ -4016,8 +3996,7 @@ float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 				total +=
 					overseas_factor
 					* price(state, market, cid)
@@ -4130,8 +4109,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 	if(overseas_factor > 0.f) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 				auto sat = state.world.market_get_demand_satisfaction(market, cid);
 				auto sat_importance = std::min(1.f, 1.f / (price(state, market, cid) + 0.001f));
 				auto sat_coefficient = (sat_importance + (1.f - sat_importance) * sat);
@@ -4492,7 +4470,6 @@ void update_pop_consumption(
 				auto base_luxury =
 					state.world.pop_type_get_luxury_needs(t, cid);
 
-				auto key_factory = state.world.commodity_get_key_factory(cid);
 				auto valid_good_mask = valid_need(state, nations, cid);
 
 				auto demand_life =
@@ -4796,8 +4773,8 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	float income_to_build_units = 100'000.f;
 
 	// we build infantry and artillery:
-	auto infantry = state.military_definitions.infantry;
-	auto artillery = state.military_definitions.artillery;
+	auto infantry = military::get_best_infantry(state, n);
+	auto artillery = military::get_best_artillery(state, n);
 
 	auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
 	auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
@@ -5652,9 +5629,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto prices = state.world.market_get_price(markets, c);
 
-				auto key_factory = state.world.commodity_get_key_factory(c);
 				auto available = state.world.commodity_get_is_available_from_start(c);
-				auto is_active = state.world.nation_get_active_building(nations, key_factory);
+				auto is_active = state.world.nation_get_unlocked_commodities(nations, c);
 				auto life_weights = state.world.market_get_life_needs_weights(markets, c);
 				auto everyday_weights = state.world.market_get_everyday_needs_weights(markets, c);
 				auto luxury_weights = state.world.market_get_luxury_needs_weights(markets, c);
@@ -5730,9 +5706,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto prices = state.world.market_get_price(markets, c);
 
-				auto key_factory = state.world.commodity_get_key_factory(c);
 				auto available = state.world.commodity_get_is_available_from_start(c);
-				auto is_active = state.world.nation_get_active_building(nations, key_factory);
+				auto is_active = state.world.nation_get_unlocked_commodities(nations, c);
 				auto life_weights = state.world.market_get_life_needs_weights(markets, c);
 				auto everyday_weights = state.world.market_get_everyday_needs_weights(markets, c);
 				auto luxury_weights = state.world.market_get_luxury_needs_weights(markets, c);
@@ -5808,9 +5783,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto prices = state.world.market_get_price(markets, c);
 
-				auto key_factory = state.world.commodity_get_key_factory(c);
 				auto available = state.world.commodity_get_is_available_from_start(c);
-				auto is_active = state.world.nation_get_active_building(nations, key_factory);
+				auto is_active = state.world.nation_get_unlocked_commodities(nations, c);
 				auto life_weights = state.world.market_get_life_needs_weights(markets, c);
 				auto everyday_weights = state.world.market_get_everyday_needs_weights(markets, c);
 				auto luxury_weights = state.world.market_get_luxury_needs_weights(markets, c);
@@ -6380,7 +6354,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			if(overseas_factor > 0) {
 				for(uint32_t k = 1; k < total_commodities; ++k) {
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-					auto kf = state.world.commodity_get_key_factory(c);
 					if(state.world.commodity_get_overseas_penalty(c) && valid_need(state, n, c)) {
 						auto sat = state.world.market_get_demand_satisfaction(capital_market, c);
 						overseas_budget_satisfaction = std::min(sat, overseas_budget_satisfaction);
@@ -7210,26 +7183,6 @@ void regenerate_unsaved_values(sys::state& state) {
 	state.world.market_resize_max_luxury_needs_satisfaction(state.world.pop_type_size());
 
 	state.world.province_resize_rgo_actual_production_per_good(state.world.commodity_size());
-
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		auto fc = fatten(state.world, c);
-		state.world.commodity_set_key_factory(c, dcon::factory_type_id{});
-		/*
-		if(fc.get_total_production() > 0.0001f) {
-			fc.set_producer_payout_fraction(
-				std::min(fc.get_total_consumption() / fc.get_total_production(), 1.0f)
-			);
-		} else {
-			fc.set_producer_payout_fraction(1.0f);
-		}
-		*/
-	});
-
-	state.world.for_each_factory_type([&](dcon::factory_type_id t) {
-		auto o = state.world.factory_type_get_output(t);
-		if(o)
-			state.world.commodity_set_key_factory(o, t);
-	});
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
@@ -7241,12 +7194,11 @@ float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodi
 		);
 	auto o_adjust = 0.0f;
 	if(overseas_factor > 0) {
-		auto kf = state.world.commodity_get_key_factory(c);
 		if(
 			state.world.commodity_get_overseas_penalty(c)
 			&& (
 				state.world.commodity_get_is_available_from_start(c)
-				|| (kf && state.world.nation_get_active_building(n, kf))
+				|| state.world.nation_get_unlocked_commodities(n, c)
 				)
 		) {
 			o_adjust = overseas_factor;
@@ -7398,8 +7350,7 @@ float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::com
 
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
 	auto amount = 0.f;
-	auto kf = state.world.commodity_get_key_factory(c);
-	if(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf))) {
+	if(state.world.commodity_get_is_available_from_start(c) || state.world.nation_get_unlocked_commodities(n, c)) {
 		state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 			auto si = state.world.state_ownership_get_state(soid);
 			auto m = state.world.state_instance_get_market_from_local_market(si);
@@ -8360,18 +8311,6 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 		n, dcon::nation_id{}, dcon::nation_id{},
 		sys::message_base_type::bankruptcy
 	});
-}
-
-commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c) {
-	auto commodity = dcon::fatten(state.world, c);
-	if(commodity.get_rgo_amount() > 0 && (commodity.get_artisan_output_amount() > 0 || commodity.get_key_factory()))
-		return commodity_production_type::both;
-	else if(commodity.get_key_factory())
-		return commodity_production_type::derivative;
-	else
-		return commodity_production_type::primary;
-
-
 }
 
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n) {
