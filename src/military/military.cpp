@@ -76,16 +76,18 @@ bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id 
 		return true;
 	}
 	auto curbeststats = state.world.nation_get_unit_stats(n, best);
-	auto& curbestdef = (curbeststats.discipline_or_evasion) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+	auto& basedef = state.military_definitions.unit_base_definitions[best];
+	auto& curbestdef = (curbeststats.discipline_or_evasion) ? curbeststats : basedef;
 
 	auto stats = state.world.nation_get_unit_stats(n, given);
-	auto& def = (stats.discipline_or_evasion) ? stats : state.military_definitions.unit_base_definitions[given];
+	auto& newbasedef = state.military_definitions.unit_base_definitions[given];
+	auto& def = (stats.discipline_or_evasion) ? stats : newbasedef;
 
 	if(def.reconnaissance_or_fire_range > curbestdef.reconnaissance_or_fire_range) {
 		return true;
 	} else if(def.reconnaissance_or_fire_range == curbestdef.reconnaissance_or_fire_range && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
 		return true;
-	} else if(def.reconnaissance_or_fire_range == curbestdef.reconnaissance_or_fire_range && def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.maximum_speed > curbestdef.maximum_speed) {
+	} else if(def.reconnaissance_or_fire_range == curbestdef.reconnaissance_or_fire_range && def.attack_or_gun_power == curbestdef.attack_or_gun_power && basedef.maneuver > newbasedef.maneuver) {
 		return true;
 	}
 	return false;
