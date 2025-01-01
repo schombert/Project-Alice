@@ -2257,7 +2257,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 		if(!bool(military_definitions.artillery)) {
 			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
-		}
+	}
 	}
 	// make space in arrays
 
@@ -2848,6 +2848,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_factory_goods_output(world.commodity_size());
 	world.nation_resize_factory_goods_throughput(world.commodity_size());
 	world.nation_resize_rgo_size(world.commodity_size());
+	world.nation_resize_unlocked_commodities(world.commodity_size());
 	world.nation_resize_rebel_org_modifier(world.rebel_type_size());
 	world.nation_resize_active_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 	world.nation_resize_active_crime(uint32_t(culture_definitions.crimes.size()));
@@ -3648,6 +3649,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.nation_resize_factory_goods_output(world.commodity_size());
 	world.nation_resize_factory_goods_throughput(world.commodity_size());
 	world.nation_resize_rgo_size(world.commodity_size());
+	world.nation_resize_unlocked_commodities(world.commodity_size());
 	world.nation_resize_rebel_org_modifier(world.rebel_type_size());
 	world.nation_resize_active_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 	world.nation_resize_active_crime(uint32_t(culture_definitions.crimes.size()));

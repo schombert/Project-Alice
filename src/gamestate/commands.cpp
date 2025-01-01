@@ -3955,6 +3955,17 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 			bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
 			return false;
 		}
+
+		if(ut.min_port_level) {
+			auto fnid = dcon::fatten(state.world, n);
+
+			auto loc = fnid.get_location_from_navy_location();
+
+			// Ship requires naval base level for construction but province location doesn't have one
+			if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
+				return false;
+			}
+		}
 	}
 
 	return true;

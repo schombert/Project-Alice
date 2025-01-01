@@ -4772,9 +4772,14 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 	float income_to_build_units = 100'000.f;
 
+	if(state.world.nation_get_owned_province_count(n) == 0) {
+		return;
+	}
+
+
 	// we build infantry and artillery:
-	auto infantry = military::get_best_infantry(state, n);
-	auto artillery = military::get_best_artillery(state, n);
+	auto infantry = state.military_definitions.infantry;
+	auto artillery = state.military_definitions.artillery;
 
 	auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
 	auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
@@ -4794,7 +4799,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			}
 		}
 		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(infantry_def.build_cost.commodity_type[i]) {
+			if(artillery_def.build_cost.commodity_type[i]) {
 				auto p = price(state, market, artillery_def.build_cost.commodity_type[i]);
 				daily_cost += artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time * p;
 			} else {
@@ -6507,9 +6512,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	auto amount_of_nations = state.world.nation_size();
 
-	concurrency::parallel_for(uint32_t(0), amount_of_nations, [&](uint32_t i) {
-		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(i) };
-
+	for (auto n : state.world.in_nation) {
 		auto const min_wage_factor = pop_min_wage_factor(state, n);
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -6894,7 +6897,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto market = si.get_state().get_market_from_local_market();
 			rebalance_needs_weights(state, market);
 		}
-	});
+	};
 	state.world.execute_serial_over_market([&](auto ids) {
 		auto local_states = state.world.market_get_zone_from_local_market(ids);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(local_states);
