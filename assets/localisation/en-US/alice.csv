@@ -750,6 +750,13 @@ state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
 state_transfer_explain_6;We have more than 1 state
+unit_upgrade_desc;Changes units to different type. After swap, unit strength is reduced to 1%
+unit_upgrade_explain_1;Either land or sea units are selected
+unit_upgrade_explain_2;Unit type is  unlocked
+unit_upgrade_explain_3;Small ships cannot be converted to big ones
+unit_upgrade_explain_4;Army is not retreating, in battle, or on transport ships
+unit_upgrade_explain_5;Navy is not retreating, in battle, or transports armies
+unit_upgrade_explain_6;Navy is docked in a naval base of sufficient level
 cancel_ally_explain_1;You can't cancel an alliance with yourself
 cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
 cancel_ally_explain_3;You're currently allied
