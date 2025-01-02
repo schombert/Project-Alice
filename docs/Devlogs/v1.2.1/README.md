@@ -53,6 +53,7 @@ Other bits and pieces:
   - Updated Russian localisation
   - No duplicate WGs for crisis sways
   - State Transfer can be used to gift states to AI and subjects
+  - Government changing rebels don't rise in colonial states
 
 Bugfixes:
   - Fix to nickname change in launcher

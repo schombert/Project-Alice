@@ -3,7 +3,31 @@ Assembled by SneakBug8
 
 ## by Schombert
 
-  - Complete rework of macrobuilder window UI
+**Party reform support overrides**. Previously in a party definition it was possible to insert a line such as `economic_policy = laissez_faire` which would define the specific party issue that the party would have. This has been extended so that any political or social reform category and option may appear there. For example `pensions = good_pensions` in the following party description is now valid
+
+```
+party = {
+	name = "ENG_liberal"
+	start_date = 1830.1.1
+	end_date = 1859.1.1
+	ideology = liberal
+	economic_policy = laissez_faire
+	trade_policy = free_trade
+	religious_policy = pluralism
+	citizenship_policy = limited_citizenship
+	war_policy = anti_military
+	
+	pensions = good_pensions
+}
+```
+
+What this means is that the party will always support that particular reform in that category (or the closest reform if the category can only be changed step by step) and that it will not support any other reforms in that category. This will override any other preference either via ideology or the extended support weights described above. 
+
+- Political party conditions and effects
+- Budget warning indicator
+- Fixed AI focus logic
+- Optimizations to demography, pop ideologies
+- Fix to pop conversion
 
 ## by Peter
 
