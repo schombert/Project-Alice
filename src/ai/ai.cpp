@@ -964,7 +964,7 @@ void take_ai_decisions(sys::state& state) {
 		return result;
 	});
 	// ensure total deterministic ordering
-	pdqsort(total_vector.begin(), total_vector.end(), [&](auto a, auto b) {
+	std::sort(total_vector.begin(), total_vector.end(), [&](auto a, auto b) {
 		auto na = a.second;
 		auto nb = b.second;
 		if(na != nb)
