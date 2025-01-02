@@ -43,6 +43,7 @@ inline constexpr GLuint alternate_tint = 16;
 inline constexpr GLuint linegraph_color = 17;
 inline constexpr GLuint transparent_color = 18;
 inline constexpr GLuint solid_color = 19;
+inline constexpr GLuint alpha_color = 20;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -296,6 +297,7 @@ public:
 	void bind_buffer();
 };
 void render_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, ui::rotation r, bool flipped, bool rtl);
+void render_alpha_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, float alpha);
 void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl);
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);

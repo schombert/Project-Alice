@@ -1311,3 +1311,23 @@ alice_factory_type_tab;Factory types
 alice_player_date_sync;Player $name$ ($country$), last command: $date$
 alice_only_host_speed;Only host can change speed
 alice_host_date;Host date: $date$
+alice_budget_gold;Gold Mines
+alice_budget_construction;Construction Spending
+alice_budget_army_upkeep;Army Upkeep
+alice_budget_navy_upkeep;Navy Upkeep
+alice_budget_domestic_investment;Domestic Investment
+alice_budget_debt_service;Debt Service
+alice_budget_diplo_income;Diplomatic
+alice_budget_diplo_expenses;Diplomatic
+alice_budget_taxes;Taxes
+alice_budget_indemnities;War Indemnities
+alice_budget_subjects;Income from Subjects
+alice_budget_item;Item
+alice_budget_amount;Amount
+alice_budget_minimum_button;Set value to minimum
+alice_budget_maximum_button;Set value to maximum
+alice_budget_decrease_button;Decrease setting by 10 (hold shift for fine control)
+alice_budget_increase_button;Increase setting by 10 (hold shift for fine control)
+alice_budget_max;Max $x$
+alice_budget_min;Min $x$
+alice_budget_overlord;Taxes to overlord

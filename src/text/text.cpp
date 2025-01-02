@@ -728,13 +728,13 @@ std::string prettify_currency(float num) {
 		"%.1fZ £"
 	};
 	constexpr static char const* sufx_zero[] = {
-		"%.0f £",
-		"%.0fK £",
-		"%.0fM £",
-		"%.0fB £",
-		"%.0fT £",
-		"%.0fP £",
-		"%.0fZ £"
+		"%.1f £",
+		"%.1fK £",
+		"%.1fM £",
+		"%.1fB £",
+		"%.1fT £",
+		"%.1fP £",
+		"%.1fZ £"
 	};
 	char buffer[200] = { 0 };
 	double dval = double(num);

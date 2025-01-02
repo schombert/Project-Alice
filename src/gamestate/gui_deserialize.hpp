@@ -47,6 +47,19 @@ enum class aui_property : uint8_t {
 	data_member = 23,
 	has_alternate_bg = 24,
 	alternate_bg = 25,
+	ignore_rtl = 25,
+	draggable = 26,
+	table_highlight_color = 27,
+	ascending_sort_icon = 28,
+	descending_sort_icon = 29,
+	row_background_a = 30,
+	row_background_b = 31,
+	row_height = 32,
+	table_insert = 33,
+	table_display_column_data = 34,
+	table_internal_column_data = 35,
+	table_divider_color = 36,
+	table_has_per_section_headers = 37,
 };
 
 inline void bytes_to_windows(char const* bytes, size_t size, std::string const& project_name, ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes>& map) {
@@ -78,21 +91,59 @@ struct aui_window_data {
 	ui::orientation orientation;
 };
 
+namespace ogl {
+struct color4f {
+	float r = 0.0f;
+	float g = 0.0f;
+	float b = 0.0f;
+	float a = 1.0f;
+
+	bool operator==(color4f const& o) const noexcept {
+		return r == o.r && g == o.g && b == o.b && a == o.a;
+	}
+	bool operator!=(color4f const& o) const noexcept {
+		return !(*this == o);
+	}
+	color4f operator*(float v) const noexcept {
+		return color4f{ r * v, b * v, g * v, a };
+	}
+};
+}
+
+struct table_display_column {
+	std::string_view header_key;
+	std::string_view header_tooltip_key;
+	std::string_view header_texture;
+	std::string_view cell_tooltip_key;
+	int16_t width = 0;
+	text::text_color cell_text_color = text::text_color::black;
+	text::text_color header_text_color = text::text_color::black;
+	text::alignment text_alignment = text::alignment::center;
+};
+
 struct aui_element_data {
+	std::vector<table_display_column> table_columns;
 	std::string_view name;
 	std::string_view texture;
 	std::string_view alt_texture;
 	std::string_view tooltip_text_key;
 	std::string_view text_key;
+	std::string_view ascending_sort_icon;
+	std::string_view descending_sort_icon;
+	std::string_view row_background_a;
+	std::string_view row_background_b;
+	ogl::color4f table_highlight_color{ 0.0f, 0.0f, 0.0f, 0.0f };
+	ogl::color3f table_divider_color{ 0.0f, 0.0f, 0.0f };
 	float text_scale = 1.0f;
-	int16_t x_pos;
-	int16_t y_pos;
-	int16_t x_size;
-	int16_t y_size;
-	int16_t border_size;
-	text::text_color text_color;
-	aui_text_type text_type;
-	text::alignment text_alignment;
+	float row_height = 2.0f;
+	int16_t x_pos = 0;
+	int16_t y_pos = 0;
+	int16_t x_size = 0;
+	int16_t y_size = 0;
+	int16_t border_size = 0;
+	text::text_color text_color = text::text_color::black;
+	aui_text_type text_type = aui_text_type::body;
+	text::alignment text_alignment = text::alignment::left;
 };
 
 inline aui_window_data read_window_bytes(char const* bytes, size_t size, std::vector<sys::aui_pending_bytes>& children_out) {
@@ -166,6 +217,31 @@ inline aui_element_data read_child_bytes(char const* bytes, size_t size) {
 			result.texture = essential_child_section.read<std::string_view>();
 		} else if(ptype == aui_property::alternate_bg) {
 			result.alt_texture = essential_child_section.read<std::string_view>();
+		} else if(ptype == aui_property::table_highlight_color) {
+			essential_child_section.read(result.table_highlight_color);
+		} else if(ptype == aui_property::ascending_sort_icon) {
+			result.ascending_sort_icon =essential_child_section.read<std::string_view>();
+		} else if(ptype == aui_property::descending_sort_icon) {
+			result.descending_sort_icon = essential_child_section.read<std::string_view>();
+		} else if(ptype == aui_property::row_background_a) {
+			result.row_background_a = essential_child_section.read<std::string_view>();
+		} else if(ptype == aui_property::row_background_b) {
+			result.row_background_b = essential_child_section.read<std::string_view>();
+		} else if(ptype == aui_property::row_height) {
+			essential_child_section.read(result.row_height);
+		} else if(ptype == aui_property::table_divider_color) {
+			essential_child_section.read(result.table_divider_color);
+		} else if(ptype == aui_property::table_display_column_data) {
+			table_display_column tc;
+			tc.header_key = essential_child_section.read<std::string_view>();
+			tc.header_tooltip_key = essential_child_section.read<std::string_view>();
+			tc.header_texture = essential_child_section.read<std::string_view>();
+			tc.cell_tooltip_key = essential_child_section.read<std::string_view>();
+			essential_child_section.read(tc.width);
+			essential_child_section.read(tc.cell_text_color);
+			essential_child_section.read(tc.header_text_color);
+			essential_child_section.read(tc.text_alignment);
+			result.table_columns.emplace_back(tc);
 		} else {
 			abort();
 		}

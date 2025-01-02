@@ -527,6 +527,12 @@ void state::render() { // called to render the frame may (and should) delay retu
 		mouse_probe = current_scene.recalculate_mouse_probe(*this, mouse_probe, tooltip_probe);
 		tooltip_probe = current_scene.recalculate_tooltip_probe(*this, mouse_probe, tooltip_probe);
 	}
+	ui::urect tooltip_bounds;
+	int32_t tooltip_sub_index = -1;
+	if(tooltip_probe.under_mouse) {
+		tooltip_probe.under_mouse->tooltip_position(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+		int32_t(mouse_y_position / user_settings.ui_scale), tooltip_sub_index, tooltip_bounds);
+	}
 
 	if(game_state_was_updated) {
 		if(!ui_state.tech_queue.empty()) {
@@ -809,9 +815,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		current_scene.on_game_state_update_update_ui(*this);
 
-		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+		if(ui_state.last_tooltip == tooltip_probe.under_mouse && ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+			if(type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
@@ -842,13 +848,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
+	if(ui_state.last_tooltip != tooltip_probe.under_mouse || ui_state.last_tooltip_sub_index != tooltip_sub_index) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
+		ui_state.last_tooltip_sub_index = tooltip_sub_index;
 
 		if(tooltip_probe.under_mouse) {
-			if(tooltip_probe.under_mouse->base_data.get_element_type() == ui::element_type::button) {
-				sound::play_interface_sound(*this, sound::get_hover_sound(*this), user_settings.interface_volume * user_settings.master_volume);
-			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
 				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
@@ -909,34 +913,33 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
-		auto target_location = ui::get_absolute_location(*this, *ui_state.last_tooltip);
-		if(ui_state.tooltip->base_data.size.y <= root_elm->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
-			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
+		if(ui_state.tooltip->base_data.size.y <= root_elm->base_data.size.y - (tooltip_bounds.top_left.y + tooltip_bounds.size.y)) {
+			ui_state.tooltip->base_data.position.y = int16_t(tooltip_bounds.top_left.y + tooltip_bounds.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
-					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+					int16_t(tooltip_bounds.top_left.x + (tooltip_bounds.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
 					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
-		} else if(ui_state.tooltip->base_data.size.x <= root_elm->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
-			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
+		} else if(ui_state.tooltip->base_data.size.x <= root_elm->base_data.size.x - (tooltip_bounds.top_left.x + tooltip_bounds.size.x)) {
+			ui_state.tooltip->base_data.position.x = int16_t(tooltip_bounds.top_left.x + tooltip_bounds.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
-					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+					int16_t(tooltip_bounds.top_left.y + (tooltip_bounds.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
 					int16_t(0),
 					int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
-		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
-			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
+		} else if(ui_state.tooltip->base_data.size.x <= tooltip_bounds.top_left.x) {
+			ui_state.tooltip->base_data.position.x = int16_t(tooltip_bounds.top_left.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
-					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+					int16_t(tooltip_bounds.top_left.y + (tooltip_bounds.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
 					int16_t(0), int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
-		} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
-			ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
+		} else if(ui_state.tooltip->base_data.size.y <= tooltip_bounds.top_left.y) {
+			ui_state.tooltip->base_data.position.y = int16_t(tooltip_bounds.top_left.y - ui_state.tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
-					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+					int16_t(tooltip_bounds.top_left.x + (tooltip_bounds.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
 					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
 		} else {
 			ui_state.tooltip->base_data.position.x = std::clamp(
-					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+					int16_t(tooltip_bounds.top_left.x + (tooltip_bounds.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
 					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
 			ui_state.tooltip->base_data.position.y = std::clamp(
-					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+					int16_t(tooltip_bounds.top_left.y + (tooltip_bounds.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
 					int16_t(0), int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
 		}
 	}
@@ -1080,49 +1083,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 	root_elm->impl_render(*this, 0, 0);
 
 	if(ui_state.tooltip->is_visible()) {
-		//TODO: make this accessible by in-game settings
-		constexpr static auto tooltip_delay = std::chrono::milliseconds{ 0 };
-		//show tooltip if timer going for longer than delay ( currently 0(zero) milliseconds )
-		if((std::chrono::steady_clock::now() - tooltip_timer) > tooltip_delay) {
-			//floating by mouse
-			if(user_settings.bind_tooltip_mouse) {
-				int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale) + ui_state.cursor_size;
-				int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale) + ui_state.cursor_size;
-				int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
-				int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
-				//this only works if the tooltip isnt bigger than the entire window, wont crash though
-				if(aim_x + ui_state.tooltip->base_data.size.x > wsize_x) {
-					aim_x = wsize_x - ui_state.tooltip->base_data.size.x;
-				}
-				if(aim_y + ui_state.tooltip->base_data.size.y > wsize_y) {
-					aim_y = wsize_y - ui_state.tooltip->base_data.size.y;
-				}
-				ui_state.tooltip->impl_render(*this, aim_x, aim_y);
-			} else {//tooltip centered over ui element
-				ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		//floating by mouse
+		if(user_settings.bind_tooltip_mouse) {
+			int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale) + ui_state.cursor_size;
+			int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale) + ui_state.cursor_size;
+			int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
+			int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
+			//this only works if the tooltip isnt bigger than the entire window, wont crash though
+			if(aim_x + ui_state.tooltip->base_data.size.x > wsize_x) {
+				aim_x = wsize_x - ui_state.tooltip->base_data.size.x;
 			}
-		} else { //this branch currently can't be taken since tooltip delay is hardcoded to 0ms.
-			//this branch is taken if tooltip timer hasn't surpassed tooltip delay.
-			//only start showing tooltip once mouse is hovered over same ui element for time period of tooltip_delay.
-			//all province tooltips are the same tooltip so first checks tooltip pointer and
-			//	then province id if hovering over province.
-			//this resets tooltip_timer if mouse has moved to a different ui element.
-			static auto last_tooltip = ui_state.last_tooltip;
-			static auto last_prov_id = map_state.get_province_under_mouse(*this, mouse_x_position, mouse_y_position, x_size, y_size);
-			if(last_tooltip != ui_state.last_tooltip) {
-				tooltip_timer = std::chrono::steady_clock::now();
-			} else if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
-				auto now_prov_id = map_state.get_province_under_mouse(*this, mouse_x_position, mouse_y_position, x_size, y_size);
-				if(last_prov_id != now_prov_id) {
-					tooltip_timer = std::chrono::steady_clock::now();
-				}
-				last_prov_id = now_prov_id;
+			if(aim_y + ui_state.tooltip->base_data.size.y > wsize_y) {
+				aim_y = wsize_y - ui_state.tooltip->base_data.size.y;
 			}
-			last_tooltip = ui_state.last_tooltip;
+			ui_state.tooltip->impl_render(*this, aim_x, aim_y);
+		} else {//tooltip centered over ui element
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
-	} else { //if there is no tooltip to display, reset tooltip_timer
-		tooltip_timer = std::chrono::steady_clock::now();
-	}
+	} 
 }
 
 void state::on_create() {

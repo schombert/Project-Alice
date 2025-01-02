@@ -2085,7 +2085,9 @@ public:
 		} else if(name == "topbarbutton_budget") {
 			auto btn = make_element_by_type<topbar_budget_tab_button>(state, id);
 
-			auto tab = make_element_by_type<budget_window>(state, "country_budget");
+			//auto tab = make_element_by_type<budget_window>(state, "country_budget");
+			auto tab = alice_ui::make_budgetwindow_main(state);
+			tab->set_visible(state, false);
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
