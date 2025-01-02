@@ -5317,7 +5317,7 @@ uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
 	return 0;
 }
 
-inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
+inline alignas(64) constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) ef_##name,
 		EFFECT_BYTECODE_LIST

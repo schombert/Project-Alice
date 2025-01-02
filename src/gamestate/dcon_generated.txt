@@ -539,7 +539,7 @@ object {
 object {
 	name{ ideology }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 125 }
 	tag{ scenario }
 	tag{ save }
 

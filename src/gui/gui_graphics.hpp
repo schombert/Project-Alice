@@ -33,6 +33,10 @@ struct xy_pair {
 	int16_t y = 0;
 };
 static_assert(sizeof(xy_pair) == 4);
+struct urect {
+	xy_pair top_left;
+	xy_pair size;
+};
 
 struct gfx_object {
 	constexpr static uint8_t always_transparent = 0x10;
@@ -417,6 +421,7 @@ struct state {
 	element_base* mouse_sensitive_target = nullptr;
 	xy_pair target_ul_bounds = xy_pair{ 0, 0 };
 	xy_pair target_lr_bounds = xy_pair{ 0, 0 };
+	int32_t last_tooltip_sub_index = -1;
 
 	uint32_t cursor_size = 16;
 

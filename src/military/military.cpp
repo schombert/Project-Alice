@@ -7063,12 +7063,11 @@ void update_siege_progress(sys::state& state) {
 				state.world.province_set_former_rebel_controller(prov, old_rf);
 
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
-				if(new_controller && !are_at_war(state, new_controller, owner)) {
+				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
+
+				if((!new_controller && !rebel_controller) || (new_controller && !are_at_war(state, new_controller, owner))) {
 					new_controller = owner;
 				}
-
-				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
-				assert(bool(new_controller) != bool(rebel_controller));
 
 				new_nation_controller.set(prov, new_controller);
 				new_rebel_controller.set(prov, rebel_controller);

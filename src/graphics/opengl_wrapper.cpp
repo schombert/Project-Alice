@@ -555,6 +555,23 @@ void render_colored_rect(
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void render_alpha_colored_rect(
+	sys::state const& state,
+	float x, float y, float width, float height,
+	float red, float green, float blue, float alpha
+) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::alpha_color };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, red, green, blue);
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, alpha);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glLineWidth(2.0f);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
 void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl) {
 	render_colored_rect(
 		state, x, y, width, height, 1.0f, 1.0f, 1.0f, r, flipped, rtl
