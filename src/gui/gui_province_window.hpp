@@ -491,15 +491,15 @@ public:
 class province_take_province_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		if(state.defines.alice_allow_revoke_subject_states == 0.0f) {
+			set_visible(state, false);
+			return;
+		}
 		auto p = retrieve<dcon::province_id>(state, parent);
 		disabled = !command::can_take_province(state, state.local_player_nation, p);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.defines.alice_allow_revoke_subject_states == 0.0f) {
-			return;
-		}
-
 		auto p = retrieve<dcon::province_id>(state, parent);
 		auto fid = dcon::fatten(state.world, p);
 		auto owner = fid.get_nation_from_province_ownership();
