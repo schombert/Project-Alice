@@ -913,57 +913,81 @@ void update_focuses(sys::state& state) {
 }
 
 void take_ai_decisions(sys::state& state) {
-	for(auto d : state.world.in_decision) {
-		auto e = d.get_effect();
-		if(!e)
-			continue;
+	using decision_nation_pair = std::pair<dcon::decision_id, dcon::nation_id>;
+	concurrency::combinable<std::vector<decision_nation_pair, dcon::cache_aligned_allocator<decision_nation_pair>>> decisions_taken;
 
-		auto potential = d.get_potential();
-		auto allow = d.get_allow();
-		auto ai_will_do = d.get_ai_will_do();
-
-		ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
-			ve::vbitfield_type filter_a = potential
-				? (ve::compress_mask(trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0)) & !state.world.nation_get_is_player_controlled(ids))
-				: !state.world.nation_get_is_player_controlled(ids);
-
-			if(filter_a.v != 0) {
-				// empty allow assumed to be an "always = yes"
-				ve::mask_vector filter_c = allow
-					? (trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0) && (state.world.nation_get_owned_province_count(ids) != 0)) && filter_a
-					: ve::mask_vector{ filter_a } && (state.world.nation_get_owned_province_count(ids) != 0);
-				ve::mask_vector filter_b = ai_will_do
-					? filter_c && (trigger::evaluate_multiplicative_modifier(state, ai_will_do, trigger::to_generic(ids), trigger::to_generic(ids), 0) > 0.0f)
-					: filter_c;
-
-				ve::apply([&](dcon::nation_id n, bool passed_filter) {
-					if(passed_filter) {
-						auto second_validity = potential
-							? trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0)
-							: true;
-						second_validity = second_validity && (allow
-							? trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)
-							: true);
-						if(second_validity) {
-							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
-								uint32_t(n.index() << 4 ^ d.id.index()));
-							notification::post(state, notification::message{
-								[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
-									text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
-									text::add_line(state, contents, "msg_decision_2");
-									ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
-								},
-								"msg_decision_title",
-								n, dcon::nation_id{}, dcon::nation_id{},
-								sys::message_base_type::decision
-							});
+	// execute in staggered blocks
+	uint32_t d_block_size = state.world.decision_size() / 32;
+	uint32_t block_index = 0;
+	auto d_block_end = state.world.decision_size();
+	//uint32_t block_index = (state.current_date.value & 31);
+	//auto d_block_end = block_index == 31 ? state.world.decision_size() : d_block_size * (block_index + 1);
+	concurrency::parallel_for(d_block_size * block_index, d_block_end, [&](uint32_t i) {
+		auto d = dcon::decision_id{ dcon::decision_id::value_base_t(i) };
+		auto e = state.world.decision_get_effect(d);
+		if(e) {
+			auto potential = state.world.decision_get_potential(d);
+			auto allow = state.world.decision_get_allow(d);
+			auto ai_will_do = state.world.decision_get_ai_will_do(d);
+			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
+				// AI-only, not dead nations
+				ve::mask_vector filter_a = !state.world.nation_get_is_player_controlled(ids)
+					&& state.world.nation_get_owned_province_count(ids) != 0;
+				if(ve::compress_mask(filter_a).v != 0) {
+					// empty allow assumed to be an "always = yes"
+					ve::mask_vector filter_b = potential
+						? filter_a && (trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0))
+						: filter_a;
+					if(ve::compress_mask(filter_b).v != 0) {
+						ve::mask_vector filter_c = allow
+							? filter_b && (trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0))
+							: filter_b;
+						if(ve::compress_mask(filter_c).v != 0) {
+							ve::mask_vector filter_d = ai_will_do
+								? filter_c && (trigger::evaluate_multiplicative_modifier(state, ai_will_do, trigger::to_generic(ids), trigger::to_generic(ids), 0) > 0.0f)
+								: filter_c;
+							ve::apply([&](dcon::nation_id n, bool passed_filter) {
+								if(passed_filter) {
+									decisions_taken.local().push_back(decision_nation_pair(d, n));
+								}
+							}, ids, filter_d);
 						}
 					}
-				}, ids, filter_b);
-			}
+				}
+			});
+		}
+	});
+	// combination and final execution
+	auto total_vector = decisions_taken.combine([](auto& a, auto& b) {
+		std::vector<decision_nation_pair, dcon::cache_aligned_allocator<decision_nation_pair>> result(a.begin(), a.end());
+		result.insert(result.end(), b.begin(), b.end());
+		return result;
+	});
+	// ensure total deterministic ordering
+	pdqsort(total_vector.begin(), total_vector.end(), [&](auto a, auto b) {
+		auto na = a.second;
+		auto nb = b.second;
+		if(na != nb)
+			return na.index() < nb.index();
+		return a.first.index() < b.first.index();
+	});
+	// assumption 1: no duplicate pair of <n, d>
+	for(const auto& v : total_vector) {
+		auto n = v.second;
+		auto d = v.first;
+		auto e = state.world.decision_get_effect(d);
+		effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+		notification::post(state, notification::message{
+			[e, n, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(d));
+				text::add_line(state, contents, "msg_decision_2");
+				ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ d.index()));
+			},
+			"msg_decision_title",
+			n, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::decision
 		});
 	}
-	
 }
 
 float estimate_pop_party_support(sys::state& state, dcon::nation_id n, dcon::political_party_id pid) {
