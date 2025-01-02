@@ -7589,7 +7589,7 @@ void advance_mobilizations(sys::state& state) {
 										return new_army.id;
 									}();
 
-									while(available > 0 && to_mobilize > 0) {
+									while(available > 0 && to_mobilize > 0 && mob_infantry) {
 										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry);
 										state.world.regiment_set_org(new_reg, 0.1f);
 										state.world.regiment_set_experience(new_reg, std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience), 0.f, 1.f));

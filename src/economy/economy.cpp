@@ -873,6 +873,19 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 	return 0.f;
 }
 
+// Returns factory types for which commodity is an output good
+std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good) {
+	std::vector<dcon::factory_type_id> types;
+
+	for(auto t : state.world.in_factory_type) {
+		if(t.get_output() == output_good) {
+			types.push_back(t);
+		}
+	}
+
+	return types;
+}
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
