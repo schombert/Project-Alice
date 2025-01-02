@@ -2564,6 +2564,28 @@ void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues
 	
 }
 
+constexpr float max_pop_size = 4000000.f;
+
+template<typename vector_type, typename tag_type>
+inline vector_type pop_get_new_size(sys::state& state, tag_type ids) {
+	auto const loc = state.world.pop_get_province_from_pop_location(ids);
+	auto const owner = state.world.province_get_nation_from_province_ownership(loc);
+	auto const base_life_rating = ve::to_float(state.world.province_get_life_rating(loc));
+	auto const mod_life_rating = ve::min(base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
+	auto const lr_factor = ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+	auto const province_factor = lr_factor + state.defines.base_popgrowth;
+	auto const ln_factor = state.world.pop_get_life_needs_satisfaction(ids) - state.defines.life_need_starvation_limit;
+	auto const mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth)
+		+ state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	auto const total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+	auto const old_size = state.world.pop_get_size(ids);
+	// growth is capped at max_pop_size, however only natural growth, if the pop is already defined as more than that
+	// then it doesn't get capped, only when they die however
+	auto const new_size = ve::max(ve::min(old_size * total_factor + old_size, max_pop_size), 0.f);
+	auto const type = state.world.pop_get_poptype(ids);
+	return ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size);
+}
+
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	/*
 	Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the
@@ -2578,82 +2600,41 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
 	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 	*/
-
 	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
-		auto loc = state.world.pop_get_province_from_pop_location(ids);
-		auto owner = state.world.province_get_nation_from_province_ownership(loc);
-
-		auto base_life_rating = ve::to_float(state.world.province_get_life_rating(loc));
-		auto mod_life_rating = ve::min(
-				base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f),
-				40.0f);
-		auto lr_factor =
-				ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-		auto province_factor = lr_factor + state.defines.base_popgrowth;
-
-		auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
-
-		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
-		auto old_size = state.world.pop_get_size(ids);
-		auto new_size = old_size * total_factor + old_size;
-
-		auto type = state.world.pop_get_poptype(ids);
-
-		state.world.pop_set_size(ids,
-				ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size));
+		state.world.pop_set_size(ids, pop_get_new_size<ve::fp_vector>(state, ids));
 	});
 }
 
 float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
-	auto type = state.world.pop_get_poptype(ids);
-	if(type == state.culture_definitions.slaves)
-		return 0.0f;
-
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
-	auto owner = state.world.province_get_nation_from_province_ownership(loc);
-
-	auto base_life_rating = float(state.world.province_get_life_rating(loc));
-	auto mod_life_rating = std::min(
-			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
-	auto lr_factor =
-			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-	auto province_factor = lr_factor + state.defines.base_popgrowth;
-
-	auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
-
-	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
-	auto old_size = state.world.pop_get_size(ids);
-
-	return old_size * total_factor;
+	return pop_get_new_size<ve::fp_vector>(state, ids)[0] - state.world.pop_get_size(ids);
 }
-int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
+
+float get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
 	float t = 0.0f;
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
 		for(auto pop : prov.get_province().get_pop_location()) {
 			t += get_monthly_pop_increase(state, pop.get_pop());
 		}
 	}
-	return int64_t(t);
+	return t;
 }
 
-int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n) {
+float get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n) {
 	float t = 0.0f;
 	province::for_each_province_in_state_instance(state, n, [&](dcon::province_id prov) {
 		for(auto pop : state.world.province_get_pop_location(prov)) {
 			t += get_monthly_pop_increase(state, pop.get_pop());
 		}
 	});
-	return int64_t(t);
+	return t;
 }
 
-int64_t get_monthly_pop_increase(sys::state& state, dcon::province_id n) {
+float get_monthly_pop_increase(sys::state& state, dcon::province_id n) {
 	float t = 0.0f;
 	for(auto pop : state.world.province_get_pop_location(n)) {
 		t += get_monthly_pop_increase(state, pop.get_pop());
 	}
-	return int64_t(t);
+	return t;
 }
 
 void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
