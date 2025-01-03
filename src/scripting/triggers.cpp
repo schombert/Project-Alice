@@ -5731,7 +5731,7 @@ TRIGGER_FUNCTION(tf_party_position) {
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
-	constexpr alignas(64) static return_type(
+	constexpr static return_type(
 			CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&, primary_type, this_type, from_type) = {
 			tf_none<return_type, primary_type, this_type, from_type>,
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) tf_##name <return_type, primary_type, this_type, from_type>,
