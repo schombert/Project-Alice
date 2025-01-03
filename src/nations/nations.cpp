@@ -2955,10 +2955,19 @@ void update_crisis(sys::state& state) {
 			}
 
 			for(auto wg : state.crisis_attacker_wargoals) {
+				if(!wg.cb) {
+					break;
+				}
+				if(wg.cb == first_wg.cb && wg.state == first_wg.state && wg.wg_tag == first_wg.wg_tag && wg.secondary_nation == first_wg.secondary_nation) {
+					continue;
+				}
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}
 			for(auto wg : state.crisis_defender_wargoals) {
+				if(!wg.cb) {
+					break;
+				}
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}

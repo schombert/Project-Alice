@@ -23,7 +23,9 @@ bool is_console_command(command_type t) {
 }
 
 void add_to_command_queue(sys::state& state, payload& p) {
+#ifndef NDEBUG
 	assert(command::can_perform_command(state, p));
+#endif
 
 	switch(p.type) {
 	case command_type::notify_player_joins:
