@@ -890,7 +890,10 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				for(int32_t i = 0; i < int32_t(fac_range.end() - fac_range.begin()); i++) {
 					const auto fac = *(fac_range.begin() + i);
 					if(fac.get_factory().get_building_type() == pfac.get_factory().get_building_type()) {
-						pfac.get_factory().get_level() += fac.get_factory().get_level();
+						uint32_t old_level = uint32_t(pfac.get_factory().get_level());
+						uint32_t add_level = uint32_t(fac.get_factory().get_level());
+						uint32_t new_level = std::min(uint32_t(255), old_level + add_level);
+						pfac.get_factory().get_level() = uint8_t(new_level);
 						state.world.delete_factory(fac.get_factory().id);
 						--i;
 					}

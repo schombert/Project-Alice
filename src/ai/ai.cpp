@@ -1030,6 +1030,38 @@ void update_ai_ruling_party(sys::state& state) {
 	}
 }
 
+void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+	assert(desired_types.empty());
+	auto n = dcon::fatten(state.world, nid);
+	auto m = dcon::fatten(state.world, mid);
+
+	if(desired_types.empty()) {
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				auto& inputs = type.get_inputs();
+				bool lacking_input = false;
+				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(inputs.commodity_type[i]) {
+						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
+							lacking_input = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
+
+				if((output - input) / input > 10.f)
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
+}
+
 void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
@@ -1119,6 +1151,26 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	}
 }
 
+void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+	assert(desired_types.empty());
+	auto n = dcon::fatten(state.world, nid);
+	auto m = dcon::fatten(state.world, mid);
+	auto treasury = n.get_stockpiles(economy::money);
+
+	if(desired_types.empty()) {
+		for(auto type : state.world.in_factory_type) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type);
+
+				if((output - input) / input > 20.f)
+					desired_types.push_back(type.id);
+			} // END if building unlocked
+		}
+	}
+}
+
 void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
@@ -1198,20 +1250,22 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 		*/
 
-		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
-
-		if(economy::estimate_construction_spending(state, n) > 0.1f * base_income)
-			continue;
+		float treasury = n.get_stockpiles(economy::money);
+		float base_income = economy::estimate_daily_income(state, n);
+		float estimated_construction_costs = economy::estimate_construction_spending_from_budget(state, n, std::max(treasury, 1'000'000'000'000.f));
 
 		//if our army is too small, ignore buildings:
-		if(0.7 * n.get_recruitable_regiments() > n.get_active_regiments())
+		if(0.4f * n.get_recruitable_regiments() > n.get_active_regiments())
 			continue;
 
-		auto treasury = n.get_stockpiles(economy::money);
-		int32_t max_projects = std::max(8, int32_t(treasury / 64000.0f));
+		float budget = treasury * 0.5f + base_income - estimated_construction_costs * 2.f;
+		float additional_expenses = 0.f;
+		float days_prepaid = 10.f;
 		auto rules = n.get_combined_issue_rules();
 
-
+		if(budget < 0.f) {
+			continue;
+		}
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// prepare a list of states
@@ -1230,19 +1284,136 @@ void update_ai_econ_construction(sys::state& state) {
 					return a.index() < b.index();
 			});
 
+			// try to build
+			static::std::vector<dcon::factory_type_id> craved_types;
+
+			// desired types filled: try to construct or upgrade
+			if(!craved_types.empty()) {
+				if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
+
+				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
+					for(auto si : ordered_states) {
+
+						auto market = state.world.state_instance_get_market_from_local_market(si);
+
+						if(budget - additional_expenses <= 0.f)
+							break;
+
+						auto m = state.world.state_instance_get_market_from_local_market(si);
+						craved_types.clear();
+						get_state_craved_factory_types(state, n, m, craved_types);
+
+						// check -- either unemployed factory workers or no factory workers
+						auto pw_num = state.world.state_instance_get_demographics(si,
+								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+						pw_num += state.world.state_instance_get_demographics(si,
+								demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+						auto pw_employed = state.world.state_instance_get_demographics(si,
+								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+						pw_employed += state.world.state_instance_get_demographics(si,
+								demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+
+						if(pw_employed >= float(pw_num) * 2.5f && pw_num > 0.0f)
+							continue; // no spare workers
+
+						auto type_selection = craved_types[rng::get_random(state, uint32_t(n.id.index() + int32_t(budget))) % craved_types.size()];
+						assert(type_selection);
+
+						if(state.world.factory_type_get_is_coastal(type_selection) && !province::state_is_coastal(state, si))
+							continue;
+
+						bool already_in_progress = [&]() {
+							for(auto p : state.world.state_instance_get_state_building_construction(si)) {
+								if(p.get_type() == type_selection)
+									return true;
+							}
+							return false;
+							}();
+
+							if(already_in_progress)
+								continue;
+
+							// check: if present, try to upgrade
+							bool present_in_location = false;
+							bool under_cap = false;
+
+							province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+								for(auto fac : state.world.province_get_factory_location(p)) {
+									auto type = fac.get_factory().get_building_type();
+									if(type_selection == type) {
+										under_cap = fac.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market) < 0.9f;
+										present_in_location = true;
+										return;
+									}
+								}
+							});
+							if(under_cap) {
+								continue; // factory doesn't need to get larger
+							}
+
+							auto expected_item_cost = 0.f;
+							auto costs = state.world.factory_type_get_construction_costs(type_selection);
+							auto time = state.world.factory_type_get_construction_time(type_selection);
+							for(uint32_t i = 0; i < costs.set_size; ++i) {
+								if(costs.commodity_type[i]) {
+									expected_item_cost +=
+										costs.commodity_amounts[i]
+										* economy::price(state, market, costs.commodity_type[i])
+										/ float(time)
+										* days_prepaid;
+								} else {
+									break;
+								}
+							}
+
+							if(budget - additional_expenses - expected_item_cost <= 0.f)
+								continue;
+
+							if(present_in_location) {
+								if((rules & issue_rule::expand_factory) != 0) {
+									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+									new_up.set_is_pop_project(false);
+									new_up.set_is_upgrade(true);
+									new_up.set_type(type_selection);
+
+									additional_expenses += expected_item_cost;
+								}
+								continue;
+							}
+
+							// else -- try to build -- must have room
+							int32_t num_factories = economy::state_factory_count(state, si, n);
+							if(num_factories < int32_t(state.defines.factories_per_state)) {
+								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+								new_up.set_is_pop_project(false);
+								new_up.set_is_upgrade(false);
+								new_up.set_type(type_selection);
+								additional_expenses += expected_item_cost;
+								continue;
+							} else {
+								// TODO: try to delete a factory here
+							}
+					} // END for(auto si : ordered_states) {
+				} // END if((rules & issue_rule::build_factory) == 0)
+			} // END if(!desired_types.empty()) {
+
 			// try to upgrade factories first:
 			if((rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
 				for(auto si : ordered_states) {
-					if(max_projects <= 0)
+
+					auto market = state.world.state_instance_get_market_from_local_market(si);
+
+					if(budget - additional_expenses <= 0.f)
 						break;
 
 					province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 						for(auto fac : state.world.province_get_factory_location(p)) {
 							auto type = fac.get_factory().get_building_type();
 
+
 							auto unprofitable = fac.get_factory().get_unprofitable();
 							auto factory_level = fac.get_factory().get_level();
-							auto primary_employment = fac.get_factory().get_primary_employment();
+							auto primary_employment = fac.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market);
 
 							if(!unprofitable && factory_level < uint8_t(255) && primary_employment >= 0.9f) {
 								// test if factory is already upgrading
@@ -1254,14 +1425,31 @@ void update_ai_econ_construction(sys::state& state) {
 									}
 								}
 
+								auto expected_item_cost = 0.f;
+								auto& costs = state.world.factory_type_get_construction_costs(type);
+								auto& time = state.world.factory_type_get_construction_time(type);
+								for(uint32_t i = 0; i < costs.set_size; ++i) {
+									if(costs.commodity_type[i]) {
+										expected_item_cost +=
+											costs.commodity_amounts[i]
+											* economy::price(state, market, costs.commodity_type[i])
+											/ float(time)
+											* days_prepaid;
+									} else {
+										break;
+									}
+								}
+
+								if(budget - additional_expenses - expected_item_cost <= 0.f)
+									continue;
+
 								if(!ug_in_progress) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
 									new_up.set_is_upgrade(true);
 									new_up.set_type(type);
 
-									--max_projects;
-									//return;
+									additional_expenses += expected_item_cost;
 								}
 							}
 						}
@@ -1270,7 +1458,7 @@ void update_ai_econ_construction(sys::state& state) {
 			}
 
 			// try to build
-			static::std::vector<dcon::factory_type_id> desired_types;			
+			static::std::vector<dcon::factory_type_id> desired_types;
 
 			// desired types filled: try to construct or upgrade
 			if(!desired_types.empty()) {				
@@ -1278,7 +1466,10 @@ void update_ai_econ_construction(sys::state& state) {
 					
 				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
 					for(auto si : ordered_states) {
-						if(max_projects <= 0)
+
+						auto market = state.world.state_instance_get_market_from_local_market(si);
+
+						if(budget - additional_expenses <= 0.f)
 							break;
 
 						auto m = state.world.state_instance_get_market_from_local_market(si);
@@ -1298,7 +1489,7 @@ void update_ai_econ_construction(sys::state& state) {
 						if(pw_employed >= float(pw_num) * 2.5f && pw_num > 0.0f)
 							continue; // no spare workers
 
-						auto type_selection = desired_types[rng::get_random(state, uint32_t(n.id.index() + max_projects)) % desired_types.size()];
+						auto type_selection = desired_types[rng::get_random(state, uint32_t(n.id.index() + int32_t(budget))) % desired_types.size()];
 						assert(type_selection);
 
 						if(state.world.factory_type_get_is_coastal(type_selection) && !province::state_is_coastal(state, si))
@@ -1323,7 +1514,7 @@ void update_ai_econ_construction(sys::state& state) {
 							for(auto fac : state.world.province_get_factory_location(p)) {
 								auto type = fac.get_factory().get_building_type();
 								if(type_selection == type) {
-									under_cap = fac.get_factory().get_production_scale() < 0.9f || fac.get_factory().get_primary_employment() < 0.9f;
+									under_cap = fac.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market) < 0.9f;
 									present_in_location = true;
 									return;
 								}
@@ -1332,13 +1523,33 @@ void update_ai_econ_construction(sys::state& state) {
 						if(under_cap) {
 							continue; // factory doesn't need to get larger
 						}
+
+						auto expected_item_cost = 0.f;
+						auto costs = state.world.factory_type_get_construction_costs(type_selection);
+						auto time = state.world.factory_type_get_construction_time(type_selection);
+						for(uint32_t i = 0; i < costs.set_size; ++i) {
+							if(costs.commodity_type[i]) {
+								expected_item_cost +=
+									costs.commodity_amounts[i]
+									* economy::price(state, market, costs.commodity_type[i])
+									/ float(time)
+									* days_prepaid;
+							} else {
+								break;
+							}
+						}
+
+						if(budget - additional_expenses - expected_item_cost <= 0.f)
+							continue;
+
 						if(present_in_location) {
 							if((rules & issue_rule::expand_factory) != 0) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
 								new_up.set_is_upgrade(true);
 								new_up.set_type(type_selection);
-								--max_projects;
+
+								additional_expenses += expected_item_cost;
 							}
 							continue;
 						}
@@ -1350,7 +1561,7 @@ void update_ai_econ_construction(sys::state& state) {
 							new_up.set_is_pop_project(false);
 							new_up.set_is_upgrade(false);
 							new_up.set_type(type_selection);
-							--max_projects;
+							additional_expenses += expected_item_cost;
 							continue;
 						} else {
 							// TODO: try to delete a factory here
@@ -1360,20 +1571,21 @@ void update_ai_econ_construction(sys::state& state) {
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
+		if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
+			continue;
+
 		static std::vector<dcon::province_id> project_provs;
 		project_provs.clear();
 
 		// try naval bases
-		if(max_projects > 0) {
+		if(budget - additional_expenses >= 0.f) {
 			project_provs.clear();
 			for(auto o : n.get_province_ownership()) {
 				if(!o.get_province().get_is_coast())
 					continue;
 				if(n != o.get_province().get_nation_from_province_control())
-					continue;
-				// avoid overbuilding!
-				if(!province::has_naval_base_being_built(state, o.get_province()))
-					max_projects -= 4;
+					continue;				
+
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 				if(o.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
@@ -1386,8 +1598,9 @@ void update_ai_econ_construction(sys::state& state) {
 				if(max_local_lvl - current_lvl - min_build <= 0)
 					continue;
 
-				if(!province::has_naval_base_being_built(state, o.get_province()))
+				if(!province::has_naval_base_being_built(state, o.get_province())) {
 					project_provs.push_back(o.get_province().id);
+				}
 			}
 
 			auto cap = n.get_capital();
@@ -1401,12 +1614,34 @@ void update_ai_econ_construction(sys::state& state) {
 			});
 			if(!project_provs.empty()) {
 				auto si = state.world.province_get_state_membership(project_provs[0]);
+				auto market = state.world.state_instance_get_market_from_local_market(si);
+
+				// avoid overbuilding!
+
+				auto expected_item_cost = 0.f;
+				auto& costs = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost;
+				auto& time = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].time;
+				for(uint32_t i = 0; i < costs.set_size; ++i) {
+					if(costs.commodity_type[i]) {
+						expected_item_cost +=
+							costs.commodity_amounts[i]
+							* economy::price(state, market, costs.commodity_type[i])
+							/ float(time)
+							* days_prepaid;
+					} else {
+						break;
+					}
+				}
+
+				if(budget - additional_expenses - expected_item_cost <= 0.f)
+					continue;
+
 				if(si)
 					si.set_naval_base_is_taken(true);
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[0], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::naval_base));
-				max_projects -= 4;
+				additional_expenses += expected_item_cost;
 			}
 		}
 
@@ -1421,7 +1656,7 @@ void update_ai_econ_construction(sys::state& state) {
 			{ (rules & issue_rule::build_university) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
 		};
 		for(auto i = 0; i < 3; i++) {
-			if(econ_buildable[i].buildable && max_projects > 0) {
+			if(econ_buildable[i].buildable && budget - additional_expenses > 0) {
 				project_provs.clear();
 				for(auto o : n.get_province_ownership()) {
 					if(n != o.get_province().get_nation_from_province_control())
@@ -1446,27 +1681,48 @@ void update_ai_econ_construction(sys::state& state) {
 					else
 						return a.index() < b.index();
 				});
-				for(uint32_t j = 0; j < project_provs.size() && max_projects > 0; ++j) {
+				for(uint32_t j = 0; j < project_provs.size() && budget - additional_expenses > 0; ++j) {
+					auto sid = state.world.province_get_state_membership(project_provs[j]);
+					auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+					// avoid overbuilding!
+
+					auto expected_item_cost = 0.f;
+					auto& costs = state.economy_definitions.building_definitions[uint8_t(econ_buildable[i].type)].cost;
+					auto& time = state.economy_definitions.building_definitions[uint8_t(econ_buildable[i].type)].time;
+					for(uint32_t k = 0; k < costs.set_size; ++k) {
+						if(costs.commodity_type[k]) {
+							expected_item_cost +=
+								costs.commodity_amounts[k]
+								* economy::price(state, market, costs.commodity_type[k])
+								/ float(time)
+								* days_prepaid;
+						} else {
+							break;
+						}
+					}
+
+					if(budget - additional_expenses - expected_item_cost <= 0.f)
+						continue;
+
 					auto new_proj = fatten(state.world, state.world.force_create_province_building_construction(project_provs[j], n));
 					new_proj.set_is_pop_project(false);
 					new_proj.set_type(uint8_t(econ_buildable[i].type));
-					--max_projects;
+					additional_expenses += expected_item_cost;
 				}
 			}
 		}
 
+		if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
+			continue;
+
 		// try forts
-		if(max_projects > 0) {
+		if(budget - additional_expenses > 0.f) {
 			project_provs.clear();
 
 			for(auto o : n.get_province_ownership()) {
 				if(n != o.get_province().get_nation_from_province_control())
 					continue;
-
-				if(province::has_fort_being_built(state, o.get_province())) {
-					// if we are already building a fort, count it as a building choice to not let AI overspend money on forts
-					max_projects -= 2;
-				}
 
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
@@ -1493,11 +1749,37 @@ void update_ai_econ_construction(sys::state& state) {
 					return a.index() < b.index();
 			});
 
-			for(uint32_t i = 0; i < project_provs.size() && max_projects > 0; ++i) {
+			for(uint32_t i = 0; i < project_provs.size() && budget - additional_expenses > 0.f; ++i) {
+
+				auto sid = state.world.province_get_state_membership(project_provs[i]);
+				auto market = state.world.state_instance_get_market_from_local_market(sid.id);
+
+				// avoid overbuilding!
+
+				auto expected_item_cost = 0.f;
+				auto& costs = state.economy_definitions.building_definitions[uint8_t(economy::province_building_type::fort)].cost;
+				auto& time = state.economy_definitions.building_definitions[uint8_t(economy::province_building_type::fort)].time;
+				for(uint32_t k = 0; k < costs.set_size; ++k) {
+					if(costs.commodity_type[k]) {
+						expected_item_cost +=
+							costs.commodity_amounts[k]
+							* economy::price(state, market, costs.commodity_type[k])
+							* days_prepaid
+							* 100000.f;
+						// forts are very bad investment and demand volatile goods,
+						// so build them if AI is really rich and has no idea where how to spend money
+					} else {
+						break;
+					}
+				}
+
+				if(budget - additional_expenses - expected_item_cost <= 0.f)
+					continue;
+
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::fort));
-				max_projects -= 2;
+				additional_expenses += expected_item_cost;
 			}
 		}
 	}
@@ -3487,7 +3769,7 @@ void update_budget(sys::state& state) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 
-		n.set_construction_spending(25);
+		n.set_construction_spending(75);
 		
 		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);

@@ -167,8 +167,8 @@ void recalculate_markets_distance(sys::state& state) {
 				return military::state_naval_base_level(state, sid);
 			}, sids
 		));
-		auto civilian_port = population / 200'000.f;
-		auto throughput = 100.f + 1000.f * naval_base + 1000.f * civilian_port;
+
+		auto throughput = 100.f + 10000.f * naval_base + population;
 
 		state.world.market_set_max_throughput(markets, throughput);
 	});
@@ -905,14 +905,9 @@ void update_industrial_scores(sys::state& state) {
 					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			}
 			sum += nations::get_foreign_investment_as_gp(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
-	
 		}
-		float old_score = state.world.nation_get_industrial_score(n);
-		if(old_score == 0) {
-			state.world.nation_set_industrial_score(n, uint16_t(sum));
-		} else {
-			state.world.nation_set_industrial_score(n, uint16_t(0.1f * sum + 0.9f * old_score));
-		}
+
+		state.world.nation_set_industrial_score(n, uint16_t(sum));
 	});
 }
 

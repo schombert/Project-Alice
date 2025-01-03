@@ -4045,6 +4045,59 @@ object{
 		tag{ save }
 	}
 
+	property {
+		name{ labor_unskilled_price }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_supply }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_demand }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_demand_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_supply_sold }
+		type{ float }
+		tag{ save }
+	}
+
+
+	property {
+		name{ labor_skilled_price }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_supply }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_demand }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_demand_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_supply_sold }
+		type{ float }
+		tag{ save }
+	}
+
 	property{
 		name{ life_needs_costs }
 		type{ array{pop_type_id}{float} }
@@ -4403,6 +4456,16 @@ object {
 	property {
 		name{ full_profit }
 		type{ float }
+	}
+	property {
+		name{ output_cost_per_worker }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ input_cost_per_worker }
+		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ subsidized }

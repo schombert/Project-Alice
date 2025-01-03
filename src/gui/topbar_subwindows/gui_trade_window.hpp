@@ -1110,6 +1110,25 @@ inline table::column<dcon::market_id> market_consumption = {
 	}
 };
 
+inline table::column<dcon::market_id> market_stockpile = {
+	.sortable = true,
+	.header = "stockpile_market",
+	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto av = state.world.market_get_stockpile(a, good);
+		auto bv = state.world.market_get_stockpile(b, good);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
+		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
+		auto value = state.world.market_get_stockpile(id, good);
+		return text::format_float(value, 1);
+	}
+};
+
 inline table::column<dcon::market_id> market_price = {
 	.sortable = true,
 	.header = "price_market",
@@ -1625,7 +1644,7 @@ public:
 			std::vector<table::column<dcon::market_id>> columns = {
 				market_name,
 				market_price,
-				market_production, market_demand, market_consumption,
+				market_production, market_demand, market_consumption, market_stockpile,
 				market_artisan_profit, market_artisan_score
 			};
 			auto ptr = make_element_by_type<table::display<dcon::market_id>>(
