@@ -1372,7 +1372,20 @@ void budgetwindow_main_income_table_t::impl_change_page(sys::state & state, int3
 	}
 }
 void budgetwindow_main_income_table_t::change_page(sys::state & state, int32_t new_page){
+	bool lflip = new_page < page && page > 0;
+	bool rflip = new_page > page && page < max_page();
+	if(rflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
+	} else if(lflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
+	}
 	impl_change_page(state, new_page);	for(auto c : children) c->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release);
+	if(rflip || lflip) {
+		state.ui_animation.post_update_frame(state);
+	}
 }
 int32_t budgetwindow_main_income_table_t::max_page(){
 	return (open_page ? 1 : 0) + ((page_starts.size() <= 2) ? 0 : int32_t(page_starts.size() - 2)); 
@@ -1608,10 +1621,7 @@ ui::message_result budgetwindow_main_expenses_page_left_t::on_lbutton_down(sys::
 	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::expenses_page_left::lbutton_action
-	auto pos = ui::get_absolute_location(state, *main.expenses_table);
-	state.ui_animation.start_animation(state, pos.x, pos.y, main.expenses_table->base_data.size.x, main.expenses_table->base_data.size.y, ogl::animation::type::page_flip_left_rev, 3000);
 	main.expenses_table->change_page(state, main.expenses_table->page - 1);
-	state.ui_animation.post_update_frame(state);
 // END
 	return ui::message_result::consumed;
 }
@@ -1671,10 +1681,7 @@ ui::message_result budgetwindow_main_expenses_page_right_t::on_lbutton_down(sys:
 	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::expenses_page_right::lbutton_action
-	auto pos = ui::get_absolute_location(state, *main.expenses_table);
-	state.ui_animation.start_animation(state, pos.x, pos.y, main.expenses_table->base_data.size.x, main.expenses_table->base_data.size.y, ogl::animation::type::page_flip_left, 3000);
 	main.expenses_table->change_page(state, main.expenses_table->page + 1);
-	state.ui_animation.post_update_frame(state);
 // END
 	return ui::message_result::consumed;
 }
@@ -2011,7 +2018,20 @@ void budgetwindow_main_expenses_table_t::impl_change_page(sys::state & state, in
 	}
 }
 void budgetwindow_main_expenses_table_t::change_page(sys::state & state, int32_t new_page){
+	bool lflip = new_page < page && page > 0;
+	bool rflip = new_page > page && page < max_page();
+	if(rflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
+	} else if(lflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
+	}
 	impl_change_page(state, new_page);	for(auto c : children) c->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release);
+	if(rflip || lflip) {
+		state.ui_animation.post_update_frame(state);
+	}
 }
 int32_t budgetwindow_main_expenses_table_t::max_page(){
 	return (open_page ? 1 : 0) + ((page_starts.size() <= 2) ? 0 : int32_t(page_starts.size() - 2)); 

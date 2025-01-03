@@ -3,6 +3,7 @@
 #include "simple_fs.hpp"
 #include "fonts.hpp"
 #include "bmfont.hpp"
+#include "gui_element_base.hpp"
 
 namespace ogl {
 
@@ -1254,8 +1255,8 @@ void render_capture::ready(sys::state& state) {
 		glUseProgram(state.open_gl.ui_shader_program);
 		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
 		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
-		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(max_x));
-		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(max_y));
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(max_x) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(max_y) / state.user_settings.ui_scale);
 		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
 		glViewport(0, 0, max_x, max_y);
 		glDepthRange(-1.0f, 1.0f);
@@ -1269,8 +1270,8 @@ void render_capture::ready(sys::state& state) {
 		glUseProgram(state.open_gl.ui_shader_program);
 		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
 		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
-		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(max_x));
-		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(max_y));
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(max_x) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(max_y) / state.user_settings.ui_scale);
 		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
 		glViewport(0, 0, max_x, max_y);
 		glDepthRange(-1.0f, 1.0f);
@@ -1338,7 +1339,7 @@ void animation::render(sys::state& state) {
 		{
 			float extent = cos((percent) * 3.14159f / 2.0f);
 			render_subrect(state, float(x_pos), float(y_pos), float(x_size * extent), float(y_size),
-				float(x_pos) / float(start_state.max_x), float(y_pos) / float(start_state.max_y), float(x_size) / float(start_state.max_x), float(y_size) / float(start_state.max_y),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
 				start_state.get());
 		}
 			break;
@@ -1346,7 +1347,7 @@ void animation::render(sys::state& state) {
 		{
 			float extent = cos((percent) * 3.14159f / 2.0f);
 			render_subrect(state, float(x_pos + (x_size * (1.0f - extent))), float(y_pos), float(x_size * extent), float(y_size),
-				float(x_pos) / float(start_state.max_x), float(y_pos) / float(start_state.max_y), float(x_size) / float(start_state.max_x), float(y_size) / float(start_state.max_y),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
 				start_state.get());
 		}
 			break;
@@ -1354,40 +1355,40 @@ void animation::render(sys::state& state) {
 		{
 			float extent = cos((percent) * 3.14159f / 2.0f);
 			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size * extent),
-				float(x_pos) / float(start_state.max_x), float(y_pos) / float(start_state.max_y), float(x_size) / float(start_state.max_x), float(y_size) / float(start_state.max_y),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
 				start_state.get());
 		}
 			break;
 		case type::page_flip_left_rev:
 		{
 			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);
-			//render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
-			//	float(x_pos) / float(start_state.max_x), float(y_pos) / float(start_state.max_y), float(x_size) / float(start_state.max_x), float(y_size) / float(start_state.max_y),
-			//	start_state.get());
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
 			render_subrect(state, float(x_pos), float(y_pos), float(x_size * extent), float(y_size),
-				float(x_pos) / float(end_state.max_x), float(y_pos) / float(end_state.max_y), float(x_size) / float(end_state.max_x), float(y_size) / float(end_state.max_y),
+				float(x_pos) * state.user_settings.ui_scale / float(end_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(end_state.max_y), float(x_size) * state.user_settings.ui_scale / float(end_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(end_state.max_y),
 				end_state.get());
 		}
 			break;
 		case type::page_flip_right_rev:
 		{
 			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);
-			render_subrect(state, float(x_pos + (x_size * (1.0f - extent))), float(y_pos), float(x_size * extent), float(y_size),
-				float(x_pos) / float(start_state.max_x), float(y_pos) / float(start_state.max_y), float(x_size) / float(start_state.max_x), float(y_size) / float(start_state.max_y),
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
 				start_state.get());
-			render_subrect(state, float(x_pos), float(y_pos), float(x_size * extent), float(y_size),
-				float(x_pos) / float(end_state.max_x), float(y_pos) / float(end_state.max_y), float(x_size) / float(end_state.max_x), float(y_size) / float(end_state.max_y),
+			render_subrect(state, float(x_pos + (x_size * (1.0f - extent))), float(y_pos), float(x_size * extent), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(end_state.max_x), float(end_state.max_y - y_pos) * state.user_settings.ui_scale / float(end_state.max_y), float(x_size) * state.user_settings.ui_scale / float(end_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(end_state.max_y),
 				end_state.get());
 		}
 			break;
 		case type::page_flip_up_rev:
 		{
 			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);
-			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size * extent),
-				float(x_pos) / float(start_state.max_x), float(y_pos) / float(start_state.max_y), float(x_size) / float(start_state.max_x), float(y_size) / float(start_state.max_y),
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
 				start_state.get());
-			render_subrect(state, float(x_pos), float(y_pos), float(x_size * extent), float(y_size),
-				float(x_pos) / float(end_state.max_x), float(y_pos) / float(end_state.max_y), float(x_size) / float(end_state.max_x), float(y_size) / float(end_state.max_y),
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size * extent),
+				float(x_pos) * state.user_settings.ui_scale / float(end_state.max_x), float(end_state.max_y - y_pos) * state.user_settings.ui_scale / float(end_state.max_y), float(x_size) * state.user_settings.ui_scale / float(end_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(end_state.max_y),
 				end_state.get());
 		}
 			break;

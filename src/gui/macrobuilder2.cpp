@@ -1,4 +1,24 @@
 namespace alice_ui {
+struct macrobuilder2_main_close_button_t;
+struct macrobuilder2_main_header_text_t;
+struct macrobuilder2_main_template_list_t;
+struct macrobuilder2_main_unit_grid_t;
+struct macrobuilder2_main_list_page_left_t;
+struct macrobuilder2_main_list_page_right_t;
+struct macrobuilder2_main_grid_page_left_t;
+struct macrobuilder2_main_grid_page_right_t;
+struct macrobuilder2_main_list_page_number_t;
+struct macrobuilder2_main_grid_page_number_t;
+struct macrobuilder2_main_apply_button_t;
+struct macrobuilder2_main_t;
+struct macrobuilder2_list_item_select_button_t;
+struct macrobuilder2_list_item_delete_button_t;
+struct macrobuilder2_list_item_t;
+struct macrobuilder2_grid_item_unit_icon_t;
+struct macrobuilder2_grid_item_decrease_count_t;
+struct macrobuilder2_grid_item_increase_count_t;
+struct macrobuilder2_grid_item_current_count_t;
+struct macrobuilder2_grid_item_t;
 struct macrobuilder2_main_close_button_t : public ui::element_base {
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
@@ -596,8 +616,21 @@ int32_t macrobuilder2_main_template_list_t::max_page(){
 	return int32_t(values.size() - 1) / int32_t(visible_items.size());
 }
 void macrobuilder2_main_template_list_t::change_page(sys::state & state, int32_t new_page) {
+	bool lflip = new_page < page && page > 0;
+	bool rflip = new_page > page && page < max_page();
+	if(rflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
+	} else if(lflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
+	}
 	page = std::clamp(new_page, 0, max_page());
 	state.game_state_updated.store(true, std::memory_order::release);
+	if(rflip || lflip) {
+		impl_on_update(state);
+		state.ui_animation.post_update_frame(state);
+	}
 }
 ui::message_result macrobuilder2_main_template_list_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	change_page(state, page + ((amount < 0) ? 1 : -1));
@@ -658,8 +691,21 @@ int32_t macrobuilder2_main_unit_grid_t::max_page(){
 	return int32_t(values.size() - 1) / int32_t(visible_items.size());
 }
 void macrobuilder2_main_unit_grid_t::change_page(sys::state & state, int32_t new_page) {
+	bool lflip = new_page < page && page > 0;
+	bool rflip = new_page > page && page < max_page();
+	if(rflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_up, 200); 
+	} else if(lflip) {
+		auto pos = ui::get_absolute_location(state, *this);
+		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_up_rev, 200);
+	}
 	page = std::clamp(new_page, 0, max_page());
 	state.game_state_updated.store(true, std::memory_order::release);
+	if(rflip || lflip) {
+		impl_on_update(state);
+		state.ui_animation.post_update_frame(state);
+	}
 }
 ui::message_result macrobuilder2_main_unit_grid_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	change_page(state, page + ((amount < 0) ? 1 : -1));

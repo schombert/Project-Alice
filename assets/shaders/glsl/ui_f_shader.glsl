@@ -97,7 +97,9 @@ vec4 linegraph_color(vec2 tc) {
 }
 //layout(index = 21) subroutine(font_function_class)
 vec4 subsprite_c(vec2 tc) {
-	return texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z));
+	//return vec4(1.f, 1.f, 1.f, 1.f);
+	vec4 cc = texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z));
+	return vec4(cc.r, cc.g, cc.b, 1.0f);
 }
 
 //layout(index = 18) subroutine(font_function_class)
