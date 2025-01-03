@@ -109,6 +109,8 @@ enum class command_type : uint8_t {
 	set_factory_type_priority = 100,
 	crisis_add_wargoal = 101,
 	change_unit_type = 102,
+	take_province = 103,
+	grant_province = 104,
 
 	// network
 	notify_player_ban = 106,
@@ -830,6 +832,10 @@ void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled
 
 void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
+bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void execute_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);
 bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);

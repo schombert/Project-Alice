@@ -52,6 +52,45 @@ void set_default_issue_and_reform_options(sys::state& state) {
 	});
 }
 
+void reload_unlocked_commodities(sys::state& state, dcon::nation_id target_nation) {
+	state.world.for_each_commodity([&](dcon::commodity_id c_id) {
+		state.world.nation_set_unlocked_commodities(target_nation, c_id, false);
+	});
+
+	state.world.for_each_technology([&](dcon::technology_id t_id) {
+		auto tech_id = fatten(state.world, t_id);
+
+		if(!state.world.nation_get_active_technologies(target_nation, tech_id)) {
+			return;
+		}
+
+		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
+			if(tech_id.get_activate_building(id)) {
+				state.world.nation_set_active_building(target_nation, id, true);
+
+				auto output = state.world.factory_type_get_output(id);
+
+				state.world.nation_set_unlocked_commodities(target_nation, output, true);
+			}
+		});
+	});
+	state.world.for_each_invention([&](dcon::invention_id i_id) {
+		auto inv_id = fatten(state.world, i_id);
+
+		if(!state.world.nation_get_active_inventions(target_nation, inv_id)) {
+			return;
+		}
+
+		state.world.for_each_factory_type([&](dcon::factory_type_id id) {
+			if(inv_id.get_activate_building(id)) {
+				state.world.nation_set_active_building(target_nation, id, true);
+				auto output = state.world.factory_type_get_output(id);
+				state.world.nation_set_unlocked_commodities(target_nation, output, true);
+			}
+		});
+	});
+}
+
 void clear_existing_tech_effects(sys::state& state) {
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -62,6 +101,11 @@ void clear_existing_tech_effects(sys::state& state) {
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		state.world.execute_serial_over_nation([&](auto nation_indices) {
 			state.world.nation_set_active_building(nation_indices, id, ve::vbitfield_type{0});
+		});
+	});
+	state.world.for_each_commodity([&](dcon::commodity_id id) {
+		state.world.execute_serial_over_nation([&](auto nation_indices) {
+			state.world.nation_set_unlocked_commodities(nation_indices, id, ve::vbitfield_type{ 0 });
 		});
 	});
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
@@ -207,6 +251,10 @@ void repopulate_technology_effects(sys::state& state) {
 			});
 		}
 	});
+
+	for(auto n : state.world.in_nation) {
+		reload_unlocked_commodities(state, n);
+	}
 }
 
 void repopulate_invention_effects(sys::state& state) {
@@ -355,6 +403,10 @@ void repopulate_invention_effects(sys::state& state) {
 			});
 		}
 	});
+
+	for(auto n : state.world.in_nation) {
+		reload_unlocked_commodities(state, n);
+	}
 }
 
 void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id t_id) {
@@ -388,6 +440,10 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, true);
+
+			auto output = state.world.factory_type_get_output(id);
+
+			state.world.nation_set_unlocked_commodities(target_nation, output, true);
 		}
 	});
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
@@ -455,11 +511,15 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 		}
 	}
 	state.world.nation_get_permanent_colonial_points(target_nation) -= tech_id.get_colonial_points();
+	
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, false);
 		}
 	});
+
+	reload_unlocked_commodities(state, target_nation);
+
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)};
 		if(tech_id.get_activate_unit(uid)) {
@@ -537,6 +597,8 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(inv_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, true);
+			auto output = state.world.factory_type_get_output(id);
+			state.world.nation_set_unlocked_commodities(target_nation, output, true);
 		}
 	});
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
@@ -646,6 +708,9 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 			state.world.nation_set_active_building(target_nation, id, false);
 		}
 	});
+
+	reload_unlocked_commodities(state, target_nation);
+
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)};
 		if(inv_id.get_activate_unit(uid)) {

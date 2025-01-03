@@ -2053,8 +2053,7 @@ public:
 		everyday_needs_list->row_contents.clear();
 		luxury_needs_list->row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(nat_id, kf))) {
+			if(state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(nat_id, cid)) {
 				auto lfn = state.world.pop_type_get_life_needs(fat_id.get_poptype(), cid)
 					* fat_id.get_size()
 					/ state.defines.alice_needs_scaling_factor

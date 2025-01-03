@@ -641,6 +641,10 @@ class normal_factory_background : public opaque_element_base {
 
 		auto amount = (0.75f + 0.25f * min_e_input_available) * min_input_available * state.world.factory_get_production_scale(fid);
 
+		text::add_line(state, contents, state.world.factory_type_get_name(type));
+
+		text::add_line_break_to_layout(state, contents);
+
 		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
 
 		text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
@@ -903,7 +907,8 @@ public:
 		commodity_mod_description(state.world.nation_get_factory_goods_output(n, com), "tech_output", "tech_output");
 		commodity_mod_description(state.world.nation_get_rgo_goods_output(n, com), "tech_mine_output", "tech_farm_output");
 		commodity_mod_description(state.world.nation_get_rgo_size(n, com), "tech_mine_size", "tech_farm_size");
-		if(state.world.commodity_get_key_factory(com)) {
+		// If any factory has good as output
+		if(economy::commodity_get_factory_types_as_output(state, com).size() > 0) {
 			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_output, true);
 			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_factory_output, true);
 			active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_throughput, true);

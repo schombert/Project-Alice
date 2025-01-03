@@ -2384,8 +2384,7 @@ void budgetwindow_main_expenses_table_t::on_update(sys::state& state) noexcept {
 			for(uint32_t i = 1; i < total_commodities; ++i) {
 				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 
-				auto kf = state.world.commodity_get_key_factory(cid);
-				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(state.local_player_nation, kf)))) {
+				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(state.local_player_nation, cid))) {
 					auto amount =
 						overseas_factor * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid) * float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
 					add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount));

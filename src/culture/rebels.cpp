@@ -407,6 +407,8 @@ bool pop_is_compatible_with_rebel_faction(sys::state& state, dcon::pop_id p, dco
 		return false;
 	if(fac.get_type().get_ideology() && fac.get_type().get_ideology_restriction() && fac.get_type().get_ideology() != pop.get_dominant_ideology())
 		return false;
+	if(fac.get_type().get_ideology() && pop.get_province_from_pop_location().get_is_colonial())
+		return false;
 	return true;
 }
 

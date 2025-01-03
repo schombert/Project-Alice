@@ -34,6 +34,154 @@ int32_t total_ships(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
+bool is_infantry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	} else if(def.defence_or_hull == curbestdef.defence_or_hull && def.default_organisation > curbestdef.default_organisation) {
+		return true;
+	} else if(def.defence_or_hull == curbestdef.defence_or_hull && def.default_organisation == curbestdef.default_organisation && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	}
+	return false;
+}
+
+bool is_artillery_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto& curbestdef = state.military_definitions.unit_base_definitions[best];
+	auto& def = state.military_definitions.unit_base_definitions[given];
+
+	if(def.support > curbestdef.support) {
+		return true;
+	} else if(def.support == curbestdef.support && def.discipline_or_evasion > curbestdef.discipline_or_evasion) {
+		return true;
+	} else if(def.support == curbestdef.support && def.discipline_or_evasion == curbestdef.discipline_or_evasion && def.siege_or_torpedo_attack > curbestdef.siege_or_torpedo_attack) {
+		return true;
+	}
+	return false;
+}
+
+bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& basedef = state.military_definitions.unit_base_definitions[best];
+	auto& curbestdef = (curbeststats.discipline_or_evasion) ? curbeststats : basedef;
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& newbasedef = state.military_definitions.unit_base_definitions[given];
+	auto& def = (stats.discipline_or_evasion) ? stats : newbasedef;
+
+	if(def.reconnaissance_or_fire_range > curbestdef.reconnaissance_or_fire_range) {
+		return true;
+	} else if(def.reconnaissance_or_fire_range == curbestdef.reconnaissance_or_fire_range && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	} else if(def.reconnaissance_or_fire_range == curbestdef.reconnaissance_or_fire_range && def.attack_or_gun_power == curbestdef.attack_or_gun_power && basedef.maneuver > newbasedef.maneuver) {
+		return true;
+	}
+	return false;
+}
+
+dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+	auto nationname = text::produce_simple_string(state, state.world.national_identity_get_name(ndef));
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		if(def.type != military::unit_type::infantry) {
+			continue;
+		}
+		
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+
+		if(!available) {
+			continue;
+		}
+
+		if(def.primary_culture && !primary_culture) {
+			continue;
+		}
+
+		if(is_infantry_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+
+	state.console_log(nationname + " infantry type: " + std::to_string(curbest.index()));
+	return curbest;
+}
+
+dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto def = state.military_definitions.unit_base_definitions[uid];
+
+		if(def.type != military::unit_type::support) {
+			continue;
+		}
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+
+		if(!available) {
+			continue;
+		}
+
+		if(def.primary_culture && !primary_culture) {
+			continue;
+		}
+
+		if(is_artillery_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+
+		auto def = state.military_definitions.unit_base_definitions[uid];
+
+		if(def.type != military::unit_type::cavalry) {
+			continue;
+		}
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+
+		if(!available) {
+			continue;
+		}
+
+		if(def.primary_culture && !primary_culture) {
+			continue;
+		}
+
+		if(is_cavalry_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
 void reset_unit_stats(sys::state& state) {
 	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{dcon::unit_type_id::value_base_t(i)};
@@ -1316,7 +1464,7 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 
 	float country_population = state.world.nation_get_demographics(target, demographics::total);
 
-	return math::sqrt(country_population / (total_population / total_countries));
+	return std::clamp(math::sqrt(country_population / (total_population / total_countries)), 0.5f, 2.0f);
 }
 
 float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
@@ -1350,7 +1498,7 @@ float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::
 		}
 	}
 
-	return math::sqrt(state_population / (total_population / total_states));
+	return std::clamp(math::sqrt(state_population / (total_population / total_states)), 0.5f, 2.0f);
 }
 
 float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state) {
@@ -7406,7 +7554,7 @@ void advance_mobilizations(sys::state& state) {
 				auto back = schedule[s_size - 1];
 				if(state.current_date == back.when) {
 					schedule.pop_back();
-					bool mob_infantry = state.world.nation_get_active_unit(n, state.military_definitions.infantry);
+					auto mob_infantry = military::get_best_infantry(state, n);
 
 					// mobilize the province
 
@@ -7440,8 +7588,8 @@ void advance_mobilizations(sys::state& state) {
 										return new_army.id;
 									}();
 
-									while(available > 0 && to_mobilize > 0) {
-										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry ?state.military_definitions.infantry : state.military_definitions.irregular);
+									while(available > 0 && to_mobilize > 0 && mob_infantry) {
+										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry);
 										state.world.regiment_set_org(new_reg, 0.1f);
 										state.world.regiment_set_experience(new_reg, std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_unit_start_experience), 0.f, 1.f));
 										state.world.try_create_army_membership(new_reg, a);

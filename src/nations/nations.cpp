@@ -1723,6 +1723,9 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.for_each_factory_type([&](dcon::factory_type_id t) {
 		state.world.nation_set_active_building(n, t, state.world.nation_get_active_building(base, t));
 	});
+	state.world.for_each_commodity([&](dcon::commodity_id t) {
+		state.world.nation_set_unlocked_commodities(n, t, state.world.nation_get_unlocked_commodities(base, t));
+	});
 	state.world.nation_set_has_gas_attack(n, state.world.nation_get_has_gas_attack(base));
 	state.world.nation_set_has_gas_defense(n, state.world.nation_get_has_gas_defense(base));
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {

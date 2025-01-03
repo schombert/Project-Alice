@@ -750,6 +750,13 @@ state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
 state_transfer_explain_6;We have more than 1 state
+unit_upgrade_desc;Changes units to different type. After swap, unit strength is reduced to 1%
+unit_upgrade_explain_1;Either land or sea units are selected
+unit_upgrade_explain_2;Unit type is  unlocked
+unit_upgrade_explain_3;Small ships cannot be converted to big ones
+unit_upgrade_explain_4;Army is not retreating, in battle, or on transport ships
+unit_upgrade_explain_5;Navy is not retreating, in battle, or transports armies
+unit_upgrade_explain_6;Navy is docked in a naval base of sufficient level
 cancel_ally_explain_1;You can't cancel an alliance with yourself
 cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
 cancel_ally_explain_3;You're currently allied
@@ -1200,6 +1207,13 @@ alice_mvcap_9;The current capital not being sieged
 alice_mvcap_10;Is owned by you
 alice_mvcap_11;Is controlled by you
 alice_mvcap_12;Is owner core
+alice_take_province_1;Takes target province from the subject
+alice_take_province_2;This will give ?R$val$ years of nationalism?W to population of the state
+alice_take_province_3;This will give ?R$val$ militancy?W to population of the subject
+alice_take_province_4;This will give ?R$val$ militancy?W to population of other subjects
+alice_take_province_5;Is subject of player nation
+alice_take_province_6;Subject is not at war
+alice_take_province_7;Is controlled by subject
 alice_pnt_pops;?YPopulation:?! $x$
 alice_pnt_rpops;?YRich strata:?! $x$ ($y$)
 alice_pnt_mpops;?YMiddle strata:?! $x$ ($y$)

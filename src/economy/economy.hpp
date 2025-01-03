@@ -412,6 +412,8 @@ float base_artisan_profit(
 	dcon::commodity_id c
 );
 
+std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good);
+
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
@@ -513,7 +515,6 @@ bool can_take_loans(sys::state& state, dcon::nation_id n);
 float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
-commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
 
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
