@@ -1356,7 +1356,12 @@ void send_and_receive_commands(sys::state& state) {
 					continue;
 
 				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-					disconnect_client(state, client, true);
+					if(state.host_settings.alice_persistent_server_mode != 1) {
+						disconnect_client(state, client, true);
+					}
+					else {
+						clear_socket(state, client);
+					}
 				}
 			}
 		}
