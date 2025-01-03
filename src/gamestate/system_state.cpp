@@ -1081,6 +1081,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	current_scene.render_ui(*this);
 
 	root_elm->impl_render(*this, 0, 0);
+	ui_animation.render(*this);
 
 	if(ui_state.tooltip->is_visible()) {
 		//floating by mouse

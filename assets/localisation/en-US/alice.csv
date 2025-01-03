@@ -1345,3 +1345,5 @@ alice_budget_increase_button;Increase setting by 10 (hold shift for fine control
 alice_budget_max;Max $x$
 alice_budget_min;Min $x$
 alice_budget_overlord;Taxes to overlord
+alice_budget_expand_tt;Show detailed breakdown
+alice_budget_contract_tt;Hide detailed breakdown

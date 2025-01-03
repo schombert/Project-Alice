@@ -422,7 +422,7 @@ struct state {
 	xy_pair target_ul_bounds = xy_pair{ 0, 0 };
 	xy_pair target_lr_bounds = xy_pair{ 0, 0 };
 	int32_t last_tooltip_sub_index = -1;
-
+	
 	uint32_t cursor_size = 16;
 
 	xy_pair relative_mouse_location = xy_pair{0, 0};

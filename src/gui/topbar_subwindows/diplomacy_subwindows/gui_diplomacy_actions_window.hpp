@@ -1126,6 +1126,8 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 	bool get_can_perform(sys::state& state) noexcept {
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		switch(content) {
+		case diplomacy_action::crisis_add_wargoal:
+			return true;
 		case diplomacy_action::ally:
 			return command::can_ask_for_alliance(state, state.local_player_nation, target);
 		case diplomacy_action::cancel_ally:
@@ -1194,6 +1196,8 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		switch(content) {
+		case diplomacy_action::crisis_add_wargoal:
+			break;
 		case diplomacy_action::ally:
 			command::ask_for_alliance(state, state.local_player_nation, target);
 			break;

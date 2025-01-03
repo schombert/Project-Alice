@@ -95,6 +95,12 @@ vec4 subsprite_b(vec2 tc) {
 vec4 linegraph_color(vec2 tc) {
 	return vec4(inner_color, 1.0);
 }
+//layout(index = 21) subroutine(font_function_class)
+vec4 subsprite_c(vec2 tc) {
+	//return vec4(1.f, 1.f, 1.f, 1.f);
+	vec4 cc = texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z));
+	return vec4(cc.r, cc.g, cc.b, 1.0f);
+}
 
 //layout(index = 18) subroutine(font_function_class)
 vec4 transparent_color(vec2 tc) {
@@ -153,6 +159,7 @@ case 17: return linegraph_color(tc);
 case 18: return transparent_color(tc);
 case 19: return solid_color(tc);
 case 20: return alpha_color(tc);
+case 21: return subsprite_c(tc);
 default: break;
 	}
 	return vec4(0.f, 0.f, 1.f, 1.f);

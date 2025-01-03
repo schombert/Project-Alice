@@ -622,6 +622,7 @@ struct alignas(64) state {
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
 	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;          // platform-dependent sound information
 	ui::state ui_state;                                              // transient information for the state of the ui
+	ogl::animation ui_animation;
 	text::font_manager font_collection;
 
 	// synchronization data (between main update logic and ui thread)

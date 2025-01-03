@@ -190,18 +190,7 @@ void container_base::add_child_to_front(std::unique_ptr<element_base> child) noe
 		std::rotate(children.begin(), children.end() - 1, children.end());
 	}
 }
-void non_owning_container_base::add_child_to_front(element_base* child) noexcept {
-	child->parent = this;
-	children.emplace_back(std::move(child));
-	if(children.size() > 1) {
-		std::rotate(children.begin(), children.end() - 1, children.end());
-	}
-}
 void container_base::add_child_to_back(std::unique_ptr<element_base> child) noexcept {
-	child->parent = this;
-	children.emplace_back(std::move(child));
-}
-void non_owning_container_base::add_child_to_back(element_base* child) noexcept {
 	child->parent = this;
 	children.emplace_back(std::move(child));
 }

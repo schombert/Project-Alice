@@ -83,8 +83,6 @@ public:
 
 	void move_child_to_front(element_base* child) noexcept final;
 	void move_child_to_back(element_base* child) noexcept final;
-	void add_child_to_front(element_base* child) noexcept;
-	void add_child_to_back(element_base* child) noexcept;
 	element_base* get_child_by_index(sys::state const& state, int32_t index) noexcept final;
 };
 

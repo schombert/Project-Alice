@@ -971,8 +971,6 @@ public:
 template<class T>
 class subunit_entry_bg : public tinted_button_element_base {
 public:
-	uint32_t color = 0;
-
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
