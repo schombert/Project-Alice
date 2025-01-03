@@ -2651,7 +2651,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 	}
 }
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
-		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation) {
+ 		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation) {
 
 	if(sd) {
 		auto for_attacker = is_attacker(state, wfor, added_by);
