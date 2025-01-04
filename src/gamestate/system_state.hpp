@@ -474,8 +474,11 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 // so that bits of the ui, for example, can control the overall state of
 // the game
 
-struct alignas(64) state {
-	dcon::data_container world;
+/// <summary>
+/// Holds important data about the game world, state, and other data regarding windowing, audio, and more.
+/// </summary>
+struct alignas(64) state { 
+	dcon::data_container world; // Holds data regarding the game world. Also contains user locales.
 
 	// scenario data
 
@@ -512,7 +515,7 @@ struct alignas(64) state {
 	std::vector<great_nation> great_nations;
 
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
-	uint32_t scenario_counter = 0;		// as above
+	uint32_t scenario_counter = 0;		// for identifying the scenario file
 	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
