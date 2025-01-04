@@ -485,6 +485,18 @@ uint32_t state_naval_base_level(sys::state const& state, dcon::state_instance_id
 	return level;
 }
 
+uint32_t state_railroad_level(sys::state const& state, dcon::state_instance_id si) {
+	uint32_t level = 0;
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	auto def = state.world.state_instance_get_definition(si);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(def)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			level += p.get_province().get_building_level(uint8_t(economy::province_building_type::railroad));
+		}
+	}
+	return level;
+}
+
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();

@@ -168,7 +168,12 @@ void recalculate_markets_distance(sys::state& state) {
 			}, sids
 		));
 
-		auto throughput = 100.f + 10000.f * naval_base + population;
+		auto railroads = ve::to_float(ve::apply([&](auto sid) {
+			return military::state_railroad_level(state, sid);
+			}, sids
+		));
+
+		auto throughput = 100.f + 8000.f * naval_base + 1000.f * railroads + population / 50.f;
 
 		state.world.market_set_max_throughput(markets, throughput);
 	});

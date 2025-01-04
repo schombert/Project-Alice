@@ -657,14 +657,14 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.500000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.500000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.500000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.750000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.750000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.750000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_scaling_factor, 400000.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 10.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 8.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 300000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 1.95) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.04) \

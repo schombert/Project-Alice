@@ -1429,8 +1429,7 @@ void adjust_artisan_balance(
 		auto w = state.world.market_get_artisan_score(markets, cid);
 		auto current_employment = w * num_artisans;
 
-		auto supply = state.world.market_get_supply(markets, cid)
-			+ state.world.market_get_stockpile(markets, cid) * stockpile_to_supply + price_rigging;
+		auto supply = state.world.market_get_supply(markets, cid) + price_rigging;
 		auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
 
 		auto price_acceleration_from_additional_supply =
@@ -2054,33 +2053,79 @@ void update_factory_employment(sys::state& state) {
 		auto pid = state.world.factory_get_province_from_factory_location(facids);
 		auto sid = state.world.province_get_state_membership(pid);
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
+		auto factory_type = state.world.factory_get_building_type(facids);
+		auto output = state.world.factory_type_get_output(factory_type);
+
+		auto price_output = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
+			return state.world.market_get_price(market, cid) + price_rigging;
+		}, mid, output);
+
+		auto supply = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
+			return state.world.market_get_supply(market, cid) + price_rigging;
+		}, mid, output);
+
+		auto demand = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
+			return state.world.market_get_demand(market, cid) + price_rigging;
+		}, mid, output);
 
 		auto primary = state.world.factory_get_primary_employment(facids);
 		auto secondary = state.world.factory_get_secondary_employment(facids);
 
 		auto profit_push = state.world.factory_get_output_cost_per_worker(facids);
+		auto output_per_worker = profit_push / price_output;
 		auto spendings_push = state.world.factory_get_input_cost_per_worker(facids);
 		auto wage_unskilled = state.world.market_get_labor_unskilled_price(mid);
 		auto wage_skilled = state.world.market_get_labor_skilled_price(mid);
 
-		auto gradient_primary =
-			profit_push
-			* (
-				1.f
-				+ secondary * state.world.market_get_labor_skilled_demand_satisfaction(mid)
-				* ve::fp_vector{ economy::secondary_employment_output_bonus }
-			)
-			- spendings_push
-			- wage_unskilled
+		// this time we are content with very simple first order approximation
+
+		auto price_gradient_supply =
+			-price_speed_mod * (demand / supply / supply + 1 / demand);
+		auto price_gradient_time =
+			price_speed_mod * (demand / supply - supply / demand);
+
+		auto wage_unskilled_per_employment =
+			wage_unskilled
 			* ve::fp_vector{ state.defines.alice_factory_per_level_employment }
-			* (state.economy_definitions.craftsmen_fraction);
-		auto gradient_secondary =
-			primary * state.world.market_get_labor_unskilled_demand_satisfaction(mid)
-			* profit_push
-			* ve::fp_vector{ economy::secondary_employment_output_bonus }
-			- wage_skilled
+			* state.economy_definitions.craftsmen_fraction;
+		auto wage_skilled_per_employment =
+			wage_skilled
 			* ve::fp_vector{ state.defines.alice_factory_per_level_employment }
 			* (1.f - state.economy_definitions.craftsmen_fraction);
+
+		auto current_profit =
+			primary
+			* state.world.market_get_labor_unskilled_demand_satisfaction(mid)
+			* profit_push
+			* (
+				1.f
+				+ secondary
+				* state.world.market_get_labor_skilled_demand_satisfaction(mid)
+				* economy::secondary_employment_output_bonus
+			)
+			- primary * wage_unskilled_per_employment
+			- secondary * wage_skilled_per_employment;
+
+		float spendings_overestimation = 1.1f;
+
+		auto gradient_primary =
+			output_per_worker
+			* (price_output + price_gradient_supply * 10.f + price_gradient_time * 10.f)
+			* (
+				1.f
+				+ secondary
+				* state.world.market_get_labor_skilled_demand_satisfaction(mid)
+				* ve::fp_vector{ economy::secondary_employment_output_bonus }
+			)
+			- spendings_push * spendings_overestimation
+			- wage_unskilled_per_employment * spendings_overestimation;
+		auto gradient_secondary =
+			primary
+			* state.world.market_get_labor_unskilled_demand_satisfaction(mid)
+			* output_per_worker
+			* (price_output + price_gradient_supply * 10.f + price_gradient_time * 10.f)
+			* ve::fp_vector{ economy::secondary_employment_output_bonus }
+			- wage_skilled_per_employment * spendings_overestimation;
 
 		auto primary_next = primary
 			+ 0.0001f * gradient_primary
@@ -5093,7 +5138,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto trade_good_loss_mult = ve::max(0.f, 1.f - 0.0001f * distance);
 
 			// todo: transport cost should be variable?
-			auto transport_cost = distance * 0.005f;
+			auto transport_cost = distance * 0.0075f;
 
 			// effect of scale
 			// volume reduces transport costs
@@ -5591,7 +5636,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			float pi_budget = state.world.nation_get_private_investment(n);
 			auto pi_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
 			//cut away low values:
-			pi_scale = std::max(0.f, pi_scale - 0.1f);
+			//pi_scale = std::max(0.f, pi_scale - 0.1f);
 			state.world.nation_set_private_investment_effective_fraction(n, pi_scale);
 			state.world.nation_set_private_investment(n, std::max(0.0f, pi_budget - pi_total * pi_scale));
 
@@ -6141,7 +6186,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto effect_of_scale = ve::max(0.1f, 1.f - absolute_volume * 0.0005f);
 
 			// todo: transport cost should be variable?
-			auto transport_cost = distance * 0.005f * effect_of_scale;
+			auto transport_cost = distance * 0.0075f * effect_of_scale;
 
 			bool same_nation = n_origin == n_target;
 			auto sphere_origin = state.world.nation_get_in_sphere_of(n_origin);
@@ -6822,7 +6867,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
 			auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
 			auto speed_modifer = (overdemand_factor - oversupply_factor);
-			auto price_speed = 0.001f * speed_modifer;
+			auto price_speed = price_speed_mod * speed_modifer;
 			price_speed = price_speed * current_price;
 			current_price = current_price + price_speed;
 
