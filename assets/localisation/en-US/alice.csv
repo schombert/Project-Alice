@@ -1347,3 +1347,10 @@ alice_budget_min;Min $x$
 alice_budget_overlord;Taxes to overlord
 alice_budget_expand_tt;Show detailed breakdown
 alice_budget_contract_tt;Hide detailed breakdown
+alice_budget_admin_eff1;Admin.
+alice_budget_admin_eff2;Efficiency:
+alice_budget_chart_top;100%
+alice_budget_chart_bottom;0%
+alice_budget_chart_label;Welfare
+alice_budget_chart_laxis;Sat.
+alice_budget_chart_baxis;Population

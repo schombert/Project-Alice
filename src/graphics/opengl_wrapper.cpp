@@ -667,6 +667,29 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
+void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, float a, lines& l) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	l.bind_buffer();
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph_acolor };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, a);
+
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
+	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
+		glLineWidth(4.0f);
+		glUniform3f(state.open_gl.ui_shader_inner_color_uniform, 0.f, 0.f, 0.f);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+	}
+	glLineWidth(2.0f);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, r, g, b);
+	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+}
+
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		data_texture& t, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
@@ -701,7 +724,22 @@ void render_piechart(sys::state const& state, color_modification enabled, float 
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
+void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t) {
+	glBindVertexArray(state.open_gl.global_square_vao);
 
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, sizex, sizey);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::stripchart };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);

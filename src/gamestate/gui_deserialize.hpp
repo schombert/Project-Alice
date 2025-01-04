@@ -60,6 +60,9 @@ enum class aui_property : uint8_t {
 	table_internal_column_data = 35,
 	table_divider_color = 36,
 	table_has_per_section_headers = 37,
+	animation_type = 38,
+	datapoints = 39,
+	other_color = 40,
 };
 
 inline void bytes_to_windows(char const* bytes, size_t size, std::string const& project_name, ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes>& map) {
@@ -218,6 +221,8 @@ inline aui_element_data read_child_bytes(char const* bytes, size_t size) {
 		} else if(ptype == aui_property::alternate_bg) {
 			result.alt_texture = essential_child_section.read<std::string_view>();
 		} else if(ptype == aui_property::table_highlight_color) {
+			essential_child_section.read(result.table_highlight_color);
+		} else if(ptype == aui_property::other_color) {
 			essential_child_section.read(result.table_highlight_color);
 		} else if(ptype == aui_property::ascending_sort_icon) {
 			result.ascending_sort_icon =essential_child_section.read<std::string_view>();
