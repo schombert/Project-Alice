@@ -509,7 +509,7 @@ factory_stats_6;修正后的可用投入：;;;;;;;;;;;;x
 factory_stats_wage;工资：;;;;;;;;;;;;x
 factory_stats_expenses;总支出;;;;;;;;;;;;x
 factory_stats_desired_income;期望毛利润;;;;;;;;;;;;x
-speed;$val$千米每小时;;;;;;;;;;;;x
+speed;$val$ km/h;;;;;;;;;;;;x
 shift_to_hold_open;按住 ?Shift?! 保持本窗口打开, ?Y点击右shift?! 在每个州建造 (但不扩建);;;;;;;;;;;;x
 factory_upgrade_shortcuts;?YSHIFT+左键?W升级?G所有?!S在此地区的工厂\n?YSHIFT+右键?W升级?G所有盈利的?W在此地区的工厂\n?YCTRL+左键?W升级?G所有?W在此国的工厂\n?YCTRL+右键?W升级?G所有盈利的?W在此国的工厂\n?YCTRL+SHIFT+左键?W升级?G所有盈利且满员的?W在此地区的工厂\n?YCTRL+SHIFT+右键?W升级?G所有盈利且满员的?W在此地区的工厂;;;;;;;;;;;;x
 blank_org_gain;组织度获得;;;;;;;;;;;;x
@@ -883,10 +883,10 @@ unit_build_unit_brigades;$x$/$y$;;;;;;;;;;;;x
 uv_sort_a;攻击;;;;;;;;;;;;x
 uv_sort_b;防御;;;;;;;;;;;;x
 uv_sort_c;组织;;;;;;;;;;;;x
-uv_sort_d;摩尔;;;;;;;;;;;;x
+uv_sort_d;士气;;;;;;;;;;;;x
 uv_sort_e;速度;;;;;;;;;;;;x
 uv_sort_f;侦察;;;;;;;;;;;;x
-uv_sort_g;宗教;;;;;;;;;;;;x
+uv_sort_g;可靠;;;;;;;;;;;;x
 uv_sort_h;经验;;;;;;;;;;;;x
 alice_condition_diplo_points;他至少$x$外交点;;;;;;;;;;;;x
 alice_retreat;撤退来自战斗;;;;;;;;;;;;x
@@ -1015,7 +1015,7 @@ macro_select_province;请选一省在地图上;;;;;;;;;;;;x
 macro_warn_insuff;?R不能建造 $x$ $name$ (仅 $y$)?!;;;;;;;;;;;;x
 macro_warn_invalid_province;?R不属于此地区的省份?!;;;;;;;;;;;;x
 shortcut_tooltip;快捷键：?Y$x$?!;;;;;;;;;;;;x
-filter_all;选择?Y所有?!相关国家。;;;;;;;;;;;;x
+filter_all;选择?Y所有?!国家。;;;;;;;;;;;;x
 filter_allies;选择与我们有?Y同盟?!关系的国家。\n?Y右键点击?!以选择想要与我们结盟的国家。;;;;;;;;;;;;x
 filter_enemies;选择与我们?Y敌对或交战?!的国家。;;;;;;;;;;;;x
 filter_sphere;选择处于我们?Y势力范围?!的国家。\n?Y右键点击?!以选择我们正在影响但尚未处于我们势力范围的国家。;;;;;;;;;;;;x
@@ -1109,7 +1109,7 @@ mouse_left_click_mode_label;点击释放;;;;;;;;;;;;x
 alice_supply_limit_desc;补给上限：$x$;;;;;;;;;;;;x
 alice_factory_worker_1;雇佣：?G$x$?W;;;;;;;;;;;;x
 alice_factory_worker_2;失业：?R$x$?W;;;;;;;;;;;;x
-alice_rgo_unemployment_country_alert;以下地区有失业的农民和劳工:;;;;;;;;;;;;x
+alice_rgo_unemployment_country_alert;下列地区有失业者：;;;;;;;;;;;;x
 pop_promote_info_on_sel_2;$val$预计下月$who$将变动$where$;;;;;;;;;;;;x
 alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活条件功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y部队模板?W：使用我们的部队模板构建由不同兵种组成的部队模板\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W;;;;;;;;;;;;x
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除;;;;;;;;;;;;x
@@ -1128,7 +1128,7 @@ alice_mw_create_lpb;达到上限时，将会自动使用?Y领导力点数?W创�
 alice_mw_create_lp;我们需要?R$x$?W?Y领导力点数?W来添加;;;;;;;;;;;;x
 alice_mw_controls_1;?Y右键点击?W以提拔?G所有?W可能的陆军将领;;;;;;;;;;;;x
 alice_mw_controls_2;?Y右键点击?W以提拔?G所有?W可能的海军将领;;;;;;;;;;;;x
-alice_daily_leadership_tt;$poptype$给予?G$value$?W领导力点数（占人口的?Y$fraction$%?W，最佳为?Y$optimal$%?W）。溢出的领导力点数将会自动消耗以产生新的将领。;;;;;;;;;;;;x
+alice_daily_leadership_tt;$poptype$给予?G$value$?W领导力点数（占人口的?Y$fraction$?W，最佳为?Y$optimal$%?W）。溢出的领导力点数将会自动消耗以产生新的将领。;;;;;;;;;;;;x
 unit_current_supply;最近一天本部队接收到所需补给的?Y$val$%?W。\n我们可以从当前的补给消耗中获得的数量是：;;;;;;;;;;;;x
 unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l需求满足度);;;;;;;;;;;;x
 unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l需求满足度);;;;;;;;;;;;x
@@ -1151,7 +1151,7 @@ alice_political_party_no_trigger;只在?Y$date_long_0$?W到?Y$date_long_1$?W期�
 alice_ai_decision;AI选择这一决定的可能性将取决于：;;;;;;;;;;;;x
 alice_mobilized_is_ai_controlled;无论动员的单位如何，都将自动被AI控制;;;;;;;;;;;;x
 alice_ai_controlled_unit;启用/禁用此单位的AI控制，此单位将会：\n- 自动增援前线\n- 情况安全时自动围城\n- 猎杀叛军\n- 对我们可能攻击的国家形成防御姿态（由AI自由裁定，且只在和平时期生效）\n如果你想让此单位专注于一个特定的国家或地区，首先将其移动到此地区或国家附近，然后打开AI控制。因为AI会覆盖你的所有命令，直到你再次关闭它;;;;;;;;;;;;x
-alice_navy_allocation_tt;具有?Y$curr$?W艘船，我们统计了总的补给吞吐为 ?Y$tot$?W,且正需要?Y$req$?W 补给我们的船队，海军中每艘舰船所需的补给消费详细总结如下:;;;;;;;;;;;;x
+alice_navy_allocation_tt;现有?Y$curr$?W艘船，我们统计了补给总吞吐为 ?Y$tot$?W,且需要?Y$req$?W 补给我们的船队，海军中每艘舰船所需的补给消费：;;;;;;;;;;;;x
 alice_navy_allocation_2;$name$：?Y$value$?W (?Y$perc$?W);;;;;;;;;;;;x
 alice_wg_condition_1;作为防守方没有维持现状;;;;;;;;;;;;x
 alice_wg_condition_2;与我们交战;;;;;;;;;;;;x
@@ -1349,3 +1349,10 @@ alice_budget_min;最小 $x$;;;;;;;;;;;;x
 alice_budget_overlord;宗主税;;;;;;;;;;;;x
 alice_budget_expand_tt;显示详情;;;;;;;;;;;;x
 alice_budget_contract_tt;隐藏详情;;;;;;;;;;;;x
+alice_budget_admin_eff1;行政;;;;;;;;;;;;x
+alice_budget_admin_eff2;效率：;;;;;;;;;;;;x
+alice_budget_chart_top;100%;;;;;;;;;;;;x
+alice_budget_chart_bottom;0%;;;;;;;;;;;;x
+alice_budget_chart_label;福利;;;;;;;;;;;;x
+alice_budget_chart_laxis;;;;;;;;;;;;;x
+alice_budget_chart_baxis;人口;;;;;;;;;;;;x
