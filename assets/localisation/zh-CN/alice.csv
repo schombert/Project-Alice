@@ -366,7 +366,7 @@ has_recently_lost_war;最近输掉一场战争;;;;;;;;;;;;x
 has_not_recently_lost_war;最近没输掉一场战争;;;;;;;;;;;;x
 mobilized;动员;;;;;;;;;;;;x
 mobilization_size;动员规模;;;;;;;;;;;;x
-admin_spending;行政开支;;;;;;;;;;;;x
+admin_spending;行政支出;;;;;;;;;;;;x
 greater_than_edu_spending;大于教育支出;;;;;;;;;;;;x
 support_for_rp;执政党支持度;;;;;;;;;;;;x
 colonial;殖民;;;;;;;;;;;;x
@@ -385,9 +385,9 @@ percent_occupied;已占领省份比例;;;;;;;;;;;;x
 rich_tax;富裕阶层税收;;;;;;;;;;;;x
 middle_tax;中等阶层税收;;;;;;;;;;;;x
 poor_tax;贫困阶层税收;;;;;;;;;;;;x
-soc_spending;社会开支;;;;;;;;;;;;x
-edu_spending;教育开支;;;;;;;;;;;;x
-mil_spending;军费开支;;;;;;;;;;;;x
+soc_spending;社会支出;;;;;;;;;;;;x
+edu_spending;教育支出;;;;;;;;;;;;x
+mil_spending;军费支出;;;;;;;;;;;;x
 colonies;殖民地;;;;;;;;;;;;x
 dominant_ideology;主要意识形态;;;;;;;;;;;;x
 dominant_issue;主要政见;;;;;;;;;;;;x
@@ -943,8 +943,8 @@ monthly_immigration_lab;每月移民来自（前十名）;;;;;;;;;;;;x
 im_em_header;省份属于：;;;;;;;;;;;;x
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W 损耗;;;;;;;;;;;;x
 ol_unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
-unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$);;;;;;;;;;;;x
-unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$);;;;;;;;;;;;x
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ by $date$（攻击 $attunit$ 防御 $defunit$ 维护费?R$cost$?W）;;;;;;;;;;;;x
+unit_standing_text;$m$ $n$/$x$/$y$（攻击 $attunit$ 防御 $defunit$ 维护费 ?R$cost$?W）;;;;;;;;;;;;x
 disarmed_pop;一个被裁军的成员国;;;;;;;;;;;;x
 cancel_fac_construction;取消工厂建设;;;;;;;;;;;;x
 cancel_fac_upgrade;取消工厂升级;;;;;;;;;;;;x
@@ -1120,7 +1120,7 @@ console_button_tooltip;打开控制台;;;;;;;;;;;;x
 demobilize;遣散;;;;;;;;;;;;x
 mobilize;动员;;;;;;;;;;;;x
 alice_cb_creation_detail_none;请选择一项以开始伪造对$country$的宣战理由。;;;;;;;;;;;;x
-alice_cb_creation_detail;我们可以以?Y$type$?W为依据，伪造对抗$country$的宣战理由。这一过程将需要大约?Y$days$?W天，若被发现则会给予我们?R$badboy$?W恶名。;;;;;;;;;;;;x
+alice_cb_creation_detail;我们可以?Y$type$?W为依据，伪造针对$country$的宣战理由。这一过程将需要大约?Y$days$?W天，若被发现则会收到?R$badboy$?W恶名。;;;;;;;;;;;;x
 alice_mob_controls;?Y右击?W以再动员;;;;;;;;;;;;x
 alice_mw_create_1;提拔陆军将领;;;;;;;;;;;;x
 alice_mw_create_2;提拔海军将领;;;;;;;;;;;;x
@@ -1287,4 +1287,65 @@ trade_distance;路线距离;;;;;;;;;;;;x
 volume;容量;;;;;;;;;;;;x
 desired_volume;每日售出;;;;;;;;;;;;x
 max_throughput;运输上限;;;;;;;;;;;;x
-trade_margin;税后利润%;;;;;;;;;;;;x
+trade_margin;税后利润;;;;;;;;;;;;x
+unit_upgrade_desc;换到不同兵种。之后强度减少到1%;;;;;;;;;;;;x
+unit_upgrade_explain_1;此部队已被选择;;;;;;;;;;;;x
+unit_upgrade_explain_2;兵种可用;;;;;;;;;;;;x
+unit_upgrade_explain_3;小船不能变成大船;;;;;;;;;;;;x
+unit_upgrade_explain_4;军队在战斗或运输船上时不会撤退;;;;;;;;;;;;x
+unit_upgrade_explain_5;海军在战斗或运输陆军时不会撤退;;;;;;;;;;;;x
+unit_upgrade_explain_6;海军停靠在有足够等级的海军基地里;;;;;;;;;;;;x
+alice_cb_creation_detail_state;We will fabricate a casus belli against $country$ ($state$ state) with the reason of ?Y$type$?W. This process will take roughly about ?Y$days$ days?W, and being discovered will give us up to ?R$badboy$?W infamy.;;;;;;;;;;;;x
+alice_take_province_1;从其中获取目标省份;;;;;;;;;;;;x
+alice_take_province_2;当地民族主义者将得到?R$val$?W年;;;;;;;;;;;;x
+alice_take_province_3;其中人群将得到?R$val$?W斗争性;;;;;;;;;;;;x
+alice_take_province_4;其他人群将得到?R$val$?W斗争性;;;;;;;;;;;;x
+alice_take_province_5;是 玩家国的;;;;;;;;;;;;x
+alice_take_province_6;它不在战时;;;;;;;;;;;;x
+alice_take_province_7;它受控;;;;;;;;;;;;x
+investment_pool;投资池：?Y$x$?W;;;;;;;;;;;;x
+investment_pool_income_1;再投资：?G$x$?W;;;;;;;;;;;;x
+investment_pool_income_2;来自$country$：?G$x$W;;;;;;;;;;;;x
+investment_pool_spending_1;刺激支出：?R$x$?W;;;;;;;;;;;;x
+investment_pool_spending_2;建设支出：?R$x$?W;;;;;;;;;;;;x
+investment_pool_spending_3;转移到：?R$x$?W;;;;;;;;;;;;x
+DIPLO_RUN_CONFERENCE;举行会议;;;;;;;;;;;;x
+unit_reinforcement_needs;增援物资：;;;;;;;;;;;;x
+unit_supply_needs;每日支援：;;;;;;;;;;;;x
+unit_upgrade_button;改变兵种;;;;;;;;;;;;x
+subjectpayments_income;收款：?G$VAL$?W;;;;;;;;;;;;x
+subjectpayments_income_row;?G$VAL$?W 来自 ?Y$country$?W;;;;;;;;;;;;x
+subjectpayments_expense;付款：?R$VAL$?W;;;;;;;;;;;;x
+alice_unit_builder_apply_button;在所选省份建造;;;;;;;;;;;;x
+unit_macro_template_tooltip;部队模板;;;;;;;;;;;;x
+alice_factory_type_viewer_priority;研究重点;;;;;;;;;;;;x
+alice_factory_type_viewer_priority_national;国内研究重点：;;;;;;;;;;;;x
+alice_factory_type_viewer_priority_private;私人研究重点：;;;;;;;;;;;;x
+alice_factory_type_viewer_priority_bonus;输入（乘积）：;;;;;;;;;;;;x
+alice_commodity_tab;产品;;;;;;;;;;;;x
+alice_factory_type_tab;工厂类型;;;;;;;;;;;;x
+alice_player_date_sync;玩家 $name$ ($country$)，最后指令：$date$;;;;;;;;;;;;x
+alice_only_host_speed;只有主机可改速度;;;;;;;;;;;;x
+alice_host_date;主机日期：$date$;;;;;;;;;;;;x
+alice_budget_gold;金矿;;;;;;;;;;;;x
+alice_budget_construction;建设支出;;;;;;;;;;;;x
+alice_budget_army_upkeep;陆军支出;;;;;;;;;;;;x
+alice_budget_navy_upkeep;海军支出;;;;;;;;;;;;x
+alice_budget_domestic_investment;国内投资;;;;;;;;;;;;x
+alice_budget_debt_service;债务服务;;;;;;;;;;;;x
+alice_budget_diplo_income;外交;;;;;;;;;;;;x
+alice_budget_diplo_expenses;外交;;;;;;;;;;;;x
+alice_budget_taxes;税;;;;;;;;;;;;x
+alice_budget_indemnities;战争赔款;;;;;;;;;;;;x
+alice_budget_subjects;收入来自;;;;;;;;;;;;x
+alice_budget_item;项目;;;;;;;;;;;;x
+alice_budget_amount;数量;;;;;;;;;;;;x
+alice_budget_minimum_button;设最低值;;;;;;;;;;;;x
+alice_budget_maximum_button;设最大值;;;;;;;;;;;;x
+alice_budget_decrease_button;值少10（shift+以精确控制）;;;;;;;;;;;;x
+alice_budget_increase_button;值多10（shift+以精确控制）;;;;;;;;;;;;x
+alice_budget_max;最大 $x$;;;;;;;;;;;;x
+alice_budget_min;最小 $x$;;;;;;;;;;;;x
+alice_budget_overlord;宗主税;;;;;;;;;;;;x
+alice_budget_expand_tt;显示详情;;;;;;;;;;;;x
+alice_budget_contract_tt;隐藏详情;;;;;;;;;;;;x
