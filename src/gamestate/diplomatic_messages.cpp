@@ -373,6 +373,12 @@ void accept(sys::state& state, message const& m) {
 	}
 }
 
+/// <summary>
+/// Returns the appropriate acceptance evaluation for a given diplomatic message. It is required to define a new case and method for new diplomatic requests.
+/// </summary>
+/// <param name="state"></param>
+/// <param name="m"></param>
+/// <returns></returns>
 bool ai_will_accept(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.from) && state.cheat_data.always_accept_deals)
 		return true;
@@ -418,6 +424,11 @@ bool ai_will_accept(sys::state& state, message const& m) {
 	return false;
 }
 
+/// <summary>
+/// Pushes a diplomatic message to the list of pending diplomatic requests for the specified recipient (m.to), will simply skip and evaluate a response immediately if the recipient is AI-controlled.
+/// </summary>
+/// <param name="state"></param>
+/// <param name="m"></param>
 void post(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		if(ai_will_accept(state, m)) {
