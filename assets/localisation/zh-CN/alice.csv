@@ -1354,5 +1354,9 @@ alice_budget_admin_eff2;效率：;;;;;;;;;;;;x
 alice_budget_chart_top;100%;;;;;;;;;;;;x
 alice_budget_chart_bottom;0%;;;;;;;;;;;;x
 alice_budget_chart_label;福利;;;;;;;;;;;;x
-alice_budget_chart_laxis;;;;;;;;;;;;;x
+alice_budget_chart_laxis;需;;;;;;;;;;;;x
 alice_budget_chart_baxis;人口;;;;;;;;;;;;x
+alice_budget_debt;债务;;;;;;;;;;;;x
+alice_budget_total_debt;总计：;;;;;;;;;;;;x
+alice_budget_max_debt;最高：;;;;;;;;;;;;x
+alice_budget_debt_enable;启用;;;;;;;;;;;;x
