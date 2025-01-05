@@ -476,7 +476,7 @@ struct full_construction_province {
 };
 
 std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid);
-std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid);
+std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved);
 std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,

@@ -1302,12 +1302,14 @@ int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
 	}
 
 	// Debug lines
+#ifndef NDEBUG
 	auto fid2 = dcon::fatten(state.world, nation);
 	auto identity = fid.get_identity_from_identity_holder();
 	auto tagname = text::produce_simple_string(state, identity.get_name());
 	fid2 = dcon::fatten(state.world, greatest_neighbor);
 	identity = fid2.get_identity_from_identity_holder();
 	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
+#endif
 
 	return int16_t(std::clamp(total * double(factor), 0.1 * fid.get_recruitable_regiments(), 1.0 * fid.get_recruitable_regiments()));
 }
