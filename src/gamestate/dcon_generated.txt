@@ -4185,6 +4185,11 @@ object{
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+	property {
+		name{ tariff_collected }
+		type{ float }
+		tag{ save }
+	}
 
 	property{
 		name{ max_throughput }

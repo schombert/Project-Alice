@@ -437,6 +437,43 @@ float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodi
 float nation_total_imports(sys::state& state, dcon::nation_id n);
 float pop_income(sys::state& state, dcon::pop_id p);
 
+
+struct trade_and_tariff {
+	dcon::market_id origin;
+	dcon::market_id target;
+
+	dcon::nation_id origin_nation;
+	dcon::nation_id target_nation;
+
+	float amount_origin;
+	float amount_target;
+
+	float tariff_origin;
+	float tariff_target;
+
+	float tariff_rate_origin;
+	float tariff_rate_target;
+
+	float price_origin;
+	float price_target;
+
+	float transport_cost;
+	float transportaion_loss;
+	float distance;
+
+	float payment_per_unit;
+	float payment_received_per_unit;
+};
+
+trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
+struct trade_breakdown_item {
+	dcon::nation_id trade_partner;
+	dcon::commodity_id commodity;
+	float traded_amount;
+	float tariff;
+};
+std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dcon::nation_id n, bool import_flag, bool export_flag);
+
 float estimate_gold_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);

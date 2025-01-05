@@ -2259,6 +2259,28 @@ void budgetwindow_main_income_table_t::on_update(sys::state& state) noexcept {
 		}
 	}
 	add_insert_section_header(state, budget_categories::tariffs);
+	if(budget_categories::expanded[budget_categories::tariffs]) {
+		//add_value()
+		auto totals = economy::explain_national_tariff(state, state.local_player_nation, true, true);
+		for(auto& item : totals) {
+			add_value(std::pair<std::string, float>(
+				text::produce_simple_string(state,
+					state.world.national_identity_get_name(
+						state.world.nation_get_identity_from_identity_holder(item.trade_partner)
+					)
+				)
+				+
+				" ("
+				+ 
+				text::produce_simple_string(state,
+					state.world.commodity_get_name(item.commodity)
+				)
+				+
+				")",
+				item.tariff
+			));
+		}
+	}
 	add_insert_section_header(state, budget_categories::diplomatic_income);
 	if(budget_categories::expanded[budget_categories::diplomatic_income]) {
 		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "warsubsidies_button"), economy::estimate_war_subsidies_income(state, state.local_player_nation)));

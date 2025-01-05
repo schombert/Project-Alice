@@ -85,7 +85,7 @@ void province_national_focus_button::button_action(sys::state& state) noexcept {
 	province_window->nf_win->set_visible(state, !province_window->nf_win->is_visible());
 }
 
-float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_route_id route, dcon::commodity_id c) {
+float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::commodity_id c) {
 	auto current_volume = state.world.trade_route_get_volume(route, c);
 	auto A = state.world.trade_route_get_connected_markets(route, 0);
 	auto B = state.world.trade_route_get_connected_markets(route, 1);

@@ -5544,7 +5544,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto same_nation = n_A == n_B;
 			auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
 			auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
-			auto same_sphere = (n_A == sphere_B) || (n_B == sphere_A) || (sphere_A == sphere_B);
+			auto same_sphere = (n_A == sphere_B) || (n_B == sphere_A) || (sphere_A == sphere_B && (sphere_A != dcon::nation_id{}) && (sphere_B != dcon::nation_id{}));
 
 			auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.f + economy::merchant_cut_domestic }, ve::fp_vector{ 1.f + economy::merchant_cut_foreign });
 
@@ -6579,72 +6579,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 
 		state.world.for_each_trade_route([&](auto trade_route) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-			auto origin =
-				current_volume > 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
-			auto target =
-				current_volume <= 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
 
-			auto sat =
-				state.world.market_get_direct_demand_satisfaction(origin, cid)
-				* std::min(1.f, state.world.market_get_supply_sold_ratio(target, cid) + 100.f / (price(state, origin, cid) + price(state, target, cid)));
-			// we need just a bit of trade going on always just so factories could demand
-			// otherwise everything stops: factories demand 0, so supply sold ratio is 0 and trade doesn't happen
-			auto absolute_volume = sat * std::abs(current_volume);
-			auto s_origin = state.world.market_get_zone_from_local_market(origin);
-			auto s_target = state.world.market_get_zone_from_local_market(target);
-			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
-			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+			state.world.market_get_export(route_data.origin, cid) += route_data.amount_origin;
+			state.world.market_get_import(route_data.target, cid) += route_data.amount_target;
+			state.world.market_get_stockpile(route_data.origin, economy::money) += route_data.amount_origin * route_data.payment_received_per_unit;
+			state.world.market_get_stockpile(route_data.target, economy::money) -= route_data.amount_origin * route_data.payment_per_unit;
+			state.world.market_get_tariff_collected(route_data.origin) += route_data.tariff_origin;
+			state.world.market_get_tariff_collected(route_data.target) += route_data.tariff_target;
 
-			auto distance = state.world.trade_route_get_distance(trade_route);
-
-			auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
-
-			// effect of scale
-			// volume reduces transport costs
-			auto effect_of_scale = ve::max(0.1f, 1.f - absolute_volume * 0.0005f);
-
-			// todo: transport cost should be variable?
-			auto transport_cost = distance * 0.0075f * effect_of_scale;
-
-			bool same_nation = n_origin == n_target;
-			auto sphere_origin = state.world.nation_get_in_sphere_of(n_origin);
-			auto sphere_target = state.world.nation_get_in_sphere_of(n_target);
-			auto same_sphere = (n_origin == sphere_target) || (n_target == sphere_origin) || (sphere_origin == sphere_target);
-
-			auto import_tariff = ve::select(same_nation || same_sphere, 0.f, tariff_buffer.get(n_target));
-			auto export_tariff = ve::select(same_nation || same_sphere, 0.f, tariff_buffer.get(n_origin));
-
-			state.world.market_get_stockpile(target, cid) += absolute_volume * trade_good_loss_mult;
-
-			if(n_origin != n_target) {
-				float price_to_pay =
-					price(state, origin, cid)
-					* (1.f + export_tariff)
-					* (1 + economy::merchant_cut_foreign)
-					+ price(state, target, cid)
-					* import_tariff;
-					//+ transport_cost;
-
-				state.world.market_get_export(origin, cid) += absolute_volume;
-				state.world.market_get_import(target, cid) += absolute_volume * trade_good_loss_mult;
-				state.world.market_get_stockpile(origin, economy::money) += absolute_volume * economy::merchant_cut_foreign * price(state, origin, cid);
-				state.world.market_get_stockpile(target, economy::money) -= absolute_volume * price_to_pay;
-				assert(std::isfinite(state.world.market_get_export(origin, cid)));
-				assert(std::isfinite(state.world.market_get_import(origin, cid)));
-			} else {
-				float price_to_pay =
-					price(state, origin, cid)
-					* (1 + economy::merchant_cut_domestic);
-					//+ transport_cost;
-
-				state.world.market_get_stockpile(origin, economy::money) += absolute_volume * economy::merchant_cut_domestic * price(state, origin, cid);
-				state.world.market_get_stockpile(target, economy::money) -= absolute_volume * price_to_pay;
-			}
+			assert(std::isfinite(state.world.market_get_export(route_data.origin, cid)));
+			assert(std::isfinite(state.world.market_get_import(route_data.target, cid)));
 		});
 	});
 
@@ -7096,7 +7041,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			collect tariffs
 			*/
 
-			auto tariff_rate = effective_tariff_rate(state, n);
 			float t_total = 0.0f;
 
 			for(auto si : state.world.nation_get_state_ownership(n)) {
@@ -7104,17 +7048,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				float rgo_owner_profit = 0.f;
 
 				auto market = si.get_state().get_market_from_local_market();
-				for(uint32_t k = 1; k < total_commodities; ++k) {
-					dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
-					t_total +=
-						state.world.market_get_price(market, cid)
-						* tariff_rate
-						* state.world.market_get_import(market, cid);
-					t_total +=
-						state.world.market_get_price(market, cid)
-						* tariff_rate
-						* state.world.market_get_export(market, cid);
-				}
+				t_total += state.world.market_get_tariff_collected(market);
+				state.world.market_set_tariff_collected(market, 0.f);
 			}
 
 			assert(std::isfinite(t_total));
@@ -7755,6 +7690,191 @@ float pop_income(sys::state& state, dcon::pop_id p) {
 	}
 }
 
+trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid) {
+	auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+	auto origin =
+		current_volume > 0.f
+		? state.world.trade_route_get_connected_markets(trade_route, 0)
+		: state.world.trade_route_get_connected_markets(trade_route, 1);
+	auto target =
+		current_volume <= 0.f
+		? state.world.trade_route_get_connected_markets(trade_route, 0)
+		: state.world.trade_route_get_connected_markets(trade_route, 1);	
+
+	auto s_origin = state.world.market_get_zone_from_local_market(origin);
+	auto s_target = state.world.market_get_zone_from_local_market(target);
+	auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+	auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+	bool same_nation = n_origin == n_target;
+	auto sphere_origin = state.world.nation_get_in_sphere_of(n_origin);
+	auto sphere_target = state.world.nation_get_in_sphere_of(n_target);
+	auto same_sphere = (n_origin == sphere_target) || (n_target == sphere_origin) || (sphere_origin == sphere_target && sphere_origin && sphere_target);
+
+	auto sat =
+		state.world.market_get_direct_demand_satisfaction(origin, cid)
+		* std::min(1.f, state.world.market_get_supply_sold_ratio(target, cid) + 100.f / (price(state, origin, cid) + price(state, target, cid)));
+	auto absolute_volume = sat * std::abs(current_volume);
+	auto distance = state.world.trade_route_get_distance(trade_route);
+
+	auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+	auto import_amount = absolute_volume * trade_good_loss_mult;
+
+	auto effect_of_scale = std::max(0.1f, 1.f - absolute_volume * 0.0005f);
+	auto transport_cost = distance * 0.0075f * effect_of_scale;
+
+	auto export_tariff = effective_tariff_rate(state, n_origin);
+	auto import_tariff = effective_tariff_rate(state, n_target);
+
+	auto price_origin = price(state, origin, cid);
+	auto price_target = price(state, target, cid);	
+
+	if(same_nation) {
+		return {
+			.origin = origin,
+			.target = target,
+			.origin_nation = n_origin,
+			.target_nation = n_target,
+
+			.amount_origin = absolute_volume,
+			.amount_target = import_amount,
+
+			.tariff_origin = 0.f,
+			.tariff_target = 0.f,
+
+			.tariff_rate_origin = 0.f,
+			.tariff_rate_target = 0.f,
+
+			.price_origin = price_origin,
+			.price_target = price_target,
+
+			.transport_cost = transport_cost,
+			.transportaion_loss = trade_good_loss_mult,
+			.distance = distance,
+
+			.payment_per_unit = price_origin * (1 + economy::merchant_cut_domestic) + transport_cost,
+			.payment_received_per_unit = price_origin * (1 + economy::merchant_cut_domestic)
+		};
+	} else if(same_sphere) {
+		return {
+			.origin = origin,
+			.target = target,
+			.origin_nation = n_origin,
+			.target_nation = n_target,
+
+			.amount_origin = absolute_volume,
+			.amount_target = import_amount,
+			.tariff_origin = 0.f,
+			.tariff_target = 0.f,
+
+			.tariff_rate_origin = 0.f,
+			.tariff_rate_target = 0.f,
+
+			.price_origin = price_origin,
+			.price_target = price_target,
+
+			.transport_cost = transport_cost,
+			.transportaion_loss = trade_good_loss_mult,
+			.distance = distance,
+
+			.payment_per_unit = price_origin * (1 + economy::merchant_cut_foreign) + transport_cost,
+			.payment_received_per_unit = price_origin * (1 + economy::merchant_cut_foreign)
+		};
+	} else {
+		return {
+			.origin = origin,
+			.target = target,
+			.origin_nation = n_origin,
+			.target_nation = n_target,
+
+			.amount_origin = absolute_volume,
+			.amount_target = import_amount,
+			.tariff_origin = absolute_volume * price_origin * export_tariff,
+			.tariff_target = import_amount * price_target * import_tariff,
+
+			.tariff_rate_origin = export_tariff,
+			.tariff_rate_target = import_tariff,
+
+			.price_origin = price_origin,
+			.price_target = price_target,
+
+			.transport_cost = transport_cost,
+			.transportaion_loss = trade_good_loss_mult,
+			.distance = distance,
+
+			.payment_per_unit = price_origin
+				* (1.f + export_tariff)
+				* (1 + economy::merchant_cut_foreign)
+				+ price(state, target, cid)
+				* import_tariff
+				+ transport_cost,
+			.payment_received_per_unit = price_origin * (1 + economy::merchant_cut_foreign)
+		};
+	}	
+}
+
+// DO NOT USE OUTSIDE OF UI
+std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dcon::nation_id n, bool import_flag, bool export_flag) {
+	std::vector<trade_breakdown_item> result;
+	auto buffer_volume_per_nation = state.world.nation_make_vectorizable_float_buffer();
+	auto buffer_tariff_per_nation = state.world.nation_make_vectorizable_float_buffer();
+
+	//auto other_volume = 0.f;
+	//auto other_tariff = 0.f;
+
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		state.world.execute_serial_over_nation([&](auto nids) {
+			buffer_volume_per_nation.set(nids, 0.f);
+			buffer_tariff_per_nation.set(nids, 0.f);
+		});
+
+		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
+			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
+			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
+				trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
+
+				if(!export_flag) {
+					if(route_data.origin == mid) {
+						return;
+					}
+				}
+
+				if(!import_flag) {
+					if(route_data.target == mid) {
+						return;
+					}
+				}
+
+				if(import_flag && route_data.target == mid) {
+					buffer_volume_per_nation.get(route_data.origin_nation) += route_data.amount_target;
+					buffer_tariff_per_nation.get(route_data.origin_nation) += route_data.tariff_target;
+				}
+
+				if(export_flag && route_data.origin == mid) {
+					buffer_volume_per_nation.get(route_data.target_nation) += route_data.amount_origin;
+					buffer_tariff_per_nation.get(route_data.target_nation) += route_data.tariff_origin;
+				}
+			});
+		});
+
+		state.world.for_each_nation([&](auto nid) {
+			trade_breakdown_item item = {
+				.trade_partner = nid,
+				.commodity = cid,
+				.traded_amount = buffer_volume_per_nation.get(nid),
+				.tariff = buffer_tariff_per_nation.get(nid)
+			};
+
+			if(item.traded_amount == 0.f || item.tariff < 0.001f) {
+				return;
+			}
+
+			result.push_back(item);
+		});
+	});
+
+	return result;
+}
+
 float estimate_gold_income(sys::state& state, dcon::nation_id n) {
 	auto amount = 0.f;
 	for(auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
@@ -7855,6 +7975,7 @@ float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, cultur
 		return state.world.nation_get_total_rich_income(n) * nations::tax_efficiency(state, n);
 	}
 }
+
 
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_subsidies_spending(n);

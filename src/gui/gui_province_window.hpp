@@ -2480,7 +2480,7 @@ inline table::column<dcon::trade_route_id> trade_route_6 = {
 	.has_tooltip = true,
 };
 
-float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_route_id route, dcon::commodity_id c);
+float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::commodity_id c);
 
 inline table::column<dcon::trade_route_id> trade_route_7 = {
 	.sortable = true,
@@ -2488,8 +2488,8 @@ inline table::column<dcon::trade_route_id> trade_route_7 = {
 	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
 		auto local_market = retrieve<dcon::market_id>(state, container);
 
-		auto value_a = trade_route_profit(state, local_market, a, retrieve<dcon::commodity_id>(state, container));
-		auto value_b = trade_route_profit(state, local_market, b, retrieve<dcon::commodity_id>(state, container));
+		auto value_a = trade_route_profit(state, a, retrieve<dcon::commodity_id>(state, container));
+		auto value_b = trade_route_profit(state, b, retrieve<dcon::commodity_id>(state, container));
 
 		if(value_a != value_b)
 			return value_a > value_b;
@@ -2498,7 +2498,7 @@ inline table::column<dcon::trade_route_id> trade_route_7 = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
 		auto local_market = retrieve<dcon::market_id>(state, container);
-		return text::format_percentage(trade_route_profit(state, local_market, item, retrieve<dcon::commodity_id>(state, container)));
+		return text::format_percentage(trade_route_profit(state, item, retrieve<dcon::commodity_id>(state, container)));
 	}
 };
 
