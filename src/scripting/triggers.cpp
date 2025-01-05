@@ -4821,7 +4821,7 @@ TRIGGER_FUNCTION(tf_flashpoint_tension_province) {
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_crisis_exist) {
-	return compare_to_true(tval[0], ws.current_crisis_state == sys::crisis_state::inactive);
+	return compare_to_true(tval[0], ws.current_crisis_state != sys::crisis_state::inactive);
 }
 TRIGGER_FUNCTION(tf_is_liberation_crisis) {
 
