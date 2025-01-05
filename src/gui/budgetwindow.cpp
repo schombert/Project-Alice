@@ -25,6 +25,9 @@ struct budgetwindow_main_chart_needslabel_t;
 struct budgetwindow_main_welfare_chart_poor_t;
 struct budgetwindow_main_welfare_chart_middle_t;
 struct budgetwindow_main_welfare_chart_rich_t;
+struct budgetwindow_main_hover_poor_t;
+struct budgetwindow_main_hover_middle_t;
+struct budgetwindow_main_hover_rich_t;
 struct budgetwindow_main_t;
 struct budgetwindow_section_header_label_t;
 struct budgetwindow_section_header_llbutton_t;
@@ -910,6 +913,108 @@ struct budgetwindow_main_welfare_chart_rich_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct budgetwindow_main_hover_poor_t : public ui::element_base {
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_hover_middle_t : public ui::element_base {
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_hover_rich_t : public ui::element_base {
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct budgetwindow_section_header_label_t : public ui::element_base {
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
@@ -1202,6 +1307,9 @@ struct budgetwindow_main_t : public ui::container_base {
 	budgetwindow_main_welfare_chart_poor_t* welfare_chart_poor = nullptr;
 	budgetwindow_main_welfare_chart_middle_t* welfare_chart_middle = nullptr;
 	budgetwindow_main_welfare_chart_rich_t* welfare_chart_rich = nullptr;
+	budgetwindow_main_hover_poor_t* hover_poor = nullptr;
+	budgetwindow_main_hover_middle_t* hover_middle = nullptr;
+	budgetwindow_main_hover_rich_t* hover_rich = nullptr;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -3362,6 +3470,180 @@ void budgetwindow_main_welfare_chart_rich_t::on_create(sys::state& state) noexce
 // BEGIN main::welfare_chart_rich::create
 // END
 }
+void budgetwindow_main_hover_poor_t::on_hover(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_poor::on_hover
+	main.welfare_chart_middle->line_color.a = 0.2f;
+	main.welfare_chart_rich->line_color.a = 0.2f;
+// END
+}
+void budgetwindow_main_hover_poor_t::on_hover_end(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_poor::on_hover_end
+	main.welfare_chart_middle->line_color.a = 1.0f;
+	main.welfare_chart_rich->line_color.a = 1.0f;
+// END
+}
+ui::message_result budgetwindow_main_hover_poor_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_hover_poor_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_hover_poor_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_hover_poor_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_hover_poor_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_hover_poor_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_poor::update
+// END
+}
+void budgetwindow_main_hover_poor_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::hover_poor::create
+// END
+}
+void budgetwindow_main_hover_middle_t::on_hover(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_middle::on_hover
+	main.welfare_chart_poor->line_color.a = 0.2f;
+	main.welfare_chart_rich->line_color.a = 0.2f;
+// END
+}
+void budgetwindow_main_hover_middle_t::on_hover_end(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_middle::on_hover_end
+	main.welfare_chart_poor->line_color.a = 1.0f;
+	main.welfare_chart_rich->line_color.a = 1.0f;
+// END
+}
+ui::message_result budgetwindow_main_hover_middle_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_hover_middle_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_hover_middle_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_hover_middle_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_hover_middle_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_hover_middle_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_middle::update
+// END
+}
+void budgetwindow_main_hover_middle_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::hover_middle::create
+// END
+}
+void budgetwindow_main_hover_rich_t::on_hover(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_rich::on_hover
+	main.welfare_chart_poor->line_color.a = 0.2f;
+	main.welfare_chart_middle->line_color.a = 0.2f;
+// END
+}
+void budgetwindow_main_hover_rich_t::on_hover_end(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_rich::on_hover_end
+	main.welfare_chart_poor->line_color.a = 1.0f;
+	main.welfare_chart_middle->line_color.a = 1.0f;
+// END
+}
+ui::message_result budgetwindow_main_hover_rich_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_hover_rich_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_hover_rich_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_hover_rich_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_hover_rich_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_hover_rich_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_rich::update
+// END
+}
+void budgetwindow_main_hover_rich_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::hover_rich::create
+// END
+}
 ui::message_result budgetwindow_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -3845,6 +4127,60 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->line_color = child_data.table_highlight_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "hover_poor") {
+			auto cptr = std::make_unique<budgetwindow_main_hover_poor_t>();
+			cptr->parent = this;
+			hover_poor = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "hover_middle") {
+			auto cptr = std::make_unique<budgetwindow_main_hover_middle_t>();
+			cptr->parent = this;
+			hover_middle = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "hover_rich") {
+			auto cptr = std::make_unique<budgetwindow_main_hover_rich_t>();
+			cptr->parent = this;
+			hover_rich = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
 			this->add_child_to_back(std::move(cptr));
 		continue;

@@ -1037,6 +1037,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
+	if(ui_state.under_mouse != mouse_probe.under_mouse) {
+		if(ui_state.under_mouse)
+			ui_state.under_mouse->on_hover_end(*this);
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		if(ui_state.under_mouse)
+			ui_state.under_mouse->on_hover(*this);
+	}
+
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -1075,7 +1083,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glViewport(0, 0, x_size, y_size);
 	glDepthRange(-1.0f, 1.0f);
 
-	ui_state.under_mouse = mouse_probe.under_mouse;
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 
 	current_scene.render_ui(*this);
