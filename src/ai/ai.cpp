@@ -1121,7 +1121,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if(!lacking_input && (lacking_output || ((output - input) / cost < 365.f)) || (output - input) / input > 1.00f)
+				if((!lacking_input && (lacking_output || ((output - input) / cost < 365.f))) || (output - input) / input > 1.00f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}

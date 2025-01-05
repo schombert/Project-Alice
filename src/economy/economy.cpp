@@ -6158,7 +6158,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			auto supply_unsold = ve::select(total_supply > total_demand, total_supply - total_demand, 0.f);
 			auto supply_sold = total_supply - supply_unsold;
-			auto supply_sold_ratio = ve::select(total_supply > 0.f, supply_sold / total_supply, ve::select(total_demand == 0.f, 0.f, 0.01f));
+			auto supply_sold_ratio = ve::select(total_supply > 0.f, supply_sold / total_supply, ve::select(total_demand == 0.f, ve::fp_vector{ 0.f }, ve::fp_vector{ 0.01f }));
 
 			new_saturation = ve::min(new_saturation, 1.f);
 
@@ -6511,17 +6511,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto sat = state.world.market_get_demand_satisfaction(ids, c);
 				auto valid_mask = valid_need(state, nations, c);
 
-				auto ln_val = ve::select(valid_mask, state.world.pop_type_get_life_needs(pt, c), 0.f);
+				auto ln_val = ve::select(valid_mask, ve::fp_vector{ state.world.pop_type_get_life_needs(pt, c) }, ve::fp_vector{ 0.f });
 
 				ln_total = ln_total + ln_val;
 				ln_max = ln_max + ln_val * sat * state.world.market_get_life_needs_weights(ids, c);
 
-				auto en_val = ve::select(valid_mask, state.world.pop_type_get_everyday_needs(pt, c), 0.f);
+				auto en_val = ve::select(valid_mask, ve::fp_vector{ state.world.pop_type_get_everyday_needs(pt, c) }, ve::fp_vector{ 0.f });
 
 				en_total = en_total + en_val;
 				en_max = en_max + en_val * sat * state.world.market_get_everyday_needs_weights(ids, c);
 
-				auto lx_val = ve::select(valid_mask, state.world.pop_type_get_luxury_needs(pt, c), 0.f);
+				auto lx_val = ve::select(valid_mask, ve::fp_vector{ state.world.pop_type_get_luxury_needs(pt, c) }, ve::fp_vector{ 0.f });
 
 				lx_total = lx_total + lx_val;
 				lx_max = lx_max + lx_val * sat * state.world.market_get_luxury_needs_weights(ids, c);
