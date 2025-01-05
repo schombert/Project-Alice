@@ -5008,7 +5008,7 @@ std::vector<full_construction_state> estimate_private_investment_upgrade(sys::st
 
 					if(
 						(nation_rules & issue_rule::pop_expand_factory) != 0
-						&& f.get_factory().get_primary_employment() >= 0.9f
+						&& f.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market) >= 0.9f
 						&& f.get_factory().get_level() < uint8_t(255)) {
 
 						auto type = f.get_factory().get_building_type();
@@ -6587,6 +6587,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.market_get_stockpile(route_data.target, economy::money) -= route_data.amount_origin * route_data.payment_per_unit;
 			state.world.market_get_tariff_collected(route_data.origin) += route_data.tariff_origin;
 			state.world.market_get_tariff_collected(route_data.target) += route_data.tariff_target;
+			state.world.market_get_stockpile(route_data.target, cid) += route_data.amount_target;
 
 			assert(std::isfinite(state.world.market_get_export(route_data.origin, cid)));
 			assert(std::isfinite(state.world.market_get_import(route_data.target, cid)));
