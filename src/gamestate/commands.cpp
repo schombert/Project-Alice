@@ -897,7 +897,7 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 				economy::set_factory_priority(state, f.get_factory(), priority);
 			}
 			if(subsidized && !f.get_factory().get_subsidized()) {
-				auto& scale = f.get_factory().get_production_scale();
+				auto& scale = f.get_factory().get_primary_employment();
 				scale = std::max(scale, 0.5f);
 			}
 			f.get_factory().set_subsidized(subsidized);

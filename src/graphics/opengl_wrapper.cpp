@@ -681,11 +681,11 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 
 	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
 	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
-		glLineWidth(4.0f);
+		glLineWidth(2.0f + 2.0f * state.user_settings.ui_scale);
 		glUniform3f(state.open_gl.ui_shader_inner_color_uniform, 0.f, 0.f, 0.f);
 		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 	}
-	glLineWidth(2.0f);
+	glLineWidth(2.0f * state.user_settings.ui_scale);
 	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, r, g, b);
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }

@@ -25,6 +25,16 @@ struct budgetwindow_main_chart_needslabel_t;
 struct budgetwindow_main_welfare_chart_poor_t;
 struct budgetwindow_main_welfare_chart_middle_t;
 struct budgetwindow_main_welfare_chart_rich_t;
+struct budgetwindow_main_hover_poor_t;
+struct budgetwindow_main_hover_middle_t;
+struct budgetwindow_main_hover_rich_t;
+struct budgetwindow_main_debt_label_t;
+struct budgetwindow_main_debt_enable_t;
+struct budgetwindow_main_total_debt_label_t;
+struct budgetwindow_main_max_debt_label_t;
+struct budgetwindow_main_total_debt_amount_t;
+struct budgetwindow_main_max_debt_amount_t;
+struct budgetwindow_main_debt_chart_t;
 struct budgetwindow_main_t;
 struct budgetwindow_section_header_label_t;
 struct budgetwindow_section_header_llbutton_t;
@@ -864,7 +874,7 @@ struct budgetwindow_main_welfare_chart_poor_t : public ui::element_base {
 };
 struct budgetwindow_main_welfare_chart_middle_t : public ui::element_base {
 	ogl::lines lines{ 32 };
-	ogl::color4f line_color{ 0.462745f, 1.000000f, 0.313726f, 1.000000f };
+	ogl::color4f line_color{ 0.462745f, 0.313726f, 1.000000f, 1.000000f };
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
@@ -888,7 +898,7 @@ struct budgetwindow_main_welfare_chart_middle_t : public ui::element_base {
 };
 struct budgetwindow_main_welfare_chart_rich_t : public ui::element_base {
 	ogl::lines lines{ 32 };
-	ogl::color4f line_color{ 0.133333f, 0.203922f, 0.658824f, 1.000000f };
+	ogl::color4f line_color{ 0.133333f, 0.658824f, 0.203922f, 1.000000f };
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
@@ -908,6 +918,311 @@ struct budgetwindow_main_welfare_chart_rich_t : public ui::element_base {
 	}
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_hover_poor_t : public ui::element_base {
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_hover_middle_t : public ui::element_base {
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_hover_rich_t : public ui::element_base {
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_debt_label_t : public ui::element_base {
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.500000f; 
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_debt_enable_t : public ui::element_base {
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
+	bool disabled = false;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::variable_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_total_debt_label_t : public ui::element_base {
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::right;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_max_debt_label_t : public ui::element_base {
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::right;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_total_debt_amount_t : public ui::element_base {
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::right;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_max_debt_amount_t : public ui::element_base {
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::right;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_debt_chart_t : public ui::element_base {
+	ogl::data_texture data_texture{ 200, 3 };
+	struct graph_entry {dcon::text_key key; ogl::color3f color; float amount; };
+	std::vector<graph_entry> graph_content;
+	void update_chart(sys::state& state);
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::position_sensitive_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_label_t : public ui::element_base {
@@ -1202,6 +1517,16 @@ struct budgetwindow_main_t : public ui::container_base {
 	budgetwindow_main_welfare_chart_poor_t* welfare_chart_poor = nullptr;
 	budgetwindow_main_welfare_chart_middle_t* welfare_chart_middle = nullptr;
 	budgetwindow_main_welfare_chart_rich_t* welfare_chart_rich = nullptr;
+	budgetwindow_main_hover_poor_t* hover_poor = nullptr;
+	budgetwindow_main_hover_middle_t* hover_middle = nullptr;
+	budgetwindow_main_hover_rich_t* hover_rich = nullptr;
+	budgetwindow_main_debt_label_t* debt_label = nullptr;
+	budgetwindow_main_debt_enable_t* debt_enable = nullptr;
+	budgetwindow_main_total_debt_label_t* total_debt_label = nullptr;
+	budgetwindow_main_max_debt_label_t* max_debt_label = nullptr;
+	budgetwindow_main_total_debt_amount_t* total_debt_amount = nullptr;
+	budgetwindow_main_max_debt_amount_t* max_debt_amount = nullptr;
+	budgetwindow_main_debt_chart_t* debt_chart = nullptr;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -3362,6 +3687,527 @@ void budgetwindow_main_welfare_chart_rich_t::on_create(sys::state& state) noexce
 // BEGIN main::welfare_chart_rich::create
 // END
 }
+void budgetwindow_main_hover_poor_t::on_hover(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_poor::on_hover
+	main.welfare_chart_middle->line_color.a = 0.2f;
+	main.welfare_chart_rich->line_color.a = 0.2f;
+// END
+}
+void budgetwindow_main_hover_poor_t::on_hover_end(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_poor::on_hover_end
+	main.welfare_chart_middle->line_color.a = 1.0f;
+	main.welfare_chart_rich->line_color.a = 1.0f;
+// END
+}
+ui::message_result budgetwindow_main_hover_poor_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_hover_poor_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_hover_poor_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_hover_poor_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_hover_poor_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_hover_poor_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_poor::update
+// END
+}
+void budgetwindow_main_hover_poor_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::hover_poor::create
+// END
+}
+void budgetwindow_main_hover_middle_t::on_hover(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_middle::on_hover
+	main.welfare_chart_poor->line_color.a = 0.2f;
+	main.welfare_chart_rich->line_color.a = 0.2f;
+// END
+}
+void budgetwindow_main_hover_middle_t::on_hover_end(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_middle::on_hover_end
+	main.welfare_chart_poor->line_color.a = 1.0f;
+	main.welfare_chart_rich->line_color.a = 1.0f;
+// END
+}
+ui::message_result budgetwindow_main_hover_middle_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_hover_middle_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_hover_middle_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_hover_middle_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_hover_middle_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_hover_middle_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_middle::update
+// END
+}
+void budgetwindow_main_hover_middle_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::hover_middle::create
+// END
+}
+void budgetwindow_main_hover_rich_t::on_hover(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_rich::on_hover
+	main.welfare_chart_poor->line_color.a = 0.2f;
+	main.welfare_chart_middle->line_color.a = 0.2f;
+// END
+}
+void budgetwindow_main_hover_rich_t::on_hover_end(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_rich::on_hover_end
+	main.welfare_chart_poor->line_color.a = 1.0f;
+	main.welfare_chart_middle->line_color.a = 1.0f;
+// END
+}
+ui::message_result budgetwindow_main_hover_rich_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_hover_rich_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_hover_rich_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_hover_rich_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_hover_rich_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_hover_rich_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::hover_rich::update
+// END
+}
+void budgetwindow_main_hover_rich_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::hover_rich::create
+// END
+}
+void budgetwindow_main_debt_label_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_debt_label_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_debt_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_debt_label_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::debt_label::update
+// END
+}
+void budgetwindow_main_debt_label_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::debt_label::create
+// END
+}
+ui::message_result budgetwindow_main_debt_enable_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN main::debt_enable::lbutton_action
+	command::enable_debt(state, state.local_player_nation, !state.world.nation_get_is_debt_spending(state.local_player_nation));
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result budgetwindow_main_debt_enable_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void budgetwindow_main_debt_enable_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::debt_enable::tooltip
+	auto last_br = state.world.nation_get_bankrupt_until(state.local_player_nation);
+	if(last_br && state.current_date < last_br) {
+		text::add_line(state, contents, "alice_currently_bankrupt", text::variable_type::x, last_br);
+	} else if(economy::max_loan(state, state.local_player_nation) <= 0.0f) {
+		text::add_line(state, contents, "alice_no_loans_possible");
+	} else {
+		text::add_line(state, contents, "alice_debt_spending");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "alice_loan_size", text::variable_type::x, text::fp_currency{ economy::max_loan(state, state.local_player_nation) });
+	}
+// END
+}
+void budgetwindow_main_debt_enable_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_debt_enable_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_debt_enable_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	else
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_debt_enable_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::debt_enable::update
+	is_active = state.world.nation_get_is_debt_spending(state.local_player_nation);
+	disabled = false;
+	auto last_br = state.world.nation_get_bankrupt_until(state.local_player_nation);
+	if(last_br && state.current_date < last_br)
+		disabled = true;
+	if(economy::max_loan(state, state.local_player_nation) <= 0.0f)
+		disabled = true;
+// END
+}
+void budgetwindow_main_debt_enable_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::debt_enable::create
+// END
+}
+void budgetwindow_main_total_debt_label_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_total_debt_label_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_total_debt_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_total_debt_label_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::total_debt_label::update
+// END
+}
+void budgetwindow_main_total_debt_label_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::total_debt_label::create
+// END
+}
+void budgetwindow_main_max_debt_label_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_max_debt_label_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void budgetwindow_main_max_debt_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_max_debt_label_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::max_debt_label::update
+// END
+}
+void budgetwindow_main_max_debt_label_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::max_debt_label::create
+// END
+}
+void budgetwindow_main_total_debt_amount_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_total_debt_amount_t::on_reset_text(sys::state& state) noexcept {
+}
+void budgetwindow_main_total_debt_amount_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_total_debt_amount_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::total_debt_amount::update
+	auto amount = state.world.nation_get_local_loan(state.local_player_nation);
+	set_text(state, text::prettify_currency(amount));
+// END
+}
+void budgetwindow_main_total_debt_amount_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::total_debt_amount::create
+// END
+}
+void budgetwindow_main_max_debt_amount_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void budgetwindow_main_max_debt_amount_t::on_reset_text(sys::state& state) noexcept {
+}
+void budgetwindow_main_max_debt_amount_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void budgetwindow_main_max_debt_amount_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::max_debt_amount::update
+	auto amount = economy::max_loan(state, state.local_player_nation);
+	set_text(state, text::prettify_currency(amount));
+// END
+}
+void budgetwindow_main_max_debt_amount_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::max_debt_amount::create
+// END
+}
+ui::message_result budgetwindow_main_debt_chart_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_main_debt_chart_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_main_debt_chart_t::update_chart(sys::state& state) {
+	std::sort(graph_content.begin(), graph_content.end(), [](auto const& a, auto const& b) { return a.amount > b.amount; });
+	float total = 0.0f;
+	for(auto& e : graph_content) { total += e.amount; }
+	if(total <= 0.0f) {
+		for(int32_t k = 0; k < 200; k++) {
+			data_texture.data[k * 3] = uint8_t(0);
+			data_texture.data[k * 3 + 1] = uint8_t(0);
+			data_texture.data[k * 3 + 2] = uint8_t(0);
+		}
+		data_texture.data_updated = true;
+		return;
+	}
+	int32_t index = 0;
+	float offset = 0.0f;
+	for(int32_t k = 0; k < 200; k++) {
+		if(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(200)) {
+			offset += graph_content[index].amount;
+			++index;
+		}
+		data_texture.data[k * 3] = uint8_t(graph_content[index].color.r * 255.0f);
+		data_texture.data[k * 3 + 1] = uint8_t(graph_content[index].color.g * 255.0f);
+		data_texture.data[k * 3 + 2] = uint8_t(graph_content[index].color.b * 255.0f);
+	}
+	data_texture.data_updated = true;
+}
+void budgetwindow_main_debt_chart_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+	float temp_total = 0.0f;
+	for(auto& p : graph_content) { temp_total += p.amount; }
+	float temp_offset = temp_total * float(x) / float(base_data.size.x);
+	int32_t temp_index = 0;
+	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
+	if(temp_index < int32_t(graph_content.size())) {
+		auto& selected_key = graph_content[temp_index].key;
+// BEGIN main::debt_chart::tooltip
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, selected_key);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ graph_content[temp_index].amount });
+		text::close_layout_box(contents, box);
+// END
+	}
+}
+void budgetwindow_main_debt_chart_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_stripchart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), float(base_data.size.y), data_texture);
+}
+void budgetwindow_main_debt_chart_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::debt_chart::update
+	graph_content.clear();
+	auto t = state.world.nation_get_local_loan(state.local_player_nation);
+
+	if(t > 0.0f) {
+		int32_t num_gp = 7;
+		if(t <= 1000.0f) {
+			num_gp = 1;
+		} else if(t <= 2000.0f) {
+			num_gp = 2;
+		} else if(t <= 4000.0f) {
+			num_gp = 4;
+		}
+		float total_share = 0.0f;
+		float share = 10.0f;
+		for(auto n : state.nations_by_rank) {
+			if(state.world.nation_get_is_great_power(n) && n != state.local_player_nation) {
+				auto c = state.world.nation_get_color(n);
+				graph_content.emplace_back(graph_entry{ text::get_name(state, n), ogl::color3f{sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) }, share });
+				total_share += share;
+				share -= 1.0f;
+
+				--num_gp;
+				if(num_gp <= 0)
+					break;
+			}
+		}
+		for(auto& i : graph_content) {
+			i.amount *= i.amount * t / total_share;
+		}
+	}
+	update_chart(state);
+// END
+}
+void budgetwindow_main_debt_chart_t::on_create(sys::state& state) noexcept {
+// BEGIN main::debt_chart::create
+// END
+}
 ui::message_result budgetwindow_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -3845,6 +4691,176 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->line_color = child_data.table_highlight_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "hover_poor") {
+			auto cptr = std::make_unique<budgetwindow_main_hover_poor_t>();
+			cptr->parent = this;
+			hover_poor = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "hover_middle") {
+			auto cptr = std::make_unique<budgetwindow_main_hover_middle_t>();
+			cptr->parent = this;
+			hover_middle = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "hover_rich") {
+			auto cptr = std::make_unique<budgetwindow_main_hover_rich_t>();
+			cptr->parent = this;
+			hover_rich = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "debt_label") {
+			auto cptr = std::make_unique<budgetwindow_main_debt_label_t>();
+			cptr->parent = this;
+			debt_label = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "debt_enable") {
+			auto cptr = std::make_unique<budgetwindow_main_debt_enable_t>();
+			cptr->parent = this;
+			debt_enable = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "total_debt_label") {
+			auto cptr = std::make_unique<budgetwindow_main_total_debt_label_t>();
+			cptr->parent = this;
+			total_debt_label = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "max_debt_label") {
+			auto cptr = std::make_unique<budgetwindow_main_max_debt_label_t>();
+			cptr->parent = this;
+			max_debt_label = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "total_debt_amount") {
+			auto cptr = std::make_unique<budgetwindow_main_total_debt_amount_t>();
+			cptr->parent = this;
+			total_debt_amount = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "max_debt_amount") {
+			auto cptr = std::make_unique<budgetwindow_main_max_debt_amount_t>();
+			cptr->parent = this;
+			max_debt_amount = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_create(state);
+			this->add_child_to_back(std::move(cptr));
+		continue;
+		}
+		if(child_data.name == "debt_chart") {
+			auto cptr = std::make_unique<budgetwindow_main_debt_chart_t>();
+			cptr->parent = this;
+			debt_chart = cptr.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
 			this->add_child_to_back(std::move(cptr));
 		continue;

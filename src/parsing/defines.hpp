@@ -657,16 +657,16 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 5.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.750000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.750000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.750000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_scaling_factor, 400000.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 1.5) \
-	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 150000.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 1.05) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 8.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 300000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 1.95) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.04) \
 	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.96) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
@@ -676,9 +676,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.0125) \
 	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.025) \
 	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.0125) \
-	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.20) \
-	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.40) \
-	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.40) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.05) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.45) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.50) \
 	LUA_DEFINES_LIST_ELEMENT(alice_sat_delay_factor, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_need_drift_speed, 0.01) \
 	LUA_DEFINES_LIST_ELEMENT(alice_disable_divergent_any_country_effect, 0.0) \
@@ -694,13 +694,14 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_eval_ai_mil_everyday, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_subjects_declare_wars, 0.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_substate_subject_money_transfer, 40.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_puppet_subject_money_transfer, 30.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_privateinvestment_subject_transfer, 2.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_allow_revoke_subject_states, 0.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_subject, 2.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_all_subjects, 1.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75) \
+	LUA_DEFINES_LIST_ELEMENT(alice_substate_subject_money_transfer, 40.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_puppet_subject_money_transfer, 30.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_privateinvestment_subject_transfer, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_allow_revoke_subject_states, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_subject, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_all_subjects, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_strength_estimation_military_industrial_balance, 1.0) \
 
 
 // scales the needs values so that they are needs per this many pops

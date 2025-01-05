@@ -1354,3 +1354,7 @@ alice_budget_chart_bottom;0%
 alice_budget_chart_label;Welfare
 alice_budget_chart_laxis;Sat.
 alice_budget_chart_baxis;Population
+alice_budget_debt;Debt
+alice_budget_total_debt;Total:
+alice_budget_max_debt;Maximum:
+alice_budget_debt_enable;Enable

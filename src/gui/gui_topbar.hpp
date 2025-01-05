@@ -419,8 +419,9 @@ public:
 				auto overlord = state.world.overlord_get_ruler(rel);
 
 				if(overlord == state.local_player_nation) {
+					auto craved_constructions = economy::estimate_private_investment_construct(state, n, true);
 					auto upgrades = economy::estimate_private_investment_upgrade(state, n);
-					auto constructions = economy::estimate_private_investment_construct(state, n);
+					auto constructions = economy::estimate_private_investment_construct(state, n, false);
 					auto province_constr = economy::estimate_private_investment_province(state, n);
 
 					if(economy::estimate_private_construction_spendings(state, n) < 1.0f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
@@ -453,8 +454,9 @@ public:
 			text::close_layout_box(contents, box);
 		}
 		{
+			auto craved_constructions = economy::estimate_private_investment_construct(state, state.local_player_nation, true);
 			auto upgrades = economy::estimate_private_investment_upgrade(state, state.local_player_nation);
-			auto constructions = economy::estimate_private_investment_construct(state, state.local_player_nation);
+			auto constructions = economy::estimate_private_investment_construct(state, state.local_player_nation, false);
 			auto province_constr = economy::estimate_private_investment_province(state, state.local_player_nation);
 
 			if(private_constr < 1.f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {

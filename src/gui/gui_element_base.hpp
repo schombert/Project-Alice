@@ -70,6 +70,9 @@ public:
 	}
 	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept { }
 
+	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
+	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
+
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:

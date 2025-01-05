@@ -133,6 +133,7 @@ void update_cached_values(sys::state& state) {
 
 void restore_unsaved_values(sys::state& state) {
 	state.world.market_resize_demand_satisfaction(state.world.commodity_size());
+	state.world.market_resize_supply_sold_ratio(state.world.commodity_size());
 	state.world.market_resize_direct_demand_satisfaction(state.world.commodity_size());
 
 	for(auto n : state.world.in_nation)
@@ -182,8 +183,13 @@ void recalculate_markets_distance(sys::state& state) {
 				return military::state_naval_base_level(state, sid);
 			}, sids
 		));
-		auto civilian_port = population / 200'000.f;
-		auto throughput = 100.f + 1000.f * naval_base + 1000.f * civilian_port;
+
+		auto railroads = ve::to_float(ve::apply([&](auto sid) {
+			return military::state_railroad_level(state, sid);
+			}, sids
+		));
+
+		auto throughput = 100.f + 8000.f * naval_base + 1000.f * railroads + population / 50.f;
 
 		state.world.market_set_max_throughput(markets, throughput);
 	});
@@ -920,14 +926,9 @@ void update_industrial_scores(sys::state& state) {
 					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			}
 			sum += nations::get_foreign_investment_as_gp(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
-	
 		}
-		float old_score = state.world.nation_get_industrial_score(n);
-		if(old_score == 0) {
-			state.world.nation_set_industrial_score(n, uint16_t(sum));
-		} else {
-			state.world.nation_set_industrial_score(n, uint16_t(0.1f * sum + 0.9f * old_score));
-		}
+
+		state.world.nation_set_industrial_score(n, uint16_t(sum));
 	});
 }
 
@@ -1621,12 +1622,13 @@ float get_debt(sys::state& state, dcon::nation_id n) {
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
 	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
-	return std::clamp(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 0.01f, 1.f);
+	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff * 10.f, 0.001f, 1.f);
 }
 
 float tax_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
-	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.1f, 1.f);
+	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
+	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod * adm_eff, 0.01f, 1.f);
 }
 
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
