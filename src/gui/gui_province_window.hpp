@@ -474,7 +474,7 @@ public:
 		auto source = state.local_player_nation;
 		auto p = retrieve<dcon::province_id>(state, parent);
 		text::add_line(state, contents, "alice_mvcap_1");
-		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis_state == sys::crisis_state::inactive));
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", state.current_crisis_state == sys::crisis_state::inactive);
 		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
 		text::add_line_with_condition(state, contents, "alice_mvcap_4", !(state.world.nation_get_capital(source) == p));
 		text::add_line_with_condition(state, contents, "alice_mvcap_5", !(state.world.province_get_is_colonial(p)));
@@ -553,7 +553,7 @@ public:
 		}
 
 		text::add_line_with_condition(state, contents, "alice_take_province_5", !(overlord != source));
-		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis_state != sys::crisis_state::inactive));
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", state.current_crisis_state == sys::crisis_state::inactive);
 		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
 		text::add_line_with_condition(state, contents, "alice_take_province_6", !(state.world.nation_get_is_at_war(owner)));
 		text::add_line_with_condition(state, contents, "alice_mvcap_8", !(state.world.province_get_siege_progress(p) > 0.f));

@@ -1310,3 +1310,62 @@ alice_factory_type_viewer_priority_private;Частный приоритет:
 alice_factory_type_viewer_priority_bonus;Требуется сырья:
 alice_commodity_tab;Товары
 alice_factory_type_tab;Типы заводов
+make_province_religion;население провинции конвертируется в $text$
+unit_upgrade_desc;Меняет тип юнита. После смены сила юнита падает до 1%
+unit_upgrade_explain_1;Выбраны морские или сухопутные юниты
+unit_upgrade_explain_2;Тип юнита разблокирован
+unit_upgrade_explain_3;Малые суда не могут быть конвертированы в большие
+unit_upgrade_explain_4;Армия не отступает, не в бою и не на транспортных судах
+unit_upgrade_explain_5;Флот не в отступает, не в бою и не перевозит солдат
+unit_upgrade_explain_6;Флот пришвартован в морской базе достаточно уровня
+alice_take_province_1;Забирает провинцию у субъекта
+alice_take_province_2;Это даст ?R$val$ лет национализма?W населению провинции
+alice_take_province_3;Это даст ?R$val$ лет национализма?W населению субъекта
+alice_take_province_4;Это даст ?R$val$ лет национализма?W населению других субъектов
+alice_take_province_5;Субъект игрока
+alice_take_province_6;В мире
+alice_take_province_7;Провинция принадлежит субъекту
+investment_pool_income_1;Реинвестиции: ?G$x$?W
+investment_pool_income_2;Трансфер от субъекта $country$: ?G$x$W
+investment_pool_spending_1;Административные расходы: ?R$x$?W
+investment_pool_spending_2;Расходы на строительство: ?R$x$?W
+investment_pool_spending_3;Трансфер субъектам: ?R$x$?W
+subjectpayments_income_row;?G$VAL$?W от ?Y$country$?W
+alice_unit_builder_apply_button;Построить в выбранной провинции
+unit_macro_template_tooltip;Шаблон макробилдера юнитов
+alice_player_date_sync;Игрок $name$ ($country$), последняя команда: $date$
+alice_only_host_speed;Только хост может менять скорость
+alice_host_date;Дата у хоста: $date$
+alice_budget_gold;Золотые шахты
+alice_budget_construction;Строительные расходы
+alice_budget_army_upkeep;Содержание армии
+alice_budget_navy_upkeep;Содержание флота
+alice_budget_domestic_investment;Субсидии предпринимательства
+alice_budget_debt_service;Обслуживание долга
+alice_budget_diplo_income;Дипломатические доходы
+alice_budget_diplo_expenses;Дипломатические расходы
+alice_budget_taxes;Налоги
+alice_budget_indemnities;От войны
+alice_budget_subjects;От субъектов
+alice_budget_item;Статья
+alice_budget_amount;Размер
+alice_budget_minimum_button;Поставить минимум
+alice_budget_maximum_button;Поставить максимум
+alice_budget_decrease_button;Снизить на 10 (при зажатом shift - на 1)
+alice_budget_increase_button;Увеличить на 10 (при зажатом shift - на 1)
+alice_budget_max;Максимум $x$
+alice_budget_min;Минимум $x$
+alice_budget_overlord;Налоги сюзерену
+alice_budget_expand_tt;Показать разбивку
+alice_budget_contract_tt;Скрыть разбивку
+alice_budget_admin_eff1;Администр.
+alice_budget_admin_eff2;Эффективность:
+alice_budget_chart_top;100%
+alice_budget_chart_bottom;0%
+alice_budget_chart_label;Социальн.
+alice_budget_chart_laxis;Удовл.
+alice_budget_chart_baxis;Население
+alice_budget_debt;Долг
+alice_budget_total_debt;Итого:
+alice_budget_max_debt;Макс:
+alice_budget_debt_enable;Включить долг
