@@ -1424,11 +1424,11 @@ public:
 		vals[uint8_t(budget_slider_target::navy_stock)] = economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = economy::estimate_social_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::education)] =
-				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+			economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
 		vals[uint8_t(budget_slider_target::admin)] =
-				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+			economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
-				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+			economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
 		vals[uint8_t(budget_slider_target::domestic_investment)] = economy::estimate_domestic_investment(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::subsidies)] = economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::overseas)] = economy::estimate_overseas_penalty_spending(state, state.local_player_nation);

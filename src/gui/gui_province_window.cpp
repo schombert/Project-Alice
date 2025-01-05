@@ -167,10 +167,11 @@ float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_ro
 
 	auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
 
-	auto transport_cost = distance * 0.05f;
+	auto transport_cost = distance * 0.0075f;
 	// effect of scale
 	// volume reduces transport costs
 	auto effect_of_scale = std::max(0.1f, 1.f - absolute_volume * 0.0005f);
+
 
 	auto price_A_export = economy::price(state, A, c) * (1.f + export_tariff_A);
 	auto price_B_export = economy::price(state, B, c) * (1.f + export_tariff_B);

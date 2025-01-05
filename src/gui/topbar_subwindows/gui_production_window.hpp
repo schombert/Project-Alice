@@ -25,7 +25,13 @@ class factory_employment_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
-		frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto mid = state.world.state_instance_get_market_from_local_market(sid);
+		frame = int32_t(
+			state.world.factory_get_primary_employment(content)
+			* 10.f
+			* state.world.market_get_labor_unskilled_demand_satisfaction(mid)
+		);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -34,13 +40,25 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto mid = state.world.state_instance_get_market_from_local_market(sid);
 
 		auto max_emp = economy::factory_max_employment(state, fid);
 		{
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker));
+			text::add_to_layout_box(
+				state,
+				contents,
+				box,
+				state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)
+			);
 			text::add_to_layout_box(state, contents, box, std::string_view{": " });
-			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(state.world.factory_get_primary_employment(fid) * max_emp * state.economy_definitions.craftsmen_fraction)));
+			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
+				state.world.factory_get_primary_employment(fid)
+				* max_emp
+				* state.economy_definitions.craftsmen_fraction
+				* state.world.market_get_labor_unskilled_demand_satisfaction(mid))
+			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp * state.economy_definitions.craftsmen_fraction)));
 			text::close_layout_box(contents, box);
@@ -49,7 +67,12 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
 			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(state.world.factory_get_secondary_employment(fid) * max_emp * (1.0f -state.economy_definitions.craftsmen_fraction))));
+			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
+				state.world.factory_get_secondary_employment(fid)
+				* max_emp
+				* (1.0f - state.economy_definitions.craftsmen_fraction)
+				* state.world.market_get_labor_skilled_demand_satisfaction(mid))
+			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp * (1.0f - state.economy_definitions.craftsmen_fraction))));
 			text::close_layout_box(contents, box);
@@ -617,7 +640,7 @@ class normal_factory_background : public opaque_element_base {
 		float input_multiplier = economy::factory_input_multiplier(state, fac, n, p, s);
 		float e_input_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
 		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s);
-		float output_multiplier = economy::factory_output_multiplier(state, fac, n, p);
+		float output_multiplier = economy::factory_output_multiplier(state, fac, n, market, p);
 
 		float bonus_profit_thanks_to_max_e_input = fac.get_building_type().get_output_amount()
 			* 0.25f
@@ -842,13 +865,27 @@ class normal_factory_background : public opaque_element_base {
 		text::add_line_break_to_layout(state, contents);
 
 		auto const min_wage_factor = economy::pop_min_wage_factor(state, n);
-		float factory_min_wage = economy::factory_min_wage(state, market, s, min_wage_factor);
 
-		float wage_estimation =
-			factory_min_wage
+		auto wage_unskilled = state.world.market_get_labor_unskilled_price(market);
+		auto wage_skilled = state.world.market_get_labor_skilled_price(market);
+
+		float wage_estimation = 0.f;
+
+		wage_estimation +=
+			wage_unskilled
 			* state.defines.alice_factory_per_level_employment
-			/ state.defines.alice_needs_scaling_factor
-			* effective_production_scale;
+			* float(state.world.factory_get_level(fid))
+			* state.world.factory_get_primary_employment(fid)
+			* state.world.market_get_labor_unskilled_demand_satisfaction(market)
+			* (state.economy_definitions.craftsmen_fraction);
+
+		wage_estimation +=
+			wage_skilled
+			* state.defines.alice_factory_per_level_employment
+			* float(state.world.factory_get_level(fid))
+			* state.world.factory_get_secondary_employment(fid)
+			* state.world.market_get_labor_skilled_demand_satisfaction(market)
+			* (1.f - state.economy_definitions.craftsmen_fraction);
 
 		total_expenses += wage_estimation;
 

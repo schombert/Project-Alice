@@ -1812,7 +1812,7 @@ relationship{
 object {
 	name{ ship }
 	storage_type{ erasable }
-	size{ 16000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
@@ -4035,8 +4035,66 @@ object{
 		tag{ save }
 	}
 	property {
+		name{ supply_sold_ratio }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
 		name{ direct_demand_satisfaction }
 		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ labor_unskilled_price }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_supply }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_demand }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_demand_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_unskilled_supply_sold }
+		type{ float }
+		tag{ save }
+	}
+
+
+	property {
+		name{ labor_skilled_price }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_supply }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_demand }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_demand_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ labor_skilled_supply_sold }
+		type{ float }
 		tag{ save }
 	}
 
@@ -4398,6 +4456,16 @@ object {
 	property {
 		name{ full_profit }
 		type{ float }
+	}
+	property {
+		name{ output_cost_per_worker }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ input_cost_per_worker }
+		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ subsidized }
