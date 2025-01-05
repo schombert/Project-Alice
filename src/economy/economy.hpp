@@ -114,6 +114,9 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 
 constexpr inline dcon::commodity_id money(0);
 
+// move to defines later
+inline constexpr float payouts_spending_multiplier = 200.f;
+
 // factories:
 inline constexpr float secondary_employment_output_bonus = 3.f;
 
@@ -123,11 +126,11 @@ inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
 inline constexpr float price_rigging = 0.015f;
-inline constexpr float stockpile_to_supply = 0.1f;
 inline constexpr float production_throughput_multiplier = 2.f;
 
 // stockpile related things:
-inline constexpr float stockpile_spoilage = 0.01f;
+inline constexpr float stockpile_to_supply = 0.1f;
+inline constexpr float stockpile_spoilage = 0.1f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1000.f;
 
 // trade related

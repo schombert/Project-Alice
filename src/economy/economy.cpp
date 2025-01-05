@@ -2128,15 +2128,18 @@ void update_factory_employment(sys::state& state) {
 			- wage_skilled_per_employment * spendings_overestimation;
 
 		auto primary_next = primary
-			+ 0.0001f * gradient_primary
-			/ (state.economy_definitions.craftsmen_fraction);
+			+ ve::min(0.01f, ve::max(-0.05f, 0.0001f * gradient_primary
+			/ (state.economy_definitions.craftsmen_fraction)));
 
 		auto secondary_next = secondary
-			+ 0.0001f * gradient_secondary
-			/ (1.f - state.economy_definitions.craftsmen_fraction);
+			+ ve::min(0.01f, ve::max(-0.05f, 0.0001f * gradient_secondary
+			/ (1.f - state.economy_definitions.craftsmen_fraction)));
 
-		primary_next = ve::max(0.f, ve::min(1.f, primary_next));
-		secondary_next = ve::max(0.f, ve::min(1.f, secondary_next));
+		// do not hire too expensive workers:
+		// ideally decided by factory budget but it is what it is
+
+		primary_next = ve::max(0.f, ve::min(1.f, ve::min(10000.f / state.world.market_get_labor_unskilled_price(mid), primary_next)));
+		secondary_next = ve::max(0.f, ve::min(1.f, ve::min(10000.f / state.world.market_get_labor_skilled_price(mid), secondary_next)));
 
 #ifndef NDEBUG
 		ve::apply([&](auto value) { assert(std::isfinite(value) && (value >= 0.f)); }, primary_next);
@@ -3968,11 +3971,11 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 
 			auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
 			if(ln_type == culture::income_type::administration) {
-				total += a_spending * adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
+				total += a_spending * adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else if(ln_type == culture::income_type::education) {
-				total += e_spending * adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
+				total += e_spending * adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else if(ln_type == culture::income_type::military) {
-				total += m_spending * adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
+				total += m_spending * adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else { // unemployment, pensions
 				total += s_spending
 					* adj_pop_of_type
@@ -3993,20 +3996,20 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 
 			auto en_type = culture::income_type(state.world.pop_type_get_everyday_needs_income_type(pt));
 			if(en_type == culture::income_type::administration) {
-				total += a_spending * adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
+				total += a_spending * adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else if(en_type == culture::income_type::education) {
-				total += e_spending * adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
+				total += e_spending * adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else if(en_type == culture::income_type::military) {
-				total += m_spending * adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
+				total += m_spending * adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt) * payouts_spending_multiplier;
 			}
 
 			auto lx_type = culture::income_type(state.world.pop_type_get_luxury_needs_income_type(pt));
 			if(lx_type == culture::income_type::administration) {
-				total += a_spending * adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
+				total += a_spending * adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else if(lx_type == culture::income_type::education) {
-				total += e_spending * adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
+				total += e_spending * adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt) * payouts_spending_multiplier;
 			} else if(lx_type == culture::income_type::military) {
-				total += m_spending * adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
+				total += m_spending * adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt) * payouts_spending_multiplier;
 			}
 
 			assert(std::isfinite(total) && total >= 0.0f);
@@ -5883,9 +5886,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto acc_u = ve::select(none_of_above, s_spending * adj_pop_of_type * p_level * ln_costs, 0.0f);
 
-		acc_a = acc_a + ve::select(en_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * en_costs, 0.0f);
-		acc_e = acc_e + ve::select(en_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * en_costs, 0.0f);
-		acc_m = acc_m + ve::select(en_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * en_costs, 0.0f);
+		acc_a = acc_a + ve::select(en_types == int32_t(culture::income_type::administration), a_spending * adj_pop_of_type * en_costs * payouts_spending_multiplier, 0.0f);
+		acc_e = acc_e + ve::select(en_types == int32_t(culture::income_type::education), e_spending * adj_pop_of_type * en_costs * payouts_spending_multiplier, 0.0f);
+		acc_m = acc_m + ve::select(en_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * en_costs * payouts_spending_multiplier, 0.0f);
 
 		acc_u = acc_u + ve::select(types == state.culture_definitions.capitalists, di_level * adj_pop_of_type * state.defines.alice_domestic_investment_multiplier * total_costs, 0.0f);
 		acc_u = acc_u + ve::select(types == state.culture_definitions.aristocrat, di_level * adj_pop_of_type * state.defines.alice_domestic_investment_multiplier * total_costs, 0.0f);
@@ -7789,7 +7792,7 @@ float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, 
 			}
 		});
 	});
-	return total;
+	return total * payouts_spending_multiplier;
 }
 
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps) {
