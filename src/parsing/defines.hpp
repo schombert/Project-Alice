@@ -694,13 +694,14 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_eval_ai_mil_everyday, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_subjects_declare_wars, 0.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_substate_subject_money_transfer, 40.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_puppet_subject_money_transfer, 30.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_privateinvestment_subject_transfer, 2.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_allow_revoke_subject_states, 0.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_subject, 2.0)                                                          \
-	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_all_subjects, 1.0)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75) \
+	LUA_DEFINES_LIST_ELEMENT(alice_substate_subject_money_transfer, 40.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_puppet_subject_money_transfer, 30.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_privateinvestment_subject_transfer, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_allow_revoke_subject_states, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_subject, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_all_subjects, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_strength_estimation_military_industrial_balance, 1.0) \
 
 
 // scales the needs values so that they are needs per this many pops
