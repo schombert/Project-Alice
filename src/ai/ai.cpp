@@ -17,9 +17,12 @@ enum ai_strategies {
 };
 
 float estimate_strength(sys::state& state, dcon::nation_id n) {
-	float value = state.world.nation_get_military_score(n);
-	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
-		value += subj.get_subject().get_military_score();
+	float value = state.world.nation_get_military_score(n) * state.defines.alice_ai_strength_estimation_military_industrial_balance;
+	value += state.world.nation_get_military_score(n) * (1.f - state.defines.alice_ai_strength_estimation_military_industrial_balance);
+	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
+		value += subj.get_subject().get_military_score() * state.defines.alice_ai_strength_estimation_military_industrial_balance;
+		value += subj.get_subject().get_military_score() * (1.f - state.defines.alice_ai_strength_estimation_military_industrial_balance);
+	}
 	return value;
 }
 

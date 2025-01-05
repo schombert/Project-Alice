@@ -701,6 +701,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_revoke_subject_states, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_subject, 2.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_take_province_militancy_all_subjects, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_strength_estimation_military_industrial_balance, 1.0) \
 
 
 // scales the needs values so that they are needs per this many pops
