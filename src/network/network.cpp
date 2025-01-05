@@ -40,6 +40,9 @@
 #pragma comment(lib, "ntdll.lib")
 #endif
 
+#include <json.hpp>
+using json = nlohmann::json;
+
 namespace network {
 
 //
@@ -1352,8 +1355,13 @@ void send_and_receive_commands(sys::state& state) {
 				if(!client.is_active())
 					continue;
 
-				if(state.current_scene.game_in_progress && state.current_date.value > state.defines.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.defines.alice_lagging_behind_days_to_drop) {
-					disconnect_client(state, client, true);
+				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
+					if(state.host_settings.alice_persistent_server_mode != 1) {
+						disconnect_client(state, client, true);
+					}
+					else {
+						clear_socket(state, client);
+					}
 				}
 			}
 		}
@@ -1525,7 +1533,7 @@ void finish(sys::state& state, bool notify_host) {
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_leaves;
 			c.source = state.local_player_nation;
-			c.data.notify_leave.make_ai = (state.defines.alice_place_ai_upon_disconnection == 1);
+			c.data.notify_leave.make_ai = (state.host_settings.alice_place_ai_upon_disconnection == 1);
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 			state.console_log("client:send:cmd | type:notify_player_leaves");
@@ -1617,6 +1625,53 @@ void place_host_player_after_saveload(sys::state& state) {
 	state.network_state.outgoing_commands.push(c);
 
 	log_player_nations(state);
+}
+
+void load_host_settings(sys::state& state) {
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	auto settings_file = open_file(settings_location, NATIVE("host_settings.json"));
+	if(settings_file) {
+		auto content = view_contents(*settings_file);
+		json data = json::parse(content.data);
+
+		if(!data["alice_expose_webui"].empty()) \
+			state.host_settings.alice_expose_webui = data["alice_expose_webui"];
+
+#define HS_LOAD(x, y) \
+if(!data[x].empty()) \
+state.host_settings.y = data[x]
+
+		HS_LOAD("alice_expose_webui", alice_expose_webui);
+		HS_LOAD("alice_lagging_behind_days_to_drop", alice_lagging_behind_days_to_drop);
+		HS_LOAD("alice_persistent_server_mode", alice_persistent_server_mode);
+		HS_LOAD("alice_place_ai_upon_disconnection", alice_place_ai_upon_disconnection);
+		HS_LOAD("alice_persistent_server_pause", alice_persistent_server_pause);
+		HS_LOAD("alice_persistent_server_unpause", alice_persistent_server_unpause);
+	}
+}
+
+// Used primarily to create JSON file with default values
+void save_host_settings(sys::state& state) {
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	auto settings_file = open_file(settings_location, NATIVE("host_settings.json"));
+	if(!settings_file) {
+
+#define HS_SAVE(x, y) \
+data[x] = state.host_settings.y
+
+		json data = json::object();
+
+		HS_SAVE("alice_expose_webui", alice_expose_webui);
+		HS_SAVE("alice_lagging_behind_days_to_drop", alice_lagging_behind_days_to_drop);
+		HS_SAVE("alice_persistent_server_mode", alice_persistent_server_mode);
+		HS_SAVE("alice_place_ai_upon_disconnection", alice_place_ai_upon_disconnection);
+		HS_SAVE("alice_persistent_server_pause", alice_persistent_server_pause);
+		HS_SAVE("alice_persistent_server_unpause", alice_persistent_server_unpause);
+
+		std::string res = data.dump();
+
+		simple_fs::write_file(settings_location, NATIVE("host_settings.json"), res.data(), uint32_t(res.length()));
+	}
 }
 
 }

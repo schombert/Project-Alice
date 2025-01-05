@@ -165,8 +165,12 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	auto name_id = text::find_or_add_key(context.state, name, false);
 	state_def_building_context new_context{ context, std::vector<dcon::province_id>{} };
 	parsers::parse_state_definition(gen, err, new_context);
-	if(new_context.provinces.empty())
+	if(new_context.provinces.empty()) {
+		auto rdef = context.state.world.create_region();
+		context.map_of_region_names.insert_or_assign(std::string(name), rdef);
+		context.state.world.region_set_name(rdef, name_id);
 		return; //empty, tooltip metaregions
+	}
 
 	bool is_state = false;
 	bool is_region = false;

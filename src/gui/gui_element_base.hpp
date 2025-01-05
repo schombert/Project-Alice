@@ -63,7 +63,15 @@ public:
 	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
 		return tooltip_behavior::no_tooltip;
 	}
+	virtual void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, urect& subrect) noexcept {
+		ident = 0;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.size = base_data.size;
+	}
 	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept { }
+
+	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
+	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
 
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly

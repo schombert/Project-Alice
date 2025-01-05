@@ -879,6 +879,19 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 	return 0.f;
 }
 
+// Returns factory types for which commodity is an output good
+std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good) {
+	std::vector<dcon::factory_type_id> types;
+
+	for(auto t : state.world.in_factory_type) {
+		if(t.get_output() == output_good) {
+			types.push_back(t);
+		}
+	}
+
+	return types;
+}
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
@@ -909,13 +922,12 @@ void initialize_artisan_distribution(sys::state& state) {
 
 		for(uint32_t i = 1; i < csize; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
 
 			if(
 				state.world.commodity_get_artisan_output_amount(cid) > 0.0f
 				&& (
 					state.world.commodity_get_is_available_from_start(cid)
-					|| (kf && state.world.nation_get_active_building(nation, kf))
+					|| state.world.nation_get_unlocked_commodities(nation, cid)
 					)
 			) {
 				m.set_artisan_score(cid, 0.f);
@@ -924,44 +936,36 @@ void initialize_artisan_distribution(sys::state& state) {
 	}
 }
 bool valid_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_available_from_start(c)
-		|| (kf && state.world.nation_get_active_building(n, kf));
+		|| state.world.nation_get_unlocked_commodities(n, c);
 }
 
 template<typename T>
 ve::mask_vector valid_need(sys::state& state, T n, dcon::commodity_id c) {
 	ve::mask_vector available_at_start = state.world.commodity_get_is_available_from_start(c);
-	ve::mask_vector active_mask = false;
-	auto kf = state.world.commodity_get_key_factory(c);
-	if(kf) {
-		active_mask = state.world.nation_get_active_building(n, kf);
-	}
+	ve::mask_vector active_mask = state.world.nation_get_unlocked_commodities(n, c);
 	return available_at_start || active_mask;
 }
 
 bool valid_life_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_life_need(c)
 		&& (
 			state.world.commodity_get_is_available_from_start(c)
-			|| (kf && state.world.nation_get_active_building(n, kf))
+			|| state.world.nation_get_unlocked_commodities(n, c)
 		);
 }
 bool valid_everyday_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_everyday_need(c)
 		&& (
 			state.world.commodity_get_is_available_from_start(c)
-			|| (kf && state.world.nation_get_active_building(n, kf))
+			|| state.world.nation_get_unlocked_commodities(n, c)
 		);
 }
 bool valid_luxury_need(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto kf = state.world.commodity_get_key_factory(c);
 	return state.world.commodity_get_is_luxury_need(c)
 		&& (
 			state.world.commodity_get_is_available_from_start(c)
-			|| (kf && state.world.nation_get_active_building(n, kf))
+			|| state.world.nation_get_unlocked_commodities(n, c)
 		);
 }
 
@@ -978,7 +982,6 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 	}
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto kf = state.world.commodity_get_key_factory(c);
 			if(valid_everyday_need(state, nation, c)) {
 				auto& w = state.world.market_get_everyday_needs_weights(n, c);
 				w = 0.001f;
@@ -987,7 +990,6 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 	}
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto kf = state.world.commodity_get_key_factory(c);
 			if(valid_luxury_need(state, nation, c)) {
 				auto& w = state.world.market_get_luxury_needs_weights(n, c);
 				w = 0.001f;
@@ -1303,12 +1305,8 @@ ve::mask_vector ve_valid_artisan_good(
 	T nations,
 	dcon::commodity_id cid
 ) {
-	auto kf = state.world.commodity_get_key_factory(cid);
 	ve::mask_vector from_the_start = state.world.commodity_get_is_available_from_start(cid);
-	ve::mask_vector active = false;
-	if(kf) {
-		active = state.world.nation_get_active_building(nations, kf);
-	}
+	ve::mask_vector active = state.world.nation_get_unlocked_commodities(nations, cid);
 	auto can_produce = state.world.commodity_get_artisan_output_amount(cid) > 0.0f;
 
 	return can_produce && (from_the_start || active);
@@ -1319,12 +1317,8 @@ bool valid_artisan_good(
 	dcon::nation_id nations,
 	dcon::commodity_id cid
 ) {
-	auto kf = state.world.commodity_get_key_factory(cid);
 	auto from_the_start = state.world.commodity_get_is_available_from_start(cid);
-	auto active = false;
-	if(kf) {
-		active = state.world.nation_get_active_building(nations, kf);
-	}
+	auto active = state.world.nation_get_unlocked_commodities(nations, cid);
 	auto can_produce = state.world.commodity_get_artisan_output_amount(cid) > 0.0f;
 
 	return can_produce && (from_the_start || active);
@@ -3907,8 +3901,7 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 	if(overseas_factor > 0) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 				total += overseas_factor * price(state, capital_market, cid) * o_spending;
 			}
 		}
@@ -4060,8 +4053,7 @@ float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 				total +=
 					overseas_factor
 					* price(state, market, cid)
@@ -4174,8 +4166,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 	if(overseas_factor > 0.f) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 				auto sat = state.world.market_get_demand_satisfaction(market, cid);
 				auto sat_importance = std::min(1.f, 1.f / (price(state, market, cid) + 0.001f));
 				auto sat_coefficient = (sat_importance + (1.f - sat_importance) * sat);
@@ -4200,6 +4191,8 @@ void update_pop_consumption(
 	ve::vectorizable_buffer<float, dcon::nation_id>& invention_count
 ) {
 	uint32_t total_commodities = state.world.commodity_size();
+
+	state.ui_state.last_tick_investment_pool_change = 0;
 
 	static const ve::fp_vector zero = ve::fp_vector{ 0.f };
 	static const ve::fp_vector one = ve::fp_vector{ 1.f };
@@ -4444,6 +4437,9 @@ void update_pop_consumption(
 				auto zone = state.world.market_get_zone_from_local_market(m);
 				auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 				state.world.nation_get_private_investment(nation) += investment;
+				if(nation == state.local_player_nation) {
+					state.ui_state.last_tick_investment_pool_change += investment;
+				}
 		},
 			markets,
 			final_demand_scale_life,
@@ -4511,7 +4507,6 @@ void update_pop_consumption(
 				auto base_luxury =
 					state.world.pop_type_get_luxury_needs(t, cid);
 
-				auto key_factory = state.world.commodity_get_key_factory(cid);
 				auto valid_good_mask = valid_need(state, nations, cid);
 
 				auto demand_life =
@@ -4815,6 +4810,11 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 	float income_to_build_units = 10'000.f;
 
+	if(state.world.nation_get_owned_province_count(n) == 0) {
+		return;
+	}
+
+
 	// we build infantry and artillery:
 	auto infantry = state.military_definitions.infantry;
 	auto artillery = state.military_definitions.artillery;
@@ -4837,7 +4837,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			}
 		}
 		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(infantry_def.build_cost.commodity_type[i]) {
+			if(artillery_def.build_cost.commodity_type[i]) {
 				auto p = price(state, market, artillery_def.build_cost.commodity_type[i]);
 				daily_cost += artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time * p;
 			} else {
@@ -4933,6 +4933,417 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			count++;
 		});
 	});
+}
+
+// ### Private Investment ###
+
+const inline float courage = 1.0f;
+const inline float days_prepaid = 5.f;
+
+/* Returns number of initiated projects */
+std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid) {
+	auto n = dcon::fatten(state.world, nid);
+	auto nation_rules = n.get_combined_issue_rules();
+
+	// check if current projects are already too expensive for capitalists to manage
+	float total_cost = estimate_private_construction_spendings(state, n) * days_prepaid * 40.f;
+	float total_cost_added = 0.f;
+	float current_inv = n.get_private_investment();
+
+	std::vector<full_construction_state> res;
+
+	if(current_inv <= total_cost) {
+		return res;
+	}
+
+	if(!n.get_is_civilized()) {
+		return res;
+	}
+
+	if((nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) == 0) {
+		return res;
+	}
+
+	static std::vector<dcon::factory_type_id> desired_types;
+	desired_types.clear();
+
+	static std::vector<dcon::state_instance_id> states_in_order;
+	states_in_order.clear();
+	for(auto si : n.get_state_ownership()) {
+		if(si.get_state().get_capital().get_is_colonial() == false) {
+			states_in_order.push_back(si.get_state().id);
+		}
+	}
+
+	std::sort(
+		states_in_order.begin(),
+		states_in_order.end(),
+		[&](dcon::state_instance_id a, dcon::state_instance_id b
+			) {
+				auto a_pop = state.world.state_instance_get_demographics(a, demographics::total);
+				auto b_pop = state.world.state_instance_get_demographics(b, demographics::total);
+				if(a_pop != b_pop)
+					return a_pop > b_pop;
+				return a.index() < b.index(); // force total ordering
+	});
+
+	//upgrade all good targets!!!
+	//upgrading only one per run is too slow and leads to massive unemployment!!!
+	bool found_investment = false;
+
+	for(auto s : states_in_order) {
+		auto market = state.world.state_instance_get_market_from_local_market(s);
+		auto pw_num = state.world.state_instance_get_demographics(s,
+				demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+		auto pw_employed = state.world.state_instance_get_demographics(s,
+				demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+
+		int32_t num_factories = 0;
+		float profit = 0.0f;
+		dcon::factory_id selected_factory;
+
+		// is there an upgrade target ?
+		auto d = state.world.state_instance_get_definition(s);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == n) {
+				for(auto f : p.get_province().get_factory_location()) {
+					++num_factories;
+
+					if(
+						(nation_rules & issue_rule::pop_expand_factory) != 0
+						&& f.get_factory().get_production_scale() >= 0.9f
+						&& f.get_factory().get_primary_employment() >= 0.9f
+						&& f.get_factory().get_level() < uint8_t(255)) {
+
+						auto type = f.get_factory().get_building_type();
+						auto ug_in_progress = false;
+						for(auto c : state.world.state_instance_get_state_building_construction(s)) {
+							if(c.get_type() == type) {
+								ug_in_progress = true;
+								break;
+							}
+						}
+
+						if(ug_in_progress) {
+							continue;
+						}
+
+						if(auto new_p =
+								f.get_factory().get_full_profit()
+								/ f.get_factory().get_level();
+							new_p > profit
+						) {
+							profit = new_p;
+							selected_factory = f.get_factory();
+						}
+					}
+				}
+			}
+		}
+		if(selected_factory && profit > 0.f) {
+			res.push_back({	n, s, true, true, state.world.factory_get_building_type(selected_factory) });
+			
+		}
+	}
+
+	return res;
+}
+
+/* Returns number of initiated projects */
+std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid) {
+	auto n = dcon::fatten(state.world, nid);
+	auto nation_rules = n.get_combined_issue_rules();
+
+	// check if current projects are already too expensive for capitalists to manage
+	float total_cost = estimate_private_construction_spendings(state, n) * days_prepaid * 40.f;
+	float total_cost_added = 0.f;
+	float current_inv = n.get_private_investment();
+
+	std::vector<full_construction_state> res;
+
+	if(current_inv <= total_cost) {
+		return res;
+	}
+
+	if(!n.get_is_civilized()) {
+		return res;
+	}
+
+	if((nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) == 0) {
+		return res;
+	}
+
+	static std::vector<dcon::factory_type_id> desired_types;
+	desired_types.clear();
+
+	static std::vector<dcon::state_instance_id> states_in_order;
+	states_in_order.clear();
+
+	for(auto si : n.get_state_ownership()) {
+		if(si.get_state().get_capital().get_is_colonial() == false) {
+			states_in_order.push_back(si.get_state().id);
+		}
+	}
+
+	float profit = 0.0f;
+	dcon::factory_id selected_factory;
+
+	std::sort(
+		states_in_order.begin(),
+		states_in_order.end(),
+		[&](dcon::state_instance_id a, dcon::state_instance_id b
+			) {
+				auto a_pop = state.world.state_instance_get_demographics(a, demographics::total);
+				auto b_pop = state.world.state_instance_get_demographics(b, demographics::total);
+				if(a_pop != b_pop)
+					return a_pop > b_pop;
+				return a.index() < b.index(); // force total ordering
+	});
+
+	for(auto s : states_in_order) {
+		auto existing_constructions = state.world.state_instance_get_state_building_construction(s);
+		if(existing_constructions.begin() != existing_constructions.end())
+			continue; // already building
+
+		if(current_inv * courage < total_cost + total_cost_added) {
+			continue;
+		}
+		
+		if((nation_rules & issue_rule::pop_build_factory) == 0) {
+			continue;
+		}
+
+		int32_t num_factories = 0;
+		auto d = state.world.state_instance_get_definition(s);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == n) {
+				for(auto f : p.get_province().get_factory_location()) {
+					++num_factories;
+				}
+			}
+		}
+
+		if(num_factories >= int32_t(state.defines.factories_per_state)) {
+			continue;
+		}
+
+		auto market = state.world.state_instance_get_market_from_local_market(s);
+			
+		// randomly try a valid (check coastal, unlocked, non existing) factory
+		desired_types.clear();
+		ai::get_desired_factory_types(state, n, market, desired_types);
+
+		if(desired_types.empty()) {
+			continue;
+		}
+
+		auto selected = desired_types[
+			rng::get_random(state, uint32_t((n.id.index() << 6) ^ s.index()))
+				% desired_types.size()
+		];
+
+		if(
+			state.world.factory_type_get_is_coastal(selected)
+			&& !province::state_is_coastal(state, s)
+		)
+			continue;
+
+		bool already_in_progress = [&]() {
+			for(auto p : state.world.state_instance_get_state_building_construction(s)) {
+				if(p.get_type() == selected)
+					return true;
+			}
+			return false;
+			}();
+
+		if(already_in_progress)
+			continue;
+
+
+		bool present_in_location = false;
+		province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) {
+			for(auto fac : state.world.province_get_factory_location(p)) {
+				auto type = fac.get_factory().get_building_type();
+				if(selected == type) {
+					present_in_location = true;
+					return;
+				}
+			}
+		});
+
+		if(present_in_location) {
+			continue;
+		}
+
+		auto costs = state.world.factory_type_get_construction_costs(selected);
+		auto time = state.world.factory_type_get_construction_time(selected);
+		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+			if(costs.commodity_type[i]) {
+				total_cost_added +=
+					costs.commodity_amounts[i]
+					* price(state, market, costs.commodity_type[i])
+					/ float(time)
+					* days_prepaid;
+			} else {
+				break;
+			}
+		}
+
+		if(current_inv * courage < total_cost + total_cost_added) {
+			continue;
+		}
+
+		res.push_back({
+			n, s, true, false, selected });
+	}
+
+	return res;
+}
+
+std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid) {
+	auto n = dcon::fatten(state.world, nid);
+	auto nation_rules = n.get_combined_issue_rules();
+
+	// check if current projects are already too expensive for capitalists to manage
+	float total_cost = estimate_private_construction_spendings(state, n) * days_prepaid * 40.f;
+	float total_cost_added = 0.f;
+	float current_inv = n.get_private_investment();
+
+	std::vector<full_construction_province> res;
+
+	if(current_inv <= total_cost) {
+		return res;
+	}
+
+	if(!n.get_is_civilized()) {
+		return res;
+	}
+
+	if((nation_rules & issue_rule::pop_build_factory) == 0) {
+		return res;
+	}
+
+	static std::vector<std::pair<dcon::province_id, int32_t>> provinces_in_order;
+	provinces_in_order.clear();
+	for(auto si : n.get_state_ownership()) {
+		if(si.get_state().get_capital().get_is_colonial() == false) {
+			auto s = si.get_state().id;
+			auto d = state.world.state_instance_get_definition(s);
+			int32_t num_factories = 0;
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(province::generic_can_build_railroads(state, p.get_province(), n) &&
+						p.get_province().get_nation_from_province_ownership() == n) {
+					for(auto f : p.get_province().get_factory_location())
+						num_factories += int32_t(f.get_factory().get_level());
+					provinces_in_order.emplace_back(p.get_province().id, num_factories);
+				}
+			}
+			// The state's number of factories is intentionally given
+			// to all the provinces within the state so the
+			// railroads aren't just built on a single province within a state
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(province::generic_can_build_railroads(state, p.get_province(), n) &&
+						p.get_province().get_nation_from_province_ownership() == n)
+					provinces_in_order.emplace_back(p.get_province().id, num_factories);
+			}
+		}
+	}
+	if(!provinces_in_order.empty()) {
+		std::pair<dcon::province_id, int32_t> best_p = provinces_in_order[0];
+		for(auto e : provinces_in_order)
+			if(e.second > best_p.second)
+				best_p = e;
+
+		auto sid = state.world.province_get_state_membership(best_p.first);
+		auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+		auto costs = state.economy_definitions.building_definitions[int32_t(province_building_type::railroad)].cost;
+		auto time = state.economy_definitions.building_definitions[int32_t(province_building_type::railroad)].time;
+		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+			if(costs.commodity_type[i]) {
+				total_cost_added +=
+					costs.commodity_amounts[i]
+					* price(state, market, costs.commodity_type[i])
+					/ float(time)
+					* days_prepaid;
+			} else {
+				break;
+			}
+		}
+
+		if(n.get_private_investment() * courage < total_cost + total_cost_added) {
+			return res;
+		}
+
+		res.push_back({ n, best_p.first , true, province_building_type::railroad });
+	}
+
+	return res;
+}
+
+void run_private_investment(sys::state& state) {
+	// make new investments
+	for(auto n : state.world.in_nation) {
+		auto upgrades = estimate_private_investment_upgrade(state, n);
+
+		for(auto r : upgrades) {
+			auto new_up = fatten(
+			state.world,
+			state.world.force_create_state_building_construction(r.state, r.nation)
+			);
+
+			new_up.set_is_pop_project(r.is_pop_project);
+			new_up.set_is_upgrade(r.is_upgrade);
+			new_up.set_type(r.type);
+		}
+
+		auto constructions = estimate_private_investment_construct(state, n);
+
+		for(auto r : constructions) {
+			auto new_up = fatten(
+			state.world,
+			state.world.force_create_state_building_construction(r.state, r.nation)
+			);
+
+			new_up.set_is_pop_project(r.is_pop_project);
+			new_up.set_is_upgrade(r.is_upgrade);
+			new_up.set_type(r.type);
+		}
+
+		auto province_constr = estimate_private_investment_province(state, n);
+
+		for(auto r : province_constr) {
+			auto new_rr = fatten(
+				state.world,
+				state.world.force_create_province_building_construction(r.province, r.nation)
+			);
+			new_rr.set_is_pop_project(r.is_pop_project);
+			new_rr.set_type(uint8_t(r.type));
+		}
+
+		// If nowhere to invest
+		if (estimate_private_construction_spendings(state, n) < 1.f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
+			// If it's a subject - transfer private investment to overlord
+			// If it's an overlord - distribute some private invesmtent to subjects
+			auto rel = state.world.nation_get_overlord_as_subject(n);
+			auto overlord = state.world.overlord_get_ruler(rel);
+
+			auto amt = state.world.nation_get_private_investment(n) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
+			state.world.nation_get_private_investment(n) -= amt;
+
+			if(overlord) {
+				state.world.nation_get_private_investment(overlord) += amt;
+			} else {
+				auto subjects = nations::nation_get_subjects(state, n);
+				if(subjects.size() > 0) {
+					auto part = amt / subjects.size();
+					for(auto s : subjects) {
+						state.world.nation_get_private_investment(s) += part;
+					}
+				}
+			}
+		}
+	}
 }
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
@@ -5280,9 +5691,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto prices = state.world.market_get_price(markets, c);
 
-				auto key_factory = state.world.commodity_get_key_factory(c);
 				auto available = state.world.commodity_get_is_available_from_start(c);
-				auto is_active = state.world.nation_get_active_building(nations, key_factory);
+				auto is_active = state.world.nation_get_unlocked_commodities(nations, c);
 				auto life_weights = state.world.market_get_life_needs_weights(markets, c);
 				auto everyday_weights = state.world.market_get_everyday_needs_weights(markets, c);
 				auto luxury_weights = state.world.market_get_luxury_needs_weights(markets, c);
@@ -5358,9 +5768,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto prices = state.world.market_get_price(markets, c);
 
-				auto key_factory = state.world.commodity_get_key_factory(c);
 				auto available = state.world.commodity_get_is_available_from_start(c);
-				auto is_active = state.world.nation_get_active_building(nations, key_factory);
+				auto is_active = state.world.nation_get_unlocked_commodities(nations, c);
 				auto life_weights = state.world.market_get_life_needs_weights(markets, c);
 				auto everyday_weights = state.world.market_get_everyday_needs_weights(markets, c);
 				auto luxury_weights = state.world.market_get_luxury_needs_weights(markets, c);
@@ -5436,9 +5845,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto prices = state.world.market_get_price(markets, c);
 
-				auto key_factory = state.world.commodity_get_key_factory(c);
 				auto available = state.world.commodity_get_is_available_from_start(c);
-				auto is_active = state.world.nation_get_active_building(nations, key_factory);
+				auto is_active = state.world.nation_get_unlocked_commodities(nations, c);
 				auto life_weights = state.world.market_get_life_needs_weights(markets, c);
 				auto everyday_weights = state.world.market_get_everyday_needs_weights(markets, c);
 				auto luxury_weights = state.world.market_get_luxury_needs_weights(markets, c);
@@ -6043,7 +6451,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			if(overseas_factor > 0) {
 				for(uint32_t k = 1; k < total_commodities; ++k) {
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-					auto kf = state.world.commodity_get_key_factory(c);
 					if(state.world.commodity_get_overseas_penalty(c) && valid_need(state, n, c)) {
 						auto sat = state.world.market_get_demand_satisfaction(capital_market, c);
 						overseas_budget_satisfaction = std::min(sat, overseas_budget_satisfaction);
@@ -6258,9 +6665,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	auto amount_of_nations = state.world.nation_size();
 
-	concurrency::parallel_for(uint32_t(0), amount_of_nations, [&](uint32_t i) {
-		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(i) };
-
+	for (auto n : state.world.in_nation) {
 		auto const min_wage_factor = pop_min_wage_factor(state, n);
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -6712,7 +7117,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto market = si.get_state().get_market_from_local_market();
 			rebalance_needs_weights(state, market);
 		}
-	});
+	};
 	state.world.execute_serial_over_market([&](auto ids) {
 		auto local_states = state.world.market_get_zone_from_local_market(ids);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(local_states);
@@ -7212,8 +7617,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 						continue;
 					}
 
-					num_factories = state_factory_count(state, s, n);
-
 					if(
 						(num_factories < int32_t(state.defines.factories_per_state))
 						&& (nation_rules & issue_rule::pop_build_factory) != 0
@@ -7287,7 +7690,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 							new_up.set_is_pop_project(true);
 							new_up.set_is_upgrade(false);
 							new_up.set_type(selected);
-							num_factories++;
 								
 							//found_investment = true;
 						}
@@ -7441,26 +7843,6 @@ void regenerate_unsaved_values(sys::state& state) {
 	state.world.market_resize_max_luxury_needs_satisfaction(state.world.pop_type_size());
 
 	state.world.province_resize_rgo_actual_production_per_good(state.world.commodity_size());
-
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		auto fc = fatten(state.world, c);
-		state.world.commodity_set_key_factory(c, dcon::factory_type_id{});
-		/*
-		if(fc.get_total_production() > 0.0001f) {
-			fc.set_producer_payout_fraction(
-				std::min(fc.get_total_consumption() / fc.get_total_production(), 1.0f)
-			);
-		} else {
-			fc.set_producer_payout_fraction(1.0f);
-		}
-		*/
-	});
-
-	state.world.for_each_factory_type([&](dcon::factory_type_id t) {
-		auto o = state.world.factory_type_get_output(t);
-		if(o)
-			state.world.commodity_set_key_factory(o, t);
-	});
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
@@ -7472,12 +7854,11 @@ float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodi
 		);
 	auto o_adjust = 0.0f;
 	if(overseas_factor > 0) {
-		auto kf = state.world.commodity_get_key_factory(c);
 		if(
 			state.world.commodity_get_overseas_penalty(c)
 			&& (
 				state.world.commodity_get_is_available_from_start(c)
-				|| (kf && state.world.nation_get_active_building(n, kf))
+				|| state.world.nation_get_unlocked_commodities(n, c)
 				)
 		) {
 			o_adjust = overseas_factor;
@@ -7630,8 +8011,7 @@ float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::com
 
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
 	auto amount = 0.f;
-	auto kf = state.world.commodity_get_key_factory(c);
-	if(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf))) {
+	if(state.world.commodity_get_is_available_from_start(c) || state.world.nation_get_unlocked_commodities(n, c)) {
 		state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 			auto si = state.world.state_ownership_get_state(soid);
 			auto m = state.world.state_instance_get_market_from_local_market(si);
@@ -7869,11 +8249,23 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 	float w_sub = estimate_war_subsidies_income(state, n) - estimate_war_subsidies_spending(state, n);
 	float w_reps = estimate_reparations_income(state, n) - estimate_reparations_spending(state, n);
-
-	float subject_payments = estimate_subject_payments_paid(state, n) + estimate_subject_payments_received(state, n);
-
+	float subject_payments =  estimate_subject_payments_received(state, n) - estimate_subject_payments_paid(state, n);
 	return w_sub + w_reps + subject_payments;
 }
+float estimate_diplomatic_income(sys::state& state, dcon::nation_id n) {
+	float w_sub = estimate_war_subsidies_income(state, n);
+	float w_reps = estimate_reparations_income(state, n);
+	float subject_payments =  estimate_subject_payments_received(state, n);
+	return w_sub + w_reps + subject_payments;
+}
+float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
+	float w_sub =  estimate_war_subsidies_spending(state, n);
+	float w_reps =  estimate_reparations_spending(state, n);
+	float subject_payments = estimate_subject_payments_received(state, n);
+	return w_sub + w_reps + subject_payments;
+}
+
+
 
 float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
 	auto total = 0.f;
@@ -8431,6 +8823,111 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 	}
 }
 
+command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n) {
+	command::budget_settings_data result;
+	result.education_spending = 0;
+	result.military_spending = 0;
+	result.administrative_spending = 0;
+	result.social_spending = 0;
+	result.land_spending = 0;
+	result.naval_spending = 0;
+	result.construction_spending = 0;
+	result.poor_tax = 0;
+	result.middle_tax = 0;
+	result.rich_tax = 0;
+	result.tariffs = 0;
+	result.domestic_investment = 0;
+	result.overseas = 0;
+
+	{
+		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
+		result.tariffs = int8_t(std::clamp(min_tariff, 0, 100));
+	}
+	{
+		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));
+		result.poor_tax = int8_t(std::clamp(min_tax, 0, 100));
+		result.middle_tax = int8_t(std::clamp(min_tax, 0, 100));
+		result.rich_tax = int8_t(std::clamp(min_tax, 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_military_spending));
+		result.military_spending = int8_t(std::clamp(min_spend, 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_social_spending));
+		result.social_spending = int8_t(std::clamp(min_spend, 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_domestic_investment));
+		result.domestic_investment = int8_t(std::clamp(min_spend, 0, 100));
+	}
+	return result;
+}
+command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n) {
+	command::budget_settings_data result;
+	result.education_spending = 100;
+	result.military_spending = 100;
+	result.administrative_spending = 100;
+	result.social_spending = 100;
+	result.land_spending = 100;
+	result.naval_spending = 100;
+	result.construction_spending = 100;
+	result.poor_tax = 100;
+	result.middle_tax = 100;
+	result.rich_tax = 100;
+	result.tariffs = 100;
+	result.domestic_investment = 100;
+	result.overseas = 100;
+
+	{
+		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
+		auto max_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
+		max_tariff = std::max(min_tariff, max_tariff);
+
+		result.tariffs = int8_t(std::clamp(max_tariff, 0, 100));
+	}
+	{
+		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));
+		auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tax));
+		if(max_tax <= 0)
+			max_tax = 100;
+		max_tax = std::max(min_tax, max_tax);
+
+		result.poor_tax = int8_t(std::clamp(max_tax, 0, 100));
+		result.middle_tax = int8_t(std::clamp(max_tax, 0, 100));
+		result.rich_tax = int8_t(std::clamp(max_tax, 0, 100));
+	}
+	{
+		auto min_spend =
+			int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_military_spending));
+		auto max_spend =
+			int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_military_spending));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		result.military_spending = int8_t(std::clamp(max_spend, 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_social_spending));
+		auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_social_spending));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		result.social_spending = int8_t(std::clamp(max_spend, 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_domestic_investment));
+		auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_domestic_investment));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		result.domestic_investment = int8_t(std::clamp(max_spend, 0, 100));
+	}
+	return result;
+}
 void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 	{
 		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
@@ -8474,18 +8971,6 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 		max_spend = std::max(min_spend, max_spend);
 
 		auto& v = state.world.nation_get_social_spending(n);
-		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
-	}
-	{
-		auto min_spend =
-			int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_military_spending));
-		auto max_spend =
-			int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_military_spending));
-		if(max_spend <= 0)
-			max_spend = 100;
-		max_spend = std::max(min_spend, max_spend);
-
-		auto& v = state.world.nation_get_military_spending(n);
 		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
 	}
 	{
@@ -8594,16 +9079,8 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	});
 }
 
-commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c) {
-	auto commodity = dcon::fatten(state.world, c);
-	if(commodity.get_rgo_amount() > 0 && (commodity.get_artisan_output_amount() > 0 || commodity.get_key_factory()))
-		return commodity_production_type::both;
-	else if(commodity.get_key_factory())
-		return commodity_production_type::derivative;
-	else
-		return commodity_production_type::primary;
-
-
+float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_private_investment(n) * 0.001f;
 }
 
 } // namespace economy

@@ -399,10 +399,79 @@ public:
 
 		*/
 
-		text::add_line(state, contents, std::string_view("investment_pool"),
-					text::variable_type::x,
-					text::fp_currency{
-							state.world.nation_get_private_investment(state.local_player_nation) });
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ state.world.nation_get_private_investment(state.local_player_nation) });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "investment_pool", sub);
+			text::close_layout_box(contents, box);
+		}
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ state.ui_state.last_tick_investment_pool_change });
+			auto box = text::open_layout_box(contents, 3);
+			text::localised_format_box(state, contents, box, "investment_pool_income_1", sub);
+			text::close_layout_box(contents, box);
+		}
+		{
+			for(auto n : state.world.in_nation) {
+				auto rel = state.world.nation_get_overlord_as_subject(n);
+				auto overlord = state.world.overlord_get_ruler(rel);
+
+				if(overlord == state.local_player_nation) {
+					auto upgrades = economy::estimate_private_investment_upgrade(state, n);
+					auto constructions = economy::estimate_private_investment_construct(state, n);
+					auto province_constr = economy::estimate_private_investment_province(state, n);
+
+					if(economy::estimate_private_construction_spendings(state, n) < 1.0f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
+						auto amt = state.world.nation_get_private_investment(n) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
+
+						text::substitution_map sub{};
+						text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
+						text::add_to_substitution_map(sub, text::variable_type::country, n);
+						auto box = text::open_layout_box(contents, 3);
+						text::localised_format_box(state, contents, box, "investment_pool_income_2", sub);
+						text::close_layout_box(contents, box);
+					}
+				}
+			}
+		}
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ economy::estimate_investment_pool_daily_loss(state, state.local_player_nation) });
+			auto box = text::open_layout_box(contents, 3);
+			text::localised_format_box(state, contents, box, "investment_pool_spending_1", sub);
+			text::close_layout_box(contents, box);
+		}
+
+		auto private_constr = economy::estimate_private_construction_spendings(state, state.local_player_nation);
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ private_constr });
+			auto box = text::open_layout_box(contents, 3);
+			text::localised_format_box(state, contents, box, "investment_pool_spending_2", sub);
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto upgrades = economy::estimate_private_investment_upgrade(state, state.local_player_nation);
+			auto constructions = economy::estimate_private_investment_construct(state, state.local_player_nation);
+			auto province_constr = economy::estimate_private_investment_province(state, state.local_player_nation);
+
+			if(private_constr < 1.f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
+				auto rel = state.world.nation_get_overlord_as_subject(state.local_player_nation);
+				auto overlord = state.world.overlord_get_ruler(rel);
+
+				auto amt = state.world.nation_get_private_investment(state.local_player_nation) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
+
+				if(!overlord) {
+					text::substitution_map sub{};
+					text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
+					auto box = text::open_layout_box(contents, 3);
+					text::localised_format_box(state, contents, box, "investment_pool_spending_3", sub);
+					text::close_layout_box(contents, box);
+				}
+			}
+		}
 	}
 
 };
@@ -2016,7 +2085,9 @@ public:
 		} else if(name == "topbarbutton_budget") {
 			auto btn = make_element_by_type<topbar_budget_tab_button>(state, id);
 
-			auto tab = make_element_by_type<budget_window>(state, "country_budget");
+			//auto tab = make_element_by_type<budget_window>(state, "country_budget");
+			auto tab = alice_ui::make_budgetwindow_main(state);
+			tab->set_visible(state, false);
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;

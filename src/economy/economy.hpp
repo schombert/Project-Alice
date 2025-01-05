@@ -2,6 +2,7 @@
 
 #include "container_types.hpp"
 #include "dcon_generated.hpp"
+#include "commands.hpp"
 
 namespace economy {
 
@@ -426,6 +427,8 @@ float base_artisan_profit(
 	dcon::commodity_id c
 );
 
+std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good);
+
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
@@ -441,18 +444,40 @@ float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, 
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);
+float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n);
 float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
 float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
+float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid);
 float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n);
 float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
 float estimate_reparations_income(sys::state& state, dcon::nation_id n);
 float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n);
 float estimate_stockpile_filling_spending(sys::state& state, dcon::nation_id n);
+
+struct full_construction_state {
+	dcon::nation_id nation;
+	dcon::state_instance_id state;
+	bool is_pop_project;
+	bool is_upgrade;
+	dcon::factory_type_id type;
+};
+
+struct full_construction_province {
+	dcon::nation_id nation;
+	dcon::province_id province;
+	bool is_pop_project;
+	province_building_type type;
+};
+
+std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid);
+std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid);
+std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment
@@ -506,6 +531,8 @@ bool can_take_loans(sys::state& state, dcon::nation_id n);
 float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
-commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
+float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
 
+command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
+command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);
 } // namespace economy

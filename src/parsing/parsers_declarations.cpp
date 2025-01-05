@@ -2495,7 +2495,7 @@ void oob_relationship::truce_until(association_type, sys::year_month_day v, erro
 		context.outer_context.state.world.diplomatic_relation_set_truce_until(rel, sys::date(v, context.outer_context.state.start_date));
 	} else {
 		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_with, context.nation_for);
-		context.outer_context.state.world.diplomatic_relation_set_truce_until(rel, sys::date(v, context.outer_context.state.start_date));
+		context.outer_context.state.world.diplomatic_relation_set_truce_until(new_rel, sys::date(v, context.outer_context.state.start_date));
 	}
 }
 
@@ -3339,14 +3339,27 @@ void mod_file::add_to_file_system(simple_fs::file_system& fs){
 		return;
 
 	// Add root of mod_path
-	for(auto replace_path : replace_paths) {
-		native_string path_block = simple_fs::list_roots(fs)[0];
-		path_block += NATIVE_DIR_SEPARATOR;
-		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
-		if(path_block.back() != NATIVE_DIR_SEPARATOR)
+	for(auto s : replace_paths) {
+		auto const replace_path = simple_fs::correct_slashes(simple_fs::utf8_to_native(s));
+		if(replace_path == NATIVE("history")) {
+			simple_fs::add_ignore_path(fs, simple_fs::list_roots(fs)[0] + NATIVE("\\history\\countries"));
+			simple_fs::add_ignore_path(fs, simple_fs::list_roots(fs)[0] + NATIVE("\\history\\diplomacy"));
+			simple_fs::add_ignore_path(fs, simple_fs::list_roots(fs)[0] + NATIVE("\\history\\provinces"));
+			simple_fs::add_ignore_path(fs, simple_fs::list_roots(fs)[0] + NATIVE("\\history\\units"));
+			simple_fs::add_ignore_path(fs, simple_fs::list_roots(fs)[0] + NATIVE("\\history\\wars"));
+		} else if(replace_path == NATIVE("history\\pops")
+			|| replace_path == NATIVE("map")
+			|| replace_path == NATIVE("map\\terrain")) {
+			//no
+		} else {
+			native_string path_block = simple_fs::list_roots(fs)[0];
 			path_block += NATIVE_DIR_SEPARATOR;
+			path_block += replace_path;
+			if(path_block.back() != NATIVE_DIR_SEPARATOR)
+				path_block += NATIVE_DIR_SEPARATOR;
 
-		simple_fs::add_ignore_path(fs, path_block);
+			simple_fs::add_ignore_path(fs, path_block);
+		}
 	}
 
 	native_string mod_path = simple_fs::list_roots(fs)[0];

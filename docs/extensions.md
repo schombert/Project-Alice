@@ -503,6 +503,10 @@ Alice adds a handful of new defines:
 - `alice_rename_dont_use_localisation`: Keys specified on `change_region_name` or `change_province_name` will be treated as CSV keys, otherwise they will define in-line.
 - `alice_spherelings_only_ally_sphere`: Spherelings will only ally their spherelord.
 - `alice_overseas_mil`: Militancy increase in overseas provinces when overseas maintenance is at zero.
+- `alice_substate_subject_money_transfer`: Percentage [0;100] of subjects' budget revenues transferred to the overlord. Default: 30.0
+- `alice_puppet_subject_money_transfer`. Percentage [0;100] of substates' budget revenues transferred to the overlord. Default: 40.0
+- `alice_privateinvestment_subject_transfer`: Percentage [0;100] of subjects' and overlord's private investment pool transferred daily when no useful projects are done. Overlord distributes money to subjects and subjects contribute to the overlord. Default: 2.0
+- `alice_allow_revoke_subject_states`: Allows overlord to take subjects' states raising their militancy and giving separatism. Default: 0.0
 
 ### Support for reforms based on party issues
 

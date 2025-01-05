@@ -321,4 +321,6 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id);
 void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount);
 
+void modify_militancy(sys::state& state, dcon::nation_id n, float v);
+
 } // namespace demographics

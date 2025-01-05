@@ -373,6 +373,12 @@ void accept(sys::state& state, message const& m) {
 	}
 }
 
+/// <summary>
+/// Returns the appropriate acceptance evaluation for a given diplomatic message. It is required to define a new case and method for new diplomatic requests.
+/// </summary>
+/// <param name="state"></param>
+/// <param name="m"></param>
+/// <returns></returns>
 bool ai_will_accept(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.from) && state.cheat_data.always_accept_deals)
 		return true;
@@ -400,11 +406,29 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::crisis_peace_offer:
 			return ai::will_accept_crisis_peace_offer(state, m.to, m.data.peace);
 		case type::state_transfer:
+			auto rel = state.world.nation_get_overlord_as_subject(m.to);
+			auto overlord = state.world.overlord_get_ruler(rel);
+			if(overlord == m.from) {
+				return true; // Always accept overlord reorganizing states
+			}
+			static std::vector<dcon::state_instance_id> target_states;
+			ai::state_target_list(target_states, state, m.to, m.from);
+
+			for(auto sid : target_states) {
+				if(state.world.state_instance_get_definition(sid) == m.data.state) {
+					return true; // AI wants this state
+				}
+			}
 			return false;
 	}
 	return false;
 }
 
+/// <summary>
+/// Pushes a diplomatic message to the list of pending diplomatic requests for the specified recipient (m.to), will simply skip and evaluate a response immediately if the recipient is AI-controlled.
+/// </summary>
+/// <param name="state"></param>
+/// <param name="m"></param>
 void post(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		if(ai_will_accept(state, m)) {

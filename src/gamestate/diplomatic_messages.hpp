@@ -21,6 +21,9 @@ enum class type_t : uint8_t {
 	state_transfer = 9
 };
 
+/// <summary>
+/// Holds data regarding a diplomatic message between two specified nations at a certain date, whether it be an alliance request, peace offer, calling an ally, etc. Also contains other optional data such as a pertinent war, crisis, state, etc.
+/// </summary>
 struct message {
 	union dtype {
 		dcon::war_id war; //2

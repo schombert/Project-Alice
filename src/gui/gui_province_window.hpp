@@ -488,6 +488,115 @@ public:
 	}
 };
 
+class province_take_province_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(state.defines.alice_allow_revoke_subject_states == 0.0f) {
+			set_visible(state, false);
+			return;
+		}
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_take_province(state, state.local_player_nation, p);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto fid = dcon::fatten(state.world, p);
+		auto owner = fid.get_nation_from_province_ownership();
+
+		if(owner != state.local_player_nation) {
+			button_element_base::render(state, x, y);
+		} else {
+			// not rendered
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::take_province(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+
+		auto fid = dcon::fatten(state.world, p);
+		auto owner = fid.get_nation_from_province_ownership();
+		auto rel = state.world.nation_get_overlord_as_subject(owner);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		text::add_line(state, contents, "alice_take_province_1");
+		{
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ state.defines.years_of_nationalism });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_take_province_2", m);
+			text::close_layout_box(contents, box);
+		}
+		{
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ state.defines.alice_take_province_militancy_subject });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_take_province_3", m);
+			text::close_layout_box(contents, box);
+		}
+		{
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_one_place{ state.defines.alice_take_province_militancy_all_subjects });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_take_province_4", m);
+			text::close_layout_box(contents, box);
+		}
+
+		text::add_line_with_condition(state, contents, "alice_take_province_5", !(overlord != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis_state != sys::crisis_state::inactive));
+		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
+		text::add_line_with_condition(state, contents, "alice_take_province_6", !(state.world.nation_get_is_at_war(owner)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_8", !(state.world.province_get_siege_progress(p) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_9", !(state.world.province_get_siege_progress(state.world.nation_get_capital(owner)) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_take_province_7", !(state.world.province_get_nation_from_province_control(p) != owner));
+	}
+};
+
+class province_grant_province_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = true;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto fid = dcon::fatten(state.world, p);
+		auto owner = fid.get_nation_from_province_ownership();
+
+		if(owner == state.local_player_nation) {
+			button_element_base::render(state, x, y);
+		} else {
+			// not rendered
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::move_capital(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -532,6 +641,10 @@ public:
 			return btn;
 		} else if(name == "alice_move_capital") {
 			return make_element_by_type<province_move_capital_button>(state, id);
+		} else if(name == "alice_take_province") {
+			return make_element_by_type<province_take_province_button>(state, id);
+		} else if(name == "alice_grant_province") {
+			return make_element_by_type<province_grant_province_button>(state, id);
 		} else if(name == "national_focus") {
 			return make_element_by_type<province_national_focus_button>(state, id);
 		} else if(name == "admin_efficiency") {

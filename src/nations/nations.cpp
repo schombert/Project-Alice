@@ -37,6 +37,22 @@ template auto central_reb_controlled_fraction<ve::tagged_vector<dcon::nation_id>
 template auto central_has_crime_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
 template auto occupied_provinces_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
 
+std::vector<dcon::nation_id> nation_get_subjects(sys::state& state, dcon::nation_id n) {
+	std::vector<dcon::nation_id> subjects;
+	for(auto s : state.world.in_nation) {
+		auto rel = state.world.nation_get_overlord_as_subject(s);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord != n) {
+			continue;
+		}
+
+		subjects.push_back(s);
+	}
+
+	return subjects;
+}
+
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
 	/* TODO -
 	 * This should return the differance of the population of a nation between this month and next month, or this month and last
@@ -1709,6 +1725,9 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.for_each_factory_type([&](dcon::factory_type_id t) {
 		state.world.nation_set_active_building(n, t, state.world.nation_get_active_building(base, t));
 	});
+	state.world.for_each_commodity([&](dcon::commodity_id t) {
+		state.world.nation_set_unlocked_commodities(n, t, state.world.nation_get_unlocked_commodities(base, t));
+	});
 	state.world.nation_set_has_gas_attack(n, state.world.nation_get_has_gas_attack(base));
 	state.world.nation_set_has_gas_defense(n, state.world.nation_get_has_gas_defense(base));
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
@@ -2938,10 +2957,19 @@ void update_crisis(sys::state& state) {
 			}
 
 			for(auto wg : state.crisis_attacker_wargoals) {
+				if(!wg.cb) {
+					break;
+				}
+				if(wg.cb == first_wg.cb && wg.state == first_wg.state && wg.wg_tag == first_wg.wg_tag && wg.secondary_nation == first_wg.secondary_nation) {
+					continue;
+				}
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}
 			for(auto wg : state.crisis_defender_wargoals) {
+				if(!wg.cb) {
+					break;
+				}
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}

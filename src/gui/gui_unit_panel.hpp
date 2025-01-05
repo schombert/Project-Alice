@@ -971,8 +971,6 @@ public:
 template<class T>
 class subunit_entry_bg : public tinted_button_element_base {
 public:
-	uint32_t color = 0;
-
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
@@ -1837,6 +1835,85 @@ class unit_type_listbox_entry_label : public button_element_base {
 		command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
 		sys::selected_regiments_clear(state);
 		sys::selected_ships_clear(state);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "unit_upgrade_desc", text::variable_type::days, int64_t(state.defines.discredit_days));
+		text::add_line_break_to_layout(state, contents);
+
+		auto new_type = retrieve<dcon::unit_type_id>(state, parent);
+		auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+
+		text::add_line_with_condition(state, contents, "unit_upgrade_explain_1", !state.selected_regiments[0] || !state.selected_ships[0]);
+		text::add_line_with_condition(state, contents, "unit_upgrade_explain_2", ut.active || state.world.nation_get_active_unit(state.local_player_nation, new_type));
+
+		if(!ut.is_land && ut.type == military::unit_type::big_ship) {
+			auto any_non_big_ship = false;
+			for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+				if(!state.selected_ships[i]) {
+					break;
+				}
+				auto shiptype = state.world.ship_get_type(state.selected_ships[i]);
+				auto st = state.military_definitions.unit_base_definitions[shiptype];
+				if(st.type != military::unit_type::big_ship) {
+					any_non_big_ship = true;
+				}
+			}
+
+			text::add_line_with_condition(state, contents, "unit_upgrade_explain_3", !any_non_big_ship);
+		}
+
+		if(ut.is_land) {
+			auto any_breaking_army_check = false;
+			for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
+				if(!state.selected_regiments[i]) {
+					break;
+				}
+				auto a = state.world.regiment_get_army_from_army_membership(state.selected_regiments[i]);
+
+				if(state.world.army_get_controller_from_army_control(a) != state.local_player_nation || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
+				bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+					any_breaking_army_check = true;
+				}
+			}
+
+			text::add_line_with_condition(state, contents, "unit_upgrade_explain_4", !any_breaking_army_check);
+		}
+
+		if(!ut.is_land) {
+			auto any_breaking_navy_check = false;
+			auto any_breaking_navy_base_check = false;
+			// Navy-level checks
+			for(unsigned i = 0; i < state.selected_ships.size(); i++) {
+				if(!state.selected_ships[i]) {
+					break;
+				}
+				auto n = state.world.ship_get_navy_from_navy_membership(state.selected_ships[i]);
+				auto embarked = state.world.navy_get_army_transport(n);
+				if(state.world.navy_get_controller_from_navy_control(n) != state.local_player_nation || state.world.navy_get_is_retreating(n) ||
+					bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
+					any_breaking_navy_check = true;
+				}
+
+				if(ut.min_port_level) {
+					auto fnid = dcon::fatten(state.world, n);
+
+					auto loc = fnid.get_location_from_navy_location();
+
+					// Ship requires naval base level for construction but province location doesn't have one
+					if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
+						any_breaking_navy_base_check = true;
+					}
+				}
+			}
+
+			text::add_line_with_condition(state, contents, "unit_upgrade_explain_5", !any_breaking_navy_check);
+			text::add_line_with_condition(state, contents, "unit_upgrade_explain_6", !any_breaking_navy_base_check);
+		}
 	}
 };
 

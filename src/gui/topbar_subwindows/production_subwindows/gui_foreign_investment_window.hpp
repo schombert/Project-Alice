@@ -101,7 +101,7 @@ public:
 		} else if(name == "select_all") {
 			return make_element_by_type<factory_select_all_button>(state, id);
 		} else if(name == "deselect_all") {
-			return make_element_by_type<factory_deselect_all_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "show_empty_states") {
 			return make_element_by_type<factory_show_empty_states_button>(state, id);
 		} else if(name == "sort_by_name") {

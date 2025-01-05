@@ -750,6 +750,13 @@ state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
 state_transfer_explain_6;We have more than 1 state
+unit_upgrade_desc;Changes units to different type. After swap, unit strength is reduced to 1%
+unit_upgrade_explain_1;Either land or sea units are selected
+unit_upgrade_explain_2;Unit type is  unlocked
+unit_upgrade_explain_3;Small ships cannot be converted to big ones
+unit_upgrade_explain_4;Army is not retreating, in battle, or on transport ships
+unit_upgrade_explain_5;Navy is not retreating, in battle, or transports armies
+unit_upgrade_explain_6;Navy is docked in a naval base of sufficient level
 cancel_ally_explain_1;You can't cancel an alliance with yourself
 cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
 cancel_ally_explain_3;You're currently allied
@@ -1200,6 +1207,13 @@ alice_mvcap_9;The current capital not being sieged
 alice_mvcap_10;Is owned by you
 alice_mvcap_11;Is controlled by you
 alice_mvcap_12;Is owner core
+alice_take_province_1;Takes target province from the subject
+alice_take_province_2;This will give ?R$val$ years of nationalism?W to population of the state
+alice_take_province_3;This will give ?R$val$ militancy?W to population of the subject
+alice_take_province_4;This will give ?R$val$ militancy?W to population of other subjects
+alice_take_province_5;Is subject of player nation
+alice_take_province_6;Subject is not at war
+alice_take_province_7;Is controlled by subject
 alice_pnt_pops;?YPopulation:?! $x$
 alice_pnt_rpops;?YRich strata:?! $x$ ($y$)
 alice_pnt_mpops;?YMiddle strata:?! $x$ ($y$)
@@ -1288,6 +1302,11 @@ desired_volume; Desired Volume
 max_throughput;Max volume
 trade_margin;Profit%
 investment_pool;Investment pool: ?Y$x$?W
+investment_pool_income_1;Reinvestment: ?G$x$?W
+investment_pool_income_2;Transfer from subject $country$: ?G$x$W
+investment_pool_spending_1;"Incentives" spending: ?R$x$?W
+investment_pool_spending_2;Construction spending: ?R$x$?W
+investment_pool_spending_3;Transfer to subjects: ?R$x$?W
 DIPLO_RUN_CONFERENCE;Run a conference
 unit_reinforcement_needs;Goods for reinforcement:
 unit_supply_needs;Daily supply:
@@ -1306,3 +1325,36 @@ alice_factory_type_tab;Factory types
 alice_player_date_sync;Player $name$ ($country$), last command: $date$
 alice_only_host_speed;Only host can change speed
 alice_host_date;Host date: $date$
+alice_budget_gold;Gold Mines
+alice_budget_construction;Construction Spending
+alice_budget_army_upkeep;Army Upkeep
+alice_budget_navy_upkeep;Navy Upkeep
+alice_budget_domestic_investment;Domestic Investment
+alice_budget_debt_service;Debt Service
+alice_budget_diplo_income;Diplomatic
+alice_budget_diplo_expenses;Diplomatic
+alice_budget_taxes;Taxes
+alice_budget_indemnities;War Indemnities
+alice_budget_subjects;Income from Subjects
+alice_budget_item;Item
+alice_budget_amount;Amount
+alice_budget_minimum_button;Set value to minimum
+alice_budget_maximum_button;Set value to maximum
+alice_budget_decrease_button;Decrease setting by 10 (hold shift for fine control)
+alice_budget_increase_button;Increase setting by 10 (hold shift for fine control)
+alice_budget_max;Max $x$
+alice_budget_min;Min $x$
+alice_budget_overlord;Taxes to overlord
+alice_budget_expand_tt;Show detailed breakdown
+alice_budget_contract_tt;Hide detailed breakdown
+alice_budget_admin_eff1;Admin.
+alice_budget_admin_eff2;Efficiency:
+alice_budget_chart_top;100%
+alice_budget_chart_bottom;0%
+alice_budget_chart_label;Welfare
+alice_budget_chart_laxis;Sat.
+alice_budget_chart_baxis;Population
+alice_budget_debt;Debt
+alice_budget_total_debt;Total:
+alice_budget_max_debt;Maximum:
+alice_budget_debt_enable;Enable

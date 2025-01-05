@@ -473,7 +473,10 @@ spriteTypes = {
 		name = "GFX_move_capital"
 		texturefile = "assets\\move_cap.png"
 	}
-    
+	spriteType = {
+		name = "GFX_take_province"
+		texturefile = "assets\\take_away_province_btn.png"
+	}
     spriteType = {
         name = "bg-310-410-border-gold-paper"
         texturefile = "assets\\bg-310-410.png"

@@ -393,6 +393,15 @@ struct user_settings_s {
 	char locale[16] = "en-US";
 };
 
+struct host_settings_s {
+	float alice_persistent_server_mode = 0.0f;
+	float alice_persistent_server_unpause = 12.f;
+	float alice_persistent_server_pause = 20.f;
+	float alice_expose_webui = 0.0f;
+	float alice_place_ai_upon_disconnection = 1.0f;
+	float alice_lagging_behind_days_to_drop = 90.f;
+};
+
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
 };
 
@@ -465,8 +474,11 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 // so that bits of the ui, for example, can control the overall state of
 // the game
 
-struct alignas(64) state {
-	dcon::data_container world;
+/// <summary>
+/// Holds important data about the game world, state, and other data regarding windowing, audio, and more.
+/// </summary>
+struct alignas(64) state { 
+	dcon::data_container world; // Holds data regarding the game world. Also contains user locales.
 
 	// scenario data
 
@@ -503,7 +515,7 @@ struct alignas(64) state {
 	std::vector<great_nation> great_nations;
 
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
-	uint32_t scenario_counter = 0;		// as above
+	uint32_t scenario_counter = 0;		// for identifying the scenario file
 	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
@@ -571,6 +583,8 @@ struct alignas(64) state {
 
 	user_settings_s user_settings;
 
+	host_settings_s host_settings;
+
 	//
 	// current program / ui state
 	//
@@ -611,6 +625,7 @@ struct alignas(64) state {
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
 	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;          // platform-dependent sound information
 	ui::state ui_state;                                              // transient information for the state of the ui
+	ogl::animation ui_animation;
 	text::font_manager font_collection;
 
 	// synchronization data (between main update logic and ui thread)
@@ -647,7 +662,6 @@ struct alignas(64) state {
 	bool is_dragging = false;
 	int32_t x_drag_start = 0;
 	int32_t y_drag_start = 0;
-	std::chrono::time_point<std::chrono::steady_clock> tooltip_timer = std::chrono::steady_clock::now();
 
 	// map data
 	map::map_state map_state;

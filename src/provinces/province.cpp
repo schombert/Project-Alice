@@ -1084,8 +1084,7 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 			auto rp = state.world.pop_type_get_research_points(t);
 			if(rp > 0) {
-				sum_from_pops += rp * std::min(1.0f, state.world.province_get_demographics(id, demographics::to_key(state, t)) /
-																								 (total_pop * state.world.pop_type_get_research_optimum(t)));
+				sum_from_pops += rp * std::min(1.0f, state.world.province_get_demographics(id, demographics::to_key(state, t)) / (total_pop * state.world.pop_type_get_research_optimum(t)));
 			}
 		});
 

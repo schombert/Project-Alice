@@ -17,9 +17,12 @@ enum ai_strategies {
 };
 
 float estimate_strength(sys::state& state, dcon::nation_id n) {
-	float value = state.world.nation_get_military_score(n);
-	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
-		value += subj.get_subject().get_military_score();
+	float value = state.world.nation_get_military_score(n) * state.defines.alice_ai_strength_estimation_military_industrial_balance;
+	value += state.world.nation_get_industrial_score(n) * (1.f - state.defines.alice_ai_strength_estimation_military_industrial_balance);
+	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
+		value += subj.get_subject().get_military_score() * state.defines.alice_ai_strength_estimation_military_industrial_balance;
+		value += subj.get_subject().get_industrial_score() * (1.f - state.defines.alice_ai_strength_estimation_military_industrial_balance);
+	}
 	return value;
 }
 
@@ -1234,6 +1237,81 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	}
 }
 
+int32_t future_rebels_in_nation(sys::state& state, dcon::nation_id n) {
+	auto total = 0;
+	for(auto fac : state.world.nation_get_rebellion_within(n)) {
+		for(auto ar : state.world.rebel_faction_get_army_rebel_control(fac.get_rebels())) {
+			auto regs = ar.get_army().get_army_membership();
+			total += int32_t(regs.end() - regs.begin());
+		}
+	}
+
+	return total;
+}
+
+int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
+	auto fid = dcon::fatten(state.world, nation);
+
+	auto factor = 1.0f;
+
+	if(state.world.nation_get_ai_is_threatened(nation)) {
+		factor *= 1.25f;
+	}
+
+	if(fid.get_is_at_war()) {
+		factor *= 1.5f;
+	}
+
+	if(state.world.nation_get_ai_strategy(nation) == ai_strategies::militant) {
+		factor *= 1.25f;
+	} else {
+		factor *= 0.75f;
+	}
+
+	if(future_rebels_in_nation(state, nation) == 0) {
+		factor *= 0.9f;
+	}
+	else {
+		factor *= 1.1f;
+	}
+
+	auto in_sphere_of = state.world.nation_get_in_sphere_of(nation);
+
+	// Most dangerous neighbor
+	dcon::nation_id greatest_neighbor;
+	auto greatest_neighbor_strength = 0.0f;
+
+	auto own_str = estimate_strength(state, nation);
+	for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(nation)) {
+		auto other = b.get_connected_nations(0) != nation ? b.get_connected_nations(0) : b.get_connected_nations(1);
+		if(!nations::are_allied(state, nation, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
+
+			auto other_str = estimate_strength(state, other);
+			if(other_str > greatest_neighbor_strength && other_str < own_str * 10.0f) {
+				greatest_neighbor_strength = other_str;
+				greatest_neighbor = other;
+			}
+		}
+	}
+
+	// How many regiments it has
+	int16_t total = 0;
+	for(auto p : state.world.nation_get_army_control(greatest_neighbor)) {
+		auto frange = p.get_army().get_army_membership();
+		total += int16_t(frange.end() - frange.begin());
+	}
+
+	// Debug lines
+	auto fid2 = dcon::fatten(state.world, nation);
+	auto identity = fid.get_identity_from_identity_holder();
+	auto tagname = text::produce_simple_string(state, identity.get_name());
+	fid2 = dcon::fatten(state.world, greatest_neighbor);
+	identity = fid2.get_identity_from_identity_holder();
+	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
+
+	return int16_t(std::clamp(total * double(factor), 0.1 * fid.get_recruitable_regiments(), 1.0 * fid.get_recruitable_regiments()));
+}
+
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
@@ -1255,7 +1333,7 @@ void update_ai_econ_construction(sys::state& state) {
 		float estimated_construction_costs = economy::estimate_construction_spending_from_budget(state, n, std::max(treasury, 1'000'000'000'000.f));
 
 		//if our army is too small, ignore buildings:
-		if(0.4f * n.get_recruitable_regiments() > n.get_active_regiments())
+		if(calculate_desired_army_size(state, n) * 0.4f > n.get_active_regiments())
 			continue;
 
 		float budget = treasury * 0.5f + base_income - estimated_construction_costs * 2.f;
@@ -3690,18 +3768,6 @@ void make_war_decs(sys::state& state) {
 	}
 }
 
-int32_t future_rebels_in_nation(sys::state& state, dcon::nation_id n) {
-	auto total = 0;
-	for(auto fac : state.world.nation_get_rebellion_within(n)) {
-		for(auto ar : state.world.rebel_faction_get_army_rebel_control(fac.get_rebels())) {
-			auto regs = ar.get_army().get_army_membership();
-			total += int32_t(regs.end() - regs.begin());
-		}
-	}
-
-	return total;
-}
-
 void update_budget(sys::state& state) {
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id nid{ dcon::nation_id::value_base_t(i) };
@@ -5603,45 +5669,25 @@ void move_gathered_attackers(sys::state& state) {
 	}
 }
 
-int32_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
-	auto factor = 1.0f;
+bool will_upgrade_units(sys::state& state, dcon::nation_id n) {
+	auto fid = dcon::fatten(state.world, n);
 
-	if(state.world.nation_get_ai_is_threatened(nation)) {
-		factor *= 2.0f;
-	}
+	auto total = fid.get_active_regiments();
+	auto unfull = 0;
 
-	if(state.world.nation_get_ai_strategy(nation) == ai_strategies::militant) {
-		factor *= 1.5f;
-	}
-	else {
-		factor *= 0.75f;
-	}
+	for(auto ar : state.world.nation_get_army_control(n)) {
+		for(auto r : ar.get_army().get_army_membership()) {
+			if(r.get_regiment().get_strength() < 0.8f) {
+				unfull++;
 
-	auto in_sphere_of = state.world.nation_get_in_sphere_of(nation);
-
-	// Most dangerous neighbor
-	dcon::nation_id greatest_neighbor;
-	auto greatest_neighbor_strength = 0.0f;
-	for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(nation)) {
-		auto other = b.get_connected_nations(0) != nation ? b.get_connected_nations(0) : b.get_connected_nations(1);
-		if(!nations::are_allied(state, nation, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
-
-			auto other_str = estimate_strength(state, other);
-			if(other_str > greatest_neighbor_strength) {
-				greatest_neighbor_strength = other_str;
-				greatest_neighbor = other;
+				if(unfull > total * 0.1) {
+					return false;
+				}
 			}
 		}
 	}
 
-	// How many regiments it has
-	int32_t total = 0;
-	for(auto p : state.world.nation_get_army_control(greatest_neighbor)) {
-		auto frange = p.get_army().get_army_membership();
-		total += int32_t(frange.end() - frange.begin());
-	}
-
-	return int32_t(total * factor);
+	return true;
 }
 
 void update_land_constructions(sys::state& state) {
@@ -5673,9 +5719,14 @@ void update_land_constructions(sys::state& state) {
 		int32_t num_frontline = 0;
 		int32_t num_support = 0;
 
-		bool can_make_inf = state.world.nation_get_active_unit(n, state.military_definitions.infantry) || state.military_definitions.unit_base_definitions[state.military_definitions.infantry].active;
-		bool can_make_art = state.world.nation_get_active_unit(n, state.military_definitions.artillery) || state.military_definitions.unit_base_definitions[state.military_definitions.artillery].active;
-		bool art_req_pc = state.military_definitions.unit_base_definitions[state.military_definitions.artillery].primary_culture;
+		// Nation-wide best unit types
+		auto inf_type = military::get_best_infantry(state, n);
+		auto art_type = military::get_best_artillery(state, n);
+		military::unit_definition art_def;
+		if (art_type)
+			art_def = state.military_definitions.unit_base_definitions[art_type];
+		bool art_req_pc = art_def.primary_culture;
+		auto cav_type = military::get_best_cavalry(state, n);
 
 		for(auto ar : state.world.nation_get_army_control(n)) {
 			for(auto r : ar.get_army().get_army_membership()) {
@@ -5686,24 +5737,58 @@ void update_land_constructions(sys::state& state) {
 				} else {
 					++num_frontline;
 				}
-				if(can_make_inf && type == state.military_definitions.irregular) { // ai upgrades
-					r.get_regiment().set_type(state.military_definitions.infantry);
-					r.get_regiment().set_strength(0.01f);
+
+				/* AI units upgrade
+				* AI upgrades units only if less than 10% of the army is currently under 80% strength (requiring supplies for reinforcement)
+				*/
+				if(will_upgrade_units(state, n)) {
+					auto primary_culture = r.get_regiment().get_pop_from_regiment_source().get_culture() == n.get_primary_culture();
+
+					// AI can upgrade into primary-culture-specific units such as guards
+					if(primary_culture) {
+						auto pc_adj_inf_type = military::get_best_infantry(state, n, primary_culture);
+						auto pc_adj_art_type = military::get_best_artillery(state, n, primary_culture);
+						auto pc_adj_cav_type = military::get_best_cavalry(state, n, primary_culture);
+
+						if(etype == military::unit_type::infantry && pc_adj_inf_type && military::is_infantry_better(state, n, type, pc_adj_inf_type)) {
+							r.get_regiment().set_type(pc_adj_inf_type);
+							r.get_regiment().set_strength(0.01f);
+						} else if(etype == military::unit_type::support && pc_adj_art_type && military::is_artillery_better(state, n, type, pc_adj_art_type)) {
+							r.get_regiment().set_type(pc_adj_art_type);
+							r.get_regiment().set_strength(0.01f);
+						} else if(etype == military::unit_type::cavalry && pc_adj_cav_type && military::is_cavalry_better(state, n, type, pc_adj_cav_type)) {
+							r.get_regiment().set_type(pc_adj_cav_type);
+							r.get_regiment().set_strength(0.01f);
+						}
+					}
+					// Keep non-primary-culture units as nation-wide best units
+					else {
+						if(etype == military::unit_type::infantry && inf_type && military::is_infantry_better(state, n, type, inf_type)) {
+							r.get_regiment().set_type(inf_type);
+							r.get_regiment().set_strength(0.01f);
+						} else if(etype == military::unit_type::support && art_type && military::is_artillery_better(state, n, type, art_type)) {
+							r.get_regiment().set_type(art_type);
+							r.get_regiment().set_strength(0.01f);
+						} else if(etype == military::unit_type::cavalry && cav_type && military::is_cavalry_better(state, n, type, cav_type)) {
+							r.get_regiment().set_type(cav_type);
+							r.get_regiment().set_strength(0.01f);
+						}
+					}
 				}
 			}
 		}
 
 		const auto decide_type = [&](bool pc) {
-			if(can_make_art && (!art_req_pc || (art_req_pc && pc))) {
+			if(art_type && (!art_req_pc || (art_req_pc && pc))) {
 				if(num_frontline > num_support) {
 					++num_support;
-					return state.military_definitions.artillery;
+					return art_type;
 				} else {
 					++num_frontline;
-					return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
+					return inf_type;
 				}
 			} else {
-				return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
+				return inf_type;
 			}
 		};
 
@@ -5805,7 +5890,9 @@ void new_units_and_merging(sys::state& state) {
 					// existing multi-unit formation
 					ar.set_ai_activity(uint8_t(army_activity::on_guard));
 				} else {
-					bool is_art = state.military_definitions.artillery == (*regs.begin()).get_regiment().get_type();
+					auto type = (*regs.begin()).get_regiment().get_type();
+					auto etype = state.military_definitions.unit_base_definitions[type].type;
+					auto is_art = etype == military::unit_type::support;
 					dcon::province_id target_location;
 					float nearest_distance = 1.0f;
 
@@ -5820,9 +5907,9 @@ void new_units_and_merging(sys::state& state) {
 							int32_t num_support = 0;
 							int32_t num_frontline = 0;
 							for(auto r : o.get_army().get_army_membership()) {
-								auto type = r.get_regiment().get_type();
-								auto etype = state.military_definitions.unit_base_definitions[type].type;
-								if(etype == military::unit_type::support || etype == military::unit_type::special) {
+								auto stype = r.get_regiment().get_type();
+								auto setype = state.military_definitions.unit_base_definitions[stype].type;
+								if(setype == military::unit_type::support || setype == military::unit_type::special) {
 									++num_support;
 								} else {
 									++num_frontline;
@@ -5866,7 +5953,9 @@ void new_units_and_merging(sys::state& state) {
 					// empty army -- cleanup will get it
 					continue;
 				}
-				bool is_art = state.military_definitions.artillery == (*regs.begin()).get_regiment().get_type();
+				auto type = (*regs.begin()).get_regiment().get_type();
+				auto etype = state.military_definitions.unit_base_definitions[type].type;
+				auto is_art = etype == military::unit_type::support;
 				for(auto o : location.get_army_location()) {
 					if(o.get_army().get_ai_activity() == uint8_t(army_activity::on_guard)
 						&& o.get_army().get_controller_from_army_control() == controller) {
@@ -5874,9 +5963,9 @@ void new_units_and_merging(sys::state& state) {
 						int32_t num_support = 0;
 						int32_t num_frontline = 0;
 						for(auto r : o.get_army().get_army_membership()) {
-							auto type = r.get_regiment().get_type();
-							auto etype = state.military_definitions.unit_base_definitions[type].type;
-							if(etype == military::unit_type::support || etype == military::unit_type::special) {
+							auto stype = r.get_regiment().get_type();
+							auto setype = state.military_definitions.unit_base_definitions[stype].type;
+							if(setype == military::unit_type::support || setype == military::unit_type::special) {
 								++num_support;
 							} else {
 								++num_frontline;

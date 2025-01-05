@@ -23,7 +23,9 @@ bool is_console_command(command_type t) {
 }
 
 void add_to_command_queue(sys::state& state, payload& p) {
+#ifndef NDEBUG
 	assert(command::can_perform_command(state, p));
+#endif
 
 	switch(p.type) {
 	case command_type::notify_player_joins:
@@ -140,7 +142,7 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 			if(k && !trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(state_owner), -1))
 				return false;
 			return num_focuses_set < num_focuses_total || bool(state.world.state_instance_get_owner_focus(target_state));
-		} else {
+		} else if (focus == state.national_definitions.flashpoint_focus) {
 			auto pc = state.world.nation_get_primary_culture(source);
 			if(nations::nation_accepts_culture(state, state_owner, pc))
 				return false;
@@ -154,10 +156,24 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 				state_contains_core = state_contains_core || bool(state.world.get_core_by_prov_tag_key(p, ident));
 			});
 			bool rank_high = state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank);
-			bool is_tension_focus = focus == state.national_definitions.flashpoint_focus;
-			return state_contains_core && rank_high && is_tension_focus &&
+			return state_contains_core && rank_high &&
 				(num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
 				bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
+		}
+		else if(auto ideo = state.world.national_focus_get_ideology(focus); ideo) {
+			if(state.world.ideology_get_enabled(ideo) == false ||
+						(state.world.ideology_get_is_civilized_only(ideo) && !state.world.nation_get_is_civilized(source))) {
+				return false;
+			}
+			if(!state.world.nation_get_is_great_power(source)) {
+				return false;
+			}
+
+			return (num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
+				bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
+		}
+		else {
+			return false;
 		}
 	}
 }
@@ -540,19 +556,24 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	if(state.world.nation_get_is_civilized(source) == false)
 		return false;
 
+
 	if(owner != source) {
 		/*
 		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great
 		power while the target is not a great power, and the nation doing the investing must not be at war with the target nation.
 		The nation being invested in must be civilized.
+		Overlord can invest in its subjects ignoring GP and owner's rules.
 		*/
-		if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
-			return false;
+		auto rel = state.world.nation_get_overlord_as_subject(owner);
+		auto overlord = state.world.overlord_get_ruler(rel);
+		if(overlord != source) {
+			if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
+				return false;
+			auto rules = state.world.nation_get_combined_issue_rules(owner);
+			if((rules & issue_rule::allow_foreign_investment) == 0)
+				return false;
+		}
 		if(state.world.nation_get_is_civilized(owner) == false)
-			return false;
-
-		auto rules = state.world.nation_get_combined_issue_rules(owner);
-		if((rules & issue_rule::allow_foreign_investment) == 0)
 			return false;
 
 		if(military::are_at_war(state, source, owner))
@@ -2214,6 +2235,10 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(source == target)
 		return false;
 
+	if(!type) {
+		return false;
+	}
+
 	if(state.world.nation_get_constructing_cb_type(source))
 		return false;
 
@@ -2250,7 +2275,7 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(!military::cb_conditions_satisfied(state, source, target, type))
 		return false;
 
-	if(military::cb_requires_selection_of_a_state(state, type) && !valid_target_state_for_cb(state, source, target, type, target_state)) {
+	if(military::cb_requires_selection_of_a_state(state, type) && target_state && !valid_target_state_for_cb(state, source, target, type, target_state)) {
 		return false;
 	}
 
@@ -2449,16 +2474,16 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	they can't state transfer when a crisis occurs. They can't be subjects. They can't be in a state of war */
 	if(asker == target)
 		return false;
-	if(!state.world.nation_get_is_player_controlled(asker) || !state.world.nation_get_is_player_controlled(target))
-		return false;
+	//if(!state.world.nation_get_is_player_controlled(asker) || !state.world.nation_get_is_player_controlled(target))
+	//	return false;
 	if(state.current_crisis_state != sys::crisis_state::inactive)
 		return false;
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
 	if(state.world.overlord_get_ruler(ol))
 		return false;
-	auto ol2 = state.world.nation_get_overlord_as_subject(target);
-	if(state.world.overlord_get_ruler(ol2))
-		return false;
+	//auto ol2 = state.world.nation_get_overlord_as_subject(target);
+	//if(state.world.overlord_get_ruler(ol2))
+	//	return false;
 	if(state.world.nation_get_is_at_war(asker) || state.world.nation_get_is_at_war(target))
 		return false;
 	//Redundant, if we're at war already, we will return false:
@@ -3922,6 +3947,43 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 			}
 		}
 	}
+
+	// Army-level checks
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(!regiments[i]) {
+			break;
+		}
+		auto a = state.world.regiment_get_army_from_army_membership(regiments[i]);
+
+		if(state.world.army_get_controller_from_army_control(a) != source || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
+		bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+			return false;
+		}
+	}
+	// Navy-level checks
+	for(unsigned i = 0; i < num_packed_units; i++) {
+		if(!ships[i]) {
+			break;
+		}
+		auto n = state.world.ship_get_navy_from_navy_membership(ships[i]);
+		auto embarked = state.world.navy_get_army_transport(n);
+		if(state.world.navy_get_controller_from_navy_control(n) != source || state.world.navy_get_is_retreating(n) ||
+			bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
+			return false;
+		}
+
+		if(ut.min_port_level) {
+			auto fnid = dcon::fatten(state.world, n);
+
+			auto loc = fnid.get_location_from_navy_location();
+
+			// Ship requires naval base level for construction but province location doesn't have one
+			if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
+				return false;
+			}
+		}
+	}
+
 	return true;
 }
 void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
@@ -4686,6 +4748,70 @@ bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_
 
 void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	state.world.nation_set_capital(source, p);
+}
+
+void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::take_province;
+	p.source = source;
+	p.data.generic_location.prov = prov;
+	add_to_command_queue(state, p);
+}
+
+bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	auto fid = dcon::fatten(state.world, p);
+	auto owner = fid.get_nation_from_province_ownership();
+	auto rel = state.world.nation_get_overlord_as_subject(owner);
+	auto overlord = state.world.overlord_get_ruler(rel);
+
+	if(state.defines.alice_allow_revoke_subject_states == 0.0f)
+		return false;
+
+	if(overlord != source)
+		return false;
+	if(state.current_crisis_state != sys::crisis_state::inactive)
+		return false;
+	if(state.world.nation_get_is_at_war(source))
+		return false;
+	if(state.world.nation_get_is_at_war(owner))
+		return false;
+	if(state.world.province_get_siege_progress(p) > 0.f)
+		return false;
+	if(state.world.province_get_siege_progress(state.world.nation_get_capital(source)) > 0.f)
+		return false;
+	// Occupied
+	if(state.world.province_get_nation_from_province_control(p) != owner)
+		return false;
+	return true;
+}
+
+void execute_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	auto fid = dcon::fatten(state.world, p);
+	auto owner = fid.get_province_ownership_as_province().get_nation();
+
+	/*
+	- The province gets nationalism equal to define:YEARS_OF_NATIONALISM
+	*/
+	state.world.province_set_nationalism(p, state.defines.years_of_nationalism);
+
+	for(auto n : state.world.in_nation) {
+		if(n == owner) {
+			// All provinces in that subject get extra militancy
+			demographics::modify_militancy(state, n, state.defines.alice_take_province_militancy_subject);
+		}
+
+		auto rel = state.world.nation_get_overlord_as_subject(owner);
+		auto overlord = state.world.overlord_get_ruler(rel);
+
+		if(overlord == source) {
+			// All other subjects get extra militancy
+			demographics::modify_militancy(state, n, state.defines.alice_take_province_militancy_all_subjects);
+		}
+	}
+
+	fid.get_province_ownership_as_province().set_nation(source);
+	fid.get_province_control_as_province().set_nation(source);
 }
 
 void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id i) {
@@ -5478,6 +5604,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::move_capital:
 		return can_move_capital(state, c.source, c.data.generic_location.prov);
 
+	case command_type::take_province:
+		return can_take_province(state, c.source, c.data.generic_location.prov);
+
 	case command_type::toggle_unit_ai_control:
 		return true;
 	case command_type::toggle_mobilized_is_ai_controlled:
@@ -5845,6 +5974,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::move_capital:
 		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::take_province:
+		execute_take_province(state, c.source, c.data.generic_location.prov);
 		break;
 	case command_type::toggle_unit_ai_control:
 		execute_toggle_unit_ai_control(state, c.source, c.data.army_movement.a);

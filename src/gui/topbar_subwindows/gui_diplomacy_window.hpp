@@ -49,7 +49,11 @@ public:
 		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		if(parent) {
 			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
-			disabled = selected == content;
+			if (selected == content) {
+				color = sys::pack_color(196, 196, 196);
+			} else {
+				color = sys::pack_color(255, 255, 255);
+			}
 		}
 	}
 
@@ -118,6 +122,12 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto wargoal_decided_upon = retrieve<bool>(state, parent);
+
+		if(!wargoal_decided_upon) {
+			disabled = true;
+			return;
+		}
 		auto content = retrieve<dcon::cb_type_id>(state, parent);
 		auto target_nation = retrieve<dcon::nation_id>(state, parent);
 		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
@@ -169,6 +179,8 @@ private:
 	dcon::cb_type_id root_cb{};
 	dcon::state_definition_id target_state = dcon::state_definition_id{};
 public:
+	bool wargoal_decided_upon = false;
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
@@ -195,73 +207,88 @@ public:
 		}
 	}
 
+	void reset_window(sys::state& state) {
+		target_state = dcon::state_definition_id{};
+		wargoal_decided_upon = false;
+	}
+
+	void select_state(sys::state& state) {
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto cb_to_use = root_cb;
+		target_state = dcon::state_definition_id{};
+
+		sys::state_selection_data seldata;
+		seldata.single_state_select = true;
+		auto actor = state.local_player_nation;
+		dcon::cb_type_id cb = cb_to_use;
+		auto war = military::find_war_between(state, actor, target);
+		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+		if(allowed_substate_regions) {
+			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+				if(v.get_subject().get_is_substate()) {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+							auto def = si.get_state().get_definition().id;
+							if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
+								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+									seldata.selectable_states.push_back(def);
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {
+			auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+			if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+				auto in_nation = target;
+				auto target_identity = state.world.nation_get_identity_from_identity_holder(target);
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, target_identity, dcon::nation_id{})) {
+							seldata.selectable_states.push_back(def);
+						}
+					}
+				}
+			} else {
+				for(auto si : state.world.nation_get_state_ownership(target)) {
+					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+						auto def = si.get_state().get_definition().id;
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
+							seldata.selectable_states.push_back(def);
+						}
+					}
+				}
+			}
+		}
+		seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
+			target_state = sdef;
+			wargoal_decided_upon = true;
+			impl_on_update(state);
+			};
+		seldata.on_cancel = [&](sys::state& state) {
+			target_state = dcon::state_definition_id{};
+			cb_to_use = dcon::cb_type_id{};
+			wargoal_decided_upon = false;
+			impl_on_update(state);
+			};
+		state.start_state_selection(seldata);
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
-
-			dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
-			auto cb_to_use = root_cb;
-
-			if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
-				sys::state_selection_data seldata;
-				seldata.single_state_select = true;
-				auto actor = state.local_player_nation;
-				dcon::cb_type_id cb = cb_to_use;
-				auto war = military::find_war_between(state, actor, target);
-				auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
-				if(allowed_substate_regions) {
-					for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
-						if(v.get_subject().get_is_substate()) {
-							for(auto si : state.world.nation_get_state_ownership(target)) {
-								if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-									auto def = si.get_state().get_definition().id;
-									if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
-										if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-											seldata.selectable_states.push_back(def);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				else {
-					auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-					if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
-						auto in_nation = target;
-						auto target_identity = state.world.nation_get_identity_from_identity_holder(target);
-						for(auto si : state.world.nation_get_state_ownership(target)) {
-							if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
-								auto def = si.get_state().get_definition().id;
-								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, target_identity, dcon::nation_id{})) {
-									seldata.selectable_states.push_back(def);
-								}
-							}
-						}
-					} else {
-						for(auto si : state.world.nation_get_state_ownership(target)) {
-							if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-								auto def = si.get_state().get_definition().id;
-								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
-									seldata.selectable_states.push_back(def);
-								}
-							}
-						}
-					}
-				}
-				seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
-					target_state = sdef;
-					impl_on_update(state);
-					};
-				seldata.on_cancel = [&](sys::state& state) {
-					target_state = dcon::state_definition_id{};
-					cb_to_use = dcon::cb_type_id{};
-					impl_on_update(state);
-					};
-				state.start_state_selection(seldata);
+			if(military::cb_requires_selection_of_a_state(state, root_cb)) {
+				select_state(state);
 			}
-
+			else {
+				wargoal_decided_upon = true;
+			}
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<bool>()) {
+			payload.emplace<bool>(wargoal_decided_upon);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::cb_type_id>()) {
 			payload.emplace<dcon::cb_type_id>(root_cb);
@@ -2135,6 +2162,187 @@ public:
 		set_text(state, text::produce_simple_string(state, "tut_8c_3"));
 	}
 };
+inline const int DiplomaticActionsRows = 10;
+
+inline static diplomacy_action_ally_button diplomacy_action_ally_button_s;
+inline static diplomacy_action_call_ally_button diplomacy_action_call_ally_button_s;
+inline static diplomacy_action_military_access_button diplomacy_action_military_access_button_s;
+inline static diplomacy_action_give_military_access_button diplomacy_action_give_military_access_button_s;
+inline static diplomacy_action_increase_relations_button diplomacy_action_increase_relations_button_s;
+inline static diplomacy_action_decrease_relations_button diplomacy_action_decrease_relations_button_s;
+inline static diplomacy_action_war_subisides_button diplomacy_action_war_subisides_button_s;
+inline static diplomacy_action_declare_war_button diplomacy_action_declare_war_button_s;
+inline static diplomacy_action_release_subject_button diplomacy_action_release_subject_button_s;
+inline static diplomacy_action_discredit_button diplomacy_action_discredit_button_s;
+inline static diplomacy_action_expel_advisors_button diplomacy_action_expel_advisors_button_s;
+inline static diplomacy_action_ban_embassy_button diplomacy_action_ban_embassy_button_s;
+inline static diplomacy_action_increase_opinion_button diplomacy_action_increase_opinion_button_s;
+inline static diplomacy_action_decrease_opinion_button diplomacy_action_decrease_opinion_button_s;
+inline static diplomacy_action_add_to_sphere_button diplomacy_action_add_to_sphere_button_s;
+inline static diplomacy_action_remove_from_sphere_button diplomacy_action_remove_from_sphere_button_s;
+inline static diplomacy_action_justify_war_button diplomacy_action_justify_war_button_s;
+inline static diplomacy_action_state_transfer_button diplomacy_action_state_transfer_button_s;
+
+inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows] = {
+	&diplomacy_action_ally_button_s,
+	&diplomacy_action_call_ally_button_s,
+	&diplomacy_action_military_access_button_s,
+	&diplomacy_action_give_military_access_button_s,
+	&diplomacy_action_increase_relations_button_s,
+	&diplomacy_action_decrease_relations_button_s,
+	&diplomacy_action_war_subisides_button_s,
+	&diplomacy_action_declare_war_button_s,
+	&diplomacy_action_release_subject_button_s
+};
+diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
+	&diplomacy_action_discredit_button_s,
+	&diplomacy_action_expel_advisors_button_s,
+	&diplomacy_action_ban_embassy_button_s,
+	&diplomacy_action_increase_opinion_button_s,
+	&diplomacy_action_decrease_opinion_button_s,
+	&diplomacy_action_add_to_sphere_button_s,
+	&diplomacy_action_remove_from_sphere_button_s,
+	&diplomacy_action_justify_war_button_s,
+	&diplomacy_action_state_transfer_button_s
+};
+
+class diplomacy_action_btn_left : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto i = retrieve<int16_t>(state, parent);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if (leftcolumnlogics[i]) {
+			diplomacy_action_btn_logic* curlogic = leftcolumnlogics[i];
+			base_data.data.button.txt = curlogic->get_name(state, target);
+			disabled = !curlogic->is_available(state, target);
+			button_element_base::on_reset_text(state);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept final {
+		auto i = retrieve<int16_t>(state, parent);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if (leftcolumnlogics[i]) {
+			diplomacy_action_btn_logic* curlogic = leftcolumnlogics[i];
+			curlogic->button_action(state, target, parent);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto i = retrieve<int16_t>(state, parent);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if(leftcolumnlogics[i]) {
+			diplomacy_action_btn_logic* curlogic = leftcolumnlogics[i];
+			curlogic->update_tooltip(state, x, y, contents, target);
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto i = retrieve<int16_t>(state, parent);
+
+		if(leftcolumnlogics[i])
+			button_element_base::render(state, x, y);
+	}
+};
+
+
+class diplomacy_action_btn_right : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto i = retrieve<int16_t>(state, parent);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if(rightcolumnlogics[i]) {
+			diplomacy_action_btn_logic* curlogic = rightcolumnlogics[i];
+			base_data.data.button.txt = curlogic->get_name(state, target);
+			disabled = !curlogic->is_available(state, target);
+			button_element_base::on_reset_text(state);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept final {
+		auto i = retrieve<int16_t>(state, parent);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if(rightcolumnlogics[i]) {
+			diplomacy_action_btn_logic* curlogic = rightcolumnlogics[i];
+			curlogic->button_action(state, target, parent);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto i = retrieve<int16_t>(state, parent);
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		if(rightcolumnlogics[i]) {
+			diplomacy_action_btn_logic* curlogic = rightcolumnlogics[i];
+			curlogic->update_tooltip(state, x, y, contents, target);
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto i = retrieve<int16_t>(state, parent);
+
+		if(rightcolumnlogics[i])
+			button_element_base::render(state, x, y);
+	}
+};
+
+class diplo_actions_row_entry : public listbox_row_element_base<int16_t> {
+public:
+	template<typename T>
+	std::unique_ptr<T> add_action_button(sys::state& state, xy_pair offset) noexcept {
+		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_option"))->second.definition);
+		ptr->base_data.position = offset;
+		return ptr;
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+
+		auto i = retrieve<int16_t>(state, parent);
+
+		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_option"))->second.definition].size;
+		xy_pair options_offset = xy_pair{};
+
+		if(name == "action_option_1") {
+				return add_action_button<diplomacy_action_window<diplomacy_action_btn_left>>(state, options_offset);
+		} else if(name == "action_option_2") {
+			// 2nd column
+			options_offset.x += options_size.x;
+			return add_action_button<diplomacy_action_window<diplomacy_action_btn_right>>(state, options_offset);
+		}
+
+		return nullptr;
+	}
+};
+
+class diplo_actions_listbox : public listbox_element_base<diplo_actions_row_entry, int16_t> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "diplomacy_actions_list_entry";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		listbox_element_base<diplo_actions_row_entry, int16_t>::on_update(state);
+
+		row_contents.clear();
+
+		for(int16_t i = 0; i < DiplomaticActionsRows; i ++) {
+			row_contents.push_back(i);
+		}
+
+		update(state);
+	}
+};
 
 class diplomacy_window : public generic_tabbed_window<diplomacy_window_tab> {
 private:
@@ -2154,20 +2362,11 @@ private:
 	crisis_add_wargoal_window* crisis_add_wargoal_win = nullptr;
 
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
-	std::vector<element_base*> action_buttons{};
 
 	dcon::nation_id facts_nation_id{};
 
 	country_filter_setting filter = country_filter_setting{};
 	country_sort_setting sort = country_sort_setting{};
-
-	template<typename T>
-	void add_action_button(sys::state& state, xy_pair offset) noexcept {
-		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_option"))->second.definition);
-		ptr->base_data.position = offset;
-		action_buttons.push_back(ptr.get());
-		add_child_to_front(std::move(ptr));
-	}
 
 public:
 
@@ -2197,44 +2396,10 @@ public:
 		xy_pair options_base_offset =
 				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_actions_pos"))->second.definition].position;
 		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_option"))->second.definition].size;
-		xy_pair options_offset = options_base_offset;
-		add_action_button<diplomacy_action_window<diplomacy_action_ally_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_call_ally_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_military_access_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_give_military_access_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_increase_relations_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_decrease_relations_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_war_subisides_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_release_subject_button>>(state, options_offset);
-		// Next row of actions...
-		options_offset.x += options_size.x;
-		options_offset.y = options_base_offset.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_discredit_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_expel_advisors_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_ban_embassy_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_increase_opinion_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_decrease_opinion_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_add_to_sphere_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_remove_from_sphere_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_justify_war_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_state_transfer_button>>(state, options_offset);
+
+		auto ptr = make_element_by_type<diplo_actions_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_actions_list"))->second.definition);
+		ptr->base_data.position = options_base_offset;
+		add_child_to_front(std::move(ptr));
 
 		auto new_win1 = make_element_by_type<diplomacy_action_dialog_window>(state,
 				state.ui_state.defs_by_name.find(state.lookup_key("defaultdiplomacydialog"))->second.definition);
@@ -2583,6 +2748,7 @@ public:
 				setup_peace_win->impl_on_update(state);
 				break;
 			case diplomacy_action::justify_war:
+				make_cb_win->reset_window(state);
 				make_cb_win->impl_set(state, new_payload);
 				make_cb_win->impl_set(state, payload);
 				make_cb_win->set_visible(state, true);

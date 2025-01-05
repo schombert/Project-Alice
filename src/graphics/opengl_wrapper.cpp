@@ -3,6 +3,7 @@
 #include "simple_fs.hpp"
 #include "fonts.hpp"
 #include "bmfont.hpp"
+#include "gui_element_base.hpp"
 
 namespace ogl {
 
@@ -555,6 +556,23 @@ void render_colored_rect(
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void render_alpha_colored_rect(
+	sys::state const& state,
+	float x, float y, float width, float height,
+	float red, float green, float blue, float alpha
+) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::alpha_color };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, red, green, blue);
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, alpha);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	glLineWidth(2.0f);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
 void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl) {
 	render_colored_rect(
 		state, x, y, width, height, 1.0f, 1.0f, 1.0f, r, flipped, rtl
@@ -649,6 +667,29 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
+void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, float a, lines& l) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	l.bind_buffer();
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph_acolor };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, a);
+
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
+	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
+		glLineWidth(2.0f + 2.0f * state.user_settings.ui_scale);
+		glUniform3f(state.open_gl.ui_shader_inner_color_uniform, 0.f, 0.f, 0.f);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+	}
+	glLineWidth(2.0f * state.user_settings.ui_scale);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, r, g, b);
+	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+}
+
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		data_texture& t, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
@@ -683,7 +724,22 @@ void render_piechart(sys::state const& state, color_modification enabled, float 
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
+void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t) {
+	glBindVertexArray(state.open_gl.global_square_vao);
 
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, sizex, sizey);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::stripchart };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
@@ -1204,6 +1260,178 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
 	}
 	return texture_handle;
+}
+
+void render_capture::ready(sys::state& state) {
+	if(state.x_size > max_x || state.y_size > max_y) {
+		max_x = std::max(max_x, state.x_size);
+		max_y = std::max(max_y, state.y_size);
+
+		if(texture_handle)
+			glDeleteTextures(1, &texture_handle);
+		if(framebuffer)
+			glDeleteFramebuffers(1, &framebuffer);
+
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+		glGenTextures(1, &texture_handle);
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, max_x, max_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_handle, 0);
+
+		GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, DrawBuffers);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUseProgram(state.open_gl.ui_shader_program);
+		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(max_x) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(max_y) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
+		glViewport(0, 0, max_x, max_y);
+		glDepthRange(-1.0f, 1.0f);
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUseProgram(state.open_gl.ui_shader_program);
+		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(max_x) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(max_y) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
+		glViewport(0, 0, max_x, max_y);
+		glDepthRange(-1.0f, 1.0f);
+	}
+}
+void render_capture::finish(sys::state& state) {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+GLuint render_capture::get() {
+	return texture_handle;
+}
+render_capture::~render_capture() {
+	if(texture_handle)
+		glDeleteTextures(1, &texture_handle);
+	if(framebuffer)
+		glDeleteFramebuffers(1, &framebuffer);
+}
+void render_subrect(sys::state const& state, float target_x, float target_y, float target_width, float target_height, float source_x, float source_y, float source_width, float source_height, GLuint texture_handle) {
+	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
+	GLuint subroutines[2] = { parameters::enabled, parameters::subsprite_c };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, target_x, target_y, target_width, target_height);
+	glUniform4f(state.open_gl.ui_shader_subrect_uniform, source_x /* x offset */, source_width /* x width */, source_y /* y offset */, source_height /* y height */);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void animation::start_animation(sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, type t, int32_t runtime) {
+	start_state.ready(state);
+	state.current_scene.get_root(state)->impl_render(state, 0, 0);
+	start_state.finish(state);
+	ani_type = t;
+	x_pos = x;
+	y_pos = y;
+	x_size = w;
+	y_size = h;
+	ms_run_time = runtime;
+	start_time = std::chrono::steady_clock::now();
+	running = true;
+}
+void animation::post_update_frame(sys::state& state) {
+	if(running) {
+		bool needs_new_state = (ani_type == type::page_flip_left_rev || ani_type == type::page_flip_right_rev || ani_type == type::page_flip_up_rev);
+		if(needs_new_state) {
+			end_state.ready(state);
+			state.current_scene.get_root(state)->impl_render(state, 0, 0);
+			end_state.finish(state);
+		}
+	}
+}
+void animation::render(sys::state& state) {
+	if(!running)
+		return;
+	auto entry_time = std::chrono::steady_clock::now();
+	auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - start_time).count();
+	if(ms_count > ms_run_time) {
+		running = false;
+	} else {
+		float percent = float(ms_count) / float(ms_run_time);
+		switch(ani_type) {
+		case type::page_flip_left:
+		{
+			float extent = cos((percent) * 3.14159f / 2.0f);
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size * extent), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
+		}
+			break;
+		case type::page_flip_right:
+		{
+			float extent = cos((percent) * 3.14159f / 2.0f);
+			render_subrect(state, float(x_pos + (x_size * (1.0f - extent))), float(y_pos), float(x_size * extent), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
+		}
+			break;
+		case type::page_flip_up:
+		{
+			float extent = cos((percent) * 3.14159f / 2.0f);
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size * extent),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
+		}
+			break;
+		case type::page_flip_left_rev:
+		{
+			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size * extent), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(end_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(end_state.max_y), float(x_size) * state.user_settings.ui_scale / float(end_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(end_state.max_y),
+				end_state.get());
+		}
+			break;
+		case type::page_flip_right_rev:
+		{
+			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
+			render_subrect(state, float(x_pos + (x_size * (1.0f - extent))), float(y_pos), float(x_size * extent), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(end_state.max_x), float(end_state.max_y - y_pos) * state.user_settings.ui_scale / float(end_state.max_y), float(x_size) * state.user_settings.ui_scale / float(end_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(end_state.max_y),
+				end_state.get());
+		}
+			break;
+		case type::page_flip_up_rev:
+		{
+			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size),
+				float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+				start_state.get());
+			render_subrect(state, float(x_pos), float(y_pos), float(x_size), float(y_size * extent),
+				float(x_pos) * state.user_settings.ui_scale / float(end_state.max_x), float(end_state.max_y - y_pos) * state.user_settings.ui_scale / float(end_state.max_y), float(x_size) * state.user_settings.ui_scale / float(end_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(end_state.max_y),
+				end_state.get());
+		}
+			break;
+		}
+	}
 }
 
 } // namespace ogl

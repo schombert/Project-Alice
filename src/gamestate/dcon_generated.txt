@@ -374,10 +374,6 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ key_factory }
-		type{ factory_type_id }
-	}	
-	property{
 		name{ producer_payout_fraction }
 		type{ float }
 	}
@@ -543,7 +539,7 @@ object {
 object {
 	name{ ideology }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 125 }
 	tag{ scenario }
 	tag{ save }
 
@@ -3453,6 +3449,10 @@ object {
 	property{
 		name{ active_building }
 		type{array{factory_type_id}{bitfield}}
+	}
+	property{
+		name{ unlocked_commodities }
+		type{array{commodity_id}{bitfield}}
 	}
 	property{
 		name{ factory_type_experience }

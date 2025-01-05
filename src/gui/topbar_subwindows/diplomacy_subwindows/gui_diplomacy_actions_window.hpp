@@ -44,49 +44,55 @@ struct trigger_gp_choice {
 	gp_choice_actions action = gp_choice_actions::discredit;
 };
 
-
-class diplomacy_action_discredit_button : public button_element_base {
+class diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("discredit_button");
-		button_element_base::on_create(state);
+	virtual dcon::text_key get_name(sys::state& state, dcon::nation_id target) {
+		return state.lookup_key("null");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	virtual bool is_available(sys::state& state, dcon::nation_id target) {
+		return false;
+	}
 
-		disabled = false;
+	virtual void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) {
 
+	}
+
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) {
+
+	}
+};
+
+
+class diplomacy_action_discredit_button : public diplomacy_action_btn_logic {
+public:
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("discredit_button");
+	}
+
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		if(!state.world.nation_get_is_great_power(state.local_player_nation) || state.world.nation_get_is_great_power(target))
-			disabled = true;
-
+			return false;
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation);
 		if(state.world.gp_relationship_get_influence(rel) < state.defines.discredit_influence_cost)
-			disabled = true;
+			return false;
 
 		if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
-			disabled = true;
-
+			return false;
 		if(military::are_at_war(state, state.local_player_nation, target))
-			disabled = true;
-
+			return false;
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		if(clevel == nations::influence::level_hostile)
-			disabled = true;
+			return false;
+
+		return true;
 	}
 
-	void button_action(sys::state& state) noexcept override {
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		send(state, parent, trigger_gp_choice{ gp_choice_actions::discredit });
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "discredit_desc", text::variable_type::days, int64_t(state.defines.discredit_days));
 		text::add_line_break_to_layout(state, contents);
 
@@ -102,54 +108,42 @@ public:
 
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		text::add_line_with_condition(state, contents, "discredit_explain_2", clevel != nations::influence::level_hostile);
-
-
-
 	}
 };
 
-class diplomacy_action_expel_advisors_button : public button_element_base {
+class diplomacy_action_expel_advisors_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("expeladvisors_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("expeladvisors_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = false;
-
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		if(!state.world.nation_get_is_great_power(state.local_player_nation) || state.world.nation_get_is_great_power(target))
-			disabled = true;
+			return false;
 
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation);
 		if(state.world.gp_relationship_get_influence(rel) < state.defines.expeladvisors_influence_cost)
-			disabled = true;
+			return false;
 
 		if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
-			disabled = true;
+			return false;
 
 		if(military::are_at_war(state, state.local_player_nation, target))
-			disabled = true;
+			return false;
 
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		if(clevel == nations::influence::level_hostile || clevel == nations::influence::level_opposed)
-			disabled = true;
+			return false;
+
+		return true;
 	}
 
-	void button_action(sys::state& state) noexcept override {
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		send(state, parent, trigger_gp_choice{ gp_choice_actions::expel_advisors });
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "expeladvisors_desc");
 		text::add_line_break_to_layout(state, contents);
 
@@ -165,53 +159,42 @@ public:
 
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		text::add_line_with_condition(state, contents, "expel_explain_2", clevel != nations::influence::level_hostile && clevel != nations::influence::level_opposed);
-
-
 	}
 };
 
-class diplomacy_action_ban_embassy_button : public button_element_base {
+class diplomacy_action_ban_embassy_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("banembassy_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("banembassy_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = false;
-
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		if(!state.world.nation_get_is_great_power(state.local_player_nation) || state.world.nation_get_is_great_power(target))
-			disabled = true;
+			return false;
 
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation);
 		if(state.world.gp_relationship_get_influence(rel) < state.defines.banembassy_influence_cost)
-			disabled = true;
+			return false;
 
 		if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
-			disabled = true;
+			return false;
 
 		if(military::are_at_war(state, state.local_player_nation, target))
-			disabled = true;
+			return false;
 
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		if(clevel != nations::influence::level_friendly && clevel != nations::influence::level_in_sphere)
-			disabled = true;
+			return false;
+
+		return true;
 	}
 
-	void button_action(sys::state& state) noexcept override {
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		send(state, parent, trigger_gp_choice{ gp_choice_actions::ban_embassy });
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "banembassy_desc", text::variable_type::days, int64_t(state.defines.banembassy_days));
 		text::add_line_break_to_layout(state, contents);
 
@@ -233,48 +216,39 @@ public:
 };
 
 
-class diplomacy_action_decrease_opinion_button : public button_element_base {
+class diplomacy_action_decrease_opinion_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("decreaseopinion_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("decreaseopinion_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = false;
-
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		if(!state.world.nation_get_is_great_power(state.local_player_nation) || state.world.nation_get_is_great_power(target))
-			disabled = true;
+			return false;
 
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation);
 		if(state.world.gp_relationship_get_influence(rel) < state.defines.decreaseopinion_influence_cost)
-			disabled = true;
+			return false;
 
 		if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
-			disabled = true;
+			return false;
 
 		if(military::are_at_war(state, state.local_player_nation, target))
-			disabled = true;
+			return false;
 
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		if(clevel == nations::influence::level_hostile)
-			disabled = true;
+			return false;
+
+		return true;
 	}
 
-	void button_action(sys::state& state) noexcept override {
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		send(state, parent, trigger_gp_choice{ gp_choice_actions::decrease_opinion });
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "decreaseopinion_desc");
 		text::add_line_break_to_layout(state, contents);
 
@@ -290,67 +264,61 @@ public:
 
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		text::add_line_with_condition(state, contents, "dec_op_explain_3", clevel != nations::influence::level_hostile);
-
-
 	}
 };
 
 
-class diplomacy_action_ally_button : public button_element_base {
+class diplomacy_action_ally_button : public diplomacy_action_btn_logic {
 public:
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-
-		if(nations::are_allied(state, content, state.local_player_nation)) {
-			set_button_text(state, text::produce_simple_string(state, "cancelalliance_button"));
-			disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		if(nations::are_allied(state, target, state.local_player_nation)) {
+			return state.lookup_key("cancelalliance_button");
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alliance_button"));
+			return state.lookup_key("alliance_button");
+		}
+	}
 
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		if(nations::are_allied(state, target, state.local_player_nation)) {
+			return command::can_cancel_alliance(state, state.local_player_nation, target);
+		} else {
 			diplomatic_message::message m;
 			m.type = diplomatic_message::type::alliance_request;
 			m.from = state.local_player_nation;
-			m.to = content;
-			disabled = !command::can_ask_for_alliance(state, state.local_player_nation, content) || (!state.world.nation_get_is_player_controlled(content) && !diplomatic_message::ai_will_accept(state, m));
+			m.to = target;
+			return command::can_ask_for_alliance(state, state.local_player_nation, target) || (!state.world.nation_get_is_player_controlled(target) && !diplomatic_message::ai_will_accept(state, m));
 		}
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		if(nations::are_allied(state, content, state.local_player_nation)) {
-			command::cancel_alliance(state, state.local_player_nation, content);
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		if(nations::are_allied(state, target, state.local_player_nation)) {
+			command::cancel_alliance(state, state.local_player_nation, target);
 		} else {
-			command::ask_for_alliance(state, state.local_player_nation, content);
+			command::ask_for_alliance(state, state.local_player_nation, target);
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		if(nations::are_allied(state, content, state.local_player_nation)) {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
+		if(nations::are_allied(state, target, state.local_player_nation)) {
 			text::add_line(state, contents, "cancelalliance_desc");
 			text::add_line_break_to_layout(state, contents);
 
-			if(state.local_player_nation == content) {
+			if(state.local_player_nation == target) {
 				text::add_line_with_condition(state, contents, "cancel_ally_explain_1", false);
 			}
 			if(state.defines.cancelalliance_diplomatic_cost > 0) {
 				text::add_line_with_condition(state, contents, "cancel_ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelalliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.cancelalliance_diplomatic_cost));
 			}
 
-			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
+			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, state.local_player_nation);
 			text::add_line_with_condition(state, contents, "cancel_ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel));
 			//text::add_line_with_condition(state, contents, "cancel_ally_explain_4", !military::are_allied_in_war(state, state.local_player_nation, content));
 
 			auto ol = state.world.nation_get_overlord_as_subject(state.local_player_nation);
-			text::add_line_with_condition(state, contents, "cancel_ally_explain_5", state.world.overlord_get_ruler(ol) != content);
+			text::add_line_with_condition(state, contents, "cancel_ally_explain_5", state.world.overlord_get_ruler(ol) != target);
 		} else {
 			auto asker = state.local_player_nation;
-			auto target = content;
 
 			text::add_line(state, contents, "alliance_desc");
 			text::add_line_break_to_layout(state, contents);
@@ -361,7 +329,7 @@ public:
 			if(state.defines.alliance_diplomatic_cost > 0) {
 				text::add_line_with_condition(state, contents, "ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.alliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.alliance_diplomatic_cost));
 			}
-			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
+			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, state.local_player_nation);
 			text::add_line_with_condition(state, contents, "ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel) == false);
 			text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis_state == sys::crisis_state::inactive);
 
@@ -374,56 +342,50 @@ public:
 
 			text::add_line_with_condition(state, contents, "ally_explain_6", !military::are_at_war(state, asker, target));
 
-			if(!state.world.nation_get_is_player_controlled(content)) {
+			if(!state.world.nation_get_is_player_controlled(target)) {
 				diplomatic_message::message m;
 				m.type = diplomatic_message::type::alliance_request;
 				m.from = state.local_player_nation;
-				m.to = content;
+				m.to = target;
 
 				text::add_line_with_condition(state, contents, "ally_explain_7", diplomatic_message::ai_will_accept(state, m));
-				ai::explain_ai_alliance_reasons(state, content, contents, 15);
+				ai::explain_ai_alliance_reasons(state, target, contents, 15);
 			}
 		}
-
 	}
 };
 
-class diplomacy_action_call_ally_button : public button_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("callally_button");
-		button_element_base::on_create(state);
+class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("callally_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = true;
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
-			if(command::can_call_to_arms(state, state.local_player_nation, content, war_par.get_war())) {
-
-				if(!state.world.nation_get_is_player_controlled(content)) {
+			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
+				if(!state.world.nation_get_is_player_controlled(target)) {
 					diplomatic_message::message m;
 					m.type = diplomatic_message::type::call_ally_request;
 					m.from = state.local_player_nation;
-					m.to = content;
+					m.to = target;
 					m.data.war = war_par.get_war();
 					if(diplomatic_message::ai_will_accept(state, m)) {
-						disabled = false;
+						return true;
 						break;
 					}
 				} else {
-					disabled = false;
+					return true;
 					break;
 				}
 			}
 		}
+
+		return false;
 	}
 
-	void button_action(sys::state& state) noexcept override {
 
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		auto asker = state.local_player_nation;
-		auto target = retrieve<dcon::nation_id>(state, parent);
 
 		for(auto war_par : state.world.nation_get_war_participant(asker)) {
 			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
@@ -442,17 +404,10 @@ public:
 				}
 			}
 		}
-
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto asker = state.local_player_nation;
-		auto target = retrieve<dcon::nation_id>(state, parent);
 
 		text::add_line(state, contents, "remove_callally_desc");
 		text::add_line_break_to_layout(state, contents);
@@ -492,15 +447,23 @@ public:
 	}
 };
 
-class diplomacy_action_military_access_button : public button_element_base {
+class diplomacy_action_military_access_button : public diplomacy_action_btn_logic {
 public:
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
 		if(state.world.unilateral_relationship_get_military_access(urid)) {
-			disabled = !command::can_cancel_military_access(state, state.local_player_nation, target);
-			set_button_text(state, text::produce_simple_string(state, "cancelaskmilitaryaccess_button"));
+			return state.lookup_key("cancelaskmilitaryaccess_button");
+		} else {
+			return state.lookup_key("askmilitaryaccess_button");
+		}
+	}
+
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
+
+		if(state.world.unilateral_relationship_get_military_access(urid)) {
+			return command::can_cancel_military_access(state, state.local_player_nation, target);
 		} else {
 			if(command::can_ask_for_access(state, state.local_player_nation, target)) {
 				if(!state.world.nation_get_is_player_controlled(target)) {
@@ -509,22 +472,20 @@ public:
 					m.from = state.local_player_nation;
 					m.to = target;
 					if(diplomatic_message::ai_will_accept(state, m)) {
-						disabled = false;
+						return true;
 					} else {
-						disabled = true;
+						return false;
 					}
 				} else {
-					disabled = false;
+					return true;
 				}
 			} else {
-				disabled = true;
+				return false;
 			}
-			set_button_text(state, text::produce_simple_string(state, "askmilitaryaccess_button"));
 		}
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
 		if(state.world.unilateral_relationship_get_military_access(urid)) {
@@ -532,17 +493,10 @@ public:
 		} else {
 			command::ask_for_military_access(state, state.local_player_nation, target);
 		}
-
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
-
 
 		if(state.world.unilateral_relationship_get_military_access(urid)) {
 			text::add_line(state, contents, "cancelaskmilitaryaccess_desc");
@@ -576,23 +530,29 @@ public:
 	}
 };
 
-class diplomacy_action_give_military_access_button : public button_element_base {
+class diplomacy_action_give_military_access_button : public diplomacy_action_btn_logic {
 public:
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
 		if(state.world.unilateral_relationship_get_military_access(urid)) {
-			set_button_text(state, text::produce_simple_string(state, "cancelgivemilitaryaccess_button"));
-			disabled = !command::can_cancel_given_military_access(state, state.local_player_nation, target);
+			return state.lookup_key("cancelgivemilitaryaccess_button");
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "givemilitaryaccess_button"));
-			disabled = !command::can_give_military_access(state, state.local_player_nation, target);
+			return state.lookup_key("givemilitaryaccess_button");
 		}
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+
+		if(state.world.unilateral_relationship_get_military_access(urid)) {
+			return command::can_cancel_given_military_access(state, state.local_player_nation, target);
+		} else {
+			return command::can_give_military_access(state, state.local_player_nation, target);
+		}
+	}
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
 		if(state.world.unilateral_relationship_get_military_access(urid)) {
@@ -600,15 +560,9 @@ public:
 		} else {
 			command::give_military_access(state, state.local_player_nation, target);
 		}
-
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
 		if(state.world.unilateral_relationship_get_military_access(urid)) {
@@ -630,36 +584,24 @@ public:
 			}
 			text::add_line_with_condition(state, contents, "give_access_explain_3", !military::are_at_war(state, state.local_player_nation, target));
 		}
-
 	}
 };
 
-class diplomacy_action_increase_relations_button : public button_element_base {
+class diplomacy_action_increase_relations_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("increaserelation_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("increaserelation_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_increase_relations(state, state.local_player_nation, content);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_increase_relations(state, state.local_player_nation, target);
 	}
 
-	void button_action(sys::state& state) noexcept override {
-
-		command::increase_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
-
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::increase_relations(state, state.local_player_nation, target);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "increase_rel_explain_1", text::variable_type::x, int64_t(state.defines.increaserelation_relation_on_accept));
 		text::add_line_break_to_layout(state, contents);
 
@@ -673,34 +615,24 @@ public:
 		text::add_line_with_condition(state, contents, "increase_rel_explain_4", state.world.diplomatic_relation_get_value(rel) < 200.0f);
 
 		text::add_line_with_condition(state, contents, "increase_rel_explain_5", !military::are_at_war(state, state.local_player_nation, target));
-
 	}
 };
 
-class diplomacy_action_decrease_relations_button : public button_element_base {
+class diplomacy_action_decrease_relations_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("decreaserelation_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("decreaserelation_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_decrease_relations(state, state.local_player_nation, content);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_increase_relations(state, state.local_player_nation, target);
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		command::decrease_relations(state, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::decrease_relations(state, state.local_player_nation, target);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "decrease_rel_explain_1", text::variable_type::x, int64_t(state.defines.decreaserelation_relation_on_accept));
 		text::add_line_break_to_layout(state, contents);
 
@@ -718,20 +650,32 @@ public:
 	}
 };
 
-class diplomacy_action_war_subisides_button : public button_element_base {
+class diplomacy_action_war_subisides_button : public diplomacy_action_btn_logic {
 public:
-	void on_update(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
-		set_button_text(state, text::produce_simple_string(state, subsidies ? "cancel_warsubsidies_button" : "warsubsidies_button"));
-		disabled = subsidies
-			? !command::can_cancel_war_subsidies(state, state.local_player_nation, target)
-			: !command::can_give_war_subsidies(state, state.local_player_nation, target);
+
+		if(subsidies) {
+			return state.lookup_key("cancel_warsubsidies_button");
+		}
+		else {
+			return state.lookup_key("warsubsidies_button");
+		}
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
+		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
+
+		if(subsidies) {
+			return command::can_cancel_war_subsidies(state, state.local_player_nation, target);
+		} else {
+			return command::can_give_war_subsidies(state, state.local_player_nation, target);
+		}
+	}
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 		if(subsidies) {
@@ -741,12 +685,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 
@@ -776,22 +715,26 @@ public:
 	}
 };
 
-class diplomacy_action_declare_war_button : public button_element_base {
+class diplomacy_action_declare_war_button : public diplomacy_action_btn_logic {
 public:
-	void on_update(sys::state& state) noexcept override {
-		dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
-
-		if(military::are_at_war(state, state.local_player_nation, content)) {
-			disabled = !command::can_start_peace_offer(state, state.local_player_nation, content,
-					military::find_war_between(state, state.local_player_nation, content), true);
-			set_button_text(state, text::produce_simple_string(state, "peace_button"));
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		if(military::are_at_war(state, state.local_player_nation, target)) {
+			return state.lookup_key("peace_button");
 		} else {
-			disabled = state.local_player_nation == content || !military::can_use_cb_against(state, state.local_player_nation, content) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost || military::are_in_common_war(state, state.local_player_nation, content);
-			set_button_text(state, text::produce_simple_string(state, "war_button"));
+			return state.lookup_key("war_button");
 		}
 	}
 
-	void button_action(sys::state& state) noexcept override {
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		if(military::are_at_war(state, state.local_player_nation, target)) {
+			return command::can_start_peace_offer(state, state.local_player_nation, target,
+					military::find_war_between(state, state.local_player_nation, target), true);
+		} else {
+			return !(state.local_player_nation == target || !military::can_use_cb_against(state, state.local_player_nation, target) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost || military::are_in_common_war(state, state.local_player_nation, target));
+		}
+	}
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		if(parent) {
 			dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
 			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace : diplomacy_action::declare_war;
@@ -799,13 +742,7 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
 
 		if(military::are_at_war(state, state.local_player_nation, target)) {
@@ -864,58 +801,41 @@ public:
 	}
 };
 
-class diplomacy_action_release_subject_button : public button_element_base {
+class diplomacy_action_release_subject_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("alice_diplo_release_subject");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("alice_diplo_release_subject");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_release_subject(state, state.local_player_nation, n);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_release_subject(state, state.local_player_nation, target);
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		command::release_subject(state, state.local_player_nation, n);
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::release_subject(state, state.local_player_nation, target);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		text::add_line(state, contents, "alice_diplo_release_subject_desc");
-		text::add_line_with_condition(state, contents, "alice_diplo_release_subject_0", state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n)) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "alice_diplo_release_subject_0", state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) == state.local_player_nation);
 	}
 };
 
-class diplomacy_action_increase_opinion_button : public button_element_base {
+class diplomacy_action_increase_opinion_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("increaseopinion_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("increaseopinion_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_increase_opinion(state, state.local_player_nation, content);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_increase_opinion(state, state.local_player_nation, target);
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		command::increase_opinion(state, state.local_player_nation, content);
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::increase_opinion(state, state.local_player_nation, target);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
 
 		text::add_line(state, contents, "increaseopinion_desc");
@@ -937,29 +857,21 @@ public:
 	}
 };
 
-class diplomacy_action_add_to_sphere_button : public button_element_base {
+class diplomacy_action_add_to_sphere_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("addtosphere_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("addtosphere_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_add_to_sphere(state, state.local_player_nation, content);
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_add_to_sphere(state, state.local_player_nation, target);
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		command::add_to_sphere(state, state.local_player_nation, content);
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::add_to_sphere(state, state.local_player_nation, target);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
 
 		text::add_line(state, contents, "addtosphere_desc");
@@ -983,30 +895,21 @@ public:
 	}
 };
 
-class diplomacy_action_remove_from_sphere_button : public button_element_base {
+class diplomacy_action_remove_from_sphere_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("removefromsphere_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("removefromsphere_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_remove_from_sphere(state, state.local_player_nation, content, state.world.nation_get_in_sphere_of(content));
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_remove_from_sphere(state, state.local_player_nation, target, state.world.nation_get_in_sphere_of(target));
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		command::remove_from_sphere(state, state.local_player_nation, content, state.world.nation_get_in_sphere_of(content));
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::remove_from_sphere(state, state.local_player_nation, target, state.world.nation_get_in_sphere_of(target));
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
 		bool in_players_sphere = state.world.nation_get_in_sphere_of(target) == source;
 
@@ -1043,7 +946,7 @@ public:
 	}
 };
 
-class diplomacy_action_justify_war_button : public button_element_base {
+class diplomacy_action_justify_war_button : public diplomacy_action_btn_logic {
 	bool has_any_justifiable_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target) noexcept {
 		auto res = false;
 		state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
@@ -1054,49 +957,43 @@ class diplomacy_action_justify_war_button : public button_element_base {
 		return res;
 	}
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("make_cb_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("make_cb_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
-		auto target = retrieve<dcon::nation_id>(state, parent);
 
 		auto can_subjects_declare = state.defines.alice_allow_subjects_declare_wars;
 
-		disabled = false;
 		if(source == target)
-			disabled = true;
+			return false;
 		if(state.world.nation_get_constructing_cb_type(source))
-			disabled = true;
+			return false;
 		auto ol = state.world.nation_get_overlord_as_subject(source);
 		if(state.defines.alice_allow_subjects_declare_wars < 1 && state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
-			disabled = true;
+			return false;
 		if(state.world.nation_get_in_sphere_of(target) == source)
-			disabled = true;
+			return false;
 		if(state.world.nation_get_diplomatic_points(source) < state.defines.make_cb_diplomatic_cost)
-			disabled = true;
+			return false;
 		if(military::are_at_war(state, target, source))
-			disabled = true;
+			return false;
 		if(!has_any_justifiable_cb(state, source, target))
-			disabled = true;
+			return false;
+
+		return true;
 	}
 
-	void button_action(sys::state& state) noexcept override {
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 		if(parent) {
 			Cyto::Any payload = diplomacy_action::justify_war;
 			parent->impl_get(state, payload);
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
-		auto target = retrieve<dcon::nation_id>(state, parent);
 		text::add_line(state, contents, "make_cb_desc");
 		text::add_line_break_to_layout(state, contents);
 		if(source == target) {
@@ -1229,6 +1126,8 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 	bool get_can_perform(sys::state& state) noexcept {
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		switch(content) {
+		case diplomacy_action::crisis_add_wargoal:
+			return true;
 		case diplomacy_action::ally:
 			return command::can_ask_for_alliance(state, state.local_player_nation, target);
 		case diplomacy_action::cancel_ally:
@@ -1297,6 +1196,8 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		switch(content) {
+		case diplomacy_action::crisis_add_wargoal:
+			break;
 		case diplomacy_action::ally:
 			command::ask_for_alliance(state, state.local_player_nation, target);
 			break;
@@ -1828,58 +1729,50 @@ public:
 	}
 };
 
-class diplomacy_action_state_transfer_button : public button_element_base {
+class diplomacy_action_state_transfer_button : public diplomacy_action_btn_logic {
 public:
-	void on_create(sys::state& state) noexcept override {
-		base_data.data.button.txt = state.lookup_key("state_transfer_button");
-		button_element_base::on_create(state);
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("state_transfer_button");
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		disabled = true;
-		for(const auto s : state.world.nation_get_state_ownership(content)) {
-			if(command::can_state_transfer(state, state.local_player_nation, content, s.get_state().get_definition())) {
-				disabled = false;
-				break;
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		for(const auto s : state.world.nation_get_state_ownership(target)) {
+			if(command::can_state_transfer(state, state.local_player_nation, target, s.get_state().get_definition())) {
+				return true;
 			}
 		}
+
+		return false;
 	}
 
-	void button_action(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
 
 		sys::state_selection_data seldata;
 		seldata.single_state_select = true;
 		for(const auto s : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			if(command::can_state_transfer(state, state.local_player_nation, content, s.get_state().get_definition())) {
+			if(command::can_state_transfer(state, state.local_player_nation, target, s.get_state().get_definition())) {
 				seldata.selectable_states.push_back(s.get_state().get_definition());
 			}
 		}
-		seldata.on_select = [this, content](sys::state& state, dcon::state_definition_id sdef) {
-			command::state_transfer(state, state.local_player_nation, content, sdef);
-			impl_on_update(state);
-		};
-		seldata.on_cancel = [this](sys::state& state) {
-			impl_on_update(state);
-		};
+		seldata.on_select = [parent, target](sys::state& state, dcon::state_definition_id sdef) {
+			command::state_transfer(state, state.local_player_nation, target, sdef);
+			parent->impl_on_update(state);
+			};
+		seldata.on_cancel = [parent](sys::state& state) {
+			parent->impl_on_update(state);
+			};
 		state.start_state_selection(seldata);
 	}
 
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto target = retrieve<dcon::nation_id>(state, parent);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto source = state.local_player_nation;
 
 		text::add_line(state, contents, "state_transfer_desc");
 		text::add_line_break_to_layout(state, contents);
-		text::add_line_with_condition(state, contents, "state_transfer_explain_1", state.world.nation_get_is_player_controlled(target));
+		// text::add_line_with_condition(state, contents, "state_transfer_explain_1", state.world.nation_get_is_player_controlled(target));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_2", state.current_crisis_state == sys::crisis_state::inactive);
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
-		text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
+		// text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_6", state.world.nation_get_owned_state_count(source) > 1);
 	}

@@ -45,6 +45,18 @@ mouse_probe container_base::impl_probe_mouse(sys::state& state, int32_t x, int32
 	return element_base::impl_probe_mouse(state, x, y, type);
 }
 
+mouse_probe non_owning_container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
+	for(auto& c : children) {
+		if(c->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *c);
+			auto res = c->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y, type);
+			if(res.under_mouse)
+				return res;
+		}
+	}
+	return element_base::impl_probe_mouse(state, x, y, type);
+}
+
 message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	message_result res = message_result::unseen;
 	for(auto& c : children) {
@@ -56,6 +68,18 @@ message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_
 	}
 	return greater_result(res, element_base::impl_on_key_down(state, key, mods));
 }
+message_result non_owning_container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	message_result res = message_result::unseen;
+	for(auto& c : children) {
+		if(c->is_visible()) {
+			res = greater_result(res, c->impl_on_key_down(state, key, mods));
+			if(res == message_result::consumed)
+				return message_result::consumed;
+		}
+	}
+	return greater_result(res, element_base::impl_on_key_down(state, key, mods));
+}
+
 void container_base::impl_on_update(sys::state& state) noexcept {
 	on_update(state);
 	if(is_visible()) {
@@ -66,7 +90,23 @@ void container_base::impl_on_update(sys::state& state) noexcept {
 		}
 	}
 }
+void non_owning_container_base::impl_on_update(sys::state& state) noexcept {
+	on_update(state);
+	if(is_visible()) {
+		for(size_t i = children.size(); i-- > 0;) {
+			if(children[i]->is_visible() || (children[i]->flags & element_base::wants_update_when_hidden_mask) != 0) {
+				children[i]->impl_on_update(state);
+			}
+		}
+	}
+}
 void container_base::impl_on_reset_text(sys::state& state) noexcept {
+	for(auto& c : children) {
+		c->impl_on_reset_text(state);
+	}
+	on_reset_text(state);
+}
+void non_owning_container_base::impl_on_reset_text(sys::state& state) noexcept {
 	for(auto& c : children) {
 		c->impl_on_reset_text(state);
 	}
@@ -79,8 +119,25 @@ message_result container_base::impl_set(sys::state& state, Cyto::Any& payload) n
 	}
 	return greater_result(res, set(state, payload));
 }
+message_result non_owning_container_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
+	message_result res = message_result::unseen;
+	for(auto& c : children) {
+		res = greater_result(res, c->impl_set(state, payload));
+	}
+	return greater_result(res, set(state, payload));
+}
 
 void container_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
+	element_base::impl_render(state, x, y);
+
+	for(size_t i = children.size(); i-- > 0;) {
+		if(children[i]->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *(children[i]));
+			children[i]->impl_render(state, x + relative_location.x, y + relative_location.y);
+		}
+	}
+}
+void non_owning_container_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
 	element_base::impl_render(state, x, y);
 
 	for(size_t i = children.size(); i-- > 0;) {
@@ -108,8 +165,20 @@ void container_base::move_child_to_front(element_base* child) noexcept {
 			std::rotate(children.begin(), it, it + 1);
 	}
 }
+void non_owning_container_base::move_child_to_front(element_base* child) noexcept {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](element_base* p) { return p == child; }); it != children.end()) {
+		if(it != children.begin())
+			std::rotate(children.begin(), it, it + 1);
+	}
+}
 void container_base::move_child_to_back(element_base* child) noexcept {
 	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
+		if(it + 1 != children.end())
+			std::rotate(it, it + 1, children.end());
+	}
+}
+void non_owning_container_base::move_child_to_back(element_base* child) noexcept {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](element_base* p) { return p == child; }); it != children.end()) {
 		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 	}
@@ -134,6 +203,11 @@ element_base* container_base::get_child_by_name(sys::state const& state, std::st
 element_base* container_base::get_child_by_index(sys::state const& state, int32_t index) noexcept {
 	if(0 <= index && index < int32_t(children.size()))
 		return children[index].get();
+	return nullptr;
+}
+element_base* non_owning_container_base::get_child_by_index(sys::state const& state, int32_t index) noexcept {
+	if(0 <= index && index < int32_t(children.size()))
+		return children[index];
 	return nullptr;
 }
 

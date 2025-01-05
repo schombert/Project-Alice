@@ -261,6 +261,14 @@ void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
 
+bool is_infantry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_artillery_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+
+dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
