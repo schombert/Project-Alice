@@ -1737,9 +1737,14 @@ float sphere_leader_share_factor(sys::state& state, dcon::nation_id sphere_leade
 	}
 }
 
-float effective_tariff_rate(sys::state& state, dcon::nation_id n) {
+float effective_tariff_import_rate(sys::state& state, dcon::nation_id n) {
 	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n));
-	auto r = tariff_efficiency * float(state.world.nation_get_tariffs(n)) / 100.0f;
+	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_import(n)) / 100.0f;
+	return std::max(r, 0.0f);
+}
+float effective_tariff_export_rate(sys::state& state, dcon::nation_id n) {
+	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n));
+	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_export(n)) / 100.0f;
 	return std::max(r, 0.0f);
 }
 
@@ -5477,14 +5482,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}, ids);
 	});
 
-	//static auto export_tariff = state.world.nation_make_vectorizable_float_buffer();
-	//static auto import_tariff = state.world.nation_make_vectorizable_float_buffer();
-
-	static auto tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
+	static auto export_tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
+	static auto import_tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
 
 	state.world.execute_parallel_over_nation([&](auto ids) {
 		ve::apply([&](auto nid) {
-			tariff_buffer.set(nid, effective_tariff_rate(state, nid));
+			export_tariff_buffer.set(nid, effective_tariff_export_rate(state, nid));
+			import_tariff_buffer.set(nid, effective_tariff_import_rate(state, nid));
 		}, ids);
 	});
 
@@ -5548,10 +5552,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.f + economy::merchant_cut_domestic }, ve::fp_vector{ 1.f + economy::merchant_cut_foreign });
 
-			auto import_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_A));
-			auto export_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_A));
-			auto import_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_B));
-			auto export_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, tariff_buffer.get(n_B));
+			auto import_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_A));
+			auto export_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, export_tariff_buffer.get(n_A));
+			auto import_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_B));
+			auto export_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, export_tariff_buffer.get(n_B));
 
 			ve::fp_vector distance = 999999.f;
 			auto land_distance = state.world.trade_route_get_land_distance(trade_route);
@@ -7723,8 +7727,8 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 	auto effect_of_scale = std::max(0.1f, 1.f - absolute_volume * 0.0005f);
 	auto transport_cost = distance * 0.0075f * effect_of_scale;
 
-	auto export_tariff = effective_tariff_rate(state, n_origin);
-	auto import_tariff = effective_tariff_rate(state, n_target);
+	auto export_tariff = effective_tariff_export_rate(state, n_origin);
+	auto import_tariff = effective_tariff_import_rate(state, n_target);
 
 	auto price_origin = price(state, origin, cid);
 	auto price_target = price(state, target, cid);	
@@ -7819,9 +7823,6 @@ std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dco
 	auto buffer_volume_per_nation = state.world.nation_make_vectorizable_float_buffer();
 	auto buffer_tariff_per_nation = state.world.nation_make_vectorizable_float_buffer();
 
-	//auto other_volume = 0.f;
-	//auto other_tariff = 0.f;
-
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		state.world.execute_serial_over_nation([&](auto nids) {
 			buffer_volume_per_nation.set(nids, 0.f);
@@ -7892,13 +7893,36 @@ float estimate_gold_income(sys::state& state, dcon::nation_id n) {
 	return amount * state.defines.gold_to_cash_rate;
 }
 
-float estimate_tariff_income(sys::state& state, dcon::nation_id n) {
-	return
-		nations::tariff_efficiency(state, n) *
-		(
-			economy::nation_total_imports(state, n)
-			+ economy::nation_total_exports(state, n)
-		);
+float estimate_tariff_import_income(sys::state& state, dcon::nation_id n) {
+	float result = 0.f;
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
+			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
+			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
+				trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
+				if(route_data.target == mid) {
+					result += route_data.tariff_target;
+				}
+			});
+		});
+	});
+	return result;
+}
+
+float estimate_tariff_export_income(sys::state& state, dcon::nation_id n) {
+	float result = 0.f;
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
+			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
+			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
+				trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
+				if(route_data.origin == mid) {
+					result += route_data.tariff_origin;
+				}
+			});
+		});
+	});
+	return result;
 }
 
 float estimate_social_spending(sys::state& state, dcon::nation_id n) {
@@ -8626,13 +8650,15 @@ command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id
 	result.poor_tax = 0;
 	result.middle_tax = 0;
 	result.rich_tax = 0;
-	result.tariffs = 0;
+	result.tariffs_import = 0;
+	result.tariffs_export = 0;
 	result.domestic_investment = 0;
 	result.overseas = 0;
 
 	{
 		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
-		result.tariffs = int8_t(std::clamp(min_tariff, 0, 100));
+		result.tariffs_import = int8_t(std::clamp(min_tariff, 0, 100));
+		result.tariffs_export = int8_t(std::clamp(min_tariff, 0, 100));
 	}
 	{
 		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));
@@ -8666,7 +8692,8 @@ command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id
 	result.poor_tax = 100;
 	result.middle_tax = 100;
 	result.rich_tax = 100;
-	result.tariffs = 100;
+	result.tariffs_import = 100;
+	result.tariffs_export = 100;
 	result.domestic_investment = 100;
 	result.overseas = 100;
 
@@ -8675,7 +8702,8 @@ command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id
 		auto max_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
 		max_tariff = std::max(min_tariff, max_tariff);
 
-		result.tariffs = int8_t(std::clamp(max_tariff, 0, 100));
+		result.tariffs_import = int8_t(std::clamp(max_tariff, 0, 100));
+		result.tariffs_export = int8_t(std::clamp(max_tariff, 0, 100));
 	}
 	{
 		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));
@@ -8725,8 +8753,15 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 		auto max_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
 		max_tariff = std::max(min_tariff, max_tariff);
 
-		auto& tariff = state.world.nation_get_tariffs(n);
-		tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), 0, 100));
+		{
+			auto& tariff = state.world.nation_get_tariffs_import(n);
+			tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), 0, 100));
+		}
+
+		{
+			auto& tariff = state.world.nation_get_tariffs_export(n);
+			tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), 0, 100));
+		}
 	}
 	{
 		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));

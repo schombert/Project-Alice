@@ -312,7 +312,8 @@ float average_capitalists_luxury_cost(
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
-float effective_tariff_rate(sys::state& state, dcon::nation_id n);
+float effective_tariff_import_rate(sys::state& state, dcon::nation_id n);
+float effective_tariff_export_rate(sys::state& state, dcon::nation_id n);
 
 float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
 float rgo_total_effective_size(sys::state& state, dcon::nation_id n, dcon::province_id p);
@@ -475,7 +476,8 @@ struct trade_breakdown_item {
 std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dcon::nation_id n, bool import_flag, bool export_flag);
 
 float estimate_gold_income(sys::state& state, dcon::nation_id n);
-float estimate_tariff_income(sys::state& state, dcon::nation_id n);
+float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
+float estimate_tariff_export_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);

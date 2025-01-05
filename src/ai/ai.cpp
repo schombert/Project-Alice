@@ -3869,7 +3869,8 @@ void update_budget(sys::state& state) {
 
 		float overseas_max_ratio = std::clamp(100.f * overseas_budget / max_overseas_budget, 0.f, 100.f);
 
-		n.set_tariffs(int8_t(5));
+		n.set_tariffs_import(int8_t(5));
+		n.set_tariffs_export(int8_t(5));
 
 		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::poor_total))) / 10.f;
 		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::middle_total))) / 10.f;

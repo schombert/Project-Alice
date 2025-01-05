@@ -3687,7 +3687,12 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ tariffs }
+		name{ tariffs_import }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ tariffs_export }
 		type{ int8_t }
 		tag{ save }
 	}

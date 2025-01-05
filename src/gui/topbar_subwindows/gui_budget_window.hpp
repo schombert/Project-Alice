@@ -744,7 +744,7 @@ private:
 			budget_settings.military_spending = new_val;
 			break;
 		case budget_slider_target::tariffs:
-			budget_settings.tariffs = new_val;
+			budget_settings.tariffs_import = new_val;
 			break;
 		case budget_slider_target::domestic_investment:
 			budget_settings.domestic_investment = new_val;
@@ -1157,7 +1157,7 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 
 class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs, slider_scaling::linear, slider_update_type::autoscalerupdate> {
 	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_tariffs(state.local_player_nation));
+		return int32_t(state.world.nation_get_tariffs_import(state.local_player_nation));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -1165,7 +1165,7 @@ class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs,
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_tariffs(n) });
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_tariffs_import(n) });
 		text::close_layout_box(contents, box);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tariff_efficiency_modifier, true);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tariff, true);
@@ -1376,7 +1376,7 @@ public:
 class budget_tariff_income_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_import_income(state, state.local_player_nation);
 	}
 };
 
@@ -1465,7 +1465,7 @@ public:
 		// balance
 		vals[uint8_t(budget_slider_target::diplomatic_interest)] = economy::estimate_diplomatic_balance(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::interest)] = -economy::interest_payment(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_import_income(state, state.local_player_nation);
 	}
 };
 
@@ -1750,7 +1750,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-		set_text(state, text::format_percentage(float(state.world.nation_get_tariffs(nation_id)) / 100.0f));
+		set_text(state, text::format_percentage(float(state.world.nation_get_tariffs_import(nation_id)) / 100.0f));
 	}
 };
 
