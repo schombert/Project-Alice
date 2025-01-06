@@ -658,8 +658,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.750000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.750000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.750000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 1.750000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 2.500000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_scaling_factor, 400000.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \

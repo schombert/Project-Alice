@@ -1748,7 +1748,8 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.nation_set_poor_tax(n, int8_t(50));
 	state.world.nation_set_middle_tax(n, int8_t(50));
 	state.world.nation_set_rich_tax(n, int8_t(50));
-	state.world.nation_set_tariffs(n, int8_t(5));
+	state.world.nation_set_tariffs_import(n, int8_t(5));
+	state.world.nation_set_tariffs_export(n, int8_t(5));
 
 	auto base_ruling_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(base));
 

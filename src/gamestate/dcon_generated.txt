@@ -3687,7 +3687,12 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ tariffs }
+		name{ tariffs_import }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ tariffs_export }
 		type{ int8_t }
 		tag{ save }
 	}
@@ -4183,6 +4188,11 @@ object{
 	property {
 		name{ export }
 		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ tariff_collected }
+		type{ float }
 		tag{ save }
 	}
 

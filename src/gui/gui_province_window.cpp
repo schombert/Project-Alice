@@ -85,7 +85,7 @@ void province_national_focus_button::button_action(sys::state& state) noexcept {
 	province_window->nf_win->set_visible(state, !province_window->nf_win->is_visible());
 }
 
-float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_route_id route, dcon::commodity_id c) {
+float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::commodity_id c) {
 	auto current_volume = state.world.trade_route_get_volume(route, c);
 	auto A = state.world.trade_route_get_connected_markets(route, 0);
 	auto B = state.world.trade_route_get_connected_markets(route, 1);
@@ -108,10 +108,10 @@ float trade_route_profit(sys::state& state, dcon::market_id from, dcon::trade_ro
 	auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
 	auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
 
-	auto import_tariff_A = economy::effective_tariff_rate(state, n_A);
-	auto export_tariff_A = economy::effective_tariff_rate(state, n_A);
-	auto import_tariff_B = economy::effective_tariff_rate(state, n_B);
-	auto export_tariff_B = economy::effective_tariff_rate(state, n_B);
+	auto import_tariff_A = economy::effective_tariff_import_rate(state, n_A);
+	auto export_tariff_A = economy::effective_tariff_export_rate(state, n_A);
+	auto import_tariff_B = economy::effective_tariff_import_rate(state, n_B);
+	auto export_tariff_B = economy::effective_tariff_export_rate(state, n_B);
 
 	auto is_A_civ = state.world.nation_get_is_civilized(n_A);
 	auto is_B_civ = state.world.nation_get_is_civilized(n_B);
