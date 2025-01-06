@@ -461,6 +461,10 @@ struct advance_tick_data {
 	sys::date date;
 };
 
+struct notify_joins_data {
+	sys::player_name player_name;
+	sys::player_name player_password;
+};
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
 	uint32_t length;
@@ -531,8 +535,8 @@ struct payload {
 		save_game_data save_game;
 		notify_save_loaded_data notify_save_loaded;
 		notify_reload_data notify_reload;
-		sys::player_name player_name;
 		cheat_location_data cheat_location;
+		notify_joins_data notify_join;
 		notify_leaves_data notify_leave;
 		nbutton_data nbutton;
 		pbutton_data pbutton;

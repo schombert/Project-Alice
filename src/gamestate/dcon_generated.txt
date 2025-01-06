@@ -5387,8 +5387,8 @@ object{
 		type{ std::array<uint8_t,24> }
 	}
 	property{
-		name{ is_online }
-		type{ bitfield }
+		name{ password }
+		type{ std::array<uint8_t,24> }
 	}
 }
 

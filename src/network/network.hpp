@@ -33,8 +33,9 @@ typedef int socket_t;
 
 struct client_handshake_data {
 	sys::player_name nickname;
-	uint8_t password[16] = {0};
-	uint8_t reserved[48] = {0};
+	sys::player_name player_password;
+	uint8_t lobby_password[16] = {0};
+	uint8_t reserved[24] = {0};
 };
 
 struct server_handshake_data {
@@ -73,6 +74,7 @@ struct client_data {
 struct network_state {
 	server_handshake_data s_hshake;
 	sys::player_name nickname;
+	sys::player_name player_password;
 	sys::checksum_key current_save_checksum;
 	struct sockaddr_storage address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
@@ -89,7 +91,7 @@ struct network_state {
 	size_t recv_count = 0;
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
-	uint8_t password[16] = { 0 };
+	uint8_t lobby_password[16] = { 0 };
 	std::atomic<bool> save_slock = false;
 	bool as_v6 = false;
 	bool as_server = false;

@@ -707,7 +707,8 @@ void client_send_handshake(sys::state& state) {
 	/* Send our client handshake back */
 	client_handshake_data hshake;
 	hshake.nickname = state.network_state.nickname;
-	std::memcpy(hshake.password, state.network_state.password, sizeof(hshake.password));
+	hshake.player_password = state.network_state.player_password;
+	std::memcpy(hshake.lobby_password, state.network_state.lobby_password, sizeof(hshake.lobby_password));
 	socket_add_to_send_queue(state.network_state.send_buffer, &hshake, sizeof(hshake));
 
 #ifndef NDEBUG
@@ -827,7 +828,8 @@ void init(sys::state& state) {
 		memset(&c, 0, sizeof(c));
 		c.type = command::command_type::notify_player_joins;
 		c.source = state.local_player_nation;
-		c.data.player_name = state.network_state.nickname;
+		c.data.notify_join.player_name = state.network_state.nickname;
+		c.data.notify_join.player_password = state.network_state.player_password;
 		state.network_state.outgoing_commands.push(c);
 	}
 	else if(state.network_mode == sys::network_mode_type::client) {
@@ -857,14 +859,15 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation) {
+void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation, sys::player_name password) {
 	// Tell all clients about this client
 	command::payload c;
 	memset(&c, 0, sizeof(c));
 	c.type = command::command_type::notify_player_joins;
 
 	c.source = nation;
-	c.data.player_name = name;
+	c.data.notify_join.player_name = name;
+	c.data.notify_join.player_password = password;
 
 	for(auto cl : state.network_state.clients) {
 		if(!cl.is_active() || cl.playing_as == nation) {
@@ -880,7 +883,7 @@ void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_
 }
 
 void notify_player_joins(sys::state& state, network::client_data& client) {
-	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as);
+	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as, client.hshake_buffer.player_password);
 }
 
 void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
@@ -894,11 +897,11 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 			c.source = n;
 			auto p = find_country_player(state, n);
 			auto nickname = state.world.mp_player_get_nickname(p);
-			c.data.player_name = sys::player_name{ nickname };
+			c.data.notify_join.player_name = sys::player_name{ nickname };
 			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 			state.console_log("host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(n.id.index())
-			+ " | nickname: " + c.data.player_name.to_string());
+			+ " | nickname: " + c.data.notify_join.player_name.to_string());
 #endif
 		}
 	}
@@ -1098,13 +1101,12 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 		state.console_log("host:recv:handshake | nickname: " + client.hshake_buffer.nickname.to_string());
 #endif
 		// Check lobby password
-		if(std::memcmp(client.hshake_buffer.password, state.network_state.password, sizeof(state.network_state.password)) != 0) {
+		if(std::memcmp(client.hshake_buffer.lobby_password, state.network_state.lobby_password, sizeof(state.network_state.lobby_password)) != 0) {
 			disconnect_client(state, client, false);
 			return;
 		}
 
 		// Don't allow two players with the same nickname
-		// TODO: if client crashes its socket isn't cleared automatically. Implement a ping-pong scheme to ensure that closed sockets are cleared
 		for(auto& c : state.network_state.clients) {
 			if(!c.is_active()) {
 				continue;
@@ -1113,6 +1115,22 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 			if(c.hshake_buffer.nickname.to_string_view() == client.hshake_buffer.nickname.to_string_view() && c.socket_fd != client.socket_fd) {
 				disconnect_client(state, client, false);
 				return;
+			}
+		}
+
+		// Check player password
+		for(auto pl : state.world.in_mp_player) {
+			auto nickname_1 = sys::player_name{ pl.get_nickname() }.to_string();
+			auto nickname_2 = client.hshake_buffer.nickname.to_string();
+			auto password_1 = sys::player_name{ pl.get_password() }.to_string();
+			auto password_2 = client.hshake_buffer.player_password.to_string();
+
+			if(nickname_1 == nickname_2 && password_1 != password_2) {
+				disconnect_client(state, client, false);
+				return;
+			}
+			else if(nickname_1 == nickname_2) {
+				break;
 			}
 		}
 
@@ -1271,6 +1289,8 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 	if(c.type == command::command_type::save_game)
 		return;
 	assert(c.type != command::command_type::notify_save_loaded);
+
+	c.data.notify_join.player_password = sys::player_name{}; // Never send password to clients
 	/* Propagate to all the clients */
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
@@ -1341,8 +1361,8 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 				state.console_log("host:send:cmd | from " + std::to_string(c->source.index()) + " type:" + readableCommandTypes[(uint32_t(c->type))]);
 #endif
-				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
+				broadcast_to_clients(state, *c);
 				command_executed = true;
 			}
 			state.network_state.outgoing_commands.pop();
@@ -1620,7 +1640,7 @@ void place_host_player_after_saveload(sys::state& state) {
 	memset(&c, 0, sizeof(c));
 	c.type = command::command_type::notify_player_joins;
 	c.source = n;
-	c.data.player_name = state.network_state.nickname;
+	c.data.notify_join.player_name = state.network_state.nickname;
 	state.local_player_nation = c.source;
 	state.network_state.outgoing_commands.push(c);
 

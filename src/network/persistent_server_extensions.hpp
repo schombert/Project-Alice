@@ -23,16 +23,19 @@ inline void read_player_nations(sys::state& state, char const* start, char const
 	parsers::error_handler err("");
 
 	while(cpos < end) {
-		cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, end, ';', [&](std::string_view const* values) {
+		cpos = parsers::parse_fixed_amount_csv_values<3>(cpos, end, ';', [&](std::string_view const* values) {
 			auto first_text = parsers::remove_surrounding_whitespace(values[0]);
 			auto second_text = parsers::remove_surrounding_whitespace(values[1]);
+			auto third_text = parsers::remove_surrounding_whitespace(values[2]);
+
 			if(first_text.length() > 0 && second_text.length() > 0) {
-				auto second_value = parsers::parse_int(first_text, 0, err);
+				auto second_value = parsers::parse_int(second_text, 0, err);
 				if(second_value == 0) {
 					// dead line
 				} else {
-					auto p = sys::player_name{ }.from_string_view(first_text);
+					auto nickname = sys::player_name{ }.from_string_view(first_text);
 					auto nid = dcon::nation_id{ uint16_t ( second_value ) };
+					auto password = sys::player_name{ }.from_string_view(third_text);
 
 					/* Materialize it into a command we send to new clients who connect and have to replay everything... */
 					/* Don't execute it immediately for game loading & UI reasons */
@@ -40,8 +43,13 @@ inline void read_player_nations(sys::state& state, char const* start, char const
 					memset(&c, 0, sizeof(c));
 					c.type = command::command_type::notify_player_joins;
 					c.source = nid;
-					c.data.player_name = p;
+					c.data.notify_join.player_name = nickname;
+					c.data.notify_join.player_password = password;
 					state.network_state.outgoing_commands.push(c);
+
+#ifndef NDEBUG
+					state.console_log("persistent | type:read_player | nickname:" + nickname.to_string() + " | nation:" + std::to_string(nid.index()) + "| password:" + password.to_string());
+#endif
 				}
 			}
 		});
@@ -70,7 +78,7 @@ inline void write_player_nations(sys::state& state) noexcept {
 	std::string res = "";
 
 	for(auto pl : state.world.in_mp_player) {
-		res += sys::player_name{ pl.get_nickname() }.to_string() + ";" + std::to_string(pl.get_nation_from_player_nation().id.index()) + "\n";
+		res += sys::player_name{ pl.get_nickname() }.to_string() + ";" + std::to_string(pl.get_nation_from_player_nation().id.index()) + ";" + sys::player_name{ pl.get_password() }.to_string() + "\n";
 	}
 	auto folder = simple_fs::get_or_create_data_dumps_directory();
 
