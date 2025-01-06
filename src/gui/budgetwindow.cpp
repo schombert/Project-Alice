@@ -2483,7 +2483,16 @@ void budgetwindow_main_income_table_t::on_update(sys::state& state) noexcept {
 		add_insert_top_spacer(state);
 		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "warsubsidies_button"), economy::estimate_war_subsidies_income(state, state.local_player_nation)));
 		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "alice_budget_indemnities"), economy::estimate_reparations_income(state, state.local_player_nation)));
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "alice_budget_subjects"), economy::estimate_subject_payments_received(state, state.local_player_nation)));
+		for(auto n : state.world.in_nation) {
+			auto rel = state.world.nation_get_overlord_as_subject(n);
+			auto overlord = state.world.overlord_get_ruler(rel);
+
+			if(overlord == state.local_player_nation) {
+				auto transferamt = economy::estimate_subject_payments_paid(state, n);
+
+				add_value(std::pair<std::string, float>(text::produce_simple_string(state, "from") + " " + text::produce_simple_string(state, n.get_identity_from_identity_holder().get_name()), transferamt));
+			}
+		}
 		add_insert_bottom_spacer(state);
 	} else {
 		add_insert_neutral_spacer(state);
