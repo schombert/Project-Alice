@@ -479,13 +479,13 @@ void initialize_ai_tech_weights(sys::state& state) {
 			} else if(vals.offsets[i] == sys::national_mod_offsets::rgo_output) {
 				base *= 1.2f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_output) {
-				base *= 2.0f;
+				base *= 3.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_throughput) {
-				base *= 1.2f;
-			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_input) {
-				base *= 2.0f;
-			} else if(vals.offsets[i] == sys::national_mod_offsets::tax_efficiency) {
 				base *= 5.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_input) {
+				base *= 3.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::tax_efficiency) {
+				base *= 3.0f;
 			}
 		}
 
