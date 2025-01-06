@@ -23,7 +23,8 @@ inline constexpr int32_t construction = 15;
 inline constexpr int32_t army_upkeep = 16;
 inline constexpr int32_t navy_upkeep = 17;
 inline constexpr int32_t debt_payment = 18;
-inline constexpr int32_t category_count = 19;
+inline constexpr int32_t stockpile = 19;
+inline constexpr int32_t category_count = 20;
 
 inline static bool expanded[category_count] = { false };
 }
