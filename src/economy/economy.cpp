@@ -5520,42 +5520,98 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto n_A = state.world.state_instance_get_nation_from_state_ownership(s_A);
 			auto n_B = state.world.state_instance_get_nation_from_state_ownership(s_B);
 
+			auto capital_A = state.world.state_instance_get_capital(s_A);
+			auto capital_B = state.world.state_instance_get_capital(s_B);
+			
+			auto port_A = coastal_capital_buffer.get(s_A);
+			auto port_B = coastal_capital_buffer.get(s_B);
+
+			auto controller_capital_A = state.world.province_get_nation_from_province_control(capital_A);
+			auto controller_capital_B = state.world.province_get_nation_from_province_control(capital_B);
+
+			auto controller_port_A = state.world.province_get_nation_from_province_control(port_A);
+			auto controller_port_B = state.world.province_get_nation_from_province_control(port_B);
+
+			auto sphere_A = state.world.nation_get_in_sphere_of(controller_capital_A);
+			auto sphere_B = state.world.nation_get_in_sphere_of(controller_capital_B);
+
+			auto overlord_A = state.world.overlord_get_ruler(
+				state.world.nation_get_overlord_as_subject(controller_capital_A)
+			);
+			auto overlord_B = state.world.overlord_get_ruler(
+				state.world.nation_get_overlord_as_subject(controller_capital_B)
+			);
+
+			// TODO: expand to actual trade agreements
+			auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B;
+			auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A;
+
+			// sphere joins embargo
+			// subject joins embargo
+			// TODO: make into diplomatic interaction
+
+			auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, sphere_A, controller_capital_B);
+
+			auto B_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, sphere_B, controller_capital_A);
+
+			// these are not needed at the moment
+			// because overlord and subject are always in the same war
+
+			/*
+			auto A_joins_overlord_embargo = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, overlord_A, controller_capital_B);
+
+			auto B_joins_overlord_embargo = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, overlord_B, controller_capital_A);
+			*/
+
+			// if market capital controller is at war with market coastal controller is different
+			// or it's actually blockaded
+			// consider province blockaded
+
+			ve::mask_vector port_occupied_A = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, controller_capital_A, controller_port_A);
+			ve::mask_vector port_occupied_B = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, controller_capital_B, controller_port_B);
+
+			ve::mask_vector is_A_blockaded = state.world.province_get_is_blockaded(port_A) || port_occupied_A;
+			ve::mask_vector is_B_blockaded = state.world.province_get_is_blockaded(port_B) || port_occupied_B;
+
+			// if market capital controllers are at war then we will break the link
+			auto at_war = ve::apply([&](auto n_a, auto n_b) {
+				return military::are_at_war(state, n_a, n_b);
+			}, controller_capital_A, controller_capital_B);
+
 			// it created quite bad oscilation
 			// so i decided to transfer goods into stockpile directly
 			// and consider that all of them were sold at given price
 			//auto actually_bought_ratio_A = state.world.market_get_supply_sold_ratio(A, c);
 			//auto actually_bought_ratio_B = state.world.market_get_supply_sold_ratio(B, c);
 
-			auto at_war = ve::apply([&](auto n_a, auto n_b) {
-				return military::are_at_war(state, n_a, n_b);
-			}, n_A, n_B);
-
-			
 			auto is_A_civ = state.world.nation_get_is_civilized(n_A);
 			auto is_B_civ = state.world.nation_get_is_civilized(n_B);
 
 			auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
 			auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
 
-			auto port_A = coastal_capital_buffer.get(s_A);
-			auto port_B = coastal_capital_buffer.get(s_B);
+			is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
 
-			auto is_A_blockaded = state.world.province_get_is_blockaded(port_A);
-			auto is_B_blockaded = state.world.province_get_is_blockaded(port_B);
-
-			is_sea_route = is_sea_route & !is_A_blockaded & !is_B_blockaded;
-
-			auto same_nation = n_A == n_B;
-			auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
-			auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
-			auto same_sphere = (n_A == sphere_B) || (n_B == sphere_A) || (sphere_A == sphere_B && (sphere_A != dcon::nation_id{}) && (sphere_B != dcon::nation_id{}));
+			auto same_nation = controller_capital_A == controller_capital_B;
 
 			auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.f + economy::merchant_cut_domestic }, ve::fp_vector{ 1.f + economy::merchant_cut_foreign });
 
-			auto import_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_A));
-			auto export_tariff_A = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, export_tariff_buffer.get(n_A));
-			auto import_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_B));
-			auto export_tariff_B = ve::select(same_nation || same_sphere, ve::fp_vector{ 0.f }, export_tariff_buffer.get(n_B));
+			auto import_tariff_A = ve::select(same_nation || A_is_open_to_B, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_A));
+			auto export_tariff_A = ve::select(same_nation || A_is_open_to_B, ve::fp_vector{ 0.f }, export_tariff_buffer.get(n_A));
+			auto import_tariff_B = ve::select(same_nation || B_is_open_to_A, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_B));
+			auto export_tariff_B = ve::select(same_nation || B_is_open_to_A, ve::fp_vector{ 0.f }, export_tariff_buffer.get(n_B));
 
 			ve::fp_vector distance = 999999.f;
 			auto land_distance = state.world.trade_route_get_land_distance(trade_route);
@@ -5591,7 +5647,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			change = ve::select(current_profit_B_to_A > 0.f, -current_profit_B_to_A / price_B_export, change);
 			change = ve::min(ve::max(change, -max_change), max_change);
 			change = ve::select(none_is_profiable, -current_volume, change);
-			change = ve::select(at_war, -current_volume, change);
+			change = ve::select(
+				at_war
+				|| A_joins_sphere_wide_embargo
+				|| B_joins_sphere_wide_embargo,
+				-current_volume,
+				change
+			);
 
 			// trade slowly decays to create soft limit on transportation
 			// essentially, regularisation of trade weights
@@ -7053,7 +7115,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				float rgo_owner_profit = 0.f;
 
 				auto market = si.get_state().get_market_from_local_market();
-				t_total += state.world.market_get_tariff_collected(market);
+				auto capital = si.get_state().get_capital();
+				if(capital.get_nation_from_province_control() == n) {
+					t_total += state.world.market_get_tariff_collected(market);
+				}
 				state.world.market_set_tariff_collected(market, 0.f);
 			}
 
@@ -7711,9 +7776,29 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 	auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
 	auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
 	bool same_nation = n_origin == n_target;
-	auto sphere_origin = state.world.nation_get_in_sphere_of(n_origin);
-	auto sphere_target = state.world.nation_get_in_sphere_of(n_target);
-	auto same_sphere = (n_origin == sphere_target) || (n_target == sphere_origin) || (sphere_origin == sphere_target && sphere_origin && sphere_target);
+	auto capital_origin = state.world.state_instance_get_capital(s_origin);
+	auto capital_target = state.world.state_instance_get_capital(s_target);
+	auto port_origin = province::state_get_coastal_capital(state, s_origin);
+	auto port_target = province::state_get_coastal_capital(state, s_target);
+	auto controller_capital_origin = state.world.province_get_nation_from_province_control(capital_origin);
+	auto controller_capital_target = state.world.province_get_nation_from_province_control(capital_target);
+	auto controller_port_origin = state.world.province_get_nation_from_province_control(port_origin);
+	auto controller_port_target = state.world.province_get_nation_from_province_control(port_target);
+	auto sphere_origin = state.world.nation_get_in_sphere_of(controller_capital_origin);
+	auto sphere_target = state.world.nation_get_in_sphere_of(controller_capital_target);
+
+	auto overlord_origin = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(controller_capital_origin)
+	);
+	auto overlord_target = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(controller_capital_target)
+	);
+
+	// TODO: expand to actual equal and unequal trade agreements
+
+	//auto trade_agreement =
+	auto origin_is_open_to_target = sphere_origin == controller_capital_target || overlord_origin == controller_capital_target;
+	auto target_is_open_to_origin = sphere_target == controller_capital_origin || overlord_target == controller_capital_origin;
 
 	auto sat =
 		state.world.market_get_direct_demand_satisfaction(origin, cid)
@@ -7727,8 +7812,8 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 	auto effect_of_scale = std::max(0.1f, 1.f - absolute_volume * 0.0005f);
 	auto transport_cost = distance * 0.0075f * effect_of_scale;
 
-	auto export_tariff = effective_tariff_export_rate(state, n_origin);
-	auto import_tariff = effective_tariff_import_rate(state, n_target);
+	auto export_tariff = origin_is_open_to_target ? 0.f : effective_tariff_export_rate(state, n_origin);
+	auto import_tariff = target_is_open_to_origin ? 0.f : effective_tariff_import_rate(state, n_target);
 
 	auto price_origin = price(state, origin, cid);
 	auto price_target = price(state, target, cid);	
@@ -7758,31 +7843,6 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 
 			.payment_per_unit = price_origin * (1 + economy::merchant_cut_domestic) + transport_cost,
 			.payment_received_per_unit = price_origin * (1 + economy::merchant_cut_domestic)
-		};
-	} else if(same_sphere) {
-		return {
-			.origin = origin,
-			.target = target,
-			.origin_nation = n_origin,
-			.target_nation = n_target,
-
-			.amount_origin = absolute_volume,
-			.amount_target = import_amount,
-			.tariff_origin = 0.f,
-			.tariff_target = 0.f,
-
-			.tariff_rate_origin = 0.f,
-			.tariff_rate_target = 0.f,
-
-			.price_origin = price_origin,
-			.price_target = price_target,
-
-			.transport_cost = transport_cost,
-			.transportaion_loss = trade_good_loss_mult,
-			.distance = distance,
-
-			.payment_per_unit = price_origin * (1 + economy::merchant_cut_foreign) + transport_cost,
-			.payment_received_per_unit = price_origin * (1 + economy::merchant_cut_foreign)
 		};
 	} else {
 		return {
