@@ -105,26 +105,43 @@ float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::co
 
 	auto at_war = military::are_at_war(state, n_A, n_B);
 
-	auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
-	auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
+	auto capital_A = state.world.state_instance_get_capital(s_A);
+	auto capital_B = state.world.state_instance_get_capital(s_B);
 
-	auto import_tariff_A = economy::effective_tariff_import_rate(state, n_A);
-	auto export_tariff_A = economy::effective_tariff_export_rate(state, n_A);
-	auto import_tariff_B = economy::effective_tariff_import_rate(state, n_B);
-	auto export_tariff_B = economy::effective_tariff_export_rate(state, n_B);
+	auto port_A = province::state_get_coastal_capital(state, s_A);
+	auto port_B = province::state_get_coastal_capital(state, s_B);
 
-	auto is_A_civ = state.world.nation_get_is_civilized(n_A);
-	auto is_B_civ = state.world.nation_get_is_civilized(n_B);
+	auto controller_capital_A = state.world.province_get_nation_from_province_control(capital_A);
+	auto controller_capital_B = state.world.province_get_nation_from_province_control(capital_B);
+
+	auto controller_port_A = state.world.province_get_nation_from_province_control(port_A);
+	auto controller_port_B = state.world.province_get_nation_from_province_control(port_B);
+
+	auto sphere_A = state.world.nation_get_in_sphere_of(controller_capital_A);
+	auto sphere_B = state.world.nation_get_in_sphere_of(controller_capital_B);
+
+	auto overlord_A = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(controller_capital_A)
+	);
+	auto overlord_B = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(controller_capital_B)
+	);
+
+	auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B;
+	auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A;
+
+	auto import_tariff_A = economy::effective_tariff_import_rate(state, controller_capital_A);
+	auto export_tariff_A = economy::effective_tariff_export_rate(state, controller_capital_A);
+	auto import_tariff_B = economy::effective_tariff_import_rate(state, controller_capital_B);
+	auto export_tariff_B = economy::effective_tariff_export_rate(state, controller_capital_B);
 
 	auto is_sea_route = state.world.trade_route_get_is_sea_route(route);
 	auto is_land_route = state.world.trade_route_get_is_land_route(route);
 
 	if(is_sea_route) {
-		auto port_A = province::state_get_coastal_capital(state, s_A);
 		if(state.world.province_get_is_blockaded(port_A)) {
 			is_sea_route = false;
 		}
-		auto port_B = province::state_get_coastal_capital(state, s_B);
 		if(state.world.province_get_is_blockaded(port_B)) {
 			is_sea_route = false;
 		}
@@ -134,24 +151,20 @@ float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::co
 		return 0.f;
 	}
 
-	auto merchant_cut = 1.05f;
+	auto merchant_cut = economy::merchant_cut_foreign;
 
-	if(n_A == n_B) {
+	if(controller_capital_A == controller_capital_B) {
 		import_tariff_A = 0.f;
 		export_tariff_A = 0.f;
 		import_tariff_B = 0.f;
 		export_tariff_B = 0.f;
-		merchant_cut = 1.001f;
+		merchant_cut = economy::merchant_cut_domestic;
 	}
-	if(n_A == sphere_B) {
+	if(A_is_open_to_B) {
 		import_tariff_A = 0.f;
 		export_tariff_A = 0.f;
-		import_tariff_B = 0.f;
-		export_tariff_B = 0.f;
 	}
-	if(n_B == sphere_A) {
-		import_tariff_A = 0.f;
-		export_tariff_A = 0.f;
+	if(B_is_open_to_A) {
 		import_tariff_B = 0.f;
 		export_tariff_B = 0.f;
 	}
