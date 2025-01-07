@@ -3329,6 +3329,8 @@ void state::on_scenario_load() {
 	world.pop_type_resize_ideology_fns(world.ideology_size());
 	world.pop_type_resize_promotion_fns(world.pop_type_size());
 
+	ui_state.rebel_flags.resize(world.ideology_size(), NULL);
+
 	if(network_mode != network_mode_type::single_player)
 		return;
 

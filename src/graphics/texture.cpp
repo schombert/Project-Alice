@@ -1007,6 +1007,40 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 	}
 }
 
+GLuint get_rebel_flag_handle(sys::state& state, dcon::rebel_faction_id faction) {
+	dcon::rebel_type_fat_id rtype = state.world.rebel_faction_get_type(faction);
+	dcon::ideology_fat_id ideology = rtype.get_ideology();
+
+	GLuint o_tex = state.ui_state.rebel_flags[ideology.id.index()];
+	if (o_tex != NULL) {
+		return o_tex;
+	}
+	else {
+		dcon::texture_id new_id{ dcon::texture_id::value_base_t(state.open_gl.asset_textures.size()) };
+		state.open_gl.asset_textures.emplace_back();
+		dcon::texture_id id = new_id;
+
+		native_string file_str;
+		file_str += NATIVE("assets");
+		file_str += NATIVE_DIR_SEPARATOR;
+		file_str += NATIVE("flags");
+		file_str += NATIVE_DIR_SEPARATOR;
+		file_str += NATIVE("REB");
+		native_string default_file_str = file_str;
+
+		std::string_view name = state.to_string_view(state.world.ideology_get_name(ideology));
+
+		GLuint p_tex = load_file_and_return_handle(file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
+		if(!p_tex) {
+			p_tex = load_file_and_return_handle(default_file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
+			state.ui_state.rebel_flags[ideology.id.index()] = p_tex;
+			return state.ui_state.rebel_flags[ideology.id.index()];
+		}
+		state.ui_state.rebel_flags[ideology.id.index()] = p_tex;
+		return state.ui_state.rebel_flags[ideology.id.index()];
+	}
+}
+
 GLuint get_late_load_texture_handle(sys::state& state, dcon::texture_id& id, std::string_view asset_name) {
 	if(id && state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;

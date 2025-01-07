@@ -271,6 +271,19 @@ public:
 		return dcon::national_identity_id{};
 	}
 
+	void on_update(sys::state& state) noexcept {
+		flag_button::set_current_nation(state, province_controller_flag::get_current_nation(state));
+		if(parent) {
+			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+			auto prov_fat = dcon::fatten(state.world, province_id);
+			auto controller = prov_fat.get_province_control_as_province().get_nation();
+			auto rebel_faction = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
+			if(rebel_faction) {
+				flag_texture_handle = ogl::get_rebel_flag_handle(state, rebel_faction);
+			}
+		}
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 		auto prov_fat = dcon::fatten(state.world, province_id);

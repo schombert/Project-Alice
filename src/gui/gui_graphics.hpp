@@ -448,6 +448,8 @@ struct state {
 	ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes> new_ui_windows;
 	std::vector<simple_fs::file> held_open_ui_files;
 
+	std::vector<uint32_t> rebel_flags;
+
 	// elements we are keeping track of
 	element_base* main_menu = nullptr; // Settings window
 	element_base* r_main_menu = nullptr; // Settings window for non-in-game modes
