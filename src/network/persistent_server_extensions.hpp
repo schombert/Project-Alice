@@ -82,7 +82,7 @@ inline void write_player_nations(sys::state& state) noexcept {
 		return;
 	}
 
-	std::string res = "";
+	std::string res = "Nickname;NationID;PasswordHash;PasswordSalt\n";
 
 	for(auto pl : state.world.in_mp_player) {
 		auto nickname = sys::player_name{ pl.get_nickname() };
