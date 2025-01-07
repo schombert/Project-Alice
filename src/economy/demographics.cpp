@@ -3416,10 +3416,10 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 			float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0);
 			assert( llvm_result == interp_result);
 #endif
-			weight = std::max(0.0f, llvm_result *  (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
+			weight = std::max(0.0f, llvm_result * std::max(0.f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f)));
 		} else {
 			float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0);
-			weight = std::max(0.0f, interp_result *  (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f));
+			weight = std::max(0.0f, interp_result * std::max(0.f, (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f)));
 		}
 
 		if(weight > top_weights[2]) {
