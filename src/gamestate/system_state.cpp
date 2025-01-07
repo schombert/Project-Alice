@@ -2677,7 +2677,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
+					// ignore REB
+				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						parsers::oob_file_context new_context{ context, holder };
@@ -2713,7 +2715,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
+					// ignore REB
+				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						parsers::oob_file_context new_context{ context, holder };
