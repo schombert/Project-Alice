@@ -908,9 +908,6 @@ public:
 			dcon::rebel_faction_id faction = params->top_left_rebel;
 			if(faction)
 				flag_texture_handle = ogl::get_rebel_flag_handle(state, faction);
-			//faction = params->top_right_rebel;
-			//if(faction)
-			//	flag_texture_handle = ogl::get_rebel_flag_handle(state, faction);
 		}
 	}
 };
