@@ -1029,10 +1029,12 @@ GLuint get_rebel_flag_handle(sys::state& state, dcon::rebel_faction_id faction) 
 		native_string default_file_str = file_str;
 
 		std::string_view name = state.to_string_view(state.world.ideology_get_name(ideology));
+		file_str += NATIVE("_") + simple_fs::utf8_to_native(name);
 
 		GLuint p_tex = load_file_and_return_handle(file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
 		if(!p_tex) {
 			p_tex = load_file_and_return_handle(default_file_str + NATIVE(".png"), state.common_fs, state.open_gl.asset_textures[id], false);
+			assert(p_tex);
 			state.ui_state.rebel_flags[ideology.id.index()] = p_tex;
 			return state.ui_state.rebel_flags[ideology.id.index()];
 		}
