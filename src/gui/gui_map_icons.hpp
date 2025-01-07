@@ -901,7 +901,7 @@ public:
 		return dcon::national_identity_id{};
 	}
 
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		set_current_nation(state, get_current_nation(state));
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		if(params) {

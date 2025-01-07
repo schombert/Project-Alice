@@ -1012,7 +1012,7 @@ GLuint get_rebel_flag_handle(sys::state& state, dcon::rebel_faction_id faction) 
 	dcon::ideology_fat_id ideology = rtype.get_ideology();
 
 	GLuint o_tex = state.ui_state.rebel_flags[ideology.id.index()];
-	if (o_tex != NULL) {
+	if (o_tex != 0) {
 		return o_tex;
 	}
 	else {

@@ -271,7 +271,7 @@ public:
 		return dcon::national_identity_id{};
 	}
 
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		flag_button::set_current_nation(state, province_controller_flag::get_current_nation(state));
 		if(parent) {
 			dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
