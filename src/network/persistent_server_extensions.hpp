@@ -50,8 +50,8 @@ inline void read_player_nations(sys::state& state, char const* start, char const
 					m.source = source;
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
-					m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
-					command::post_chat_message(state, m);
+					auto msg = text::resolve_string_substitution(state, "chat_player_joins", sub);
+					command::chat_message(state, source, msg, dcon::nation_id{});
 
 #ifndef NDEBUG
 					network::log_player_nations(state);

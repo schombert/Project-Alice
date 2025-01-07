@@ -281,24 +281,24 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				window::emit_error_message(msg, true);
 				return 0;
 			}
-
-			if (game_state.network_mode == sys::network_mode_type::host) {
-				network::save_host_settings(game_state);
-				network::load_host_settings(game_state);
-
-				if (game_state.host_settings.alice_expose_webui != 0) {
-					std::thread web_thread([&]() { webui::init(game_state); });
-					web_thread.detach();
-				}
-			}
-
-			network::init(game_state);
 		}
 		LocalFree(parsed_cmd);
 
 		// scenario loading functions (would have to run these even when scenario is pre-built)
 		game_state.load_user_settings();
 		ui::populate_definitions_map(game_state);
+
+		if(game_state.network_mode == sys::network_mode_type::host) {
+			network::save_host_settings(game_state);
+			network::load_host_settings(game_state);
+
+			if(game_state.host_settings.alice_expose_webui != 0) {
+				std::thread web_thread([&]() { webui::init(game_state); });
+				web_thread.detach();
+			}
+		}
+
+		network::init(game_state);
 
 		if(headless) {
 			game_state.actual_game_speed = headless_speed;
