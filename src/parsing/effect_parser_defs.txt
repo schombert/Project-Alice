@@ -170,6 +170,7 @@ effect_body
 	government                      value       text                member_fn
 	treasury                        value       float               member_fn
 	war_exhaustion                  value       float               member_fn
+	diplo_points                  value       float               member_fn
 	prestige                        value       float               member_fn
 	change_tag                      value       text                member_fn
 	change_tag_no_core_switch       value       text                member_fn

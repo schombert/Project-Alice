@@ -1478,6 +1478,9 @@ TRIGGER_FUNCTION(tf_war_exhaustion_pop) {
 TRIGGER_FUNCTION(tf_blockade) {
 	return "dup central_ports @ >f32 >r dup central_blockaded @ >f32 r@ / 0.0 r> >= select " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
+TRIGGER_FUNCTION(tf_diplo_points) {
+	return "dup diplomatic_points @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+}
 TRIGGER_FUNCTION(tf_owns) {
 	return "dup " + std::to_string(trigger::payload(tval[1]).prov_id.index()) + " >province_id " + province_to_owner() + " = " + truth_inversion(tval[0]);
 }

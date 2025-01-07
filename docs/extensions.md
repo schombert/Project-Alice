@@ -96,6 +96,7 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 		position = free_trade
 	}
 ```
+- `diplo_points = ...` : Will add the number to the currently stored diplomatic points of the nation in scope. (Note: so you can use a negative number to subtract points. Diplomatic points can not be reduced to less than zero.)
  
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 
@@ -146,6 +147,7 @@ build_bank_in_capital = {
 		position = free_trade
 	}
 ```
+- `diplo_points = ...` : This trigger condition is true if the nation in scope has saved diplomatic points greater than or equal to the given number.
 
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:

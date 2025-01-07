@@ -1843,6 +1843,10 @@ TRIGGER_FUNCTION(tf_blockade) {
 	return compare_values(tval[0], nations::central_blockaded_fraction(ws, to_nation(primary_slot)),
 			read_float_from_payload(tval + 1));
 }
+TRIGGER_FUNCTION(tf_diplo_points) {
+	return compare_values(tval[0], ws.world.nation_get_diplomatic_points(to_nation(primary_slot)),
+			read_float_from_payload(tval + 1));
+}
 TRIGGER_FUNCTION(tf_owns) {
 	auto pid = payload(tval[1]).prov_id;
 	return compare_values_eq(tval[0], ws.world.province_get_nation_from_province_ownership(pid), to_nation(primary_slot));

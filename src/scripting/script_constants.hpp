@@ -469,6 +469,7 @@ EFFECT_BYTECODE_ELEMENT(0x01BC, reduce_pop_abs, 2) \
 EFFECT_BYTECODE_ELEMENT(0x01BD, set_culture_pop, 1) \
 EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3) \
 EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
@@ -476,7 +477,7 @@ EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2) \
 
 // invalid
 /* This value must be changed if more effects are added. */
-constexpr inline uint16_t first_scope_code = 0x01C0;
+constexpr inline uint16_t first_scope_code = 0x01C1;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -1377,13 +1378,14 @@ TRIGGER_BYTECODE_ELEMENT(0x02DF, unit_has_leader, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02E0, has_national_focus_state, 1) \
 TRIGGER_BYTECODE_ELEMENT(0x02E1, has_national_focus_province, 1) \
 TRIGGER_BYTECODE_ELEMENT(0x02E2, party_name, 3) \
-TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2)
+TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02E4, diplo_points, 2)
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02E4;
+constexpr inline uint16_t first_scope_code = 0x02E5;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
