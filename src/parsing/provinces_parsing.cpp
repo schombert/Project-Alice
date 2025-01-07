@@ -338,7 +338,9 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 }
 void province_history_file::controller(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
-	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+	if(value == nations::tag_to_int('R', 'E', 'B')) {
+		// context.outer_context.state.world.province_set_nation_from_province_control(context.id, dcon::nation_id{});
+	} else if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {

@@ -1943,6 +1943,13 @@ uint32_t ef_war_exhaustion(EFFECT_PARAMTERS) {
 	war_x = std::clamp(war_x + amount, 0.0f, 100.0f);
 	return 0;
 }
+uint32_t ef_diplo_points(EFFECT_PARAMTERS) {
+	auto& dippts = ws.world.nation_get_diplomatic_points(trigger::to_nation(primary_slot));
+	auto amount = trigger::read_float_from_payload(tval + 1);
+	assert(std::isfinite(amount));
+	dippts = std::max(0.0f, dippts + amount);
+	return 0;
+}
 uint32_t ef_prestige(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));

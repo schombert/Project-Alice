@@ -142,6 +142,7 @@ trigger_body
 	num_of_ports     value           int                member_fn
 	ruling_party     value           text               member_fn
 	unemployment     value           float              member_fn
+	diplo_points     value           float              member_fn
 	alliance_with    value           text               member_fn
 	cash_reserves    value           float              member_fn
 	consciousness    value           float              member_fn

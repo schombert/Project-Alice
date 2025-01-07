@@ -2149,6 +2149,13 @@ void tf_blockade(TRIGGER_DISPLAY_PARAMS) {
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_diplo_points(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "tb_diplomacy_diplopoints"),
+			text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_owns(TRIGGER_DISPLAY_PARAMS) {
 	auto p = trigger::payload(tval[1]).prov_id;
 
@@ -8443,6 +8450,8 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_has_national_focus_province, //constexpr inline uint16_t has_national_focus_province = 0x02E1
 		tf_party_name, //TRIGGER_BYTECODE_ELEMENT(0x02E2, party_name, 3)
 		tf_party_position, //TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2)
+		tf_diplo_points, //TRIGGER_BYTECODE_ELEMENT(0x02E4, tf_diplo_points, 2)
+
 		//
 		// scopes
 		//
