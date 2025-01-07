@@ -894,12 +894,24 @@ public:
 
 class tl_sm_controller_flag : public flag_button {
 public:
-
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		if(params)
 			return state.world.nation_get_identity_from_identity_holder(params->top_left_nation);
 		return dcon::national_identity_id{};
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_current_nation(state, get_current_nation(state));
+		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
+		if(params) {
+			dcon::rebel_faction_id faction = params->top_left_rebel;
+			if(faction)
+				flag_texture_handle = ogl::get_rebel_flag_handle(state, faction);
+			//faction = params->top_right_rebel;
+			//if(faction)
+			//	flag_texture_handle = ogl::get_rebel_flag_handle(state, faction);
+		}
 	}
 };
 
