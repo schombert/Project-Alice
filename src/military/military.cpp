@@ -7268,54 +7268,55 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 
 void recover_org(sys::state& state) {
 	/*
-	Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier +
-	morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit
-	times (0.25 + 0.75 x effective land or naval spending).
+	- Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier
+	+ morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible
+	for the unit times (0.25 + 0.75 x effective land or naval spending).
 	- Additionally, the prestige of the leader factors in morale as unit-morale
-		+ (leader-prestige x defines:LEADER_PRESTIGE_TO_MORALE_FACTOR).
+	+ (leader-prestige x defines:LEADER_PRESTIGE_TO_MORALE_FACTOR).
+	- Similarly, unit-max-org + (leader-prestige x defines:LEADER_PRESTIGE_TO_MAX_ORG_FACTOR) allows for maximum org.
 	*/
 
 	for(auto ar : state.world.in_army) {
 		if(ar.get_army_battle_participation().get_battle() || ar.get_navy_from_army_transport())
-			continue;
+		continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
 		auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
 		auto leader = ar.get_general_from_army_leadership();
-		auto regen_mod = tech_nation.get_modifier_values(sys::national_mod_offsets::org_regain) +
-										 leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
-			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
+		auto regen_mod = tech_nation.get_modifier_values(sys::national_mod_offsets::org_regain)
+			+ leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
+			+ leader.get_prestige() * state.defines.leader_prestige_to_max_org_factor;
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
-		auto modified_regen = regen_mod * spending_level / 150.0f;
-
+		auto modified_regen = regen_mod * spending_level / 150.f;
+		auto max_org = 0.25f + 0.75f * spending_level;
 		for(auto reg : ar.get_army_membership()) {
 			auto c_org = reg.get_regiment().get_org();
-			reg.get_regiment().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
+			reg.get_regiment().set_org(std::min(c_org + modified_regen, max_org));
 		}
 	}
 
 	for(auto ar : state.world.in_navy) {
 		if(ar.get_navy_battle_participation().get_battle())
-			continue;
+		continue;
 
 		auto in_nation = ar.get_controller_from_navy_control();
 
 		auto leader = ar.get_admiral_from_navy_leadership();
-		auto regen_mod = in_nation.get_modifier_values(sys::national_mod_offsets::org_regain) +
-										 leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
-			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
+		auto regen_mod = in_nation.get_modifier_values(sys::national_mod_offsets::org_regain)
+		+ leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
+		+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
 		float oversize_amount =
-				in_nation.get_naval_supply_points() > 0
-						? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
-						: 1.75f;
+		in_nation.get_naval_supply_points() > 0
+		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
+		: 1.75f;
 		float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
 		auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
 		auto modified_regen = regen_mod * spending_level / 150.0f;
-
+		auto max_org = 0.25f + 0.75f * spending_level;
 		for(auto reg : ar.get_navy_membership()) {
 			auto c_org = reg.get_ship().get_org();
-			reg.get_ship().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
+			reg.get_ship().set_org(std::min(c_org + modified_regen, max_org));
 		}
 	}
 }
