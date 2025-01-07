@@ -3842,8 +3842,8 @@ void update_budget(sys::state& state) {
 		auto const new_tax_m = state.world.nation_get_middle_tax(ids) + ve::select(was_profitable, -s_step, m_step);
 		auto const new_tax_p = state.world.nation_get_poor_tax(ids) + ve::select(was_profitable, -s_step, l_step);
 
-		auto const raise_tariffs = (new_tax_r >= 95 || new_tax_m >= 95 || new_tax_p >= 95) && !was_profitable;
-		auto const new_tariff = state.world.nation_get_tariffs(ids) + ve::select(raise_tariffs, s_step, -s_step);
+		//auto const raise_tariffs = (new_tax_r >= 95 || new_tax_m >= 95 || new_tax_p >= 95) && !was_profitable;
+		//auto const new_tariff = state.world.nation_get_tariffs(ids) + ve::select(raise_tariffs, s_step, -s_step);
 
 		// apply (write phase)
 		auto const filter = !state.world.nation_get_is_player_controlled(ids) && state.world.nation_get_owned_province_count(ids) > 0;
@@ -3858,7 +3858,7 @@ void update_budget(sys::state& state) {
 		state.world.nation_set_rich_tax(ids, ve::select(filter, new_tax_r, state.world.nation_get_rich_tax(ids)));
 		state.world.nation_set_middle_tax(ids, ve::select(filter, new_tax_m, state.world.nation_get_middle_tax(ids)));
 		state.world.nation_set_poor_tax(ids, ve::select(filter, new_tax_p, state.world.nation_get_poor_tax(ids)));
-		state.world.nation_set_tariffs(ids, ve::select(filter, new_tariff, state.world.nation_get_tariffs(ids)));
+		//state.world.nation_set_tariffs(ids, ve::select(filter, new_tariff, state.world.nation_get_tariffs(ids)));
 		// filter to boundaries
 		ve::apply([&](dcon::nation_id n) {
 			economy::bound_budget_settings(state, n);
