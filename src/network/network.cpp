@@ -703,8 +703,8 @@ dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation
 	return state.world.nation_get_mp_player_from_player_nation(nation);
 }
 
-static dcon::nation_id get_player_nation(sys::state& state, sys::player_name name, client_data client) {
-	// Reassign player to his previous nation if any
+// Reassign player to his previous nation if any
+static dcon::nation_id get_player_nation(sys::state& state, sys::player_name name) {
 
 	auto p = find_mp_player(state, name);
 	if(p) {
@@ -806,7 +806,7 @@ int client_process_handshake(sys::state& state) {
 
 void server_send_handshake(sys::state& state, network::client_data& client) {
 	/* Tell the client their assigned nation */
-	auto plnation = get_player_nation(state, client.hshake_buffer.nickname, client);
+	auto plnation = get_player_nation(state, client.hshake_buffer.nickname);
 	if(plnation) {
 		client.playing_as = plnation;
 	} else {
@@ -851,7 +851,9 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::host) {
 		load_player_nations(state);
 
-		state.local_player_nation = choose_nation_for_player(state);
+		auto nid = get_player_nation(state, state.network_state.nickname);
+		state.local_player_nation = nid ? nid : choose_nation_for_player(state);
+
 		assert(bool(state.local_player_nation));
 
 		/* Materialize it into a command we send to new clients who connect and have to replay everything... */
