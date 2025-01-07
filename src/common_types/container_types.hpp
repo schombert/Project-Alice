@@ -283,8 +283,9 @@ struct checksum_key {
 };
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
-struct player_name {
-	std::array<uint8_t, 24> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+template<size_t _Size>
+struct player_value {
+	std::array<uint8_t, _Size> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	std::string_view to_string_view() noexcept {
 		for(uint32_t i = 0; i < sizeof(data); i++) {
@@ -292,10 +293,10 @@ struct player_name {
 				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
 			}
 		}
-		return "???";
+		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
 	}
 
-	player_name from_string_view(std::string_view sv) noexcept {
+	player_value<_Size> from_string_view(std::string_view sv) noexcept {
 		size_t length_to_copy = std::min(sv.size(), data.size());
 		sv.copy(reinterpret_cast<char*>(data.data()), length_to_copy);
 		return *this;
@@ -329,7 +330,16 @@ struct player_name {
 		return ' ';
 	}
 };
+
+using player_name = player_value<24>;
+using player_password_salt = player_value<24>;
+using player_password_hash = player_value<64>;
+using player_password_raw = player_value<24>;
+
 static_assert(sizeof(player_name) == sizeof(player_name::data));
+static_assert(sizeof(player_password_salt) == sizeof(player_password_salt::data));
+static_assert(sizeof(player_password_hash) == sizeof(player_password_hash::data));
+static_assert(sizeof(player_password_raw) == sizeof(player_password_raw::data));
 
 struct macro_builder_template {
 	static constexpr uint32_t max_types = 48;

@@ -28,6 +28,7 @@
 #include "SPSCQueue.h"
 #include "network.hpp"
 #include "serialization.hpp"
+#include "SHA512.hpp"
 #include "gui_error_window.hpp"
 #include "persistent_server_extensions.hpp"
 
@@ -55,6 +56,8 @@ struct local_addresses {
 };
 
 port_forwarder::port_forwarder() { }
+
+SHA512 sha512;
 
 void port_forwarder::start_forwarding() {
 #ifdef _WIN64
@@ -656,6 +659,34 @@ static std::map<int, std::string> readableCommandTypes = {
 {255,"console_command"},
 };
 
+dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password) {
+	auto p = state.world.create_mp_player();
+	state.world.mp_player_set_nickname(p, name.data);
+
+	auto salt = sys::player_password_salt{}.from_string_view(std::to_string(int32_t(rand())));
+	auto hash = sys::player_password_hash{}.from_string_view(sha512.hash(password.to_string() + salt.to_string()));
+	state.world.mp_player_set_password_hash(p, hash.data);
+	state.world.mp_player_set_password_salt(p, salt.data);
+
+	return p;
+}
+
+dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt) {
+	auto p = state.world.create_mp_player();
+	state.world.mp_player_set_nickname(p, name.data);
+	state.world.mp_player_set_password_hash(p, password_hash.data);
+	state.world.mp_player_set_password_salt(p, password_salt.data);
+
+	return p;
+}
+
+void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_password_raw& password) {
+	auto salt = sys::player_password_salt{}.from_string_view(std::to_string(int32_t(rand())));
+	auto hash = sys::player_password_hash{}.from_string_view(sha512.hash(password.to_string() + salt.to_string()));
+	state.world.mp_player_set_password_hash(player_id, hash.data);
+	state.world.mp_player_set_password_salt(player_id, salt.data);
+}
+
 dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name) {
 	for(const auto p : state.world.in_mp_player) {
 		auto nickname = p.get_nickname();
@@ -859,7 +890,7 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation, sys::player_name password) {
+void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation, sys::player_password_raw password) {
 	// Tell all clients about this client
 	command::payload c;
 	memset(&c, 0, sizeof(c));
@@ -1122,10 +1153,13 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 		for(auto pl : state.world.in_mp_player) {
 			auto nickname_1 = sys::player_name{ pl.get_nickname() }.to_string();
 			auto nickname_2 = client.hshake_buffer.nickname.to_string();
-			auto password_1 = sys::player_name{ pl.get_password() }.to_string();
+			auto hash_1 = sys::player_password_hash{ pl.get_password_hash() };
 			auto password_2 = client.hshake_buffer.player_password.to_string();
+			auto salt = sys::player_password_salt{ pl.get_password_salt() }.to_string();
+			auto hash_2 = sys::player_password_hash{}.from_string_view(sha512.hash(password_2 + salt));
 
-			if(nickname_1 == nickname_2 && password_1 != password_2) {
+			// If no password is set we allow player to set new password with this connection
+			if(nickname_1 == nickname_2 && !hash_1.empty() && hash_1.to_string() != hash_2.to_string()) {
 				disconnect_client(state, client, false);
 				return;
 			}

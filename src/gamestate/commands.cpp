@@ -4867,7 +4867,7 @@ void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::
 		effect::execute(state, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(n.index() ^ (d.index() << 4)));
 }
 
-static void post_chat_message(sys::state& state, ui::chat_message& m) {
+void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
 	if(bool(m.target)) {
@@ -4923,7 +4923,7 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_name& password) {
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password) {
 #ifndef NDEBUG
 	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
 #endif
@@ -4935,14 +4935,14 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 		if (oldnation != source)
 			state.world.nation_set_is_player_controlled(oldnation, false);
 
+		// Server already validated password by this point
+		// Client always receives empty passwords
 		if(!password.empty()) {
-			state.world.mp_player_set_password(p, password.data);
+			network::update_mp_player_password(state, p, password);
 		}
 	}
 	else {
-		p = state.world.create_mp_player();
-		state.world.mp_player_set_nickname(p, name.data);
-		state.world.mp_player_set_password(p, password.data);
+		p = network::create_mp_player(state, name, password);
 	}
  	state.world.nation_set_is_player_controlled(source, true);
 	state.world.force_create_player_nation(source, p);

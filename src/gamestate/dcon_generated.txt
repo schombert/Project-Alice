@@ -5387,8 +5387,12 @@ object{
 		type{ std::array<uint8_t,24> }
 	}
 	property{
-		name{ password }
+		name{ password_salt }
 		type{ std::array<uint8_t,24> }
+	}
+	property{
+		name{ password_hash }
+		type{ std::array<uint8_t,64> }
 	}
 }
 
