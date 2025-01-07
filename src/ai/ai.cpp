@@ -976,17 +976,20 @@ void take_ai_decisions(sys::state& state) {
 		auto n = v.second;
 		auto d = v.first;
 		auto e = state.world.decision_get_effect(d);
-		effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t(n.index() << 4 ^ d.index()));
-		notification::post(state, notification::message{
-			[e, n, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(d));
-				text::add_line(state, contents, "msg_decision_2");
-				ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ d.index()));
-			},
-			"msg_decision_title",
-			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::decision
-		});
+		if(trigger::evaluate(state, state.world.decision_get_potential(d), trigger::to_generic(n), trigger::to_generic(n), 0)
+		&& trigger::evaluate(state, state.world.decision_get_allow(d), trigger::to_generic(n), trigger::to_generic(n), 0)) {
+			effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+			notification::post(state, notification::message{
+				[e, n, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(d));
+					text::add_line(state, contents, "msg_decision_2");
+					ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ d.index()));
+				},
+				"msg_decision_title",
+				n, dcon::nation_id{}, dcon::nation_id{},
+				sys::message_base_type::decision
+			});
+		}
 	}
 }
 
