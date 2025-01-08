@@ -33,8 +33,9 @@ typedef int socket_t;
 
 struct client_handshake_data {
 	sys::player_name nickname;
-	uint8_t password[16] = {0};
-	uint8_t reserved[48] = {0};
+	sys::player_password_raw player_password;
+	uint8_t lobby_password[16] = {0};
+	uint8_t reserved[24] = {0};
 };
 
 struct server_handshake_data {
@@ -73,6 +74,7 @@ struct client_data {
 struct network_state {
 	server_handshake_data s_hshake;
 	sys::player_name nickname;
+	sys::player_password_raw player_password;
 	sys::checksum_key current_save_checksum;
 	struct sockaddr_storage address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
@@ -89,7 +91,7 @@ struct network_state {
 	size_t recv_count = 0;
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
-	uint8_t password[16] = { 0 };
+	uint8_t lobby_password[16] = { 0 };
 	std::atomic<bool> save_slock = false;
 	bool as_v6 = false;
 	bool as_server = false;
@@ -115,9 +117,14 @@ void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t c
 void broadcast_to_clients(sys::state& state, command::payload& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
+
+dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password);
+dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
+void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
 dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation);
 void log_player_nations(sys::state& state);
+
 void place_host_player_after_saveload(sys::state& state);
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);

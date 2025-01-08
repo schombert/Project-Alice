@@ -4867,7 +4867,7 @@ void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::
 		effect::execute(state, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(n.index() ^ (d.index() << 4)));
 }
 
-static void post_chat_message(sys::state& state, ui::chat_message& m) {
+void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
 	if(bool(m.target)) {
@@ -4916,14 +4916,14 @@ void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_joins;
 	p.source = source;
-	p.data.player_name = name;
+	p.data.notify_join.player_name = name;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password) {
 #ifndef NDEBUG
 	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
 #endif
@@ -4934,10 +4934,15 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 
 		if (oldnation != source)
 			state.world.nation_set_is_player_controlled(oldnation, false);
+
+		// Server already validated password by this point
+		// Client always receives empty passwords
+		if(!password.empty()) {
+			network::update_mp_player_password(state, p, password);
+		}
 	}
 	else {
-		p = state.world.create_mp_player();
-		state.world.mp_player_set_nickname(p, name.data);
+		p = network::create_mp_player(state, name, password);
 	}
  	state.world.nation_set_is_player_controlled(source, true);
 	state.world.force_create_player_nation(source, p);
@@ -5639,7 +5644,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_notify_player_kick(state, c.source, c.data.nation_pick.target);
 
 	case command_type::notify_player_joins:
-		return can_notify_player_joins(state, c.source, c.data.player_name);
+		return can_notify_player_joins(state, c.source, c.data.notify_join.player_name);
 
 	case command_type::notify_player_leaves:
 		return can_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);
@@ -6014,7 +6019,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
 		break;
 	case command_type::notify_player_joins:
-		execute_notify_player_joins(state, c.source, c.data.player_name);
+		execute_notify_player_joins(state, c.source, c.data.notify_join.player_name, c.data.notify_join.player_password);
 		break;
 	case command_type::notify_player_leaves:
 		execute_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);

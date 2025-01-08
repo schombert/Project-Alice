@@ -244,11 +244,19 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-password")) {
 					if(i + 1 < num_params) {
 						auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
-						std::memset(game_state.network_state.password, '\0', sizeof(game_state.network_state.password));
-						std::memcpy(game_state.network_state.password, str.c_str(), std::min(sizeof(game_state.network_state.password), str.length()));
+						std::memset(game_state.network_state.lobby_password, '\0', sizeof(game_state.network_state.lobby_password));
+						std::memcpy(game_state.network_state.lobby_password, str.c_str(), std::min(sizeof(game_state.network_state.lobby_password), str.length()));
 						i++;
 					}
-				} else if(native_string(parsed_cmd[i]) == NATIVE("-v6")) {
+				}
+				else if (native_string(parsed_cmd[i]) == NATIVE("-player_password")) {
+					if (i + 1 < num_params) {
+						std::string password = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						memcpy(&game_state.network_state.player_password.data, password.c_str(), std::min<size_t>(password.length(), 8));
+						i++;
+					}
+				}
+				else if(native_string(parsed_cmd[i]) == NATIVE("-v6")) {
 					game_state.network_state.as_v6 = true;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
 					game_state.network_state.as_v6 = false;
@@ -273,8 +281,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				window::emit_error_message(msg, true);
 				return 0;
 			}
-
-			network::init(game_state);
 		}
 		LocalFree(parsed_cmd);
 
@@ -291,6 +297,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				web_thread.detach();
 			}
 		}
+
+		network::init(game_state);
 
 		if(headless) {
 			game_state.actual_game_speed = headless_speed;

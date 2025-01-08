@@ -5341,24 +5341,23 @@ void run_private_investment(sys::state& state) {
 
 		// If nowhere to invest
 		if (estimate_private_construction_spendings(state, n) < 1.f && craved_constructions.size() == 0 && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
+			// If it's an overlord - prioritize distributing some private invesmtent to subjects
 			// If it's a subject - transfer private investment to overlord
-			// If it's an overlord - distribute some private invesmtent to subjects
 			auto rel = state.world.nation_get_overlord_as_subject(n);
 			auto overlord = state.world.overlord_get_ruler(rel);
 
 			auto amt = state.world.nation_get_private_investment(n) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
 			state.world.nation_get_private_investment(n) -= amt;
 
-			if(overlord) {
-				state.world.nation_get_private_investment(overlord) += amt;
-			} else {
-				auto subjects = nations::nation_get_subjects(state, n);
-				if(subjects.size() > 0) {
-					auto part = amt / subjects.size();
-					for(auto s : subjects) {
-						state.world.nation_get_private_investment(s) += part;
-					}
+			auto subjects = nations::nation_get_subjects(state, n);
+			if(subjects.size() > 0) {
+				auto part = amt / subjects.size();
+				for(auto s : subjects) {
+					state.world.nation_get_private_investment(s) += part;
 				}
+			}
+			else if(overlord) {
+				state.world.nation_get_private_investment(overlord) += amt;
 			}
 		}
 	}
@@ -8136,7 +8135,7 @@ float estimate_diplomatic_income(sys::state& state, dcon::nation_id n) {
 float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
 	float w_sub =  estimate_war_subsidies_spending(state, n);
 	float w_reps =  estimate_reparations_spending(state, n);
-	float subject_payments = estimate_subject_payments_received(state, n);
+	float subject_payments = estimate_subject_payments_paid(state, n);
 	return w_sub + w_reps + subject_payments;
 }
 

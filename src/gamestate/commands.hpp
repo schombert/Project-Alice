@@ -461,6 +461,10 @@ struct advance_tick_data {
 	sys::date date;
 };
 
+struct notify_joins_data {
+	sys::player_name player_name;
+	sys::player_password_raw player_password;
+};
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
 	uint32_t length;
@@ -531,8 +535,8 @@ struct payload {
 		save_game_data save_game;
 		notify_save_loaded_data notify_save_loaded;
 		notify_reload_data notify_reload;
-		sys::player_name player_name;
 		cheat_location_data cheat_location;
+		notify_joins_data notify_join;
 		notify_leaves_data notify_leave;
 		nbutton_data nbutton;
 		pbutton_data pbutton;
@@ -886,6 +890,7 @@ bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon:
 void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
+void post_chat_message(sys::state& state, ui::chat_message& m);
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 
@@ -900,7 +905,7 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_i
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
-void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
+void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password);
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai);

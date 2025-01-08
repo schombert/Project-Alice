@@ -101,8 +101,9 @@ static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
 
 static std::string ip_addr = "127.0.0.1";
-static std::string password = "";
+static std::string lobby_password = "";
 static sys::player_name player_name;
+static sys::player_name player_password;
 
 enum class string_index : uint8_t {
 	create_scenario,
@@ -112,7 +113,7 @@ enum class string_index : uint8_t {
 	for_the_selected_mods,
 	no_scenario_found,
 	ip_address,
-	password,
+	lobby_password,
 	nickname,
 	singleplayer,
 	multiplayer,
@@ -120,7 +121,8 @@ enum class string_index : uint8_t {
 	host,
 	join,
 	mod_list,
-	count
+	player_password,
+	count,
 };
 
 //english
@@ -139,7 +141,8 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"Start game",
 	"Host",
 	"Join",
-	"Mod list"
+	"Mod list",
+	"Player Password"
 };
 //turkish
 static std::string_view tr_localised_strings[uint8_t(string_index::count)] = {
@@ -157,7 +160,8 @@ static std::string_view tr_localised_strings[uint8_t(string_index::count)] = {
 	"Oyunu başlatmak",
 	"Ev sahibi",
 	"Katılmak",
-	"Mod listesi"
+	"Mod listesi",
+	"Player Password"
 };
 //albanian
 static std::string_view sq_localised_strings[uint8_t(string_index::count)] = {
@@ -175,7 +179,9 @@ static std::string_view sq_localised_strings[uint8_t(string_index::count)] = {
 	"Fillo lojen",
 	"Mikpritës",
 	"Bashkohu",
-	"Lista e modës"
+	"Lista e modës",
+	"Player Password"
+
 };
 //spanish
 static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
@@ -193,7 +199,9 @@ static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
 	"Empezar juego",
 	"Hostear",
 	"Unirse",
-	"Lista de mods"
+	"Lista de mods",
+	"Player Password"
+
 };
 //italian
 static std::string_view it_localised_strings[uint8_t(string_index::count)] = {
@@ -211,7 +219,9 @@ static std::string_view it_localised_strings[uint8_t(string_index::count)] = {
 	"Inizia il gioco",
 	"Ospite",
 	"Partecipare",
-	"Elenco delle mods"
+	"Elenco delle mods",
+	"Player Password"
+
 };
 //french
 static std::string_view fr_localised_strings[uint8_t(string_index::count)] = {
@@ -229,7 +239,9 @@ static std::string_view fr_localised_strings[uint8_t(string_index::count)] = {
 	"Dèmarrer jeu",
 	"Hõte",
 	"Rejoindre",
-	"Liste des modifications"
+	"Liste des modifications",
+	"Player Password"
+
 };
 //portuguese
 static std::string_view po_localised_strings[uint8_t(string_index::count)] = {
@@ -247,7 +259,9 @@ static std::string_view po_localised_strings[uint8_t(string_index::count)] = {
 	"Começar o jogo",
 	"Hospedar",
 	"Junte-se",
-	"Lista de modificaçães"
+	"Lista de modificaçães",
+	"Player Password"
+
 };
 //deutsch
 static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
@@ -265,7 +279,9 @@ static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 	"Spiel starten",
 	"Hosten",
 	"Teilnehmen",
-	"Liste der Modifikationen"
+	"Liste der Modifikationen",
+	"Player Password"
+
 };
 //swedish
 static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
@@ -283,7 +299,9 @@ static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
 	"Starta spelet",
 	"Gå med",
 	"Vara värd",
-	"Lista åver åndriggar"
+	"Lista åver åndriggar",
+	"Player Password"
+
 };
 //chinese
 static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
@@ -301,7 +319,9 @@ static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
 	"开始游戏",
 	"主持",
 	"加入",
-	"模组列表"
+	"模组列表",
+	"Player Password"
+
 };
 //arabic
 static std::string_view ar_localised_strings[uint8_t(string_index::count)] = {
@@ -320,6 +340,8 @@ static std::string_view ar_localised_strings[uint8_t(string_index::count)] = {
 	"يستضيف",
 	"ينضم",
 	"قائمة وزارة الدفاع",
+	"Player Password"
+
 };
 //norwegian
 static std::string_view no_localised_strings[uint8_t(string_index::count)] = {
@@ -338,6 +360,8 @@ static std::string_view no_localised_strings[uint8_t(string_index::count)] = {
 	"Vert",
 	"Bli med",
 	"Mod liste",
+	"Player Password"
+
 };
 //romanian
 static std::string_view ro_localised_strings[uint8_t(string_index::count)] = {
@@ -355,7 +379,9 @@ static std::string_view ro_localised_strings[uint8_t(string_index::count)] = {
 	"Începeți jocul",
 	"Gazdă",
 	"A te alatura",
-	"Lista de moduri"
+	"Lista de moduri",
+	"Player Password"
+
 };
 //russian
 static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
@@ -374,6 +400,7 @@ static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Сервер",
 	"Присоединиться",
 	"Список модов",
+	"Пароль игрока"
 };
 //polish
 static std::string_view pl_localised_strings[uint8_t(string_index::count)] = {
@@ -391,7 +418,9 @@ static std::string_view pl_localised_strings[uint8_t(string_index::count)] = {
 	"Rozpocząć grę",
 	"Gospodarz",
 	"Dołączyć",
-	"Lista modów"
+	"Lista modów",
+	"Player Password"
+
 };
 //bulgarian
 static std::string_view bg_localised_strings[uint8_t(string_index::count)] = {
@@ -410,6 +439,8 @@ static std::string_view bg_localised_strings[uint8_t(string_index::count)] = {
 	"Домакин",
 	"Присъединяване",
 	"Мод списък",
+	"Парола на играча"
+
 };
 //catalan
 static std::string_view ca_localised_strings[uint8_t(string_index::count)] = {
@@ -428,6 +459,7 @@ static std::string_view ca_localised_strings[uint8_t(string_index::count)] = {
 	"Amfitrió",
 	"Uneix - te",
 	"Llista de modificacions",
+	"Player password"
 };
 //czech
 static std::string_view cs_localised_strings[uint8_t(string_index::count)] = {
@@ -445,7 +477,9 @@ static std::string_view cs_localised_strings[uint8_t(string_index::count)] = {
 	"Začít hru",
 	"Hostitel",
 	"Připojit",
-	"Seznam modů"
+	"Seznam modů",
+	"Player password"
+
 };
 //danish
 static std::string_view da_localised_strings[uint8_t(string_index::count)] = {
@@ -463,7 +497,9 @@ static std::string_view da_localised_strings[uint8_t(string_index::count)] = {
 	"Start Spil",
 	"Vært",
 	"Tilslutte",
-	"Mod liste"
+	"Mod liste",
+	"Player password"
+
 };
 //greek
 static std::string_view el_localised_strings[uint8_t(string_index::count)] = {
@@ -481,7 +517,9 @@ static std::string_view el_localised_strings[uint8_t(string_index::count)] = {
 	"Ξεκίνα το παιχνίδι",
 	"Πλήθος",
 	"Συμμετοχή",
-	"Λίστα mod"
+	"Λίστα mod",
+	"Player password"
+
 };
 //finnish
 static std::string_view fi_localised_strings[uint8_t(string_index::count)] = {
@@ -500,6 +538,8 @@ static std::string_view fi_localised_strings[uint8_t(string_index::count)] = {
 	"Isäntä",
 	"Liittyä seuraan",
 	"Mod lista",
+	"Player password"
+
 };
 //hebrew
 static std::string_view he_localised_strings[uint8_t(string_index::count)] = {
@@ -517,7 +557,9 @@ static std::string_view he_localised_strings[uint8_t(string_index::count)] = {
 	"התחל משחק",
 	"מנחה",
 	"לְהִצְטַרֵף",
-	"רשימת השינויים במשחק"
+	"רשימת השינויים במשחק",
+	"Player password"
+
 };
 //hungarian
 static std::string_view hu_localised_strings[uint8_t(string_index::count)] = {
@@ -535,7 +577,9 @@ static std::string_view hu_localised_strings[uint8_t(string_index::count)] = {
 	"Játék kezdése",
 	"Házigazda",
 	"Csatlakozik",
-	"Mod lista"
+	"Mod lista",
+	"Player password"
+
 };
 //dutch
 static std::string_view nl_localised_strings[uint8_t(string_index::count)] = {
@@ -553,7 +597,9 @@ static std::string_view nl_localised_strings[uint8_t(string_index::count)] = {
 	"Start het spel",
 	"Gastheer",
 	"Meedoen",
-	"Mod - lijst"
+	"Mod - lijst",
+	"Player password"
+
 };
 //lithuanian
 static std::string_view lt_localised_strings[uint8_t(string_index::count)] = {
@@ -571,7 +617,9 @@ static std::string_view lt_localised_strings[uint8_t(string_index::count)] = {
 	"Pradėti žaidimą",
 	"Šeimininkas",
 	"Prisijunk",
-	"Modifikacijų sąrašas"
+	"Modifikacijų sąrašas",
+	"Player password"
+
 };
 //latvian
 static std::string_view lv_localised_strings[uint8_t(string_index::count)] = {
@@ -589,7 +637,9 @@ static std::string_view lv_localised_strings[uint8_t(string_index::count)] = {
 	"Sākt spēli",
 	"Uzņēmēja",
 	"Pievienojieties",
-	"Modu saraksts"
+	"Modu saraksts",
+	"Player password"
+
 };
 //estonian
 static std::string_view et_localised_strings[uint8_t(string_index::count)] = {
@@ -607,7 +657,9 @@ static std::string_view et_localised_strings[uint8_t(string_index::count)] = {
 	"Alusta mängu",
 	"Host",
 	"Liitu",
-	"Modifikatsioonide loend"
+	"Modifikatsioonide loend",
+	"Player password"
+
 };
 //hindi
 static std::string_view hi_localised_strings[uint8_t(string_index::count)] = {
@@ -625,7 +677,9 @@ static std::string_view hi_localised_strings[uint8_t(string_index::count)] = {
 	"खेल शुरू करें",
 	"होस्ट",
 	"जॉइन करें",
-	"मॉड सूची"
+	"मॉड सूची",
+	"Player password"
+
 };
 //vietnamese
 static std::string_view vi_localised_strings[uint8_t(string_index::count)] = {
@@ -643,7 +697,9 @@ static std::string_view vi_localised_strings[uint8_t(string_index::count)] = {
 	"Bắt đầu trò chơi",
 	"Chủ nhà",
 	"Tham gia",
-	"Danh sách mod"
+	"Danh sách mod",
+	"Player password"
+
 };
 //armenian
 static std::string_view hy_localised_strings[uint8_t(string_index::count)] = {
@@ -661,7 +717,9 @@ static std::string_view hy_localised_strings[uint8_t(string_index::count)] = {
 	"Սկսել խաղը",
 	"Հյուրընկալող",
 	"Միանալ",
-	"Mod ուցակ"
+	"Mod ուցակ",
+	"Player password"
+
 };
 //ukrainian
 static std::string_view uk_localised_strings[uint8_t(string_index::count)] = {
@@ -679,7 +737,9 @@ static std::string_view uk_localised_strings[uint8_t(string_index::count)] = {
 	"Почніть гру",
 	"Господар",
 	"З'єднувати",
-	"Список мод"
+	"Список мод",
+	"Player password"
+
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -702,10 +762,12 @@ constexpr inline int32_t ui_obj_join_game = 6;
 constexpr inline int32_t ui_obj_ip_addr = 7;
 constexpr inline int32_t ui_obj_password = 8;
 constexpr inline int32_t ui_obj_player_name = 9;
+constexpr inline int32_t ui_obj_player_password = 10;
+
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 10;
+constexpr inline int32_t ui_list_first = 11;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -727,9 +789,10 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 555, 48 + 156 * 1, 286, 33 }, // play game
 	ui_active_rect{ 555, 48 + 156 * 2 + 36 * 0, 138, 33 }, // host game
 	ui_active_rect{ 703, 48 + 156 * 2 + 36 * 0, 138, 33 }, // join game
-	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 2, 200, 23 }, // ip address textbox
-	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 3 + 12, 200, 23 }, // password textbox
-	ui_active_rect{ 765, 54 + 156 * 2 + 36 * 2, 76, 23 }, // player name textbox
+	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 2, 138, 23 }, // ip address textbox
+	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 3 + 12, 138, 23 }, // lobby_password textbox
+	ui_active_rect{ 703, 54 + 156 * 2 + 36 * 2, 138, 23 }, // player name textbox
+	ui_active_rect{ 703, 54 + 156 * 2 + 36 * 3 + 12, 138, 23 }, // player_password textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -970,6 +1033,41 @@ void save_playername() {
 	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&player_name, sizeof(player_name));
 }
 
+void save_playerpassw() {
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	simple_fs::write_file(settings_location, NATIVE("player_passw.dat"), (const char*)&player_password, sizeof(player_password));
+}
+
+void load_playername() {
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	if (auto player_name_file = simple_fs::open_file(settings_location, NATIVE("player_name.dat")); player_name_file) {
+		auto contents = simple_fs::view_contents(*player_name_file);
+		const sys::player_name* p = (const sys::player_name*)contents.data;
+		if (contents.file_size >= sizeof(*p)) {
+			launcher::player_name = launcher::player_name.from_string_view(std::string(std::begin(p->data), std::end(p->data)));
+		}
+	}
+	else {
+		srand(time(NULL));
+		launcher::player_name = launcher::player_name.from_string_view(std::to_string(int32_t(rand())));
+	}
+}
+
+void load_playerpassw() {
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	if (auto player_name_file = simple_fs::open_file(settings_location, NATIVE("player_passw.dat")); player_name_file) {
+		auto contents = simple_fs::view_contents(*player_name_file);
+		const sys::player_name* p = (const sys::player_name*)contents.data;
+		if (contents.file_size >= sizeof(*p)) {
+			launcher::player_password = launcher::player_password.from_string_view(std::string(std::begin(p->data), std::end(p->data)));
+		}
+	}
+	else {
+		srand(time(NULL));
+		launcher::player_password = launcher::player_password.from_string_view(std::to_string(int32_t(rand())));
+	}
+}
+
 native_string to_hex(uint64_t v) {
 	native_string ret;
 	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
@@ -1202,6 +1300,12 @@ void mouse_click() {
 				temp_command_line += NATIVE(" -host");
 				temp_command_line += NATIVE(" -name ");
 				temp_command_line += simple_fs::utf8_to_native(player_name.to_string());
+
+				if (!player_password.empty()) {
+					temp_command_line += NATIVE(" -player_password ");
+					temp_command_line += simple_fs::utf8_to_native(player_password.to_string());
+				}
+
 			} else if(obj_under_mouse == ui_obj_join_game) {
 				temp_command_line += NATIVE(" -join");
 				temp_command_line += NATIVE(" ");
@@ -1209,15 +1313,20 @@ void mouse_click() {
 				temp_command_line += NATIVE(" -name ");
 				temp_command_line += simple_fs::utf8_to_native(player_name.to_string());
 
+				if (!player_password.empty()) {
+					temp_command_line += NATIVE(" -player_password ");
+					temp_command_line += simple_fs::utf8_to_native(player_password.to_string());
+				}
+
 				// IPv6 address
 				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
 					temp_command_line += NATIVE(" -v6");
 				}
 			}
 
-			if(!password.empty()) {
+			if(!lobby_password.empty()) {
 				temp_command_line += NATIVE(" -password ");
-				temp_command_line += simple_fs::utf8_to_native(password);
+				temp_command_line += simple_fs::utf8_to_native(lobby_password);
 			}
 
 			STARTUPINFO si;
@@ -1877,7 +1986,7 @@ void render() {
 		ui_rects[ui_obj_ip_addr].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	sv = launcher::localised_strings[uint8_t(launcher::string_index::password)];
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::lobby_password)];
 	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_password ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_password].x,
@@ -1893,6 +2002,15 @@ void render() {
 		ui_rects[ui_obj_player_name].y,
 		ui_rects[ui_obj_player_name].width,
 		ui_rects[ui_obj_player_name].height,
+		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::player_password)];
+	launcher::ogl::render_new_text(sv.data(), launcher::ogl::color_modification::none, ui_rects[ui_obj_player_password].x + ui_rects[ui_obj_player_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, fonts[0]), ui_rects[ui_obj_player_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, fonts[0]);
+	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_password ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+		ui_rects[ui_obj_player_password].x,
+		ui_rects[ui_obj_player_password].y,
+		ui_rects[ui_obj_player_password].width,
+		ui_rects[ui_obj_player_password].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::singleplayer)];
@@ -1917,9 +2035,11 @@ void render() {
 	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, fonts[0]) - 4.f;
 	launcher::ogl::render_new_text(ip_addr.c_str(), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 	float ps_x_pos = ui_rects[ui_obj_password].x + 6.f;
-	launcher::ogl::render_new_text(password.c_str(), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
+	launcher::ogl::render_new_text(lobby_password.c_str(), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, fonts[0]) - 4.f;
 	launcher::ogl::render_new_text(player_name.to_string_view(), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
+	float pp_x_pos = ui_rects[ui_obj_player_password].x + 6.f;// ui_rects[ui_obj_player_password].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(player_password.to_string_view(), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, fonts[0]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::mod_list)];
 	auto ml_xoffset = list_text_right_align - base_text_extent(sv.data(), uint32_t(sv.size()), 24, fonts[1]);
@@ -2376,12 +2496,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 							player_name.append(turned_into);
 							save_playername();
 						}
-					} else if(obj_under_mouse == ui_obj_password) {
+					}
+					else if (obj_under_mouse == ui_obj_player_password) {
+						if (turned_into == '\b') {
+							if (!player_password.empty()) {
+								player_password.pop();
+								save_playerpassw();
+							}
+						}
+						else if (turned_into >= 32 && turned_into != '\t' && turned_into != ' ') {
+							player_password.append(turned_into);
+							save_playerpassw();
+						}
+					}
+					else if(obj_under_mouse == ui_obj_password) {
 						if(turned_into == '\b') {
-							if(!password.empty())
-								password.pop_back();
-						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && password.size() < 16) {
-							password.push_back(turned_into);
+							if(!lobby_password.empty())
+								lobby_password.pop_back();
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && lobby_password.size() < 16) {
+							lobby_password.push_back(turned_into);
 						}
 					}
 				}
@@ -2520,23 +2653,9 @@ int WINAPI wWinMain(
 		window::emit_error_message("Unable to register window class", true);
 	}
 
-	// Use by default the name of the computer
-	char username[256 + 1];
-	DWORD username_len = 256 + 1;
-	GetComputerNameA(username, &username_len);
-
 	// Load from user settings
-	auto settings_location = simple_fs::get_or_create_settings_directory();
-	if(auto player_name_file = simple_fs::open_file(settings_location, NATIVE("player_name.dat")); player_name_file) {
-		auto contents = simple_fs::view_contents(*player_name_file);
-		const sys::player_name *p = (const sys::player_name*)contents.data;
-		if(contents.file_size >= sizeof(*p)) {
-			launcher::player_name = launcher::player_name.from_string_view(std::string(std::begin(p->data), std::end(p->data)));
-		}
-	} else {
-		srand(time(NULL));
-		launcher::player_name = launcher::player_name.from_string_view(std::to_string(int32_t(rand())));
-	}
+	launcher::load_playername();
+	launcher::load_playerpassw();
 
 	launcher::m_hwnd = CreateWindowEx(
 		0,
