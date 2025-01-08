@@ -1409,6 +1409,10 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 		" : player " + std::to_string(offsetof(sys::state, local_player_nation)) + " state-ptr @ buf-add ptr-cast ptr(nation_id) ; ",
 		values);
 
+	fif::run_fif_interpreter(*state.fif_environment,
+		" : selected-prov " + std::to_string(offsetof(sys::state, map_state) + offsetof(map::map_state, selected_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; ",
+		values);
+
 	assert(state.fif_environment->mode != fif::fif_mode::error);
 }
 
