@@ -13,7 +13,7 @@ public:
 		auto fat = dcon::fatten(state.world, fid);
 		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		auto type = retrieve<dcon::factory_type_id>(state, parent);
+		auto type = state.world.factory_get_building_type(fid);
 
 		// no double upgrade
 		bool is_not_upgrading = true;
@@ -73,7 +73,7 @@ public:
 		auto fat = dcon::fatten(state.world, fid);
 		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		auto type = retrieve<dcon::factory_type_id>(state, parent);
+		auto type = state.world.factory_get_building_type(fid);
 
 		// no double upgrade
 		bool is_not_upgrading = true;
@@ -82,7 +82,7 @@ public:
 				is_not_upgrading = false;
 		}
 		
-		text::add_line(state, contents, "production_refit_factory_tooltip");
+		text::add_line(state, contents, "production_refit_factory_tooltip_1", text::variable_type::what, state.world.factory_type_get_name(type));
 
 		text::add_line_break_to_layout(state, contents);
 
@@ -150,7 +150,7 @@ public:
 				is_not_upgrading = false;
 		}
 
-		text::add_line(state, contents, "production_refit_factory_tooltip", text::variable_type::what, state.world.factory_type_get_name(type),
+		text::add_line(state, contents, "production_refit_factory_tooltip_2", text::variable_type::what, state.world.factory_type_get_name(type),
 			text::variable_type::name, state.world.factory_type_get_name(refit_target));
 
 		text::add_line_break_to_layout(state, contents);
