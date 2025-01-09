@@ -3300,6 +3300,19 @@ void war_history_file::finish(war_history_context& context) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
 			context.outer_context.state.world.war_participant_set_is_attacker(rel, false);
 		}
+
+		// release puppet if subject declares on overlord or vice versa
+		for(auto p : context.outer_context.state.world.war_get_war_participant(new_war)) {
+			auto ol_rel = context.outer_context.state.world.nation_get_overlord_as_subject(p.get_nation());
+			auto ol = context.outer_context.state.world.overlord_get_ruler(ol_rel);
+
+			for(auto p2 : context.outer_context.state.world.war_get_war_participant(new_war)) {
+				if(p2.get_nation() == ol && p.get_is_attacker() != p2.get_is_attacker()) {
+					nations::release_vassal(context.outer_context.state, ol_rel);
+				}
+			}
+		}
+
 		for(auto& wg : context.wargoals) {
 			auto new_wg = fatten(context.outer_context.state.world, context.outer_context.state.world.create_wargoal());
 			new_wg.set_added_by(wg.actor_);
