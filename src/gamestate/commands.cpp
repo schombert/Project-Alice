@@ -554,11 +554,18 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 						return false;
 	}
 
-	// For refit factories must match in output good or inputs.
 	if(refit_target) {
 		if(type == refit_target) {
 			return false;
 		}
+
+		if(owner != source) {
+			return false;
+		}
+
+		// Refit target must be unlocked and available
+		if(state.world.nation_get_active_building(source, refit_target) == false && !state.world.factory_type_get_is_available_from_start(refit_target))
+			return false;
 
 		// Check if this factory is already being refit
 		bool has_dup = false;
@@ -568,6 +575,8 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 		// We deliberately allow for duplicates to existing factories as this scenario is handled when construction is finished
 
+	// For refit factories must match in output good or inputs.
+		/*
 		auto output_1 = state.world.factory_type_get_output(type);
 		auto output_2 = state.world.factory_type_get_output(refit_target);
 		auto inputs_1 = state.world.factory_type_get_inputs(type);
@@ -586,6 +595,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		if(output_1 != output_2 && !inputs_match) {
 			return false;
 		}
+		*/
 	}
 
 	if(state.world.nation_get_is_civilized(source) == false)

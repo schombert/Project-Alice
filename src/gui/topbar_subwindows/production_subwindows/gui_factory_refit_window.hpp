@@ -150,8 +150,27 @@ public:
 				is_not_upgrading = false;
 		}
 
-		text::add_line(state, contents, "production_refit_factory_tooltip");
+		text::add_line(state, contents, "production_refit_factory_tooltip", text::variable_type::what, state.world.factory_type_get_name(type),
+			text::variable_type::name, state.world.factory_type_get_name(refit_target));
 
+		text::add_line_break_to_layout(state, contents);
+
+		auto refit_cost = economy::calculate_factory_refit_goods_cost(state, state.local_player_nation, fat.get_factory_location().get_province().get_state_membership(), type, refit_target);
+		auto total = 0.f;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(refit_cost.commodity_type[i] && refit_cost.commodity_amounts[i] > 0) {
+				float admin_eff = state.world.nation_get_administrative_efficiency(n);
+				float admin_cost_factor = 2.0f - admin_eff;
+				float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
+				auto price = economy::price(state, sid, refit_cost.commodity_type[i]) * refit_cost.commodity_amounts[i] * factory_mod * admin_cost_factor;
+				total += price;
+
+				text::add_line(state, contents, "factory_refit_cost", text::variable_type::what, state.world.commodity_get_name(refit_cost.commodity_type[i]), text::variable_type::val, text::fp_three_places{ refit_cost.commodity_amounts[i] }, text::variable_type::value, text::format_money(price));
+			}
+		}
+
+		text::add_line(state, contents, "factory_refit_cost_total", text::variable_type::value, text::format_money(total));
+		
 		text::add_line_break_to_layout(state, contents);
 
 		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
@@ -162,35 +181,6 @@ public:
 
 		bool is_activated = state.world.nation_get_active_building(n, refit_target) == true || state.world.factory_type_get_is_available_from_start(refit_target);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
-
-		// For refit factories must match in output good or inputs.
-		bool type_compatibility = true;
-		if(refit_target) {
-			if(type == refit_target) {
-				type_compatibility = false;
-			}
-
-			auto output_1 = state.world.factory_type_get_output(type);
-			auto output_2 = state.world.factory_type_get_output(refit_target);
-			auto inputs_1 = state.world.factory_type_get_inputs(type);
-			auto inputs_2 = state.world.factory_type_get_inputs(refit_target);
-			auto inputs_match = true;
-
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				auto input_1 = inputs_1.commodity_type[i];
-				auto input_2 = inputs_2.commodity_type[i];
-
-				if(input_1 != input_2) {
-					inputs_match = false;
-					break;
-				}
-			}
-			if(output_1 != output_2 && !inputs_match) {
-				type_compatibility = false;
-			}
-		}
-		text::add_line_with_condition(state, contents, "factory_refit_condition_1", type_compatibility);
-
 
 		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);

@@ -3190,6 +3190,82 @@ float global_factory_construction_time_modifier(sys::state& state) {
 	return 0.1f;
 }
 
+economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to) {
+	auto& from_cost = state.world.factory_type_get_construction_costs(from);
+	auto& to_cost = state.world.factory_type_get_construction_costs(to);
+
+	auto level = 1;
+
+	auto d = state.world.state_instance_get_definition(sid);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == from) {
+					level = f.get_factory().get_level();
+				}
+			}
+		}
+	}
+
+	// Refit cost = (to_cost) - (from_cost) + (0.1f * to_cost)
+	float refit_mod = 1.0f + state.defines.alice_factory_refit_cost_modifier;
+
+	economy::commodity_set res;
+
+	// First take 110% of to_cost as a baseline
+	if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
+		for(uint32_t j = 0; j < commodity_set::set_size; ++j) {
+			if(to_cost.commodity_type[j]) {
+				res.commodity_type[j] = to_cost.commodity_type[j];
+				res.commodity_amounts[j] = to_cost.commodity_amounts[j] * refit_mod * level;
+			} else {
+				break;
+			}
+		}
+	}
+
+	// Substract from_cost to represent refit discount
+	if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
+		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+			if(!from_cost.commodity_type[i]) {
+				break;
+			}
+
+			auto from_amount = from_cost.commodity_amounts[i] * level;
+			auto from_commodity = from_cost.commodity_type[i];
+
+			for(uint32_t j = 0; i < commodity_set::set_size; ++j) {
+				if(!res.commodity_type[j]) {
+					break;
+				}
+
+				if(res.commodity_type[j] == from_commodity) {
+					res.commodity_amounts[j] = std::max(res.commodity_amounts[j] - from_amount, 0.f);
+				}
+			}
+		}
+	}
+
+	return res;
+}
+float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to) {
+	auto goods_cost = calculate_factory_refit_goods_cost(state, n, sid, from, to);
+
+	float admin_eff = state.world.nation_get_administrative_efficiency(n);
+	float admin_cost_factor = 2.0f - admin_eff;
+	float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
+
+	auto total = 0.0f;
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+		if(goods_cost.commodity_type[i]) {
+			total += economy::price(state, sid, goods_cost.commodity_type[i]) * goods_cost.commodity_amounts[i] * factory_mod * admin_cost_factor;
+		}
+	}
+
+	return total;
+}
+
 void populate_construction_consumption(sys::state& state) {
 
 	uint32_t total_commodities = state.world.commodity_size();
@@ -3391,7 +3467,7 @@ void populate_construction_consumption(sys::state& state) {
 		if(owner && !c.get_is_pop_project()) {
 			float& base_budget = current_budget.get(owner);
 			float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
-			auto& base_cost = c.get_type().get_construction_costs();
+			auto base_cost = (c.get_refit_target() ? calculate_factory_refit_goods_cost(state, owner, c.get_state(),  c.get_type(), c.get_refit_target()) : c.get_type().get_construction_costs());
 			auto& current_purchased = c.get_purchased_goods();
 
 			float construction_time =
@@ -3407,7 +3483,6 @@ void populate_construction_consumption(sys::state& state) {
 
 			float admin_eff = state.world.nation_get_administrative_efficiency(owner);
 			float admin_cost_factor = 2.0f - admin_eff;
-			float refit_discount = (c.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				auto cid = base_cost.commodity_type[i];
@@ -3418,7 +3493,7 @@ void populate_construction_consumption(sys::state& state) {
 				auto can_purchase_budget = std::max(budget_limit, base_budget) / (price(state, market, cid) + 0.001f);
 				auto can_purchase_construction = base_cost.commodity_amounts[i]
 					* admin_cost_factor
-					* factory_mod * refit_discount
+					* factory_mod
 					/ construction_time;
 
 				auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
@@ -8634,7 +8709,7 @@ void resolve_constructions(sys::state& state) {
 	for(auto c : state.world.in_state_building_construction) {
 		auto n = state.world.state_building_construction_get_nation(c);
 		auto type = state.world.state_building_construction_get_type(c);
-		auto& base_cost = state.world.factory_type_get_construction_costs(type);
+		auto base_cost = (c.get_refit_target()) ? calculate_factory_refit_goods_cost(state, n, c.get_state(), c.get_type(), c.get_refit_target()) : state.world.factory_type_get_construction_costs(type);
 		auto& current_purchased = state.world.state_building_construction_get_purchased_goods(c);
 
 		if(!state.world.state_building_construction_get_is_pop_project(c)) {
@@ -8642,13 +8717,12 @@ void resolve_constructions(sys::state& state) {
 			float admin_cost_factor = 2.0f - admin_eff;
 
 			float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
-			float refit_discount = (c.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 
 			bool all_finished = true;
 			if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
 				for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
 					if(base_cost.commodity_type[j]) {
-						if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod * admin_cost_factor * refit_discount) {
+						if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod * admin_cost_factor) {
 							all_finished = false;
 						}
 					} else {
@@ -8669,13 +8743,12 @@ void resolve_constructions(sys::state& state) {
 		} else {
 			float factory_mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f) *
 				std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost));
-			float refit_discount = (c.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 
 			bool all_finished = true;
 			if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
 				for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
 					if(base_cost.commodity_type[j]) {
-						if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod * refit_discount) {
+						if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod) {
 							all_finished = false;
 						}
 					} else {
