@@ -56,7 +56,7 @@ And here is a list of some more specialized console functions that you can use
 	
 #### `player @` and province names
 
-Wherever you see a `TAG` in the above commands you can also substitute `player @` (note the space) which will act as the tag of whatever nation you are currently playing. Also, a quick note on province names. Being able to refer to `PROV123` relies on that being the province's name at the time the console was first opened. Initially, all provinces are named following that pattern (PROV plus their id from the game files). However, this may change because of renaming effects. If you load a game where a province has been given a new name, you will no longer be able to refer to it by its original `PROV123` name.
+Wherever you see a `TAG` in the above commands you can also substitute `player @` (note the space) which will act as the tag of whatever nation you are currently playing. Wherever you see `PROV123` in the above commands you can also substitute `selected-prov @` which will act as the province that is currently selected in the main user interface. Also, a quick note on province names. Being able to refer to `PROV123` relies on that being the province's name at the time the console was first opened. Initially, all provinces are named following that pattern (PROV plus their id from the game files). However, this may change because of renaming effects. If you load a game where a province has been given a new name, you will no longer be able to refer to it by its original `PROV123` name.
  
 
 ### Super User's and Developer's Guide
