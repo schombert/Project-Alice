@@ -543,6 +543,7 @@ struct new_factory {
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
+	dcon::factory_type_id target_type;
 };
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);

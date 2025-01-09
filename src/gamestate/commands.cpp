@@ -511,7 +511,7 @@ void execute_cancel_factory_building_construction(sys::state& state, dcon::natio
 		}
 	}
 }
-void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::begin_factory_building_construction;
@@ -519,10 +519,11 @@ void begin_factory_building_construction(sys::state& state, dcon::nation_id sour
 	p.data.start_factory_building.location = location;
 	p.data.start_factory_building.type = type;
 	p.data.start_factory_building.is_upgrade = is_upgrade;
+	p.data.start_factory_building.refit_target = refit_target;
 	add_to_command_queue(state, p);
 }
 
-bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
 
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
 
@@ -537,7 +538,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		return false;
 
 	/* There can't be duplicate factories... */
-	if(!is_upgrade) {
+	if(!is_upgrade && !refit_target) {
 		// Check factories being built
 		bool has_dup = false;
 		economy::for_each_new_factory(state, location, [&](economy::new_factory const& nf) { has_dup = has_dup || nf.type == type; });
@@ -551,6 +552,40 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				for(auto f : p.get_province().get_factory_location())
 					if(f.get_factory().get_building_type() == type)
 						return false;
+	}
+
+	// For refit factories must match in output good or inputs.
+	if(refit_target) {
+		if(type == refit_target) {
+			return false;
+		}
+
+		// Check if this factory is already being refit
+		bool has_dup = false;
+		economy::for_each_upgraded_factory(state, location, [&](economy::upgraded_factory const& nf) { has_dup = has_dup || nf.type == type; });
+		if(has_dup)
+			return false;
+
+		// We deliberately allow for duplicates to existing factories as this scenario is handled when construction is finished
+
+		auto output_1 = state.world.factory_type_get_output(type);
+		auto output_2 = state.world.factory_type_get_output(refit_target);
+		auto inputs_1 = state.world.factory_type_get_inputs(type);
+		auto inputs_2 = state.world.factory_type_get_inputs(refit_target);
+		auto inputs_match = true;
+		
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			auto input_1 = inputs_1.commodity_type[i];
+			auto input_2 = inputs_2.commodity_type[i];
+
+			if(input_1 != input_2) {
+				inputs_match = false;
+				break;
+			}
+		}
+		if(output_1 != output_2 && !inputs_match) {
+			return false;
+		}
 	}
 
 	if(state.world.nation_get_is_civilized(source) == false)
@@ -625,11 +660,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 }
 
-void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
 	auto new_up = fatten(state.world, state.world.force_create_state_building_construction(location, source));
 	new_up.set_is_pop_project(false);
 	new_up.set_is_upgrade(is_upgrade);
 	new_up.set_type(type);
+	new_up.set_refit_target(refit_target);
 
 	if(source != state.world.state_instance_get_nation_from_state_ownership(location)) {
 		float amount = 0.0f;
@@ -5339,7 +5375,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::begin_factory_building_construction:
 		return can_begin_factory_building_construction(state, c.source, c.data.start_factory_building.location,
-				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade);
+				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade, c.data.start_factory_building.refit_target);
 
 	case command_type::begin_naval_unit_construction:
 		return can_start_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
@@ -5713,7 +5749,7 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::begin_factory_building_construction:
 		execute_begin_factory_building_construction(state, c.source, c.data.start_factory_building.location,
-				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade);
+				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade, c.data.start_factory_building.refit_target);
 		break;
 	case command_type::begin_naval_unit_construction:
 		execute_start_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
