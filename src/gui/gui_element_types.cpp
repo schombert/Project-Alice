@@ -2095,12 +2095,6 @@ void flag_button2::on_update(sys::state& state) noexcept {
 		return;
 	}
 
-	auto rid2 = retrieve<dcon::rebel_faction_id>(state, this);
-	if(!nid && !tid && !rid && rid2) {
-		flag_texture_handle = ogl::get_rebel_flag_handle(state, rid2);
-		return;
-	}
-
 	auto reb_tag = state.national_definitions.rebel_id;
 	flag_texture_handle = ogl::get_flag_handle(state, reb_tag, culture::flag_type::default_flag);
 }
