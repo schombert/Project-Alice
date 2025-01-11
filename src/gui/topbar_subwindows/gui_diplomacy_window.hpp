@@ -2183,6 +2183,8 @@ inline static diplomacy_action_remove_from_sphere_button diplomacy_action_remove
 inline static diplomacy_action_justify_war_button diplomacy_action_justify_war_button_s;
 inline static diplomacy_action_state_transfer_button diplomacy_action_state_transfer_button_s;
 inline static diplomacy_action_ask_free_trade_agreement diplomacy_action_ask_free_trade_agreement_s;
+inline static diplomacy_action_embargo diplomacy_action_embargo_s;
+
 
 inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_ally_button_s,
@@ -2205,7 +2207,8 @@ diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_add_to_sphere_button_s,
 	&diplomacy_action_remove_from_sphere_button_s,
 	&diplomacy_action_justify_war_button_s,
-	&diplomacy_action_state_transfer_button_s
+	&diplomacy_action_state_transfer_button_s,
+	&diplomacy_action_embargo_s
 };
 
 class diplomacy_action_btn_left : public button_element_base {

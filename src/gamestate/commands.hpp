@@ -112,19 +112,20 @@ enum class command_type : uint8_t {
 	take_province = 103,
 	grant_province = 104,
 	ask_for_free_trade_agreement = 105,
+	switch_embargo_status = 106,
 
 	// network
-	notify_player_ban = 106,
-	notify_player_kick = 107,
-	notify_player_picks_nation = 108,
-	notify_player_joins = 109,
-	notify_player_leaves = 110,
-	notify_player_oos = 111,
-	notify_save_loaded = 112,
-	notify_start_game = 113, // for synchronized "start game"
-	notify_stop_game = 114, // "go back to lobby"
-	notify_pause_game = 115, // visual aid mostly
-	notify_reload = 116,
+	notify_player_ban = 107,
+	notify_player_kick = 108,
+	notify_player_picks_nation = 109,
+	notify_player_joins = 110,
+	notify_player_leaves = 111,
+	notify_player_oos = 112,
+	notify_save_loaded = 113,
+	notify_start_game = 114, // for synchronized "start game"
+	notify_stop_game = 115, // "go back to lobby"
+	notify_pause_game = 116, // visual aid mostly
+	notify_reload = 117,
 	advance_tick = 120,
 	chat_message = 121,
 	network_inactivity_ping = 122,
@@ -729,6 +730,9 @@ bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker,
 
 void ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+
+void switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);

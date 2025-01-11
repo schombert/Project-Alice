@@ -2535,6 +2535,20 @@ bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, 
 		return false; // Subjects can't negotiate trade agreements
 	}
 
+	// Can't free trade if embargo is imposed
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+	if(source_tariffs_rel) {
+		if(state.world.unilateral_relationship_get_embargo(source_tariffs_rel)) {
+			return false;
+		}
+	}
+	if(target_tariffs_rel) {
+		if(state.world.unilateral_relationship_get_embargo(target_tariffs_rel)) {
+			return false;
+		}
+	}
+
 	if(military::are_at_war(state, asker, target))
 		return false;
 
@@ -2550,6 +2564,61 @@ void execute_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id ask
 	m.type = diplomatic_message::type::free_trade_agreement;
 
 	diplomatic_message::post(state, m);
+}
+
+void switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::switch_embargo_status;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
+	/*
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
+	Even if nations have already free trade agreement - they can prolongate it for further years.
+	*/
+	if(asker == target)
+		return false;
+
+	if(state.world.nation_get_is_player_controlled(asker) && !ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(asker);
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+
+	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
+		return false; // Subjects can't embargo
+	}
+
+	// Can't embargo if free trade is in place
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		if(state.current_date < enddt) {
+			return false;
+		}
+	}
+	if(target_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+		if(state.current_date < enddt) {
+			return false;
+		}
+	}
+
+	if(military::are_at_war(state, asker, target))
+		return false;
+
+	return true;
+}
+void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	if(!rel_1) {
+		rel_1 = state.world.force_create_unilateral_relationship(target, asker);
+	}
+	state.world.unilateral_relationship_set_embargo(rel_1, !state.world.unilateral_relationship_get_embargo(rel_1));
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
@@ -5559,6 +5628,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::ask_for_free_trade_agreement:
 		return can_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
 
+	case command_type::switch_embargo_status:
+		return can_switch_embargo_status(state, c.source, c.data.diplo_action.target);
+
 	case command_type::call_to_arms:
 		return can_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);
 
@@ -5936,6 +6008,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::ask_for_free_trade_agreement:
 		execute_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::switch_embargo_status:
+		execute_switch_embargo_status(state, c.source, c.data.diplo_action.target);
 		break;
 	case command_type::call_to_arms:
 		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);

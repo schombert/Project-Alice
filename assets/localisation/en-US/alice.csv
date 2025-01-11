@@ -1014,10 +1014,19 @@ alice_diplo_release_subject_desc;Releases one of our subjects, making them no lo
 alice_diplo_release_subject_0;Is our subject
 ask_free_trade_agreement;Trade agreement
 free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
-free_trade_explain_1;Our traders won't pay their tariffs until ?Y$date$?!
-free_trade_explain_2;Their traders won't pay our tariffs until ?Y$date$?!
+free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
+free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
+free_trade_explain_3;We are embargoeing them
+free_trade_explain_4;They are embargoing us
+embargo_explain_3;We don't have trade rights in their country
+embargo_explain_4;They don't have trade rights in our country
+issue_embargo;Issue Embargo
+lift_embargo;Lift Embargo
+embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
+embargo_explain_1;?GWe embargo them.?!
+embargo_explain_2;?RThey embargo us.?!
 msg_free_trade_agreement_signed_title;Free trade agreement signed.
-msg_free_trade_agreement_signed;Our nations $x$ and $y$ have agreed on free trade agreement. It will remove all the tariffs on our mutual trade.
+msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.
 kill_leader;Kill leader
 annex_null;becomes unowned
 meets_the_conditions_of;meets the conditions of 

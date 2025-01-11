@@ -4375,6 +4375,11 @@ relationship{
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ embargo }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 relationship{
