@@ -73,6 +73,7 @@ struct budgetwindow_main_close_button_t : public ui::element_base {
 	}
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
@@ -1682,6 +1683,13 @@ ui::message_result budgetwindow_main_close_button_t::on_lbutton_down(sys::state&
 }
 ui::message_result budgetwindow_main_close_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
+}
+ui::message_result budgetwindow_main_close_button_t::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	if(key == sys::virtual_key::ESCAPE) {
+		on_lbutton_down(state, 0, 0, mods);
+		return ui::message_result::consumed;
+	}
+	return ui::message_result::unseen;
 }
 void budgetwindow_main_close_button_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	text::add_line(state, contents, tooltip_key);
