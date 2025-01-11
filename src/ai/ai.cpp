@@ -316,6 +316,17 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 			return true; //always ally spherelord
 	}
 
+	auto natid = state.world.nation_get_identity_from_identity_holder(from);
+	for(auto prov_owner : state.world.nation_get_province_ownership(target)) {
+		auto prov = prov_owner.get_province();
+
+		for(auto core : prov.get_core_as_province()) {
+			if(core.get_identity() == natid) {
+				return false; // holds our cores
+			}
+		}
+	}
+
 	if(ai_has_mutual_enemy(state, from, target))
 		return true;
 
@@ -346,6 +357,20 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, state.local_player_nation);
 	text::add_line_with_condition(state, contents, "ai_alliance_4", std::max<float>(source_score, 1.f) * ally_overestimate >= target_score, indent + 15);
+
+	auto holdscores = false;
+	auto natid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+	for(auto prov_owner : state.world.nation_get_province_ownership(target)) {
+		auto prov = prov_owner.get_province();
+
+		for(auto core : prov.get_core_as_province()) {
+			if(core.get_identity() == natid) {
+				holdscores = true; // holds our cores
+			}
+		}
+	}
+
+	text::add_line_with_condition(state, contents, "ai_alliance_5", !holdscores, indent + 15);
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
