@@ -1012,6 +1012,10 @@ alice_trade_flow_piechart_workforce;Investors
 alice_diplo_release_subject;Release subject
 alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
 alice_diplo_release_subject_0;Is our subject
+ask_free_trade_agreement;Trade agreement
+free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
+free_trade_explain_1;Our traders won't pay their tariffs until ?Y$date$?!
+free_trade_explain_2;Their traders won't pay our tariffs until ?Y$date$?!
 msg_free_trade_agreement_signed_title;Free trade agreement signed.
 msg_free_trade_agreement_signed;Our nations $x$ and $y$ have agreed on free trade agreement. It will remove all the tariffs on our mutual trade.
 kill_leader;Kill leader

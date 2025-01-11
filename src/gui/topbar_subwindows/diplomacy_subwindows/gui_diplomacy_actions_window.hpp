@@ -946,6 +946,76 @@ public:
 	}
 };
 
+class diplomacy_action_ask_free_trade_agreement : public diplomacy_action_btn_logic {
+public:
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		return state.lookup_key("ask_free_trade_agreement");
+	}
+
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		return command::can_ask_for_free_trade_agreement(state, state.local_player_nation, target);
+	}
+
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		command::ask_for_free_trade_agreement(state, state.local_player_nation, target);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
+		auto asker = state.local_player_nation;
+
+		text::add_line(state, contents, "free_trade_desc", text::variable_type::x, text::fp_one_place(state.defines.alice_free_trade_agreement_years));
+		text::add_line_break_to_layout(state, contents);
+
+		// Rel source if obliged towards target
+		auto source_applies_tariffs = true;
+		auto target_applies_tariffs = true;
+		auto we_have_free_trade = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+		auto they_have_free_trade = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+		if(we_have_free_trade) {
+			auto enddt1 = state.world.unilateral_relationship_get_no_tariffs_until(we_have_free_trade);
+			if(state.current_date < enddt1) {
+				text::add_line(state, contents, "free_trade_explain_1", text::variable_type::date, enddt1);
+
+			}
+		}
+		if(they_have_free_trade) {
+			auto enddt2 = state.world.unilateral_relationship_get_no_tariffs_until(they_have_free_trade);
+			if(state.current_date < enddt2) {
+				text::add_line(state, contents, "free_trade_explain_2", text::variable_type::date, enddt2);
+			}
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		if(asker == target)
+			text::add_line_with_condition(state, contents, "ally_explain_1", false);
+
+		if(state.defines.alliance_diplomatic_cost > 0) {
+			text::add_line_with_condition(state, contents, "ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.alliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.alliance_diplomatic_cost));
+		}
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, state.local_player_nation);
+		text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis_state == sys::crisis_state::inactive);
+
+		auto ol = state.world.nation_get_overlord_as_subject(asker);
+		text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
+		auto ol2 = state.world.nation_get_overlord_as_subject(target);
+		text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
+
+		text::add_line_with_condition(state, contents, "ally_explain_6", !military::are_at_war(state, asker, target));
+
+		if(!state.world.nation_get_is_player_controlled(target)) {
+			diplomatic_message::message m;
+			m.type = diplomatic_message::type::alliance_request;
+			m.from = state.local_player_nation;
+			m.to = target;
+
+			text::add_line_with_condition(state, contents, "ally_explain_7", diplomatic_message::ai_will_accept(state, m));
+			ai::explain_ai_trade_agreement_reasons(state, target, contents, 15);
+		}
+	}
+};
+
 class diplomacy_action_justify_war_button : public diplomacy_action_btn_logic {
 	bool has_any_justifiable_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target) noexcept {
 		auto res = false;

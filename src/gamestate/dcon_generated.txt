@@ -4370,6 +4370,11 @@ relationship{
 		type{ bitfield }
 		tag{ save }
 	}
+	property {
+		name{ no_tariffs_until }
+		type{ sys::date }
+		tag{ save }
+	}
 }
 
 relationship{

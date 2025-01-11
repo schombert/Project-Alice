@@ -5617,9 +5617,26 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.nation_get_overlord_as_subject(controller_capital_B)
 			);
 
-			// TODO: expand to actual trade agreements
-			auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B;
-			auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A;
+			// Equal/unequal trade treaties
+			auto source_applies_tariffs = true;
+			auto target_applies_tariffs = true;
+			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_B, n_A);
+			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_A, n_B);
+			if(source_tariffs_rel) {
+				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+				if(state.current_date < enddt) {
+					source_applies_tariffs = false;
+				}
+			}
+			if(target_tariffs_rel) {
+				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+				if(state.current_date < enddt) {
+					target_applies_tariffs = false;
+				}
+			}
+
+			auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B || !source_applies_tariffs;
+			auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A || !target_applies_tariffs;;
 
 			// sphere joins embargo
 			// subject joins embargo
@@ -7869,11 +7886,27 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 		state.world.nation_get_overlord_as_subject(controller_capital_target)
 	);
 
-	// TODO: expand to actual equal and unequal trade agreements
+	// Equal/unequal trade agreements
+	// Rel source if obliged towards target
+	auto source_applies_tariffs = true;
+	auto target_applies_tariffs = true;
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_target, n_origin);
+	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_origin, n_target);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		if(state.current_date < enddt) {
+			source_applies_tariffs = false;
+		}
+	}
+	if(target_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+		if(state.current_date < enddt) {
+			target_applies_tariffs = false;
+		}
+	}
 
-	//auto trade_agreement =
-	auto origin_is_open_to_target = sphere_origin == controller_capital_target || overlord_origin == controller_capital_target;
-	auto target_is_open_to_origin = sphere_target == controller_capital_origin || overlord_target == controller_capital_origin;
+	auto origin_is_open_to_target = sphere_origin == controller_capital_target || overlord_origin == controller_capital_target || !source_applies_tariffs;
+	auto target_is_open_to_origin = sphere_target == controller_capital_origin || overlord_target == controller_capital_origin || !target_applies_tariffs;
 
 	auto sat =
 		state.world.market_get_direct_demand_satisfaction(origin, cid)

@@ -18,7 +18,8 @@ enum class type_t : uint8_t {
 	peace_offer = 6,
 	take_crisis_side_offer = 7,
 	crisis_peace_offer = 8,
-	state_transfer = 9
+	state_transfer = 9,
+	free_trade_agreement = 10
 };
 
 /// <summary>
