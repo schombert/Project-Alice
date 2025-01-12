@@ -2665,9 +2665,9 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 }
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type,
  		dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation) {
+	auto for_attacker = is_attacker(state, wfor, added_by);
 
 	if(sd) {
-		auto for_attacker = is_attacker(state, wfor, added_by);
 		std::vector<dcon::nation_id> targets;
 		for(auto p : state.world.state_definition_get_abstract_state_membership(sd)) {
 			auto owner = p.get_province().get_nation_from_province_ownership();
@@ -2712,6 +2712,21 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 		new_wg.set_target_nation(target);
 		new_wg.set_type(type);
 		new_wg.set_war_from_wargoals_attached(wfor);
+	}
+
+	// Adding new wargoal reduce ticking warscore on previous ones to their max limits
+	for(auto wg : state.world.in_wargoal) {
+		auto war = wg.get_war_from_wargoals_attached();
+		if(!war)
+			continue;
+		if(war != wfor)
+			continue;
+		auto attacker_goal = military::is_attacker(state, war, wg.get_added_by());
+		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+
+		if(for_attacker == attacker_goal) {
+			wg.get_ticking_war_score() = std::clamp(wg.get_ticking_war_score(), float(-max_score), float(max_score));
+		}
 	}
 
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
@@ -3948,10 +3963,9 @@ void update_ticking_war_score(sys::state& state) {
 				}
 			}
 		}
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
-
+		// To prevent infinite wars don't clamp ticking warscore
 		wg.get_ticking_war_score() =
-				std::clamp(wg.get_ticking_war_score(), -float(max_score), float(max_score));
+				std::clamp(wg.get_ticking_war_score(), -float(100.f), float(100.f));
 	}
 }
 
@@ -4027,9 +4041,9 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	}
 
 	if(sum_defender_prov_values > 0)
-		total += (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
+		total -= (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
 	if(sum_attacker_prov_values > 0)
-		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
+		total += (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
 
 	return total;
 }
