@@ -1148,19 +1148,6 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
-
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
-
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
@@ -1196,11 +1183,23 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
+				auto& constr_cost = type.get_construction_costs();
+				auto lacking_constr = false;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(constr_cost.commodity_type[i]) {
+						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+							lacking_constr = true;
+					} else {
+						break;
+					}
+				}
+
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if((output - input) / input > 2.f)
+				if(!lacking_constr && (output - input) / input > 2.f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1224,11 +1223,23 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
+				auto& constr_cost = type.get_construction_costs();
+				auto lacking_constr = false;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(constr_cost.commodity_type[i]) {
+						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+							lacking_constr = true;
+					} else {
+						break;
+					}
+				}
+
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if((!lacking_input && (lacking_output || ((output - input) / cost < 365.f))) || (output - input) / input > 1.00f)
+				if((!lacking_input && !lacking_constr && (lacking_output || ((output - input) / cost < 365.f))) || (output - input) / input > 1.00f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1251,10 +1262,22 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
+				auto& constr_cost = type.get_construction_costs();
+				auto lacking_constr = false;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(constr_cost.commodity_type[i]) {
+						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+							lacking_constr = true;
+					} else {
+						break;
+					}
+				}
+
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if((output - input) / input > 0.3f)
+				if(!lacking_input && !lacking_constr && (output - input) / input > 0.3f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
