@@ -1577,27 +1577,10 @@ void initialize(sys::state& state) {
 	}
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
-		if(state.world.province_get_rgo_was_set_during_scenario_creation(p)) {
-			return;
-		}
-
 		auto fp = fatten(state.world, p);
-		dcon::modifier_id climate = fp.get_climate();
-		dcon::modifier_id terrain = fp.get_terrain();
-		dcon::modifier_id continent = fp.get_continent();
-
-		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
-		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);
-
 		//max size of exploitable land:
 		auto max_rgo_size = std::ceil(2000.f / state.defines.alice_rgo_per_size_employment
 			* state.map_state.map_data.province_area[province::to_map_id(p)]);
-
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			fp.set_rgo_employment_per_good(c, 0.f);
-			fp.set_rgo_target_employment_per_good(c, 0.f);
-		});
-
 		// currently exploited land
 		float pop_amount = 0.0f;
 		for(auto pt : state.world.in_pop_type) {
@@ -1607,12 +1590,26 @@ void initialize(sys::state& state) {
 				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
 			}
 		}
-
 		auto size_at_the_start_of_the_game = std::ceil(pop_amount / state.defines.alice_rgo_per_size_employment);
 		auto real_size = std::min(size_at_the_start_of_the_game * 1.5f, max_rgo_size);
-
 		assert(std::isfinite(real_size));
 		fp.set_rgo_size(real_size);
+
+		if(state.world.province_get_rgo_was_set_during_scenario_creation(p)) {
+			return;
+		}
+
+		dcon::modifier_id climate = fp.get_climate();
+		dcon::modifier_id terrain = fp.get_terrain();
+		dcon::modifier_id continent = fp.get_continent();
+
+		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
+		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);	
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			fp.set_rgo_employment_per_good(c, 0.f);
+			fp.set_rgo_target_employment_per_good(c, 0.f);
+		});
 
 		static std::vector<float> true_distribution;
 		true_distribution.resize(state.world.commodity_size());
