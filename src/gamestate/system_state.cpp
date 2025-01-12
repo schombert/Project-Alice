@@ -2376,7 +2376,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		};
 		load_from_dir(prov_history);
-		for(auto const subdir : list_subdirectories(prov_history)) {
+		for(auto const& subdir : list_subdirectories(prov_history)) {
 			load_from_dir(subdir);
 		}
 	}
