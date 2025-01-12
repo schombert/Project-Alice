@@ -521,6 +521,9 @@ public:
 			return;
 		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
 			if(p.get_type() == nf.type) {
+
+				text::add_line(state, contents, state.world.factory_type_get_name(nf.type));
+
 				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
 				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
