@@ -2589,7 +2589,14 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 	auto ol2 = state.world.nation_get_overlord_as_subject(target);
 
 	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
-		return false; // Subjects can't embargo
+		return false; // Subjects can't embargo or be embargoed
+	}
+
+	auto sl = state.world.nation_get_in_sphere_of(asker);
+	auto sl2 = state.world.nation_get_in_sphere_of(asker);
+
+	if(sl || sl2) {
+		return false; // Spherelings can't embargo or be embargoed
 	}
 
 	// Can't embargo if free trade is in place
@@ -2614,11 +2621,65 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 	return true;
 }
 void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
 	if(!rel_1) {
 		rel_1 = state.world.force_create_unilateral_relationship(target, asker);
 	}
 	state.world.unilateral_relationship_set_embargo(rel_1, !state.world.unilateral_relationship_get_embargo(rel_1));
+
+	auto new_status = state.world.unilateral_relationship_get_embargo(rel_1);
+
+	for(auto n : state.world.in_nation) {
+		auto subjrel = state.world.nation_get_overlord_as_subject(n);
+		auto subject = state.world.overlord_get_subject(subjrel);
+
+		if(state.world.overlord_get_ruler(subjrel) != asker) {
+			continue;
+		}
+
+		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject);
+		if(!rel_2) {
+			rel_2 = state.world.force_create_unilateral_relationship(target, subject);
+		}
+		state.world.unilateral_relationship_set_embargo(rel_2, new_status);
+
+		// 2nd level subjects
+		for(auto n2 : state.world.in_nation) {
+			auto subjrel_2 = state.world.nation_get_overlord_as_subject(n2);
+			auto subject_2 = state.world.overlord_get_subject(subjrel_2);
+
+			auto rel_3 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject_2);
+			if(!rel_3) {
+				rel_3 = state.world.force_create_unilateral_relationship(target, subject_2);
+			}
+			state.world.unilateral_relationship_set_embargo(rel_3, new_status);
+		}
+	}
+
+	// Embargo issued
+	if(new_status) {
+		notification::post(state, notification::message{
+				[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
+				},
+				"msg_embargo_issued_title",
+				target, asker, dcon::nation_id{},
+				sys::message_base_type::embargo
+		});
+	}
+	else {
+		// Embargo lifted
+		notification::post(state, notification::message{
+		[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_embargo_lifted_title",
+			target, asker, dcon::nation_id{},
+			sys::message_base_type::embargo
+		});
+	}
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {

@@ -389,7 +389,7 @@ void accept(sys::state& state, message const& m) {
 			},
 			"msg_free_trade_agreement_signed_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::mil_access_start
+			sys::message_base_type::free_trade_agreement
 		});
 		break;
 	}

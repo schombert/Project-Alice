@@ -1057,6 +1057,7 @@ public:
 		text::add_line_break_to_layout(state, contents);
 
 		// Rel source if obliged towards target
+		// Show existing embargoes
 		auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
 		auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
 		if(source_tariffs_rel) {
@@ -1075,13 +1076,16 @@ public:
 		if(state.defines.alliance_diplomatic_cost > 0) {
 			text::add_line_with_condition(state, contents, "ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.alliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.alliance_diplomatic_cost));
 		}
-
+		// Subjects can embargo or be embargoed
 		auto ol = state.world.nation_get_overlord_as_subject(asker);
 		text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
 		auto ol2 = state.world.nation_get_overlord_as_subject(target);
 		text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
 
-		
+		auto sl = state.world.nation_get_in_sphere_of(asker);
+		auto sl2 = state.world.nation_get_in_sphere_of(asker);
+		text::add_line_with_condition(state, contents, "embargo_explain_5", !sl);
+		text::add_line_with_condition(state, contents, "embargo_explain_6", !sl2);
 
 		// Can't embargo if free trade is in place
 		auto we_have_free_trade = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
