@@ -815,9 +815,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		current_scene.on_game_state_update_update_ui(*this);
 
-		if(ui_state.last_tooltip == tooltip_probe.under_mouse && ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+		if(ui_state.last_tooltip == tooltip_probe.under_mouse && ui_state.last_tooltip_sub_index == tooltip_sub_index && ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if(type == ui::tooltip_behavior::position_sensitive_tooltip) {
+			if(type != ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
@@ -846,7 +846,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					ui_state.tooltip->set_visible(*this, false);
 			}
 		}
-	}
+	} // END game state was updated
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse || ui_state.last_tooltip_sub_index != tooltip_sub_index) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
@@ -2332,7 +2332,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	auto history = open_directory(root, NATIVE("history"));
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
-		for(auto subdir : list_subdirectories(prov_history)) {
+		auto const load_from_dir = [&](auto const subdir) {
 			// Modding extension:
 			for(auto province_file : list_files(subdir, NATIVE(".csv"))) {
 				auto opened_file = open_file(province_file);
@@ -2342,7 +2342,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					parsers::parse_csv_province_history_file(*this, content.data, content.data + content.file_size, err, context);
 				}
 			}
-
 			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_file_name(prov_file));
 				auto name_start = file_name.c_str();
@@ -2375,6 +2374,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					}
 				}
 			}
+		};
+		load_from_dir(prov_history);
+		for(auto const& subdir : list_subdirectories(prov_history)) {
+			load_from_dir(subdir);
 		}
 	}
 	culture::set_default_issue_and_reform_options(*this);
