@@ -8498,6 +8498,18 @@ int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon
 	assert(num_factories <= int32_t(state.defines.factories_per_state));
 	return num_factories;
 }
+// Returns sum of all factory levels in a state
+int32_t state_factory_size(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+	int32_t factory_size = 0;
+	auto d = state.world.state_instance_get_definition(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(p.get_province().get_nation_from_province_ownership() == n)
+			for(auto fl : state.world.province_get_factory_location(p.get_province())) {
+				factory_size += state.world.factory_get_level(fl.get_factory());
+			}
+
+	return factory_size;
+}
 
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c) {
 

@@ -1772,8 +1772,12 @@ inline table::column<dcon::factory_type_id> factory_type_name = {
 		auto value = description + text::produce_simple_string(state,  state.world.factory_type_get_name(id));
 		return value;
 	},
+	.update_tooltip = [](sys::state& state,ui::element_base* container,text::columnar_layout& contents,dcon::factory_type_id id,std::string fallback) {
+		text::add_line(state, contents, state.world.factory_type_get_name(id));
+	},
 	.cell_definition_string = "thin_cell_name",
-	.header_definition_string = "thin_cell_name"
+	.header_definition_string = "thin_cell_name",
+	.has_tooltip = true
 };
 
 inline table::column<dcon::factory_type_id> factory_type_input_cost = {
