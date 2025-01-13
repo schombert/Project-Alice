@@ -744,6 +744,10 @@ cb_body
 	po_colony                       value       bool                        member_fn
 	po_destroy_forts                value       bool                        member_fn
 	po_destroy_naval_bases          value       bool                        member_fn
+	po_make_substate                value       bool                        member_fn
+	po_save_subjects                value       bool                        member_fn
+	po_demand_province              value       bool                        member_fn
+
 	mutual                          value       none                        discard
 	is_valid                        group       none                        discard
 

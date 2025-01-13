@@ -3005,11 +3005,28 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 
 	// po_make_puppet: the target nation releases all of its vassals and then becomes a vassal of the acting nation.
 	if((bits & cb_flag::po_make_puppet) != 0) {
-		for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
-			nations::release_vassal(state, sub);
+		// Unless CB has po_save_subjects - release all subjects
+		if((bits & cb_flag::po_save_subjects) == 0) {
+			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+				nations::release_vassal(state, sub);
+			}
 		}
 		if(state.world.nation_get_owned_province_count(target) > 0) {
 			nations::make_vassal(state, target, from);
+			take_from_sphere(state, target, from);
+		}
+	}
+
+	// po_make_substate: the target nation releases all of its vassals and then becomes a vassal of the acting nation.
+	if((bits & cb_flag::po_make_substate) != 0) {
+		// Unless CB has po_save_subjects - release all subjects
+		if((bits & cb_flag::po_save_subjects) == 0) {
+			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+				nations::release_vassal(state, sub);
+			}
+		}
+		if(state.world.nation_get_owned_province_count(target) > 0) {
+			nations::make_substate(state, target, from);
 			take_from_sphere(state, target, from);
 		}
 	}
@@ -3268,14 +3285,22 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		}
 	}
 
-	// po_annex: nation is annexed, vassals and substates are freed, diplomatic relations are dissolved.
+	// po_annex: nation is annexed, vassals and substates are released, diplomatic relations are dissolved.
 	if((bits & cb_flag::po_annex) != 0 && target != from) {
-		for(auto n : state.world.in_nation) {
-			auto rel = state.world.nation_get_overlord_as_subject(n);
-			auto overlord = state.world.overlord_get_ruler(rel);
+		// Unless CB has po_save_subjects - release all subjects
+		if((bits & cb_flag::po_save_subjects) == 0) {
+			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+				nations::release_vassal(state, sub);
+			}
+		}
+		else {
+			for(auto n : state.world.in_nation) {
+				auto rel = state.world.nation_get_overlord_as_subject(n);
+				auto overlord = state.world.overlord_get_ruler(rel);
 
-			if(overlord == target) {
-				state.world.overlord_set_ruler(rel, from);
+				if(overlord == target) {
+					state.world.overlord_set_ruler(rel, from);
+				}
 			}
 		}
 
@@ -3919,7 +3944,7 @@ void update_ticking_war_score(sys::state& state) {
 		}
 
 		// Ticking warscope for make_puppet war
-		if((bits & cb_flag::po_make_puppet) != 0) {
+		if((bits & cb_flag::po_make_puppet) != 0 || (bits & cb_flag::po_make_substate) != 0) {
 			
 			auto target = wg.get_target_nation().get_capital();
 
@@ -4416,6 +4441,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 	auto regs = state.world.army_get_army_membership(a);
 	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a) && regs.begin() != regs.end()) {
 		auto owner_nation = state.world.army_get_controller_from_army_control(a);
+		auto owner_rebels = state.world.army_get_controller_from_army_rebel_control(a);
 
 		// look for existing battle
 		for(auto b : state.world.province_get_land_battle_location(p)) {
@@ -4445,8 +4471,9 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				continue;
 
 			auto other_nation = o.get_army().get_controller_from_army_control();
+			auto other_rebels = o.get_army().get_controller_from_army_rebel_control();
 
-			if(bool(owner_nation) != bool(other_nation)) { // battle vs. rebels
+			if(bool(owner_nation) != bool(other_nation) || owner_rebels != other_rebels) { // battle vs. rebels OR rebels vs rebels
 				auto new_battle = fatten(state.world, state.world.create_land_battle());
 				new_battle.set_war_attacker_is_attacker(!bool(owner_nation));
 				new_battle.set_start_date(state.current_date);
