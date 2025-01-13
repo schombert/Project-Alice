@@ -3923,8 +3923,18 @@ void update_ticking_war_score(sys::state& state) {
 			
 			auto target = wg.get_target_nation().get_capital();
 
+			bool any_occupied = false;
+			for(auto prv : wg.get_target_nation().get_province_ownership()) {
+				if(!prv.get_province().get_is_colonial() && get_role(state, war, prv.get_province().get_nation_from_province_control()) == role) {
+					any_occupied = true;
+				}
+			}
+
 			if(get_role(state, war, target.get_nation_from_province_control()) == role) {
 					wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed;
+			}
+			else if(any_occupied) {
+				// We hold some non-colonial province of the target, stay at zero
 			}
 			else if(wg.get_ticking_war_score() > 0.0f || war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
 				wg.get_ticking_war_score() -= state.defines.tws_not_fulfilled_speed;
@@ -3965,7 +3975,7 @@ void update_ticking_war_score(sys::state& state) {
 		}
 		// To prevent infinite wars don't clamp ticking warscore
 		wg.get_ticking_war_score() =
-				std::clamp(wg.get_ticking_war_score(), -float(100.f), float(100.f));
+				std::clamp(wg.get_ticking_war_score(), -float(state.defines.tws_cb_limit_default), float(state.defines.tws_cb_limit_default));
 	}
 }
 
