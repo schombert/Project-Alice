@@ -4041,9 +4041,9 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	}
 
 	if(sum_defender_prov_values > 0)
-		total -= (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
+		total += (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
 	if(sum_attacker_prov_values > 0)
-		total += (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
+		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
 
 	return total;
 }
