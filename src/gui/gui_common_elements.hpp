@@ -1627,7 +1627,7 @@ public:
 		text::close_layout_box(contents, row_1);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto rgo_employment = state.world.province_get_rgo_employment_per_good(p, c);
+			auto rgo_employment = state.world.province_get_rgo_target_employment_per_good(p, c) * state.world.market_get_labor_demand_satisfaction(m, economy::labor::no_education);
 			auto current_employment = int64_t(rgo_employment);
 			auto max_employment = int64_t(economy::rgo_max_employment(state, n, p, c));
 			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, m, n, c);
@@ -1731,7 +1731,11 @@ class factory_income_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto factory_id = retrieve<dcon::factory_id>(state, parent);
-		set_text(state, text::format_float(state.world.factory_get_full_profit(factory_id), 2));
+		set_text(state, text::format_float(
+			state.world.factory_get_full_output_cost(factory_id)
+			- state.world.factory_get_full_input_cost(factory_id)
+			- state.world.factory_get_full_labor_cost(factory_id)
+		, 2));
 	}
 };
 class factory_workers_text : public simple_text_element_base {
@@ -1756,7 +1760,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
 
-		auto profit = state.world.factory_get_full_profit(content);
+		auto profit = state.world.factory_get_full_output_cost(content)
+			- state.world.factory_get_full_input_cost(content)
+			- state.world.factory_get_full_labor_cost(content);
 		bool is_positive = profit >= 0.f;
 		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 		// Create colour
@@ -1773,7 +1779,9 @@ class factory_income_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
-		float profit = state.world.factory_get_full_profit(content);
+		float profit = state.world.factory_get_full_output_cost(content)
+			- state.world.factory_get_full_input_cost(content)
+			- state.world.factory_get_full_labor_cost(content);
 
 		if(profit > 0.f) {
 			frame = 0;

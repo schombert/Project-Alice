@@ -1448,7 +1448,7 @@ void update_ai_econ_construction(sys::state& state) {
 								for(auto fac : state.world.province_get_factory_location(p)) {
 									auto type = fac.get_factory().get_building_type();
 									if(type_selection == type) {
-										under_cap = fac.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market) < 0.9f;
+										under_cap = economy::factory_total_employment_score(state, fac.get_factory()) < 0.9f;
 										present_in_location = true;
 										return;
 									}
@@ -1520,9 +1520,8 @@ void update_ai_econ_construction(sys::state& state) {
 
 							auto unprofitable = fac.get_factory().get_unprofitable();
 							auto factory_level = fac.get_factory().get_level();
-							auto primary_employment = fac.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market);
 
-							if(!unprofitable && factory_level < uint8_t(255) && primary_employment >= 0.9f) {
+							if(!unprofitable && factory_level < uint8_t(255) && economy::factory_total_employment_score(state, fac.get_factory()) >= 0.9f) {
 								// test if factory is already upgrading
 								auto ug_in_progress = false;
 								for(auto c : state.world.state_instance_get_state_building_construction(si)) {
@@ -1621,7 +1620,7 @@ void update_ai_econ_construction(sys::state& state) {
 							for(auto fac : state.world.province_get_factory_location(p)) {
 								auto type = fac.get_factory().get_building_type();
 								if(type_selection == type) {
-									under_cap = fac.get_factory().get_primary_employment() * state.world.market_get_labor_unskilled_demand_satisfaction(market) < 0.9f;
+									under_cap = economy::factory_total_employment_score(state, fac.get_factory()) < 0.9f;
 									present_in_location = true;
 									return;
 								}
@@ -3896,8 +3895,8 @@ void update_budget(sys::state& state) {
 
 		float overseas_max_ratio = std::clamp(100.f * overseas_budget / max_overseas_budget, 0.f, 100.f);
 
-		n.set_tariffs_import(int8_t(5));
-		n.set_tariffs_export(int8_t(5));
+		n.set_tariffs_import(int8_t(10));
+		n.set_tariffs_export(int8_t(10));
 
 		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::poor_total))) / 10.f;
 		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::middle_total))) / 10.f;

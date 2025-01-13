@@ -1502,7 +1502,11 @@ object {
 		type{ bitfield }
 	}
 	property {
-		name{ rgo_full_profit }
+		name{ rgo_full_output_cost }
+		type{ float }
+	}
+	property {
+		name{ rgo_full_labor_cost }
 		type{ float }
 	}
 	property{
@@ -1530,11 +1534,6 @@ object {
 	}
 	property{
 		name{ rgo_target_employment_per_good }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
-	property{
-		name{ rgo_employment_per_good }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -4051,55 +4050,34 @@ object{
 	}
 
 	property {
-		name{ labor_unskilled_price }
-		type{ float }
+		name{ labor_price }
+		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ labor_unskilled_supply }
-		type{ float }
+		name{ labor_supply }
+		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ labor_unskilled_demand }
-		type{ float }
+		name{ labor_demand }
+		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ labor_unskilled_demand_satisfaction }
-		type{ float }
+		name{ labor_demand_satisfaction }
+		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ labor_unskilled_supply_sold }
-		type{ float }
+		name{ labor_supply_sold }
+		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 
-
 	property {
-		name{ labor_skilled_price }
-		type{ float }
-		tag{ save }
-	}
-	property {
-		name{ labor_skilled_supply }
-		type{ float }
-		tag{ save }
-	}
-	property {
-		name{ labor_skilled_demand }
-		type{ float }
-		tag{ save }
-	}
-	property {
-		name{ labor_skilled_demand_satisfaction }
-		type{ float }
-		tag{ save }
-	}
-	property {
-		name{ labor_skilled_supply_sold }
-		type{ float }
+		name{ pop_labor_distribution }
+		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 
@@ -4441,13 +4419,13 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ production_scale }
-		type{ float }
-		tag{ save }
-	}
-	property {
 		name{ actual_production }
 		type{ float }
+	}
+	property {
+		name{ unqualified_employment }
+		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ primary_employment }
@@ -4464,7 +4442,15 @@ object {
 		type{ float }
 	}
 	property {
-		name{ full_profit }
+		name{ full_output_cost }
+		type{ float }
+	}
+	property {
+		name{ full_input_cost }
+		type{ float }
+	}
+	property {
+		name{ full_labor_cost }
 		type{ float }
 	}
 	property {
