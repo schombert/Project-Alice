@@ -1145,6 +1145,9 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 
+	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
+
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
@@ -1152,7 +1155,10 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if((output - input) / input > 10.f)
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
+
+				if(profit / input > 10.f && roi > 0.01f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1163,6 +1169,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+
+	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 
 	// pass zero:
 	// factories with stupid income margins
@@ -1199,7 +1208,10 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if(!lacking_constr && (output - input) / input > 2.f)
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
+
+				if(!lacking_constr && profit / input > 2.f && roi > 0.01f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1238,8 +1250,10 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
 
-				if((!lacking_input && !lacking_constr && (lacking_output || ((output - input) / cost < 365.f))) || (output - input) / input > 1.00f)
+				if((!lacking_input && !lacking_constr && (lacking_output || (profit / cost > 0.005f))) || profit / input > 1.00f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1274,10 +1288,13 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
+				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
 
-				if(!lacking_input && !lacking_constr && (output - input) / input > 0.3f)
+				if(!lacking_input && !lacking_constr && profit / input > 0.3f && roi > 0.001f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
