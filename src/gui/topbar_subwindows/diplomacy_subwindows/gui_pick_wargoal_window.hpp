@@ -1353,8 +1353,7 @@ public:
 		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
 		auto offered = retrieve<get_offer_to>(state, parent).n;
 
-		auto infamy = military::crisis_cb_addition_infamy_cost(state, cb, offered, target, target_state) *
-			state.defines.crisis_wargoal_infamy_mult;
+		auto infamy = military::crisis_cb_addition_infamy_cost(state, cb, offered, target, target_state);
 
 		if(infamy > 0) {
 			color = text::text_color::red;

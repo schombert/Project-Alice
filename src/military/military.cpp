@@ -2033,7 +2033,7 @@ float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, d
 		return 0.0f;
 	}
 
-	return cb_infamy(state, type, target, cb_state);
+	return cb_infamy(state, type, target, cb_state) * state.defines.crisis_wargoal_infamy_mult;
 }
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
 		dcon::nation_id target, dcon::state_definition_id cb_state) {
