@@ -97,16 +97,7 @@ enum class economy_reason {
 };
 
 float expected_savings_per_capita(sys::state& state) {
-	float primary_commodity_basket = 0.0f;
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-			primary_commodity_basket += state.world.commodity_get_cost(c) * state.world.pop_type_get_life_needs(pt, c);
-			primary_commodity_basket += state.world.commodity_get_cost(c) * state.world.pop_type_get_everyday_needs(pt, c);
-		});
-	});
-	primary_commodity_basket /= float(state.world.pop_type_size());
-
-	return primary_commodity_basket / state.defines.alice_needs_scaling_factor;
+	return 0.0001f;
 }
 
 void sanity_check(sys::state& state) {
@@ -1205,7 +1196,8 @@ ve::fp_vector base_artisan_profit(
 	sys::state& state,
 	T markets,
 	S nations,
-	dcon::commodity_id c
+	dcon::commodity_id c,
+	ve::fp_vector predicted_price
 ) {
 	auto const& inputs = state.world.commodity_get_artisan_inputs(c);
 	ve::fp_vector input_total = 0.0f;
@@ -1217,10 +1209,37 @@ ve::fp_vector base_artisan_profit(
 		}
 	}
 
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * ve_price(state, markets, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * predicted_price;
 
 	auto input_multiplier = artisan_input_multiplier(state, nations);
 	auto output_multiplier = artisan_output_multiplier(state, nations);
+
+	return output_total * output_multiplier - input_multiplier * input_total;
+}
+
+float base_artisan_profit(
+	sys::state& state,
+	dcon::market_id market,
+	dcon::commodity_id c,
+	float predicted_price
+) {
+	auto sid = state.world.market_get_zone_from_local_market(market);
+	auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
+
+	auto const& inputs = state.world.commodity_get_artisan_inputs(c);
+	auto input_total = 0.0f;
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		if(inputs.commodity_type[i]) {
+			input_total = input_total + inputs.commodity_amounts[i] * price(state, market, inputs.commodity_type[i]);
+		} else {
+			break;
+		}
+	}
+
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * predicted_price;
+
+	auto input_multiplier = artisan_input_multiplier<dcon::nation_id>(state, nid);
+	auto output_multiplier = artisan_output_multiplier<dcon::nation_id>(state, nid);
 
 	return output_total * output_multiplier - input_multiplier * input_total;
 }
@@ -1343,12 +1362,15 @@ void adjust_artisan_balance(
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		auto mask = ve_valid_artisan_good(state, nations, cid);
-
-		auto base_profit = base_artisan_profit(state, markets, nations, cid);
+		auto price_today = ve_price(state, markets, cid);
+		auto supply = state.world.market_get_supply(markets, cid) + price_rigging;
+		auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
+		auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
+		auto predicted_price = price_today + price_speed_change * 0.5f;
+		auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price);
 		auto const& inputs = state.world.commodity_get_artisan_inputs(cid);
 		ve::fp_vector min_available = 1.0f;
 		ve::fp_vector input_total = 1.0f;
-
 		for(uint32_t j = 0; j < commodity_set::set_size; ++j) {
 			if(inputs.commodity_type[j]) {
 				min_available = ve::min(
@@ -1362,64 +1384,22 @@ void adjust_artisan_balance(
 				break;
 			}
 		}
-
-		//auto min_input_importance = ve::min(1.f, 1000.f / (input_total + 0.00001f));
-		//auto min_input_coefficient = min_available + (min_input_importance * (1.f - min_available));
-
 		auto profit = ve::select(
 			mask,
 			base_profit / 10'000.0f - min_wage / state.defines.alice_needs_scaling_factor,
 			std::numeric_limits<float>::lowest()
 		);
-
 		auto w = state.world.market_get_artisan_score(markets, cid);
 		auto current_employment = w * num_artisans;
-
-		auto supply = state.world.market_get_supply(markets, cid) + price_rigging;
-		auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
-
-		auto price_acceleration_from_additional_supply =
-			price_speed_mod * (demand / supply / supply + 1 / demand);
-		auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
-
-		auto weight_short_term = ve::select(profit < 0, ve::fp_vector{ short_term_profits_weight_n }, ve::fp_vector { short_term_profits_weight_p });
-		auto weight_mid_term = ve::select(profit < 0, ve::fp_vector{ mid_term_profits_weight_n }, ve::fp_vector{ mid_term_profits_weight_p });
-		auto weight_long_term = ve::select(profit < 0, ve::fp_vector{ long_term_profits_weight_n }, ve::fp_vector{ long_term_profits_weight_p });
-
-		auto hire_rate_from_income =
-			profit
-			* weight_short_term;
-
-		auto hire_rate_from_predicted_acceleration_of_price =
-			-price_acceleration_from_additional_supply * supply * weight_mid_term;
-
-		auto hire_rate_from_predicted_change_of_price =
-			price_speed_change * weight_mid_term;
-
-		auto money_to_workers_divisor =
-			2
-			* weight_long_term
-			* price_acceleration_from_additional_supply;
-
-		auto optimal_hire_change =
-			(
-				hire_rate_from_income
-				+ hire_rate_from_predicted_acceleration_of_price //overestimate to account for stockpiles
-				+ hire_rate_from_predicted_change_of_price
-			) / money_to_workers_divisor;
-
-		auto change = optimal_hire_change * 1000.f;
+		auto change = profit;
 		auto new_employment = ve::max(current_employment + change, 0.0f);
-
 		auto new_weight = ve::select(
 			mask,
 			new_employment / (num_artisans + 1.f),
 			0.f
 		);
-
 		state.world.market_set_artisan_score(markets, cid, new_weight);
 		total = total + new_weight;
-
 		ve::apply(
 			[](float x) {
 				assert(std::isfinite(x));
@@ -2013,6 +1993,10 @@ void update_factory_employment(sys::state& state) {
 			return state.world.market_get_price(market, cid) + price_rigging;
 		}, mid, output);
 
+		auto actually_sold = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
+			return state.world.market_get_supply_sold_ratio(market, cid);
+		}, mid, output);
+
 		auto supply = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
 			return state.world.market_get_supply(market, cid) + price_rigging;
 		}, mid, output);
@@ -2070,8 +2054,8 @@ void update_factory_employment(sys::state& state) {
 			- secondary * wage_skilled_per_employment;
 		float spendings_overestimation = 1.1f;
 		auto gradient_unqualified =
-			output_per_worker * unqualified_throughput_multiplier
-			* (price_output + price_speed_gradient_supply + price_speed_gradient_time)
+			output_per_worker * unqualified_throughput_multiplier * actually_sold
+			* (price_output + 0.5f * price_speed_gradient_time)
 			* (
 				1.f
 				+ secondary
@@ -2081,8 +2065,8 @@ void update_factory_employment(sys::state& state) {
 			- spendings_push * spendings_overestimation
 			- wage_unqualified_per_employment * spendings_overestimation;
 		auto gradient_primary =
-			output_per_worker
-			* (price_output + price_speed_gradient_supply + price_speed_gradient_time)
+			output_per_worker * actually_sold
+			* (price_output + 0.5f * price_speed_gradient_time)
 			* (
 				1.f
 				+ secondary
@@ -2099,17 +2083,17 @@ void update_factory_employment(sys::state& state) {
 				unqualified
 				* state.world.market_get_labor_demand_satisfaction(mid, labor::no_education)
 			)
-			* output_per_worker
-			* (price_output + price_speed_gradient_supply + price_speed_gradient_time)
+			* output_per_worker * actually_sold
+			* (price_output + 0.5f * price_speed_gradient_time)
 			* ve::fp_vector{ economy::secondary_employment_output_bonus }
 			- wage_skilled_per_employment * spendings_overestimation;
 
 		auto unqualified_next = unqualified
-			+ ve::min(0.01f, ve::max(-0.05f, 0.0001f * gradient_unqualified));
+			+ ve::min(0.01f / ve::max(1.f, ve::to_float(state.world.factory_get_level(facids))), ve::max(-0.05f, 0.0001f * gradient_unqualified));
 		auto primary_next = primary
-			+ ve::min(0.01f, ve::max(-0.05f, 0.0001f * gradient_primary));
+			+ ve::min(0.01f / ve::max(1.f, ve::to_float(state.world.factory_get_level(facids))), ve::max(-0.05f, 0.0001f * gradient_primary));
 		auto secondary_next = secondary
-			+ ve::min(0.01f, ve::max(-0.05f, 0.0001f * gradient_secondary));
+			+ ve::min(0.01f / ve::max(1.f, ve::to_float(state.world.factory_get_level(facids))), ve::max(-0.05f, 0.0001f * gradient_secondary));
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
@@ -2122,6 +2106,7 @@ void update_factory_employment(sys::state& state) {
 		auto scaler = ve::select(total > 1.f, 1.f / total, 1.f);
 
 #ifndef NDEBUG
+		ve::apply([&](auto value) { assert(std::isfinite(value) && (value >= 0.f)); }, unqualified_next);
 		ve::apply([&](auto value) { assert(std::isfinite(value) && (value >= 0.f)); }, primary_next);
 		ve::apply([&](auto value) { assert(std::isfinite(value) && (value >= 0.f)); }, secondary_next);
 #endif // !NDEBUG
@@ -2510,6 +2495,10 @@ void update_single_factory_consumption(
 	auto skilled_labour_demand =
 		fac.get_secondary_employment()
 		* max_employment;
+
+	assert(unqualified_labour_demand >= 0.f);
+	assert(unskilled_labour_demand >= 0.f);
+	assert(skilled_labour_demand >= 0.f);
 
 	state.world.market_get_labor_demand(m, labor::no_education) += unqualified_labour_demand;
 	state.world.market_get_labor_demand(m, labor::basic_education) += unskilled_labour_demand;
@@ -4258,6 +4247,7 @@ void update_pop_consumption(
 		savings = savings - spend_on_everyday_needs;
 
 		//handle savings before luxury goods spending
+		/*
 		ve::fp_vector bank_to_pop_money_transfer { 0.f };
 		auto enough_savings = savings > required_spendings_for_luxury_needs;
 		auto savings_for_transfer = required_spendings_for_luxury_needs - savings;
@@ -4287,6 +4277,7 @@ void update_pop_consumption(
 		);
 
 		savings = savings + bank_to_pop_money_transfer;
+		*/
 
 		// buy luxury needs
 
@@ -6057,7 +6048,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			current_volume = current_volume * std::max(0.9999f, available_labor);
 			state.world.trade_route_set_volume(trade_route, cid, current_volume);
 			auto effect_of_scale = std::max(0.1f, 1.f - std::abs(current_volume) * effect_of_transportation_scale);
-			total_demanded_labor += current_volume * state.world.trade_route_get_distance(trade_route) / trade_distance_covered_by_pair_of_workers_per_unit_of_good * effect_of_scale;
+			total_demanded_labor += std::abs(current_volume) * state.world.trade_route_get_distance(trade_route) / trade_distance_covered_by_pair_of_workers_per_unit_of_good * effect_of_scale;
 		});
 
 		state.world.market_get_labor_demand(A, labor::no_education) += total_demanded_labor;
@@ -6177,6 +6168,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				auto satisfaction = ve::select(demand_labor > 0.f, ve::min(1.f, supply_labor / demand_labor), 1.f);
 				auto sold = ve::select(supply_labor > 0.f, ve::min(1.f, demand_labor / supply_labor), 1.f);
+
+#ifndef NDEBUG
+				ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, sold);
+				ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, satisfaction);
+#endif
 
 				state.world.market_set_labor_demand_satisfaction(ids, j, satisfaction);
 				state.world.market_set_labor_supply_sold(ids, j, sold);
@@ -6977,7 +6973,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				* no_education_wage;
 
 			float primary_workers_wage =
-				state.world.market_get_pop_labor_distribution(market, pop_labor::rgo_worker_no_education)
+				state.world.market_get_pop_labor_distribution(market, pop_labor::primary_no_education)
 				* no_education_wage
 				+
 				state.world.market_get_pop_labor_distribution(market, pop_labor::primary_basic_education)
@@ -7043,8 +7039,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				market_profit += total_factory_profit;
 			}
 			if(total_rgo_profit >= 0.f && num_rgo_owners > 0.f) {
-				payment_per_capitalist += total_rgo_profit / num_rgo_owners * num_capitalist;
-				payment_per_aristocrat += total_rgo_profit / num_rgo_owners * num_aristocrat;
+				payment_per_capitalist += total_rgo_profit / num_rgo_owners;
+				payment_per_aristocrat += total_rgo_profit / num_rgo_owners;
 			} else {
 				market_profit += total_rgo_profit;
 			}
@@ -7461,7 +7457,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// we want to smooth out absurd "spikes"
 	// in per capita money distributions of markets
 
-	state.inflation = 0.999999999f;
+	// essentially upper bound on wealth in the system
+	state.inflation = 0.999f;
 
 	float total_pop = 0.0f;
 	float total_pop_money = 0.0f;
