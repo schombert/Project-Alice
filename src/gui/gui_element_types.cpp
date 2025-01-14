@@ -2089,7 +2089,7 @@ void flag_button2::on_update(sys::state& state) noexcept {
 		return;
 	}
 
-	auto rid = retrieve<dcon::rebel_faction_id>(state, parent);
+	auto rid = retrieve<dcon::rebel_faction_id>(state, this);
 	if(!nid && !tid && rid) {
 		flag_texture_handle = ogl::get_rebel_flag_handle(state, rid);
 		return;
