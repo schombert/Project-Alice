@@ -286,7 +286,7 @@ public:
 			m.type = diplomatic_message::type::alliance_request;
 			m.from = state.local_player_nation;
 			m.to = target;
-			return command::can_ask_for_alliance(state, state.local_player_nation, target) || (!state.world.nation_get_is_player_controlled(target) && !diplomatic_message::ai_will_accept(state, m));
+			return command::can_ask_for_alliance(state, state.local_player_nation, target) && (state.world.nation_get_is_player_controlled(target) || diplomatic_message::ai_will_accept(state, m));
 		}
 	}
 
