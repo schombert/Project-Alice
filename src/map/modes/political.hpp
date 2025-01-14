@@ -1,12 +1,24 @@
 #pragma once
 #include "prng.hpp"
 
+// Imagine new color for subject based on overlord color and random from nation id.
 uint32_t derive_color_from_ol_color(sys::state& state, uint32_t ol_color, dcon::nation_id n) {
 	auto base = sys::rgb_to_hsv(ol_color);
 	auto roff = rng::get_random_pair(state, uint32_t(n.index()), uint32_t(n.index()));
 	base.h = fmod(base.h + (float(roff.low & 0x1F) - 15.5f), 360.0f);
 	base.s = std::clamp(base.s + (float((roff.low >> 8) & 0xFF) / 255.0f) * 0.2f - 0.1f, 0.0f, 1.0f);
 	base.v = std::clamp(base.v + (float((roff.high >> 4) & 0xFF) / 255.0f) * 0.2f - 0.1f, 0.0f, 1.0f);
+	return sys::hsv_to_rgb(base);
+}
+
+// Blend army color on top of province color
+uint32_t derive_color_from_army_color(sys::state& state, uint32_t p_color, uint32_t a_color) {
+	auto base = sys::rgb_to_hsv(p_color);
+	auto blend = sys::rgb_to_hsv(a_color);
+
+	base.h = fmod(base.h, 360.0f);
+	base.s = std::clamp(base.s * 0.7f + blend.s * 0.3f, 0.0f, 1.0f);
+	base.v = std::clamp(base.v * 0.7f + blend.v * 0.3f, 0.0f, 1.0f);
 	return sys::hsv_to_rgb(base);
 }
 
@@ -47,6 +59,7 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto i = province::to_map_id(prov_id);
+		// Sea provinces
 		if(prov_id.index() >= state.province_definitions.first_sea_province.index()) {
 			prov_color[i] = 0;
 			prov_color[i + texture_size] = 0;
@@ -101,6 +114,54 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color_b;
+		}
+	});
+
+	state.world.for_each_army([&](dcon::army_id army_id) {
+		auto fid = dcon::fatten(state.world, army_id);
+
+		uint32_t blend_color;
+
+		if(fid.get_black_flag()) {
+			return; // Do not highlight provinces under black flagged units;
+		}
+
+		auto rebel_faction = fid.get_controller_from_army_rebel_control();
+		uint32_t rebel_color = sys::pack_color(127, 127, 127);
+		if(rebel_faction) {
+			dcon::rebel_type_fat_id rtype = state.world.rebel_faction_get_type(rebel_faction);
+			dcon::ideology_fat_id ideology = rtype.get_ideology();
+			if(ideology)
+				rebel_color = ideology.get_color();
+
+			blend_color = rebel_color;
+		}
+		else {
+			auto owner = fid.get_controller_from_army_control();
+
+			if(!owner) {
+				return;
+			}
+
+			if(owner == state.local_player_nation) {
+				blend_color = sys::pack_color(255,255, 255);
+			}
+			else if (military::are_at_war(state, owner, state.local_player_nation)) {
+				blend_color = sys::pack_color(0, 0, 0);
+			}
+			else {
+				blend_color = nation_color[owner.id.value];
+			}
+		}
+
+		auto location = fid.get_location_from_army_location();
+		auto i = province::to_map_id(location);
+
+		auto has_occupation_color = prov_color[i] != prov_color[i + texture_size];
+		prov_color[i] = derive_color_from_army_color(state, prov_color[i], blend_color);
+
+		if(!has_occupation_color) {
+			prov_color[i + texture_size] = prov_color[i];
 		}
 	});
 

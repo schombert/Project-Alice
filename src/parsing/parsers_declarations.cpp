@@ -902,9 +902,9 @@ void cb_body::po_save_subjects(association_type, bool value, error_handler& err,
 	}
 }
 
-void cb_body::po_demand_province(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+void cb_body::po_unequal_treaty(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
 	if(value) {
-		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_demand_province;
+		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_unequal_treaty;
 	}
 }
 

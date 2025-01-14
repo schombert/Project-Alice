@@ -1535,6 +1535,9 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.infamy_make_puppet * cb_infamy_country_modifier(state, target);
 	}
+	if((bits & cb_flag::po_make_substate) != 0) {
+		total += state.defines.infamy_make_substate * cb_infamy_country_modifier(state, target);
+	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		total += state.defines.infamy_release_puppet * cb_infamy_country_modifier(state, target);
 	}
@@ -1567,6 +1570,9 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 	}
 	if((bits & cb_flag::po_reparations) != 0) {
 		total += state.defines.infamy_reparations * cb_infamy_country_modifier(state, target);
+	}
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		total += state.defines.infamy_unequal_treaty * cb_infamy_country_modifier(state, target);
 	}
 
 	auto infamy_state_mod = 1.0f;
@@ -1617,6 +1623,12 @@ float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id t) {
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.breaktruce_prestige_make_puppet;
+	}
+	if((bits & cb_flag::po_make_substate) != 0) {
+		total += state.defines.breaktruce_prestige_make_substate;
+	}
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		total += state.defines.breaktruce_prestige_unequal_treaty;
 	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		total += state.defines.breaktruce_prestige_release_puppet;
@@ -1679,6 +1691,12 @@ float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id t) {
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.breaktruce_militancy_make_puppet;
 	}
+	if((bits & cb_flag::po_make_substate) != 0) {
+		total += state.defines.breaktruce_militancy_make_substate;
+	}
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		total += state.defines.breaktruce_militancy_unequal_treaty;
+	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		total += state.defines.breaktruce_militancy_release_puppet;
 	}
@@ -1739,6 +1757,12 @@ float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.breaktruce_infamy_make_puppet * cb_infamy_country_modifier(state, target);
+	}
+	if((bits & cb_flag::po_make_substate) != 0) {
+		total += state.defines.breaktruce_infamy_make_substate * cb_infamy_country_modifier(state, target);
+	}
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		total += state.defines.breaktruce_infamy_unequal_treaty * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		total += state.defines.breaktruce_infamy_release_puppet * cb_infamy_country_modifier(state, target);
@@ -1837,6 +1861,12 @@ int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.peace_cost_make_puppet;
+	}
+	if((bits & cb_flag::po_make_substate) != 0) {
+		total += state.defines.peace_cost_make_substate;
+	}
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		total += state.defines.peace_cost_unequal_treaty;
 	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		total += state.defines.peace_cost_release_puppet;
@@ -1995,6 +2025,12 @@ float successful_cb_prestige(sys::state& state, dcon::cb_type_id t, dcon::nation
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += std::max(state.defines.prestige_make_puppet * actor_prestige, state.defines.prestige_make_puppet_base);
+	}
+	if((bits & cb_flag::po_make_substate) != 0) {
+		total += std::max(state.defines.prestige_make_substate * actor_prestige, state.defines.prestige_make_substate);
+	}
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		total += std::max(state.defines.prestige_unequal_treaty * actor_prestige, state.defines.prestige_unequal_treaty);
 	}
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		total += std::max(state.defines.prestige_release_puppet * actor_prestige, state.defines.prestige_release_puppet_base);
@@ -2958,6 +2994,18 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 
 	auto bits = state.world.cb_type_get_type_bits(wargoal);
 	bool for_attacker = is_attacker(state, war, from);
+
+	// po_unequal_treaty: opens market for 5 years
+	if((bits & cb_flag::po_unequal_treaty) != 0) {
+		auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
+
+		// One way tariff removal
+		auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, from);
+		if(!rel_1) {
+			rel_1 = state.world.force_create_unilateral_relationship(target, from);
+		}
+		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+	}
 
 	// po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that
 	// added the war goal's sphere with max influence.

@@ -408,7 +408,7 @@ enum class message_base_type : uint8_t {
 	count = 74,
 	free_trade_agreement = 75,
 	embargo = 76,
-
+	trade_rights_revoked = 77,
 };
 
 struct msg_setting_entry {

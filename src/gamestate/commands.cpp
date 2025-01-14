@@ -2682,6 +2682,65 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dco
 	}
 }
 
+void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::revoke_trade_rights;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
+	/*
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
+	Even if nations have already free trade agreement - they can prolongate it for further years.
+	*/
+	if(source == target)
+		return false;
+
+	if(state.world.nation_get_is_player_controlled(source) && !ignore_cost && state.world.nation_get_diplomatic_points(source) < state.defines.askmilaccess_diplomatic_cost)
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(source);
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+
+	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
+		return false; // Subjects can't negotiate trade agreements
+	}
+
+	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
+
+	if(!rights) {
+		return false; // Nation doesn't give trade rights
+	}
+	auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(rights);
+
+	if(state.current_date < enddt) {
+		return false; // Cannot revoke yet
+	}
+
+	return true;
+}
+void execute_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	state.world.nation_get_diplomatic_points(source) -= state.defines.askmilaccess_diplomatic_cost;
+
+	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
+
+	if(!rights) {
+		return; // Nation doesn't give trade rights
+	}
+	state.world.unilateral_relationship_get_no_tariffs_until(rights) = sys::date{}; // Reset trade rights
+
+	notification::post(state, notification::message{
+		[source = source, target = target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_trade_rights_revoked", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_trade_rights_revoked_title",
+			target, source, dcon::nation_id{},
+			sys::message_base_type::trade_rights_revoked
+		});
+}
+
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5692,6 +5751,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::switch_embargo_status:
 		return can_switch_embargo_status(state, c.source, c.data.diplo_action.target);
 
+	case command_type::revoke_trade_rights:
+		return can_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
+
 	case command_type::call_to_arms:
 		return can_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);
 
@@ -6072,6 +6134,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::switch_embargo_status:
 		execute_switch_embargo_status(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::revoke_trade_rights:
+		execute_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
 		break;
 	case command_type::call_to_arms:
 		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);

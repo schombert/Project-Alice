@@ -361,6 +361,8 @@ bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
+dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
 

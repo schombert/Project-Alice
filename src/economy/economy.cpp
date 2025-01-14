@@ -1368,6 +1368,33 @@ ve::fp_vector ve_pseudo_exp_for_negative(ve::fp_vector f) {
 	return result;
 }
 
+// Check if source gives trade rights to target
+dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto sphere_A = state.world.nation_get_in_sphere_of(target);
+	auto sphere_B = state.world.nation_get_in_sphere_of(source);
+
+	auto overlord_A = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(target)
+	);
+	auto overlord_B = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(source)
+	);
+
+	auto market_leader_target = (overlord_A) ? overlord_A : ((sphere_A) ? sphere_A : target);
+	auto market_leader_source = (overlord_B) ? overlord_B : ((sphere_B) ? sphere_B : source);
+
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_target, market_leader_source);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		// Enddt empty signalises revoken agreement
+		// Enddt > cur_date signalises that the agreement can't be broken
+		if(enddt) {
+			return source_tariffs_rel;
+		}
+	}
+	return dcon::unilateral_relationship_id{};
+}
+
 template<typename T, typename S>
 void adjust_artisan_balance(
 	sys::state& state,
@@ -5607,21 +5634,44 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_overlord_as_subject(controller_capital_B)
 		);
 
-		// TODO: expand to actual trade agreements
-		auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B;
-		auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A;
+		auto has_overlord_mask_A = overlord_A != dcon::nation_id{};
+		auto has_overlord_mask_B = overlord_B != dcon::nation_id{};
+		auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
+		auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
 
-		// sphere joins embargo
-		// subject joins embargo
-		// TODO: make into diplomatic interaction
+		// Subjects have embargo of overlords propagated onto them
+		auto market_leader_A = ve::select(has_overlord_mask_A, overlord_A, ve::select(has_sphere_mask_A, sphere_A, n_A));
+		auto market_leader_B = ve::select(has_overlord_mask_B, overlord_B, ve::select(has_sphere_mask_B, sphere_B, n_B));
 
-		auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, sphere_A, controller_capital_B);
+		// Equal/unequal trade treaties
+		auto A_open_to_B = ve::apply([&](auto n_a, auto n_b) {
+			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+			if(source_tariffs_rel) {
+				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+				// Enddt empty signalises revoken agreement
+				// Enddt > cur_date signalises that the agreement can't be broken
+				if(enddt) {
+					return true;
+				}
+			}
+			return false;
+		}, market_leader_A, controller_capital_B);
 
-		auto B_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, sphere_B, controller_capital_A);
+		auto B_open_to_A = ve::apply([&](auto n_a, auto n_b) {
+			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+
+			if(target_tariffs_rel) {
+				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+				if(enddt) {
+					return true;
+				}
+			}
+
+			return false;
+		}, market_leader_B, controller_capital_A);
+
+		auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B || A_open_to_B;
+		auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A || B_open_to_A;
 
 		// these are not needed at the moment
 		// because overlord and subject are always in the same war
@@ -5671,69 +5721,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto same_nation = controller_capital_A == controller_capital_B;
 
-		auto port_A = coastal_capital_buffer.get(s_A);
-		auto port_B = coastal_capital_buffer.get(s_B);
-
-		auto controller_capital_A = state.world.province_get_nation_from_province_control(capital_A);
-		auto controller_capital_B = state.world.province_get_nation_from_province_control(capital_B);
-
-		auto controller_port_A = state.world.province_get_nation_from_province_control(port_A);
-		auto controller_port_B = state.world.province_get_nation_from_province_control(port_B);
-
-		auto sphere_A = state.world.nation_get_in_sphere_of(controller_capital_A);
-		auto sphere_B = state.world.nation_get_in_sphere_of(controller_capital_B);
-
-		auto overlord_A = state.world.overlord_get_ruler(
-			state.world.nation_get_overlord_as_subject(controller_capital_A)
-		);
-		auto overlord_B = state.world.overlord_get_ruler(
-			state.world.nation_get_overlord_as_subject(controller_capital_B)
-		);
-
-		auto has_overlord_mask_A = overlord_A != dcon::nation_id{};
-		auto has_overlord_mask_B = overlord_B != dcon::nation_id{};
-		auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
-		auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
-
-		// Subjects have embargo of overlords propagated onto them
-		auto market_leader_A = ve::select(has_overlord_mask_A, overlord_A, ve::select(has_sphere_mask_A, sphere_A, n_A));
-		auto market_leader_B = ve::select(has_overlord_mask_B, overlord_B, ve::select(has_sphere_mask_B, sphere_B, n_B));
-
-		// Equal/unequal trade treaties
-		auto A_open_to_B = ve::apply([&](auto n_a, auto n_b) {
-			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
-			if(source_tariffs_rel) {
-				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
-				if(state.current_date < enddt) {
-					return true;
-				}
-			}
-			return false;
-		}, market_leader_A, controller_capital_B);
-
-		auto B_open_to_A = ve::apply([&](auto n_a, auto n_b) {
-			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
-
-			if(target_tariffs_rel) {
-				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
-				if(state.current_date < enddt) {
-					return true;
-				}
-			}
-
-			return false;
-		}, market_leader_B, controller_capital_A);
-
-		auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B || A_open_to_B;
-		auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A || B_open_to_A;
-
 		// sphere joins embargo
 		// subject joins embargo
 		// diplomatic embargos
-
 		auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
 			return military::are_at_war(state, n_a, n_b);
 		}, sphere_A, controller_capital_B);
+
+		auto B_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
+			return military::are_at_war(state, n_a, n_b);
+		}, sphere_B, controller_capital_A);
 
 		auto A_has_embargo = ve::apply([&](auto n_a, auto n_b) {
 			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
@@ -5743,13 +5740,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}, market_leader_A, controller_capital_B);
 
 		A_joins_sphere_wide_embargo = A_has_embargo || A_joins_sphere_wide_embargo;
-
-		auto B_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
-			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
-			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
-
-			return military::are_at_war(state, n_a, n_b);
-		}, sphere_B, controller_capital_A);
 
 		auto B_has_embargo = ve::apply([&](auto n_a, auto n_b) {
 			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
@@ -5773,40 +5763,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}, overlord_B, controller_capital_A);
 		*/
 
-		// if market capital controller is at war with market coastal controller is different
-		// or it's actually blockaded
-		// consider province blockaded
-
-		ve::mask_vector port_occupied_A = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, controller_capital_A, controller_port_A);
-		ve::mask_vector port_occupied_B = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, controller_capital_B, controller_port_B);
-
-		ve::mask_vector is_A_blockaded = state.world.province_get_is_blockaded(port_A) || port_occupied_A;
-		ve::mask_vector is_B_blockaded = state.world.province_get_is_blockaded(port_B) || port_occupied_B;
-
-		// if market capital controllers are at war then we will break the link
-		auto at_war = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, controller_capital_A, controller_capital_B);
-
 		// it created quite bad oscilation
 		// so i decided to transfer goods into stockpile directly
 		// and consider that all of them were sold at given price
 		//auto actually_bought_ratio_A = state.world.market_get_supply_sold_ratio(A, c);
 		//auto actually_bought_ratio_B = state.world.market_get_supply_sold_ratio(B, c);
-
-		auto is_A_civ = state.world.nation_get_is_civilized(n_A);
-		auto is_B_civ = state.world.nation_get_is_civilized(n_B);
-
-		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
-		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
-
-		is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
-
-		auto same_nation = controller_capital_A == controller_capital_B;
 
 		auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.f + economy::merchant_cut_domestic }, ve::fp_vector{ 1.f + economy::merchant_cut_foreign });
 

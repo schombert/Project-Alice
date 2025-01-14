@@ -118,7 +118,8 @@ mapmode_tooltip_dominant_ideology;The ideologies in ?Y$PROV$?W are:
 mapmode_tooltip_con_average;Average consciousness: ?Y$val$?W
 mapmode_tooltip_total_employment;Employment: 
 mapmode_tooltip_literacy_rate;Literacy: 
-mapmode_tooltip_factory_count;Factories in ?Y$state$?W: 
+mapmode_tooltip_factory_count;Factories in ?Y$state$?W:
+mapmode_tooltip_factory_size;Total levels:
 mapmode_tooltip_fort_level;Fort level 
 mapmode_tooltip_fort_being_built;A fort level is under construction here.
 mapmode_tooltip_can_build_fort;A new fort level can be built here.

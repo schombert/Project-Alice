@@ -1752,7 +1752,7 @@ struct cb_body {
 	void po_destroy_naval_bases(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
 	void po_make_substate(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
 	void po_save_subjects(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
-	void po_demand_province(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+	void po_unequal_treaty(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
 
 	void war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context);
 	void badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
