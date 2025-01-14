@@ -647,6 +647,8 @@ uint32_t state_railroad_level(sys::state const& state, dcon::state_instance_id s
 }
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	if(!state.world.nation_get_is_at_war(a) || !state.world.nation_get_is_at_war(b))
+		return false;
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {

@@ -1011,11 +1011,14 @@ GLuint get_rebel_flag_handle(sys::state& state, dcon::rebel_faction_id faction) 
 	dcon::rebel_type_fat_id rtype = state.world.rebel_faction_get_type(faction);
 	dcon::ideology_fat_id ideology = rtype.get_ideology();
 
+	if(!ideology) {
+		return get_flag_handle(state, state.national_definitions.rebel_id, culture::flag_type::default_flag);
+	}
+
 	GLuint o_tex = state.ui_state.rebel_flags[ideology.id.index()];
 	if (o_tex != 0) {
 		return o_tex;
-	}
-	else {
+	} else {
 		dcon::texture_id new_id{ dcon::texture_id::value_base_t(state.open_gl.asset_textures.size()) };
 		state.open_gl.asset_textures.emplace_back();
 		dcon::texture_id id = new_id;
