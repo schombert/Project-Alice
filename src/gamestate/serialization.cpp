@@ -1059,6 +1059,12 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 		);
 		simple_fs::write_file(
 			data_dumps_directory,
+			NATIVE("savings_dump.txt"),
+			state.cheat_data.savings_buffer.c_str(),
+			uint32_t(state.cheat_data.savings_buffer.size())
+		);
+		simple_fs::write_file(
+			data_dumps_directory,
 			NATIVE("prices_dump.txt"),
 			state.cheat_data.prices_dump_buffer.c_str(),
 			uint32_t(state.cheat_data.prices_dump_buffer.size())

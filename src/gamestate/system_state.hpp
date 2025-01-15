@@ -419,6 +419,7 @@ struct cheat_data_s {
 	bool ecodump = false;
 
 	std::string national_economy_dump_buffer;
+	std::string savings_buffer;
 	std::string prices_dump_buffer;
 	std::string demand_dump_buffer;
 	std::string supply_dump_buffer;

@@ -3579,6 +3579,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ administration_employment_target_in_capital }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ social_spending }
 		type{ int8_t }
 		tag{ save }
@@ -4072,6 +4077,12 @@ object{
 	property {
 		name{ labor_supply_sold }
 		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ administration_employment_target }
+		type{ float }
 		tag{ save }
 	}
 

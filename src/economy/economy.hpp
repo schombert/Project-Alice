@@ -159,7 +159,7 @@ inline constexpr float production_throughput_multiplier = 5.f;
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float stockpile_spoilage = 0.15f;
+inline constexpr float stockpile_spoilage = 0.05f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1000.f;
 
 // trade related
