@@ -2185,7 +2185,7 @@ void budgetwindow_main_income_table_t::change_page(sys::state & state, int32_t n
 	}
 }
 int32_t budgetwindow_main_income_table_t::max_page(){
-	return (open_page ? 1 : 0) + ((page_starts.size() <= 2) ? 0 : int32_t(page_starts.size() - 2)); 
+	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
 }
 void budgetwindow_main_income_table_t::clear_table() {
 	children.clear();
@@ -2974,7 +2974,7 @@ void budgetwindow_main_expenses_table_t::change_page(sys::state & state, int32_t
 	}
 }
 int32_t budgetwindow_main_expenses_table_t::max_page(){
-	return (open_page ? 1 : 0) + ((page_starts.size() <= 2) ? 0 : int32_t(page_starts.size() - 2)); 
+	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
 }
 void budgetwindow_main_expenses_table_t::clear_table() {
 	children.clear();
@@ -3199,7 +3199,7 @@ void budgetwindow_main_expenses_table_t::on_update(sys::state& state) noexcept {
 	add_insert_section_header(state, budget_categories::admin);
 	if(budget_categories::expanded[budget_categories::admin]) {
 		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_military_spending(state.local_player_nation)) / 100.0f;
+		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
 		auto in = culture::income_type::administration;
 		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
 			auto local_state = state.world.state_ownership_get_state(soid);
