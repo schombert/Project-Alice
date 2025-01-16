@@ -4446,6 +4446,10 @@ void state::single_game_tick() {
 	}
 }
 
+void state::console_log(std::string_view message) {
+	current_scene.console_log(*this, message);
+}
+
 sys::checksum_key state::get_save_checksum() {
 	dcon::load_record loaded = world.make_serialize_record_store_save();
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
@@ -4462,6 +4466,7 @@ sys::checksum_key state::get_save_checksum() {
 
 void state::debug_save_oos_dump() {
 	auto sdir = simple_fs::get_or_create_oos_directory();
+	auto saveprefix = simple_fs::utf8_to_native(network_state.nickname.to_string());
 	{
 		// save for further inspection
 		dcon::load_record loaded = world.make_serialize_record_store_save();
@@ -4469,14 +4474,32 @@ void state::debug_save_oos_dump() {
 		auto buffer_position = reinterpret_cast<std::byte*>(save_buffer.get());
 		world.serialize(buffer_position, loaded);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - save_buffer.get();
-		simple_fs::write_file(sdir, NATIVE("save.bin"), reinterpret_cast<const char*>(save_buffer.get()), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, saveprefix + NATIVE("save.bin"), reinterpret_cast<const char*>(save_buffer.get()), uint32_t(total_size_used));
 	}
 	{
 		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_save_section(*this)]);
 		auto buffer_position = sys::write_save_section(buffer.get(), *this);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
-		simple_fs::write_file(sdir, NATIVE("all_save.bin"), reinterpret_cast<const char*>(buffer.get()), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, saveprefix + NATIVE("all_save.bin"), reinterpret_cast<const char*>(buffer.get()), uint32_t(total_size_used));
 	}
+
+	console_log("Doing a report of OOS save");
+	auto oos_file_1 = simple_fs::open_file(sdir, saveprefix + NATIVE("save.bin"));
+
+	auto contents_1 = simple_fs::view_contents(*oos_file_1);
+	auto const* start_1 = reinterpret_cast<uint8_t const*>(contents_1.data);
+	auto end_1 = start_1 + contents_1.file_size;
+
+	int i = 0;
+
+	dcon::for_each_record(reinterpret_cast<const std::byte*>(start_1), reinterpret_cast<const std::byte*>(end_1), [&](dcon::record_header const& header_1, std::byte const* data_start_1, std::byte const* data_end_1) {
+		i++;
+		auto size1 = data_end_1 - data_start_1;
+		console_log("" + std::string(header_1.object_name_start) + "|" + std::string(header_1.property_name_start) + "|"
+			+ std::string(header_1.type_name_start) + "|" + std::to_string(static_cast<size_t>(size1)));
+	});
+
+	console_log("Total rows: " + std::to_string(i));
 }
 
 void state::debug_scenario_oos_dump() {
@@ -4545,10 +4568,6 @@ void state::game_loop() {
 			}
 		}
 	}
-}
-
-void state::console_log(std::string_view message) {
-	current_scene.console_log(*this, message);
 }
 
 void state::new_army_group(dcon::province_id hq) {

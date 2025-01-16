@@ -13,8 +13,7 @@
 #include "triggers.hpp"
 #include "ai.hpp"
 #include "gui_console.hpp"
-
-#include "base64encode.hpp"
+#include "network.hpp"
 
 namespace command {
 
@@ -5379,6 +5378,17 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	add_to_command_queue(state, p);
 
+#ifndef NDEBUG
+	state.console_log("client:send:cmd | type=notify_player_oos | from: " + std::to_string(source.index()));
+#endif
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.nickname.to_string_view());
+	m.body = text::resolve_string_substitution(state, "chat_player_oos_source", sub);
+	post_chat_message(state, m);
+
 	network::log_player_nations(state);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
@@ -5397,7 +5407,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 
 #ifndef NDEBUG
-	state.console_log("client:rcv:cmd | type=notify_player_oos from:" + std::to_string(source.index()));
+	state.console_log("client:rcv:cmd | type=notify_player_oos | from:" + std::to_string(source.index()));
 #endif
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5422,8 +5432,17 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
 			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+#ifndef NDEBUG
+				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()));
+#endif
 				sys::checksum_key current = state.get_save_checksum();
 				if(!current.is_equal(k)) {
+#ifndef NDEBUG
+					network::SHA512 sha512;
+					std::string local = sha512.hash(current.to_char());
+					std::string incoming = sha512.hash(k.to_char());
+					state.console_log("client:desyncfound | Local checksum:" + local + " | " + "Incoming: " + incoming);
+#endif
 					state.network_state.out_of_sync = true;
 					state.debug_save_oos_dump();
 				}
@@ -5494,7 +5513,8 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 
 #ifndef NDEBUG
-	auto encodedchecksum = base64_encode(state.session_host_checksum.to_char(), state.session_host_checksum.key_size);
+	network::SHA512 sha512;
+	std::string encodedchecksum = sha512.hash(state.session_host_checksum.to_char());
 	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + encodedchecksum);
 #endif
 	 
@@ -5507,6 +5527,8 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_reload", sub);
 	post_chat_message(state, m);
+
+	network::log_player_nations(state);
 }
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {

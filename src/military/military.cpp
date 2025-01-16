@@ -122,7 +122,7 @@ dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool 
 		}
 	}
 #ifndef NDEBUG
-	state.console_log(nationname + " infantry type: " + std::to_string(curbest.index()));
+	// state.console_log(nationname + " infantry type: " + std::to_string(curbest.index()));
 #endif
 	return curbest;
 }

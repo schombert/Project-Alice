@@ -926,6 +926,7 @@ chat_player_leaves;$playername$ left
 chat_player_ban;$playername$ was banned
 chat_player_kick;$playername$ was kicked
 chat_player_switch;$playername$ has choosen $country$
+chat_player_oos_source;Reporting OOS!
 chat_player_oos;$playername$ has OOSed!
 chat_player_reload;$playername$ has reloaded players
 alice_status_stream;Save progress $value$
