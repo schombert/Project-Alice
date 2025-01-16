@@ -116,7 +116,7 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 constexpr inline dcon::commodity_id money(0);
 
 // move to defines later
-inline constexpr float payouts_spending_multiplier = 200.f;
+inline constexpr float payouts_spending_multiplier = 10.f;
 
 // factories:
 inline constexpr float secondary_employment_output_bonus = 3.f;
