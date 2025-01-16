@@ -999,7 +999,7 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 }
 
 float need_weight(sys::state& state, dcon::market_id n, dcon::commodity_id c) {
-	return std::min(1.f, 1000.0f / std::max(price(state, n, c), 0.0001f));
+	return std::min(1.f, 100000.0f / std::max(price(state, n, c), 0.0001f));
 }
 
 void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
@@ -1262,7 +1262,7 @@ ve::fp_vector base_artisan_profit(
 		}
 	}
 
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * ve_price(state, markets, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * ve_price(state, markets, c) * state.world.market_get_supply_sold_ratio(markets, c);;
 
 	auto input_multiplier = artisan_input_multiplier(state, nations);
 	auto output_multiplier = artisan_output_multiplier(state, nations);
@@ -1288,7 +1288,7 @@ float base_artisan_profit(
 		}
 	}
 
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * price(state, market, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * price(state, market, c) * state.world.market_get_supply_sold_ratio(market, c);;
 
 	auto input_multiplier = artisan_input_multiplier<dcon::nation_id>(state, nid);
 	auto output_multiplier = artisan_output_multiplier<dcon::nation_id>(state, nid);
@@ -3014,7 +3014,7 @@ void update_artisan_consumption(
 		);
 
 		auto base_profit =
-			output_total * output_multiplier
+			output_total * output_multiplier * state.world.market_get_supply_sold_ratio(markets, cid)
 			- input_multiplier * input_total;
 
 		total_profit = total_profit
@@ -3023,7 +3023,7 @@ void update_artisan_consumption(
 				* throughput_multiplier
 				* max_production_scale
 				* min_available
-			) * state.world.market_get_supply_sold_ratio(markets, cid);
+			);
 	}
 
 	state.world.market_set_artisan_profit(markets, total_profit);
@@ -5645,9 +5645,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto none_is_profiable = (current_profit_A_to_B <= 0.f) && (current_profit_B_to_A <= 0.f);
 
 			auto max_change = 0.1f + absolute_volume * 0.1f;
-			auto change = ve::select(current_profit_A_to_B > 0.f, current_profit_A_to_B / price_A_export, 0.f);
-			change = ve::select(current_profit_B_to_A > 0.f, -current_profit_B_to_A / price_B_export, change);
-			change = ve::min(ve::max(change, -max_change), max_change);
+			auto change = ve::select(current_profit_A_to_B > 0.f, current_profit_A_to_B / price_B_import, 0.f);
+			change = ve::select(current_profit_B_to_A > 0.f, -current_profit_B_to_A / price_A_import, change);
+			change = ve::min(ve::max(100.f * change, -max_change), max_change);
 			change = ve::select(none_is_profiable, -current_volume, change);
 			change = ve::select(
 				at_war
@@ -7295,7 +7295,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
 			auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
 			auto speed_modifer = (overdemand_factor - oversupply_factor);
-			auto price_speed = price_speed_mod * speed_modifer;
+			auto price_speed = ve::min(ve::max(price_speed_mod * speed_modifer, -0.025f), 0.025f);
 			price_speed = price_speed * current_price;
 			current_price = current_price + price_speed;
 
