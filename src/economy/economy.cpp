@@ -947,7 +947,7 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 }
 
 float need_weight(sys::state& state, dcon::market_id n, dcon::commodity_id c) {
-	return std::min(1.f, 1000.0f / std::max(price(state, n, c), 0.0001f));
+	return std::min(1.f, 100000.0f / std::max(price(state, n, c), 0.0001f));
 }
 
 void rebalance_needs_weights(sys::state& state, dcon::market_id n) {

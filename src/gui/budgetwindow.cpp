@@ -2185,7 +2185,7 @@ void budgetwindow_main_income_table_t::change_page(sys::state & state, int32_t n
 	}
 }
 int32_t budgetwindow_main_income_table_t::max_page(){
-	return (open_page ? 1 : 0) + ((page_starts.size() <= 2) ? 0 : int32_t(page_starts.size() - 2)); 
+	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
 }
 void budgetwindow_main_income_table_t::clear_table() {
 	children.clear();
@@ -2974,7 +2974,7 @@ void budgetwindow_main_expenses_table_t::change_page(sys::state & state, int32_t
 	}
 }
 int32_t budgetwindow_main_expenses_table_t::max_page(){
-	return (open_page ? 1 : 0) + ((page_starts.size() <= 2) ? 0 : int32_t(page_starts.size() - 2)); 
+	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
 }
 void budgetwindow_main_expenses_table_t::clear_table() {
 	children.clear();
@@ -3226,7 +3226,7 @@ void budgetwindow_main_expenses_table_t::on_update(sys::state& state) noexcept {
 	add_insert_section_header(state, budget_categories::education);
 	if(budget_categories::expanded[budget_categories::education]) {
 		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_military_spending(state.local_player_nation)) / 100.0f;
+		auto fraction = float(state.world.nation_get_education_spending(state.local_player_nation)) / 100.0f;
 		auto in = culture::income_type::education;
 		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
 			auto local_state = state.world.state_ownership_get_state(soid);
@@ -3386,7 +3386,7 @@ void budgetwindow_main_expenses_table_t::on_update(sys::state& state) noexcept {
 
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(state.local_player_nation, cid))) {
 					auto amount =
-						overseas_factor * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid) * float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
+						overseas_factor * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
 					add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount));
 				}
 			}
