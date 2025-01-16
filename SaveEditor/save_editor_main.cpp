@@ -1,5 +1,6 @@
 #define ALICE_NO_ENTRY_POINT 1
-#include "main.cpp"
+#include "common_types.cpp"
+#include "simple_fs_win.cpp"
 
 int main(int argc, char** argv) {
 	auto dir = simple_fs::get_or_create_oos_directory();
