@@ -147,7 +147,7 @@ inline constexpr float payouts_spending_multiplier = 10.f;
 
 // factories:
 inline constexpr float secondary_employment_output_bonus = 3.f;
-inline constexpr float unqualified_throughput_multiplier = 0.75f;
+inline constexpr float unqualified_throughput_multiplier = 0.70f;
 
 inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
@@ -155,7 +155,7 @@ inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
 inline constexpr float price_rigging = 0.015f;
-inline constexpr float production_throughput_multiplier = 5.f;
+inline constexpr float production_throughput_multiplier = 4.f;
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
@@ -178,7 +178,7 @@ inline constexpr float factory_pworkers_cut = 0.1f;
 inline constexpr float factory_workers_cut = factory_sworkers_cut + factory_pworkers_cut;
 inline constexpr float aristocrats_greed = 0.5f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float labor_greed_life = 1.0f;
+inline constexpr float labor_greed_life = 2.0f;
 inline constexpr float labor_greed_everyday = 0.f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 
@@ -379,6 +379,7 @@ float factory_output_multiplier(sys::state const& state, dcon::factory_id fac, d
 float factory_desired_raw_profit(dcon::factory_id fac, float spendings);
 
 float factory_throughput_additional_multiplier(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied);
+float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
@@ -510,7 +511,6 @@ float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_export_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
-float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);

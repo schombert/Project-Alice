@@ -3208,9 +3208,10 @@ float get_yesterday_income(sys::state& state, dcon::nation_id n) {
 	 * return value is passed to text::fp_currency{}
 	 */
 	float sum = 0;
-	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::poor);
-	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::middle);
-	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::rich);
+	auto info = economy::explain_tax_income(state, n);
+	sum += info.poor;
+	sum += info.mid;
+	sum += info.rich;
 	sum += economy::estimate_gold_income(state, n);
 	return sum;
 }

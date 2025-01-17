@@ -1183,7 +1183,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = economy::factory_total_employment_score(state, fid) < economy::factory_closed_threshold;
+				bool is_closed = economy::factory_total_desired_employment_score(state, fid) < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)

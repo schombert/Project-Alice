@@ -1243,7 +1243,7 @@ public:
 					for(auto abstract : staat.get_abstract_state_membership()) {
 						auto prov = abstract.get_province();
 						for(auto factloc : prov.get_factory_location()) {
-							auto scale = economy::factory_total_employment_score(state, factloc.get_factory());
+							auto scale = economy::factory_total_desired_employment_score(state, factloc.get_factory());
 							if(scale < economy::factory_closed_threshold) {
 								if(new_staat) {
 									text::add_to_layout_box(state, contents, box, staat.get_name(), text::text_color::yellow);
