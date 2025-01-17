@@ -17,6 +17,10 @@ enum ai_strategies {
 };
 
 float estimate_strength(sys::state& state, dcon::nation_id n) {
+	if(state.cheat_data.disable_ai) {
+		return 1.f;
+	}
+
 	float value = state.world.nation_get_military_score(n) * state.defines.alice_ai_strength_estimation_military_industrial_balance;
 	value += state.world.nation_get_industrial_score(n) * (1.f - state.defines.alice_ai_strength_estimation_military_industrial_balance);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
@@ -27,6 +31,10 @@ float estimate_strength(sys::state& state, dcon::nation_id n) {
 }
 
 float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
+	if(state.cheat_data.disable_ai) {
+		return 1.0f;
+	}
+
 	float value = estimate_strength(state, n);
 	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
 		if(!dr.get_are_allied())
@@ -452,6 +460,7 @@ void explain_ai_access_reasons(sys::state& state, dcon::nation_id target, text::
 	text::add_line_with_condition(state, contents, "ai_access_1", ai_will_grant_access(state, target, state.local_player_nation), indent);
 }
 
+// MP compliant
 void update_ai_research(sys::state& state) {
 	auto ymd_date = state.current_date.to_ymd(state.start_date);
 	auto year = uint32_t(ymd_date.year);
@@ -5166,6 +5175,7 @@ bool army_ready_for_battle(sys::state& state, dcon::nation_id n, dcon::army_id a
 	return state.world.regiment_get_org(sample_reg) > 0.7f * max_org;
 }
 
+// MP compliant
 void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		army_activity activity = army_activity(ar.get_army().get_ai_activity());
@@ -5212,6 +5222,9 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 }
 
 float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
 		return 0.0f;
@@ -5251,6 +5264,9 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.5f;
 	// account general
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
@@ -5282,6 +5298,9 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.5f;
 	// account general
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
@@ -5308,6 +5327,9 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	float strength_total = 0.f;
 	if(state.world.nation_get_is_at_war(by)) {
 		for(auto ar : state.world.in_army) {

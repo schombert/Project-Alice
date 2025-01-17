@@ -132,6 +132,7 @@ enum class command_type : uint8_t {
 	network_inactivity_ping = 123,
 
 	// console cheats
+	network_populate = 254,
 	console_command = 255,
 };
 
@@ -545,7 +546,7 @@ struct payload {
 		nbutton_data nbutton;
 		pbutton_data pbutton;
 		cheat_invention_data_t cheat_invention_data;
-		set_factory_priority_data set_factory_priority_data;
+		set_factory_priority_data set_factory_priority;
 
 		dtype() { }
 	} data;

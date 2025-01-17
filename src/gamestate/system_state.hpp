@@ -407,6 +407,9 @@ struct global_scenario_data_s { // this struct holds miscellaneous global proper
 };
 
 struct cheat_data_s {
+	bool disable_ai = true;
+	bool disable_economy = true;
+	bool disable_demography = false;
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
@@ -414,7 +417,7 @@ struct cheat_data_s {
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
-	bool daily_oos_check = false;
+	bool daily_oos_check = true;
 	bool province_names = false;
 
 	bool ecodump = false;

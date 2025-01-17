@@ -40,6 +40,7 @@
 #include "gui_technology_window.cpp"
 #include "gui_error_window.cpp"
 #include "game_scene.cpp"
+#include "SHA512.cpp"
 #include "commands.cpp"
 #include "network.cpp"
 #include "diplomatic_messages.cpp"

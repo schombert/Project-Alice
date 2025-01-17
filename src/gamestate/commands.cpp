@@ -248,8 +248,8 @@ void set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::set_factory_type_priority;
 	p.source = source;
-	p.data.set_factory_priority_data.value = value;
-	p.data.set_factory_priority_data.factory = ftid;
+	p.data.set_factory_priority.value = value;
+	p.data.set_factory_priority.factory = ftid;
 	add_to_command_queue(state, p);
 };
 bool can_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
@@ -5428,12 +5428,13 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date new_date) {
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
 			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
 #ifndef NDEBUG
-				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()));
+				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()) +
+					"|dt_local:" + state.current_date.to_string(state.start_date) + " | dt_incoming:" + new_date.to_string(state.start_date));
 #endif
 				sys::checksum_key current = state.get_save_checksum();
 				if(!current.is_equal(k)) {
@@ -5444,16 +5445,18 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 					state.console_log("client:desyncfound | Local checksum:" + local + " | " + "Incoming: " + incoming);
 #endif
 					state.network_state.out_of_sync = true;
-					state.debug_save_oos_dump();
 				}
+				state.debug_save_oos_dump();
 			}
 		}
 		state.actual_game_speed = speed;
 	}
+
+	// state.current_date = new_date;
 	state.single_game_tick();
 
 	// Notify server that we're still here
-	if(state.current_date.value % 7 == 0) {
+	if(state.current_date.value % 7 == 0 && state.network_mode == sys::network_mode_type::client) {
 		network_inactivity_ping(state, state.local_player_nation, state.current_date);
 	}
 }
@@ -5619,7 +5622,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_make_leader(state, c.source, c.data.make_leader.is_general);
 
 	case command_type::set_factory_type_priority:
-		return can_set_factory_type_priority(state, c.source, c.data.set_factory_priority_data.factory, c.data.set_factory_priority_data.value);
+		return can_set_factory_type_priority(state, c.source, c.data.set_factory_priority.factory, c.data.set_factory_priority.value);
 
 	case command_type::begin_province_building_construction:
 		return can_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
@@ -6002,7 +6005,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_make_leader(state, c.source, c.data.make_leader.is_general);
 		break;
 	case command_type::set_factory_type_priority:
-		execute_set_factory_type_priority(state, c.source, c.data.set_factory_priority_data.factory, c.data.set_factory_priority_data.value);
+		execute_set_factory_type_priority(state, c.source, c.data.set_factory_priority.factory, c.data.set_factory_priority.value);
 		break;
 	case command_type::begin_province_building_construction:
 		execute_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
@@ -6349,7 +6352,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_oos(state, c.source);
 		break;
 	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
+		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed, c.data.advance_tick.date);
 		break;
 	case command_type::notify_save_loaded:
 		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
