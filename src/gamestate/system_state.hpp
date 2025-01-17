@@ -407,8 +407,8 @@ struct global_scenario_data_s { // this struct holds miscellaneous global proper
 };
 
 struct cheat_data_s {
-	bool disable_ai = true;
-	bool disable_economy = true;
+	bool disable_ai = false;
+	bool disable_economy = false;
 	bool disable_demography = false;
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;

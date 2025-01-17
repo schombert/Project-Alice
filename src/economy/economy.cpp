@@ -5546,30 +5546,32 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 
-	state.world.execute_parallel_over_nation([&](auto nations) {
-		ve::apply([&](dcon::nation_id n) {
-			// STEP 3 update local rgo employment:
-			state.world.nation_for_each_province_ownership_as_nation(n, [&](dcon::province_ownership_id poid) {
-				auto p = state.world.province_ownership_get_province(poid);
-				bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-				auto state_instance = state.world.province_get_state_membership(p);
-				auto market = state_instance.get_market_from_local_market();
-				auto n = state_instance.get_nation_from_state_ownership();
-				auto min_wage_factor = pop_min_wage_factor(state, n);
-				auto pop_farmer_min_wage = farmer_min_wage(state, market, min_wage_factor);
-				auto pop_laborer_min_wage = laborer_min_wage(state, market, min_wage_factor);
+	if(!state.cheat_data.disable_economy && false) {
+		state.world.execute_parallel_over_nation([&](auto nations) {
+			ve::apply([&](dcon::nation_id n) {
+				// STEP 3 update local rgo employment:
+				state.world.nation_for_each_province_ownership_as_nation(n, [&](dcon::province_ownership_id poid) {
+					auto p = state.world.province_ownership_get_province(poid);
+					bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+					auto state_instance = state.world.province_get_state_membership(p);
+					auto market = state_instance.get_market_from_local_market();
+					auto n = state_instance.get_nation_from_state_ownership();
+					auto min_wage_factor = pop_min_wage_factor(state, n);
+					auto pop_farmer_min_wage = farmer_min_wage(state, market, min_wage_factor);
+					auto pop_laborer_min_wage = laborer_min_wage(state, market, min_wage_factor);
 
-				update_province_rgo_employment(
-					state,
-					p,
-					market,
-					n,
-					military::mobilization_impact(state, n),
-					is_mine ? pop_laborer_min_wage : pop_farmer_min_wage
-				);
-			});
-		}, nations);
-	});
+					update_province_rgo_employment(
+						state,
+						p,
+						market,
+						n,
+						military::mobilization_impact(state, n),
+						is_mine ? pop_laborer_min_wage : pop_farmer_min_wage
+					);
+				});
+			}, nations);
+		});
+	}
 
 	sanity_check(state);
 

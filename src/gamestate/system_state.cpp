@@ -2855,10 +2855,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
 
-	if(cheat_data.disable_economy) {
+	if(!cheat_data.disable_economy) {
 		for(auto p : world.in_province) {
 			for(auto c : world.in_commodity) {
+				p.set_rgo_profit_per_good(c, 0.f);
 				p.set_rgo_actual_production_per_good(c, 0.f);
+				p.set_rgo_employment_per_good(c, 0.f);
+				p.set_rgo_target_employment_per_good(c, 0.f);
 			}
 		}
 	}
@@ -4131,7 +4134,7 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				if (!cheat_data.disable_economy)
+				if (!cheat_data.disable_economy && false)
 					economy::update_rgo_employment(*this);
 				break;
 			case 9:
@@ -4163,7 +4166,7 @@ void state::single_game_tick() {
 			}
 		});
 
-		if(!cheat_data.disable_economy)
+		if(!cheat_data.disable_economy && false)
 			economy::daily_update(*this, false, 1.f);
 
 		//

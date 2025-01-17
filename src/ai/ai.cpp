@@ -1213,9 +1213,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
 				auto profit = (output - input) * (1.0f - rich_effect);
 				auto roi = profit / cost;
@@ -1256,9 +1256,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profit = (output - input) * (1.0f - rich_effect);
 				auto roi = profit / cost;
 
@@ -1297,9 +1297,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profit = (output - input) * (1.0f - rich_effect);
 				auto roi = profit / cost;
 
@@ -1319,9 +1319,9 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
 				if((output - input) / input > 20.f)
 					desired_types.push_back(type.id);
@@ -1354,9 +1354,9 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
 				if((lacking_output || ((output - input) / cost < 365.f)))
 					desired_types.push_back(type.id);
@@ -1381,9 +1381,9 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
 
 				if((lacking_output || ((output - input) / input > profitabilitymark)))
