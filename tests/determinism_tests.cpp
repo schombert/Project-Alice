@@ -100,7 +100,8 @@ void compare_game_states(sys::state& ws1, sys::state& ws2) {
 	auto tmp2 = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(ws2)]);
 	write_save_section(tmp2.get(), ws1);
 	REQUIRE(sizeof_save_section(ws1) == sizeof_save_section(ws2));
-	REQUIRE(std::memcmp(tmp1.get(), tmp2.get(), sizeof_save_section(ws1)) == 0);
+	// REQUIRE(std::memcmp(tmp1.get(), tmp2.get(), sizeof_save_section(ws1)) == 0);
+	REQUIRE(ws1.get_save_checksum().to_string() == ws2.get_save_checksum().to_string());
 }
 
 void checked_pop_update(sys::state& ws) {
@@ -709,7 +710,23 @@ TEST_CASE("sim_year", "[determinism]") {
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
-	for(int i = 0; i <= 365; i++) {
+	for(int i = 0; i <= 400; i++) {
 		checked_single_tick(*game_state_1, *game_state_2);
+	}
+}
+
+TEST_CASE("sim_game", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+
+	for(int i = 0; i <= 400; i++) {
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
 	}
 }
