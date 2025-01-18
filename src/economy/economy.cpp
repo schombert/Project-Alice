@@ -6159,8 +6159,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// so naturally, they don't stockpile expensive goods as much:
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
 			auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (ve_price(state, ids, c) + 1.f);
-			auto merchants_demand = ve::max(0.f, stockpile_target_merchants - stockpiles) * stockpile_to_supply;
-			auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
+
+			// when good is expensive, we want to emulate competition between merhants to sell or buy it:
+			// wage rating: earnings of population unit during the day
+			// price_rating: amount of wages a population unit can receive with price of this good
+
+			auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.market_get_labor_price(ids, labor::no_education) + 0.00001f;
+			auto price_rating = (ve_price(state, ids, c)) / local_wage_rating;
+			auto actual_stockpile_to_supply = ve::min(1.f, stockpile_to_supply + price_rating);
+
+			auto merchants_demand = ve::max(0.f, stockpile_target_merchants - stockpiles) * actual_stockpile_to_supply;
+			auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
 
 			auto production = state.world.market_get_supply(ids, c);
 			// we draw from stockpile in capital
@@ -6564,32 +6573,28 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		state.world.execute_serial_over_market([&](auto markets) {
-			if(state.world.commodity_get_money_rgo(c)) {
-				state.world.market_set_supply(markets, c, ve::fp_vector{});
-			} else {
-				auto stockpiles = state.world.market_get_stockpile(markets, c);
-				auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (ve_price(state, markets, c) + 1.f);
-				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
-				state.world.market_set_supply(markets, c, merchants_supply);
-			}
-
+			state.world.market_set_supply(markets, c, ve::fp_vector{});
 			state.world.market_set_import(markets, c, ve::fp_vector{});
 			state.world.market_set_export(markets, c, ve::fp_vector{});
-
-			for(int32_t i = 0; i < labor::total; i++) {
-				state.world.market_set_labor_supply(markets, i, 0.f);
-			}
 		});
 	});
 
-	// we can handle each trade good separately: they do not influence each other
+	for(int32_t i = 0; i < labor::total; i++) {
+		state.world.execute_serial_over_market([&](auto markets) {
+			state.world.market_set_labor_supply(markets, i, 0.f);
+		});
+	}
+
+	// we can't handle each trade good separately: they do influence common markets
+	// todo: split the logic so some part of it could be done in parallel
 	// 
 	// register trade supply
-	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
+	//concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k)
+	for(uint32_t k = 0; k < total_commodities; k++) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 
 		if(state.world.commodity_get_money_rgo(cid)) {
-			return;
+			continue;
 		}
 
 		state.world.for_each_trade_route([&](auto trade_route) {
@@ -6605,6 +6610,25 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			assert(std::isfinite(state.world.market_get_export(route_data.origin, cid)));
 			assert(std::isfinite(state.world.market_get_import(route_data.target, cid)));
+		});
+	}
+	//});
+
+	// we bought something: register supply from stockpiles:
+
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		state.world.execute_serial_over_market([&](auto markets) {
+			state.world.market_set_supply(markets, c, ve::fp_vector{});
+			if(!state.world.commodity_get_money_rgo(c)) {
+				auto stockpiles = state.world.market_get_stockpile(markets, c);
+				auto price = ve_price(state, markets, c);
+				auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price + 1.f);
+				auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.market_get_labor_price(markets, labor::no_education) + 0.00001f;
+				auto price_rating = (ve_price(state, markets, c)) / local_wage_rating;
+				auto actual_stockpile_to_supply = ve::min(1.f, stockpile_to_supply + price_rating);
+				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
+				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
+			}
 		});
 	});
 
