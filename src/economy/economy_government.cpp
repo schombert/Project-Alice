@@ -20,11 +20,11 @@ namespace economy {
 //
 // employed people in administration influence the maximum amount of taxes the nation can collect
 
-inline constexpr float base_population_per_admin = 750.f;
+inline constexpr float base_population_per_admin = 50.f;
 inline constexpr float base_admin_employment = 500.f;
-inline constexpr float base_tax_collection = 500.f;
+inline constexpr float base_tax_collection = 10000.f;
 
-// tax collector can collect taxes N times larger than his wage
+// tax collector can collect taxes N times larger than local sum of wages
 // this value is modified by tax and admin efficiency techs
 
 inline constexpr float tax_collection_multiplier = 10.f;
@@ -35,7 +35,11 @@ float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_
 	auto local_tax_collectors = state.world.nation_get_administration_employment_target_in_capital(n)
 		* state.world.market_get_labor_demand_satisfaction(local_market, economy::labor::high_education);
 
-	auto tax_collector_wage = state.world.market_get_labor_price(local_market, economy::labor::high_education);
+	auto collection_rate_per_tax_collector =
+		state.world.market_get_labor_price(local_market, economy::labor::high_education)
+		+ state.world.market_get_labor_price(local_market, economy::labor::basic_education)
+		+ state.world.market_get_labor_price(local_market, economy::labor::no_education);
+
 	auto effort =
 		float(state.world.nation_get_poor_tax(n))
 		+ float(state.world.nation_get_middle_tax(n))
@@ -45,7 +49,7 @@ float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_
 		tax_collection_global
 		* (1.f + state.world.nation_get_administrative_efficiency(n))
 		* nations::tax_efficiency(state, n)
-		* tax_collector_wage
+		* collection_rate_per_tax_collector
 		* effort / 100.f
 		* (base_tax_collection + local_tax_collectors)
 		* tax_collection_multiplier;
