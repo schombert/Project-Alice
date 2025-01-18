@@ -2854,6 +2854,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_demographics(demographics::size(*this));
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
+	world.province_resize_rgo_employment_per_good(world.commodity_size());
+	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	if(!cheat_data.disable_economy) {
 		for(auto p : world.in_province) {
@@ -2865,9 +2867,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	}
-
-	world.province_resize_rgo_employment_per_good(world.commodity_size());
-	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.trade_route_resize_volume(world.commodity_size());
 	world.nation_resize_factory_type_experience(world.factory_type_size());
@@ -4134,7 +4133,7 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				if (!cheat_data.disable_economy && false)
+				if (!cheat_data.disable_economy)
 					economy::update_rgo_employment(*this);
 				break;
 			case 9:
@@ -4166,7 +4165,8 @@ void state::single_game_tick() {
 			}
 		});
 
-		if(!cheat_data.disable_economy && false)
+		// NOT FIXED SOURCE OF OOS
+		if(!cheat_data.disable_economy)
 			economy::daily_update(*this, false, 1.f);
 
 		//
@@ -4385,8 +4385,9 @@ void state::single_game_tick() {
 				}
 				// disabled 2nd - desync fixed
 				// NOT FIXED SOURCE OF DESYNC
+				nations::generate_sea_trade_routes(*this);
+
 				if(!cheat_data.disable_economy && false) {
-					nations::generate_sea_trade_routes(*this);
 					nations::recalculate_markets_distance(*this);
 				}
 			}
