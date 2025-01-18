@@ -3,6 +3,7 @@
 
 #include "demographics.hpp"
 #include "economy.hpp"
+#include "economy_government.hpp"
 
 namespace economy {
 

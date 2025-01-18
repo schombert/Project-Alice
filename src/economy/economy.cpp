@@ -7375,7 +7375,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
 			auto speed_modifer = (overdemand_factor - oversupply_factor);
 			auto price_speed = 0.0001f * speed_modifer;
-			price_speed = price_speed;
 			current_price = current_price + price_speed;
 
 			auto sids = state.world.market_get_zone_from_local_market(ids);
