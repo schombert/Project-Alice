@@ -24,8 +24,10 @@ inline constexpr float base_population_per_admin = 750.f;
 inline constexpr float base_admin_employment = 500.f;
 inline constexpr float base_tax_collection = 500.f;
 
-// tax collector can collect taxes 3 times larger than his wage
+// tax collector can collect taxes N times larger than his wage
 // this value is modified by tax and admin efficiency techs
+
+inline constexpr float tax_collection_multiplier = 10.f;
 
 float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid) {
 	auto local_market = state.world.state_instance_get_market_from_local_market(sid);
@@ -46,7 +48,7 @@ float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_
 		* tax_collector_wage
 		* effort / 100.f
 		* (base_tax_collection + local_tax_collectors)
-		* 3.f;
+		* tax_collection_multiplier;
 }
 
 float global_admin_ratio(sys::state& state, dcon::nation_id n) {
