@@ -543,15 +543,13 @@ public:
 		auto iweight = state.defines.investment_score_factor;
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			float total_level = 0;
-			float worker_total =
-				si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)) +
-				si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+			float worker_total = 0.f;
 			float total_factory_capacity = 0;
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto f : state.world.province_get_factory_location(p)) {
-					total_factory_capacity +=
-						float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+					total_factory_capacity += economy::factory_max_employment(state, f.get_factory());
 					total_level += float(f.get_factory().get_level());
+					worker_total += economy::factory_total_employment(state, f.get_factory());
 				}
 			});
 			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);

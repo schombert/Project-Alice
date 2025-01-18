@@ -1830,7 +1830,8 @@ struct commodity_profit_holder {
 };
 
 float factory_max_employment(sys::state const& state, dcon::factory_id f) {
-	return state.defines.alice_factory_per_level_employment * state.world.factory_get_level(f);
+	auto per_level_employment = state.world.factory_type_get_base_workforce(state.world.factory_get_building_type(f));
+	return float(per_level_employment * state.world.factory_get_level(f));
 }
 
 float factory_unqualified_employment(sys::state const& state, dcon::factory_id f) {
@@ -2042,15 +2043,14 @@ void update_factory_employment(sys::state& state) {
 		auto price_speed_gradient_time =
 			price_speed_mod * (demand / supply - supply / demand);
 
+		auto per_level_employment = ve::to_float(state.world.factory_type_get_base_workforce(factory_type));
+
 		auto wage_unqualified_per_employment =
-			wage_unqualified
-			* ve::fp_vector{ state.defines.alice_factory_per_level_employment };
+			wage_unqualified * per_level_employment;
 		auto wage_unskilled_per_employment =
-			wage_unskilled
-			* ve::fp_vector{ state.defines.alice_factory_per_level_employment };
+			wage_unskilled * per_level_employment;
 		auto wage_skilled_per_employment =
-			wage_skilled
-			* ve::fp_vector{ state.defines.alice_factory_per_level_employment };
+			wage_skilled * per_level_employment;
 
 		auto current_profit =
 			(primary
@@ -2303,7 +2303,9 @@ float nation_factory_output_multiplier(sys::state const& state, dcon::factory_ty
 float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s) {
 	float total_workers = factory_max_employment(state, fac);
 	float small_size_effect = 1.f;
-	float small_bound = state.defines.alice_factory_per_level_employment * 5.f;
+	auto factory_type = state.world.factory_get_building_type(fac);
+	auto per_level_employment = state.world.factory_type_get_base_workforce(factory_type);
+	float small_bound = per_level_employment * 5.f;
 	if(total_workers < small_bound) {
 		small_size_effect = 0.5f + total_workers / small_bound * 0.5f;
 	}
