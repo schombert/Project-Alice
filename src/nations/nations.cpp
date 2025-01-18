@@ -15,6 +15,7 @@
 #include "province_templates.hpp"
 #include "rebels.hpp"
 #include "set"
+#include "economy_government.hpp"
 
 namespace nations {
 
