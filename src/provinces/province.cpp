@@ -518,7 +518,7 @@ float rgo_employment(sys::state& state, dcon::province_id id) {
 	return economy::rgo_total_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
 }
 float rgo_income(sys::state& state, dcon::province_id id) {
-	return state.world.province_get_rgo_full_profit(id);
+	return state.world.province_get_rgo_full_output_cost(id);
 }
 float rgo_production_quantity(sys::state& state, dcon::province_id id, dcon::commodity_id c) {
 	auto n = state.world.province_get_nation_from_province_ownership(id);

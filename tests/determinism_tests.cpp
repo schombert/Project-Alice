@@ -350,8 +350,6 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			military::regenerate_total_regiment_counts(ws2);
 			break;
 		case 8:
-			economy::update_rgo_employment(ws1);
-			economy::update_rgo_employment(ws2);
 			break;
 		case 9:
 			economy::update_factory_employment(ws1);

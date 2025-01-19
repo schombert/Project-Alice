@@ -6,6 +6,33 @@
 
 namespace economy {
 
+namespace labor {
+inline constexpr int32_t no_education = 0; // labourer, farmers and slaves
+inline constexpr int32_t basic_education = 1; // craftsmen
+inline constexpr int32_t high_education = 2; // clerks, clergy and bureaucrats
+inline constexpr int32_t guild_education = 3; // artisans
+inline constexpr int32_t high_education_and_accepted = 4; // clerks, clergy and bureaucrats of accepted culture
+inline constexpr int32_t total = 5;
+}
+
+namespace pop_labor {
+inline constexpr int32_t rgo_worker_no_education = 0;
+inline constexpr int32_t primary_no_education = 1;
+inline constexpr int32_t high_education_accepted_no_education = 2;
+inline constexpr int32_t high_education_not_accepted_no_education = 3;
+
+inline constexpr int32_t primary_basic_education = 4;
+inline constexpr int32_t high_education_accepted_basic_education = 5;
+inline constexpr int32_t high_education_not_accepted_basic_education = 6;
+
+inline constexpr int32_t high_education_accepted_high_education = 7;
+inline constexpr int32_t high_education_not_accepted_high_education = 8;
+
+inline constexpr int32_t high_education_accepted_high_education_accepted = 9;
+
+inline constexpr int32_t total = 10;
+}
+
 enum commodity_production_type {
 	primary,
 	derivative,
@@ -116,10 +143,11 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 constexpr inline dcon::commodity_id money(0);
 
 // move to defines later
-inline constexpr float payouts_spending_multiplier = 200.f;
+inline constexpr float payouts_spending_multiplier = 10.f;
 
 // factories:
 inline constexpr float secondary_employment_output_bonus = 3.f;
+inline constexpr float unqualified_throughput_multiplier = 0.70f;
 
 inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
@@ -127,16 +155,18 @@ inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
 inline constexpr float price_rigging = 0.015f;
-inline constexpr float production_throughput_multiplier = 2.f;
+inline constexpr float production_throughput_multiplier = 4.f;
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float stockpile_spoilage = 0.15f;
+inline constexpr float stockpile_spoilage = 0.05f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1000.f;
 
 // trade related
 inline constexpr float merchant_cut_foreign = 0.05f;
 inline constexpr float merchant_cut_domestic = 0.001f;
+inline constexpr float effect_of_transportation_scale = 0.0005f;
+inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 100.f;
 
 // greed drives incomes of corresponding pops up
 // while making life worse on average
@@ -148,8 +178,8 @@ inline constexpr float factory_pworkers_cut = 0.1f;
 inline constexpr float factory_workers_cut = factory_sworkers_cut + factory_pworkers_cut;
 inline constexpr float aristocrats_greed = 0.5f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float primary_greed = 2.f;
-inline constexpr float secondary_greed = 20.f;
+inline constexpr float labor_greed_life = 2.0f;
+inline constexpr float labor_greed_everyday = 0.f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 
 void presimulate(sys::state& state);
@@ -166,6 +196,10 @@ float price(
 	dcon::commodity_id c
 );
 float price(
+	sys::state& state,
+	dcon::commodity_id c
+);
+float median_price(
 	sys::state& state,
 	dcon::commodity_id c
 );
@@ -325,6 +359,7 @@ float rgo_total_max_employment(sys::state& state, dcon::nation_id n, dcon::provi
 float subsistence_max_pseudoemployment(sys::state& state, dcon::nation_id n, dcon::province_id p);
 
 float factory_max_employment(sys::state const& state, dcon::factory_id f);
+float factory_total_employment_score(sys::state const& state, dcon::factory_id f);
 
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
@@ -347,7 +382,8 @@ float factory_output_multiplier(sys::state const& state, dcon::factory_id fac, d
 
 float factory_desired_raw_profit(dcon::factory_id fac, float spendings);
 
-float factory_max_production_scale(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied);
+float factory_throughput_additional_multiplier(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied);
+float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
@@ -413,7 +449,6 @@ float factory_type_input_cost(
 
 float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::factory_type_id factory_type);
 
-void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage);
 void resolve_constructions(sys::state& state);
@@ -482,7 +517,6 @@ float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_export_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
-float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);

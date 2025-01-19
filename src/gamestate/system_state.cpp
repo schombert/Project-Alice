@@ -2854,7 +2854,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_demographics(demographics::size(*this));
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
-	world.province_resize_rgo_employment_per_good(world.commodity_size());
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	if(!cheat_data.disable_economy) {
@@ -2902,6 +2901,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_life_needs_weights(world.commodity_size());
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
+
+	world.market_resize_labor_price(economy::labor::total);
+	world.market_resize_labor_supply(economy::labor::total);
+	world.market_resize_labor_demand(economy::labor::total);
+	world.market_resize_labor_demand_satisfaction(economy::labor::total);
+	world.market_resize_labor_supply_sold(economy::labor::total);
+	world.market_resize_pop_labor_distribution(economy::pop_labor::total);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
@@ -3242,7 +3248,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
@@ -4133,8 +4138,6 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				if (!cheat_data.disable_economy)
-					economy::update_rgo_employment(*this);
 				break;
 			case 9:
 				if(!cheat_data.disable_economy)
@@ -4482,14 +4485,12 @@ void state::single_game_tick() {
 	 * END OF DAY: update cached data
 	 */
 
-	if(!cheat_data.disable_economy) {
-		player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-		player_data_cache.population_record[current_date.value % 32] = world.nation_get_demographics(local_player_nation, demographics::total);
-		if((current_date.value % 16) == 0) {
-			auto index = economy::most_recent_price_record_index(*this);
-			for(auto c : world.in_commodity) {
-				c.set_price_record(index, economy::price(*this, c));
-			}
+	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
+	player_data_cache.population_record[current_date.value % 32] = world.nation_get_demographics(local_player_nation, demographics::total);
+	if((current_date.value % 16) == 0) {
+		auto index = economy::most_recent_price_record_index(*this);
+		for(auto c : world.in_commodity) {
+			c.set_price_record(index, economy::median_price(*this, c));
 		}
 
 		if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
