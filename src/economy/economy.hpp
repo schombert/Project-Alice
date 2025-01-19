@@ -199,6 +199,10 @@ float price(
 	sys::state& state,
 	dcon::commodity_id c
 );
+float median_price(
+	sys::state& state,
+	dcon::commodity_id c
+);
 ve::fp_vector price(
 	sys::state const& state,
 	ve::tagged_vector<dcon::market_id> s,

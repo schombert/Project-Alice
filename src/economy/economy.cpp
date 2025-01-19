@@ -162,6 +162,19 @@ float price(sys::state& state, dcon::commodity_id c) {
 	return total_cost / total_supply;
 }
 
+float median_price(sys::state& state, dcon::commodity_id c) {
+	std::vector<float> prices{};
+	state.world.for_each_market([&](auto m) {
+		auto local_price = price(state, m, c);
+		prices.push_back(local_price);
+	});
+	std::sort(prices.begin(), prices.end());
+	if(prices.size() % 2 == 0) {
+		return (prices[prices.size() / 2] + prices[prices.size() / 2 + 1]) / 2.f;
+	}
+	return (prices[prices.size() / 2]);
+}
+
 template<typename T>
 ve::fp_vector ve_price(sys::state const& state, T s, dcon::commodity_id c) {
 	return state.world.market_get_price(s, c);
