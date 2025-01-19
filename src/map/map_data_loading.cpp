@@ -360,14 +360,18 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	if(!context.new_maps) {
 		terrain_id_map = load_bmp(context, NATIVE("terrain.bmp"), glm::ivec2(size_x, size_y), 255, nullptr);
 	} else {
-		auto root = simple_fs::get_root(context.state.common_fs);
-		auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
+		auto const root = simple_fs::get_root(context.state.common_fs);
+		auto const map_dir = simple_fs::open_directory(root, NATIVE("map"));
 		auto terrain_file = open_file(map_dir, NATIVE("alice_terrain.png"));
+		if(!terrain_file) {
+			terrain_file = open_file(map_dir, NATIVE("terrain.png"));
+		}
 		terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
 		ogl::image terrain_data;
-		if(terrain_file)
+		if(terrain_file) {
 			terrain_data = ogl::load_stb_image(*terrain_file);
+		}
 
 		auto terrain_resolution = internal_make_index_map();
 
@@ -571,6 +575,9 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 
 	// Load the province map
 	auto provinces_png = simple_fs::open_file(map_dir, NATIVE("alice_provinces.png"));
+	if(!provinces_png) {
+		provinces_png = simple_fs::open_file(map_dir, NATIVE("provinces.png"));
+	}
 	ogl::image provinces_image;
 	if(provinces_png) {
 		provinces_image = ogl::load_stb_image(*provinces_png);
@@ -621,6 +628,9 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 
 	} else {
 		auto river_file = simple_fs::open_file(map_dir, NATIVE("alice_rivers.png"));
+		if(!river_file) {
+			river_file = simple_fs::open_file(map_dir, NATIVE("rivers.png"));
+		}
 		river_data.resize(size_x * size_y, uint8_t(255));
 
 		ogl::image river_image_data;

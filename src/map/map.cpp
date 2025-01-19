@@ -2731,18 +2731,32 @@ void display_data::load_map(sys::state& state) {
 	ogl::set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	textures[texture_provinces] = load_province_map(province_id_map, size_x, size_y);
-	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-	if(!texturesheet)
-		texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.dds"));
-
+	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.png"));
+	if(!texturesheet) {
+		texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
+		if(!texturesheet) {
+			texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.dds"));
+		}
+	}
 	texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
+	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));
+	
 	textures[texture_colormap_water] = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
+	if(!textures[texture_colormap_water]) textures[texture_colormap_water] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap_water.png"));
+	
 	textures[texture_colormap_terrain] = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
+	if(!textures[texture_colormap_terrain]) textures[texture_colormap_terrain] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap.png"));
+
 	textures[texture_colormap_political] = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
+	if(!textures[texture_colormap_political]) textures[texture_colormap_political] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap_political.png"));
+	
 	textures[texture_overlay] = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
+	if(!textures[texture_overlay]) textures[texture_overlay] = ogl::make_gl_texture(map_items_dir, NATIVE("map_overlay_tile.png"));
+	
 	textures[texture_stripes] = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
+	if(!textures[texture_stripes]) textures[texture_stripes] = ogl::make_gl_texture(map_items_dir, NATIVE("stripes.png"));
 	
 	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);

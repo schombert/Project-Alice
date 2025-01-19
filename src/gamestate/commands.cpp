@@ -159,20 +159,7 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 			return state_contains_core && rank_high &&
 				(num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
 				bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
-		}
-		else if(auto ideo = state.world.national_focus_get_ideology(focus); ideo) {
-			if(state.world.ideology_get_enabled(ideo) == false ||
-						(state.world.ideology_get_is_civilized_only(ideo) && !state.world.nation_get_is_civilized(source))) {
-				return false;
-			}
-			if(!state.world.nation_get_is_great_power(source)) {
-				return false;
-			}
-
-			return (num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
-				bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}

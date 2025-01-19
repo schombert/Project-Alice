@@ -3959,13 +3959,13 @@ float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id) {
 	float mp = state.world.nation_get_demographics(nation_id, demographics::middle_total);
 	float rp = state.world.nation_get_demographics(nation_id, demographics::rich_total);
 
-	auto poor_score = (pln + pen + plun) / pp;
-	auto middle_score = (mln + men + mlun) / mp;
-	auto rich_score = (rln + ren + rlun) / rp;
-
-	auto finalscore = (poor_score * pp + middle_score * mp + rich_score * rp) * 33 / p;
-
-	return finalscore;
+	auto poor_score = (pln + pen + plun);
+	auto middle_score = (mln + men + mlun);
+	auto rich_score = (rln + ren + rlun);
+	if(p > 0)
+		return (poor_score + middle_score + rich_score) * 33 / p;
+	else
+		return 0;
 }
 
 void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount) {

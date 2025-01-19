@@ -286,7 +286,7 @@ public:
 			m.type = diplomatic_message::type::alliance_request;
 			m.from = state.local_player_nation;
 			m.to = target;
-			return command::can_ask_for_alliance(state, state.local_player_nation, target) || (!state.world.nation_get_is_player_controlled(target) && !diplomatic_message::ai_will_accept(state, m));
+			return command::can_ask_for_alliance(state, state.local_player_nation, target) && (state.world.nation_get_is_player_controlled(target) || diplomatic_message::ai_will_accept(state, m));
 		}
 	}
 
@@ -658,8 +658,7 @@ public:
 
 		if(subsidies) {
 			return state.lookup_key("cancel_warsubsidies_button");
-		}
-		else {
+		} else {
 			return state.lookup_key("warsubsidies_button");
 		}
 	}
@@ -780,7 +779,7 @@ public:
 					}
 					return false;
 					}();
-					text::add_line_with_condition(state, contents, "peace_explain_3", one_is_wl);
+				text::add_line_with_condition(state, contents, "peace_explain_3", one_is_wl);
 			}
 			text::add_line_with_condition(state, contents, "peace_explain_5", !(state.world.nation_get_peace_offer_from_pending_peace_offer(source)));
 
@@ -1769,10 +1768,9 @@ public:
 
 		text::add_line(state, contents, "state_transfer_desc");
 		text::add_line_break_to_layout(state, contents);
-		// text::add_line_with_condition(state, contents, "state_transfer_explain_1", state.world.nation_get_is_player_controlled(target));
+
 		text::add_line_with_condition(state, contents, "state_transfer_explain_2", state.current_crisis_state == sys::crisis_state::inactive);
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
-		// text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_6", state.world.nation_get_owned_state_count(source) > 1);
 	}

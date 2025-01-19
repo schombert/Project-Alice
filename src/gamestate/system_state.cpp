@@ -815,9 +815,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		current_scene.on_game_state_update_update_ui(*this);
 
-		if(ui_state.last_tooltip == tooltip_probe.under_mouse && ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+		if(ui_state.last_tooltip == tooltip_probe.under_mouse && ui_state.last_tooltip_sub_index == tooltip_sub_index && ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if(type == ui::tooltip_behavior::position_sensitive_tooltip) {
+			if(type != ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
@@ -846,7 +846,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					ui_state.tooltip->set_visible(*this, false);
 			}
 		}
-	}
+	} // END game state was updated
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse || ui_state.last_tooltip_sub_index != tooltip_sub_index) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
@@ -2332,7 +2332,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	auto history = open_directory(root, NATIVE("history"));
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
-		for(auto subdir : list_subdirectories(prov_history)) {
+		auto const load_from_dir = [&](auto const subdir) {
 			// Modding extension:
 			for(auto province_file : list_files(subdir, NATIVE(".csv"))) {
 				auto opened_file = open_file(province_file);
@@ -2342,7 +2342,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					parsers::parse_csv_province_history_file(*this, content.data, content.data + content.file_size, err, context);
 				}
 			}
-
 			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_file_name(prov_file));
 				auto name_start = file_name.c_str();
@@ -2375,6 +2374,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					}
 				}
 			}
+		};
+		load_from_dir(prov_history);
+		for(auto const& subdir : list_subdirectories(prov_history)) {
+			load_from_dir(subdir);
 		}
 	}
 	culture::set_default_issue_and_reform_options(*this);
@@ -2851,7 +2854,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_demographics(demographics::size(*this));
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
-	world.province_resize_rgo_employment_per_good(world.commodity_size());
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.trade_route_resize_volume(world.commodity_size());
@@ -2888,6 +2890,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_life_needs_weights(world.commodity_size());
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
+
+	world.market_resize_labor_price(economy::labor::total);
+	world.market_resize_labor_supply(economy::labor::total);
+	world.market_resize_labor_demand(economy::labor::total);
+	world.market_resize_labor_demand_satisfaction(economy::labor::total);
+	world.market_resize_labor_supply_sold(economy::labor::total);
+	world.market_resize_pop_labor_distribution(economy::pop_labor::total);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
@@ -3228,7 +3237,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
@@ -4111,7 +4119,6 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				economy::update_rgo_employment(*this);
 				break;
 			case 9:
 				economy::update_factory_employment(*this);
@@ -4409,7 +4416,7 @@ void state::single_game_tick() {
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
-			c.set_price_record(index, economy::price(*this, c));
+			c.set_price_record(index, economy::median_price(*this, c));
 		}
 	}
 
