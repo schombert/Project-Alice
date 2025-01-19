@@ -750,6 +750,7 @@ state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
 state_transfer_explain_6;We have more than 1 state
+state_transfer_explain_7;Must be in a subject-overlord relationship
 unit_upgrade_desc;Changes units to different type. After swap, unit strength is reduced to 1%
 unit_upgrade_explain_1;Either land or sea units are selected
 unit_upgrade_explain_2;Unit type is  unlocked
@@ -1117,6 +1118,8 @@ CANCEL_WARSUBSIDIES_DESC;Cancel monetary help to this country;
 CANCEL_WARSUBSIDIES_BUTTON;Cancel Subsidies;
 production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production line
 production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
+production_refit_factory_tooltip_3;Either can build factories
+production_refit_factory_tooltip_4;Or old and new types match in inputs or outputs
 factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
 factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$
