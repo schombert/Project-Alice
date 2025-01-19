@@ -283,11 +283,13 @@ json format_factory(sys::state& state, dcon::factory_id fid) {
 	j["output"] = format_commodity_link(state, state.world.factory_type_get_output(type));
 
 	j["actual_production"] = state.world.factory_get_actual_production(fid);
-	j["full_profit"] = state.world.factory_get_full_profit(fid);
 	j["level"] = state.world.factory_get_level(fid);
 	j["input_cost_per_worker"] = state.world.factory_get_input_cost_per_worker(fid);
 	j["output_cost_per_worker"] = state.world.factory_get_output_cost_per_worker(fid);
-	j["production_scale"] = state.world.factory_get_production_scale(fid);
+
+	 j["unqualified_employment"] = state.world.factory_get_unqualified_employment(fid);
+	 j["primary_employment"] = state.world.factory_get_primary_employment(fid);
+	 j["secondary_employment"] = state.world.factory_get_secondary_employment(fid);
 
 	return j;
 }

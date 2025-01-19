@@ -1108,7 +1108,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {//tooltip centered over ui element
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
-	} 
+	}
 }
 
 void state::on_create() {
@@ -2243,7 +2243,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 		if(!bool(military_definitions.artillery)) {
 			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
-	}
+		}
 	}
 	// make space in arrays
 
@@ -2374,7 +2374,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					}
 				}
 			}
-		};
+			};
 		load_from_dir(prov_history);
 		for(auto const& subdir : list_subdirectories(prov_history)) {
 			load_from_dir(subdir);
@@ -2855,17 +2855,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
-
-	if(!cheat_data.disable_economy) {
-		for(auto p : world.in_province) {
-			for(auto c : world.in_commodity) {
-				p.set_rgo_profit_per_good(c, 0.f);
-				p.set_rgo_actual_production_per_good(c, 0.f);
-				p.set_rgo_employment_per_good(c, 0.f);
-				p.set_rgo_target_employment_per_good(c, 0.f);
-			}
-		}
-	}
 
 	world.trade_route_resize_volume(world.commodity_size());
 	world.nation_resize_factory_type_experience(world.factory_type_size());
@@ -3747,9 +3736,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations::update_administrative_efficiency(*this);
 	rebel::update_movement_values(*this);
 
-	if(!cheat_data.disable_economy) {
-		economy::regenerate_unsaved_values(*this);
-	}
+	economy::regenerate_unsaved_values(*this);
 
 	military::regenerate_land_unit_average(*this);
 	military::regenerate_ship_scores(*this);
@@ -3826,17 +3813,14 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	//copy current day's data to the alt store
 
-	if(!cheat_data.disable_demography) {
-		province::update_cached_values(*this);
-		nations::update_cached_values(*this);
-	}
 
-	if(!cheat_data.disable_ai) {
-		ai::identify_focuses(*this);
-		ai::initialize_ai_tech_weights(*this);
-		ai::update_ai_general_status(*this);
-		ai::refresh_home_ports(*this);
-	}
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
+
+	ai::identify_focuses(*this);
+	ai::initialize_ai_tech_weights(*this);
+	ai::update_ai_general_status(*this);
+	ai::refresh_home_ports(*this);
 
 	military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(*this);
@@ -3924,177 +3908,176 @@ void state::single_game_tick() {
 	static demographics::migration_buffer cmbuf;
 	static demographics::migration_buffer imbuf;
 
-	if(!cheat_data.disable_demography) {
-		// calculate complex changes in parallel where we can, but don't actually apply the results
-		// instead, the changes are saved to be applied only after all triggers have been evaluated
-		concurrency::parallel_for(0, 7, [&](int32_t index) {
-			switch(index) {
-			case 0:
-			{
-				auto o = uint32_t(ymd_date.day);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_ideologies(*this, o, days_in_month, idbuf);
-				break;
-			}
-			case 1:
-			{
-				auto o = uint32_t(ymd_date.day + 1);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_issues(*this, o, days_in_month, isbuf);
-				break;
-			}
-			case 2:
-			{
-				auto o = uint32_t(ymd_date.day + 6);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_type_changes(*this, o, days_in_month, pbuf);
-				break;
-			}
-			case 3:
-			{
-				auto o = uint32_t(ymd_date.day + 7);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_assimilation(*this, o, days_in_month, abuf);
-				break;
-			}
-			case 4:
-			{
-				auto o = uint32_t(ymd_date.day + 8);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_internal_migration(*this, o, days_in_month, mbuf);
-				break;
-			}
-			case 5:
-			{
-				auto o = uint32_t(ymd_date.day + 9);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
-				break;
-			}
-			case 6:
-			{
-				auto o = uint32_t(ymd_date.day + 10);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_immigration(*this, o, days_in_month, imbuf);
-				break;
-			}
-			default:
-				break;
-			}
-		});
-
-		// apply in parallel where we can
-		concurrency::parallel_for(0, 8, [&](int32_t index) {
-			switch(index) {
-			case 0:
-			{
-				auto o = uint32_t(ymd_date.day + 0);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::apply_ideologies(*this, o, days_in_month, idbuf);
-				break;
-			}
-			case 1:
-			{
-				auto o = uint32_t(ymd_date.day + 1);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::apply_issues(*this, o, days_in_month, isbuf);
-				break;
-			}
-			case 2:
-			{
-				auto o = uint32_t(ymd_date.day + 2);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_militancy(*this, o, days_in_month);
-				break;
-			}
-			case 3:
-			{
-				auto o = uint32_t(ymd_date.day + 3);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_consciousness(*this, o, days_in_month);
-				break;
-			}
-			case 4:
-			{
-				auto o = uint32_t(ymd_date.day + 4);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_literacy(*this, o, days_in_month);
-				break;
-			}
-			case 5:
-			{
-				auto o = uint32_t(ymd_date.day + 5);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_growth(*this, o, days_in_month);
-				break;
-			}
-			case 6:
-				province::ve_for_each_land_province(*this,
-						[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
-				break;
-			case 7:
-				province::ve_for_each_land_province(*this,
-						[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
-				break;
-			default:
-				break;
-			}
-		});
-
-		// because they may add pops, these changes must be applied sequentially
+	// calculate complex changes in parallel where we can, but don't actually apply the results
+	// instead, the changes are saved to be applied only after all triggers have been evaluated
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
+		switch(index) {
+		case 0:
+		{
+			auto o = uint32_t(ymd_date.day);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_ideologies(*this, o, days_in_month, idbuf);
+			break;
+		}
+		case 1:
+		{
+			auto o = uint32_t(ymd_date.day + 1);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_issues(*this, o, days_in_month, isbuf);
+			break;
+		}
+		case 2:
 		{
 			auto o = uint32_t(ymd_date.day + 6);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+			demographics::update_type_changes(*this, o, days_in_month, pbuf);
+			break;
 		}
+		case 3:
 		{
 			auto o = uint32_t(ymd_date.day + 7);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::apply_assimilation(*this, o, days_in_month, abuf);
+			demographics::update_assimilation(*this, o, days_in_month, abuf);
+			break;
 		}
+		case 4:
 		{
 			auto o = uint32_t(ymd_date.day + 8);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
+			demographics::update_internal_migration(*this, o, days_in_month, mbuf);
+			break;
 		}
+		case 5:
 		{
 			auto o = uint32_t(ymd_date.day + 9);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
+			demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
+			break;
 		}
+		case 6:
 		{
 			auto o = uint32_t(ymd_date.day + 10);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::apply_immigration(*this, o, days_in_month, imbuf);
+			demographics::update_immigration(*this, o, days_in_month, imbuf);
+			break;
 		}
+		default:
+			break;
+		}
+	});
 
-		demographics::remove_size_zero_pops(*this);
+	// apply in parallel where we can
+	concurrency::parallel_for(0, 8, [&](int32_t index) {
+		switch(index) {
+		case 0:
+		{
+			auto o = uint32_t(ymd_date.day + 0);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::apply_ideologies(*this, o, days_in_month, idbuf);
+			break;
+		}
+		case 1:
+		{
+			auto o = uint32_t(ymd_date.day + 1);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::apply_issues(*this, o, days_in_month, isbuf);
+			break;
+		}
+		case 2:
+		{
+			auto o = uint32_t(ymd_date.day + 2);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_militancy(*this, o, days_in_month);
+			break;
+		}
+		case 3:
+		{
+			auto o = uint32_t(ymd_date.day + 3);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_consciousness(*this, o, days_in_month);
+			break;
+		}
+		case 4:
+		{
+			auto o = uint32_t(ymd_date.day + 4);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_literacy(*this, o, days_in_month);
+			break;
+		}
+		case 5:
+		{
+			auto o = uint32_t(ymd_date.day + 5);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_growth(*this, o, days_in_month);
+			break;
+		}
+		case 6:
+			province::ve_for_each_land_province(*this,
+					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
+			break;
+		case 7:
+			province::ve_for_each_land_province(*this,
+					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+			break;
+		default:
+			break;
+		}
+	});
 
-		// basic repopulation of demographics derived values
-
-		int64_t pc_difference = 0;
-
-		if(network_mode != network_mode_type::single_player)
-			demographics::regenerate_from_pop_data_daily(*this);
+	// because they may add pops, these changes must be applied sequentially
+	{
+		auto o = uint32_t(ymd_date.day + 6);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_type_changes(*this, o, days_in_month, pbuf);
 	}
+	{
+		auto o = uint32_t(ymd_date.day + 7);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_assimilation(*this, o, days_in_month, abuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 8);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 9);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 10);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_immigration(*this, o, days_in_month, imbuf);
+	}
+
+	demographics::remove_size_zero_pops(*this);
+
+	// basic repopulation of demographics derived values
+
+	int64_t pc_difference = 0;
+
+	if(network_mode != network_mode_type::single_player)
+		demographics::regenerate_from_pop_data_daily(*this);
+
 	//
 	// ALTERNATE PAR DEMO START POINT A
 	//
@@ -4104,9 +4087,7 @@ void state::single_game_tick() {
 		concurrency::parallel_for(0, 17, [&](int32_t index) {
 			switch(index) {
 			case 0:
-				if(!cheat_data.disable_ai) {
-					ai::refresh_home_ports(*this);
-				}
+				ai::refresh_home_ports(*this);
 				break;
 			case 1:
 				// Instant research cheat
@@ -4140,8 +4121,7 @@ void state::single_game_tick() {
 			case 8:
 				break;
 			case 9:
-				if(!cheat_data.disable_economy)
-					economy::update_factory_employment(*this);
+				economy::update_factory_employment(*this);
 				break;
 			case 10:
 				nations::update_administrative_efficiency(*this);
@@ -4168,9 +4148,7 @@ void state::single_game_tick() {
 			}
 		});
 
-		// NOT FIXED SOURCE OF OOS
-		if(!cheat_data.disable_economy)
-			economy::daily_update(*this, false, 1.f);
+		economy::daily_update(*this, false, 1.f);
 
 		//
 		// ALTERNATE PAR DEMO START POINT B
@@ -4200,26 +4178,21 @@ void state::single_game_tick() {
 		politics::update_elections(*this);
 
 		if(current_date.value % 4 == 0) {
-			if(!cheat_data.disable_ai) {
-				ai::update_ai_colonial_investment(*this);
-			}
+			ai::update_ai_colonial_investment(*this);
 		}
 
-		if(defines.alice_eval_ai_mil_everyday != 0.0f && !cheat_data.disable_ai) {
+		if(defines.alice_eval_ai_mil_everyday != 0.0f) {
 			ai::make_defense(*this);
 			ai::make_attacks(*this);
 			ai::update_ships(*this);
 		}
-		if(!cheat_data.disable_ai) {
-			ai::take_ai_decisions(*this);
-		}
+		ai::take_ai_decisions(*this);
 
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
 		case 1:
 			nations::update_monthly_points(*this);
-			if(!cheat_data.disable_economy)
-				economy::prune_factories(*this);
+			economy::prune_factories(*this);
 			break;
 		case 2:
 			province::update_blockaded_cache(*this);
@@ -4227,13 +4200,11 @@ void state::single_game_tick() {
 			break;
 		case 3:
 			military::monthly_leaders_update(*this);
-			if(!cheat_data.disable_ai) {
-				ai::add_gw_goals(*this);
-			}
+			ai::add_gw_goals(*this);
 			break;
 		case 4:
 			military::reinforce_regiments(*this);
-			if(!bool(defines.alice_eval_ai_mil_everyday) && !cheat_data.disable_ai) {
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
 				ai::make_defense(*this);
 			}
 			break;
@@ -4242,17 +4213,13 @@ void state::single_game_tick() {
 			rebel::update_factions(*this);
 			break;
 		case 6:
-			if(!cheat_data.disable_ai) {
-				ai::form_alliances(*this);
-				if(!bool(defines.alice_eval_ai_mil_everyday)) {
-					ai::make_attacks(*this);
-				}
+			ai::form_alliances(*this);
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
+				ai::make_attacks(*this);
 			}
 			break;
 		case 7:
-			if(!cheat_data.disable_ai) {
-				ai::update_ai_general_status(*this);
-			}
+			ai::update_ai_general_status(*this);
 			break;
 		case 8:
 			military::apply_attrition(*this);
@@ -4272,63 +4239,45 @@ void state::single_game_tick() {
 			rebel::rebel_hunting_check(*this);
 			break;
 		case 13:
-			if(!cheat_data.disable_ai) {
-				ai::perform_influence_actions(*this);
-			}
+			ai::perform_influence_actions(*this);
 			break;
 		case 14:
-			if(!cheat_data.disable_ai) {
-				ai::update_focuses(*this);
-			}
+			ai::update_focuses(*this);
 			break;
 		case 15:
 			culture::discover_inventions(*this);
 			break;
 		case 16:
-			if(!cheat_data.disable_ai) {
-				ai::build_ships(*this);
-			}
+			ai::build_ships(*this);
 			break;
 		case 17:
-			if(!cheat_data.disable_ai) {
-				ai::update_land_constructions(*this);
-			}
+			ai::update_land_constructions(*this);
 			break;
 		case 18:
-			if(!cheat_data.disable_ai) {
-				ai::update_ai_econ_construction(*this);
-			}
+			ai::update_ai_econ_construction(*this);
 			break;
 		case 19:
-			if(!cheat_data.disable_ai) {
-				ai::update_budget(*this);
-			}
+			ai::update_budget(*this);
 			break;
 		case 20:
 			nations::monthly_flashpoint_update(*this);
-			if(!bool(defines.alice_eval_ai_mil_everyday) && !cheat_data.disable_ai) {
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
 				ai::make_defense(*this);
 			}
 			break;
 		case 21:
-			if(!cheat_data.disable_ai) {
-				ai::update_ai_colony_starting(*this);
-			}
+			ai::update_ai_colony_starting(*this);
 			break;
 		case 22:
-			if(!cheat_data.disable_ai) {
-				ai::take_reforms(*this);
-			}
+			ai::take_reforms(*this);
 			break;
 		case 23:
-			if(!cheat_data.disable_ai) {
-				ai::civilize(*this);
-				ai::make_war_decs(*this);
-			}
+			ai::civilize(*this);
+			ai::make_war_decs(*this);
 			break;
 		case 24:
 			rebel::execute_rebel_victories(*this);
-			if(!bool(defines.alice_eval_ai_mil_everyday) && !cheat_data.disable_ai) {
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
 				ai::make_attacks(*this);
 			}
 			rebel::update_armies(*this);
@@ -4338,35 +4287,27 @@ void state::single_game_tick() {
 			rebel::execute_province_defections(*this);
 			break;
 		case 26:
-			if(!cheat_data.disable_ai) {
-				ai::make_peace_offers(*this);
-			}
+			ai::make_peace_offers(*this);
 			break;
 		case 27:
-			if(!cheat_data.disable_ai) {
-				ai::update_crisis_leaders(*this);
-			}
+			ai::update_crisis_leaders(*this);
 			break;
 		case 28:
 			rebel::rebel_risings_check(*this);
 			break;
 		case 29:
-			if(!cheat_data.disable_ai) {
-				ai::update_war_intervention(*this);
-			}
+			ai::update_war_intervention(*this);
 			break;
 		case 30:
-			if(!bool(defines.alice_eval_ai_mil_everyday) && !cheat_data.disable_ai) {
+			if(!bool(defines.alice_eval_ai_mil_everyday)) {
 				ai::update_ships(*this);
 			}
 			rebel::update_armies(*this);
 			rebel::rebel_hunting_check(*this);
 			break;
 		case 31:
-			if(!cheat_data.disable_ai) {
-				ai::update_cb_fabrication(*this);
-				ai::update_ai_ruling_party(*this);
-			}
+			ai::update_cb_fabrication(*this);
+			ai::update_ai_ruling_party(*this);
 			break;
 		default:
 			break;
@@ -4377,24 +4318,16 @@ void state::single_game_tick() {
 		if(ymd_date.day == 1) {
 			if(ymd_date.month == 1) {
 				// yearly update : redo the upper house
-				// Something here caused OOS on 1st of January 1817
 				for(auto n : world.in_nation) {
 					if(n.get_owned_province_count() != 0)
 						politics::recalculate_upper_house(*this, n);
 				}
-				// disabled 1st - no result
-				if(!cheat_data.disable_ai) {
-					ai::update_influence_priorities(*this);
-				}
-				// disabled 2nd - desync fixed
-				// NOT FIXED SOURCE OF DESYNC
-				nations::generate_sea_trade_routes(*this);
 
-				if(!cheat_data.disable_economy && false) {
-					nations::recalculate_markets_distance(*this);
-				}
+				ai::update_influence_priorities(*this);
+				nations::generate_sea_trade_routes(*this);
+				nations::recalculate_markets_distance(*this);
 			}
-			if(ymd_date.month == 2 && !cheat_data.disable_ai) {
+			if(ymd_date.month == 2) {
 				ai::upgrade_colonies(*this);
 			}
 			if(ymd_date.month == 3 && !national_definitions.on_quarterly_pulse.empty()) {
@@ -4407,7 +4340,7 @@ void state::single_game_tick() {
 			if(ymd_date.month == 4 && ymd_date.year % 2 == 0) { // the purge
 				demographics::remove_small_pops(*this);
 			}
-			if(ymd_date.month == 5 && !cheat_data.disable_ai) {
+			if(ymd_date.month == 5) {
 				ai::prune_alliances(*this);
 				ai::update_factory_types_priority(*this);
 			}
@@ -4419,9 +4352,7 @@ void state::single_game_tick() {
 				}
 			}
 			if(ymd_date.month == 7) {
-				if(!cheat_data.disable_ai) {
-					ai::update_influence_priorities(*this);
-				}
+				ai::update_influence_priorities(*this);
 				nations::recalculate_markets_distance(*this);
 			}
 			if(ymd_date.month == 9 && !national_definitions.on_quarterly_pulse.empty()) {
@@ -4438,7 +4369,7 @@ void state::single_game_tick() {
 					}
 				}
 			}
-			if(ymd_date.month == 11 && !cheat_data.disable_ai) {
+			if(ymd_date.month == 11) {
 				ai::prune_alliances(*this);
 			}
 			if(ymd_date.month == 12 && !national_definitions.on_quarterly_pulse.empty()) {
@@ -4450,17 +4381,12 @@ void state::single_game_tick() {
 			}
 		}
 
-		if(!cheat_data.disable_ai) {
-			ai::general_ai_unit_tick(*this);
-		}
+		ai::general_ai_unit_tick(*this);
 
 		military::run_gc(*this);
 		nations::run_gc(*this);
 		military::update_blackflag_status(*this);
-
-		if(!cheat_data.disable_ai) {
-			ai::daily_cleanup(*this);
-		}
+		ai::daily_cleanup(*this);
 
 		province::update_connected_regions(*this);
 		province::update_cached_values(*this);
@@ -4473,7 +4399,7 @@ void state::single_game_tick() {
 	}
 	);
 
-	if(network_mode == network_mode_type::single_player && !cheat_data.disable_demography) {
+	if(network_mode == network_mode_type::single_player) {
 		world.nation_swap_demographics_demographics_alt();
 		world.state_instance_swap_demographics_demographics_alt();
 		world.province_swap_demographics_demographics_alt();
@@ -4492,12 +4418,12 @@ void state::single_game_tick() {
 		for(auto c : world.in_commodity) {
 			c.set_price_record(index, economy::median_price(*this, c));
 		}
+	}
 
-		if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
-			auto index = economy::most_recent_gdp_record_index(*this);
-			for(auto n : world.in_nation) {
-				n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
-			}
+	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
+		auto index = economy::most_recent_gdp_record_index(*this);
+		for(auto n : world.in_nation) {
+			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
 		}
 	}
 
@@ -5813,7 +5739,7 @@ void selected_ships_clear(sys::state& state) {
 			state.selected_ships[i] = dcon::ship_id{};
 		} else {
 			break;
-}
+		}
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
