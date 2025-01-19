@@ -4416,7 +4416,7 @@ void state::single_game_tick() {
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
-			c.set_price_record(index, economy::price(*this, c));
+			c.set_price_record(index, economy::median_price(*this, c));
 		}
 	}
 
