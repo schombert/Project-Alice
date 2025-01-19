@@ -621,8 +621,6 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 					return false;
 				}
 			}
-
-
 		} else {
 			if((rules & issue_rule::build_factory) == 0)
 				return false;

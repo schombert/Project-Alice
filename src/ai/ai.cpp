@@ -2372,6 +2372,10 @@ bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::full
 	auto offer_bits = state.world.cb_type_get_type_bits(offer.cb);
 	if((offer_bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) != 0)
 		return true;
+
+	// GPs accept unequal treaties as crisis offer
+	if(state.world.nation_get_is_great_power(n) && (offer_bits & (military::cb_flag::po_unequal_treaty)) != 0)
+		return true;
 	return false;
 }
 
