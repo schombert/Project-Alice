@@ -65,48 +65,32 @@ inline void init(sys::state& state) noexcept {
 
 	});
 
+	svr.Get(R"(/nation/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto nationnum = std::atoi(match.str().c_str());
+
+		dcon::nation_id n{ dcon::nation_id::value_base_t(nationnum) };
+
+		auto j = format_nation(state, n);
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/factory/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto facnum = std::atoi(match.str().c_str());
+		dcon::factory_id f{ dcon::factory_id::value_base_t(facnum) };
+
+		auto j = format_factory(state, f);
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
 	svr.Get("/commodities", [&](const httplib::Request& req, httplib::Response& res) {
 		json jlist = json::array();
 
 		for(auto commodity : state.world.in_commodity) {
-				auto id = commodity.id.index();
-
-				auto commodity_name = text::produce_simple_string(state, state.world.commodity_get_name(commodity));
-				
-				json j = json::object();
-
-				j["id"] = id;
-				j["name"] = commodity_name;
-
-				{
-					json jplist = json::array();
-					for(auto n : state.world.in_nation)
-						if(n.get_owned_province_count() != 0) {
-							json jel = format_nation(state, n);
-							jel["supply"] = economy::supply(state, n, commodity);
-
-							if(jel["supply"] > 0.0f) {
-								jplist.push_back(jel);
-							}
-						}
-					j["producers"] = jplist;
-				}
-				{
-					json jblist = json::array();
-					for(auto n : state.world.in_nation)
-						if(n.get_owned_province_count() != 0) {
-							json jel = format_nation(state, n);
-							jel["demand"] = economy::demand(state, n, commodity);
-
-							if(jel["demand"] > 0.0f) {
-								jblist.push_back(jel);
-							}
-						}
-
-					j["consumers"] = jblist;
-				}
-
-				jlist.push_back(j);
+			jlist.push_back(format_commodity(state, commodity));
 		}
 
 		res.set_content(jlist.dump(), "text/plain");
@@ -209,7 +193,7 @@ inline void init(sys::state& state) noexcept {
 		auto match = req.matches[1];
 		auto statenum = std::atoi(match.str().c_str());
 
-		dcon::state_instance_id s{ dcon::province_id::value_base_t(statenum) };
+		dcon::state_instance_id s{ dcon::state_instance_id::value_base_t(statenum) };
 
 		auto j = format_state(state, s);
 
