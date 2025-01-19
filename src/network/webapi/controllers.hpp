@@ -56,23 +56,7 @@ inline void init(sys::state& state) noexcept {
 		json jlist = json::array();
 
 		for(auto nation : state.world.in_nation) {
-				auto nation_ppp_gdp_text = text::format_float(economy::gdp_adjusted(state, nation.id));
-				float population = state.world.nation_get_demographics(nation.id, demographics::total);
-				auto nation_ppp_gdp_per_capita_text = text::format_float(economy::gdp_adjusted(state, nation.id) / population * 1000000.f);
-				auto nation_sol_text = text::format_float(demographics::calculate_nation_sol(state, nation.id));
-
-				auto national_bank = state.world.nation_get_national_bank(nation);
-				auto state_debt = nations::get_debt(state, nation);
-
 				json j = format_nation(state, nation);
-
-				j["population"] = population;
-				j["nation_ppp_gdp"] = nation_ppp_gdp_text;
-				j["nation_ppp_gdp_per_capita"] = nation_ppp_gdp_per_capita_text;
-				j["nation_sol"] = nation_sol_text;
-
-				j["national_bank"] = national_bank;
-				j["state_debt"] = state_debt;
 
 				jlist.push_back(j);
 			}
@@ -219,6 +203,17 @@ inline void init(sys::state& state) noexcept {
 		}
 
 		res.set_content(jlist.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/state/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto statenum = std::atoi(match.str().c_str());
+
+		dcon::state_instance_id s{ dcon::province_id::value_base_t(statenum) };
+
+		auto j = format_state(state, s);
+
+		res.set_content(j.dump(), "text/plain");
 	});
 
 	svr.Get("/wars", [&](const httplib::Request& req, httplib::Response& res) {

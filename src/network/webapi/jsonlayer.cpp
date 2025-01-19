@@ -1,4 +1,9 @@
 #include "json.hpp"
+#include "container_types.hpp"
+#include "commands.hpp"
+#include "system_state.hpp"
+#include "parsers.hpp"
+#include "demographics.hpp"
 
 using json = nlohmann::json;
 
@@ -26,6 +31,36 @@ json format_nation(sys::state& state, dcon::nation_id n) {
 
 	j["color"] = format_color(state, color);
 
+	auto nation_ppp_gdp_text = text::format_float(economy::gdp_adjusted(state, n));
+	float population = state.world.nation_get_demographics(n, demographics::total);
+	auto nation_ppp_gdp_per_capita_text = text::format_float(economy::gdp_adjusted(state, n) / population * 1000000.f);
+	auto nation_sol_text = text::format_float(demographics::calculate_nation_sol(state, n));
+
+	auto national_bank = state.world.nation_get_national_bank(n);
+	auto state_debt = nations::get_debt(state, n);
+
+	j["population"] = population;
+	j["nation_ppp_gdp"] = nation_ppp_gdp_text;
+	j["nation_ppp_gdp_per_capita"] = nation_ppp_gdp_per_capita_text;
+	j["nation_sol"] = nation_sol_text;
+
+	j["national_bank"] = national_bank;
+	j["state_debt"] = state_debt;
+
+	return j;
+}
+
+json format_nation_link(sys::state& state, dcon::nation_id n) {
+	json j = json::object();
+
+	j["id"] = n.index();
+	j["name"] = text::produce_simple_string(state, text::get_name(state, n));
+
+	auto identity = state.world.nation_get_identity_from_identity_holder(n);
+	auto color = state.world.national_identity_get_color(identity);
+
+	j["color"] = format_color(state, color);
+
 	return j;
 }
 
@@ -40,7 +75,7 @@ json format_nation(sys::state& state, dcon::national_identity_id n) {
 	return j;
 }
 
-json format_state(sys::state& state, dcon::state_instance_id stid, int depth) {
+json format_state(sys::state& state, dcon::state_instance_id stid) {
 	auto state_name = text::get_dynamic_state_name(state, stid);
 	// text::produce_simple_string(state, state.world.state_instance_get_name(stid));
 	auto capital = state.world.state_instance_get_capital(stid);
@@ -52,25 +87,34 @@ json format_state(sys::state& state, dcon::state_instance_id stid, int depth) {
 
 	j["id"] = stid.index();
 	j["name"] = state_name;
-	j["owner"] = format_nation(state, owner);
+	j["owner"] = format_nation_link(state, owner);
 
-	if(depth > 0) {
-		j["capital"] = format_province(state, capital, depth - 1);
+	j["capital"] = format_province_link(state, capital);
 
-		json jlist = json::array();
-		for(auto p : state.world.in_province) {
-			if(p.get_abstract_state_membership().get_state() == def) {
-				jlist.push_back(format_province(state, p, depth - 1));
-			}
+	json jlist = json::array();
+	for(auto p : state.world.in_province) {
+		if(p.get_abstract_state_membership().get_state() == def) {
+			jlist.push_back(format_province_link(state, p));
 		}
-
-		j["provinces"] = jlist;
 	}
+
+	j["provinces"] = jlist;
 
 	return j;
 }
 
-json format_province(sys::state& state, dcon::province_id prov, int depth) {
+json format_state_link(sys::state& state, dcon::state_instance_id stid) {
+	auto state_name = text::get_dynamic_state_name(state, stid);
+
+	json j = json::object();
+
+	j["id"] = stid.index();
+	j["name"] = state_name;
+
+	return j;
+}
+
+json format_province(sys::state& state, dcon::province_id prov) {
 	auto province_name = text::produce_simple_string(state, state.world.province_get_name(prov));
 
 	auto owner = state.world.province_get_nation_from_province_ownership(prov);
@@ -95,15 +139,25 @@ json format_province(sys::state& state, dcon::province_id prov, int depth) {
 	j["id"] = prov.index();
 	j["name"] = province_name;
 
-	if(depth > 0) {
-		j["owner"] = format_nation(state, owner);
-		j["state"] = format_state(state, sid);
-	}
+	j["owner"] = format_nation_link(state, owner);
+	j["state"] = format_state_link(state, sid);
+
 	j["population"]["total"] = prov_population;
 	j["population"]["capitalist"] = num_capitalist;
 	j["population"]["aristocrat"] = num_aristocrat;
 
 	j["rgo"] = text::produce_simple_string(state, state.world.commodity_get_name(rgo));
+
+	return j;
+}
+
+json format_province_link(sys::state& state, dcon::province_id prov) {
+	auto province_name = text::produce_simple_string(state, state.world.province_get_name(prov));
+
+	json j = json::object();
+
+	j["id"] = prov.index();
+	j["name"] = province_name;
 
 	return j;
 }
