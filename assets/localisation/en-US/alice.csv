@@ -1074,6 +1074,7 @@ et_on_po_accepted;The effects executed from accepting a peace offer with this wa
 alice_no_possible_units;No possible units can be built, and no units are in construction.
 alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
+alice_loan_size_mod;Max loan free money modifier: ?G+$x$
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
 alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:

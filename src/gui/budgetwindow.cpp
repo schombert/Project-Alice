@@ -4243,6 +4243,9 @@ void budgetwindow_main_debt_enable_t::update_tooltip(sys::state& state, int32_t 
 		text::add_line(state, contents, "alice_debt_spending");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "alice_loan_size", text::variable_type::x, text::fp_currency{ economy::max_loan(state, state.local_player_nation) });
+
+		auto mod = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_loan_modifier);
+		text::add_line(state, contents, "alice_loan_size_mod", text::variable_type::x, text::fp_percentage_one_place{ mod });
 	}
 // END
 }
