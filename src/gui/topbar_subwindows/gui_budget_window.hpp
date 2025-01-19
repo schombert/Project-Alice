@@ -1383,7 +1383,7 @@ public:
 template<culture::pop_strata Strata, budget_slider_target BudgetTarget>
 class budget_stratified_tax_income_text : public budget_scaled_monetary_value_text {
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
-		vals[uint8_t(BudgetTarget)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, Strata);
+		// vals[uint8_t(BudgetTarget)] = economy::estimate_tax_income_by_strata(state, state.local_player_nation, Strata);
 	}
 };
 
@@ -1405,12 +1405,14 @@ public:
 class budget_income_projection_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		/*
 		vals[uint8_t(budget_slider_target::poor_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
 		vals[uint8_t(budget_slider_target::middle_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
 		vals[uint8_t(budget_slider_target::rich_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
+		*/
 		vals[uint8_t(budget_slider_target::gold_income)] = economy::estimate_gold_income(state, state.local_player_nation);
 	}
 };
@@ -1441,12 +1443,12 @@ class budget_balance_projection_text : public budget_scaled_monetary_value_text 
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
 		// income
-		vals[uint8_t(budget_slider_target::poor_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
-		vals[uint8_t(budget_slider_target::middle_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
-		vals[uint8_t(budget_slider_target::rich_tax)] =
-				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
+		//vals[uint8_t(budget_slider_target::poor_tax)] =
+		//		economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::poor);
+		//vals[uint8_t(budget_slider_target::middle_tax)] =
+		//		economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
+		//vals[uint8_t(budget_slider_target::rich_tax)] =
+		//		economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
 		vals[uint8_t(budget_slider_target::gold_income)] = economy::estimate_gold_income(state, state.local_player_nation);
 
 		// spend

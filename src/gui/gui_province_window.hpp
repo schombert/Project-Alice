@@ -2682,8 +2682,8 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = state.world.province_get_rgo_employment_per_good(p, a);
-		auto bv = state.world.province_get_rgo_employment_per_good(p, b);
+		auto av = state.world.province_get_rgo_target_employment_per_good(p, a);
+		auto bv = state.world.province_get_rgo_target_employment_per_good(p, b);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2695,7 +2695,7 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto value = state.world.province_get_rgo_employment_per_good(p, id);
+		auto value = state.world.province_get_rgo_target_employment_per_good(p, id) * state.world.market_get_labor_demand_satisfaction(m, economy::labor::no_education);
 		return text::format_wholenum(int32_t(value));
 	}
 };
@@ -2739,8 +2739,8 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 		auto ae = economy::rgo_max_employment(state, n, p, a);
 		auto be = economy::rgo_max_employment(state, n, p, b);
 
-		auto av = state.world.province_get_rgo_employment_per_good(p, a);
-		auto bv = state.world.province_get_rgo_employment_per_good(p, b);
+		auto av = state.world.province_get_rgo_target_employment_per_good(p, a);
+		auto bv = state.world.province_get_rgo_target_employment_per_good(p, b);
 
 		auto ar = ae > 0.f ? av / ae : 0.f;
 		auto br = be > 0.f ? bv / be : 0.f;
@@ -2757,7 +2757,7 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
 		auto e = economy::rgo_max_employment(state, n, p, id);
-		auto v = state.world.province_get_rgo_employment_per_good(p, id);
+		auto v = state.world.province_get_rgo_target_employment_per_good(p, id);
 		auto r = e > 0.f ? v / e : 0.f;
 
 		return text::format_percentage(r);

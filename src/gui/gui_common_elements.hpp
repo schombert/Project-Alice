@@ -543,15 +543,13 @@ public:
 		auto iweight = state.defines.investment_score_factor;
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			float total_level = 0;
-			float worker_total =
-				si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)) +
-				si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+			float worker_total = 0.f;
 			float total_factory_capacity = 0;
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto f : state.world.province_get_factory_location(p)) {
-					total_factory_capacity +=
-						float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+					total_factory_capacity += economy::factory_max_employment(state, f.get_factory());
 					total_level += float(f.get_factory().get_level());
+					worker_total += economy::factory_total_employment(state, f.get_factory());
 				}
 			});
 			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
@@ -1627,7 +1625,7 @@ public:
 		text::close_layout_box(contents, row_1);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto rgo_employment = state.world.province_get_rgo_employment_per_good(p, c);
+			auto rgo_employment = state.world.province_get_rgo_target_employment_per_good(p, c) * state.world.market_get_labor_demand_satisfaction(m, economy::labor::no_education);
 			auto current_employment = int64_t(rgo_employment);
 			auto max_employment = int64_t(economy::rgo_max_employment(state, n, p, c));
 			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, m, n, c);
@@ -1731,7 +1729,11 @@ class factory_income_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto factory_id = retrieve<dcon::factory_id>(state, parent);
-		set_text(state, text::format_float(state.world.factory_get_full_profit(factory_id), 2));
+		set_text(state, text::format_float(
+			state.world.factory_get_full_output_cost(factory_id)
+			- state.world.factory_get_full_input_cost(factory_id)
+			- state.world.factory_get_full_labor_cost(factory_id)
+		, 2));
 	}
 };
 class factory_workers_text : public simple_text_element_base {
@@ -1756,7 +1758,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
 
-		auto profit = state.world.factory_get_full_profit(content);
+		auto profit = state.world.factory_get_full_output_cost(content)
+			- state.world.factory_get_full_input_cost(content)
+			- state.world.factory_get_full_labor_cost(content);
 		bool is_positive = profit >= 0.f;
 		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 		// Create colour
@@ -1773,7 +1777,9 @@ class factory_income_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
-		float profit = state.world.factory_get_full_profit(content);
+		float profit = state.world.factory_get_full_output_cost(content)
+			- state.world.factory_get_full_input_cost(content)
+			- state.world.factory_get_full_labor_cost(content);
 
 		if(profit > 0.f) {
 			frame = 0;
