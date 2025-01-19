@@ -61,6 +61,8 @@ public:
 	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) {
 
 	}
+	virtual ~diplomacy_action_btn_logic() {
+	};
 };
 
 

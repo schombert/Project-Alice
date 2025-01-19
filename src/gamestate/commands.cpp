@@ -5659,6 +5659,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::console_command:
 		return true;
+	case command_type::grant_province:
+		return false;
 	}
 	return false;
 }
@@ -6040,6 +6042,8 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::console_command:
 		execute_console_command(state);
+		break;
+	case command_type::grant_province:
 		break;
 	}
 }

@@ -39,10 +39,10 @@ bool is_infantry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id
 		return true;
 	}
 	auto curbeststats = state.world.nation_get_unit_stats(n, best);
-	auto& curbestdef = (curbeststats.discipline_or_evasion) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
 
 	auto stats = state.world.nation_get_unit_stats(n, given);
-	auto& def = (stats.discipline_or_evasion) ? stats : state.military_definitions.unit_base_definitions[given];
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
 
 	if(def.defence_or_hull > curbestdef.defence_or_hull) {
 		return true;
@@ -77,11 +77,11 @@ bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id 
 	}
 	auto curbeststats = state.world.nation_get_unit_stats(n, best);
 	auto& basedef = state.military_definitions.unit_base_definitions[best];
-	auto& curbestdef = (curbeststats.discipline_or_evasion) ? curbeststats : basedef;
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : basedef;
 
 	auto stats = state.world.nation_get_unit_stats(n, given);
 	auto& newbasedef = state.military_definitions.unit_base_definitions[given];
-	auto& def = (stats.discipline_or_evasion) ? stats : newbasedef;
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : newbasedef;
 
 	if(def.reconnaissance_or_fire_range > curbestdef.reconnaissance_or_fire_range) {
 		return true;
