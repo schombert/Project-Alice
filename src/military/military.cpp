@@ -7295,14 +7295,18 @@ void recover_org(sys::state& state) {
 		auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
 		auto leader = ar.get_general_from_army_leadership();
+
+		// Morale (Organization Regain): increases a unit's organization by 0.01 * discipline for each % of morale.
+		// Max org is applied in battle
 		auto regen_mod = tech_nation.get_modifier_values(sys::national_mod_offsets::org_regain)
 			+ leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
-			+ leader.get_prestige() * state.defines.leader_prestige_to_max_org_factor;
+			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 		auto modified_regen = regen_mod * spending_level / 150.f;
-		auto max_org = 0.25f + 0.75f * spending_level;
 		for(auto reg : ar.get_army_membership()) {
 			auto c_org = reg.get_regiment().get_org();
+			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
+			auto max_org = std::max(c_org, 0.25f + 0.75f * spending_level);
 			reg.get_regiment().set_org(std::min(c_org + modified_regen, max_org));
 		}
 	}
@@ -7324,9 +7328,10 @@ void recover_org(sys::state& state) {
 		float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
 		auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
 		auto modified_regen = regen_mod * spending_level / 150.0f;
-		auto max_org = 0.25f + 0.75f * spending_level;
 		for(auto reg : ar.get_navy_membership()) {
 			auto c_org = reg.get_ship().get_org();
+			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
+			auto max_org = std::max(c_org, 0.25f + 0.75f * spending_level);
 			reg.get_ship().set_org(std::min(c_org + modified_regen, max_org));
 		}
 	}

@@ -12,6 +12,7 @@
 #include "economy_templates.hpp"
 #include "province_templates.hpp"
 #include "widgets/table.hpp"
+#include "gui_factory_refit_window.hpp"
 
 namespace ui {
 
@@ -586,8 +587,9 @@ public:
 				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
 				float admin_cost_factor = (p.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+				auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 
-				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
+				auto goods = economy::calculate_factory_refit_goods_cost(state, owner, si, nf.type, nf.target_type);
 				auto& cgoods = p.get_purchased_goods();
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -1115,6 +1117,10 @@ public:
 			auto ptr = make_element_by_type<factory_upgrade_button>(state, id);
 			factory_elements.push_back(ptr.get());
 			return ptr;
+		} else if(name == "factory_refit_button") {
+			auto ptr = make_element_by_type<factory_refit_button>(state, id);
+			factory_elements.push_back(ptr.get());
+			return ptr;
 		} else if(name == "subsidise") {
 			auto ptr = make_element_by_type<factory_subsidise_button>(state, id);
 			factory_elements.push_back(ptr.get());
@@ -1158,6 +1164,7 @@ public:
 				// New factory
 				economy::new_factory nf = std::get<economy::new_factory>(content.activity);
 				fat_btid = dcon::fatten(state.world, nf.type);
+				output_commodity = fat_btid.get_output().id;
 
 				for(auto const& e : factory_elements)
 					e->set_visible(state, false);
@@ -1168,9 +1175,10 @@ public:
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
 			} else if(std::holds_alternative<economy::upgraded_factory>(content.activity)) {
-				// Upgrade
+				// Upgrade or refit
 				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.activity);
 				fat_btid = dcon::fatten(state.world, uf.type);
+				output_commodity = (uf.target_type) ? state.world.factory_type_get_output(uf.target_type).id : fat_btid.get_output().id;
 
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
@@ -1184,6 +1192,7 @@ public:
 				// "Normal" factory, not being upgraded or built
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
+				output_commodity = fat_btid.get_output().id;
 
 				bool is_closed = economy::factory_total_desired_employment_score(state, fid) < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
@@ -1209,7 +1218,6 @@ public:
 					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 				}
 			}
-			output_commodity = fat_btid.get_output().id;
 		}
 	}
 
@@ -1293,7 +1301,7 @@ public:
 				++index;
 			}
 		});
-		// Then, the factories being upgraded
+		// Then, the factories being upgraded or refit
 		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const& uf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(uf.type).id;
 			if(!visited_types[uf.type.index()] && get_filter(state, cid) && index < state.defines.factories_per_state) {
@@ -1311,6 +1319,7 @@ public:
 				++index;
 			}
 		});
+		
 		// Finally, factories "doing nothing" are accounted for
 		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
 			dcon::fatten(state.world, pid).for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
@@ -2029,6 +2038,9 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	element_base* project_window = nullptr;
 	production_foreign_investment_window* foreign_invest_win = nullptr;
 
+	dcon::factory_id selected_factory;
+	factory_refit_window* factory_refit_win = nullptr;
+
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
 	dcon::nation_id foreign_nation{};
@@ -2079,6 +2091,11 @@ public:
 		win2->set_visible(state, false);
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));
+
+		auto win3 = make_element_by_type<factory_refit_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("factory_refit_window"))->second.definition);
+		factory_refit_win = win3.get();
+		factory_refit_win->set_visible(state, false);
+		add_child_to_front(std::move(win3));
 
 		show_output_commodity = std::unique_ptr<bool[]>(new bool[state.world.commodity_size()]);
 		set_visible(state, false);
@@ -2226,6 +2243,14 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<production_foreign_invest_target>()) {
 			payload.emplace<production_foreign_invest_target>(production_foreign_invest_target{foreign_invest_win->curr_nation});
+			return message_result::consumed;
+		} else if(payload.holds_type<open_factory_refit>()) {
+			auto val = any_cast<open_factory_refit>(payload);
+			selected_factory = val.factory_selection;
+			factory_refit_win->set_visible(state, factory_refit_win->is_visible() ? false : true);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::factory_id>()) {
+			payload.emplace<dcon::factory_id>(selected_factory);
 			return message_result::consumed;
 		} else if(payload.holds_type<open_investment_nation>()) {
 			hide_sub_windows(state);

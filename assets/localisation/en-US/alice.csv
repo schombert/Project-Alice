@@ -1087,6 +1087,10 @@ CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$ stopped giving subsidies to us;
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$ stopped giving subsidies to $RECIPIENT$;
 CANCEL_WARSUBSIDIES_DESC;Cancel monetary help to this country;
 CANCEL_WARSUBSIDIES_BUTTON;Cancel Subsidies;
+production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production line
+production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
+factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
+factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$
 alice_budget_scaled_17;Gold production: ?G$value$
 alice_budget_scaled_net;Net revenue: ?Y$value$

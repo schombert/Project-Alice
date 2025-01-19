@@ -4701,6 +4701,11 @@ relationship{
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ refit_target }
+		type{ factory_type_id }
+		tag{ save }
+	}
 }
 
 relationship{

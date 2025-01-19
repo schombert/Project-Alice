@@ -3107,6 +3107,82 @@ float global_factory_construction_time_modifier(sys::state& state) {
 	return 0.1f;
 }
 
+economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to) {
+	auto& from_cost = state.world.factory_type_get_construction_costs(from);
+	auto& to_cost = state.world.factory_type_get_construction_costs(to);
+
+	auto level = 1;
+
+	auto d = state.world.state_instance_get_definition(sid);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == from) {
+					level = f.get_factory().get_level();
+				}
+			}
+		}
+	}
+
+	// Refit cost = (to_cost) - (from_cost) + (0.1f * to_cost)
+	float refit_mod = 1.0f + state.defines.alice_factory_refit_cost_modifier;
+
+	economy::commodity_set res;
+
+	// First take 110% of to_cost as a baseline
+	if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
+		for(uint32_t j = 0; j < commodity_set::set_size; ++j) {
+			if(to_cost.commodity_type[j]) {
+				res.commodity_type[j] = to_cost.commodity_type[j];
+				res.commodity_amounts[j] = to_cost.commodity_amounts[j] * refit_mod * level;
+			} else {
+				break;
+			}
+		}
+	}
+
+	// Substract from_cost to represent refit discount
+	if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
+		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+			if(!from_cost.commodity_type[i]) {
+				break;
+			}
+
+			auto from_amount = from_cost.commodity_amounts[i] * level;
+			auto from_commodity = from_cost.commodity_type[i];
+
+			for(uint32_t j = 0; i < commodity_set::set_size; ++j) {
+				if(!res.commodity_type[j]) {
+					break;
+				}
+
+				if(res.commodity_type[j] == from_commodity) {
+					res.commodity_amounts[j] = std::max(res.commodity_amounts[j] - from_amount, 0.f);
+				}
+			}
+		}
+	}
+
+	return res;
+}
+float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to) {
+	auto goods_cost = calculate_factory_refit_goods_cost(state, n, sid, from, to);
+
+	float admin_eff = state.world.nation_get_administrative_efficiency(n);
+	float admin_cost_factor = 2.0f - admin_eff;
+	float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
+
+	auto total = 0.0f;
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+		if(goods_cost.commodity_type[i]) {
+			total += economy::price(state, sid, goods_cost.commodity_type[i]) * goods_cost.commodity_amounts[i] * factory_mod * admin_cost_factor;
+		}
+	}
+
+	return total;
+}
+
 void populate_construction_consumption(sys::state& state) {
 
 	uint32_t total_commodities = state.world.commodity_size();
@@ -3308,7 +3384,7 @@ void populate_construction_consumption(sys::state& state) {
 		if(owner && !c.get_is_pop_project()) {
 			float& base_budget = current_budget.get(owner);
 			float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
-			auto& base_cost = c.get_type().get_construction_costs();
+			auto base_cost = (c.get_refit_target() ? calculate_factory_refit_goods_cost(state, owner, c.get_state(),  c.get_type(), c.get_refit_target()) : c.get_type().get_construction_costs());
 			auto& current_purchased = c.get_purchased_goods();
 
 			float construction_time =
@@ -8596,22 +8672,23 @@ float unit_construction_progress(sys::state& state, dcon::province_naval_constru
 
 void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t, bool is_upgrade) {
 
-	if(is_upgrade) {
-		auto d = state.world.state_instance_get_definition(s);
-		auto o = state.world.state_instance_get_nation_from_state_ownership(s);
-		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto f : p.get_province().get_factory_location()) {
-					if(f.get_factory().get_building_type() == t) {
-						auto factory_level = f.get_factory().get_level();
-						auto new_factory_level = std::min(float(std::numeric_limits<uint8_t>::max()), float(factory_level) + 1.f);
-						f.get_factory().get_level() = uint8_t(new_factory_level);
-						return;
-					}
+	// Since construction may be queued together with refit, check if there is factory to add level to
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == t) {
+					auto factory_level = f.get_factory().get_level();
+					auto new_factory_level = std::min(float(std::numeric_limits<uint8_t>::max()), float(factory_level) + 1.f);
+					f.get_factory().get_level() = uint8_t(new_factory_level);
+					return;
 				}
 			}
 		}
 	}
+
+	// Only then create new factory
 	auto state_cap = state.world.state_instance_get_capital(s);
 	auto new_fac = fatten(state.world, state.world.create_factory());
 	new_fac.set_building_type(t);
@@ -8619,8 +8696,52 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 	new_fac.set_unqualified_employment(0.33f);
 	new_fac.set_primary_employment(0.33f);
 	new_fac.set_secondary_employment(0.33f);
-
 	state.world.try_create_factory_location(new_fac, state_cap);
+}
+
+void change_factory_type_in_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t, dcon::factory_type_id refit_target) {
+	assert(refit_target);
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+
+	dcon::factory_id factory_target;
+
+	// Find factory in question
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == t) {
+					factory_target = f.get_factory();
+				}
+			}
+		}
+	}
+
+	// Find existing factories to sum
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(p.get_province().get_nation_from_province_ownership() == o)
+			for(auto f : p.get_province().get_factory_location())
+				if(f.get_factory().get_building_type() == refit_target) {
+					auto factory_level_1 = f.get_factory().get_level();
+					auto factory_level_2 = state.world.factory_get_level(factory_target);
+					auto new_factory_level = std::min(float(std::numeric_limits<uint8_t>::max()), float(factory_level_1) + float(factory_level_2));
+					f.get_factory().get_level() = uint8_t(new_factory_level);
+
+					state.world.delete_factory(factory_target);
+					return;
+				}
+
+	// Change type of the given factory
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == t) {
+					f.get_factory().set_building_type(refit_target);
+					return;
+				}
+			}
+		}
+	}
 }
 
 void resolve_constructions(sys::state& state) {
@@ -8791,7 +8912,7 @@ void resolve_constructions(sys::state& state) {
 	for(auto c : state.world.in_state_building_construction) {
 		auto n = state.world.state_building_construction_get_nation(c);
 		auto type = state.world.state_building_construction_get_type(c);
-		auto& base_cost = state.world.factory_type_get_construction_costs(type);
+		auto base_cost = (c.get_refit_target()) ? calculate_factory_refit_goods_cost(state, n, c.get_state(), c.get_type(), c.get_refit_target()) : state.world.factory_type_get_construction_costs(type);
 		auto& current_purchased = state.world.state_building_construction_get_purchased_goods(c);
 
 		if(!state.world.state_building_construction_get_is_pop_project(c)) {
@@ -8812,7 +8933,12 @@ void resolve_constructions(sys::state& state) {
 					}
 				}
 			}
-			if(all_finished) {
+			if(all_finished && c.get_refit_target()) {
+				change_factory_type_in_state(state, state.world.state_building_construction_get_state(c), type,
+						c.get_refit_target());
+				state.world.delete_state_building_construction(c);
+			}
+			else if (all_finished) {
 				add_factory_level_to_state(state, state.world.state_building_construction_get_state(c), type,
 						state.world.state_building_construction_get_is_upgrade(c));
 				state.world.delete_state_building_construction(c);
@@ -8833,7 +8959,11 @@ void resolve_constructions(sys::state& state) {
 					}
 				}
 			}
-			if(all_finished) {
+			if(all_finished && c.get_refit_target()) {
+				change_factory_type_in_state(state, state.world.state_building_construction_get_state(c), type,
+						c.get_refit_target());
+				state.world.delete_state_building_construction(c);
+			} else if(all_finished) {
 				add_factory_level_to_state(state, state.world.state_building_construction_get_state(c), type,
 						state.world.state_building_construction_get_is_upgrade(c));
 
