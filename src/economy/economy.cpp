@@ -428,6 +428,96 @@ float average_capitalists_luxury_cost(
 	return total / count;
 }
 
+
+float trade_supply(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	auto stockpiles = state.world.market_get_stockpile(m, c);
+	auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price(state, m, c) + 1.f);
+	auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.market_get_labor_price(m, labor::no_education) + 0.00001f;
+	auto price_rating = (price(state, m, c)) / local_wage_rating;
+	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
+	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
+	return result;
+}
+
+float trade_demand(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	auto stockpiles = state.world.market_get_stockpile(m, c);
+	auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price(state, m, c) + 1.f);
+	auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.market_get_labor_price(m, labor::no_education) + 0.00001f;
+	auto price_rating = (price(state, m, c)) / local_wage_rating;
+	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
+	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * actual_stockpile_to_supply;
+
+	state.world.market_for_each_trade_route(m, [&](auto trade_route) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+		auto origin =
+			current_volume > 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto target =
+			current_volume <= 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		if(origin != m) return;
+		auto absolute_volume = std::abs(current_volume);
+		result += absolute_volume;
+	});
+	return result;
+}
+
+float trade_influx(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	float result = 0.f;
+	state.world.market_for_each_trade_route(m, [&](auto trade_route) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+		auto origin =
+			current_volume > 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto target =
+			current_volume <= 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		if(target != m) return;
+		auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+		auto absolute_volume = std::abs(current_volume);
+		auto distance = state.world.trade_route_get_distance(trade_route);
+		auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+		result += sat * absolute_volume * trade_good_loss_mult;
+	});
+	return result;
+}
+
+float trade_outflux(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	float result = 0.f;
+	state.world.market_for_each_trade_route(m, [&](auto trade_route) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+		auto origin =
+			current_volume > 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto target =
+			current_volume <= 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		if(origin != m) return;
+		auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+		auto absolute_volume = std::abs(current_volume);
+		result += sat * absolute_volume;
+	});
+	return result;
+}
+
 float export_volume(
 	sys::state& state,
 	dcon::market_id s,
@@ -448,7 +538,6 @@ float export_volume(
 	});
 	return total;
 }
-
 
 trade_volume_data_detailed export_volume_detailed(
 	sys::state& state,

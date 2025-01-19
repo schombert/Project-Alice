@@ -27,6 +27,41 @@ enum class alignment_horizontal : uint8_t {
 	left, center, right
 };
 
+enum class commodity_info_mode : uint8_t {
+	price, supply, demand, balance, trade_in, trade_out, trade_balance,
+	production, consumption, stockpiles,
+	total
+};
+
+std::string inline localize_commodity_info_mode(commodity_info_mode mode) {
+	switch(mode) {
+	case commodity_info_mode::price:
+		return "price";
+	case commodity_info_mode::supply:
+		return "supply";
+	case commodity_info_mode::demand:
+		return "demand";
+	case commodity_info_mode::production:
+		return "production";
+	case commodity_info_mode::consumption:
+		return "consumption";
+	case commodity_info_mode::stockpiles:
+		return "stockpiles";
+	case commodity_info_mode::balance:
+		return "balance";
+	case commodity_info_mode::trade_in:
+		return "trade_in";
+	case commodity_info_mode::trade_out:
+		return "trade_out";
+	case commodity_info_mode::trade_balance:
+		return "trade_balance";
+	case commodity_info_mode::total:
+		return "INVALID";
+	default:
+		return "INVALID";
+	}
+};
+
 struct rect {
 	float x, y, w, h;
 };
@@ -57,8 +92,15 @@ struct iui_state {
 	bool mouse_pressed = false;
 
 	int page_production_methods = 0;
+	int page_commodities = 0;
+
+	commodity_info_mode selected_commodity_info;
 
 	std::vector<float> per_market_data;
+	std::vector<float> bins;
+	float bins_start;
+	float bins_end;
+
 	std::vector<dcon::nation_id> input_efficiency_leaders;
 	std::vector<text::text_chunk> input_efficiency_leaders_string;
 
@@ -103,6 +145,8 @@ struct iui_state {
 		rect& r,
 		float red, float green, float blue
 	);
+
+	bool check_hover(sys::state& state, rect& r);
 
 	bool button(
 		sys::state& state, int32_t identifier,

@@ -1349,7 +1349,8 @@ void map_state::update(sys::state& state) {
 }
 
 void map_state::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
-	active_map_mode = new_map_mode;
+	if (new_map_mode != map_mode::mode::handled_from_outside)
+		active_map_mode = new_map_mode;
 	map_data.set_province_color(prov_color);
 }
 
