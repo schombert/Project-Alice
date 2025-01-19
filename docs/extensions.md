@@ -510,6 +510,13 @@ Alice adds a handful of new defines:
 - `alice_privateinvestment_subject_transfer`: Percentage [0;100] of subjects' and overlord's private investment pool transferred daily when no useful projects are done. Overlord distributes money to subjects and subjects contribute to the overlord. Default: 2.0
 - `alice_allow_revoke_subject_states`: Allows overlord to take subjects' states raising their militancy and giving separatism. Default: 0.0
 
+
+**Crises and conferences:**
+- `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
+- `alice_crisis_necessary_base_fast_win_ratio = 3.5f`: Strength Ratio at which AI submits to demands before 80 temperature
+- `alice_crisis_per_wg_ratio = 0.1f`: Added necessary ratio per every WG
+
+
 ### Support for reforms based on party issues
 
 In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:
