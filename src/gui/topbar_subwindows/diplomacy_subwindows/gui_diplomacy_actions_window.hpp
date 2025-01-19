@@ -1978,6 +1978,15 @@ public:
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_6", state.world.nation_get_owned_state_count(source) > 1);
+
+		// Asker and target must be in a subject relation
+		if(state.defines.alice_state_transfer_limits) {
+			auto ol = state.world.nation_get_overlord_as_subject(source);
+			auto ol2 = state.world.nation_get_overlord_as_subject(target);
+
+			text::add_line_with_condition(state, contents, "state_transfer_explain_7", state.world.overlord_get_ruler(ol) == target || state.world.overlord_get_ruler(ol2) == source);
+
+		}
 	}
 };
 
