@@ -190,7 +190,17 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		auto trade_balance_land = 0.f;
 
 		state.world.market_for_each_trade_route(mid, [&](auto route) {
-			auto current_volume = state.world.trade_route_get_volume(route, cid);
+			auto current_volume = state.world.trade_route_get_volume(route, cid);		
+			auto origin =
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(route, 0)
+				: state.world.trade_route_get_connected_markets(route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(route, 0)
+				: state.world.trade_route_get_connected_markets(route, 1);
+			auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+
 			if(state.world.trade_route_get_connected_markets(route, 1) == mid) {
 				current_volume = -current_volume;
 			}
@@ -198,9 +208,9 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			bool is_sea = state.world.trade_route_get_distance(route) == state.world.trade_route_get_sea_distance(route);
 
 			if(is_sea) {
-				trade_balance_sea += current_volume;
+				trade_balance_sea += current_volume * sat;
 			} else {
-				trade_balance_land += current_volume;
+				trade_balance_land += current_volume * sat;
 			}
 		});
 
