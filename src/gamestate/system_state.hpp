@@ -417,7 +417,7 @@ struct cheat_data_s {
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
-	bool daily_oos_check = true;
+	bool daily_oos_check = false;
 	bool province_names = false;
 
 	bool ecodump = false;
