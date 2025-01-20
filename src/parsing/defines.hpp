@@ -721,6 +721,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_necessary_base_win_ratio, 2.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_necessary_base_fast_win_ratio, 3.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_per_wg_ratio, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
 
 // scales the needs values so that they are needs per this many pops

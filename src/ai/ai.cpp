@@ -2349,6 +2349,11 @@ crisis_str estimate_crisis_str(sys::state& state) {
 	auto necessary_atk_win_ratio = state.defines.alice_crisis_necessary_base_win_ratio;
 	auto necessary_def_win_ratio = state.defines.alice_crisis_necessary_base_win_ratio;
 	auto necessary_fast_win_ratio = state.defines.alice_crisis_necessary_base_fast_win_ratio;
+
+	if(!state.world.nation_get_is_civilized(state.crisis_defender)) {
+		necessary_atk_win_ratio += state.defines.alice_crisis_unciv_stubbornness;
+		necessary_fast_win_ratio += state.defines.alice_crisis_unciv_stubbornness;
+	}
 	for(auto wg : state.crisis_attacker_wargoals) {
 		if(!wg.cb) {
 			break;
@@ -2484,8 +2489,23 @@ void update_crisis_leaders(sys::state& state) {
 	if(state.crisis_temperature > 75.f || str_est.fast_victory) { // make peace offer
 		auto any_victory = str_est.attacker_win || str_est.defender_win;
 		auto defender_victory = str_est.defender_win;
+
+		auto will_propose_peace = state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false && any_victory;
+
+		auto primary_wg = state.crisis_attacker_wargoals[0];
+
+		// Defender should never agree to full annex
+		if(state.crisis_defender == state.primary_crisis_defender) {
+			auto bits = state.world.cb_type_get_type_bits(primary_wg.cb);
+			if((bits & military::cb_flag::po_annex) != 0)
+				will_propose_peace = false;
+		}
+
+		if(state.crisis_temperature <= 20.f) {
+			will_propose_peace = false;
+		}
 		
-		if(state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false && any_victory) {
+		if(will_propose_peace) {
 			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory));
 			command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory);
 			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_attacker);
@@ -2687,6 +2707,20 @@ void update_crisis_leaders(sys::state& state) {
 }
 
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg) {
+
+	auto primary_wg = state.crisis_attacker_wargoals[0];
+
+	// Defender should never agree to full annex
+	if(state.crisis_defender == state.primary_crisis_defender && to == state.crisis_defender) {
+		auto bits = state.world.cb_type_get_type_bits(primary_wg.cb);
+			if((bits & military::cb_flag::po_annex) != 0)
+				return false;
+	}
+
+	if(state.crisis_temperature <= 20.f) {
+		return false;
+	}
+
 	auto str_est = estimate_crisis_str(state);
 
 	if(state.crisis_temperature > 75.f || str_est.fast_victory) {
@@ -2713,6 +2747,19 @@ bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool 
 }
 
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon::peace_offer_id peace) {
+	auto primary_wg = state.crisis_attacker_wargoals[0];
+
+	// Defender should never agree to full annex
+	if(state.crisis_defender == state.primary_crisis_defender && to == state.crisis_defender) {
+		auto bits = state.world.cb_type_get_type_bits(primary_wg.cb);
+		if((bits & military::cb_flag::po_annex) != 0)
+			return false;
+	}
+
+	if(state.crisis_temperature <= 20.f) {
+		return false;
+	}
+
 	auto str_est = estimate_crisis_str(state);
 
 	if(state.crisis_temperature > 75.f || str_est.fast_victory) {
@@ -3916,7 +3963,18 @@ void make_war_decs(sys::state& state) {
 			sort_available_declaration_cbs(potential, state, n, targets.get(n));
 			if(!potential.empty()) {
 				assert(command::can_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation));
-				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true, false);
+
+				auto run_conference = false;
+				auto str_estimate_1 = estimate_strength(state, n);
+				auto str_estimate_2 = estimate_strength(state, targets.get(n));
+				auto bits = state.world.cb_type_get_type_bits(potential[0].cb);
+
+				// GPs run conferences to save on the bloodshed when they are confident in the win
+				// AI doesn't run conquest conferences as another party will never agree to peaceful resolution
+				if(n.get_is_great_power() && str_estimate_1 > str_estimate_2 * 3.f && state.current_crisis_state == sys::crisis_state::inactive && (bits & military::cb_flag::po_annex) == 0) {
+					run_conference = true;
+				}
+				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true, run_conference);
 			}
 		}
 	}
