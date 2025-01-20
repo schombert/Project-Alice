@@ -3049,14 +3049,25 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
+
+		auto best_port = dcon::province_id{ };
+		auto best_border_length = 0;
+
 		for(auto adj : world.province_get_province_adjacency(p)) {
+			auto& border = map_state.map_data.borders[adj.id.index()];
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			auto bits = adj.get_type();
 			if(other && (bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
-				world.province_set_port_to(p, other.id);
 				world.province_set_is_coast(p, true);
-				return;
+				if(best_border_length < border.count) {
+					best_port = other.id;
+					best_border_length = border.count;
+				}
 			}
+		}
+
+		if(best_port) {
+			world.province_set_port_to(p, best_port);
 		}
 	});
 
