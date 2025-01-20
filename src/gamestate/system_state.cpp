@@ -1905,21 +1905,19 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto money_id = world.create_commodity();
 			assert(money_id.index() == 0);
 		}
-		if(auto goods = open_file(common, NATIVE("goods.txt")); goods) {
+		auto goods = open_file(common, NATIVE("goods.txt"));
+		err.file_name = "goods.txt";
+		if(!goods) {
+			goods = open_file(common, NATIVE("tradegoods"));
+			err.file_name = "tradegoods.txt";
+		}
+		if(goods) {
 			auto content = view_contents(*goods);
-			err.file_name = "goods.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 			parsers::parse_goods_file(gen, err, context);
 		} else {
-			if(auto goods = open_file(common, NATIVE("tradegoods")); goods) {
-				auto content = view_contents(*goods);
-				err.file_name = "tradegoods.txt";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_goods_file(gen, err, context);
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File common/goods.txt nor common/tradegoods.txt could not be opened\n";
-			}
+			err.fatal = true;
+			err.accumulated_errors += "File common/goods.txt nor common/tradegoods.txt could be opened\n";
 		}
 	}
 	// read buildings.text
