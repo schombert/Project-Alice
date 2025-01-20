@@ -720,6 +720,17 @@ void update_influence_priorities(sys::state& state) {
 			if(t.get_demographics(demographics::total) > state.defines.large_population_limit)
 				continue;
 
+			auto natid = state.world.nation_get_identity_from_identity_holder(n.nation);
+			for(auto prov_owner : state.world.nation_get_province_ownership(t)) {
+				auto prov = prov_owner.get_province();
+
+				for(auto core : prov.get_core_as_province()) {
+					if(core.get_identity() == natid) {
+						continue; // holds our cores
+					}
+				}
+			}
+
 			float weight = 0.0f;
 
 			for(auto c : state.world.in_commodity) {
