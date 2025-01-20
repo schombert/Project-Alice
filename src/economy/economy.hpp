@@ -185,6 +185,25 @@ inline constexpr float labor_greed_everyday = 0.f;
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
 
+float trade_influx(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+);
+float trade_outflux(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+);
+
+float trade_supply(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+);
+
+float trade_demand(sys::state& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+);
+
 float price(
 	sys::state const& state,
 	dcon::state_instance_id s,

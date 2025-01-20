@@ -1,4 +1,8 @@
+#include <numbers>
+
 #include "economy_viewer.hpp"
+#include "color.hpp"
+
 
 namespace economy_viewer {
 
@@ -10,6 +14,9 @@ enum class static_elements : int32_t {
 	factory_type_priority_button = 1700,
 	factory_type_selector = 2000,
 	commodities = 3000,
+	commodities_page = 3800,
+	commodities_page_number = 3820,
+	commodities_mode_selector = 3830,
 	commodities_inputs = 4000,
 	commodities_inputs_amount = 5000,
 	commodities_inputs_cost = 6000,
@@ -43,7 +50,14 @@ enum class static_elements : int32_t {
 	tab_name_production_chain = 10005002,
 
 
-	input_efficiency_leaders = 10006000
+	input_efficiency_leaders = 10006000,
+
+	bin_center = 20000000,
+	bin_range = 20000001
+};
+
+enum class scaling_mode {
+	linear, log
 };
 
 void update(sys::state& state) {
@@ -59,7 +73,14 @@ void update(sys::state& state) {
 	state.iui_state.input_efficiency_leaders.clear();
 	state.iui_state.input_efficiency_leaders_string.clear();
 
-	if(state.selected_factory_type) {
+	bool cut_away_negative = false;
+	bool start_min_at_zero = false;
+	bool balance_color = false;
+
+	auto scaling = scaling_mode::linear;
+	int bins = 30;
+
+	if(state.selected_factory_type && state.iui_state.tab == iui::iui_tab::factory_types) {
 		auto& inputs = state.world.factory_type_get_inputs(state.selected_factory_type);
 		auto& e_inputs = state.world.factory_type_get_efficiency_inputs(state.selected_factory_type);
 		auto ftid = state.selected_factory_type;
@@ -91,6 +112,10 @@ void update(sys::state& state) {
 			auto cid = state.world.factory_type_get_output(ftid).id;
 			total += state.world.factory_type_get_output_amount(ftid) * output_mult * state.world.market_get_price(mid, cid);
 			state.iui_state.per_market_data[market.index()] = total;
+
+			cut_away_negative = true;
+			start_min_at_zero = true;
+			scaling = scaling_mode::log;
 		});
 
 		state.world.for_each_nation([&](dcon::nation_id nid) {
@@ -98,7 +123,185 @@ void update(sys::state& state) {
 				state.iui_state.input_efficiency_leaders.push_back(nid);
 			}
 		});
+	} else if(state.selected_trade_good && state.iui_state.tab == iui::iui_tab::commodities_markets) {
+		state.world.for_each_market([&](dcon::market_id market) {
+			switch(state.iui_state.selected_commodity_info) {
+				case iui::commodity_info_mode::price:
+					state.iui_state.per_market_data[market.index()] = state.world.market_get_price(market, state.selected_trade_good);
+					break;
+
+				case iui::commodity_info_mode::supply:
+					state.iui_state.per_market_data[market.index()] = state.world.market_get_supply(market, state.selected_trade_good);
+					break;
+
+				case iui::commodity_info_mode::demand:
+					state.iui_state.per_market_data[market.index()] = state.world.market_get_demand(market, state.selected_trade_good);
+					break;
+
+				case iui::commodity_info_mode::production:
+					state.iui_state.per_market_data[market.index()] =
+						std::max(
+							0.f,
+							state.world.market_get_supply(market, state.selected_trade_good)
+							- economy::trade_supply(state, market, state.selected_trade_good)
+						);
+					break;
+
+				case iui::commodity_info_mode::consumption:
+					state.iui_state.per_market_data[market.index()] =
+						std::max(
+							0.f,
+							state.world.market_get_demand(market, state.selected_trade_good)
+							- economy::trade_demand(state, market, state.selected_trade_good)
+						);
+					break;
+
+				case iui::commodity_info_mode::stockpiles:
+					state.iui_state.per_market_data[market.index()] = state.world.market_get_stockpile(market, state.selected_trade_good);
+					break;
+
+				case iui::commodity_info_mode::balance:
+				{
+					auto supply = state.world.market_get_supply(market, state.selected_trade_good);
+					auto demand = state.world.market_get_demand(market, state.selected_trade_good);
+					auto shift = 0.001f;
+					auto balance = (supply + shift) / (demand + shift) - (demand + shift) / (supply + shift);
+					state.iui_state.per_market_data[market.index()] = balance;
+					balance_color = true;
+					scaling = scaling_mode::log;
+					break;
+				}
+
+				case iui::commodity_info_mode::trade_in:
+					state.iui_state.per_market_data[market.index()] = economy::trade_influx(state, market, state.selected_trade_good);
+					break;
+
+				case iui::commodity_info_mode::trade_out:
+					state.iui_state.per_market_data[market.index()] = economy::trade_outflux(state, market, state.selected_trade_good);
+					break;
+
+				case iui::commodity_info_mode::trade_balance:
+				{
+					auto supply = economy::trade_influx(state, market, state.selected_trade_good);
+					auto demand = economy::trade_outflux(state, market, state.selected_trade_good);
+					auto shift = 0.001f;
+					auto balance = supply - demand;
+					state.iui_state.per_market_data[market.index()] = balance;
+					balance_color = true;
+					break;
+				}
+				default:
+					break;
+			}
+		});
+	} else {
+		state.world.for_each_market([&](dcon::market_id market) {
+			state.iui_state.per_market_data[market.index()] = state.world.market_get_gdp(market);
+		});
 	}
+
+	// calculate statistics to improve map mode readability:
+	std::vector<float> sample;
+	state.world.for_each_market([&](dcon::market_id market) {
+		sample.push_back(state.iui_state.per_market_data[market.index()]);
+	});
+	std::sort(sample.begin(), sample.end());
+	auto N = sample.size();
+	auto upper_decile = sample[9 * N / 10];
+	auto botton_decile = sample[N / 10];
+	auto main_range = upper_decile - botton_decile;
+
+	state.iui_state.bins_start = botton_decile - main_range * 2.f;
+	state.iui_state.bins_end = upper_decile + main_range * 2.f;
+	auto bin_range = (state.iui_state.bins_end - state.iui_state.bins_start) / float(bins);
+
+	// fill histogram
+	state.iui_state.bins.clear();
+	state.iui_state.bins.resize(bins);
+	for(auto data_point : sample) {
+		auto clamped = std::clamp(data_point, state.iui_state.bins_start, state.iui_state.bins_end);
+		int bin = std::clamp(int((data_point - state.iui_state.bins_start) / bin_range), 0, bins - 1);
+		state.iui_state.bins[bin] += 1.f / float(N);
+	}
+
+	auto market_data_max = upper_decile * 2.f;
+	auto market_data_min = botton_decile;
+
+	if(balance_color) {
+		uint32_t split = 0;
+		while(split < N && sample[split] < 0.f) split++;
+
+		market_data_max = sample[(split + 9 * N) / 10];
+		market_data_min = sample[split / 10];
+	}
+
+	if(start_min_at_zero) {
+		market_data_min = 0.f;
+	}
+
+	if(cut_away_negative) {
+		market_data_max = std::max(0.f, market_data_max);
+		market_data_min = std::max(0.f, market_data_min);
+	}
+
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	if(balance_color) {
+		state.world.for_each_province([&](dcon::province_id pid) {
+			auto sid = state.world.province_get_state_membership(pid);
+			auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+			if(market) {
+				// scale negative and positive values separately
+				float value = state.iui_state.per_market_data[market.index()];
+				if(scaling == scaling_mode::log) {
+					if(value > 0 && market_data_max > 0) {
+						value = std::min(std::log(1.f + value / market_data_max * (float(std::numbers::e) - 1.f)), 1.f);
+					} else if(value < 0 && market_data_min < 0) {
+						value = std::max(std::log(1.f - value / std::abs(market_data_min) * (float(std::numbers::e) - 1.f)) , -1.f);
+					} else {
+						value = 0.f;
+					}
+				} else {
+					if(value > 0 && market_data_max > 0) {
+						value = std::min(value / market_data_max, 1.f);
+					} else if(value < 0 && market_data_min < 0) {
+						value = std::max(value / std::abs(market_data_min), -1.f);
+					} else {
+						value = 0.f;
+					}
+				}
+				uint32_t color = ogl::color_gradient_diverging_berlin(value);
+				auto i = province::to_map_id(pid);
+				prov_color[i] = color;
+				prov_color[i + texture_size] = color;
+			}
+		});
+	} else if(market_data_max > market_data_min) {
+		state.world.for_each_province([&](dcon::province_id pid) {
+			auto sid = state.world.province_get_state_membership(pid);
+			auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+			if(market) {
+				double value = double(std::clamp(state.iui_state.per_market_data[market.index()], market_data_min, market_data_max));
+				double rescaled_value = (value - market_data_min) / (market_data_max - market_data_min);
+				// from 0 to 1
+
+				if(scaling == scaling_mode::log) {
+					rescaled_value = std::log((rescaled_value * (std::numbers::e - 1) + 1));
+				}
+
+				uint32_t color = ogl::color_gradient_magma(float(rescaled_value));
+				auto i = province::to_map_id(pid);
+				prov_color[i] = color;
+				prov_color[i + texture_size] = color;
+			}
+		});
+	}
+
+	state.map_state.set_province_color(prov_color, map_mode::mode::handled_from_outside);
 }
 
 void commodity_panel(sys::state& state, int32_t identifier_amount, int32_t identifier_cost, dcon::commodity_id cid, float amount, float price, iui::rect& r) {
@@ -253,7 +456,7 @@ void render(sys::state& state) {
 
 			state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
 
-			if(state.selected_factory_type) {
+			if(state.iui_state.tab == iui::iui_tab::factory_types) {
 				if(mid.index() < (int32_t)(state.iui_state.per_market_data.size())) {
 					state.iui_state.price(
 						state, mid.index(),
@@ -261,12 +464,20 @@ void render(sys::state& state) {
 						state.iui_state.per_market_data[mid.index()]
 					);
 				}
-			} else {
-				state.iui_state.float_2(
-					state, mid.index(),
-					market_label_rect_text,
-					state.world.market_get_max_throughput(mid)
-				);
+			} else if(state.iui_state.tab == iui::iui_tab::commodities_markets) {
+				if(state.iui_state.selected_commodity_info == iui::commodity_info_mode::price) {
+					state.iui_state.price(
+						state, mid.index(),
+						market_label_rect_text,
+						state.iui_state.per_market_data[mid.index()]
+					);
+				} else {
+					state.iui_state.float_2(
+						state, mid.index(),
+						market_label_rect_text,
+						state.iui_state.per_market_data[mid.index()]
+					);
+				}
 			}
 		});
 	}
@@ -313,6 +524,173 @@ void render(sys::state& state) {
 	}
 
 	if(state.iui_state.tab == iui::iui_tab::commodities_markets) {
+
+		// absolute
+		float size_panel_w = 400.f;
+		float size_panel_h = 500.f;
+		float margin = 5.f;
+		float size_selector_w = 150.f;
+		float size_page_selector_h = 50.f;
+		float top = screen_size.y - size_panel_h;
+		float priority_settings_height = 80.f;
+
+		// calculated
+		float size_view_w = size_panel_w - size_selector_w;
+		iui::rect selector_panel = { margin, top, size_selector_w, size_panel_h - size_page_selector_h };
+		iui::rect page_selector_rect = { margin, top + size_panel_h - size_page_selector_h, size_selector_w, size_page_selector_h };
+		iui::rect view_panel = { margin + size_selector_w, top, size_view_w, size_panel_h };
+
+		iui::shrink(selector_panel, margin);
+		iui::shrink(page_selector_rect, margin);
+		iui::shrink(view_panel, margin);
+
+		uint32_t items_on_page = 10;
+		iui::rect selector_button = selector_panel;
+		selector_button.h = selector_panel.h / float(items_on_page);
+		auto page = state.iui_state.page_commodities;
+
+		{
+			auto icon_size = 20.f;
+			state.iui_state.panel(state, selector_panel);
+			float y = 10.f;
+			for(
+				uint32_t i = 0;
+				i < items_on_page;
+				i++
+			) {
+				auto item_index = i + items_on_page * page;
+				if(item_index >= state.world.commodity_size()) {
+					break;
+				}
+				dcon::commodity_id cid{ (dcon::commodity_id::value_base_t)item_index };
+				selector_button.y = selector_panel.y + i * selector_button.h;
+				if(state.iui_state.button_textured(
+					state, (int32_t)static_elements::commodities + cid.index(),
+					selector_button,
+					3, state.iui_state.item_selector_bg.texture_handle,
+					state.selected_trade_good == cid
+				)) {
+					if(state.selected_trade_good == cid) {
+						state.selected_trade_good = { };
+					} else {
+						state.selected_trade_good = cid;
+					}
+					update(state);
+					state.update_trade_flow.store(true, std::memory_order::release);
+				}
+				state.iui_state.localized_string_r(
+					state, (int32_t)static_elements::commodities + cid.index(),
+					{ selector_button.x + 30.f, selector_button.y, selector_button.w - 30.f, selector_button.h },
+					text::produce_simple_string(state, state.world.commodity_get_name(cid))
+				);
+				ogl::render_commodity_icon(
+					state, cid,
+					selector_button.x + 5.f,
+					selector_button.y + selector_button.h / 2.f - icon_size / 2.f, icon_size, icon_size
+				);
+			}
+
+			state.iui_state.panel_textured(
+				state, page_selector_rect, state.iui_state.page_selector_bg.texture_handle
+			);
+
+			int pages = (state.world.commodity_size() - 1) / items_on_page + 1;
+
+			iui::rect page_button{
+				0.f,
+				page_selector_rect.y - state.iui_state.page_button.h / 2.f + page_selector_rect.h / 2.f,
+				state.iui_state.page_button.w,
+				state.iui_state.page_button.h
+			};
+
+			if(pages * state.iui_state.page_button.w <= page_selector_rect.w) {
+				float margin_pages = (page_selector_rect.w - pages * page_button.w) / (pages + 1);
+
+				for(int i = 0; i < pages; i++) {
+					page_button.x = page_selector_rect.x + (page_button.w + margin_pages) * i + margin_pages;
+
+					if(state.iui_state.button_textured(
+						state,
+						(int32_t)static_elements::commodities_page + i,
+						page_button,
+						3, state.iui_state.page_button.texture_handle,
+						state.iui_state.page_commodities == i
+					)) {
+						state.iui_state.page_commodities = i;
+					}
+
+					state.iui_state.int_whole(
+						state,
+						(int32_t)static_elements::commodities_page_number + i,
+						page_button, i
+					);
+				}
+			} else {
+				page_button.x = page_selector_rect.x + margin;
+				if(state.iui_state.button_textured(
+					state, (int32_t)static_elements::commodities_page,
+					page_button, 3, state.iui_state.page_button.texture_handle, false
+				)) {
+					state.iui_state.page_commodities = std::max(0, state.iui_state.page_commodities - 1);
+				}
+
+				page_button.x = page_selector_rect.x + page_selector_rect.w - page_button.w - margin;
+				if(state.iui_state.button_textured(
+					state, (int32_t)static_elements::commodities_page + 2,
+					page_button, 3, state.iui_state.page_button.texture_handle, false
+				)) {
+					state.iui_state.page_commodities = std::min(
+						pages - 1, state.iui_state.page_commodities + 1
+					);
+				}
+
+				iui::rect page_selector_page_current = page_selector_rect;
+				page_selector_page_current.x = page_selector_rect.x + page_selector_rect.w / 4.f;
+				page_selector_page_current.w = page_selector_rect.w / 2.f;
+				page_selector_page_current.y = page_selector_rect.y + margin;
+				page_selector_page_current.h = page_selector_rect.h - margin * 2.f;
+
+				page_selector_page_current.w /= 2.f;
+				state.iui_state.int_whole(
+					state,
+					(int32_t)static_elements::commodities_page_number + 1,
+					page_selector_page_current, state.iui_state.page_commodities
+				);
+
+				page_selector_page_current.x += page_selector_page_current.w;
+				state.iui_state.int_whole(
+					state,
+					(int32_t)static_elements::commodities_page_number + 2,
+					page_selector_page_current, pages
+				);
+			}
+		}
+
+		// now we will render control buttons:
+
+		float view_mode_height = 25.f;
+		float view_mode_width = 120.f;
+		for(uint8_t i = 0; i < uint8_t(iui::commodity_info_mode::total); i++) {
+			iui::rect button_rect = { size_selector_w + 10.f, screen_size.y - 350.f + i * view_mode_height, view_mode_width, view_mode_height };
+
+			if(state.iui_state.button_textured(
+				state, (int32_t)(static_elements::commodities_mode_selector) + i,
+				button_rect, 3, state.iui_state.top_bar_button.texture_handle,
+				(uint8_t)state.iui_state.selected_commodity_info == i
+			)) {
+				state.iui_state.selected_commodity_info = (iui::commodity_info_mode)i;
+				update(state);
+			}
+
+			state.iui_state.localized_string(
+				state,
+				(int32_t)static_elements::tab_name_commodity,
+				button_rect,
+				iui::localize_commodity_info_mode((iui::commodity_info_mode)i),
+				ui::get_text_color(state, text::text_color::gold)
+			);
+		}
+
 	} else if(state.iui_state.tab == iui::iui_tab::factory_types) {
 
 		// absolute
@@ -727,6 +1105,62 @@ void render(sys::state& state) {
 				}
 			}
 		}
+	}
+
+	// render histogram:
+	bool hovered_bin = false;
+	float bin_center = 0.f;
+
+	auto bins_count = state.iui_state.bins.size();
+	auto bin_width = 150.f / bins_count;
+	auto bin_range = (state.iui_state.bins_end - state.iui_state.bins_start) / float(bins_count);
+
+	for(uint32_t i = 0; i < bins_count; i++) {
+		auto value = state.iui_state.bins[i];
+		auto height = value * 600.f;
+		iui::rect bin = { screen_size.x - 150.f + bin_width * i, screen_size.y - height, bin_width, height };
+
+		if(state.iui_state.check_hover(state, bin)) {
+			hovered_bin = true;
+			bin_center = state.iui_state.bins_start + bin_range * (float(i) + 0.5f);
+			state.iui_state.panel_colored(state, bin, 1.0f, 1.0f, 0.2f);
+		} else {
+			state.iui_state.panel_colored(state, bin, 0.9f, 0.5f, 0.1f);
+		}
+	}
+
+	iui::rect center_rect{
+		screen_size.x - 160.f - state.iui_state.map_label.w,
+		screen_size.y - 40.f,
+		state.iui_state.map_label.w,
+		state.iui_state.map_label.h
+	};
+
+	iui::rect range_rect{
+		screen_size.x - 160.f - state.iui_state.map_label.w,
+		screen_size.y - 20.f,
+		state.iui_state.map_label.w,
+		state.iui_state.map_label.h
+	};
+
+	if(hovered_bin) {
+		state.iui_state.panel_textured(state, center_rect, state.iui_state.map_label.texture_handle);
+		center_rect.w -= 5.f;
+		state.iui_state.float_2(
+			state,
+			(int32_t)static_elements::bin_center,
+			center_rect,
+			bin_center
+		);
+
+		state.iui_state.panel_textured(state, range_rect, state.iui_state.map_label.texture_handle);
+		range_rect.w -= 5.f;
+		state.iui_state.float_2(
+			state,
+			(int32_t)static_elements::bin_range,
+			range_rect,
+			bin_range
+		);
 	}
 
 	state.iui_state.frame_end();
