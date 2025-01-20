@@ -1051,6 +1051,7 @@ void generic_map_scene_update(sys::state& state) {
 }
 
 void economy_scene_update(sys::state& state) {
+	ui::close_expired_event_windows(state);
 	economy_viewer::update(state);
 }
 
