@@ -3173,12 +3173,14 @@ void budgetwindow_main_expenses_table_t::on_update(sys::state& state) noexcept {
 		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
 			auto local_state = state.world.state_ownership_get_state(soid);
 			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			float total = economy::estimate_spendings_administration_state(
-				state, state.local_player_nation, local_state, fraction
+			add_value(
+				std::pair<std::string, float>(
+					text::get_dynamic_state_name(state, local_state),
+					economy::estimate_spendings_administration_state(
+						state, state.local_player_nation, local_state, fraction
+					)
+				)
 			);
-			if(total > 0.0f) {
-				add_value(std::pair<std::string, float>(text::get_dynamic_state_name(state, local_state), total * fraction));
-			}
 		});
 		add_insert_bottom_spacer(state);
 	} else {
