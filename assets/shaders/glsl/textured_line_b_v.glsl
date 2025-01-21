@@ -2,12 +2,14 @@
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 prev_point;
 layout (location = 2) in vec2 next_point;
-layout (location = 3) in float texture_coord;
-layout (location = 4) in float distance;
+layout (location = 3) in vec2 province_index;
+layout (location = 4) in float texture_coord;
+layout (location = 5) in float distance;
 
 out float tex_coord;
 out float o_dist;
 out vec2 map_coord;
+flat out vec2 frag_province_index;
 
 uniform vec2 offset;
 uniform float aspect_ratio;
@@ -99,28 +101,32 @@ default: break;
 
 void main() {
 	vec4 central_pos = calc_gl_position(vertex_position);
-	vec2 bpt = central_pos.xy;
-	vec2 apt = calc_gl_position(prev_point).xy;
-	vec2 cpt = calc_gl_position(next_point).xy;
+	vec2 corner_shift = vec2(0.f, 0.f);
 
-	// we want to thicken the line in "perceived" coordinates, so
-	// transform to perceived coordinates + depth
-	bpt.x *= aspect_ratio;
-	apt.x *= aspect_ratio;
-	cpt.x *= aspect_ratio;
+	if((texture_coord > 0.5f) || (texture_coord < -0.5f) ) {
+		vec2 bpt = central_pos.xy;
+		vec2 apt = calc_gl_position(prev_point).xy;
+		vec2 cpt = calc_gl_position(next_point).xy;
 
-	// calculate normals in perceived coordinates + depth
-	vec2 adir = normalize(bpt - apt);
-	vec2 bdir = normalize(cpt - bpt);
+		// we want to thicken the line in "perceived" coordinates, so
+		// transform to perceived coordinates + depth
+		bpt.x *= aspect_ratio;
+		apt.x *= aspect_ratio;
+		cpt.x *= aspect_ratio;
 
-	vec2 anorm = vec2(-adir.y, adir.x);
-	vec2 bnorm = vec2(-bdir.y, bdir.x);
-	vec2 corner_normal = normalize(anorm + bnorm);
+		// calculate normals in perceived coordinates + depth
+		vec2 adir = normalize(bpt - apt);
+		vec2 bdir = normalize(cpt - bpt);
 
-	vec2 corner_shift = corner_normal * zoom * width / (1.0f + max(-0.5f, dot(anorm, bnorm)));
+		vec2 anorm = vec2(-adir.y, adir.x);
+		vec2 bnorm = vec2(-bdir.y, bdir.x);
+		vec2 corner_normal = normalize(anorm + bnorm);
 
-	// transform result back to screen + depth coordinates
-	corner_shift.x /= aspect_ratio;
+		corner_shift = corner_normal * zoom * width / (1.0f + max(-0.5f, dot(anorm, bnorm)));
+
+		// transform result back to screen + depth coordinates
+		corner_shift.x /= aspect_ratio;
+	}
 
 	gl_Position = central_pos + vec4(corner_shift.x, corner_shift.y, 0.0f, 0.0f);
 
@@ -128,4 +134,6 @@ void main() {
 	tex_coord = texture_coord;
 	o_dist = distance / (2.0f * width);
 	map_coord = vertex_position;
+    
+    frag_province_index = province_index;
 }

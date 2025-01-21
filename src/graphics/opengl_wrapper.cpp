@@ -180,6 +180,42 @@ std::string_view framebuffer_error(GLenum e) {
 	return "???";
 }
 
+void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size_x, int32_t size_y) {
+	// prepare textures for rendering
+	glGenTextures(1, &state.open_gl.province_map_rendertexture);
+	glBindTexture(GL_TEXTURE_2D, state.open_gl.province_map_rendertexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// framebuffer
+	glGenFramebuffers(1, &state.open_gl.province_map_framebuffer);
+	state.console_log(ogl::opengl_get_error_name(glGetError()));
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.province_map_framebuffer);
+	state.console_log(ogl::opengl_get_error_name(glGetError()));
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state.open_gl.province_map_rendertexture, 0);
+	state.console_log(ogl::opengl_get_error_name(glGetError()));
+
+	// drawbuffers
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers);
+
+	auto check = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+
+	if(check != GL_FRAMEBUFFER_COMPLETE) {
+		state.console_log(ogl::framebuffer_error(check));
+	} else {
+		state.console_log("provincial framebuffer is ready");
+	}
+}
+
+void deinitialize_framebuffer_for_province_indices(sys::state& state) {
+	if(state.open_gl.province_map_rendertexture)
+		glDeleteTextures(1, &state.open_gl.province_map_rendertexture);
+	if(state.open_gl.province_map_framebuffer)
+		glDeleteFramebuffers(1, &state.open_gl.province_map_framebuffer);
+}
+
 void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
 	if(state.user_settings.antialias_level == 0)
 		return;
@@ -323,6 +359,8 @@ void initialize_opengl(sys::state& state) {
 	load_special_icons(state);
 
 	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
+
+	initialize_framebuffer_for_province_indices(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
 
 static const GLfloat global_square_data[] = {
