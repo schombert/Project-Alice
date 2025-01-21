@@ -4506,7 +4506,47 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 						return; // done -- only one battle per
 					}
 				} else { // rebels
-					add_army_to_battle(state, a, b.get_battle(), bool(owner_nation) ? war_role::defender : war_role::attacker);
+					// If battle is rebels against rebels - have to join correct side of the battle
+					for(auto r : b.get_battle().get_attacker_front_line()) {
+						auto other_army = state.world.regiment_get_army_from_army_membership(r);
+						auto other_rebels = state.world.army_get_controller_from_army_rebel_control(other_army);
+						auto other_nation = state.world.army_get_controller_from_army_control(other_army);
+						if(other_rebels == owner_rebels) {
+							// Rebels join their brothers
+							add_army_to_battle(state, a, b.get_battle(), war_role::attacker);
+							break;
+						}
+						else if(other_nation == owner_nation) {
+							// Soldiers join their brothers
+							add_army_to_battle(state, a, b.get_battle(), war_role::attacker);
+							break;
+						}
+						else if(other_nation && owner_nation) {
+							// Soldiers join some battle against rebels
+							add_army_to_battle(state, a, b.get_battle(), war_role::attacker);
+							break;
+						}
+					}
+					for(auto r : b.get_battle().get_defender_front_line()) {
+						auto other_army = state.world.regiment_get_army_from_army_membership(r);
+						auto other_rebels = state.world.army_get_controller_from_army_rebel_control(other_army);
+						auto other_nation = state.world.army_get_controller_from_army_control(other_army);
+						if(other_rebels == owner_rebels) {
+							// Rebels join their brothers
+							add_army_to_battle(state, a, b.get_battle(), war_role::defender);
+							break;
+						} else if(other_nation == owner_nation) {
+							// Soldiers join their brothers
+							add_army_to_battle(state, a, b.get_battle(), war_role::defender);
+							break;
+						} else if(other_nation && owner_nation) {
+							// Soldiers join some battle against rebels
+							add_army_to_battle(state, a, b.get_battle(), war_role::defender);
+							break;
+						}
+					}
+
+					// For example, regular army waits for a battle between two rebel camps to resolve
 					return;
 				}
 			}
