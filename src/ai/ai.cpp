@@ -3963,18 +3963,7 @@ void make_war_decs(sys::state& state) {
 			sort_available_declaration_cbs(potential, state, n, targets.get(n));
 			if(!potential.empty()) {
 				assert(command::can_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation));
-
-				auto run_conference = false;
-				auto str_estimate_1 = estimate_strength(state, n);
-				auto str_estimate_2 = estimate_strength(state, targets.get(n));
-				auto bits = state.world.cb_type_get_type_bits(potential[0].cb);
-
-				// GPs run conferences to save on the bloodshed when they are confident in the win
-				// AI doesn't run conquest conferences as another party will never agree to peaceful resolution
-				if(n.get_is_great_power() && str_estimate_1 > str_estimate_2 * 3.f && state.current_crisis_state == sys::crisis_state::inactive && (bits & military::cb_flag::po_annex) == 0) {
-					run_conference = true;
-				}
-				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true, run_conference);
+				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true, false);
 			}
 		}
 	}

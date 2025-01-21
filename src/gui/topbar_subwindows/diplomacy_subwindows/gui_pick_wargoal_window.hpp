@@ -959,8 +959,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<diplomacy_declare_war_run_state>(state, parent);
 		auto checked = content == diplomacy_declare_war_run_state::run_conference;
-		disabled = state.current_crisis_state != sys::crisis_state::inactive;
-		if(state.current_crisis_state != sys::crisis_state::inactive) {
+		disabled = state.current_crisis_state != sys::crisis_state::inactive || state.network_mode == sys::network_mode_type::single_player;
+		if(disabled) {
 			checked = false;
 		}
 
