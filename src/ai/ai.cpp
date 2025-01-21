@@ -353,29 +353,7 @@ bool ai_will_accept_free_trade(sys::state& state, dcon::nation_id target, dcon::
 }
 
 void explain_ai_trade_agreement_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
-	text::add_line_with_condition(state, contents, "ai_alliance_5", ai_has_mutual_enemy(state, state.local_player_nation, target), indent + 15);
-
-	text::add_line_with_condition(state, contents, "ai_alliance_2", ai_is_close_enough(state, target, state.local_player_nation), indent + 15);
-
-	text::add_line_with_condition(state, contents, "ai_alliance_3", state.world.nation_get_ai_rival(target) != state.local_player_nation && state.world.nation_get_ai_rival(state.local_player_nation) != target, indent + 15);
-
-	auto target_score = estimate_strength(state, target);
-	auto source_score = estimate_strength(state, state.local_player_nation);
-	text::add_line_with_condition(state, contents, "ai_alliance_4", std::max<float>(source_score, 1.f) * ally_overestimate >= target_score, indent + 15);
-
-	auto holdscores = false;
-	auto natid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
-	for(auto prov_owner : state.world.nation_get_province_ownership(target)) {
-		auto prov = prov_owner.get_province();
-
-		for(auto core : prov.get_core_as_province()) {
-			if(core.get_identity() == natid) {
-				holdscores = true; // holds our cores
-			}
-		}
-	}
-
-	text::add_line_with_condition(state, contents, "ai_alliance_5", !holdscores, indent + 15);
+	text::add_line_with_condition(state, contents, "never", false, indent + 15);
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
