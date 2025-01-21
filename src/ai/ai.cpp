@@ -349,32 +349,7 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 }
 
 bool ai_will_accept_free_trade(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
-	// Won't trade with our rivals
-	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
-		return false;
-
-	auto natid = state.world.nation_get_identity_from_identity_holder(from);
-	for(auto prov_owner : state.world.nation_get_province_ownership(target)) {
-		auto prov = prov_owner.get_province();
-
-		for(auto core : prov.get_core_as_province()) {
-			if(core.get_identity() == natid) {
-				return false; // holds our cores
-			}
-		}
-	}
-
-	if(ai_has_mutual_enemy(state, from, target))
-		return true;
-
-	// Otherwise we may consider trade only iff they are close to our continent or we are adjacent
-	if(!ai_is_close_enough(state, target, from))
-		return false;
-
-	// And also if they're powerful enough to be considered for a trade relation
-	auto target_score = estimate_strength(state, target);
-	auto source_score = estimate_strength(state, from);
-	return std::max<float>(source_score, 1.f) * ally_overestimate >= target_score;
+	return false;
 }
 
 void explain_ai_trade_agreement_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
