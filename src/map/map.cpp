@@ -603,7 +603,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	if(zoom > map::zoom_close) {
 		if(zoom > map::zoom_very_close) { // Render province borders
-			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
+			glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
 
@@ -766,7 +766,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 	// coasts
 	{
-		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0004f); // width
+		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0006f); // width
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_coastal_border]);
 		glBindVertexArray(vao_array[vo_coastal]);

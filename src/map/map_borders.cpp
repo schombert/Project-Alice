@@ -102,6 +102,31 @@ bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vecto
 	return true;
 };
 
+void smooth_points(std::vector<glm::vec2>& vertices) {
+	std::vector<glm::vec2> vertices_copy = vertices;
+
+	auto start = int(0);
+	auto end = start + int(vertices.size());
+	for(int i = start + 1; i < end - 1; i++) {
+		glm::vec2 new_position{ 0.f, 0.f };
+		float count = 0.f;
+		bool smooth = true;
+		for(int shift = -2; shift <= 2; shift++) {
+			if(i + shift < start) {
+				continue;
+			};
+			if(i + shift >= end) {
+				continue;
+			};
+			count += 1.f / (float(std::abs(shift)) + 1.f);
+			new_position += (vertices_copy[i + shift]) * 1.f / (float(std::abs(shift)) + 1.f);
+		}
+		if((count > 0) && smooth) {
+			vertices[i] = new_position / count;
+		}
+	}
+}
+
 // Get the index of the border from the province ids and create a new one if one doesn't exist
 int32_t get_border_index(uint16_t map_province_id1, uint16_t map_province_id2, parsers::scenario_building_context& context) {
 	auto province_id1 = province::from_map_id(map_province_id1);
@@ -547,6 +572,7 @@ void display_data::make_borders(sys::state& state, std::vector<bool>& visited) {
 					borders[border_index].start_index = int32_t(border_vertices.size());
 				
 					auto res = make_border_section(*this, state, visited, province::to_map_id(prim), province::to_map_id(sec), i, j * 2);
+					smooth_points(res);
 					add_border_segment_vertices(*this, res);
 
 					borders[border_index].count = int32_t(border_vertices.size() - borders[border_index].start_index);
@@ -572,6 +598,7 @@ void display_data::make_borders(sys::state& state, std::vector<bool>& visited) {
 					borders[border_index].start_index = int32_t(border_vertices.size());
 
 					auto res = make_border_section(*this, state, visited, province::to_map_id(prim), province::to_map_id(sec), i, j * 2 + 1);
+					smooth_points(res);
 					add_border_segment_vertices(*this, res);
 
 					borders[border_index].count = int32_t(border_vertices.size() - borders[border_index].start_index);
@@ -793,6 +820,7 @@ void display_data::make_coastal_borders(sys::state& state, std::vector<bool>& vi
 				bool was_visited = visited[i + (j * 2) * size_x];
 				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i - 1, j)))) {
 					auto res = make_coastal_loop(*this, state, visited, i, j * 2);
+					smooth_points(res);
 					add_coastal_loop_vertices(*this, res);
 				}
 			}
@@ -802,6 +830,7 @@ void display_data::make_coastal_borders(sys::state& state, std::vector<bool>& vi
 				bool was_visited = visited[i + (j * 2 + 1) * size_x];
 				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i, j + 1)))) {
 					auto res = make_coastal_loop(*this, state, visited, i, j * 2 + 1);
+					smooth_points(res);
 					add_coastal_loop_vertices(*this, res);
 				}
 			}

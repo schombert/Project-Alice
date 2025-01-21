@@ -1203,7 +1203,7 @@ void presimulate(sys::state& state) {
 #ifdef NDEBUG
 	uint32_t steps = 365;
 #else
-	uint32_t steps = 20;
+	uint32_t steps = 2;
 #endif
 	for(uint32_t i = 0; i < steps; i++) {
 		update_factory_employment(state);
