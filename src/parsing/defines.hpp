@@ -688,8 +688,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.0125) \
 	LUA_DEFINES_LIST_ELEMENT(alice_invest_middle_class, 0.0125) \
 	LUA_DEFINES_LIST_ELEMENT(alice_invest_farmer, 0.00) \
-	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.025) \
-	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.0125) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.01) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.01) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_middle_class, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_farmer, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.05) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.45) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.50) \

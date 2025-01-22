@@ -1408,3 +1408,7 @@ aristocrat_reinvestment;Aristocrats reinvestment rate
 capitalist_reinvestment;Capitalists reinvestment rate
 middle_class_reinvestment;Middle class reinvestment rate
 farmers_reinvestment;Farmers reinvestment rate
+aristocrat_savings;Aristocrats saving rate
+capitalist_savings;Capitalists saving rate
+middle_class_savings;Middle class saving rate
+farmers_savings;Farmers saving rate

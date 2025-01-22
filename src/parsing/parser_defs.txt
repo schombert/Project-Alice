@@ -249,6 +249,11 @@ modifier_base
 	capitalist_reinvestment              value      float            member_fn
 	middle_class_reinvestment              value      float            member_fn
 	farmers_reinvestment              value      float            member_fn
+	aristocrat_savings              value      float            member_fn
+	capitalist_savings              value      float            member_fn
+	middle_class_savings              value      float            member_fn
+	farmers_savings              value      float            member_fn
+
 
 
 int_vector
