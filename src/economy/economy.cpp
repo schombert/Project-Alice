@@ -4429,13 +4429,20 @@ void update_pop_consumption(
 		ve::mask_vector nation_allows_investment = is_civilised && allows_investment_mask;
 
 		auto capitalists_mask = pop_type == state.culture_definitions.capitalists;
-		auto artisans_mask = pop_type == state.culture_definitions.artisans;
+		auto middle_class_investors_mask = pop_type == state.culture_definitions.artisans || pop_type == state.culture_definitions.secondary_factory_worker;
+		auto farmers_mask = pop_type == state.culture_definitions.farmers;
 		auto landowners_mask = pop_type == state.culture_definitions.aristocrat;
 
+		auto capitalists_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::capitalist_reinvestment);
+		auto middle_class_investors_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::middle_class_reinvestment);
+		auto farmers_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::farmers_reinvestment);
+		auto landowners_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::aristocrat_reinvestment);
+
 		auto investment_ratio =
-			ve::select(capitalists_mask, state.defines.alice_invest_capitalist, zero)
-			+ ve::select(landowners_mask, state.defines.alice_invest_aristocrat, zero)
-			+ ve::select(artisans_mask, state.defines.alice_invest_aristocrat, zero);
+			ve::select(capitalists_mask, capitalists_mod + state.defines.alice_invest_capitalist, zero)
+			+ ve::select(landowners_mask,landowners_mod + state.defines.alice_invest_aristocrat, zero)
+			+ ve::select(middle_class_investors_mask, middle_class_investors_mod + state.defines.alice_invest_middle_class, zero)
+			+ve::select(farmers_mask, farmers_mod + state.defines.alice_invest_farmer, zero);
 
 		auto investment = savings * investment_ratio;
 

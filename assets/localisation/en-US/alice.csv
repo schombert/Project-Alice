@@ -1404,3 +1404,7 @@ alice_budget_tariffs_export;Export Duties
 alice_budget_overseas_maintanance;Colonial
 alice_budget_social_spending;Benefits
 tb_suppression_points;Suppression points:
+aristocrat_reinvestment;Aristocrats reinvestment rate
+capitalist_reinvestment;Capitalists reinvestment rate
+middle_class_reinvestment;Middle class reinvestment rate
+farmers_reinvestment;Farmers reinvestment rate

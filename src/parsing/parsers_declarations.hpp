@@ -864,6 +864,11 @@ public:
 	MOD_NAT_FUNCTION(population_tech_research_bonus)
 	MOD_NAT_FUNCTION(flavor_tech_research_bonus)
 
+	MOD_NAT_FUNCTION(aristocrat_reinvestment)
+	MOD_NAT_FUNCTION(capitalist_reinvestment)
+	MOD_NAT_FUNCTION(middle_class_reinvestment)
+	MOD_NAT_FUNCTION(farmers_reinvestment)
+
 	template<typename T>
 	void finish(T& context) { }
 
