@@ -485,7 +485,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 			for(auto si : state.world.nation_get_state_ownership(target)) {
 				if(si.get_state().get_definition() == st &&
 						trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-								trigger::to_generic(actor))) {
+							trigger::to_generic(actor))) {
 					any_allowed = true;
 					break;
 				}
@@ -493,7 +493,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 		} else {
 			for(auto si : state.world.nation_get_state_ownership(target)) {
 				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-							 trigger::to_generic(actor))) {
+					trigger::to_generic(actor))) {
 					any_allowed = true;
 					break;
 				}
@@ -509,17 +509,17 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
 				if(v.get_subject().get_is_substate()) {
 					if(cb_requires_selection_of_a_state(state, cb)) {
-						for(auto si : state.world.nation_get_state_ownership(target)) {
+						for(auto si : state.world.nation_get_state_ownership(v.get_subject())) {
 							if(si.get_state().get_definition() == st &&
 									trigger::evaluate(state, allowed_substates, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-											trigger::to_generic(actor))) {
+										trigger::to_generic(actor))) {
 								return true;
 							}
 						}
 					} else {
-						for(auto si : state.world.nation_get_state_ownership(target)) {
+						for(auto si : state.world.nation_get_state_ownership(v.get_subject())) {
 							if(trigger::evaluate(state, allowed_substates, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-										 trigger::to_generic(actor))) {
+								trigger::to_generic(actor))) {
 								return true;
 							}
 						}
@@ -527,7 +527,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 				}
 			}
 			return false;
-		}();
+			}();
 		if(!any_allowed)
 			return false;
 	}
@@ -541,7 +541,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 				if((state.world.cb_type_get_type_bits(cb) & cb_flag::all_allowed_states) != 0) {
 					for(auto si : state.world.nation_get_state_ownership(target)) {
 						if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-									 trigger::to_generic(secondary_nation))) {
+							trigger::to_generic(secondary_nation))) {
 							validity = true;
 							break;
 						}
@@ -550,7 +550,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 					for(auto si : state.world.nation_get_state_ownership(target)) {
 						if(si.get_state().get_definition() == st &&
 								trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor),
-										trigger::to_generic(secondary_nation))) {
+									trigger::to_generic(secondary_nation))) {
 							validity = true;
 							break;
 						}
@@ -568,6 +568,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 
 	return true;
 }
+
 
 bool province_is_blockaded(sys::state const& state, dcon::province_id ids) {
 	return state.world.province_get_is_blockaded(ids);
@@ -3997,7 +3998,7 @@ void update_ticking_war_score(sys::state& state) {
 
 		// Ticking warscope for make_puppet war
 		if((bits & cb_flag::po_make_puppet) != 0 || (bits & cb_flag::po_make_substate) != 0) {
-			
+
 			auto target = wg.get_target_nation().get_capital();
 
 			bool any_occupied = false;
@@ -4008,7 +4009,7 @@ void update_ticking_war_score(sys::state& state) {
 			}
 
 			if(get_role(state, war, target.get_nation_from_province_control()) == role) {
-					wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed;
+				wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed;
 			}
 			else if(any_occupied) {
 				// We hold some non-colonial province of the target, stay at zero
@@ -4526,7 +4527,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 			auto other_nation = o.get_army().get_controller_from_army_control();
 			auto other_rebels = o.get_army().get_controller_from_army_rebel_control();
 
-			if(bool(owner_nation) != bool(other_nation) || owner_rebels != other_rebels) { // battle vs. rebels OR rebels vs rebels
+			if(owner_rebels && other_rebels && owner_rebels != other_rebels) { // battle rebels vs rebels
 				auto new_battle = fatten(state.world, state.world.create_land_battle());
 				new_battle.set_war_attacker_is_attacker(!bool(owner_nation));
 				new_battle.set_start_date(state.current_date);
@@ -4551,6 +4552,12 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 
 				add_army_to_battle(state, a, new_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender);
 				add_army_to_battle(state, o.get_army(), new_battle, bool(owner_nation) ? war_role::attacker : war_role::defender);
+
+				if(owner_nation)
+					new_battle_defender_rebels = other_rebels;
+				if(owner_rebels) {
+					new_battle_defender_nation = other_nation;
+				}
 
 				gather_to_battle = new_battle.id;
 				break;
@@ -4583,6 +4590,9 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 
 				gather_to_battle = new_battle.id;
 				battle_in_war = par.w;
+
+				if(other_nation)
+					new_battle_defender_nation = other_nation;
 				break;
 			}
 
@@ -4596,12 +4606,19 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 					continue;
 
 				auto other_nation = o.get_army().get_controller_from_army_control();
+				auto other_rebels = o.get_army().get_controller_from_army_rebel_control();
+
 				if(battle_in_war) {
 					if(auto role = get_role(state, battle_in_war, other_nation); role != war_role::none) {
 						add_army_to_battle(state, o.get_army(), gather_to_battle, role);
 					}
-				} else { // battle vs. rebels
-					add_army_to_battle(state, o.get_army(), gather_to_battle, !bool(other_nation) ? war_role::attacker : war_role::defender);
+				} else if(new_battle_defender_rebels == other_rebels) {
+					// join rebel brothers
+					add_army_to_battle(state, o.get_army(), gather_to_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender);
+				} else {
+					// battle doesn't relate to them
+					// battle vs. rebels
+					//add_army_to_battle(state, o.get_army(), gather_to_battle, !bool(other_nation) ? war_role::attacker : war_role::defender);
 				}
 			}
 
