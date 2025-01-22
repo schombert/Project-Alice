@@ -631,7 +631,7 @@ void update_events(sys::state& state) {
 	}
 
 	for(auto i = state.pending_n_event.size(); i-- > 0;) {
-		if(state.pending_n_event[i].date + expiration_in_days <= state.current_date) { // expired
+		if(state.pending_n_event[i].date + (int32_t)state.defines.alice_event_taken_auto_days <= state.current_date) { // expired
 			auto& opt = state.world.national_event_get_options(state.pending_n_event[i].e);
 
 			if(opt[0].effect) {
@@ -648,7 +648,7 @@ void update_events(sys::state& state) {
 	}
 
 	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
-		if(state.pending_f_n_event[i].date + expiration_in_days <= state.current_date) { // expired
+		if(state.pending_f_n_event[i].date + (int32_t)state.defines.alice_event_taken_auto_days <= state.current_date) { // expired
 			auto& opt = state.world.free_national_event_get_options(state.pending_f_n_event[i].e);
 
 			if(opt[0].effect) {
@@ -665,7 +665,7 @@ void update_events(sys::state& state) {
 	}
 
 	for(auto i = state.pending_p_event.size(); i-- > 0;) {
-		if(state.pending_p_event[i].date + expiration_in_days <= state.current_date) { // expired
+		if(state.pending_p_event[i].date + (int32_t) state.defines.alice_event_taken_auto_days <= state.current_date) { // expired
 			auto& opt = state.world.provincial_event_get_options(state.pending_p_event[i].e);
 
 			if(opt[0].effect) {
@@ -682,7 +682,7 @@ void update_events(sys::state& state) {
 	}
 
 	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
-		if(state.pending_f_p_event[i].date + expiration_in_days <= state.current_date) { // expired
+		if(state.pending_f_p_event[i].date + (int32_t) state.defines.alice_event_taken_auto_days <= state.current_date) { // expired
 			auto& opt = state.world.free_provincial_event_get_options(state.pending_f_p_event[i].e);
 
 			if(opt[0].effect) {

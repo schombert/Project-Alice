@@ -573,8 +573,15 @@ province_rgo_ext_desc
 	trade_good        value          text               member_fn
 	max_employment    value          int                member_fn
 
+province_rgo_ext_2_desc
+	trade_good        value          text               member_fn
+	max_employment    value          int                member_fn
+
 province_rgo_ext
 	entry             group          province_rgo_ext_desc  member_fn
+
+province_rgo_ext_2
+	entry             group          province_rgo_ext_2_desc  member_fn
 
 province_history_file
 	life_rating       value          uint               member_fn
@@ -594,6 +601,7 @@ province_history_file
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
 	rgo_distribution  group          province_rgo_ext   member_fn
+	rgo_distribution_add  group      province_rgo_ext_2 member_fn
 	#any              value          uint               member_fn
 	#any              extern         enter_dated_block  discard
 
@@ -736,6 +744,10 @@ cb_body
 	po_colony                       value       bool                        member_fn
 	po_destroy_forts                value       bool                        member_fn
 	po_destroy_naval_bases          value       bool                        member_fn
+	po_make_substate                value       bool                        member_fn
+	po_save_subjects                value       bool                        member_fn
+	po_unequal_treaty              value       bool                        member_fn
+
 	mutual                          value       none                        discard
 	is_valid                        group       none                        discard
 

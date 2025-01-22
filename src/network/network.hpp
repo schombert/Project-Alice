@@ -16,6 +16,7 @@
 #include "SPSCQueue.h"
 #include "container_types.hpp"
 #include "commands.hpp"
+#include "SHA512.hpp"
 
 namespace sys {
 struct state;
@@ -146,3 +147,4 @@ public:
 };
 
 }
+

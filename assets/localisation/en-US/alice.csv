@@ -854,6 +854,7 @@ ai_alliance_2;Your nation is close enough to assist in a war
 ai_alliance_3;No conflicting ambitions
 ai_alliance_4;Your nation's military is sufficiently strong
 ai_alliance_5;Has shared mutual strategic interests
+ai_alliance_6;Your nation doesn't have their cores
 ai_access_1;The AI sees one of your wars as advantageous to them
 col_start_title;Begin colonizing this state
 col_start_1;No colonizers are present or colonization is still in the initial stage
@@ -925,6 +926,7 @@ chat_player_leaves;$playername$ left
 chat_player_ban;$playername$ was banned
 chat_player_kick;$playername$ was kicked
 chat_player_switch;$playername$ has choosen $country$
+chat_player_oos_source;Reporting OOS!
 chat_player_oos;$playername$ has OOSed!
 chat_player_reload;$playername$ has reloaded players
 alice_status_stream;Save progress $value$
@@ -997,6 +999,7 @@ change_state_name_to;change state name to $text$
 alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
 alice_unit_disable_rebel_hunt;Stop hunting rebels
 alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nOrganisation: ?Y$organisation$?W\nStrength: ?Y$strength$?W
+make_substate;Make a substate
 understaffed_regiment;?RThis regiment is understaffed and will only have $value$ soldiers!?W
 tech_queue_explain;Press ?YSHIFT?W to add to queue, ?YRight-click?W to remove
 alice_province_building_build;?YSHIFT?W to build on the entire ?Gstate?W.\n?YSHIFT-Right-click?W to build on the entire ?Gcountry?W.
@@ -1011,6 +1014,31 @@ alice_trade_flow_piechart_workforce;Investors
 alice_diplo_release_subject;Release subject
 alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
 alice_diplo_release_subject_0;Is our subject
+ask_free_trade_agreement;Trade agreement
+revoke_trade_rights;Revoke trade rights
+msg_trade_rights_revoked;Nation ?Y$y$?W has revoked free trade rights of ?Y$x$?! in their country.
+trade_rights_desc;Trade rights or unequal treaties give the other party preferential treatment in trade ignoring tariffs of our country. Once imposed, cannot be revoked for ?Y$x$ years.
+revoke_trade_rights_explain_1;Enough time has passed since trade rights were imposed
+free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
+free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
+free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
+free_trade_explain_3;We are embargoeing them
+free_trade_explain_4;They are embargoing us
+issue_embargo;Issue Embargo
+lift_embargo;Lift Embargo
+embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
+embargo_explain_1;?GWe embargo them.?!
+embargo_explain_2;?RThey embargo us.?!
+embargo_explain_3;We don't have trade rights in their country
+embargo_explain_4;They don't have trade rights in our country
+embargo_explain_5;We aren't in a sphere
+embargo_explain_6;They aren't in a sphere
+msg_embargo_issued_title;Embargo issued
+msg_embargo_issued;Nation ?Y$y$?! has issued embargo to ban trade with ?Y$x$?!.
+msg_embargo_lifted_title;Embargo lifted
+msg_embargo_lifted;Nation ?Y$y$?! has lifted embargo on trade with ?Y$x$?!.
+msg_free_trade_agreement_signed_title;Free trade agreement signed.
+msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.
 kill_leader;Kill leader
 annex_null;becomes unowned
 meets_the_conditions_of;meets the conditions of 

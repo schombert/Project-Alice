@@ -890,6 +890,24 @@ void cb_body::po_destroy_naval_bases(association_type, bool value, error_handler
 	}
 }
 
+void cb_body::po_make_substate(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+	if(value) {
+		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_make_substate;
+	}
+}
+
+void cb_body::po_save_subjects(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+	if(value) {
+		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_save_subjects;
+	}
+}
+
+void cb_body::po_unequal_treaty(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+	if(value) {
+		context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_unequal_treaty;
+	}
+}
+
 void cb_body::war_name(association_type, std::string_view value, error_handler& err, int32_t line,
 		individual_cb_context& context) {
 	context.outer_context.state.world.cb_type_set_war_name(context.id,

@@ -17,6 +17,10 @@ enum ai_strategies {
 };
 
 float estimate_strength(sys::state& state, dcon::nation_id n) {
+	if(state.cheat_data.disable_ai) {
+		return 1.f;
+	}
+
 	float value = state.world.nation_get_military_score(n) * state.defines.alice_ai_strength_estimation_military_industrial_balance;
 	value += state.world.nation_get_industrial_score(n) * (1.f - state.defines.alice_ai_strength_estimation_military_industrial_balance);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n)) {
@@ -27,6 +31,10 @@ float estimate_strength(sys::state& state, dcon::nation_id n) {
 }
 
 float estimate_defensive_strength(sys::state& state, dcon::nation_id n) {
+	if(state.cheat_data.disable_ai) {
+		return 1.0f;
+	}
+
 	float value = estimate_strength(state, n);
 	for(auto dr : state.world.nation_get_diplomatic_relation(n)) {
 		if(!dr.get_are_allied())
@@ -316,6 +324,17 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 			return true; //always ally spherelord
 	}
 
+	auto natid = state.world.nation_get_identity_from_identity_holder(from);
+	for(auto prov_owner : state.world.nation_get_province_ownership(target)) {
+		auto prov = prov_owner.get_province();
+
+		for(auto core : prov.get_core_as_province()) {
+			if(core.get_identity() == natid) {
+				return false; // holds our cores
+			}
+		}
+	}
+
 	if(ai_has_mutual_enemy(state, from, target))
 		return true;
 
@@ -327,6 +346,14 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, from);
 	return std::max<float>(source_score, 1.f) * ally_overestimate >= target_score;
+}
+
+bool ai_will_accept_free_trade(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	return false;
+}
+
+void explain_ai_trade_agreement_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
+	text::add_line_with_condition(state, contents, "never", false, indent + 15);
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
@@ -346,6 +373,20 @@ void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text
 	auto target_score = estimate_strength(state, target);
 	auto source_score = estimate_strength(state, state.local_player_nation);
 	text::add_line_with_condition(state, contents, "ai_alliance_4", std::max<float>(source_score, 1.f) * ally_overestimate >= target_score, indent + 15);
+
+	auto holdscores = false;
+	auto natid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+	for(auto prov_owner : state.world.nation_get_province_ownership(target)) {
+		auto prov = prov_owner.get_province();
+
+		for(auto core : prov.get_core_as_province()) {
+			if(core.get_identity() == natid) {
+				holdscores = true; // holds our cores
+			}
+		}
+	}
+
+	text::add_line_with_condition(state, contents, "ai_alliance_5", !holdscores, indent + 15);
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
@@ -372,6 +413,7 @@ void explain_ai_access_reasons(sys::state& state, dcon::nation_id target, text::
 	text::add_line_with_condition(state, contents, "ai_access_1", ai_will_grant_access(state, target, state.local_player_nation), indent);
 }
 
+// MP compliant
 void update_ai_research(sys::state& state) {
 	auto ymd_date = state.current_date.to_ymd(state.start_date);
 	auto year = uint32_t(ymd_date.year);
@@ -1065,27 +1107,20 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 
+	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
+
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
-
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
-
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				if((output - input) / input > 10.f)
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
+
+				if(profit / input > 10.f && roi > 0.01f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1096,6 +1131,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+
+	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 
 	// pass zero:
 	// factories with stupid income margins
@@ -1116,11 +1154,26 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				auto& constr_cost = type.get_construction_costs();
+				auto lacking_constr = false;
 
-				if((output - input) / input > 2.f)
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(constr_cost.commodity_type[i]) {
+						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+							lacking_constr = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
+
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
+
+				if(!lacking_constr && profit / input > 2.f && roi > 0.01f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1144,11 +1197,25 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				auto& constr_cost = type.get_construction_costs();
+				auto lacking_constr = false;
 
-				if((!lacking_input && (lacking_output || ((output - input) / cost < 365.f))) || (output - input) / input > 1.00f)
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(constr_cost.commodity_type[i]) {
+						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+							lacking_constr = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
+
+				if((!lacking_input && !lacking_constr && (lacking_output || (profit / cost > 0.005f))) || profit / input > 1.00f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1171,10 +1238,25 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				auto& constr_cost = type.get_construction_costs();
+				auto lacking_constr = false;
 
-				if((output - input) / input > 0.3f)
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(constr_cost.commodity_type[i]) {
+						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+							lacking_constr = true;
+					} else {
+						break;
+					}
+				}
+
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float output = economy::factory_type_output_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
+				auto profit = (output - input) * (1.0f - rich_effect);
+				auto roi = profit / cost;
+
+				if(!lacking_input && !lacking_constr && profit / input > 0.3f && roi > 0.001f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1190,9 +1272,9 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
 				if((output - input) / input > 20.f)
 					desired_types.push_back(type.id);
@@ -1225,9 +1307,9 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
 				if((lacking_output || ((output - input) / cost < 365.f)))
 					desired_types.push_back(type.id);
@@ -1252,9 +1334,9 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
+				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
 
 				if((lacking_output || ((output - input) / input > profitabilitymark)))
@@ -5022,6 +5104,7 @@ bool army_ready_for_battle(sys::state& state, dcon::nation_id n, dcon::army_id a
 	return state.world.regiment_get_org(sample_reg) > 0.7f * max_org;
 }
 
+// MP compliant
 void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		army_activity activity = army_activity(ar.get_army().get_ai_activity());
@@ -5068,6 +5151,9 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 }
 
 float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
 		return 0.0f;
@@ -5107,6 +5193,9 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.5f;
 	// account general
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
@@ -5138,6 +5227,9 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.5f;
 	// account general
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
@@ -5164,6 +5256,9 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
 	float strength_total = 0.f;
 	if(state.world.nation_get_is_at_war(by)) {
 		for(auto ar : state.world.in_army) {

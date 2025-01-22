@@ -1541,6 +1541,19 @@ struct province_rgo_ext {
 	void finish(province_file_context&) { }
 };
 
+struct province_rgo_ext_2_desc {
+	dcon::commodity_id trade_good_id;
+	float max_employment_value;
+	void max_employment(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+	void trade_good(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&);
+};
+
+struct province_rgo_ext_2 {
+	void entry(province_rgo_ext_2_desc const& value, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) { }
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1554,6 +1567,7 @@ struct province_history_file {
 	void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context);
 	void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
+	void rgo_distribution_add(province_rgo_ext_2 const& value, error_handler& err, int32_t line, province_file_context& context);
 	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };
@@ -1736,6 +1750,10 @@ struct cb_body {
 	void po_colony(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
 	void po_destroy_forts(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
 	void po_destroy_naval_bases(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+	void po_make_substate(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+	void po_save_subjects(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+	void po_unequal_treaty(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+
 	void war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context);
 	void badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
 	void prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);

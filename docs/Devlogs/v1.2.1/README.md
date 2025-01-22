@@ -68,4 +68,5 @@ Bugfixes:
 
 ## by Nivaturimika
 
+  - Regiments & ships cannot reorganize to higher values than effective military spending (military spending slider * goods availability)
   - Fix to texture rendering

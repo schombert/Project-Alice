@@ -111,24 +111,28 @@ enum class command_type : uint8_t {
 	change_unit_type = 102,
 	take_province = 103,
 	grant_province = 104,
+	ask_for_free_trade_agreement = 105,
+	switch_embargo_status = 106,
+	revoke_trade_rights = 107,
 
 	// network
-	notify_player_ban = 106,
-	notify_player_kick = 107,
-	notify_player_picks_nation = 108,
-	notify_player_joins = 109,
-	notify_player_leaves = 110,
-	notify_player_oos = 111,
-	notify_save_loaded = 112,
-	notify_start_game = 113, // for synchronized "start game"
-	notify_stop_game = 114, // "go back to lobby"
-	notify_pause_game = 115, // visual aid mostly
-	notify_reload = 116,
-	advance_tick = 120,
-	chat_message = 121,
-	network_inactivity_ping = 122,
+	notify_player_ban = 110,
+	notify_player_kick = 111,
+	notify_player_picks_nation = 112,
+	notify_player_joins = 113,
+	notify_player_leaves = 114,
+	notify_player_oos = 115,
+	notify_save_loaded = 116,
+	notify_start_game = 117, // for synchronized "start game"
+	notify_stop_game = 118, // "go back to lobby"
+	notify_pause_game = 119, // visual aid mostly
+	notify_reload = 120,
+	advance_tick = 121,
+	chat_message = 122,
+	network_inactivity_ping = 123,
 
 	// console cheats
+	network_populate = 254,
 	console_command = 255,
 };
 
@@ -542,7 +546,7 @@ struct payload {
 		nbutton_data nbutton;
 		pbutton_data pbutton;
 		cheat_invention_data_t cheat_invention_data;
-		set_factory_priority_data set_factory_priority_data;
+		set_factory_priority_data set_factory_priority;
 
 		dtype() { }
 	} data;
@@ -725,6 +729,15 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 
 void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+
+void ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+
+void switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+
+void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost = false);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);

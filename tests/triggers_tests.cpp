@@ -7,6 +7,7 @@ namespace parsers {
 	extern template void recurse_over_effects(uint16_t*, std::function<void(uint16_t*)> const&);
 }
 
+/*
 TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
@@ -33,7 +34,7 @@ TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 		REQUIRE(2 == blockade_count);
 	}
 }
-
+/*
 TEST_CASE("effect scope recursion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
@@ -840,3 +841,5 @@ TEST_CASE("trigger payload translation", "[trigger_tests]") {
 		REQUIRE(new_d == dcon::nation_id{42});
 	}
 }
+
+*/

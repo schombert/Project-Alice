@@ -1,21 +1,13 @@
 #94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
-if(WIN32)
 add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
 	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
 	"${PROJECT_SOURCE_DIR}/src/alice.rc")
-else()
-add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
-	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp")
-endif()
 target_link_libraries(tests_project PRIVATE AliceCommon)
 
 FetchContent_MakeAvailable(Catch2)
@@ -25,6 +17,10 @@ target_link_libraries(tests_project
     PRIVATE
     Catch2::Catch2
 )
+
+if (WIN32)
+	target_link_libraries(tests_project PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+endif()
 
 # GENERATE test parsers
 
@@ -38,7 +34,6 @@ add_custom_command(
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_TEST_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/tests/test_parsers_generated.hpp)
 add_dependencies(tests_project GENERATE_TEST_PARSERS)
-
 add_dependencies(tests_project GENERATE_PARSERS)
 add_dependencies(tests_project GENERATE_CONTAINER ParserGenerator)
 

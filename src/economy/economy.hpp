@@ -416,6 +416,8 @@ bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
+dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
 
@@ -604,6 +606,7 @@ float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, d
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
 int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
+int32_t state_factory_size(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
