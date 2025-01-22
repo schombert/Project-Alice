@@ -105,25 +105,59 @@ bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vecto
 void smooth_points(std::vector<glm::vec2>& vertices) {
 	std::vector<glm::vec2> vertices_copy = vertices;
 
+	bool wrap_around = false;
+	if(glm::distance(vertices.back(), vertices.front()) < 0.001f) {
+		wrap_around = true;
+	}
+
 	auto start = int(0);
 	auto end = start + int(vertices.size());
-	for(int i = start + 1; i < end - 1; i++) {
+
+	auto start_iteration = start + 1;
+	auto end_iteration = end - 1;
+
+	if(wrap_around) {
+		start_iteration = start;
+		end_iteration = end;
+	}
+
+	for(int i = start_iteration; i < end_iteration; i++) {
 		glm::vec2 new_position{ 0.f, 0.f };
 		float count = 0.f;
 		bool smooth = true;
 		for(int shift = -2; shift <= 2; shift++) {
-			if(i + shift < start) {
-				continue;
-			};
-			if(i + shift >= end) {
-				continue;
-			};
-			count += 1.f / (float(std::abs(shift)) + 1.f);
-			new_position += (vertices_copy[i + shift]) * 1.f / (float(std::abs(shift)) + 1.f);
+			auto shifted_index = i + shift;
+			if(wrap_around) {
+				if(shifted_index < start) {
+					shifted_index = end + shifted_index - start;
+				}
+				if(shifted_index >= end) {
+					shifted_index = start + shifted_index - end;
+				}
+			} else {
+				if(shifted_index < start) {
+					continue;
+				};
+				if(shifted_index >= end) {
+					continue;
+				};
+			}
+			auto weight = 1.f / (float(std::abs(shift)) + 1.f);
+
+			if(shift == 0) {
+				weight += 10.f / vertices.size() / vertices.size();
+			}
+
+			count += weight;
+			new_position += (vertices_copy[shifted_index]) * weight;
 		}
 		if((count > 0) && smooth) {
 			vertices[i] = new_position / count;
-		}
+		}		
+	}
+
+	if(wrap_around) {
+		vertices[0] = vertices.back();
 	}
 }
 
@@ -484,6 +518,11 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 	if(points.size() < 3)
 		return;
 
+	bool wrap_around = false;
+	if(glm::length(points.back() - points[0]) < 0.1f) {
+		wrap_around = true;
+	}
+
 	{
 		auto first = dat.border_vertices.size();
 
@@ -496,7 +535,11 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 		auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
 		{
-			old_pos = 2.0f * current_pos - next_pos;
+			if(wrap_around) {
+				old_pos = put_in_local(glm::vec2(points[1].x, points[1].y), current_pos, float(dat.size_x));
+			} else {
+				old_pos = 2.0f * current_pos - next_pos;
+			}
 
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
 				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
@@ -539,12 +582,15 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 			distance += 0.5f * glm::length(raw_dist);
 		}
 
-		// case i == 0
-		{
+		{ // case i == 0
 			old_pos = current_pos;
 			current_pos = glm::vec2(points[0].x, points[0].y);
 
-			next_pos = 2.0f * current_pos - old_pos;
+			if(wrap_around) {
+				next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+			} else {
+				next_pos = 2.0f * current_pos - old_pos;
+			}
 
 			auto next_direction = glm::normalize(next_pos - current_pos);
 
@@ -560,7 +606,6 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 			raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 			raw_dist.x *= 2.0f;
 			distance += 0.5f * glm::length(raw_dist);
-
 		}
 	}
 
@@ -576,7 +621,11 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 		auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
 		{
-			old_pos = 2.0f * current_pos - next_pos;
+			if(wrap_around) {
+				old_pos = put_in_local(glm::vec2(points[1].x, points[1].y), current_pos, float(dat.size_x));
+			} else {
+				old_pos = 2.0f * current_pos - next_pos;
+			}
 
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
 				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
@@ -619,12 +668,15 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 			distance += 0.5f * glm::length(raw_dist);
 		}
 
-		// case i == 0
-		{
+		{ // case i == 0
 			old_pos = current_pos;
 			current_pos = glm::vec2(points[0].x, points[0].y);
 
-			next_pos = 2.0f * current_pos - old_pos;
+			if(wrap_around) {
+				next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+			} else {
+				next_pos = 2.0f * current_pos - old_pos;
+			}
 
 			auto next_direction = glm::normalize(next_pos - current_pos);
 

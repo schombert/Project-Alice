@@ -527,9 +527,12 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1i(shader_uniforms[shader_borders_provinces][uniform_provinces_real_texture_sampler], 12);
 	glBindVertexArray(vao_array[vo_border]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-	glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.001f); // width
 
 	for(auto b : borders) {
+		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.001f); // width
+		if(b.count < 50) {
+			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.0f); // width
+		}
 		glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count / 2);
 		glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
 	}
