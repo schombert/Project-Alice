@@ -411,16 +411,30 @@ public:
 		auto consumer = 0;
 		auto heavy = 0;
 		auto mils = 0;
+		auto processing = 0;
+		auto indandconsumer = 0;
 		for(auto p : fat_id.get_province_ownership_as_nation()) {
 			for(auto floc : p.get_province().get_factory_location_as_province()) {
-				if(floc.get_factory().get_building_type().get_output().get_commodity_group() == (uint8_t)sys::commodity_group::military_goods) {
+				bool is_closed = economy::factory_total_desired_employment_score(state, floc.get_factory()) < economy::factory_closed_threshold;
+				if(is_closed) {
+					continue;
+				}
+
+				auto output = floc.get_factory().get_building_type().get_output().get_commodity_group();
+				if(output == (uint8_t)sys::commodity_group::military_goods) {
 					mils += floc.get_factory().get_level();
 				}
-				else if(floc.get_factory().get_building_type().get_output().get_commodity_group() == (uint8_t) sys::commodity_group::consumer_goods) {
+				else if(output == (uint8_t) sys::commodity_group::consumer_goods) {
 					consumer += floc.get_factory().get_level();
 				}
-				else if(floc.get_factory().get_building_type().get_output().get_commodity_group() == (uint8_t) sys::commodity_group::industrial_goods) {
+				else if(output == (uint8_t) sys::commodity_group::industrial_goods) {
 					heavy += floc.get_factory().get_level();
+				}
+				else if(output == (uint8_t)sys::commodity_group::raw_material_goods) {
+					processing += floc.get_factory().get_level();
+				}
+				else if(output == (uint8_t)sys::commodity_group::industrial_and_consumer_goods) {
+					indandconsumer += floc.get_factory().get_level();
 				}
 			}
 		}
@@ -428,6 +442,10 @@ public:
 		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, consumer);
 		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, heavy);
 		text::add_line(state, contents, "factory_military_count", text::variable_type::val, mils);
+		text::add_line(state, contents, "factory_processing_count", text::variable_type::val, mils);
+		if(indandconsumer > 0) {
+			text::add_line(state, contents, "factory_industrial_and_consumer_count", text::variable_type::val, mils);
+		}
 	}
 };
 

@@ -518,6 +518,8 @@ factory_upgrade_shortcuts;?YSHIFT-Left-click?W upgrade ?Gall?!S factories in a s
 factory_consumer_count;Consumer factories: ?Y$val$?!
 factory_heavy_count;Heavy industry factories: ?Y$val$?!
 factory_military_count;Military factories: ?Y$val$?!
+factory_processing_count;Processing factories: ?Y$val$?!
+factory_industrial_and_consumer_count;Industrial and consumer goods factories: ?Y$val$?!
 blank_org_gain;organization gain
 plurality_change_reason;(based on the average consciousness)
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
