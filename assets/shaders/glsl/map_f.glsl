@@ -13,12 +13,14 @@ uniform sampler2D colormap_political;
 uniform sampler2D province_highlight;
 uniform sampler2D stripes_texture;
 uniform sampler2D province_fow;
+uniform sampler2D provinces_sea_mask;
 uniform usampler2D diag_border_identifier;
 uniform uint subroutines_index_2;
 // location 0 : offset
 // location 1 : zoom
 // location 2 : screen_size
 uniform vec2 map_size;
+uniform vec2 screen_size;
 uniform float time;
 uniform float gamma;
 vec4 gamma_correct(vec4 colour) {
@@ -40,7 +42,7 @@ vec2 get_corrected_coords(vec2 coords) {
 // The water effect
 vec4 get_water_terrain()
 {
-	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
+	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 
 	// Water effect taken from Vic2 fx/water/PixelShader_HoiWater_2_0
 	const float WRAP = 0.8;
@@ -120,9 +122,16 @@ vec4 get_water_political() {
 
 // The terrain color from the current texture coordinate offset with one pixel in the "corner" direction
 vec4 get_terrain(vec2 corner, vec2 offset) {
+	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 	float index = texture(terrain_texture_sampler, floor(tex_coord * map_size + vec2(0.5, 0.5)) / map_size + 0.5 * pix * corner).r;
 	index = floor(index * 256);
-	float is_water = step(64, index);
+
+	float is_water = 0.f; //step(64, index);
+
+	if (texture(provinces_sea_mask, prov_id).x > 0.0f || (prov_id.x == 0.f && prov_id.y == 0.f)) {
+        is_water = 1.f;
+    }
+
 	vec4 colour = texture(terrainsheet_texture_sampler, vec3(offset, index));
 	return mix(colour, vec4(0.), is_water);
 }
@@ -171,7 +180,7 @@ vec4 get_land_political_close() {
 
 	rounded_tex_coords.y += ((int(test >> shift) & 1) != 0) && (abs(rel_coord.x) + abs(rel_coord.y) > 0.5) ? sign(rel_coord.y) / map_size.y : 0;
 
-	vec2 prov_id = texture(provinces_texture_sampler, rounded_tex_coords).xy;
+	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
@@ -197,7 +206,7 @@ vec4 get_land_political_close() {
 vec4 get_land_political_far() {
 	vec4 terrain = get_terrain(vec2(0, 0), vec2(0));
 	float is_land = terrain.a;
-	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
+	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
