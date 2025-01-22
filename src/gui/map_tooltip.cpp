@@ -1070,6 +1070,8 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 
 		text::add_to_layout_box(state, contents, box, text::prettify(int64_t(factories.size())), text::text_color::yellow);
 
+		text::add_line_break_to_layout_box(state, contents, box);
+
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_factory_size"));
 		text::add_to_layout_box(state, contents, box, totallevels, text::text_color::yellow);
 
