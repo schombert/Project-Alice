@@ -1028,6 +1028,7 @@ private:
 		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
 
+		// Add target states to the selection
 		if ((state.world.cb_type_get_type_bits(cb) & military::cb_flag::always) == 0) {
 			for(auto available_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
 				if(available_cb.cb_type != cb || available_cb.target != target || !available_cb.target_state) {
@@ -1040,6 +1041,7 @@ private:
 				}
 			}
 		}
+		// Country has "blank check" CB
 		if (seldata.selectable_states.empty()) {
 			if(allowed_substate_regions) {
 				for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
