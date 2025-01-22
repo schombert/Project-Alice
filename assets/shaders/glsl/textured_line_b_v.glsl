@@ -102,8 +102,13 @@ default: break;
 void main() {
 	vec4 central_pos = calc_gl_position(vertex_position);
 	vec2 corner_shift = vec2(0.f, 0.f);
+	float true_width = width;
 
-	if((texture_coord > 0.5f) || (texture_coord < -0.5f) ) {
+	if (texture_coord < 0.01f) {
+		true_width = 0.00001f;
+	}
+
+	//if((texture_coord > 0.5f) || (texture_coord < -0.5f) ) {
 		vec2 bpt = central_pos.xy;
 		vec2 apt = calc_gl_position(prev_point).xy;
 		vec2 cpt = calc_gl_position(next_point).xy;
@@ -122,11 +127,11 @@ void main() {
 		vec2 bnorm = vec2(-bdir.y, bdir.x);
 		vec2 corner_normal = normalize(anorm + bnorm);
 
-		corner_shift = corner_normal * zoom * width / (1.0f + max(-0.5f, dot(anorm, bnorm)));
+		corner_shift = corner_normal * zoom * true_width / (1.0f + max(-0.5f, dot(anorm, bnorm)));
 
 		// transform result back to screen + depth coordinates
 		corner_shift.x /= aspect_ratio;
-	}
+	//}
 
 	gl_Position = central_pos + vec4(corner_shift.x, corner_shift.y, 0.0f, 0.0f);
 

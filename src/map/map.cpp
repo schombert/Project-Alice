@@ -317,6 +317,7 @@ void display_data::create_meshes() {
 			map_indices.push_back(uint16_t(bottom_row_start + 1 + x));
 			map_indices.push_back(uint16_t(top_row_start + 1 + x));
 		}
+		// primitive restart marker
 		map_indices.push_back(std::numeric_limits<uint16_t>::max());
 	}
 
@@ -603,6 +604,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			fragment_subroutines = 2; // get_land_political_far/get_water_political()
 		glUniform1ui(shader_uniforms[shader_terrain][uniform_subroutines_index_2], fragment_subroutines);
 	}
+
+	glEnable(GL_PRIMITIVE_RESTART);
+	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 	glBindVertexArray(vao_array[vo_land]);
 	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
 
