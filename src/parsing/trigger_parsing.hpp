@@ -3982,6 +3982,16 @@ struct trigger_body {
 		}
 		context.add_float_to_payload(value);
 	}
+	void suppression_points(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_trigger.push_back(uint16_t(trigger::suppression_points | association_to_trigger_code(a)));
+		} else {
+			err.accumulated_errors += "suppression_points trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) +
+				"(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		context.add_float_to_payload(value);
+	}
 	void lost_national(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_trigger.push_back(uint16_t(trigger::lost_national | association_to_trigger_code(a)));

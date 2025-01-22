@@ -1936,6 +1936,13 @@ uint32_t ef_treasury(EFFECT_PARAMTERS) {
 		t = std::max(0.0f, t + amount);
 	return 0;
 }
+uint32_t ef_suppression_points(EFFECT_PARAMTERS) {
+	auto amount = trigger::read_float_from_payload(tval + 1);
+	assert(std::isfinite(amount));
+	auto& t = ws.world.nation_get_suppression_points(trigger::to_nation(primary_slot));
+	t = std::max(0.0f, t + amount);
+	return 0;
+}
 uint32_t ef_war_exhaustion(EFFECT_PARAMTERS) {
 	auto& war_x = ws.world.nation_get_war_exhaustion(trigger::to_nation(primary_slot));
 	auto amount = trigger::read_float_from_payload(tval + 1);
