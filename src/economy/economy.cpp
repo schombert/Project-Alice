@@ -221,7 +221,7 @@ float domestic_trade_volume(
 
 		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
 			trade_and_tariff explanation = explain_trade_route_commodity(state, trade_route, c);
-			if (explanation.origin_nation == s && explanation.target_nation == s)
+			if(explanation.origin_nation == s && explanation.target_nation == s)
 				total_volume += explanation.amount_origin;
 		});
 	});
@@ -1056,7 +1056,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto zone = state.world.market_get_zone_from_local_market(n);
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 
-	
+
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_life_need(state, nation, c)) {
@@ -1203,7 +1203,7 @@ void presimulate(sys::state& state) {
 #ifdef NDEBUG
 	uint32_t steps = 365;
 #else
-	uint32_t steps = 20;
+	uint32_t steps = 2;
 #endif
 	for(uint32_t i = 0; i < steps; i++) {
 		update_factory_employment(state);
@@ -1445,6 +1445,33 @@ ve::fp_vector ve_pseudo_exp_for_negative(ve::fp_vector f) {
 	return result;
 }
 
+// Check if source gives trade rights to target
+dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto sphere_A = state.world.nation_get_in_sphere_of(target);
+	auto sphere_B = state.world.nation_get_in_sphere_of(source);
+
+	auto overlord_A = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(target)
+	);
+	auto overlord_B = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(source)
+	);
+
+	auto market_leader_target = (overlord_A) ? overlord_A : ((sphere_A) ? sphere_A : target);
+	auto market_leader_source = (overlord_B) ? overlord_B : ((sphere_B) ? sphere_B : source);
+
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_target, market_leader_source);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		// Enddt empty signalises revoken agreement
+		// Enddt > cur_date signalises that the agreement can't be broken
+		if(enddt) {
+			return source_tariffs_rel;
+		}
+	}
+	return dcon::unilateral_relationship_id{};
+}
+
 template<typename T, typename S>
 void adjust_artisan_balance(
 	sys::state& state,
@@ -1642,7 +1669,7 @@ void initialize(sys::state& state) {
 		dcon::modifier_id continent = fp.get_continent();
 
 		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
-		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);	
+		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			fp.set_rgo_target_employment_per_good(c, 0.f);
@@ -2007,7 +2034,7 @@ void update_pops_employment(sys::state& state) {
 	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
 		auto market = state.world.state_instance_get_market_from_local_market(si);
 		auto nation = state.world.state_instance_get_nation_from_state_ownership(si);
-			// calculate total pops employment:
+		// calculate total pops employment:
 
 		float no_education = state.world.market_get_labor_supply_sold(market, labor::no_education);
 		float basic_education = state.world.market_get_labor_supply_sold(market, labor::basic_education); // craftsmen
@@ -2206,7 +2233,7 @@ void update_factory_employment(sys::state& state) {
 			* output_per_worker * actually_sold
 			* (price_output + 0.5f * price_speed_gradient_time)
 			* ve::fp_vector{ economy::secondary_employment_output_bonus }
-			- wage_skilled_per_employment * spendings_overestimation;
+		- wage_skilled_per_employment * spendings_overestimation;
 
 		auto unqualified_next = unqualified
 			+ ve::min(0.01f / ve::max(1.f, ve::to_float(state.world.factory_get_level(facids))), ve::max(-0.05f, 0.0001f * gradient_unqualified));
@@ -2433,7 +2460,7 @@ float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dc
 				+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_input)
 				+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)
 				+ owner_fraction * -2.5f
-			)
+				)
 		));
 }
 
@@ -2471,7 +2498,7 @@ float factory_output_multiplier(sys::state const& state, dcon::factory_id fac, d
 }
 
 float factory_throughput_additional_multiplier(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied) {
-	return (occupied ? 0.1f : 1.0f)	* std::max(0.0f, mobilization_impact);
+	return (occupied ? 0.1f : 1.0f) * std::max(0.0f, mobilization_impact);
 }
 
 float factory_desired_raw_profit(dcon::factory_id fac, float spendings) {
@@ -2495,7 +2522,7 @@ void update_single_factory_consumption(
 	assert(fac_type.get_output());
 	assert(n);
 	assert(p);
-	assert(s);	
+	assert(s);
 
 	//inputs
 
@@ -2590,21 +2617,21 @@ void update_single_factory_consumption(
 		* min_input_available;
 
 	float base_throughput =
-	(
-		state.world.factory_get_unqualified_employment(fac)
-		* state.world.market_get_labor_demand_satisfaction(m, labor::no_education)
-		* unqualified_throughput_multiplier
-		+
-		state.world.factory_get_primary_employment(fac)
-		* state.world.market_get_labor_demand_satisfaction(m, labor::basic_education)
-	)
-	* state.world.factory_get_level(fac)
-	* factory_throughput_additional_multiplier(
-		state,
-		fac,
-		mobilization_impact,
-		occupied
-	);
+		(
+			state.world.factory_get_unqualified_employment(fac)
+			* state.world.market_get_labor_demand_satisfaction(m, labor::no_education)
+			* unqualified_throughput_multiplier
+			+
+			state.world.factory_get_primary_employment(fac)
+			* state.world.market_get_labor_demand_satisfaction(m, labor::basic_education)
+		)
+		* state.world.factory_get_level(fac)
+		* factory_throughput_additional_multiplier(
+			state,
+			fac,
+			mobilization_impact,
+			occupied
+		);
 
 	auto max_employment = factory_max_employment(state, fac);
 
@@ -3100,7 +3127,7 @@ void populate_army_consumption(sys::state& state) {
 				} else {
 					break;
 				}
-		}
+			}
 		}
 	});
 }
@@ -3517,7 +3544,7 @@ void populate_construction_consumption(sys::state& state) {
 
 float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget) {
 	uint32_t total_commodities = state.world.commodity_size();
-	
+
 	auto total_cost = 0.f;
 	int going_constructions = 0;
 
@@ -3777,7 +3804,7 @@ float estimate_construction_spending_from_budget(sys::state& state, dcon::nation
 float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 	auto current_budget =
 		std::max(
-			0.f, 
+			0.f,
 			state.world.nation_get_stockpiles(n, economy::money)
 			* float(state.world.nation_get_construction_spending(n))
 			/ 100.f
@@ -4301,7 +4328,7 @@ void update_pop_consumption(
 	ve::int_vector can_invest = expand_factory | build_factory;
 
 	ve::fp_vector total_spendings{};
-	
+
 	state.world.execute_serial_over_pop([&](auto ids) {
 		// get all data into vectors
 		auto provs = state.world.pop_get_province_from_pop_location(ids);
@@ -5073,7 +5100,7 @@ std::vector<full_construction_state> estimate_private_investment_upgrade(sys::st
 									f.get_factory().get_full_output_cost()
 									- f.get_factory().get_full_input_cost()
 									- f.get_factory().get_full_labor_cost()
-								) / f.get_factory().get_level();
+									) / f.get_factory().get_level();
 							new_p > profit
 						) {
 							profit = new_p;
@@ -5150,7 +5177,7 @@ std::vector<full_construction_state> estimate_private_investment_construct(sys::
 		if(current_inv * courage < total_cost + total_cost_added) {
 			continue;
 		}
-		
+
 		if((nation_rules & issue_rule::pop_build_factory) == 0) {
 			continue;
 		}
@@ -5170,7 +5197,7 @@ std::vector<full_construction_state> estimate_private_investment_construct(sys::
 		}
 
 		auto market = state.world.state_instance_get_market_from_local_market(s);
-			
+
 		// randomly try a valid (check coastal, unlocked, non existing) factory
 		desired_types.clear();
 		if(craved) {
@@ -5536,10 +5563,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// update trade volume based on potential profits right at the start
 	// we can't put it between demand and supply generation!
-	state.world.execute_parallel_over_trade_route([&](auto trade_route){
+	state.world.execute_parallel_over_trade_route([&](auto trade_route) {
 
-	//concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
-		//dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
+		//concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
+			//dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 
 		auto A = ve::apply([&](auto route) {
 			return state.world.trade_route_get_connected_markets(route, 0);
@@ -5577,21 +5604,44 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_overlord_as_subject(controller_capital_B)
 		);
 
-		// TODO: expand to actual trade agreements
-		auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B;
-		auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A;
+		auto has_overlord_mask_A = overlord_A != dcon::nation_id{};
+		auto has_overlord_mask_B = overlord_B != dcon::nation_id{};
+		auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
+		auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
 
-		// sphere joins embargo
-		// subject joins embargo
-		// TODO: make into diplomatic interaction
+		// Subjects have embargo of overlords propagated onto them
+		auto market_leader_A = ve::select(has_overlord_mask_A, overlord_A, ve::select(has_sphere_mask_A, sphere_A, n_A));
+		auto market_leader_B = ve::select(has_overlord_mask_B, overlord_B, ve::select(has_sphere_mask_B, sphere_B, n_B));
 
-		auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, sphere_A, controller_capital_B);
+		// Equal/unequal trade treaties
+		auto A_open_to_B = ve::apply([&](auto n_a, auto n_b) {
+			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+			if(source_tariffs_rel) {
+				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+				// Enddt empty signalises revoken agreement
+				// Enddt > cur_date signalises that the agreement can't be broken
+				if(enddt) {
+					return true;
+				}
+			}
+			return false;
+		}, market_leader_A, controller_capital_B);
 
-		auto B_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
-			return military::are_at_war(state, n_a, n_b);
-		}, sphere_B, controller_capital_A);
+		auto B_open_to_A = ve::apply([&](auto n_a, auto n_b) {
+			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+
+			if(target_tariffs_rel) {
+				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+				if(enddt) {
+					return true;
+				}
+			}
+
+			return false;
+		}, market_leader_B, controller_capital_A);
+
+		auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B || A_open_to_B;
+		auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A || B_open_to_A;
 
 		// these are not needed at the moment
 		// because overlord and subject are always in the same war
@@ -5641,6 +5691,54 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto same_nation = controller_capital_A == controller_capital_B;
 
+		// sphere joins embargo
+		// subject joins embargo
+		// diplomatic embargos
+		auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
+			return military::are_at_war(state, n_a, n_b);
+		}, sphere_A, controller_capital_B);
+
+		auto B_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
+			return military::are_at_war(state, n_a, n_b);
+		}, sphere_B, controller_capital_A);
+
+		auto A_has_embargo = ve::apply([&](auto n_a, auto n_b) {
+			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+
+			return state.world.unilateral_relationship_get_embargo(source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(target_tariffs_rel);
+		}, market_leader_A, controller_capital_B);
+
+		A_joins_sphere_wide_embargo = A_has_embargo || A_joins_sphere_wide_embargo;
+
+		auto B_has_embargo = ve::apply([&](auto n_a, auto n_b) {
+			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+
+			return state.world.unilateral_relationship_get_embargo(source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(target_tariffs_rel);
+		}, market_leader_B, controller_capital_A);
+
+		B_joins_sphere_wide_embargo = B_has_embargo || B_joins_sphere_wide_embargo;
+
+		// these are not needed at the moment
+		// because overlord and subject are always in the same war
+
+		/*
+		auto A_joins_overlord_embargo = ve::apply([&](auto n_a, auto n_b) {
+			return military::are_at_war(state, n_a, n_b);
+		}, overlord_A, controller_capital_B);
+
+		auto B_joins_overlord_embargo = ve::apply([&](auto n_a, auto n_b) {
+			return military::are_at_war(state, n_a, n_b);
+		}, overlord_B, controller_capital_A);
+		*/
+
+		// it created quite bad oscilation
+		// so i decided to transfer goods into stockpile directly
+		// and consider that all of them were sold at given price
+		//auto actually_bought_ratio_A = state.world.market_get_supply_sold_ratio(A, c);
+		//auto actually_bought_ratio_B = state.world.market_get_supply_sold_ratio(B, c);
+
 		auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.f + economy::merchant_cut_domestic }, ve::fp_vector{ 1.f + economy::merchant_cut_foreign });
 
 		auto import_tariff_A = ve::select(same_nation || A_is_open_to_B, ve::fp_vector{ 0.f }, import_tariff_buffer.get(n_A));
@@ -5676,13 +5774,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				continue;
 			}
 
-		//state.world.execute_serial_over_trade_route([&](auto trade_route) {
+			//state.world.execute_serial_over_trade_route([&](auto trade_route) {
 			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
-			
+
 			auto absolute_volume = ve::abs(current_volume);
 			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
 
-			
+
 
 			// effect of scale
 			// volume reduces transport costs
@@ -6036,7 +6134,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		// clear real demand
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			
+
 			state.world.market_set_demand(markets, c, ve::fp_vector{});
 			state.world.market_set_intermediate_demand(markets, c, ve::fp_vector{});
 
@@ -6167,12 +6265,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				std::abs(s) <= max_loan(state, n) - l) {
 				state.world.nation_get_local_loan(n) += std::abs(s);
 				state.world.nation_set_stockpiles(n, economy::money, 0);
-			}
-			else if (s < 0) {
+			} else if(s < 0) {
 				// Nation somehow got into negative bigger than its loans allow
 				go_bankrupt(state, n);
-			}
-			else if(s > 0 && l > 0) {
+			} else if(s > 0 && l > 0) {
 				auto change = std::min(s, l);
 				state.world.nation_get_local_loan(n) -= change;
 				state.world.nation_get_stockpiles(n, economy::money) -= change;
@@ -6379,7 +6475,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// labor
 
-			for (int32_t j = 0; j < labor::total; j++) {
+			for(int32_t j = 0; j < labor::total; j++) {
 				auto supply_labor = state.world.market_get_labor_supply(ids, j);
 				auto demand_labor = state.world.market_get_labor_demand(ids, j);
 
@@ -6409,7 +6505,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					state.world.market_get_stockpile(ids, c) * (1.f - stockpile_spoilage)
 					+ total_supply - merchants_supply
 					- total_demand * new_saturation
-				))
+					))
 			);
 
 			state.world.market_set_stockpile(
@@ -6418,7 +6514,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				+ (
 					merchants_supply * supply_sold_ratio
 					- merchants_demand * new_saturation
-				) * ve_price(state, ids, c)
+					) * ve_price(state, ids, c)
 			);
 
 			// record the transaction
@@ -7011,7 +7107,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	float total_rgo_owner_income = 0.f;
 #endif
 
-	for (auto n : state.world.in_nation) {
+	for(auto n : state.world.in_nation) {
 		auto const min_wage_factor = pop_min_wage_factor(state, n);
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -7539,7 +7635,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// price of labor
 
-	for (int32_t i = 0; i < labor::total; i++) {
+	for(int32_t i = 0; i < labor::total; i++) {
 		state.world.execute_serial_over_market([&](auto ids) {
 			ve::fp_vector supply =
 				state.world.market_get_labor_supply(ids, i)
@@ -8135,7 +8231,7 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 	auto target =
 		current_volume <= 0.f
 		? state.world.trade_route_get_connected_markets(trade_route, 0)
-		: state.world.trade_route_get_connected_markets(trade_route, 1);	
+		: state.world.trade_route_get_connected_markets(trade_route, 1);
 
 	auto s_origin = state.world.market_get_zone_from_local_market(origin);
 	auto s_target = state.world.market_get_zone_from_local_market(target);
@@ -8160,11 +8256,27 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 		state.world.nation_get_overlord_as_subject(controller_capital_target)
 	);
 
-	// TODO: expand to actual equal and unequal trade agreements
+	// Equal/unequal trade agreements
+	// Rel source if obliged towards target
+	auto source_applies_tariffs = true;
+	auto target_applies_tariffs = true;
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_target, n_origin);
+	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_origin, n_target);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		if(state.current_date < enddt) {
+			source_applies_tariffs = false;
+		}
+	}
+	if(target_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+		if(state.current_date < enddt) {
+			target_applies_tariffs = false;
+		}
+	}
 
-	//auto trade_agreement =
-	auto origin_is_open_to_target = sphere_origin == controller_capital_target || overlord_origin == controller_capital_target;
-	auto target_is_open_to_origin = sphere_target == controller_capital_origin || overlord_target == controller_capital_origin;
+	auto origin_is_open_to_target = sphere_origin == controller_capital_target || overlord_origin == controller_capital_target || !source_applies_tariffs;
+	auto target_is_open_to_origin = sphere_target == controller_capital_origin || overlord_target == controller_capital_origin || !target_applies_tariffs;
 
 	auto sat =
 		state.world.market_get_direct_demand_satisfaction(origin, cid)
@@ -8175,7 +8287,7 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 		std::min(
 			state.world.market_get_labor_demand_satisfaction(origin, labor::no_education),
 			state.world.market_get_labor_demand_satisfaction(target, labor::no_education)
-		) *	sat
+		) * sat
 		* std::abs(current_volume);
 	auto distance = state.world.trade_route_get_distance(trade_route);
 
@@ -8195,7 +8307,7 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 	auto import_tariff = target_is_open_to_origin ? 0.f : effective_tariff_import_rate(state, n_target);
 
 	auto price_origin = price(state, origin, cid);
-	auto price_target = price(state, target, cid);	
+	auto price_target = price(state, target, cid);
 
 	if(same_nation) {
 		return {
@@ -8255,7 +8367,7 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 			// the rest of payment is handled as satisfaction of generic demand
 			.payment_received_per_unit = price_origin * economy::merchant_cut_foreign
 		};
-	}	
+	}
 }
 
 // DO NOT USE OUTSIDE OF UI
@@ -8492,18 +8604,18 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 	float w_sub = estimate_war_subsidies_income(state, n) - estimate_war_subsidies_spending(state, n);
 	float w_reps = estimate_reparations_income(state, n) - estimate_reparations_spending(state, n);
-	float subject_payments =  estimate_subject_payments_received(state, n) - estimate_subject_payments_paid(state, n);
+	float subject_payments = estimate_subject_payments_received(state, n) - estimate_subject_payments_paid(state, n);
 	return w_sub + w_reps + subject_payments;
 }
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n) {
 	float w_sub = estimate_war_subsidies_income(state, n);
 	float w_reps = estimate_reparations_income(state, n);
-	float subject_payments =  estimate_subject_payments_received(state, n);
+	float subject_payments = estimate_subject_payments_received(state, n);
 	return w_sub + w_reps + subject_payments;
 }
 float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
-	float w_sub =  estimate_war_subsidies_spending(state, n);
-	float w_reps =  estimate_reparations_spending(state, n);
+	float w_sub = estimate_war_subsidies_spending(state, n);
+	float w_reps = estimate_reparations_spending(state, n);
 	float subject_payments = estimate_subject_payments_paid(state, n);
 	return w_sub + w_reps + subject_payments;
 }
@@ -8720,6 +8832,18 @@ int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon
 	// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
 	assert(num_factories <= int32_t(state.defines.factories_per_state));
 	return num_factories;
+}
+// Returns sum of all factory levels in a state
+int32_t state_factory_size(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+	int32_t factory_size = 0;
+	auto d = state.world.state_instance_get_definition(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(p.get_province().get_nation_from_province_ownership() == n)
+			for(auto fl : state.world.province_get_factory_location(p.get_province())) {
+				factory_size += state.world.factory_get_level(fl.get_factory());
+			}
+
+	return factory_size;
 }
 
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c) {

@@ -105,6 +105,11 @@ public:
 		return int32_t(value);
 	}
 	year_month_day to_ymd(absolute_time_point base) const noexcept;
+	std::string to_string(absolute_time_point base) noexcept {
+		auto dt = to_ymd(base);
+
+		return std::to_string(dt.year) + std::to_string(dt.month) + std::to_string(dt.day);
+	};
 };
 
 bool is_playable_date(date d, absolute_time_point start, absolute_time_point end);

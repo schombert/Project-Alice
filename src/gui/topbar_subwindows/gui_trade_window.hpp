@@ -729,7 +729,7 @@ inline table::column<dcon::commodity_id> trade_good_player_price = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto value = economy::price(state, state.local_player_nation, id);
-		return text::format_float(value);
+		return text::format_money(value);
 	}
 };
 

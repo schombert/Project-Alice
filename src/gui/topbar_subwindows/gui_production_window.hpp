@@ -538,6 +538,9 @@ public:
 			return;
 		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
 			if(p.get_type() == nf.type) {
+
+				text::add_line(state, contents, state.world.factory_type_get_name(nf.type));
+
 				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
 				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
@@ -1837,8 +1840,12 @@ inline table::column<dcon::factory_type_id> factory_type_name = {
 		auto value = description + text::produce_simple_string(state,  state.world.factory_type_get_name(id));
 		return value;
 	},
+	.update_tooltip = [](sys::state& state,ui::element_base* container,text::columnar_layout& contents,dcon::factory_type_id id,std::string fallback) {
+		text::add_line(state, contents, state.world.factory_type_get_name(id));
+	},
 	.cell_definition_string = "thin_cell_name",
-	.header_definition_string = "thin_cell_name"
+	.header_definition_string = "thin_cell_name",
+	.has_tooltip = true
 };
 
 inline table::column<dcon::factory_type_id> factory_type_input_cost = {

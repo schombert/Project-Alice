@@ -399,6 +399,7 @@ struct host_settings_s {
 	float alice_persistent_server_pause = 20.f;
 	float alice_expose_webui = 0.0f;
 	float alice_place_ai_upon_disconnection = 1.0f;
+	float alice_lagging_behind_days_to_slow_down = 30.f;
 	float alice_lagging_behind_days_to_drop = 90.f;
 };
 
@@ -406,6 +407,9 @@ struct global_scenario_data_s { // this struct holds miscellaneous global proper
 };
 
 struct cheat_data_s {
+	bool disable_ai = false;
+	bool disable_economy = false;
+	bool disable_demography = false;
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;

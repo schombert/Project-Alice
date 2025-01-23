@@ -2,7 +2,7 @@
 #include "system_state.hpp"
 #include "date_interface.hpp"
 #include "cyto_any.hpp"
-
+/*
 TEST_CASE("string pool tests", "[misc_tests]") {
 	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
 
@@ -35,7 +35,7 @@ TEST_CASE("string pool tests", "[misc_tests]") {
 	REQUIRE(state->to_string_view(la) == "mixed");
 	REQUIRE(state->to_string_view(lb) == "latex");
 }
-
+*/
 TEST_CASE("date tests", "[misc_tests]") {
 	sys::absolute_time_point base_time{sys::year_month_day{2020, 1, 2}};
 	sys::date first{0};

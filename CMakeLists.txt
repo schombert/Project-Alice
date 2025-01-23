@@ -66,6 +66,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
 	"src/nations/nations.cpp"
+	"src/network/SHA512.cpp"
 	"src/network/network.cpp"
 	"src/parsing/float_from_chars.cpp"
 	"src/parsing/parsers.cpp"
