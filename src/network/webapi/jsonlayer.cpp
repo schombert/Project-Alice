@@ -5,6 +5,7 @@
 #include "parsers.hpp"
 #include "demographics.hpp"
 #include "province_templates.hpp"
+#include "economy_stats.hpp"
 
 using json = nlohmann::json;
 

@@ -106,7 +106,7 @@ void smooth_points(std::vector<glm::vec2>& vertices) {
 	std::vector<glm::vec2> vertices_copy = vertices;
 
 	bool wrap_around = false;
-	if(glm::distance(vertices.back(), vertices.front()) < 0.001f) {
+	if(glm::distance(vertices.back(), vertices.front()) < 0.001f && vertices.size() > 2) {
 		wrap_around = true;
 	}
 

@@ -4,6 +4,7 @@
 #include "gui_element_types.hpp"
 #include "gui_project_investment_window.hpp"
 #include "gui_production_enum.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 

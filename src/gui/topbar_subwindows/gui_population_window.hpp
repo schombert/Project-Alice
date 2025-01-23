@@ -8,6 +8,7 @@
 #include "triggers.hpp"
 #include "gui_province_window.hpp"
 #include "demographics.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 

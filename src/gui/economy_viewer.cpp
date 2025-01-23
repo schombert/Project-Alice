@@ -1,6 +1,7 @@
 #include <numbers>
 
 #include "economy_viewer.hpp"
+#include "economy_stats.hpp"
 #include "color.hpp"
 
 
@@ -37,6 +38,7 @@ enum class static_elements : int32_t {
 	factory_type_name = 10000005,
 	factory_type_total = 10000006,
 
+
 	priority_text = 10000007,
 	priority_text_national = 10000008,
 	priority_text_private = 10000009,
@@ -44,6 +46,9 @@ enum class static_elements : int32_t {
 	priority_value_national = 10000011,
 	priority_value_private = 10000012,
 	priority_value_bonus = 10000013,
+
+	nation_vs_market_toggle = 10000014,
+	nation_vs_market_toggle_label = 10000015,
 
 	tab_name_commodity = 10005000,
 	tab_name_factory_type = 10005001,
@@ -68,6 +73,10 @@ void update(sys::state& state) {
 
 	if(state.iui_state.per_market_data.size() != state.world.market_size()) {
 		state.iui_state.per_market_data.resize(state.world.market_size());
+	}
+
+	if(state.iui_state.per_nation_data.size() != state.world.nation_size()) {
+		state.iui_state.per_nation_data.resize(state.world.nation_size());
 	}
 
 	state.iui_state.input_efficiency_leaders.clear();
@@ -124,76 +133,149 @@ void update(sys::state& state) {
 			}
 		});
 	} else if(state.selected_trade_good && state.iui_state.tab == iui::iui_tab::commodities_markets) {
-		state.world.for_each_market([&](dcon::market_id market) {
-			switch(state.iui_state.selected_commodity_info) {
+		if(state.iui_state.national_data) {
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				switch(state.iui_state.selected_commodity_info) {
 				case iui::commodity_info_mode::price:
-					state.iui_state.per_market_data[market.index()] = state.world.market_get_price(market, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::median_price(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::supply:
-					state.iui_state.per_market_data[market.index()] = state.world.market_get_supply(market, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::supply(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::demand:
-					state.iui_state.per_market_data[market.index()] = state.world.market_get_demand(market, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::demand(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::production:
-					state.iui_state.per_market_data[market.index()] =
+					state.iui_state.per_nation_data[n.index()] =
 						std::max(
 							0.f,
-							state.world.market_get_supply(market, state.selected_trade_good)
-							- economy::trade_supply(state, market, state.selected_trade_good)
+							economy::supply(state, n, state.selected_trade_good)
+							- economy::trade_supply(state, n, state.selected_trade_good)
 						);
 					break;
 
 				case iui::commodity_info_mode::consumption:
-					state.iui_state.per_market_data[market.index()] =
+					state.iui_state.per_nation_data[n.index()] =
 						std::max(
 							0.f,
-							state.world.market_get_demand(market, state.selected_trade_good)
-							- economy::trade_demand(state, market, state.selected_trade_good)
+							economy::demand(state, n, state.selected_trade_good)
+							- economy::trade_demand(state, n, state.selected_trade_good)
 						);
 					break;
 
 				case iui::commodity_info_mode::stockpiles:
-					state.iui_state.per_market_data[market.index()] = state.world.market_get_stockpile(market, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::stockpile(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::balance:
 				{
-					auto supply = state.world.market_get_supply(market, state.selected_trade_good);
-					auto demand = state.world.market_get_demand(market, state.selected_trade_good);
+					auto supply = economy::supply(state, n, state.selected_trade_good);
+					auto demand = economy::demand(state, n, state.selected_trade_good);
 					auto shift = 0.001f;
 					auto balance = (supply + shift) / (demand + shift) - (demand + shift) / (supply + shift);
-					state.iui_state.per_market_data[market.index()] = balance;
+					state.iui_state.per_nation_data[n.index()] = balance;
 					balance_color = true;
 					scaling = scaling_mode::log;
 					break;
 				}
 
 				case iui::commodity_info_mode::trade_in:
-					state.iui_state.per_market_data[market.index()] = economy::trade_influx(state, market, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::import_volume(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::trade_out:
-					state.iui_state.per_market_data[market.index()] = economy::trade_outflux(state, market, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::export_volume(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::trade_balance:
 				{
-					auto supply = economy::trade_influx(state, market, state.selected_trade_good);
-					auto demand = economy::trade_outflux(state, market, state.selected_trade_good);
+					auto supply = economy::import_volume(state, n, state.selected_trade_good);
+					auto demand = economy::export_volume(state, n, state.selected_trade_good);
 					auto shift = 0.001f;
 					auto balance = supply - demand;
-					state.iui_state.per_market_data[market.index()] = balance;
+					state.iui_state.per_nation_data[n.index()] = balance;
 					balance_color = true;
 					break;
 				}
 				default:
 					break;
-			}
-		});
+				}
+			});
+		} else {
+			state.world.for_each_market([&](dcon::market_id market) {
+				switch(state.iui_state.selected_commodity_info) {
+					case iui::commodity_info_mode::price:
+						state.iui_state.per_market_data[market.index()] = state.world.market_get_price(market, state.selected_trade_good);
+						break;
+
+					case iui::commodity_info_mode::supply:
+						state.iui_state.per_market_data[market.index()] = state.world.market_get_supply(market, state.selected_trade_good);
+						break;
+
+					case iui::commodity_info_mode::demand:
+						state.iui_state.per_market_data[market.index()] = state.world.market_get_demand(market, state.selected_trade_good);
+						break;
+
+					case iui::commodity_info_mode::production:
+						state.iui_state.per_market_data[market.index()] =
+							std::max(
+								0.f,
+								state.world.market_get_supply(market, state.selected_trade_good)
+								- economy::trade_supply(state, market, state.selected_trade_good)
+							);
+						break;
+
+					case iui::commodity_info_mode::consumption:
+						state.iui_state.per_market_data[market.index()] =
+							std::max(
+								0.f,
+								state.world.market_get_demand(market, state.selected_trade_good)
+								- economy::trade_demand(state, market, state.selected_trade_good)
+							);
+						break;
+
+					case iui::commodity_info_mode::stockpiles:
+						state.iui_state.per_market_data[market.index()] = state.world.market_get_stockpile(market, state.selected_trade_good);
+						break;
+
+					case iui::commodity_info_mode::balance:
+					{
+						auto supply = state.world.market_get_supply(market, state.selected_trade_good);
+						auto demand = state.world.market_get_demand(market, state.selected_trade_good);
+						auto shift = 0.001f;
+						auto balance = (supply + shift) / (demand + shift) - (demand + shift) / (supply + shift);
+						state.iui_state.per_market_data[market.index()] = balance;
+						balance_color = true;
+						scaling = scaling_mode::log;
+						break;
+					}
+
+					case iui::commodity_info_mode::trade_in:
+						state.iui_state.per_market_data[market.index()] = economy::trade_influx(state, market, state.selected_trade_good);
+						break;
+
+					case iui::commodity_info_mode::trade_out:
+						state.iui_state.per_market_data[market.index()] = economy::trade_outflux(state, market, state.selected_trade_good);
+						break;
+
+					case iui::commodity_info_mode::trade_balance:
+					{
+						auto supply = economy::trade_influx(state, market, state.selected_trade_good);
+						auto demand = economy::trade_outflux(state, market, state.selected_trade_good);
+						auto shift = 0.001f;
+						auto balance = supply - demand;
+						state.iui_state.per_market_data[market.index()] = balance;
+						balance_color = true;
+						break;
+					}
+					default:
+						break;
+				}
+			});
+		}
 	} else {
 		state.world.for_each_market([&](dcon::market_id market) {
 			state.iui_state.per_market_data[market.index()] = state.world.market_get_gdp(market);
@@ -202,9 +284,15 @@ void update(sys::state& state) {
 
 	// calculate statistics to improve map mode readability:
 	std::vector<float> sample;
-	state.world.for_each_market([&](dcon::market_id market) {
-		sample.push_back(state.iui_state.per_market_data[market.index()]);
-	});
+	if(state.iui_state.national_data) {
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			sample.push_back(state.iui_state.per_nation_data[n.index()]);
+		});
+	} else {
+		state.world.for_each_market([&](dcon::market_id market) {
+			sample.push_back(state.iui_state.per_market_data[market.index()]);
+		});
+	}
 	std::sort(sample.begin(), sample.end());
 	auto N = sample.size();
 	auto upper_decile = sample[9 * N / 10];
@@ -252,10 +340,14 @@ void update(sys::state& state) {
 		state.world.for_each_province([&](dcon::province_id pid) {
 			auto sid = state.world.province_get_state_membership(pid);
 			auto market = state.world.state_instance_get_market_from_local_market(sid);
+			auto owner = state.world.state_instance_get_nation_from_state_ownership(sid);
 
 			if(market) {
 				// scale negative and positive values separately
 				float value = state.iui_state.per_market_data[market.index()];
+				if(state.iui_state.national_data) {
+					value = state.iui_state.per_nation_data[owner.index()];
+				}
 				if(scaling == scaling_mode::log) {
 					if(value > 0 && market_data_max > 0) {
 						value = std::min(std::log(1.f + value / market_data_max * (float(std::numbers::e) - 1.f)), 1.f);
@@ -283,9 +375,14 @@ void update(sys::state& state) {
 		state.world.for_each_province([&](dcon::province_id pid) {
 			auto sid = state.world.province_get_state_membership(pid);
 			auto market = state.world.state_instance_get_market_from_local_market(sid);
+			auto owner = state.world.state_instance_get_nation_from_state_ownership(sid);
 
 			if(market) {
-				double value = double(std::clamp(state.iui_state.per_market_data[market.index()], market_data_min, market_data_max));
+				float original_value = state.iui_state.per_market_data[market.index()];
+				if(state.iui_state.national_data) {
+					original_value = state.iui_state.per_nation_data[owner.index()];
+				}
+				double value = double(std::clamp(original_value, market_data_min, market_data_max));
 				double rescaled_value = (value - market_data_min) / (market_data_max - market_data_min);
 				// from 0 to 1
 
@@ -325,6 +422,9 @@ void commodity_panel(sys::state& state, int32_t identifier_amount, int32_t ident
 void render(sys::state& state) {
 	if(state.iui_state.per_market_data.size() != state.world.market_size()) {
 		state.iui_state.per_market_data.resize(state.world.market_size());
+	}
+	if(state.iui_state.per_nation_data.size() != state.world.nation_size()) {
+		state.iui_state.per_nation_data.resize(state.world.nation_size());
 	}
 
 	state.iui_state.frame_start();
@@ -409,9 +509,7 @@ void render(sys::state& state) {
 	auto screen_size = glm::vec2(state.x_size, state.y_size) / state.user_settings.ui_scale;
 
 	// render market data
-	if(zoom > map::zoom_close) {
-		
-
+	if(zoom > map::zoom_close || (zoom > map::zoom_close / 2.f && state.iui_state.national_data && state.iui_state.tab == iui::iui_tab::commodities_markets)) {
 		if(state.iui_state.current_font == 0) {
 			state.iui_state.current_font = text::name_into_font_id(state, "garamond_16");
 		}
@@ -426,6 +524,17 @@ void render(sys::state& state) {
 			auto capital = state.world.state_instance_get_capital(sid);
 			auto& midpoint = state.world.province_get_mid_point(capital);
 			auto map_pos = state.map_state.normalize_map_coord(midpoint);
+			auto owner = state.world.state_instance_get_nation_from_state_ownership(sid);
+
+			if(state.iui_state.national_data) {
+				auto nation_capital = state.world.nation_get_capital(owner);
+				auto nation_capital_state = state.world.province_get_state_membership(nation_capital);
+
+				if(nation_capital_state != sid) {
+					return;
+				}
+			}
+
 			glm::vec2 screen_pos{};
 			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 				return;
@@ -456,12 +565,17 @@ void render(sys::state& state) {
 
 			state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
 
+			auto value = state.iui_state.per_market_data[mid.index()];
+			if(state.iui_state.national_data) {
+				value = state.iui_state.per_nation_data[owner.index()];
+			}
+
 			if(state.iui_state.tab == iui::iui_tab::factory_types) {
 				if(mid.index() < (int32_t)(state.iui_state.per_market_data.size())) {
 					state.iui_state.price(
 						state, mid.index(),
 						market_label_rect_text,
-						state.iui_state.per_market_data[mid.index()]
+						value
 					);
 				}
 			} else if(state.iui_state.tab == iui::iui_tab::commodities_markets) {
@@ -469,13 +583,13 @@ void render(sys::state& state) {
 					state.iui_state.price(
 						state, mid.index(),
 						market_label_rect_text,
-						state.iui_state.per_market_data[mid.index()]
+						value
 					);
 				} else {
 					state.iui_state.float_2(
 						state, mid.index(),
 						market_label_rect_text,
-						state.iui_state.per_market_data[mid.index()]
+						value
 					);
 				}
 			}
@@ -503,6 +617,25 @@ void render(sys::state& state) {
 
 		state.iui_state.localized_string(
 			state, (int32_t)static_elements::tab_name_commodity, tab_name_rect, "alice_commodity_tab",
+			ui::get_text_color(state, text::text_color::gold)
+		);
+
+		iui::rect toggle = tab_rect;
+
+		toggle.y += toggle.h;
+		toggle.h = 20.f;
+
+		if(state.iui_state.button_textured(
+			state, (int32_t)(static_elements::nation_vs_market_toggle),
+			toggle, 3, state.iui_state.top_bar_button.texture_handle,
+			state.iui_state.national_data
+		)) {
+			state.iui_state.national_data = !state.iui_state.national_data;
+			update(state);
+		}
+
+		state.iui_state.localized_string(
+			state, (int32_t)static_elements::nation_vs_market_toggle_label, toggle, "per_nation",
 			ui::get_text_color(state, text::text_color::gold)
 		);
 
