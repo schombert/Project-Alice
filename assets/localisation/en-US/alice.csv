@@ -1080,6 +1080,14 @@ alice_no_possible_units;No possible units can be built, and no units are in cons
 alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
 alice_loan_size_mod;Max loan free money modifier: ?G+$x$
+capitalists_savings_ratio;Capitalists saving ratio: ?G$x$?!
+middle_class_savings_ratio;Middle class saving ratio: ?G$x$?!
+farmers_savings_ratio;Farmers saving ratio: ?G$x$?!
+landowners_savings_ratio;Landowners saving ratio: ?G$x$?!
+capitalists_investment_ratio;Capitalists investment ratio: ?G$x$?!
+middle_class_investment_ratio;Middle class investment ratio: ?G$x$?!
+farmers_investment_ratio;Farmers investment ratio: ?G$x$?!
+landowners_investment_ratio;Landowners investment ratio: ?G$x$?!
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
 alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:

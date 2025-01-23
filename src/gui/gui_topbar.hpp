@@ -409,10 +409,30 @@ public:
 		{
 			text::substitution_map sub{};
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ state.ui_state.last_tick_investment_pool_change });
-			auto box = text::open_layout_box(contents, 3);
+			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "investment_pool_income_1", sub);
 			text::close_layout_box(contents, box);
 		}
+		{
+			auto capitalists_investment_ratio = state.defines.alice_invest_capitalist + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::capitalist_reinvestment);
+			auto middle_class_investment_ratio = state.defines.alice_invest_middle_class + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::middle_class_reinvestment);
+			auto farmers_investment_ratio = state.defines.alice_invest_farmer + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::farmers_reinvestment);
+			auto landowners_investment_ratio = state.defines.alice_invest_aristocrat + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::aristocrat_reinvestment);
+
+			if(capitalists_investment_ratio > 0.f) {
+				text::add_line(state, contents, "capitalists_investment_ratio", text::variable_type::x, text::fp_percentage{ capitalists_investment_ratio }, 15);
+			}
+			if(landowners_investment_ratio > 0.f) {
+				text::add_line(state, contents, "landowners_investment_ratio", text::variable_type::x, text::fp_percentage{ landowners_investment_ratio }, 15);
+			}
+			if(middle_class_investment_ratio > 0.f) {
+				text::add_line(state, contents, "middle_class_investment_ratio", text::variable_type::x, text::fp_percentage{ middle_class_investment_ratio }, 15);
+			}
+			if(farmers_investment_ratio > 0.f) {
+				text::add_line(state, contents, "farmers_investment_ratio", text::variable_type::x, text::fp_percentage{ farmers_investment_ratio }, 15);
+			}
+		}
+		text::add_line_break_to_layout(state, contents);
 		{
 			for(auto n : state.world.in_nation) {
 				auto rel = state.world.nation_get_overlord_as_subject(n);
@@ -430,17 +450,18 @@ public:
 						text::substitution_map sub{};
 						text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
 						text::add_to_substitution_map(sub, text::variable_type::country, n);
-						auto box = text::open_layout_box(contents, 3);
+						auto box = text::open_layout_box(contents, 15);
 						text::localised_format_box(state, contents, box, "investment_pool_income_2", sub);
 						text::close_layout_box(contents, box);
 					}
 				}
 			}
 		}
+		text::add_line_break_to_layout(state, contents);
 		{
 			text::substitution_map sub{};
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ economy::estimate_investment_pool_daily_loss(state, state.local_player_nation) });
-			auto box = text::open_layout_box(contents, 3);
+			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "investment_pool_spending_1", sub);
 			text::close_layout_box(contents, box);
 		}
@@ -449,7 +470,7 @@ public:
 		{
 			text::substitution_map sub{};
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ private_constr });
-			auto box = text::open_layout_box(contents, 3);
+			auto box = text::open_layout_box(contents, 15);
 			text::localised_format_box(state, contents, box, "investment_pool_spending_2", sub);
 			text::close_layout_box(contents, box);
 		}
@@ -468,7 +489,7 @@ public:
 				if(!overlord) {
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
-					auto box = text::open_layout_box(contents, 3);
+					auto box = text::open_layout_box(contents, 15);
 					text::localised_format_box(state, contents, box, "investment_pool_spending_3", sub);
 					text::close_layout_box(contents, box);
 				}
