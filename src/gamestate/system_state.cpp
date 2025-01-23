@@ -390,6 +390,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_msaa(*this);
 	ogl::initialize_msaa(*this, x, y);
 
+	ogl::deinitialize_framebuffer_for_province_indices(*this);
+	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
+
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);

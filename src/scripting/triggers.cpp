@@ -8,6 +8,7 @@
 #include "ve_scalar_extensions.hpp"
 #include "script_constants.hpp"
 #include "politics.hpp"
+#include "economy_stats.hpp"
 
 namespace trigger {
 

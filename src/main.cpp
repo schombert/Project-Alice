@@ -20,6 +20,7 @@
 #include "triggers.cpp"
 #include "fif_triggers.cpp"
 #include "effects.cpp"
+#include "economy_stats.cpp"
 #include "economy.cpp"
 #include "economy_government.cpp"
 #include "demographics.cpp"

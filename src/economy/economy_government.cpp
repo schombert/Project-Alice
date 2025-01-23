@@ -74,6 +74,16 @@ float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_
 		* tax_collection_multiplier;
 }
 
+float total_tax_collection_capacity(sys::state& state, dcon::nation_id n) {
+	auto total = 0.f;
+	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
+		auto local_state = state.world.state_ownership_get_state(soid);
+		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
+		total += tax_collection_capacity(state, n, local_state);
+	});
+	return total;
+}
+
 float global_admin_ratio(sys::state& state, dcon::nation_id n) {
 	auto capital = state.world.nation_get_capital(n);
 	auto capital_state = state.world.province_get_state_membership(capital);

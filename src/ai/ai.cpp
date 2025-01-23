@@ -1,6 +1,7 @@
 #include "ai.hpp"
 #include "system_state.hpp"
 #include "demographics.hpp"
+#include "economy_stats.hpp"
 #include "effects.hpp"
 #include "gui_effect_tooltips.hpp"
 #include "math_fns.hpp"

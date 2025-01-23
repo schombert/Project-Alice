@@ -4,6 +4,7 @@ in vec2 map_coord;
 out vec4 frag_color;
 
 uniform float gamma;
+uniform vec2 screen_size;
 
 uniform sampler2D provinces_texture_sampler;
 uniform sampler2D province_fow;
@@ -19,7 +20,7 @@ void main() {
 
 
 	vec4 out_color = texture(line_texture, vec2(o_dist, tex_coord));
-	vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
+	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 	out_color.rgb *= texture(province_fow, prov_id).rgb;
 	frag_color = gamma_correct(out_color);
 }
