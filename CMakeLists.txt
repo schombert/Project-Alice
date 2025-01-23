@@ -36,6 +36,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/culture/politics.cpp"
 	"src/culture/rebels.cpp"
 	"src/economy/demographics.cpp"
+	"src/economy/economy_stats.cpp"
 	"src/economy/economy.cpp"
 	"src/economy/economy_government.cpp"
 	"src/gamestate/commands.cpp"

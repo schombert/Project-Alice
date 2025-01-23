@@ -97,9 +97,12 @@ struct iui_state {
 	commodity_info_mode selected_commodity_info;
 
 	std::vector<float> per_market_data;
+	std::vector<float> per_nation_data;
 	std::vector<float> bins;
 	float bins_start;
 	float bins_end;
+
+	bool national_data = false;
 
 	std::vector<dcon::nation_id> input_efficiency_leaders;
 	std::vector<text::text_chunk> input_efficiency_leaders_string;

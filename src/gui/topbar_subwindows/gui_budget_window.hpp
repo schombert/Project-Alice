@@ -9,6 +9,7 @@
 #include "nations.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "economy_stats.hpp"
 
 namespace dcon {
 class pop_satisfaction_wrapper_id {

@@ -13,6 +13,7 @@
 #include "province_templates.hpp"
 #include "widgets/table.hpp"
 #include "gui_factory_refit_window.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 
