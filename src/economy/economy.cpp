@@ -2727,6 +2727,7 @@ void populate_construction_consumption(sys::state& state) {
 		auto construction_priority = ve::to_float(state.world.nation_get_construction_spending(ids)) / 100.f;
 		current_budget.set(ids, ve::max(0.f, base_budget * construction_priority));
 		total_budget.set(ids, ve::max(0.f, base_budget * construction_priority));
+		going_constructions.set(ids, 0);
 	});
 
 	for(auto lc : state.world.in_province_land_construction) {
@@ -2763,7 +2764,9 @@ void populate_construction_consumption(sys::state& state) {
 		auto province = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(lc));
 		auto owner = state.world.province_get_nation_from_province_ownership(province);
 		float& base_budget = current_budget.get(owner);
-		float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
+		float budget = total_budget.get(owner);
+		float owners_projects = float(std::max(1, going_constructions.get(owner)));
+		float budget_limit = budget / owners_projects;
 
 		auto local_zone = state.world.province_get_state_membership(province);
 		auto market = state.world.state_instance_get_market_from_local_market(local_zone);
