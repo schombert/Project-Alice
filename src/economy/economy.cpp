@@ -8147,7 +8147,7 @@ float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n) {
 			transferamt *= state.defines.alice_puppet_subject_money_transfer / 100.f;
 		}
 
-		return transferamt;
+		return std::max(0.f, std::min(state.world.nation_get_stockpiles(n, money), transferamt));
 	}
 
 	return 0;
