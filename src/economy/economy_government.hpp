@@ -10,6 +10,8 @@ namespace economy {
 
 // amount of taxes you can collect in a given region
 float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid);
+// amount of taxes you can collect in a given region summed up for each region
+float total_tax_collection_capacity(sys::state& state, dcon::nation_id n);
 // ratio of current employed imperial admin to imperial admin required by your nation
 float global_admin_ratio(sys::state& state, dcon::nation_id n);
 // ratio of current employed local admin to local admin required by given state instance
