@@ -318,7 +318,13 @@ float gdp_adjusted(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
-float full_spending_cost(sys::state& state, dcon::nation_id n);
+struct spending_cost {
+	float construction;
+	float other;
+	float total;
+};
+
+spending_cost full_spending_cost(sys::state& state, dcon::nation_id n);
 void populate_army_consumption(sys::state& state);
 void populate_navy_consumption(sys::state& state);
 void populate_construction_consumption(sys::state& state);
@@ -2888,7 +2894,7 @@ void populate_construction_consumption(sys::state& state) {
 				if(current_purchased.commodity_amounts[i] >
 					base_cost.commodity_amounts[i] * admin_cost_factor) continue;
 
-				auto can_purchase_budget = std::max(budget_limit, base_budget) / (price(state, market, cid) + 0.001f);
+				auto can_purchase_budget = std::min(budget_limit, base_budget) / (price(state, market, cid) + 0.001f);
 				auto can_purchase_construction = base_cost.commodity_amounts[i]
 					* admin_cost_factor
 					/ construction_time;
@@ -2935,7 +2941,7 @@ void populate_construction_consumption(sys::state& state) {
 				if(current_purchased.commodity_amounts[i] >
 					base_cost.commodity_amounts[i] * admin_cost_factor * factory_mod) continue;
 
-				auto can_purchase_budget = std::max(budget_limit, base_budget) / (price(state, market, cid) + 0.001f);
+				auto can_purchase_budget = std::min(budget_limit, base_budget) / (price(state, market, cid) + 0.001f);
 				auto can_purchase_construction = base_cost.commodity_amounts[i]
 					* admin_cost_factor
 					* factory_mod
@@ -3356,7 +3362,14 @@ void populate_private_construction_consumption(sys::state& state) {
 	}
 }
 
-float full_spending_cost(sys::state& state, dcon::nation_id n) {
+
+spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
+	spending_cost costs = {
+		.construction = 0.f,
+		.other = 0.f,
+		.total = 0.f,
+	};
+
 	float total = 0.0f;
 	float military_total = 0.f;
 	uint32_t total_commodities = state.world.commodity_size();
@@ -3408,7 +3421,8 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 		}
 	});
 
-	total += std::min(construction_budget, total_construction_costs);
+	costs.construction = std::min(construction_budget, total_construction_costs);
+	total += costs.construction;
 
 
 	auto capital_state = state.world.province_get_state_membership(state.world.nation_get_capital(n));
@@ -3539,7 +3553,10 @@ float full_spending_cost(sys::state& state, dcon::nation_id n) {
 
 	assert(std::isfinite(total) && total >= 0.0f);
 
-	return total;
+	costs.total = total;
+	costs.other = total - costs.construction;
+
+	return costs;
 }
 
 float estimate_stockpile_filling_spending(sys::state& state, dcon::nation_id n) {
@@ -4086,7 +4103,7 @@ void update_pop_consumption(
 	});
 }
 
-void advance_construction(sys::state& state, dcon::nation_id n) {
+void advance_construction(sys::state& state, dcon::nation_id n, float total_spent_on_construction) {
 	uint32_t total_commodities = state.world.commodity_size();
 	float p_spending = state.world.nation_get_private_investment_effective_fraction(n);
 	float refund_amount = 0.0f;
@@ -4112,7 +4129,7 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 	});
 
 	assert(refund_amount >= 0.0f);
-	state.world.nation_get_stockpiles(n, economy::money) += refund_amount;
+	state.world.nation_get_stockpiles(n, economy::money) += std::min(refund_amount, total_spent_on_construction);
 
 	float admin_eff = state.world.nation_get_administrative_efficiency(n);
 	float admin_cost_factor = 2.0f - admin_eff;
@@ -5613,8 +5630,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
+	static auto spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
+
 	// STEP 4 national budget updates
 	for(auto n : state.nations_by_rank) {
+		spent_on_construction_buffer.set(n, 0.f);
+
 		auto cap_prov = state.world.nation_get_capital(n);
 		auto cap_continent = state.world.province_get_continent(cap_prov);
 		auto cap_region = state.world.province_get_connected_region_id(cap_prov);
@@ -5622,7 +5643,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// update national spending
 			//
 			// step 1: figure out total
-			float total = full_spending_cost(state, n);
+			auto costs = full_spending_cost(state, n);
+
+			float total = costs.total;
 
 			// step 2: limit to actual budget
 			float budget = 0.0f;
@@ -5696,6 +5719,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_set_private_investment(n, std::max(0.0f, pi_budget - pi_total * pi_scale));
 
 			update_national_consumption(state, n, spending_scale, pi_scale);
+
+			spent_on_construction_buffer.set(n, spending_scale * costs.construction);
 		}
 	}
 
@@ -6897,7 +6922,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 
 		/* advance construction */
-		advance_construction(state, n);
+		advance_construction(state, n, spent_on_construction_buffer.get(n));
 
 		if(presimulation) {
 			emulate_construction_demand(state, n);
@@ -8122,7 +8147,7 @@ float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n) {
 			transferamt *= state.defines.alice_puppet_subject_money_transfer / 100.f;
 		}
 
-		return transferamt;
+		return std::max(0.f, std::min(state.world.nation_get_stockpiles(n, money), transferamt));
 	}
 
 	return 0;
