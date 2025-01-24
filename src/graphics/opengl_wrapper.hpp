@@ -57,6 +57,10 @@ struct color3f {
 	float b = 0.0f;
 };
 
+inline color3f unpack_color(uint32_t v) {
+	return color3f{ sys::red_from_int(v), sys::green_from_int(v), sys::blue_from_int(v) };
+}
+
 
 
 struct image {

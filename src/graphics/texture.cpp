@@ -1046,6 +1046,14 @@ GLuint get_rebel_flag_handle(sys::state& state, dcon::rebel_faction_id faction) 
 	}
 }
 
+GLuint get_rebel_flag_overlay(sys::state& state) {
+	static texture overlay;
+	if(overlay.loaded) {
+		return overlay.get_texture_handle();
+	}
+	return load_file_and_return_handle(NATIVE("assets")  NATIVE_DIR_SEPARATORS  NATIVE("flags") NATIVE_DIR_SEPARATORS NATIVE("REB_nationalist.png"), state.common_fs, overlay, false);
+}
+
 GLuint get_late_load_texture_handle(sys::state& state, dcon::texture_id& id, std::string_view asset_name) {
 	if(id && state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;

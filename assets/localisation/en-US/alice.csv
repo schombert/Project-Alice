@@ -1362,3 +1362,16 @@ alice_budget_tariffs_import;Import Duties
 alice_budget_tariffs_export;Export Duties
 alice_budget_overseas_maintanance;Colonial
 alice_budget_social_spending;Benefits
+alice_filter_all;All
+alice_filter_none;None
+alice_filter_noncolonial;Non Colonial
+alice_filter_colonial;Colonial
+alice_open_filters;Open Filters
+alice_reset_filters;Reset Filters
+alice_only_show_pops;Only Pops
+alice_job_filter_header;Type
+alice_culture_filter_header;Culture
+alice_religion_filter_header;Religion
+alice_location_filter_header;Location
+alice_pop_show_details;Individual Details
+alice_demographics_window_header;Demographics

@@ -2075,6 +2075,8 @@ public:
 
 class national_focus_window : public window_element_base {
 public:
+	dcon::state_instance_id provided;
+
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto start = make_element_by_type<window_element_base>(state, "focuscategory_start");
@@ -2109,6 +2111,15 @@ public:
 		if(payload.holds_type<close_focus_window_notification>()) {
 			set_visible(state, false);
 			return message_result::consumed;
+		}
+		if(provided) {
+			if(payload.holds_type<dcon::state_instance_id>()) {
+				payload = provided;
+				return message_result::consumed;
+			} else if(payload.holds_type<dcon::nation_id>()) {
+				payload = state.world.state_instance_get_nation_from_state_ownership(provided);
+				return message_result::consumed;
+			}
 		}
 		return window_element_base::get(state, payload);
 	}

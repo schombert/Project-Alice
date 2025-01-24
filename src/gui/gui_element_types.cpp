@@ -1356,113 +1356,6 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
-template<class T>
-void piechart<T>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(distribution.size() > 0)
-		ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
-}
-
-template<class T>
-void piechart<T>::on_create(sys::state& state) noexcept {
-	base_data.position.x -= base_data.size.x;
-	radius = float(base_data.size.x);
-	base_data.size.x *= 2;
-	base_data.size.y *= 2;
-}
-
-template<class T>
-void piechart<T>::update_chart(sys::state& state) {
-	std::sort(distribution.begin(), distribution.end(), [](auto const& a, auto const& b) { return a.value > b.value; });
-	float total = 0.0f;
-	for(auto& e : distribution) {
-		total += e.value;
-	}
-	int32_t int_total = 0;
-
-	if(total != 0.0f) {
-		for(auto& e : distribution) {
-			auto ivalue = int32_t(e.value * float(resolution) / total);
-			e.slices = uint8_t(ivalue);
-			e.value /= total;
-			int_total += ivalue;
-		}
-	} else {
-		distribution.clear();
-	}
-
-	if(int_total < resolution && distribution.size() > 0) {
-		auto rem = resolution - int_total;
-		while(rem > 0) {
-			for(auto& e : distribution) {
-				e.slices += uint8_t(1);
-				rem -= 1;
-				if(rem == 0)
-					break;
-			}
-		}
-	} else if(int_total > resolution) {
-		assert(false);
-	}
-
-	size_t i = 0;
-	for(auto& e : distribution) {
-		uint32_t color = ogl::get_ui_color<T>(state, e.key);
-		auto slice_count = size_t(e.slices);
-
-		for(size_t j = 0; j < slice_count; j++) {
-			data_texture.data[(i + j) * channels] = uint8_t(color & 0xFF);
-			data_texture.data[(i + j) * channels + 1] = uint8_t(color >> 8 & 0xFF);
-			data_texture.data[(i + j) * channels + 2] = uint8_t(color >> 16 & 0xFF);
-		}
-
-		i += slice_count;
-	}
-	for(; i < resolution; i++) {
-		data_texture.data[i * channels] = uint8_t(0);
-		data_texture.data[i * channels + 1] = uint8_t(0);
-		data_texture.data[i * channels + 2] = uint8_t(0);
-	}
-
-	data_texture.data_updated = true;
-}
-
-template<class T>
-void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	float const PI = 3.141592653589793238463f;
-	float dx = float(x) - radius;
-	float dy = float(y) - radius;
-	size_t index = 0;
-	if(dx != 0.0f || dy != 0.0f) {
-		float dist = std::sqrt(dx * dx + dy * dy);
-		float angle = std::acos(-dx / dist);
-		if(dy > 0.f) {
-			angle = PI + (PI - angle);
-		}
-		index = size_t(angle / (2.f * PI) * float(resolution));
-	}
-	for(auto const& e : distribution) {
-		if(index < size_t(e.slices)) {
-			populate_tooltip(state, e.key, e.value, contents);
-			return;
-		}
-		index -= size_t(e.slices);
-	}
-}
-
-template<class T>
-void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept {
-	auto fat_t = dcon::fatten(state.world, t);
-	auto box = text::open_layout_box(contents, 0);
-	if constexpr(!std::is_same_v<dcon::nation_id, T>)
-		text::add_to_layout_box(state, contents, box, fat_t.get_name(), text::substitution_map{});
-	else
-		text::add_to_layout_box(state, contents, box, text::get_name(state, t), text::substitution_map{});
-	text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::white);
-	text::add_space_to_layout_box(state, contents, box);
-	text::add_to_layout_box(state, contents, box, text::format_percentage(percentage, 1), text::text_color::white);
-	text::close_layout_box(contents, box);
-}
-
 template<class SrcT, class DemoT>
 void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
 	this->distribution.clear();
@@ -1574,11 +1467,6 @@ message_result scrollable_text::get(sys::state& state, Cyto::Any& payload) noexc
 	}
 }
 
-template<class RowWinT, class RowConT>
-void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& state, int32_t v) noexcept {
-	static_cast<listbox_element_base<RowWinT, RowConT>*>(parent)->update(state);
-}
-
 void listbox2_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
 	send(state, parent, listbox2_scroll_event{ });
 }
@@ -1589,18 +1477,6 @@ message_result listbox2_row_element::get(sys::state& state, Cyto::Any& payload) 
 }
 
 
-template<class RowConT>
-message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<RowConT>()) {
-		payload.emplace<RowConT>(content);
-		return message_result::consumed;
-	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
-		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
-		impl_on_update(state);
-		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
 
 template<class RowConT>
 message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
@@ -1613,89 +1489,6 @@ message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::An
 		return message_result::consumed;
 	}
 	return message_result::unseen;
-}
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
-	auto content_off_screen = int32_t(row_contents.size() - row_windows.size());
-	int32_t scroll_pos = list_scrollbar->raw_value();
-	if(content_off_screen <= 0) {
-		list_scrollbar->set_visible(state, false);
-		scroll_pos = 0;
-	} else {
-		list_scrollbar->change_settings(state, mutable_scrollbar_settings{0, content_off_screen, 0, 0, false});
-		list_scrollbar->set_visible(state, true);
-		scroll_pos = std::min(scroll_pos, content_off_screen);
-	}
-
-	if(is_reversed()) {
-		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
-		for(int32_t rw_i = int32_t(row_windows.size()) - 1; rw_i >= 0; rw_i--) {
-			RowWinT* row_window = row_windows[size_t(rw_i)];
-			if(i >= 0) {
-				row_window->set_visible(state, true);
-				auto prior_content = retrieve<RowConT>(state, row_window);
-				auto new_content = row_contents[i--];
-
-				if(prior_content != new_content) {
-					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					if(!row_window->is_visible()) {
-						row_window->set_visible(state, true);
-					} else {
-						row_window->impl_on_update(state);
-					}
-				} else {
-					row_window->set_visible(state, true);
-				}
-			} else {
-				row_window->set_visible(state, false);
-			}
-		}
-	} else {
-		auto i = size_t(scroll_pos);
-		for(RowWinT* row_window : row_windows) {
-			if(i < row_contents.size()) {
-				auto prior_content = retrieve<RowConT>(state, row_window);
-				auto new_content = row_contents[i++];
-
-				if(prior_content != new_content) {
-					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					if(!row_window->is_visible()) {
-						row_window->set_visible(state, true);
-					} else {
-						row_window->impl_on_update(state);
-					}
-				} else {
-					row_window->set_visible(state, true);
-				}
-			} else {
-				row_window->set_visible(state, false);
-			}
-		}
-	}
-}
-
-template<class RowWinT, class RowConT>
-message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	if(row_contents.size() > row_windows.size()) {
-		amount = is_reversed() ? -amount : amount;
-		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
-		state.ui_state.last_tooltip = nullptr; //force update of tooltip
-		update(state);
-		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state) {
-	uint32_t list_size = 0;
-	for(auto rc : row_contents) {
-		list_size++;
-	}
-	list_scrollbar->update_raw_value(state, list_size);
-	state.ui_state.last_tooltip = nullptr; //force update of tooltip
-	update(state);
 }
 
 template<typename contents_type>
@@ -1829,50 +1622,6 @@ void listbox2_base<contents_type>::render(sys::state& state, int32_t x, int32_t 
 	container_base::render(state, x, y);
 }
 
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
-	int16_t current_y = 0;
-	int16_t subwindow_y_size = 0;
-	while(current_y + subwindow_y_size <= base_data.size.y) {
-		auto ptr = make_element_by_type<RowWinT>(state, get_row_element_name());
-		row_windows.push_back(static_cast<RowWinT*>(ptr.get()));
-		int16_t offset = ptr->base_data.position.y;
-		ptr->base_data.position.y += current_y;
-		subwindow_y_size = ptr->base_data.size.y;
-		current_y += ptr->base_data.size.y + offset;
-		add_child_to_front(std::move(ptr));
-	}
-	auto ptr = make_element_by_type<standard_listbox_scrollbar<RowWinT, RowConT>>(state, "standardlistbox_slider");
-	list_scrollbar = static_cast<standard_listbox_scrollbar<RowWinT, RowConT>*>(ptr.get());
-	add_child_to_front(std::move(ptr));
-	list_scrollbar->scale_to_parent();
-
-	update(state);
-}
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
-	if(gid) {
-		auto const& gfx_def = state.ui_defs.gfx[gid];
-		if(gfx_def.primary_texture_handle) {
-			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
-					float(base_data.size.x), float(base_data.size.y),
-					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-			} else {
-				ogl::render_textured_rect(state, get_color_modification(false, false, true), float(x), float(y), float(base_data.size.x),
-					float(base_data.size.y),
-					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-			}
-		}
-	}
-	container_base::render(state, x, y);
-}
 template<class ItemWinT, class ItemConT>
 void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
 	auto spacing = int16_t(base_data.data.overlapping.spacing);
