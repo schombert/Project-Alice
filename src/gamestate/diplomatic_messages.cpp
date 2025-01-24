@@ -203,8 +203,7 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 		}
 	}
 
-	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.cb, to, offer.target_nation, offer.state) *
-								state.defines.crisis_wargoal_infamy_mult;
+	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.cb, to, offer.target_nation, offer.state);
 	state.world.nation_get_infamy(from) += infamy;
 }
 
@@ -271,6 +270,8 @@ bool can_accept(sys::state& state, message const& m) {
 		return can_accept_crisis_peace_offer(state, m.from, m.to, m.data.peace);
 	case type::state_transfer:
 		return command::can_state_transfer(state, m.from, m.to, m.data.state);
+	case type::free_trade_agreement:
+		return command::can_ask_for_free_trade_agreement(state, m.from, m.to, true);
 	}
 	return true;
 }
@@ -360,6 +361,37 @@ void accept(sys::state& state, message const& m) {
 			sys::message_base_type::crisis_resolution_accepted
 		});
 		break;
+	case type::free_trade_agreement:
+	{
+		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
+		nations::adjust_relationship(state, m.to, m.from, state.defines.askmilaccess_relation_on_accept);
+
+		auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
+
+		// One way tariff removal
+		auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(m.to, m.from);
+		if(!rel_1) {
+			rel_1 = state.world.force_create_unilateral_relationship(m.to, m.from);
+		}
+		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+
+		// Another way tariff removal
+		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(m.from, m.to);
+		if(!rel_2) {
+			rel_2 = state.world.force_create_unilateral_relationship(m.from, m.to);
+		}
+		state.world.unilateral_relationship_set_no_tariffs_until(rel_2, enddt);
+
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_free_trade_agreement_signed", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_free_trade_agreement_signed_title",
+			m.to, m.from, dcon::nation_id{},
+			sys::message_base_type::free_trade_agreement
+		});
+		break;
+	}
 	case type::state_transfer:
 		for(const auto ab : state.world.state_definition_get_abstract_state_membership(m.data.state)) {
 			if(ab.get_province().get_province_ownership().get_nation() == m.from) {
@@ -405,6 +437,8 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			return ai::will_join_crisis_with_offer(state, m.to, m.data.crisis_offer);
 		case type::crisis_peace_offer:
 			return ai::will_accept_crisis_peace_offer(state, m.to, m.data.peace);
+		case type::free_trade_agreement:
+			return ai::ai_will_accept_free_trade(state, m.to, m.from);
 		case type::state_transfer:
 			auto rel = state.world.nation_get_overlord_as_subject(m.to);
 			auto overlord = state.world.overlord_get_ruler(rel);
@@ -455,7 +489,7 @@ void post(sys::state& state, message const& m) {
 
 void update_pending(sys::state& state) {
 	for(auto& m : state.pending_messages) {
-		if(m.type != type::none && m.when + expiration_in_days <= state.current_date) {
+		if(m.type != type::none && m.when + int32_t(state.defines.alice_message_expiration_days) <= state.current_date) {
 
 			decline(state, m);
 			m.type = type::none;

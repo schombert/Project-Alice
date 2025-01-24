@@ -1512,7 +1512,7 @@ public:
 				break;
 			}
 
-			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+			dcon::commodity_id c = commodities.commodity_type[i];
 
 			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
 			auto val = commodities.commodity_type[i];
@@ -1560,7 +1560,7 @@ public:
 			if(!commodities.commodity_type[i]) {
 				break;
 			}
-			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+			dcon::commodity_id c = commodities.commodity_type[i];
 
 			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
 			auto val = commodities.commodity_type[i];
@@ -1574,7 +1574,7 @@ public:
 		text::add_line_break_to_layout(state, contents);
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
-				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+				dcon::commodity_id c = commodities.commodity_type[i];
 				float satisfaction = state.world.market_get_demand_satisfaction(m, c);
 				float wanted_commodity = commodities.commodity_amounts[i];
 				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;

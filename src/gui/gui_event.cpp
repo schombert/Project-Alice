@@ -280,28 +280,28 @@ void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto const& phe = std::get<event::pending_human_n_event>(content);
 		if(index == 0) {
-			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + (int32_t)state.defines.alice_event_taken_auto_days);
 		}
 		effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
 				trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto const& phe = std::get<event::pending_human_f_n_event>(content);
 		if(index == 0) {
-			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + (int32_t)state.defines.alice_event_taken_auto_days);
 		}
 		effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto const& phe = std::get<event::pending_human_p_event>(content);
 		if(index == 0) {
-			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + (int32_t)state.defines.alice_event_taken_auto_days);
 		}
 		effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto const& phe = std::get<event::pending_human_f_p_event>(content);
 		if(index == 0) {
-			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + (int32_t)state.defines.alice_event_taken_auto_days);
 		}
 		effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
@@ -1127,19 +1127,19 @@ message_result base_event_window::get(sys::state& state, Cyto::Any& payload) noe
 
 void base_event_window::on_update(sys::state& state) noexcept {
 	if(std::holds_alternative<event::pending_human_n_event>(event_data)) {
-		if(std::get<event::pending_human_n_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+		if(std::get<event::pending_human_n_event>(event_data).date + (int32_t)state.defines.alice_event_taken_auto_days <= state.current_date) {
 			pending_closure.push_back(this);
 		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(event_data)) {
-		if(std::get<event::pending_human_f_n_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+		if(std::get<event::pending_human_f_n_event>(event_data).date + (int32_t)state.defines.alice_event_taken_auto_days <= state.current_date) {
 			pending_closure.push_back(this);
 		}
 	} else if(std::holds_alternative<event::pending_human_p_event>(event_data)) {
-		if(std::get<event::pending_human_p_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+		if(std::get<event::pending_human_p_event>(event_data).date + (int32_t)state.defines.alice_event_taken_auto_days <= state.current_date) {
 			pending_closure.push_back(this);
 		}
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(event_data)) {
-		if(std::get<event::pending_human_f_p_event>(event_data).date + event::expiration_in_days <= state.current_date) {
+		if(std::get<event::pending_human_f_p_event>(event_data).date + (int32_t)state.defines.alice_event_taken_auto_days <= state.current_date) {
 			pending_closure.push_back(this);
 		}
 	}

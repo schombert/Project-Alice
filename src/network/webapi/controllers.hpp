@@ -15,10 +15,13 @@
 #include "demographics.hpp"
 
 #include <text.hpp>
-#include <json.hpp>
+#include "json.hpp"
 
 #define CPPHTTPLIB_NO_EXCEPTIONS
-#include <httplib.h>
+#include "httplib.h"
+
+#include "jsonlayer.hpp"
+#include "jsonlayer.cpp"
 
 using json = nlohmann::json;
 
@@ -26,74 +29,6 @@ namespace webui {
 
 // HTTP
 static httplib::Server svr;
-
-json format_color(sys::state& state, uint32_t c) {
-	json j = json::object();
-
-	j["r"] = sys::int_red_from_int(c);
-	j["g"] = sys::int_green_from_int(c);
-	j["b"] = sys::int_blue_from_int(c);
-
-
-	return j;
-}
-
-json format_nation(sys::state& state, dcon::nation_id n) {
-	json j = json::object();
-
-	j["id"] = n.index();
-	j["name"] = text::produce_simple_string(state, text::get_name(state, n));
-
-	auto identity = state.world.nation_get_identity_from_identity_holder(n);
-	auto color = state.world.national_identity_get_color(identity);
-
-	j["color"] = format_color(state, color);
-
-	return j;
-}
-
-json format_nation(sys::state& state, dcon::national_identity_id n) {
-	json j = json::object();
-
-	auto fid = dcon::fatten(state.world, n);
-
-	j["name"] = text::produce_simple_string(state, fid.get_name());
-	j["color"] = format_color(state, fid.get_color());
-
-	return j;
-}
-
-json format_wargoal(sys::state& state, dcon::wargoal_id wid) {
-	json j = json::object();
-
-	auto fid = dcon::fatten(state.world, wid);
-
-	j["added_by"] = format_nation(state, fid.get_added_by());
-	j["state"] = text::produce_simple_string(state, fid.get_associated_state().get_name());
-	j["target"] = format_nation(state, fid.get_target_nation());
-	j["cb"] = text::produce_simple_string(state, fid.get_type().get_name());
-
-	j["secondary_nation"] = format_nation(state, fid.get_secondary_nation());
-	j["associated_tag"] = format_nation(state, fid.get_associated_tag());
-
-	j["ticking_warscore"] = fid.get_ticking_war_score();
-
-	return j;
-}
-
-json format_wargoal(sys::state& state, sys::full_wg wid) {
-	json j = json::object();
-
-	j["added_by"] = format_nation(state, wid.added_by);
-	j["state"] = text::produce_simple_string(state, state.world.state_definition_get_name(wid.state));
-	j["target"] = format_nation(state, wid.target_nation);
-	j["cb"] = text::produce_simple_string(state, state.world.cb_type_get_name(wid.cb));
-
-	j["secondary_nation"] = format_nation(state, wid.secondary_nation);
-	j["associated_tag"] = format_nation(state, wid.wg_tag);
-
-	return j;
-}
 
 inline void init(sys::state& state) noexcept {
 
@@ -121,23 +56,7 @@ inline void init(sys::state& state) noexcept {
 		json jlist = json::array();
 
 		for(auto nation : state.world.in_nation) {
-				auto nation_ppp_gdp_text = text::format_float(economy::gdp_adjusted(state, nation.id));
-				float population = state.world.nation_get_demographics(nation.id, demographics::total);
-				auto nation_ppp_gdp_per_capita_text = text::format_float(economy::gdp_adjusted(state, nation.id) / population * 1000000.f);
-				auto nation_sol_text = text::format_float(demographics::calculate_nation_sol(state, nation.id));
-
-				auto national_bank = state.world.nation_get_national_bank(nation);
-				auto state_debt = nations::get_debt(state, nation);
-
 				json j = format_nation(state, nation);
-
-				j["population"] = population;
-				j["nation_ppp_gdp"] = nation_ppp_gdp_text;
-				j["nation_ppp_gdp_per_capita"] = nation_ppp_gdp_per_capita_text;
-				j["nation_sol"] = nation_sol_text;
-
-				j["national_bank"] = national_bank;
-				j["state_debt"] = state_debt;
 
 				jlist.push_back(j);
 			}
@@ -146,48 +65,32 @@ inline void init(sys::state& state) noexcept {
 
 	});
 
+	svr.Get(R"(/nation/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto nationnum = std::atoi(match.str().c_str());
+
+		dcon::nation_id n{ dcon::nation_id::value_base_t(nationnum) };
+
+		auto j = format_nation(state, n);
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/factory/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto facnum = std::atoi(match.str().c_str());
+		dcon::factory_id f{ dcon::factory_id::value_base_t(facnum) };
+
+		auto j = format_factory(state, f);
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
 	svr.Get("/commodities", [&](const httplib::Request& req, httplib::Response& res) {
 		json jlist = json::array();
 
 		for(auto commodity : state.world.in_commodity) {
-				auto id = commodity.id.index();
-
-				auto commodity_name = text::produce_simple_string(state, state.world.commodity_get_name(commodity));
-				
-				json j = json::object();
-
-				j["id"] = id;
-				j["name"] = commodity_name;
-
-				{
-					json jplist = json::array();
-					for(auto n : state.world.in_nation)
-						if(n.get_owned_province_count() != 0) {
-							json jel = format_nation(state, n);
-							jel["supply"] = economy::supply(state, n, commodity);
-
-							if(jel["supply"] > 0.0f) {
-								jplist.push_back(jel);
-							}
-						}
-					j["producers"] = jplist;
-				}
-				{
-					json jblist = json::array();
-					for(auto n : state.world.in_nation)
-						if(n.get_owned_province_count() != 0) {
-							json jel = format_nation(state, n);
-							jel["demand"] = economy::demand(state, n, commodity);
-
-							if(jel["demand"] > 0.0f) {
-								jblist.push_back(jel);
-							}
-						}
-
-					j["consumers"] = jblist;
-				}
-
-				jlist.push_back(j);
+			jlist.push_back(format_commodity(state, commodity));
 		}
 
 		res.set_content(jlist.dump(), "text/plain");
@@ -264,44 +167,37 @@ inline void init(sys::state& state) noexcept {
 		res.set_content(jlist.dump(), "text/plain");
 	});
 
+	svr.Get(R"(/province/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto provnum = std::atoi(match.str().c_str());
+
+		dcon::province_id p{ dcon::province_id::value_base_t(provnum) };
+
+		auto j = format_province(state, p);
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
 	svr.Get("/provinces", [&](const httplib::Request& req, httplib::Response& res) {
 		json jlist = json::array();
 
 		for(auto prov : state.world.in_province) {
-			auto id = prov.id.index();
-
-			auto province_name = text::produce_simple_string(state, state.world.province_get_name(prov));
-
-			auto owner = state.world.province_get_nation_from_province_ownership(prov.id);
-			auto prov_population = state.world.province_get_demographics(prov.id, demographics::total);
-
-			float num_capitalist = state.world.province_get_demographics(
-					prov,
-					demographics::to_key(state, state.culture_definitions.capitalists)
-			);
-
-			float num_aristocrat = state.world.province_get_demographics(
-					prov,
-					demographics::to_key(state, state.culture_definitions.aristocrat)
-			);
-
-			auto rgo = state.world.province_get_rgo(prov);
-
-			json j = json::object();
-
-			j["id"] = id;
-			j["name"] = province_name;
-			j["owner"] = format_nation(state, owner);
-			j["population"]["total"] = prov_population;
-			j["population"]["capitalist"] = num_capitalist;
-			j["population"]["aristocrat"] = num_aristocrat;
-
-			j["rgo"] = text::produce_simple_string(state, state.world.commodity_get_name(rgo));
-
+			auto j = format_province(state, prov);
 			jlist.push_back(j);
 		}
 
 		res.set_content(jlist.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/state/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto statenum = std::atoi(match.str().c_str());
+
+		dcon::state_instance_id s{ dcon::state_instance_id::value_base_t(statenum) };
+
+		auto j = format_state(state, s);
+
+		res.set_content(j.dump(), "text/plain");
 	});
 
 	svr.Get("/wars", [&](const httplib::Request& req, httplib::Response& res) {

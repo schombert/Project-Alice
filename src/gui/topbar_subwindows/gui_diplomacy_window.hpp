@@ -226,8 +226,10 @@ public:
 		if(allowed_substate_regions) {
 			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
 				if(v.get_subject().get_is_substate()) {
-					for(auto si : state.world.nation_get_state_ownership(target)) {
-						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+					auto in_nation = v.get_subject();
+
+					for(auto si : state.world.nation_get_state_ownership(v.get_subject())) {
+						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
 							auto def = si.get_state().get_definition().id;
 							if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
 								if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, v.get_subject(), cb, def, dcon::national_identity_id{}, dcon::nation_id{})) {
@@ -2182,6 +2184,9 @@ inline static diplomacy_action_add_to_sphere_button diplomacy_action_add_to_sphe
 inline static diplomacy_action_remove_from_sphere_button diplomacy_action_remove_from_sphere_button_s;
 inline static diplomacy_action_justify_war_button diplomacy_action_justify_war_button_s;
 inline static diplomacy_action_state_transfer_button diplomacy_action_state_transfer_button_s;
+inline static diplomacy_action_ask_free_trade_agreement diplomacy_action_ask_free_trade_agreement_s;
+inline static diplomacy_action_embargo diplomacy_action_embargo_s;
+
 
 inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_ally_button_s,
@@ -2192,7 +2197,8 @@ inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows
 	&diplomacy_action_decrease_relations_button_s,
 	&diplomacy_action_war_subisides_button_s,
 	&diplomacy_action_declare_war_button_s,
-	&diplomacy_action_release_subject_button_s
+	&diplomacy_action_release_subject_button_s,
+	&diplomacy_action_ask_free_trade_agreement_s
 };
 inline static diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_discredit_button_s,
@@ -2203,7 +2209,8 @@ inline static diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRow
 	&diplomacy_action_add_to_sphere_button_s,
 	&diplomacy_action_remove_from_sphere_button_s,
 	&diplomacy_action_justify_war_button_s,
-	&diplomacy_action_state_transfer_button_s
+	&diplomacy_action_state_transfer_button_s,
+	&diplomacy_action_embargo_s
 };
 
 class diplomacy_action_btn_left : public button_element_base {

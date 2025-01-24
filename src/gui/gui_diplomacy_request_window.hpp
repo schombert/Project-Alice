@@ -343,7 +343,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
-			return m.when + diplomatic_message::expiration_in_days <= state.current_date
+			return m.when + (int32_t) state.defines.alice_message_expiration_days <= state.current_date
 				|| !diplomatic_message::can_accept(state, m);
 		});
 		messages.erase(it, messages.end());

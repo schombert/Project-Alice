@@ -959,8 +959,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<diplomacy_declare_war_run_state>(state, parent);
 		auto checked = content == diplomacy_declare_war_run_state::run_conference;
-		disabled = state.current_crisis_state != sys::crisis_state::inactive;
-		if(state.current_crisis_state != sys::crisis_state::inactive) {
+		disabled = state.current_crisis_state != sys::crisis_state::inactive || state.network_mode == sys::network_mode_type::single_player;
+		if(disabled) {
 			checked = false;
 		}
 
@@ -1028,6 +1028,7 @@ private:
 		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
 
+		// Add target states to the selection
 		if ((state.world.cb_type_get_type_bits(cb) & military::cb_flag::always) == 0) {
 			for(auto available_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
 				if(available_cb.cb_type != cb || available_cb.target != target || !available_cb.target_state) {
@@ -1040,6 +1041,7 @@ private:
 				}
 			}
 		}
+		// Country has "blank check" CB
 		if (seldata.selectable_states.empty()) {
 			if(allowed_substate_regions) {
 				for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
@@ -1353,8 +1355,7 @@ public:
 		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
 		auto offered = retrieve<get_offer_to>(state, parent).n;
 
-		auto infamy = military::crisis_cb_addition_infamy_cost(state, cb, offered, target, target_state) *
-			state.defines.crisis_wargoal_infamy_mult;
+		auto infamy = military::crisis_cb_addition_infamy_cost(state, cb, offered, target, target_state);
 
 		if(infamy > 0) {
 			color = text::text_color::red;

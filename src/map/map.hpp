@@ -62,6 +62,15 @@ struct textured_line_vertex_b {
 	float distance = 0.f;
 };
 
+struct textured_line_vertex_b_enriched_with_province_index {
+	glm::vec2 position;
+	glm::vec2 previous_point;
+	glm::vec2 next_point;
+	uint16_t province_index;
+	float texture_coordinate = 0.f;
+	float distance = 0.f;
+};
+
 struct text_line_vertex {
 	text_line_vertex() { };
 	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec3 texture_coord, float thickness)
@@ -112,7 +121,7 @@ public:
 	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	std::vector<border> borders;
-	std::vector<textured_line_vertex_b> border_vertices;
+	std::vector<textured_line_vertex_b_enriched_with_province_index> border_vertices;
 	std::vector<textured_line_with_width_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
@@ -240,7 +249,9 @@ public:
 	static constexpr uint32_t shader_map_standing_object = 8;
 	static constexpr uint32_t shader_textured_line_with_variable_width = 9;
 	static constexpr uint32_t shader_trade_flow = 10;
-	static constexpr uint32_t shader_count = 11;
+	static constexpr uint32_t shader_provinces = 11;
+	static constexpr uint32_t shader_borders_provinces = 12;
+	static constexpr uint32_t shader_count = 13;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;
@@ -277,7 +288,9 @@ public:
 	static constexpr uint32_t uniform_target_facing = 30;
 	static constexpr uint32_t uniform_target_topview_fixup = 31;
 	static constexpr uint32_t uniform_provinces_sea_mask = 32;
-	static constexpr uint32_t uniform_count = 33;
+	static constexpr uint32_t uniform_provinces_real_texture_sampler = 33;
+	static constexpr uint32_t uniform_screen_size = 34;
+	static constexpr uint32_t uniform_count = 35;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

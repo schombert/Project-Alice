@@ -13,8 +13,7 @@
 #include "triggers.hpp"
 #include "ai.hpp"
 #include "gui_console.hpp"
-
-#include "base64encode.hpp"
+#include "network.hpp"
 
 namespace command {
 
@@ -236,8 +235,8 @@ void set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::set_factory_type_priority;
 	p.source = source;
-	p.data.set_factory_priority_data.value = value;
-	p.data.set_factory_priority_data.factory = ftid;
+	p.data.set_factory_priority.value = value;
+	p.data.set_factory_priority.factory = ftid;
 	add_to_command_queue(state, p);
 };
 bool can_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
@@ -498,7 +497,7 @@ void execute_cancel_factory_building_construction(sys::state& state, dcon::natio
 		}
 	}
 }
-void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::begin_factory_building_construction;
@@ -506,10 +505,11 @@ void begin_factory_building_construction(sys::state& state, dcon::nation_id sour
 	p.data.start_factory_building.location = location;
 	p.data.start_factory_building.type = type;
 	p.data.start_factory_building.is_upgrade = is_upgrade;
+	p.data.start_factory_building.refit_target = refit_target;
 	add_to_command_queue(state, p);
 }
 
-bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
 
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
 
@@ -524,7 +524,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		return false;
 
 	/* There can't be duplicate factories... */
-	if(!is_upgrade) {
+	if(!is_upgrade && !refit_target) {
 		// Check factories being built
 		bool has_dup = false;
 		economy::for_each_new_factory(state, location, [&](economy::new_factory const& nf) { has_dup = has_dup || nf.type == type; });
@@ -538,6 +538,50 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				for(auto f : p.get_province().get_factory_location())
 					if(f.get_factory().get_building_type() == type)
 						return false;
+	}
+
+	if(refit_target) {
+		if(type == refit_target) {
+			return false;
+		}
+
+		if(owner != source) {
+			return false;
+		}
+
+		// Refit target must be unlocked and available
+		if(state.world.nation_get_active_building(source, refit_target) == false && !state.world.factory_type_get_is_available_from_start(refit_target))
+			return false;
+
+		// Check if this factory is already being refit
+		bool has_dup = false;
+		economy::for_each_upgraded_factory(state, location, [&](economy::upgraded_factory const& nf) { has_dup = has_dup || nf.type == type; });
+		if(has_dup)
+			return false;
+
+		// We deliberately allow for duplicates to existing factories as this scenario is handled when construction is finished
+
+	// For refit factories must match in output good or inputs.
+		/*
+		auto output_1 = state.world.factory_type_get_output(type);
+		auto output_2 = state.world.factory_type_get_output(refit_target);
+		auto inputs_1 = state.world.factory_type_get_inputs(type);
+		auto inputs_2 = state.world.factory_type_get_inputs(refit_target);
+		auto inputs_match = true;
+		
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			auto input_1 = inputs_1.commodity_type[i];
+			auto input_2 = inputs_2.commodity_type[i];
+
+			if(input_1 != input_2) {
+				inputs_match = false;
+				break;
+			}
+		}
+		if(output_1 != output_2 && !inputs_match) {
+			return false;
+		}
+		*/
 	}
 
 	if(state.world.nation_get_is_civilized(source) == false)
@@ -612,11 +656,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 }
 
-void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
 	auto new_up = fatten(state.world, state.world.force_create_state_building_construction(location, source));
 	new_up.set_is_pop_project(false);
 	new_up.set_is_upgrade(is_upgrade);
 	new_up.set_type(type);
+	new_up.set_refit_target(refit_target);
 
 	if(source != state.world.state_instance_get_nation_from_state_ownership(location)) {
 		float amount = 0.0f;
@@ -2448,6 +2493,238 @@ void execute_toggle_interested_in_alliance(sys::state& state, dcon::nation_id as
 	if(!rel)
 		rel = state.world.force_create_unilateral_relationship(target, asker);
 	state.world.unilateral_relationship_set_interested_in_alliance(rel, !state.world.unilateral_relationship_get_interested_in_alliance(rel));
+}
+
+void ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::ask_for_free_trade_agreement;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
+	/*
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
+	Even if nations have already free trade agreement - they can prolongate it for further years.
+	*/
+	if(asker == target)
+		return false;
+
+	if(state.world.nation_get_is_player_controlled(asker) && !ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(asker);
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+
+	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
+		return false; // Subjects can't negotiate trade agreements
+	}
+
+	// Can't free trade if embargo is imposed
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+	if(source_tariffs_rel) {
+		if(state.world.unilateral_relationship_get_embargo(source_tariffs_rel)) {
+			return false;
+		}
+	}
+	if(target_tariffs_rel) {
+		if(state.world.unilateral_relationship_get_embargo(target_tariffs_rel)) {
+			return false;
+		}
+	}
+
+	if(military::are_at_war(state, asker, target))
+		return false;
+
+	return true;
+}
+void execute_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
+	m.to = target;
+	m.from = asker;
+	m.type = diplomatic_message::type::free_trade_agreement;
+
+	diplomatic_message::post(state, m);
+}
+
+void switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::switch_embargo_status;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
+	/*
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
+	Even if nations have already free trade agreement - they can prolongate it for further years.
+	*/
+	if(asker == target)
+		return false;
+
+	if(state.world.nation_get_is_player_controlled(asker) && !ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(asker);
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+
+	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
+		return false; // Subjects can't embargo or be embargoed
+	}
+
+	auto sl = state.world.nation_get_in_sphere_of(asker);
+	auto sl2 = state.world.nation_get_in_sphere_of(asker);
+
+	if(sl || sl2) {
+		return false; // Spherelings can't embargo or be embargoed
+	}
+
+	// Can't embargo if free trade is in place
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		if(state.current_date < enddt) {
+			return false;
+		}
+	}
+	if(target_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+		if(state.current_date < enddt) {
+			return false;
+		}
+	}
+
+	if(military::are_at_war(state, asker, target))
+		return false;
+
+	return true;
+}
+void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	if(!rel_1) {
+		rel_1 = state.world.force_create_unilateral_relationship(target, asker);
+	}
+	state.world.unilateral_relationship_set_embargo(rel_1, !state.world.unilateral_relationship_get_embargo(rel_1));
+
+	auto new_status = state.world.unilateral_relationship_get_embargo(rel_1);
+
+	for(auto n : state.world.in_nation) {
+		auto subjrel = state.world.nation_get_overlord_as_subject(n);
+		auto subject = state.world.overlord_get_subject(subjrel);
+
+		if(state.world.overlord_get_ruler(subjrel) != asker) {
+			continue;
+		}
+
+		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject);
+		if(!rel_2) {
+			rel_2 = state.world.force_create_unilateral_relationship(target, subject);
+		}
+		state.world.unilateral_relationship_set_embargo(rel_2, new_status);
+
+		// 2nd level subjects
+		for(auto n2 : state.world.in_nation) {
+			auto subjrel_2 = state.world.nation_get_overlord_as_subject(n2);
+			auto subject_2 = state.world.overlord_get_subject(subjrel_2);
+
+			auto rel_3 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject_2);
+			if(!rel_3) {
+				rel_3 = state.world.force_create_unilateral_relationship(target, subject_2);
+			}
+			state.world.unilateral_relationship_set_embargo(rel_3, new_status);
+		}
+	}
+
+	// Embargo issued
+	if(new_status) {
+		notification::post(state, notification::message{
+				[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
+				},
+				"msg_embargo_issued_title",
+				target, asker, dcon::nation_id{},
+				sys::message_base_type::embargo
+		});
+	}
+	else {
+		// Embargo lifted
+		notification::post(state, notification::message{
+		[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_embargo_lifted_title",
+			target, asker, dcon::nation_id{},
+			sys::message_base_type::embargo
+		});
+	}
+}
+
+void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::revoke_trade_rights;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
+	/*
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
+	Even if nations have already free trade agreement - they can prolongate it for further years.
+	*/
+	if(source == target)
+		return false;
+
+	if(state.world.nation_get_is_player_controlled(source) && !ignore_cost && state.world.nation_get_diplomatic_points(source) < state.defines.askmilaccess_diplomatic_cost)
+		return false;
+
+	auto ol = state.world.nation_get_overlord_as_subject(source);
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+
+	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
+		return false; // Subjects can't negotiate trade agreements
+	}
+
+	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
+
+	if(!rights) {
+		return false; // Nation doesn't give trade rights
+	}
+	auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(rights);
+
+	if(state.current_date < enddt) {
+		return false; // Cannot revoke yet
+	}
+
+	return true;
+}
+void execute_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	state.world.nation_get_diplomatic_points(source) -= state.defines.askmilaccess_diplomatic_cost;
+
+	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
+
+	if(!rights) {
+		return; // Nation doesn't give trade rights
+	}
+	state.world.unilateral_relationship_get_no_tariffs_until(rights) = sys::date{}; // Reset trade rights
+
+	notification::post(state, notification::message{
+		[source = source, target = target](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_trade_rights_revoked", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_trade_rights_revoked_title",
+			target, source, dcon::nation_id{},
+			sys::message_base_type::trade_rights_revoked
+		});
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
@@ -5088,6 +5365,17 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	add_to_command_queue(state, p);
 
+#ifndef NDEBUG
+	state.console_log("client:send:cmd | type=notify_player_oos | from: " + std::to_string(source.index()));
+#endif
+
+	ui::chat_message m{};
+	m.source = source;
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.nickname.to_string_view());
+	m.body = text::resolve_string_substitution(state, "chat_player_oos_source", sub);
+	post_chat_message(state, m);
+
 	network::log_player_nations(state);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
@@ -5106,7 +5394,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 	post_chat_message(state, m);
 
 #ifndef NDEBUG
-	state.console_log("client:rcv:cmd | type=notify_player_oos from:" + std::to_string(source.index()));
+	state.console_log("client:rcv:cmd | type=notify_player_oos | from:" + std::to_string(source.index()));
 #endif
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5127,23 +5415,35 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 
-void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
+void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date new_date) {
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
 			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+#ifndef NDEBUG
+				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()) +
+					"|dt_local:" + state.current_date.to_string(state.start_date) + " | dt_incoming:" + new_date.to_string(state.start_date));
+#endif
 				sys::checksum_key current = state.get_save_checksum();
 				if(!current.is_equal(k)) {
+#ifndef NDEBUG
+					network::SHA512 sha512;
+					std::string local = sha512.hash(current.to_char());
+					std::string incoming = sha512.hash(k.to_char());
+					state.console_log("client:desyncfound | Local checksum:" + local + " | " + "Incoming: " + incoming);
+#endif
 					state.network_state.out_of_sync = true;
-					state.debug_save_oos_dump();
 				}
+				state.debug_save_oos_dump();
 			}
 		}
 		state.actual_game_speed = speed;
 	}
+
+	// state.current_date = new_date;
 	state.single_game_tick();
 
 	// Notify server that we're still here
-	if(state.current_date.value % 7 == 0) {
+	if(state.current_date.value % 7 == 0 && state.network_mode == sys::network_mode_type::client) {
 		network_inactivity_ping(state, state.local_player_nation, state.current_date);
 	}
 }
@@ -5203,7 +5503,8 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 
 #ifndef NDEBUG
-	auto encodedchecksum = base64_encode(state.session_host_checksum.to_char(), state.session_host_checksum.key_size);
+	network::SHA512 sha512;
+	std::string encodedchecksum = sha512.hash(state.session_host_checksum.to_char());
 	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + encodedchecksum);
 #endif
 	 
@@ -5216,6 +5517,8 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_reload", sub);
 	post_chat_message(state, m);
+
+	network::log_player_nations(state);
 }
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -5306,7 +5609,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_make_leader(state, c.source, c.data.make_leader.is_general);
 
 	case command_type::set_factory_type_priority:
-		return can_set_factory_type_priority(state, c.source, c.data.set_factory_priority_data.factory, c.data.set_factory_priority_data.value);
+		return can_set_factory_type_priority(state, c.source, c.data.set_factory_priority.factory, c.data.set_factory_priority.value);
 
 	case command_type::begin_province_building_construction:
 		return can_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
@@ -5326,7 +5629,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::begin_factory_building_construction:
 		return can_begin_factory_building_construction(state, c.source, c.data.start_factory_building.location,
-				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade);
+				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade, c.data.start_factory_building.refit_target);
 
 	case command_type::begin_naval_unit_construction:
 		return can_start_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
@@ -5453,6 +5756,15 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::ask_for_alliance:
 		return can_ask_for_alliance(state, c.source, c.data.diplo_action.target);
+
+	case command_type::ask_for_free_trade_agreement:
+		return can_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
+
+	case command_type::switch_embargo_status:
+		return can_switch_embargo_status(state, c.source, c.data.diplo_action.target);
+
+	case command_type::revoke_trade_rights:
+		return can_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
 
 	case command_type::call_to_arms:
 		return can_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);
@@ -5682,7 +5994,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_make_leader(state, c.source, c.data.make_leader.is_general);
 		break;
 	case command_type::set_factory_type_priority:
-		execute_set_factory_type_priority(state, c.source, c.data.set_factory_priority_data.factory, c.data.set_factory_priority_data.value);
+		execute_set_factory_type_priority(state, c.source, c.data.set_factory_priority.factory, c.data.set_factory_priority.value);
 		break;
 	case command_type::begin_province_building_construction:
 		execute_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
@@ -5702,7 +6014,7 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::begin_factory_building_construction:
 		execute_begin_factory_building_construction(state, c.source, c.data.start_factory_building.location,
-				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade);
+				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade, c.data.start_factory_building.refit_target);
 		break;
 	case command_type::begin_naval_unit_construction:
 		execute_start_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
@@ -5830,6 +6142,15 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::ask_for_alliance:
 		execute_ask_for_alliance(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::ask_for_free_trade_agreement:
+		execute_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::switch_embargo_status:
+		execute_switch_embargo_status(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::revoke_trade_rights:
+		execute_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
 		break;
 	case command_type::call_to_arms:
 		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);
@@ -6020,7 +6341,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_oos(state, c.source);
 		break;
 	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
+		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed, c.data.advance_tick.date);
 		break;
 	case command_type::notify_save_loaded:
 		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);

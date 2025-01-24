@@ -1561,6 +1561,23 @@ object {
 		name{ rgo_actual_production_per_good }
 		type{ array{commodity_id}{float} }
 	}
+
+	property{
+		name{ tax_base_poor }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ tax_base_middle }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ tax_base_rich }
+		type{ float }
+		tag{ save }
+	}
+
 	property{
 		name{ daily_net_migration }
 		type{ float }
@@ -4359,6 +4376,16 @@ relationship{
 		type{ bitfield }
 		tag{ save }
 	}
+	property {
+		name{ no_tariffs_until }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ embargo }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -4699,6 +4726,11 @@ relationship{
 	property{
 		name{ is_upgrade }
 		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ refit_target }
+		type{ factory_type_id }
 		tag{ save }
 	}
 }

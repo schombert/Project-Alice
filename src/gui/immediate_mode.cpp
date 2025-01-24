@@ -65,6 +65,15 @@ void iui_state::panel_colored(
 	);
 }
 
+bool iui_state::check_hover(sys::state& state, rect& r) {
+	if(state.mouse_x_position / state.user_settings.ui_scale >= r.x && state.mouse_x_position / state.user_settings.ui_scale <= r.x + r.w) {
+		if(state.mouse_y_position / state.user_settings.ui_scale >= r.y && state.mouse_y_position / state.user_settings.ui_scale <= r.y + r.h) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void iui_state::panel(
 	sys::state& state,
 	rect& r

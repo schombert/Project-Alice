@@ -185,165 +185,6 @@ inline constexpr float labor_greed_everyday = 0.f;
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
 
-float price(
-	sys::state const& state,
-	dcon::state_instance_id s,
-	dcon::commodity_id c
-);
-float price(
-	sys::state const& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-float price(
-	sys::state& state,
-	dcon::commodity_id c
-);
-float median_price(
-	sys::state& state,
-	dcon::commodity_id c
-);
-ve::fp_vector price(
-	sys::state const& state,
-	ve::tagged_vector<dcon::market_id> s,
-	dcon::commodity_id c
-);
-float price(
-	sys::state const& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-
-float supply(
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float supply(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-float supply(
-	sys::state& state,
-	dcon::commodity_id c
-);
-
-float demand(
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float demand(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-float demand(
-	sys::state& state,
-	dcon::commodity_id c
-);
-
-float consumption(
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float consumption(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-float consumption(
-	sys::state& state,
-	dcon::commodity_id c
-);
-
-float demand_satisfaction(
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float demand_satisfaction(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-float demand_satisfaction(
-	sys::state& state,
-	dcon::commodity_id c
-);
-
-float market_pool (
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float market_pool(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-float market_pool(
-	sys::state& state,
-	dcon::commodity_id c
-);
-
-float export_volume(
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float export_volume(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-
-float domestic_trade_volume(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-
-struct nation_enriched_float {
-	float value;
-	dcon::nation_id nation;
-};
-
-struct trade_volume_data_detailed {
-	float volume;
-	dcon::commodity_id commodity;
-	nation_enriched_float targets[5];
-};
-
-trade_volume_data_detailed export_volume_detailed(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-
-float import_volume(
-	sys::state& state,
-	dcon::market_id s,
-	dcon::commodity_id c
-);
-float import_volume(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-trade_volume_data_detailed import_volume_detailed(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-
-float average_capitalists_luxury_cost(
-	sys::state& state,
-	dcon::nation_id s
-);
-
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
 float effective_tariff_import_rate(sys::state& state, dcon::nation_id n);
@@ -396,6 +237,8 @@ bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
 
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
+
+dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
@@ -577,11 +420,15 @@ struct new_factory {
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
+	dcon::factory_type_id target_type;
 };
 
+economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to);
+float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to);
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
 int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
+int32_t state_factory_size(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);

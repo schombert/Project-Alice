@@ -6,8 +6,6 @@
 
 namespace event {
 
-inline constexpr int32_t expiration_in_days = 30;
-
 enum class slot_type : uint8_t { none, nation, state, province, pop };
 
 struct pending_human_n_event {
