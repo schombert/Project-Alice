@@ -509,6 +509,7 @@ factory_stats_3;It produced $val$ units of $x$ in the previous day
 factory_stats_4;It made a profit of $val$ in the previous day
 factory_stats_5;Inputs availability:
 factory_stats_6;Efficiency inputs availability:
+factory_stats_7;Economy of scale throughput bonus: ?G+$val$?!
 factory_stats_wage;Wage:
 factory_stats_expenses;Total expenses
 factory_stats_desired_income;Desired raw profit

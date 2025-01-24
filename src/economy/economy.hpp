@@ -218,7 +218,7 @@ float factory_e_input_total_cost(sys::state const& state, dcon::market_id m, dco
 // abstract modifiers
 
 float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, int levels);
 float factory_output_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::market_id m, dcon::province_id p);
 
 float factory_desired_raw_profit(dcon::factory_id fac, float spendings);

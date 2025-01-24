@@ -1884,7 +1884,7 @@ float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dc
 		));
 }
 
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s) {
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, int levels) {
 	auto output = state.world.factory_type_get_output(fac_type);
 	auto national_t = state.world.nation_get_factory_goods_throughput(n, output);
 	auto provincial_fac_t = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_throughput);
@@ -1893,7 +1893,8 @@ float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_
 	auto result = 1.f
 		* std::max(0.f, 1.f + national_t)
 		* std::max(0.f, 1.f + provincial_fac_t)
-		* std::max(0.f, 1.f + nationnal_fac_t);
+		* std::max(0.f, 1.f + nationnal_fac_t) *
+		1.f + (levels / 100.f) /* Economies of scale throughput bonus */;
 
 	return production_throughput_multiplier * result;
 }
@@ -1955,7 +1956,7 @@ void update_single_factory_consumption(
 
 	float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
 	auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s);
+	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s, fac.get_level());
 	float output_multiplier = factory_output_multiplier(state, fac, n, m, p);
 
 	float bonus_profit_thanks_to_max_e_input = fac_type.get_output_amount()
@@ -7540,7 +7541,7 @@ float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::com
 			//modifiers
 
 			float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
-			float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s);
+			float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s, fac.get_level());
 			float output_multiplier = factory_output_multiplier(state, fac, n, m, p);
 
 			//this value represents total production if 1 lvl of this factory is filled with workers
