@@ -1244,7 +1244,7 @@ market_stockpiles;库存;;;;;;;;;;;;x
 national_stockpile;储备;;;;;;;;;;;;x
 government_need;政府采购;;;;;;;;;;;;x
 factory_need;工厂输入;;;;;;;;;;;;x
-pop_need;人口需求;;;;;;;;;;;;x
+pop_need;需求缺口;;;;;;;;;;;;x
 rgo_production;原料产地输出;;;;;;;;;;;;x
 artisan_production;手工业者输出;;;;;;;;;;;;x
 factory_production;工厂输出;;;;;;;;;;;;x
