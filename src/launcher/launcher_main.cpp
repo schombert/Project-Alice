@@ -18,6 +18,7 @@
 #include "triggers.cpp"
 #include "effects.cpp"
 #include "economy.cpp"
+#include "economy_government.cpp"
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"

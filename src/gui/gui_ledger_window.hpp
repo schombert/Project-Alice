@@ -1955,9 +1955,25 @@ public:
 		case ledger_sort_type::profit:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::factory_id a, dcon::factory_id b) {
 				if(lsort.reversed) {
-					return state.world.factory_get_full_profit(a) < state.world.factory_get_full_profit(b);
+					return (
+						state.world.factory_get_full_output_cost(a)
+						- state.world.factory_get_full_input_cost(a)
+						- state.world.factory_get_full_labor_cost(a)
+					) < (
+						state.world.factory_get_full_output_cost(b)
+						- state.world.factory_get_full_input_cost(b)
+						- state.world.factory_get_full_labor_cost(b)
+					);
 				} else {
-					return state.world.factory_get_full_profit(a) > state.world.factory_get_full_profit(b);
+					return (
+						state.world.factory_get_full_output_cost(a)
+						- state.world.factory_get_full_input_cost(a)
+						- state.world.factory_get_full_labor_cost(a)
+					) > (
+						state.world.factory_get_full_output_cost(b)
+						- state.world.factory_get_full_input_cost(b)
+						- state.world.factory_get_full_labor_cost(b)
+					);
 				}
 			});
 			break;
