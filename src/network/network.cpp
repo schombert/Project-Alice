@@ -56,7 +56,7 @@ struct local_addresses {
 
 port_forwarder::port_forwarder() { }
 
-static SHA512 sha512;
+SHA512 sha512;
 
 void port_forwarder::start_forwarding() {
 #ifdef _WIN64

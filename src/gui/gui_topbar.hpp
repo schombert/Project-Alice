@@ -6,7 +6,6 @@
 #include "gui_diplomacy_window.hpp"
 #include "gui_technology_window.hpp"
 #include "gui_politics_window.hpp"
-#include "gui_budget_window.hpp"
 #include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
@@ -2133,7 +2132,9 @@ public:
 			return btn;
 		} else if(name == "topbarbutton_pops") {
 			auto btn = make_element_by_type<topbar_population_view_button>(state, id);
-			auto tab = make_element_by_type<population_window>(state, "country_pop");
+			//auto tab = make_element_by_type<population_window>(state, "country_pop");
+			auto tab = alice_ui::make_demographicswindow_main(state);
+			tab->set_visible(state, false);
 			btn->topbar_subwindow = tab.get();
 
 			state.ui_state.population_subwindow = tab.get();

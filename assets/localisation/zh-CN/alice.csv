@@ -1244,7 +1244,7 @@ market_stockpiles;库存;;;;;;;;;;;;x
 national_stockpile;储备;;;;;;;;;;;;x
 government_need;政府采购;;;;;;;;;;;;x
 factory_need;工厂输入;;;;;;;;;;;;x
-pop_need;人口需求;;;;;;;;;;;;x
+pop_need;需求缺口;;;;;;;;;;;;x
 rgo_production;原料产地输出;;;;;;;;;;;;x
 artisan_production;手工业者输出;;;;;;;;;;;;x
 factory_production;工厂输出;;;;;;;;;;;;x
@@ -1331,7 +1331,7 @@ alice_budget_gold;金矿;;;;;;;;;;;;x
 alice_budget_construction;建设;;;;;;;;;;;;x
 alice_budget_army_upkeep;陆军支出;;;;;;;;;;;;x
 alice_budget_navy_upkeep;海军支出;;;;;;;;;;;;x
-alice_budget_domestic_investment;公共工程;;;;;;;;;;;;x
+alice_budget_domestic_investment;投资补贴;;;;;;;;;;;;x
 alice_budget_debt_service;债务服务;;;;;;;;;;;;x
 alice_budget_diplo_income;外交;;;;;;;;;;;;x
 alice_budget_diplo_expenses;外交;;;;;;;;;;;;x

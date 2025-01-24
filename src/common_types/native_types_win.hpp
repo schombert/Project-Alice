@@ -13,3 +13,4 @@ native_string to_native_string(T&& v) noexcept {
 #define NATIVE(X) L##X
 #define NATIVE_M(X) NATIVE(X)
 #define NATIVE_DIR_SEPARATOR L'\\'
+#define NATIVE_DIR_SEPARATORS L"\\"

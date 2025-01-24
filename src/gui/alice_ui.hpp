@@ -2,9 +2,13 @@
 #include "gui_element_base.hpp"
 #include "system_state.hpp"
 #include "economy_government.hpp"
-#include "economy_stats.hpp"
+#include "graphics/color.hpp"
+#include "province_templates.hpp"
+#include "rebels.hpp"
+#include "gui_population_window.hpp"
 
 namespace alice_ui {
+
 namespace budget_categories {
 inline constexpr int32_t diplomatic_income = 0;
 inline constexpr int32_t poor_tax = 1;
@@ -27,10 +31,24 @@ inline constexpr int32_t navy_upkeep = 17;
 inline constexpr int32_t debt_payment = 18;
 inline constexpr int32_t stockpile = 19;
 inline constexpr int32_t category_count = 20;
-
 inline static bool expanded[category_count] = { false };
 }
 
+namespace popwindow {
+inline static ankerl::unordered_dense::set<int32_t> open_states;
+inline static ankerl::unordered_dense::set<int32_t> open_provs;
+inline static ankerl::unordered_dense::set<int32_t> excluded_types;
+inline static ankerl::unordered_dense::set<int32_t> excluded_cultures;
+inline static ankerl::unordered_dense::set<int32_t> excluded_states;
+inline static ankerl::unordered_dense::set<int32_t> excluded_religions;
+inline static bool show_non_colonial = true;
+inline static bool show_colonial = true;
+inline static bool show_only_pops = false;
+}
+
+bool pop_passes_filter(sys::state& state, dcon::pop_id p);
+
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
 }

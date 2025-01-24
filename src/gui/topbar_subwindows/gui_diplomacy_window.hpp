@@ -2272,7 +2272,7 @@ inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows
 	&diplomacy_action_release_subject_button_s,
 	&diplomacy_action_ask_free_trade_agreement_s
 };
-diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
+inline static diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_discredit_button_s,
 	&diplomacy_action_expel_advisors_button_s,
 	&diplomacy_action_ban_embassy_button_s,
