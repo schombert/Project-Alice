@@ -442,7 +442,7 @@ public:
 		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, consumer);
 		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, heavy);
 		text::add_line(state, contents, "factory_military_count", text::variable_type::val, mils);
-		text::add_line(state, contents, "factory_processing_count", text::variable_type::val, mils);
+		text::add_line(state, contents, "factory_processing_count", text::variable_type::val, processing);
 		if(indandconsumer > 0) {
 			text::add_line(state, contents, "factory_industrial_and_consumer_count", text::variable_type::val, mils);
 		}
