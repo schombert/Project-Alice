@@ -190,6 +190,8 @@
 	LUA_DEFINES_LIST_ELEMENT(peace_cost_add_to_sphere, 1.000000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(peace_cost_release_puppet, 1.000000)                                                                  \
 	LUA_DEFINES_LIST_ELEMENT(peace_cost_make_puppet, 85.000000)                                                                    \
+	LUA_DEFINES_LIST_ELEMENT(peace_cost_make_substate, 90.000000)                                                                    \
+	LUA_DEFINES_LIST_ELEMENT(peace_cost_unequal_treaty, 1.000000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(peace_cost_disarmament, 1.000000)                                                                     \
 	LUA_DEFINES_LIST_ELEMENT(peace_cost_destroy_forts, 1.000000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(peace_cost_destroy_naval_bases, 1.000000)                                                             \
@@ -207,6 +209,8 @@
 	LUA_DEFINES_LIST_ELEMENT(infamy_add_to_sphere, 2.000000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(infamy_release_puppet, 0.500000)                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(infamy_make_puppet, 5.000000)                                                                         \
+	LUA_DEFINES_LIST_ELEMENT(infamy_make_substate, 6.000000)                                                                       \
+	LUA_DEFINES_LIST_ELEMENT(infamy_unequal_treaty, 3.000000)                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(infamy_disarmament, 5.000000)                                                                         \
 	LUA_DEFINES_LIST_ELEMENT(infamy_destroy_forts, 2.000000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(infamy_destroy_naval_bases, 2.000000)                                                                 \
@@ -243,6 +247,8 @@
 	LUA_DEFINES_LIST_ELEMENT(prestige_add_to_sphere, 0.050000)                                                                     \
 	LUA_DEFINES_LIST_ELEMENT(prestige_release_puppet, 0.050000)                                                                    \
 	LUA_DEFINES_LIST_ELEMENT(prestige_make_puppet, 0.050000)                                                                       \
+	LUA_DEFINES_LIST_ELEMENT(prestige_make_substate, 0.050000)                                                                     \
+	LUA_DEFINES_LIST_ELEMENT(prestige_unequal_treaty, 0.050000)                                                                    \
 	LUA_DEFINES_LIST_ELEMENT(prestige_disarmament, 0.050000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(prestige_destroy_forts, 0.050000)                                                                     \
 	LUA_DEFINES_LIST_ELEMENT(prestige_destroy_naval_bases, 0.050000)                                                               \
@@ -262,6 +268,8 @@
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_add_to_sphere, 1.000000)                                                            \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_release_puppet, 1.000000)                                                           \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_make_puppet, 1.000000)                                                              \
+	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_make_substate, 1.000000)                                                            \
+	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_unequal_treaty, 1.000000)                                                           \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_disarmament, 1.000000)                                                              \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_destroy_forts, 1.000000)                                                            \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_infamy_destroy_naval_bases, 1.000000)                                                      \
@@ -279,6 +287,8 @@
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_add_to_sphere, -20.000000)                                                        \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_release_puppet, -20.000000)                                                       \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_make_puppet, -20.000000)                                                          \
+	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_make_substate, -20.000000)                                                        \
+	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_unequal_treaty, -20.000000)                                                  \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_disarmament, -20.000000)                                                          \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_destroy_forts, -20.000000)                                                        \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_prestige_destroy_naval_bases, -20.000000)                                                  \
@@ -296,6 +306,8 @@
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_add_to_sphere, 2.000000)                                                         \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_release_puppet, 2.000000)                                                        \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_make_puppet, 2.000000)                                                           \
+	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_make_substate, 2.000000)                                                           \
+	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_unequal_treaty, 2.000000)                                                           \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_disarmament, 2.000000)                                                           \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_destroy_forts, 2.000000)                                                         \
 	LUA_DEFINES_LIST_ELEMENT(breaktruce_militancy_destroy_naval_bases, 2.000000)                                                   \
@@ -704,6 +716,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_strength_estimation_military_industrial_balance, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_refit_cost_modifier, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_free_trade_agreement_years, 5.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_event_taken_auto_days, 30.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_message_expiration_days, 15.0) \
+
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

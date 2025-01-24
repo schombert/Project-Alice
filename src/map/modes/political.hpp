@@ -1,6 +1,7 @@
 #pragma once
 #include "prng.hpp"
 
+// Imagine new color for subject based on overlord color and random from nation id.
 uint32_t derive_color_from_ol_color(sys::state& state, uint32_t ol_color, dcon::nation_id n) {
 	auto base = sys::rgb_to_hsv(ol_color);
 	auto roff = rng::get_random_pair(state, uint32_t(n.index()), uint32_t(n.index()));
@@ -47,6 +48,7 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto i = province::to_map_id(prov_id);
+		// Sea provinces
 		if(prov_id.index() >= state.province_definitions.first_sea_province.index()) {
 			prov_color[i] = 0;
 			prov_color[i + texture_size] = 0;

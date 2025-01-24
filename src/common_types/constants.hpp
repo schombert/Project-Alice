@@ -405,10 +405,10 @@ enum class message_base_type : uint8_t {
 	bankruptcy = 71,
 	entered_automatic_alliance = 72,
 	chat_message = 73,
-	count = 74,
-	free_trade_agreement = 75,
-	embargo = 76,
-
+	free_trade_agreement = 74,
+	embargo = 75,
+	trade_rights_revoked = 76,
+	count = 77,
 };
 
 struct msg_setting_entry {

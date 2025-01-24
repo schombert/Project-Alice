@@ -774,6 +774,10 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 namespace map_mode {
 
 void set_map_mode(sys::state& state, mode mode) {
+	if(mode == map_mode::mode::handled_from_outside) {
+		return;
+	}
+
 	std::vector<uint32_t> prov_color;
 	switch(mode) {
 		case map_mode::mode::migration:
@@ -995,6 +999,7 @@ void set_map_mode(sys::state& state, mode mode) {
 	default:
 		return;
 	}
+
 	state.map_state.set_province_color(prov_color, mode);
 }
 

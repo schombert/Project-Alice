@@ -203,8 +203,7 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 		}
 	}
 
-	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.cb, to, offer.target_nation, offer.state) *
-								state.defines.crisis_wargoal_infamy_mult;
+	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.cb, to, offer.target_nation, offer.state);
 	state.world.nation_get_infamy(from) += infamy;
 }
 
@@ -490,7 +489,7 @@ void post(sys::state& state, message const& m) {
 
 void update_pending(sys::state& state) {
 	for(auto& m : state.pending_messages) {
-		if(m.type != type::none && m.when + expiration_in_days <= state.current_date) {
+		if(m.type != type::none && m.when + int32_t(state.defines.alice_message_expiration_days) <= state.current_date) {
 
 			decline(state, m);
 			m.type = type::none;

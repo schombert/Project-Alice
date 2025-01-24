@@ -57,6 +57,10 @@ struct color3f {
 	float b = 0.0f;
 };
 
+inline color3f unpack_color(uint32_t v) {
+	return color3f{ sys::red_from_int(v), sys::green_from_int(v), sys::blue_from_int(v) };
+}
+
 
 
 struct image {
@@ -205,6 +209,9 @@ struct data {
 	bool legacy_mode = false;
 	GLuint ui_shader_program = 0;
 
+	GLuint province_map_framebuffer;
+	GLuint province_map_rendertexture;
+
 	GLuint ui_shader_d_rect_uniform = 0;
 	GLuint ui_shader_subroutines_index_uniform = 0;
 	GLuint ui_shader_inner_color_uniform = 0;
@@ -254,6 +261,7 @@ struct data {
 };
 
 void notify_user_of_fatal_opengl_error(std::string message);
+std::string_view opengl_get_error_name(GLenum t);
 
 void create_opengl_context(sys::state& state); // you shouldn't call this directly; only initialize_opengl should call it
 void initialize_opengl(sys::state& state);
@@ -299,6 +307,9 @@ public:
 	void set_y(float* v);
 	void bind_buffer();
 };
+
+std::string_view framebuffer_error(GLenum e);
+
 void render_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, ui::rotation r, bool flipped, bool rtl);
 void render_alpha_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, float alpha);
 void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl);
@@ -343,6 +354,9 @@ void render_text_commodity_icon(
 	float font_size, text::font& f
 );
 
+void deinitialize_framebuffer_for_province_indices(sys::state& state);
+void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size_x, int32_t size_y);
+
 bool msaa_enabled(sys::state const& state);
 void initialize_msaa(sys::state& state, int32_t x, int32_t y);
 void deinitialize_msaa(sys::state& state);
@@ -351,6 +365,7 @@ image load_stb_image(simple_fs::file& file);
 GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels);
 GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_name);
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap);
+void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap_a, GLuint wrap_b);
 GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y);
 
 class animation;

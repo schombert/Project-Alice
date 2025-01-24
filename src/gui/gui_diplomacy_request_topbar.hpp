@@ -84,7 +84,7 @@ public:
 		auto tstr = text::produce_simple_string(state, get_type_key(m.type));
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::nation, m.from);
-		text::add_to_substitution_map(sub, text::variable_type::date, m.when + diplomatic_message::expiration_in_days);
+		text::add_to_substitution_map(sub, text::variable_type::date, m.when + (int32_t) state.defines.alice_message_expiration_days);
 		text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(tstr.c_str()));
 		text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"), sub);
 		text::close_layout_box(contents, box);
@@ -138,7 +138,7 @@ public:
 	std::vector< diplomatic_message::message> messages;
 	void on_update(sys::state& state) noexcept override {
 		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
-			return m.when + diplomatic_message::expiration_in_days <= state.current_date
+			return m.when + (int32_t) state.defines.alice_message_expiration_days <= state.current_date
 				|| !diplomatic_message::can_accept(state, m);
 		});
 		messages.erase(it, messages.end());

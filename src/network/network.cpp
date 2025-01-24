@@ -28,7 +28,6 @@
 #include "SPSCQueue.h"
 #include "network.hpp"
 #include "serialization.hpp"
-#include "SHA512.hpp"
 #include "gui_error_window.hpp"
 #include "persistent_server_extensions.hpp"
 
@@ -41,7 +40,7 @@
 #pragma comment(lib, "ntdll.lib")
 #endif
 
-#include <json.hpp>
+#include <webapi/json.hpp>
 using json = nlohmann::json;
 
 namespace network {
@@ -642,21 +641,28 @@ static std::map<int, std::string> readableCommandTypes = {
 {100,"set_factory_type_priority"},
 {101,"crisis_add_wargoal" },
 {102,"change_unit_type" },
-{106,"notify_player_ban"},
-{107,"notify_player_kick"},
-{108,"notify_player_picks_nation"},
-{109,"notify_player_joins"},
-{110,"notify_player_leaves"},
-{111,"notify_player_oos"},
-{112,"notify_save_loaded"},
-{113,"notify_start_game"},
-{114,"notify_stop_game"},
-{115,"notify_pause_game"},
-{116,"notify_reload"},
-{120,"advance_tick"},
-{121,"chat_message"},
-{122,"network_inactivity_ping"},
-{255,"console_command"},
+{ 102,"change_unit_type" },
+{ 103,"take_province" },
+{ 104,"grant_province" },
+{ 105,"ask_for_free_trade_agreement" },
+{ 106,"switch_embargo_status" },
+{ 107,"revoke_trade_rights" },
+{ 110,"notify_player_ban" },
+{ 111,"notify_player_kick" },
+{ 112,"notify_player_picks_nation" },
+{ 113,"notify_player_joins" },
+{ 114,"notify_player_leaves" },
+{ 115,"notify_player_oos" },
+{ 116,"notify_save_loaded" },
+{ 117,"notify_start_game" },
+{ 118,"notify_stop_game" },
+{ 118,"notify_stop_game" },
+{ 119,"notify_pause_game" },
+{ 120,"notify_reload" },
+{ 121,"advance_tick" },
+{ 122,"chat_message" },
+{ 123,"network_inactivity_ping" },
+{ 255,"console_command" },
 };
 
 dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password) {
@@ -953,7 +959,8 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 		c.data.notify_save_loaded.target = client.playing_as;
 		network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
 #ifndef NDEBUG
-		state.console_log("host:broadcast:cmd | (new->save_loaded) | checksum: " + state.network_state.current_save_checksum.to_string()
+
+		state.console_log("host:broadcast:cmd | (new->save_loaded) | checksum: " + sha512.hash(state.network_state.current_save_checksum.to_char())
 		+ " | target: " + std::to_string(c.data.notify_save_loaded.target.index()));
 		log_player_nations(state);
 #endif
@@ -1097,7 +1104,7 @@ void full_reset_after_oos(sys::state& state) {
 					socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 					state.console_log("host:send:cmd | (new->reload) to:" + std::to_string(other_client.playing_as.index()) +
-					"| checksum: " + c.data.notify_reload.checksum.to_string());
+					"| checksum: " + sha512.hash(c.data.notify_reload.checksum.to_char()));
 #endif
 				}
 			}
@@ -1326,7 +1333,9 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		return;
 	assert(c.type != command::command_type::notify_save_loaded);
 
-	c.data.notify_join.player_password = sys::player_name{}; // Never send password to clients
+	if(c.type == command::command_type::notify_player_joins) {
+		c.data.notify_join.player_password = sys::player_password_raw{}; // Never send password to clients
+	}
 	/* Propagate to all the clients */
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
@@ -1411,13 +1420,13 @@ void send_and_receive_commands(sys::state& state) {
 				if(!client.is_active())
 					continue;
 
+				// Drop lost clients
 				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-					if(state.host_settings.alice_persistent_server_mode != 1) {
-						disconnect_client(state, client, true);
-					}
-					else {
-						clear_socket(state, client);
-					}
+					disconnect_client(state, client, true);
+				}
+				// Slow down for the lagging ones
+				else if (state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
+					state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
 				}
 			}
 		}
@@ -1483,7 +1492,7 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 				auto save_checksum = state.get_save_checksum();
 				assert(save_checksum.is_equal(state.session_host_checksum));
-				state.console_log("client:loadsave | checksum:" + state.session_host_checksum.to_string() + "| localchecksum: " + save_checksum.to_string());
+				state.console_log("client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(save_checksum.to_char()));
 				log_player_nations(state);
 #endif
 

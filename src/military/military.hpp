@@ -33,7 +33,7 @@ inline constexpr uint32_t po_destroy_forts = 0x00800000;
 inline constexpr uint32_t po_destroy_naval_bases = 0x01000000;
 inline constexpr uint32_t po_make_substate = 0x02000000;
 inline constexpr uint32_t po_save_subjects = 0x04000000;
-inline constexpr uint32_t po_demand_province = 0x08000000;
+inline constexpr uint32_t po_unequal_treaty = 0x08000000;
 
 
 } // namespace cb_flag
