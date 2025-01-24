@@ -551,8 +551,8 @@ std::string name_view_commodity_id(sys::state& state, element_base* container, d
 };
 
 bool compare_price(sys::state& state, element_base* container, const dcon::commodity_id a, const  dcon::commodity_id b) {
-	auto av = economy::price(state, a);
-	auto bv = economy::price(state, b);
+	auto av = economy::median_price(state, a);
+	auto bv = economy::median_price(state, b);
 	if(av != bv)
 		return av > bv;
 	else
@@ -560,7 +560,7 @@ bool compare_price(sys::state& state, element_base* container, const dcon::commo
 }
 
 std::string price_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
-	return text::format_money(economy::price(state, item));
+	return text::format_money(economy::median_price(state, item));
 };
 std::string supply_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
 	return text::format_float(economy::supply(state, item));
@@ -729,7 +729,7 @@ inline table::column<dcon::commodity_id> trade_good_player_price = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto value = economy::price(state, state.local_player_nation, id);
-		return text::format_float(value);
+		return text::format_money(value);
 	}
 };
 
@@ -1388,7 +1388,7 @@ class commodity_price_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_money(economy::price(state, commodity_id)));
+		set_text(state, text::format_money(economy::median_price(state, commodity_id)));
 	}
 };
 

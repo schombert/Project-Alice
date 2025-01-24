@@ -709,3 +709,14 @@ rgo_distribution = {
 	}
 }
 ```
+
+To add some RGO entries without overriding ones generated from climate, terrain and primary trade_goods use `rgo_distribution_add_`.
+
+```
+rgo_distribution_add = {
+    entry = {
+        trade_good = coal
+        max_employment = 100000
+	}
+}
+```

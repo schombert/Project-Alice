@@ -12,6 +12,8 @@
 #include "economy_templates.hpp"
 #include "province_templates.hpp"
 #include "widgets/table.hpp"
+#include "gui_factory_refit_window.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 
@@ -28,9 +30,8 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
 		frame = int32_t(
-			state.world.factory_get_primary_employment(content)
+			economy::factory_total_employment_score(state, content)
 			* 10.f
-			* state.world.market_get_labor_unskilled_demand_satisfaction(mid)
 		);
 	}
 
@@ -54,13 +55,30 @@ public:
 			);
 			text::add_to_layout_box(state, contents, box, std::string_view{": " });
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
-				state.world.factory_get_primary_employment(fid)
+				state.world.factory_get_unqualified_employment(fid)
 				* max_emp
-				* state.economy_definitions.craftsmen_fraction
-				* state.world.market_get_labor_unskilled_demand_satisfaction(mid))
+				* state.world.market_get_labor_demand_satisfaction(mid, economy::labor::no_education))
 			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp * state.economy_definitions.craftsmen_fraction)));
+			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(
+				state,
+				contents,
+				box,
+				state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)
+			);
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
+				state.world.factory_get_primary_employment(fid)
+				* max_emp
+				* state.world.market_get_labor_demand_satisfaction(mid, economy::labor::basic_education))
+			));
+			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
 			text::close_layout_box(contents, box);
 		}
 		{
@@ -70,11 +88,10 @@ public:
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
 				state.world.factory_get_secondary_employment(fid)
 				* max_emp
-				* (1.0f - state.economy_definitions.craftsmen_fraction)
-				* state.world.market_get_labor_skilled_demand_satisfaction(mid))
+				* state.world.market_get_labor_demand_satisfaction(mid, economy::labor::high_education))
 			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp * (1.0f - state.economy_definitions.craftsmen_fraction))));
+			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -183,7 +200,7 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
 			for(auto fac : p.get_province().get_factory_location()) {
-				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+				if(economy::factory_total_employment_score(state, fac.get_factory()) > 0.8f) {
 					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
 						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 						command::begin_factory_building_construction(state, state.local_player_nation,
@@ -211,7 +228,7 @@ public:
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
-				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+				if(economy::factory_total_employment_score(state, fac.get_factory()) > 0.8f) {
 					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
 						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 						command::begin_factory_building_construction(state, state.local_player_nation,
@@ -242,8 +259,10 @@ public:
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
-				if(fac.get_factory().get_building_type() == state.world.factory_get_building_type(fid)
-				&& fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+				if(
+					fac.get_factory().get_building_type() == state.world.factory_get_building_type(fid)
+					&& economy::factory_total_employment_score(state, fac.get_factory()) > 0.8f
+				) {
 					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
 						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 						command::begin_factory_building_construction(state, state.local_player_nation,
@@ -458,7 +477,7 @@ public:
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-		visible = dcon::fatten(state.world, fid).get_production_scale() >= 0.05f;
+		visible = economy::factory_total_employment_score(state, fid) >= economy::factory_closed_threshold;
 		disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
 		frame = 1;
 	}
@@ -520,6 +539,9 @@ public:
 			return;
 		for(auto p : state.world.state_instance_get_state_building_construction(si)) {
 			if(p.get_type() == nf.type) {
+
+				text::add_line(state, contents, state.world.factory_type_get_name(nf.type));
+
 				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
 				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
@@ -569,8 +591,9 @@ public:
 				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
 				float admin_cost_factor = (p.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+				auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 
-				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
+				auto goods = economy::calculate_factory_refit_goods_cost(state, owner, si, nf.type, nf.target_type);
 				auto& cgoods = p.get_purchased_goods();
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -653,16 +676,26 @@ class normal_factory_background : public opaque_element_base {
 		if(bonus_profit_thanks_to_max_e_input < e_input_total * e_input_multiplier * input_multiplier)
 			min_e_input_available = 0.f;
 
-		float max_production_scale = economy::factory_max_production_scale(
-			state,
-			fac,
-			mobilization_impact,
-			p_fat.get_nation_from_province_control() != n
-		);
+		float base_throughput =
+			(
+				state.world.factory_get_unqualified_employment(fac)
+				* state.world.market_get_labor_demand_satisfaction(market, economy::labor::no_education)
+				* economy::unqualified_throughput_multiplier
+				+
+				state.world.factory_get_primary_employment(fac)
+				* state.world.market_get_labor_demand_satisfaction(market, economy::labor::basic_education)
+			)
+			* state.world.factory_get_level(fac)
+			* economy::factory_throughput_additional_multiplier(
+				state,
+				fac,
+				mobilization_impact,
+				false
+			);
 
-		float effective_production_scale = std::min(fac.get_production_scale() * fac.get_level(), max_production_scale);
+		float effective_production_scale = base_throughput;
 
-		auto amount = (0.75f + 0.25f * min_e_input_available) * min_input_available * state.world.factory_get_production_scale(fid);
+		auto amount = (0.75f + 0.25f * min_e_input_available) * min_input_available * effective_production_scale;
 
 		text::add_line(state, contents, state.world.factory_type_get_name(type));
 
@@ -671,13 +704,18 @@ class normal_factory_background : public opaque_element_base {
 		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
 
 		text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
-				text::fp_percentage{state.world.factory_get_production_scale(fid)});
+				text::fp_percentage{economy::factory_total_employment_score(state, fid)});
 
 		text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
 				text::fp_one_place{state.world.factory_get_actual_production(fid) }, text::variable_type::x, type.get_output().get_name());
 
 		text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
-				text::fp_currency{state.world.factory_get_full_profit(fid)});
+			text::fp_currency{
+				state.world.factory_get_full_output_cost(fid)
+				- state.world.factory_get_full_input_cost(fid)
+				- state.world.factory_get_full_labor_cost(fid)
+			}
+		);
 
 		text::add_line_break_to_layout(state, contents);
 
@@ -866,26 +904,34 @@ class normal_factory_background : public opaque_element_base {
 
 		auto const min_wage_factor = economy::pop_min_wage_factor(state, n);
 
-		auto wage_unskilled = state.world.market_get_labor_unskilled_price(market);
-		auto wage_skilled = state.world.market_get_labor_skilled_price(market);
+		auto wage_unqualified = state.world.market_get_labor_price(market, economy::labor::no_education);
+		auto wage_primary = state.world.market_get_labor_price(market, economy::labor::basic_education);
+		auto wage_secondary = state.world.market_get_labor_price(market, economy::labor::high_education);
 
 		float wage_estimation = 0.f;
 
-		wage_estimation +=
-			wage_unskilled
-			* state.defines.alice_factory_per_level_employment
-			* float(state.world.factory_get_level(fid))
-			* state.world.factory_get_primary_employment(fid)
-			* state.world.market_get_labor_unskilled_demand_satisfaction(market)
-			* (state.economy_definitions.craftsmen_fraction);
+		auto per_level_employment = state.world.factory_type_get_base_workforce(type);
 
 		wage_estimation +=
-			wage_skilled
-			* state.defines.alice_factory_per_level_employment
+			wage_unqualified
+			* per_level_employment
+			* float(state.world.factory_get_level(fid))
+			* state.world.factory_get_unqualified_employment(fid)
+			* state.world.market_get_labor_demand_satisfaction(market, economy::labor::no_education);
+
+		wage_estimation +=
+			wage_primary
+			* per_level_employment
+			* float(state.world.factory_get_level(fid))
+			* state.world.factory_get_primary_employment(fid)
+			* state.world.market_get_labor_demand_satisfaction(market, economy::labor::basic_education);
+
+		wage_estimation +=
+			wage_secondary
+			* per_level_employment
 			* float(state.world.factory_get_level(fid))
 			* state.world.factory_get_secondary_employment(fid)
-			* state.world.market_get_labor_skilled_demand_satisfaction(market)
-			* (1.f - state.economy_definitions.craftsmen_fraction);
+			* state.world.market_get_labor_demand_satisfaction(market, economy::labor::high_education);
 
 		total_expenses += wage_estimation;
 
@@ -1075,6 +1121,10 @@ public:
 			auto ptr = make_element_by_type<factory_upgrade_button>(state, id);
 			factory_elements.push_back(ptr.get());
 			return ptr;
+		} else if(name == "factory_refit_button") {
+			auto ptr = make_element_by_type<factory_refit_button>(state, id);
+			factory_elements.push_back(ptr.get());
+			return ptr;
 		} else if(name == "subsidise") {
 			auto ptr = make_element_by_type<factory_subsidise_button>(state, id);
 			factory_elements.push_back(ptr.get());
@@ -1118,6 +1168,7 @@ public:
 				// New factory
 				economy::new_factory nf = std::get<economy::new_factory>(content.activity);
 				fat_btid = dcon::fatten(state.world, nf.type);
+				output_commodity = fat_btid.get_output().id;
 
 				for(auto const& e : factory_elements)
 					e->set_visible(state, false);
@@ -1128,9 +1179,10 @@ public:
 				for(auto const& e : closed_elements)
 					e->set_visible(state, false);
 			} else if(std::holds_alternative<economy::upgraded_factory>(content.activity)) {
-				// Upgrade
+				// Upgrade or refit
 				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.activity);
 				fat_btid = dcon::fatten(state.world, uf.type);
+				output_commodity = (uf.target_type) ? state.world.factory_type_get_output(uf.target_type).id : fat_btid.get_output().id;
 
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
@@ -1144,8 +1196,9 @@ public:
 				// "Normal" factory, not being upgraded or built
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
+				output_commodity = fat_btid.get_output().id;
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::factory_closed_threshold;
+				bool is_closed = economy::factory_total_desired_employment_score(state, fid) < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
@@ -1169,7 +1222,6 @@ public:
 					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 				}
 			}
-			output_commodity = fat_btid.get_output().id;
 		}
 	}
 
@@ -1253,7 +1305,7 @@ public:
 				++index;
 			}
 		});
-		// Then, the factories being upgraded
+		// Then, the factories being upgraded or refit
 		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const& uf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(uf.type).id;
 			if(!visited_types[uf.type.index()] && get_filter(state, cid) && index < state.defines.factories_per_state) {
@@ -1271,6 +1323,7 @@ public:
 				++index;
 			}
 		});
+		
 		// Finally, factories "doing nothing" are accounted for
 		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
 			dcon::fatten(state.world, pid).for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
@@ -1517,8 +1570,16 @@ public:
 class per_state_primary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+		auto market = state.world.state_instance_get_market_from_local_market(content);
+
+		auto total =
+			state.world.market_get_labor_supply(market, economy::labor::no_education)
+			+ state.world.market_get_labor_supply(market, economy::labor::basic_education);
+		auto employed =
+			state.world.market_get_labor_supply_sold(market, economy::labor::no_education)
+			* state.world.market_get_labor_supply(market, economy::labor::no_education)
+			+ state.world.market_get_labor_supply_sold(market, economy::labor::basic_education)
+			* state.world.market_get_labor_supply(market, economy::labor::basic_education);
 		auto unemployed = total - employed;
 		set_text(state, text::prettify(int64_t(unemployed)) + "/" + text::prettify(int64_t(employed)));
 	}
@@ -1527,8 +1588,16 @@ class per_state_primary_worker_amount : public simple_text_element_base {
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+		auto market = state.world.state_instance_get_market_from_local_market(content);
+
+		auto total =
+			state.world.market_get_labor_supply(market, economy::labor::no_education)
+			+ state.world.market_get_labor_supply(market, economy::labor::basic_education);
+		auto employed =
+			state.world.market_get_labor_supply_sold(market, economy::labor::no_education)
+			* state.world.market_get_labor_supply(market, economy::labor::no_education)
+			+ state.world.market_get_labor_supply_sold(market, economy::labor::basic_education)
+			* state.world.market_get_labor_supply(market, economy::labor::basic_education);
 		auto unemployed = total - employed;
 		text::add_line(state, contents, "alice_factory_worker_1", text::variable_type::x, text::pretty_integer{ int32_t(employed) });
 		text::add_line(state, contents, "alice_factory_worker_2", text::variable_type::x, text::pretty_integer{ int32_t(unemployed) });
@@ -1538,8 +1607,14 @@ class per_state_primary_worker_amount : public simple_text_element_base {
 class per_state_secondary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+		auto market = state.world.state_instance_get_market_from_local_market(content);
+
+		auto total =
+			state.world.market_get_labor_supply(market, economy::labor::high_education);
+		auto employed =
+			state.world.market_get_labor_supply_sold(market, economy::labor::high_education)
+			* state.world.market_get_labor_supply(market, economy::labor::high_education);
+
 		auto unemployed = total - employed;
 		set_text(state, text::prettify(int64_t(unemployed)) + "/" + text::prettify(int64_t(employed)));
 	}
@@ -1548,8 +1623,14 @@ class per_state_secondary_worker_amount : public simple_text_element_base {
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+		auto market = state.world.state_instance_get_market_from_local_market(content);
+
+		auto total =
+			state.world.market_get_labor_supply(market, economy::labor::high_education);
+		auto employed =
+			state.world.market_get_labor_supply_sold(market, economy::labor::high_education)
+			* state.world.market_get_labor_supply(market, economy::labor::high_education);
+
 		auto unemployed = total - employed;
 		text::add_line(state, contents, "alice_factory_worker_1", text::variable_type::x, text::pretty_integer{ int32_t(employed) });
 		text::add_line(state, contents, "alice_factory_worker_2", text::variable_type::x, text::pretty_integer{ int32_t(unemployed) });
@@ -1760,8 +1841,12 @@ inline table::column<dcon::factory_type_id> factory_type_name = {
 		auto value = description + text::produce_simple_string(state,  state.world.factory_type_get_name(id));
 		return value;
 	},
+	.update_tooltip = [](sys::state& state,ui::element_base* container,text::columnar_layout& contents,dcon::factory_type_id id,std::string fallback) {
+		text::add_line(state, contents, state.world.factory_type_get_name(id));
+	},
 	.cell_definition_string = "thin_cell_name",
-	.header_definition_string = "thin_cell_name"
+	.header_definition_string = "thin_cell_name",
+	.has_tooltip = true
 };
 
 inline table::column<dcon::factory_type_id> factory_type_input_cost = {
@@ -1961,6 +2046,9 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	element_base* project_window = nullptr;
 	production_foreign_investment_window* foreign_invest_win = nullptr;
 
+	dcon::factory_id selected_factory;
+	factory_refit_window* factory_refit_win = nullptr;
+
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
 	dcon::nation_id foreign_nation{};
@@ -2011,6 +2099,11 @@ public:
 		win2->set_visible(state, false);
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));
+
+		auto win3 = make_element_by_type<factory_refit_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("factory_refit_window"))->second.definition);
+		factory_refit_win = win3.get();
+		factory_refit_win->set_visible(state, false);
+		add_child_to_front(std::move(win3));
 
 		show_output_commodity = std::unique_ptr<bool[]>(new bool[state.world.commodity_size()]);
 		set_visible(state, false);
@@ -2158,6 +2251,14 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<production_foreign_invest_target>()) {
 			payload.emplace<production_foreign_invest_target>(production_foreign_invest_target{foreign_invest_win->curr_nation});
+			return message_result::consumed;
+		} else if(payload.holds_type<open_factory_refit>()) {
+			auto val = any_cast<open_factory_refit>(payload);
+			selected_factory = val.factory_selection;
+			factory_refit_win->set_visible(state, factory_refit_win->is_visible() ? false : true);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::factory_id>()) {
+			payload.emplace<dcon::factory_id>(selected_factory);
 			return message_result::consumed;
 		} else if(payload.holds_type<open_investment_nation>()) {
 			hide_sub_windows(state);

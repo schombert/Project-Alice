@@ -390,6 +390,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_msaa(*this);
 	ogl::initialize_msaa(*this, x, y);
 
+	ogl::deinitialize_framebuffer_for_province_indices(*this);
+	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
+
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
@@ -1108,7 +1111,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {//tooltip centered over ui element
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
-	} 
+	}
 }
 
 void state::on_create() {
@@ -1906,14 +1909,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			assert(money_id.index() == 0);
 		}
 		auto goods = open_file(common, NATIVE("goods.txt"));
+		err.file_name = "goods.txt";
+		if(!goods) {
+			goods = open_file(common, NATIVE("tradegoods"));
+			err.file_name = "tradegoods.txt";
+		}
 		if(goods) {
 			auto content = view_contents(*goods);
-			err.file_name = "goods.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 			parsers::parse_goods_file(gen, err, context);
 		} else {
 			err.fatal = true;
-			err.accumulated_errors += "File common/goods.txt could not be opened\n";
+			err.accumulated_errors += "File common/goods.txt nor common/tradegoods.txt could be opened\n";
 		}
 	}
 	// read buildings.text
@@ -2243,7 +2250,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 		if(!bool(military_definitions.artillery)) {
 			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
-	}
+		}
 	}
 	// make space in arrays
 
@@ -2374,7 +2381,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					}
 				}
 			}
-		};
+			};
 		load_from_dir(prov_history);
 		for(auto const& subdir : list_subdirectories(prov_history)) {
 			load_from_dir(subdir);
@@ -2854,7 +2861,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_demographics(demographics::size(*this));
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
-	world.province_resize_rgo_employment_per_good(world.commodity_size());
 	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.trade_route_resize_volume(world.commodity_size());
@@ -2891,6 +2897,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_life_needs_weights(world.commodity_size());
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
+
+	world.market_resize_labor_price(economy::labor::total);
+	world.market_resize_labor_supply(economy::labor::total);
+	world.market_resize_labor_demand(economy::labor::total);
+	world.market_resize_labor_demand_satisfaction(economy::labor::total);
+	world.market_resize_labor_supply_sold(economy::labor::total);
+	world.market_resize_pop_labor_distribution(economy::pop_labor::total);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
@@ -3039,14 +3052,25 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
+
+		auto best_port = dcon::province_id{ };
+		auto best_border_length = 0;
+
 		for(auto adj : world.province_get_province_adjacency(p)) {
+			auto& border = map_state.map_data.borders[adj.id.index()];
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			auto bits = adj.get_type();
 			if(other && (bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
-				world.province_set_port_to(p, other.id);
 				world.province_set_is_coast(p, true);
-				return;
+				if(best_border_length < border.count) {
+					best_port = other.id;
+					best_border_length = border.count;
+				}
 			}
+		}
+
+		if(best_port) {
+			world.province_set_port_to(p, best_port);
 		}
 	});
 
@@ -3231,7 +3255,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_rgo_employment(*this);
 	economy::update_factory_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
@@ -4114,7 +4137,6 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 8:
-				economy::update_rgo_employment(*this);
 				break;
 			case 9:
 				economy::update_factory_employment(*this);
@@ -4412,7 +4434,7 @@ void state::single_game_tick() {
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
-			c.set_price_record(index, economy::price(*this, c));
+			c.set_price_record(index, economy::median_price(*this, c));
 		}
 	}
 
@@ -4446,6 +4468,10 @@ void state::single_game_tick() {
 	}
 }
 
+void state::console_log(std::string_view message) {
+	current_scene.console_log(*this, message);
+}
+
 sys::checksum_key state::get_save_checksum() {
 	dcon::load_record loaded = world.make_serialize_record_store_save();
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
@@ -4462,6 +4488,10 @@ sys::checksum_key state::get_save_checksum() {
 
 void state::debug_save_oos_dump() {
 	auto sdir = simple_fs::get_or_create_oos_directory();
+	auto saveprefix = simple_fs::utf8_to_native(network_state.nickname.to_string());
+	auto dt = current_date.to_ymd(start_date);
+	auto savename = NATIVE("save") + simple_fs::utf8_to_native(std::to_string(dt.year) + std::to_string(dt.month) + std::to_string(dt.day));
+	auto savepostfix = NATIVE(".bin");
 	{
 		// save for further inspection
 		dcon::load_record loaded = world.make_serialize_record_store_save();
@@ -4469,14 +4499,32 @@ void state::debug_save_oos_dump() {
 		auto buffer_position = reinterpret_cast<std::byte*>(save_buffer.get());
 		world.serialize(buffer_position, loaded);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - save_buffer.get();
-		simple_fs::write_file(sdir, NATIVE("save.bin"), reinterpret_cast<const char*>(save_buffer.get()), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, saveprefix + savename + savepostfix, reinterpret_cast<const char*>(save_buffer.get()), uint32_t(total_size_used));
 	}
 	{
 		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_save_section(*this)]);
 		auto buffer_position = sys::write_save_section(buffer.get(), *this);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
-		simple_fs::write_file(sdir, NATIVE("all_save.bin"), reinterpret_cast<const char*>(buffer.get()), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, saveprefix + savename + savepostfix, reinterpret_cast<const char*>(buffer.get()), uint32_t(total_size_used));
 	}
+
+	/*console_log("Doing a report of OOS save");
+	auto oos_file_1 = simple_fs::open_file(sdir, saveprefix + NATIVE("save.bin"));
+
+	auto contents_1 = simple_fs::view_contents(*oos_file_1);
+	auto const* start_1 = reinterpret_cast<uint8_t const*>(contents_1.data);
+	auto end_1 = start_1 + contents_1.file_size;
+
+	int i = 0;
+
+	dcon::for_each_record(reinterpret_cast<const std::byte*>(start_1), reinterpret_cast<const std::byte*>(end_1), [&](dcon::record_header const& header_1, std::byte const* data_start_1, std::byte const* data_end_1) {
+		i++;
+		auto size1 = data_end_1 - data_start_1;
+		console_log("" + std::string(header_1.object_name_start) + "|" + std::string(header_1.property_name_start) + "|"
+			+ std::string(header_1.type_name_start) + "|" + std::to_string(static_cast<size_t>(size1)));
+	});
+
+	console_log("Total rows: " + std::to_string(i));*/
 }
 
 void state::debug_scenario_oos_dump() {
@@ -4545,10 +4593,6 @@ void state::game_loop() {
 			}
 		}
 	}
-}
-
-void state::console_log(std::string_view message) {
-	current_scene.console_log(*this, message);
 }
 
 void state::new_army_group(dcon::province_id hq) {
@@ -5713,7 +5757,7 @@ void selected_ships_clear(sys::state& state) {
 			state.selected_ships[i] = dcon::ship_id{};
 		} else {
 			break;
-}
+		}
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }

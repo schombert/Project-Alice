@@ -796,6 +796,27 @@ public:
 		}
 		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(Value)].province_modifier);
 		text::add_line(state, contents, "alice_province_building_build");
+
+		// Construction cost goods breakdown
+		float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
+		float admin_cost_factor = 2.0f - admin_eff;
+		auto constr_cost = state.economy_definitions.building_definitions[uint8_t(Value)].cost;
+
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			auto box = text::open_layout_box(contents, 0);
+			auto cid = constr_cost.commodity_type[i];
+
+			if(!cid) {
+				break;
+			}
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(constr_cost.commodity_type[i]));
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -2682,8 +2703,8 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = state.world.province_get_rgo_employment_per_good(p, a);
-		auto bv = state.world.province_get_rgo_employment_per_good(p, b);
+		auto av = state.world.province_get_rgo_target_employment_per_good(p, a);
+		auto bv = state.world.province_get_rgo_target_employment_per_good(p, b);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2695,7 +2716,7 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto value = state.world.province_get_rgo_employment_per_good(p, id);
+		auto value = state.world.province_get_rgo_target_employment_per_good(p, id) * state.world.market_get_labor_demand_satisfaction(m, economy::labor::no_education);
 		return text::format_wholenum(int32_t(value));
 	}
 };
@@ -2739,8 +2760,8 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 		auto ae = economy::rgo_max_employment(state, n, p, a);
 		auto be = economy::rgo_max_employment(state, n, p, b);
 
-		auto av = state.world.province_get_rgo_employment_per_good(p, a);
-		auto bv = state.world.province_get_rgo_employment_per_good(p, b);
+		auto av = state.world.province_get_rgo_target_employment_per_good(p, a);
+		auto bv = state.world.province_get_rgo_target_employment_per_good(p, b);
 
 		auto ar = ae > 0.f ? av / ae : 0.f;
 		auto br = be > 0.f ? bv / be : 0.f;
@@ -2757,7 +2778,7 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
 		auto e = economy::rgo_max_employment(state, n, p, id);
-		auto v = state.world.province_get_rgo_employment_per_good(p, id);
+		auto v = state.world.province_get_rgo_target_employment_per_good(p, id);
 		auto r = e > 0.f ? v / e : 0.f;
 
 		return text::format_percentage(r);

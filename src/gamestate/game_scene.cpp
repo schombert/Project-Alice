@@ -729,7 +729,9 @@ void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers
 
 void console_log_other(sys::state& state, std::string_view message) {
 	auto msg = std::string(message);
-	msg = "{" + std::string(state.network_state.nickname.to_string_view()) + "} " + msg;
+	auto dt = state.current_date.to_ymd(state.start_date);
+	auto dtstr = std::to_string(dt.year) + "." + std::to_string(dt.month) + "." + std::to_string(dt.day);
+	msg = "" + std::string(state.network_state.nickname.to_string_view()) + "|" + dtstr + "| " + msg;
 #ifdef _WIN32
 	OutputDebugStringA(msg.c_str());
 	OutputDebugStringA("\n");
@@ -1049,6 +1051,7 @@ void generic_map_scene_update(sys::state& state) {
 }
 
 void economy_scene_update(sys::state& state) {
+	ui::close_expired_event_windows(state);
 	economy_viewer::update(state);
 }
 

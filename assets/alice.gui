@@ -5613,4 +5613,62 @@ guiTypes = {
 				clicksound = click
 		}
 	}
+
+	windowType = {
+		name = "factory_refit_window"
+		position = { x=320 y=-80 }	
+		size = { x=260 y=355 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+
+		iconType =
+		{
+			name ="factory_refit_window_bg"
+			spriteType = "GFX_attach_bg"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+			
+		listboxType = 	{
+			name ="factory_refit_type_list"
+			position = { x = 10 y = 10 }
+			backGround=""
+			size = { x=260 y =340 }
+			Orientation = "UPPER_LEFT"
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 0 y = 0}
+		}
+	}
+
+	windowType = {
+		name = "factory_refit_type_item"
+		position = { x=0 y=0 }	
+		size = { x=220 y=40 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+		
+		iconType =	{
+			name ="factory_type_icon"
+			spriteType = "GFX_resources"
+			position = { x= 0 y = 0 }
+		}
+	
+		guiButtonType = {
+			name = "factory_type_select"
+			position = { x = 40 y = 0 }
+			size = { x=180 y=40 }
+			quadTextureSprite ="GFX_diplo_wargoal_button"
+			buttonFont = "vic_18_black"
+			buttonText = "Test"
+			clicksound = click
+		}
+	}
+
+	guiButtonType = {
+		name = "factory_refit_button"
+		position = { x = 25 y = 15 }
+		quadTextureSprite ="GFX_unit_upgrade_button"
+		extends="factory_info"
+	}
 }

@@ -13,7 +13,6 @@
 #include "simple_fs.hpp"
 #include "network.hpp"
 #include "parsers.hpp"
-#include "SHA512.hpp"
 
 namespace network {
 

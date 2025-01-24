@@ -4,6 +4,7 @@ Assembled by SneakBug8
 ## by Schombert
 
   - Complete rework of macrobuilder window UI
+  - Complete rework of budget window UI
 
 ## by Peter
 
@@ -42,6 +43,8 @@ War justification for state-level CBs (such as demand state) requires selection 
   - Regiment/ship types must be researched and available to the owner nation.
   - Small ships cannot be converted into capitol (big) ships.
 
+**Player password in MP.** To protect himself from impersonators player can set a password in launcher. Password is passed to the PA game as a cmd argument. Client sends password to the server in plain form. If player is known, salt is taken from DCON and hashes are compared to check whether to drop connection.  If player is new, hash and salt are stored in DCON. If player previously didn't have a password and sets one in Launcher - it'll update password. In persistent mode, hash and salt are stored in playerlist csv file.
+
 Other bits and pieces:
   - New tooltips for private investment pool under current treasury in the topbar
   - Expanded Web API
@@ -65,4 +68,5 @@ Bugfixes:
 
 ## by Nivaturimika
 
+  - Regiments & ships cannot reorganize to higher values than effective military spending (military spending slider * goods availability)
   - Fix to texture rendering

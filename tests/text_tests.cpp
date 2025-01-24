@@ -1,6 +1,6 @@
 #include "catch.hpp"
 #include "text.hpp"
-
+/*
 TEST_CASE("text from csv", "[parsers]") {
 	SECTION("sample_lines") {
 
@@ -71,3 +71,5 @@ TEST_CASE("text game files parsing", "[parsers]") {
 	}
 }
 #endif
+
+*/

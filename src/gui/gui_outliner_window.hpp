@@ -431,9 +431,10 @@ public:
 			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
 			auto admin_eff = st_con.get_nation().get_administrative_efficiency();
 			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+			float refit_discount = (st_con.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				total += goods.commodity_amounts[i] * admin_cost_factor;
+				total += goods.commodity_amounts[i] * admin_cost_factor * refit_discount;
 				purchased += st_con.get_purchased_goods().commodity_amounts[i];
 			}
 			auto progress = total > 0.0f ? purchased / total : 0.0f;
