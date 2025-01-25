@@ -1364,3 +1364,16 @@ alice_budget_tariffs_import;进口关税;;;;;;;;;;;;x
 alice_budget_tariffs_export;出口关税;;;;;;;;;;;;x
 alice_budget_overseas_maintanance;殖民;;;;;;;;;;;;x
 alice_budget_social_spending;福利;;;;;;;;;;;;x
+alice_filter_all;全
+alice_filter_none;无
+alice_filter_noncolonial;非殖民
+alice_filter_colonial;殖民
+alice_open_filters;开启筛选
+alice_reset_filters;默认筛选
+alice_only_show_pops;仅显示人群
+alice_job_filter_header;类型
+alice_culture_filter_header;民族
+alice_religion_filter_header;宗教
+alice_location_filter_header;位置
+alice_pop_show_details;个人资料
+alice_demographics_window_header;人口统计
