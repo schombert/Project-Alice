@@ -28,10 +28,21 @@ vec4 border_filter(vec2 tc) {
 		return vec4(vec3(1.0, 1.0, 1.0) - inner_color, sm_val);
 	}
 }
+// Smootherstep function
+// https://en.wikipedia.org/wiki/Smoothstep
+float smootherstep(float edge0, float edge1, float x) {
+	// Scale, and clamp x to 0..1 range
+	x = clamp((x - edge0) / (edge1 - edge0), 0.f, 1.f);
+	return x * x * x * (x * (6.0f * x - 15.0f) + 10.0f);
+}
 //layout(index = 1) subroutine(font_function_class)
 vec4 color_filter(vec2 tc) {
 	vec4 color_in = texture(texture_sampler, tc);
-	float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);
+	float sm_val = smootherstep(
+		0.5f - border_size * 0.5f,
+		0.5f + border_size * 0.5f,
+		color_in.r
+	);
 	return vec4(inner_color, sm_val);
 }
 //layout(index = 2) subroutine(font_function_class)
