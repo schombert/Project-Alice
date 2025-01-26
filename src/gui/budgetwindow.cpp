@@ -4245,6 +4245,29 @@ void budgetwindow_main_debt_enable_t::update_tooltip(sys::state& state, int32_t 
 		text::add_line(state, contents, "alice_debt_spending");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "alice_loan_size", text::variable_type::x, text::fp_currency{ economy::max_loan(state, state.local_player_nation) });
+
+		auto mod = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_loan_modifier);
+		text::add_line(state, contents, "alice_loan_size_mod", text::variable_type::x, text::fp_percentage_one_place{ mod });
+	}
+
+	text::add_line_break_to_layout(state, contents);
+
+	auto capitalists_savings_ratio = state.defines.alice_save_capitalist + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::capitalist_savings);
+	auto middle_class_savings_ratio = state.defines.alice_save_middle_class + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::middle_class_savings);
+	auto farmers_savings_ratio = state.defines.alice_save_farmer + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::farmers_savings);
+	auto landowners_savings_ratio = state.defines.alice_save_aristocrat + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::aristocrat_savings);
+
+	if(capitalists_savings_ratio > 0.f) {
+		text::add_line(state, contents, "capitalists_savings_ratio", text::variable_type::x, text::fp_percentage{ capitalists_savings_ratio });
+	}
+	if(landowners_savings_ratio > 0.f) {
+		text::add_line(state, contents, "landowners_savings_ratio", text::variable_type::x, text::fp_percentage{ landowners_savings_ratio });
+	}
+	if(middle_class_savings_ratio > 0.f) {
+		text::add_line(state, contents, "middle_class_savings_ratio", text::variable_type::x, text::fp_percentage{ middle_class_savings_ratio });
+	}
+	if(farmers_savings_ratio > 0.f) {
+		text::add_line(state, contents, "farmers_savings_ratio", text::variable_type::x, text::fp_percentage{ farmers_savings_ratio });
 	}
 // END
 }

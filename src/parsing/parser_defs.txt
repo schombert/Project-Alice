@@ -245,6 +245,16 @@ modifier_base
 	diplomacy_tech_research_bonus              value      float            member_fn
 	population_tech_research_bonus              value      float            member_fn
 	flavor_tech_research_bonus              value      float            member_fn
+	aristocrat_reinvestment              value      float            member_fn
+	capitalist_reinvestment              value      float            member_fn
+	middle_class_reinvestment              value      float            member_fn
+	farmers_reinvestment              value      float            member_fn
+	aristocrat_savings              value      float            member_fn
+	capitalist_savings              value      float            member_fn
+	middle_class_savings              value      float            member_fn
+	farmers_savings              value      float            member_fn
+
+
 
 int_vector
 	#free          value      int              member_fn

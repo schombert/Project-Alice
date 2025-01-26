@@ -2115,6 +2115,19 @@ uint32_t ef_diplo_points(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_suppression_points(EFFECT_DISPLAY_PARAMS) {
+	auto amount = trigger::read_float_from_payload(tval + 1);
+
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::localised_format_box(ws, layout, box, "tb_suppression_points", m);
+		text::add_space_to_layout_box(ws, layout, box);
+		display_value(text::fp_one_place{ amount }, true, ws, layout, box);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 uint32_t ef_prestige(EFFECT_DISPLAY_PARAMS) {
 	auto delta = trigger::read_float_from_payload(tval + 1);
 	float change = delta;
@@ -7294,7 +7307,8 @@ ef_reduce_pop_abs, //0x01BC
 ef_set_culture_pop, // 0x01BD
 ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3) 
 ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2)
-ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2) 
+ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2)
+ef_suppression_points, // EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2)
 //
 // SCOPES
 //

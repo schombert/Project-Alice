@@ -97,6 +97,7 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 	}
 ```
 - `diplo_points = ...` : Will add the number to the currently stored diplomatic points of the nation in scope. (Note: so you can use a negative number to subtract points. Diplomatic points can not be reduced to less than zero.)
+- `suppression_points = ...` : Will add the number to the currently stored suppression points of the nation in scope. (Note: so you can use a negative number to subtract points. Suppression points can not be reduced to less than zero.)
  
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 
@@ -148,6 +149,7 @@ build_bank_in_capital = {
 	}
 ```
 - `diplo_points = ...` : This trigger condition is true if the nation in scope has saved diplomatic points greater than or equal to the given number.
+- `suppression_points = ...` : This trigger condition is true if the nation in scope has saved suppression points greater than or equal to the given number.
 
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:
@@ -509,6 +511,13 @@ Alice adds a handful of new defines:
 - `alice_puppet_subject_money_transfer`. Percentage [0;100] of substates' budget revenues transferred to the overlord. Default: 40.0
 - `alice_privateinvestment_subject_transfer`: Percentage [0;100] of subjects' and overlord's private investment pool transferred daily when no useful projects are done. Overlord distributes money to subjects and subjects contribute to the overlord. Default: 2.0
 - `alice_allow_revoke_subject_states`: Allows overlord to take subjects' states raising their militancy and giving separatism. Default: 0.0
+
+
+**Crises and conferences:**
+- `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
+- `alice_crisis_necessary_base_fast_win_ratio = 3.5f`: Strength Ratio at which AI submits to demands before 80 temperature
+- `alice_crisis_per_wg_ratio = 0.1f`: Added necessary ratio per every WG
+
 
 ### Support for reforms based on party issues
 

@@ -4616,7 +4616,6 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 	}
 }
 
-
 void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_id b, war_role r) {
 	assert(state.world.navy_is_valid(n));
 	bool battle_attacker = (r == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);

@@ -1056,96 +1056,101 @@ void initialize(sys::state& state) {
 		}
 	}
 
-	province::for_each_land_province(state, [&](dcon::province_id p) {
-		auto fp = fatten(state.world, p);
-		//max size of exploitable land:
-		auto max_rgo_size = std::ceil(4000.f / state.defines.alice_rgo_per_size_employment
-			* state.map_state.map_data.province_area[province::to_map_id(p)]);
-		// currently exploited land
-		float pop_amount = 0.0f;
-		for(auto pt : state.world.in_pop_type) {
-			if(pt == state.culture_definitions.slaves) {
-				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
-			} else if(pt.get_is_paid_rgo_worker()) {
-				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
+	if(state.defines.alice_rgo_generate_distribution) {
+		province::for_each_land_province(state, [&](dcon::province_id p) {
+			auto fp = fatten(state.world, p);
+			//max size of exploitable land:
+			auto max_rgo_size = std::ceil(4000.f / state.defines.alice_rgo_per_size_employment
+				* state.map_state.map_data.province_area[province::to_map_id(p)]);
+			// currently exploited land
+			float pop_amount = 0.0f;
+			for(auto pt : state.world.in_pop_type) {
+				if(pt == state.culture_definitions.slaves) {
+					pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+				} else if(pt.get_is_paid_rgo_worker()) {
+					pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
+				}
 			}
-		}
-		auto size_at_the_start_of_the_game = std::ceil(pop_amount / state.defines.alice_rgo_per_size_employment);
-		auto real_size = std::min(size_at_the_start_of_the_game * 1.5f, max_rgo_size);
-		assert(std::isfinite(real_size));
-		fp.set_rgo_size(real_size);
+			auto size_at_the_start_of_the_game = std::ceil(pop_amount / state.defines.alice_rgo_per_size_employment);
+			auto real_size = std::min(size_at_the_start_of_the_game * 1.5f, max_rgo_size);
+			assert(std::isfinite(real_size));
+			fp.set_rgo_size(real_size);
 
-		if(state.world.province_get_rgo_was_set_during_scenario_creation(p)) {
-			return;
-		}
+			if(state.world.province_get_rgo_was_set_during_scenario_creation(p)) {
+				return;
+			}
 
-		dcon::modifier_id climate = fp.get_climate();
-		dcon::modifier_id terrain = fp.get_terrain();
-		dcon::modifier_id continent = fp.get_continent();
+			dcon::modifier_id climate = fp.get_climate();
+			dcon::modifier_id terrain = fp.get_terrain();
+			dcon::modifier_id continent = fp.get_continent();
 
-		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
-		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);
+			dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
+			bool is_mine = state.world.commodity_get_is_mine(main_trade_good);
 
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			fp.set_rgo_target_employment_per_good(c, 0.f);
-		});
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				fp.set_rgo_target_employment_per_good(c, 0.f);
+			});
 
-		static std::vector<float> true_distribution;
-		true_distribution.resize(state.world.commodity_size());
+			static std::vector<float> true_distribution;
+			true_distribution.resize(state.world.commodity_size());
 
-		float total = 0.f;
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			float climate_d = per_climate_distribution_buffer[climate.value][c.value];
-			float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
-			float continent_d = per_continent_distribution_buffer[continent.value][c.value];
-			float current = (climate_d + terrain_d) * (climate_d + terrain_d) * continent_d;
-			true_distribution[c.index()] = current;
-			total += current;
-		});
-
-		// remove continental restriction if failed:
-		if(total == 0.f) {
+			float total = 0.f;
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
 				float climate_d = per_climate_distribution_buffer[climate.value][c.value];
 				float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
-				float current = (climate_d + terrain_d) * (climate_d + terrain_d);
+				float continent_d = per_continent_distribution_buffer[continent.value][c.value];
+				float current = (climate_d + terrain_d) * (climate_d + terrain_d) * continent_d;
 				true_distribution[c.index()] = current;
 				total += current;
 			});
-		}
 
-		// make it into uniform distrubution on available goods then...
-		if(total == 0.f) {
-			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				if(state.world.commodity_get_money_rgo(c)) {
-					return;
-				}
-				if(!state.world.commodity_get_is_available_from_start(c)) {
-					return;
-				}
-				float current = 1.f;
-				true_distribution[c.index()] = current;
-				total += current;
-			});
-		}
-
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			assert(std::isfinite(total));
-			// if everything had failed for some reason, then assume 0 distribution: main rgo is still active
+			// remove continental restriction if failed:
 			if(total == 0.f) {
-				true_distribution[c.index()] = 0.f;
-			} else {
-				true_distribution[c.index()] /= total;
+				state.world.for_each_commodity([&](dcon::commodity_id c) {
+					float climate_d = per_climate_distribution_buffer[climate.value][c.value];
+					float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
+					float current = (climate_d + terrain_d) * (climate_d + terrain_d);
+					true_distribution[c.index()] = current;
+					total += current;
+				});
 			}
-		});
 
-		// distribution of rgo land per good		
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto fc = fatten(state.world, c);
-			assert(std::isfinite(true_distribution[c.index()]));
-			state.world.province_get_rgo_max_size_per_good(fp, c) += real_size * true_distribution[c.index()];
+			// make it into uniform distrubution on available goods then...
+			if(total == 0.f) {
+				state.world.for_each_commodity([&](dcon::commodity_id c) {
+					if(state.world.commodity_get_money_rgo(c)) {
+						return;
+					}
+					if(!state.world.commodity_get_is_available_from_start(c)) {
+						return;
+					}
+					float current = 1.f;
+					true_distribution[c.index()] = current;
+					total += current;
+				});
+			}
+
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				assert(std::isfinite(total));
+				// if everything had failed for some reason, then assume 0 distribution: main rgo is still active
+				if(total == 0.f) {
+					true_distribution[c.index()] = 0.f;
+				} else {
+					true_distribution[c.index()] /= total;
+				}
+			});
+
+			// distribution of rgo land per good		
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				auto fc = fatten(state.world, c);
+				assert(std::isfinite(true_distribution[c.index()]));
+
+				if(real_size * true_distribution[c.index()] > state.defines.alice_secondary_rgos_min_employment) {
+					state.world.province_get_rgo_max_size_per_good(fp, c) += real_size * true_distribution[c.index()];
+				}
+			});
 		});
-	});
+	}
 
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto fn = fatten(state.world, n);
@@ -3853,13 +3858,26 @@ void update_pop_consumption(
 		ve::mask_vector nation_allows_investment = is_civilised && allows_investment_mask;
 
 		auto capitalists_mask = pop_type == state.culture_definitions.capitalists;
-		auto artisans_mask = pop_type == state.culture_definitions.artisans;
+		auto middle_class_investors_mask = pop_type == state.culture_definitions.artisans || pop_type == state.culture_definitions.secondary_factory_worker;
+		auto farmers_mask = pop_type == state.culture_definitions.farmers;
 		auto landowners_mask = pop_type == state.culture_definitions.aristocrat;
 
+		auto capitalists_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::capitalist_reinvestment);
+		auto middle_class_investors_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::middle_class_reinvestment);
+		auto farmers_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::farmers_reinvestment);
+		auto landowners_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::aristocrat_reinvestment);
+
 		auto investment_ratio =
-			ve::select(capitalists_mask, state.defines.alice_invest_capitalist, zero)
-			+ ve::select(landowners_mask, state.defines.alice_invest_aristocrat, zero)
-			+ ve::select(artisans_mask, state.defines.alice_invest_aristocrat, zero);
+			ve::select(nation_allows_investment && capitalists_mask, capitalists_mod + state.defines.alice_invest_capitalist, zero)
+			+ ve::select(nation_allows_investment && landowners_mask,landowners_mod + state.defines.alice_invest_aristocrat, zero)
+			+ ve::select(nation_allows_investment && middle_class_investors_mask, middle_class_investors_mod + state.defines.alice_invest_middle_class, zero)
+			+ve::select(nation_allows_investment && farmers_mask, farmers_mod + state.defines.alice_invest_farmer, zero);
+
+		investment_ratio = ve::max(investment_ratio, zero);
+
+		ve::apply([&](float r) {
+			assert(r >= 0.f);
+		}, investment_ratio);
 
 		auto investment = savings * investment_ratio;
 
@@ -3877,38 +3895,34 @@ void update_pop_consumption(
 		savings = savings - spend_on_everyday_needs;
 		total_spendings = total_spendings + spend_on_everyday_needs;
 
-		//handle savings before luxury goods spending
-		/*
-		ve::fp_vector bank_to_pop_money_transfer { 0.f };
-		auto enough_savings = savings > required_spendings_for_luxury_needs;
-		auto savings_for_transfer = required_spendings_for_luxury_needs - savings;
+		//handle bank savings before luxury goods spending
+		// Note that farmers and middle_class don't do bank savings by default - that doens't mean they don't have savings. They don't use banks for savings without modifier (from tech, from example).
+		auto capitalists_savings_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::capitalist_savings);
+		auto middle_class_savings_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::middle_class_savings);
+		auto farmers_savings_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::farmers_savings);
+		auto landowners_savings_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::aristocrat_savings);
 
-		auto enough_in_bank = state.world.nation_get_national_bank(nations) > ve::max(required_spendings_for_luxury_needs + 10000.f, savings_for_transfer);
-		bank_to_pop_money_transfer = ve::select(
-			enough_savings && nation_allows_investment && capitalists_mask,
-			bank_to_pop_money_transfer - savings_for_transfer * state.defines.alice_save_aristocrat,
-			bank_to_pop_money_transfer
-		);
-		bank_to_pop_money_transfer = ve::select(
-			enough_savings && nation_allows_investment && landowners_mask,
-			bank_to_pop_money_transfer - savings_for_transfer * state.defines.alice_save_capitalist,
-			bank_to_pop_money_transfer
-		);
-		bank_to_pop_money_transfer = ve::select(
-			!enough_savings && nation_allows_investment && enough_in_bank,
-			bank_to_pop_money_transfer + savings_for_transfer,
-			bank_to_pop_money_transfer
-		);
+		auto saving_ratio =
+			ve::select(capitalists_mask, capitalists_savings_mod + state.defines.alice_save_capitalist, zero)
+			+ ve::select(landowners_mask, landowners_savings_mod + state.defines.alice_save_aristocrat, zero)
+			+ ve::select(middle_class_investors_mask, middle_class_savings_mod + state.defines.alice_save_middle_class, zero)
+			+ ve::select(farmers_mask, farmers_savings_mod + state.defines.alice_save_farmer, zero);
+
+		auto bank_deposits = savings * saving_ratio;
+		bank_deposits = ve::max(bank_deposits, zero);
+
+		ve::apply([&](float r) {
+			assert(r >= 0.f);
+		}, bank_deposits);
 
 		ve::apply(
 			[&](float transfer, dcon::nation_id n) {
-				state.world.nation_get_national_bank(n) -= transfer;
+				state.world.nation_get_national_bank(n) += transfer;
 				return 0;
-			}, bank_to_pop_money_transfer, nations
+			}, bank_deposits, nations
 		);
 
-		savings = savings + bank_to_pop_money_transfer;
-		*/
+		savings = savings - bank_deposits;
 
 		// buy luxury needs
 
@@ -3987,6 +4001,13 @@ void update_pop_consumption(
 			float investment,
 			auto pop_type
 			) {
+				assert(scale_life >= 0.0f);
+				assert(scale_everyday >= 0.0f);
+				assert(scale_luxury >= 0.0f);
+				assert(!isinf(scale_life));
+				assert(!isinf(scale_everyday));
+				assert(!isinf(scale_luxury));
+
 				state.world.market_get_life_needs_scale(m, pop_type) += scale_life;
 				state.world.market_get_everyday_needs_scale(m, pop_type) += scale_everyday;
 				state.world.market_get_luxury_needs_scale(m, pop_type) += scale_luxury;

@@ -686,8 +686,12 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_production_scale_neg_delta, 0.001) \
 	LUA_DEFINES_LIST_ELEMENT(alice_invest_capitalist, 0.25) \
 	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.0125) \
-	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.025) \
-	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.0125) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_middle_class, 0.0125) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_farmer, 0.00) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_capitalist, 0.01) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_aristocrat, 0.01) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_middle_class, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_save_farmer, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.05) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.45) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.50) \
@@ -704,6 +708,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_overseas_mil, 0.035) \
 	LUA_DEFINES_LIST_ELEMENT(alice_militancy_decay, 0.015) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_generate_distribution, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_eval_ai_mil_everyday, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_subjects_declare_wars, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_research_points_on_conquer_base, 0.75) \
@@ -718,6 +723,12 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_free_trade_agreement_years, 5.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_event_taken_auto_days, 30.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_message_expiration_days, 15.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_crisis_necessary_base_win_ratio, 2.5) \
+	LUA_DEFINES_LIST_ELEMENT(alice_crisis_necessary_base_fast_win_ratio, 3.5) \
+	LUA_DEFINES_LIST_ELEMENT(alice_crisis_per_wg_ratio, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 0.0) \
 
 
 // scales the needs values so that they are needs per this many pops
@@ -734,7 +745,7 @@ struct defines {
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 
-	void assign_define(sys::state& state, int32_t line, std::string_view key, float v, parsers::error_handler& err);
+		void assign_define(sys::state& state, int32_t line, std::string_view key, float v, parsers::error_handler& err);
 	void parse_line(sys::state& state, int32_t line, std::string_view data, parsers::error_handler& err);
 	void parse_file(sys::state& state, std::string_view data, parsers::error_handler& err);
 };

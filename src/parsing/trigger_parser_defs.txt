@@ -92,6 +92,7 @@ trigger_body
 	rich_tax         value           float              member_fn
 	state_id         value           int                member_fn
 	treasury         value           float              member_fn (money)
+	suppression_points         value           float              member_fn
 	war_with         value           text               member_fn
 	civilized        value           bool               member_fn
 	continent        value           text               member_fn

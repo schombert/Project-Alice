@@ -674,6 +674,26 @@ void update_influence_priorities(sys::state& state) {
 			if(t.get_demographics(demographics::total) > state.defines.large_population_limit)
 				continue;
 
+			auto natid = state.world.nation_get_identity_from_identity_holder(n.nation);
+			auto holdscores = false;
+			for(auto prov_owner : state.world.nation_get_province_ownership(t)) {
+				auto prov = prov_owner.get_province();
+
+				for(auto core : prov.get_core_as_province()) {
+					if(core.get_identity() == natid) {
+						holdscores = true;
+						break;
+					}
+				}
+
+				if(holdscores)
+					break;
+			}
+
+			if(holdscores) {
+				continue; // holds our cores
+			}
+
 			float weight = 0.0f;
 
 			for(auto c : state.world.in_commodity) {
@@ -2289,24 +2309,29 @@ crisis_str estimate_crisis_str(sys::state& state) {
 		}
 	}
 
-	auto necessary_atk_win_ratio = 1.55f;
-	auto necessary_def_win_ratio = 1.55f;
-	auto necessary_fast_win_ratio = 1.9f;
+	auto necessary_atk_win_ratio = state.defines.alice_crisis_necessary_base_win_ratio;
+	auto necessary_def_win_ratio = state.defines.alice_crisis_necessary_base_win_ratio;
+	auto necessary_fast_win_ratio = state.defines.alice_crisis_necessary_base_fast_win_ratio;
+
+	if(!state.world.nation_get_is_civilized(state.crisis_defender)) {
+		necessary_atk_win_ratio += state.defines.alice_crisis_unciv_stubbornness;
+		necessary_fast_win_ratio += state.defines.alice_crisis_unciv_stubbornness;
+	}
 	for(auto wg : state.crisis_attacker_wargoals) {
 		if(!wg.cb) {
 			break;
 		}
 
-		necessary_atk_win_ratio += 0.10f;
-		necessary_fast_win_ratio += 0.1f;
+		necessary_atk_win_ratio += state.defines.alice_crisis_per_wg_ratio;
+		necessary_fast_win_ratio += state.defines.alice_crisis_per_wg_ratio;
 	}
 	for(auto wg : state.crisis_defender_wargoals) {
 		if(!wg.cb) {
 			break;
 		}
 
-		necessary_def_win_ratio += 0.10f;
-		necessary_fast_win_ratio += 0.1f;
+		necessary_def_win_ratio += state.defines.alice_crisis_per_wg_ratio;
+		necessary_fast_win_ratio += state.defines.alice_crisis_per_wg_ratio;
 	}
 
 	auto def_victory = dtotal > atotal * necessary_def_win_ratio;
@@ -2325,6 +2350,10 @@ bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::full
 		return true;
 	auto offer_bits = state.world.cb_type_get_type_bits(offer.cb);
 	if((offer_bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) != 0)
+		return true;
+
+	// GPs accept unequal treaties as crisis offer
+	if(state.world.nation_get_is_great_power(n) && (offer_bits & (military::cb_flag::po_unequal_treaty)) != 0)
 		return true;
 	return false;
 }
@@ -2423,8 +2452,23 @@ void update_crisis_leaders(sys::state& state) {
 	if(state.crisis_temperature > 75.f || str_est.fast_victory) { // make peace offer
 		auto any_victory = str_est.attacker_win || str_est.defender_win;
 		auto defender_victory = str_est.defender_win;
+
+		auto will_propose_peace = state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false && any_victory;
+
+		auto primary_wg = state.crisis_attacker_wargoals[0];
+
+		// Defender should never agree to full annex
+		if(state.crisis_defender == state.primary_crisis_defender) {
+			auto bits = state.world.cb_type_get_type_bits(primary_wg.cb);
+			if((bits & military::cb_flag::po_annex) != 0)
+				will_propose_peace = false;
+		}
+
+		if(state.crisis_temperature <= 20.f) {
+			will_propose_peace = false;
+		}
 		
-		if(state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false && any_victory) {
+		if(will_propose_peace) {
 			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory));
 			command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory);
 			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_attacker);
@@ -2626,102 +2670,111 @@ void update_crisis_leaders(sys::state& state) {
 }
 
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg) {
-	if(state.crisis_temperature < 50.0f)
+
+	auto primary_wg = state.crisis_attacker_wargoals[0];
+
+	// Defender should never agree to full annex
+	if(state.crisis_defender == state.primary_crisis_defender && to == state.crisis_defender) {
+		auto bits = state.world.cb_type_get_type_bits(primary_wg.cb);
+			if((bits & military::cb_flag::po_annex) != 0)
+				return false;
+	}
+
+	if(state.crisis_temperature <= 20.f) {
 		return false;
+	}
 
 	auto str_est = estimate_crisis_str(state);
 
-	if(to == state.primary_crisis_attacker) {
-		if(str_est.attacker < str_est.defender * 0.66f)
-			return true;
-		if(str_est.attacker < str_est.defender * 0.75f)
-			return is_concession;
+	if(state.crisis_temperature > 75.f || str_est.fast_victory) {
+		if(to == state.primary_crisis_attacker) {
+			if(is_concession) {
+				return true;
+			}
+			if(str_est.defender_win) {
+				return true;
+			}
 
-		if(!is_concession)
 			return false;
+		} else if(to == state.primary_crisis_defender) {
+			if(is_concession)
+				return true;
 
-		dcon::nation_id attacker = state.primary_crisis_attacker;
+			if(str_est.attacker_win)
+				return true;
 
-		if(missing_wg)
 			return false;
-
-		return true;
-	} else if(to == state.primary_crisis_defender) {
-		if(str_est.defender < str_est.attacker * 0.66f)
-			return true;
-		if(str_est.defender < str_est.attacker * 0.75f)
-			return is_concession;
-
-		if(!is_concession)
-			return false;
-
-		if(missing_wg)
-			return false;
-
-		return true;
+		}
 	}
 	return false;
 }
 
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon::peace_offer_id peace) {
-	if(state.crisis_temperature < 50.0f)
+	auto primary_wg = state.crisis_attacker_wargoals[0];
+
+	// Defender should never agree to full annex
+	if(state.crisis_defender == state.primary_crisis_defender && to == state.crisis_defender) {
+		auto bits = state.world.cb_type_get_type_bits(primary_wg.cb);
+		if((bits & military::cb_flag::po_annex) != 0)
+			return false;
+	}
+
+	if(state.crisis_temperature <= 20.f) {
 		return false;
+	}
 
 	auto str_est = estimate_crisis_str(state);
 
-	if(to == state.primary_crisis_attacker) {
-		if(str_est.attacker < str_est.defender * 0.66f)
+	if(state.crisis_temperature > 75.f || str_est.fast_victory) {
+		if(to == state.primary_crisis_attacker) {
+			if(str_est.defender_win)
+				return true;
+
+			if(!state.world.peace_offer_get_is_concession(peace))
+				return false;
+
+			bool missing_wg = false;
+			for(auto swg : state.crisis_attacker_wargoals) {
+				bool found_wg = false;
+				for(auto item : state.world.peace_offer_get_peace_offer_item(peace)) {
+					auto wg = item.get_wargoal();
+					if(wg.get_type() == swg.cb && wg.get_associated_state() == swg.state && wg.get_added_by() == swg.added_by && wg.get_target_nation() == swg.target_nation &&
+						wg.get_associated_tag() == swg.wg_tag) {
+						found_wg = true; continue;
+					}
+				}
+
+				if(!found_wg) {
+					return false;
+				}
+			}
 			return true;
-		if(str_est.attacker < str_est.defender * 0.75f)
-			return state.world.peace_offer_get_is_concession(peace);
 
-		if(!state.world.peace_offer_get_is_concession(peace))
-			return false;
+		} else if(to == state.primary_crisis_defender) {
+			if(str_est.attacker_win)
+				return true;
 
-		bool missing_wg = false;
-		for(auto swg : state.crisis_attacker_wargoals) {
-			bool found_wg = false;
-			for(auto item : state.world.peace_offer_get_peace_offer_item(peace)) {
-				auto wg = item.get_wargoal();
-				if(wg.get_type() == swg.cb && wg.get_associated_state() == swg.state && wg.get_added_by() == swg.added_by && wg.get_target_nation() == swg.target_nation &&
-					wg.get_associated_tag() == swg.wg_tag) {
-					found_wg = true; continue;
+			if(!state.world.peace_offer_get_is_concession(peace))
+				return false;
+
+			bool missing_wg = false;
+			for(auto swg : state.crisis_defender_wargoals) {
+				bool found_wg = false;
+				for(auto item : state.world.peace_offer_get_peace_offer_item(peace)) {
+					auto wg = item.get_wargoal();
+					if(wg.get_type() == swg.cb && wg.get_associated_state() == swg.state && wg.get_added_by() == swg.added_by && wg.get_target_nation() == swg.target_nation &&
+						wg.get_associated_tag() == swg.wg_tag) {
+						found_wg = true; continue;
+					}
+				}
+
+				if(!found_wg) {
+					return false;
 				}
 			}
 
-			if(!found_wg) {
-				return false;
-			}
-		}
-		return true;
-
-	} else if(to == state.primary_crisis_defender) {
-		if(str_est.defender < str_est.attacker * 0.66f)
 			return true;
-		if(str_est.defender < str_est.attacker * 0.75f)
-			return state.world.peace_offer_get_is_concession(peace);
-
-		if(!state.world.peace_offer_get_is_concession(peace))
-			return false;
-
-
-		bool missing_wg = false;
-		for(auto swg : state.crisis_defender_wargoals) {
-			bool found_wg = false;
-			for(auto item : state.world.peace_offer_get_peace_offer_item(peace)) {
-				auto wg = item.get_wargoal();
-				if(wg.get_type() == swg.cb && wg.get_associated_state() == swg.state && wg.get_added_by() == swg.added_by && wg.get_target_nation() == swg.target_nation &&
-					wg.get_associated_tag() == swg.wg_tag) {
-					found_wg = true; continue;
-				}
-			}
-
-			if(!found_wg) {
-				return false;
-			}
 		}
-
-		return true;
 	}
 	return false;
 }

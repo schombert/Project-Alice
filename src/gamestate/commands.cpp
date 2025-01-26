@@ -561,27 +561,6 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 		// We deliberately allow for duplicates to existing factories as this scenario is handled when construction is finished
 
-	// For refit factories must match in output good or inputs.
-		/*
-		auto output_1 = state.world.factory_type_get_output(type);
-		auto output_2 = state.world.factory_type_get_output(refit_target);
-		auto inputs_1 = state.world.factory_type_get_inputs(type);
-		auto inputs_2 = state.world.factory_type_get_inputs(refit_target);
-		auto inputs_match = true;
-		
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			auto input_1 = inputs_1.commodity_type[i];
-			auto input_2 = inputs_2.commodity_type[i];
-
-			if(input_1 != input_2) {
-				inputs_match = false;
-				break;
-			}
-		}
-		if(output_1 != output_2 && !inputs_match) {
-			return false;
-		}
-		*/
 	}
 
 	if(state.world.nation_get_is_civilized(source) == false)
@@ -618,6 +597,30 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		if(is_upgrade) {
 			if((rules & issue_rule::expand_factory) == 0)
 				return false;
+		} else if (refit_target) {
+			if((rules & issue_rule::build_factory) != 0) {
+			}
+			else {
+				// For capitalist economies, refit factories must match in output good or inputs.
+				auto output_1 = state.world.factory_type_get_output(type);
+				auto output_2 = state.world.factory_type_get_output(refit_target);
+				auto inputs_1 = state.world.factory_type_get_inputs(type);
+				auto inputs_2 = state.world.factory_type_get_inputs(refit_target);
+				auto inputs_match = true;
+
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					auto input_1 = inputs_1.commodity_type[i];
+					auto input_2 = inputs_2.commodity_type[i];
+
+					if(input_1 != input_2) {
+						inputs_match = false;
+						break;
+					}
+				}
+				if(output_1 != output_2 && !inputs_match) {
+					return false;
+				}
+			}
 		} else {
 			if((rules & issue_rule::build_factory) == 0)
 				return false;
@@ -2751,6 +2754,13 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	//auto ol2 = state.world.nation_get_overlord_as_subject(target);
 	//if(state.world.overlord_get_ruler(ol2))
 	//	return false;
+
+	// Asker and target must be in a subject relation
+	if(state.defines.alice_state_transfer_limits) {
+		auto ol2 = state.world.nation_get_overlord_as_subject(target);
+		if(state.world.overlord_get_ruler(ol) != target && state.world.overlord_get_ruler(ol2) != asker)
+			return false;
+	}
 	if(state.world.nation_get_is_at_war(asker) || state.world.nation_get_is_at_war(target))
 		return false;
 	//Redundant, if we're at war already, we will return false:
@@ -3004,7 +3014,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 		return false;
 
 	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
-	if(state.world.overlord_get_ruler(source_ol_rel) && state.world.overlord_get_ruler(source_ol_rel) != real_target)
+	if(state.world.overlord_get_ruler(source_ol_rel) && state.world.overlord_get_ruler(source_ol_rel) != real_target && state.defines.alice_allow_subjects_declare_wars == 0.0)
 		return false;
 
 	if(state.world.nation_get_in_sphere_of(real_target) == source)
