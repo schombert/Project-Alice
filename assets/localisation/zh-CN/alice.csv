@@ -1318,9 +1318,9 @@ subjectpayments_income_row;?G$VAL$?W 来自 ?Y$country$?W;;;;;;;;;;;;x
 subjectpayments_expense;付款：?R$VAL$?W;;;;;;;;;;;;x
 alice_unit_builder_apply_button;在所选省份建造;;;;;;;;;;;;x
 unit_macro_template_tooltip;部队模板;;;;;;;;;;;;x
-alice_factory_type_viewer_priority;研究重点;;;;;;;;;;;;x
-alice_factory_type_viewer_priority_national;国内研究重点：;;;;;;;;;;;;x
-alice_factory_type_viewer_priority_private;私人研究重点：;;;;;;;;;;;;x
+alice_factory_type_viewer_priority;专精重点;;;;;;;;;;;;x
+alice_factory_type_viewer_priority_national;国内专精重点：;;;;;;;;;;;;x
+alice_factory_type_viewer_priority_private;私人专精重点：;;;;;;;;;;;;x
 alice_factory_type_viewer_priority_bonus;输入（乘积）：;;;;;;;;;;;;x
 alice_commodity_tab;产品;;;;;;;;;;;;x
 alice_factory_type_tab;工厂类型;;;;;;;;;;;;x
