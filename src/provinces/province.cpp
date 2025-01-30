@@ -9,6 +9,7 @@
 #include "math_fns.hpp"
 #include "prng.hpp"
 #include "triggers.hpp"
+#include "economy_stats.hpp"
 #include <set>
 
 namespace province {
