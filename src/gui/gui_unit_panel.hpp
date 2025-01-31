@@ -1848,6 +1848,42 @@ class unit_type_listbox_entry_label : public button_element_base {
 		auto new_type = retrieve<dcon::unit_type_id>(state, parent);
 		auto const& ut = state.military_definitions.unit_base_definitions[new_type];
 
+		if(ut.is_land) {
+			if(state.world.nation_get_unit_stats(state.local_player_nation, new_type).reconnaissance_or_fire_range > 0) {
+				text::add_line(state, contents, "unit_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).reconnaissance_or_fire_range, 2));
+			}
+			if(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack > 0) {
+				text::add_line(state, contents, "unit_siege", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack, 2));
+			}
+
+			text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).attack_or_gun_power, 2));
+			text::add_line(state, contents, "unit_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).defence_or_hull, 2));
+			text::add_line(state, contents, "unit_discipline", text::variable_type::x, text::format_percentage(ut.discipline_or_evasion, 0));
+			if(ut.support > 0) {
+				text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).support, 0));
+			}
+			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(ut.maneuver, 0));
+			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maximum_speed, 2));
+			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).supply_consumption * 100, 0));
+			text::add_line(state, contents, "unit_supply_load", text::variable_type::x, ut.supply_consumption_score);
+		}
+		else {
+			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maximum_speed, 2));
+			text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).attack_or_gun_power, 2));
+			if(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack > 0) {
+				text::add_line(state, contents, "unit_torpedo_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack, 2));
+			}
+			text::add_line(state, contents, "unit_hull", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).defence_or_hull, 2));
+			text::add_line(state, contents, "unit_fire_range", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).reconnaissance_or_fire_range, 2));
+			if(ut.discipline_or_evasion > 0) {
+				text::add_line(state, contents, "unit_evasion", text::variable_type::x, text::format_percentage(ut.discipline_or_evasion, 0));
+			}
+			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).supply_consumption * 100, 0));
+			text::add_line(state, contents, "unit_supply_load", text::variable_type::x, ut.supply_consumption_score);
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
 		text::add_line_with_condition(state, contents, "unit_upgrade_explain_1", !state.selected_regiments[0] || !state.selected_ships[0]);
 		text::add_line_with_condition(state, contents, "unit_upgrade_explain_2", ut.active || state.world.nation_get_active_unit(state.local_player_nation, new_type));
 

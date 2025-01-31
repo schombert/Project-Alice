@@ -1913,6 +1913,9 @@ TRIGGER_FUNCTION(tf_money) {
 TRIGGER_FUNCTION(tf_money_province) {
 	return "dup " + province_to_owner() + "0 >commodity_id @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
+TRIGGER_FUNCTION(tf_suppression_points) {
+	return "dup suppression @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
+}
 TRIGGER_FUNCTION(tf_lost_national) {
 	return "dup revanchism @ 1.0 swap - " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }

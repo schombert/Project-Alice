@@ -192,6 +192,7 @@ effect_body
 	change_controller               value       text                member_fn
 	infrastructure                  value       int                 member_fn
 	money                           value       float               member_fn
+	suppression_points              value       float               member_fn
 	prestige_factor                 value       float               member_fn
 	leadership                      value       int                 member_fn
 	create_vassal                   value       text                member_fn

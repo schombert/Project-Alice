@@ -5671,4 +5671,22 @@ guiTypes = {
 		quadTextureSprite ="GFX_unit_upgrade_button"
 		extends="factory_info"
 	}
+
+	iconType = {
+        name = "industry_size_icon"
+        spriteType = "GFX_budget_ind_sup_icon"
+        position = { x= 42 y = 233 }
+		Orientation = "UPPER_LEFT"
+		extends="diplomacy_country_facts"
+    }
+
+	instantTextBoxType = {
+		name = "industry_size_text"
+		position = { 75 236 }
+		font = "vic_18_black"
+		text = " "
+		maxWidth = 40
+		maxHeight = 20
+		extends="diplomacy_country_facts"
+	}
 }

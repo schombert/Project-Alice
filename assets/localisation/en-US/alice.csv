@@ -515,6 +515,11 @@ factory_stats_desired_income;Desired raw profit
 speed;$val$ kph
 shift_to_hold_open;Hold ?YSHIFT?! to keep this window open, ?YSHIFT-Right-click?! to build this in every state (but not expand)
 factory_upgrade_shortcuts;?YSHIFT-Left-click?W upgrade ?Gall?!S factories in a state\n?YSHIFT-Right-click?W upgrade ?Gall profitable?W factories in a state\n?YCTRL-Left-click?W upgrade ?Gall?W factories in a nation\n?YCTRL-Right-click?W upgrade ?Gall profitable?W factories in a nation\n?YCTRL-SHIFT-Left-click?W upgrade ?Gall profitable with full employment?W factories in a state\n?YCTRL-SHIFT-Right-click?W upgrade ?Gall profitable with full employment?W factories in a state
+factory_consumer_count;Consumer factories: ?Y$val$?!
+factory_heavy_count;Heavy industry factories: ?Y$val$?!
+factory_military_count;Military factories: ?Y$val$?!
+factory_processing_count;Processing factories: ?Y$val$?!
+factory_industrial_and_consumer_count;Industrial and consumer goods factories: ?Y$val$?!
 blank_org_gain;organization gain
 plurality_change_reason;(based on the average consciousness)
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
@@ -750,6 +755,7 @@ state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
 state_transfer_explain_6;We have more than 1 state
+state_transfer_explain_7;Must be in a subject-overlord relationship
 unit_upgrade_desc;Changes units to different type. After swap, unit strength is reduced to 1%
 unit_upgrade_explain_1;Either land or sea units are selected
 unit_upgrade_explain_2;Unit type is  unlocked
@@ -1045,6 +1051,15 @@ et_on_po_accepted;The effects executed from accepting a peace offer with this wa
 alice_no_possible_units;No possible units can be built, and no units are in construction.
 alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
+alice_loan_size_mod;Max loan free money modifier: ?G+$x$
+capitalists_savings_ratio;Capitalists saving ratio: ?G$x$?!
+middle_class_savings_ratio;Middle class saving ratio: ?G$x$?!
+farmers_savings_ratio;Farmers saving ratio: ?G$x$?!
+landowners_savings_ratio;Landowners saving ratio: ?G$x$?!
+capitalists_investment_ratio;Capitalists investment ratio: ?G$x$?!
+middle_class_investment_ratio;Middle class investment ratio: ?G$x$?!
+farmers_investment_ratio;Farmers investment ratio: ?G$x$?!
+landowners_investment_ratio;Landowners investment ratio: ?G$x$?!
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
 alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:
@@ -1087,6 +1102,12 @@ CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$ stopped giving subsidies to us;
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$ stopped giving subsidies to $RECIPIENT$;
 CANCEL_WARSUBSIDIES_DESC;Cancel monetary help to this country;
 CANCEL_WARSUBSIDIES_BUTTON;Cancel Subsidies;
+production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production line
+production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
+production_refit_factory_tooltip_3;Either can build factories
+production_refit_factory_tooltip_4;Or old and new types match in inputs or outputs
+factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
+factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$
 alice_budget_scaled_17;Gold production: ?G$value$
 alice_budget_scaled_net;Net revenue: ?Y$value$
@@ -1362,6 +1383,15 @@ alice_budget_tariffs_import;Import Duties
 alice_budget_tariffs_export;Export Duties
 alice_budget_overseas_maintanance;Colonial
 alice_budget_social_spending;Benefits
+tb_suppression_points;Suppression points:
+aristocrat_reinvestment;Aristocrats reinvestment rate
+capitalist_reinvestment;Capitalists reinvestment rate
+middle_class_reinvestment;Middle class reinvestment rate
+farmers_reinvestment;Farmers reinvestment rate
+aristocrat_savings;Aristocrats saving rate
+capitalist_savings;Capitalists saving rate
+middle_class_savings;Middle class saving rate
+farmers_savings;Farmers saving rate
 alice_filter_all;All
 alice_filter_none;None
 alice_filter_noncolonial;Non Colonial

@@ -1714,6 +1714,17 @@ struct effect_body {
 			return;
 		}
 	}
+
+	void suppression_points(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot == trigger::slot_contents::nation) {
+			context.compiled_effect.push_back(uint16_t(effect::suppression_points));
+			context.add_float_to_payload(value);
+		} else {
+			err.accumulated_errors +=
+				"suppression_points effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
 	void leadership(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_effect.push_back(uint16_t(effect::leadership));

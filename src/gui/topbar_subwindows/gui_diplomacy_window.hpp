@@ -386,6 +386,70 @@ public:
 	}
 };
 
+class diplomacy_industry_size : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+
+		auto res = 0;
+		for(auto p : fat_id.get_province_ownership_as_nation()) {
+			for(auto floc : p.get_province().get_factory_location_as_province()) {
+				res += floc.get_factory().get_level();
+			}
+		}
+		return text::format_wholenum(res);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, n);
+
+		auto consumer = 0;
+		auto heavy = 0;
+		auto mils = 0;
+		auto processing = 0;
+		auto indandconsumer = 0;
+		for(auto p : fat_id.get_province_ownership_as_nation()) {
+			for(auto floc : p.get_province().get_factory_location_as_province()) {
+				bool is_closed = economy::factory_total_desired_employment_score(state, floc.get_factory()) < economy::factory_closed_threshold;
+				if(is_closed) {
+					continue;
+				}
+
+				auto output = floc.get_factory().get_building_type().get_output().get_commodity_group();
+				if(output == (uint8_t)sys::commodity_group::military_goods) {
+					mils += floc.get_factory().get_level();
+				}
+				else if(output == (uint8_t) sys::commodity_group::consumer_goods) {
+					consumer += floc.get_factory().get_level();
+				}
+				else if(output == (uint8_t) sys::commodity_group::industrial_goods) {
+					heavy += floc.get_factory().get_level();
+				}
+				else if(output == (uint8_t)sys::commodity_group::raw_material_goods) {
+					processing += floc.get_factory().get_level();
+				}
+				else if(output == (uint8_t)sys::commodity_group::industrial_and_consumer_goods) {
+					indandconsumer += floc.get_factory().get_level();
+				}
+			}
+		}
+
+		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, consumer);
+		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, heavy);
+		text::add_line(state, contents, "factory_military_count", text::variable_type::val, mils);
+		text::add_line(state, contents, "factory_processing_count", text::variable_type::val, processing);
+		if(indandconsumer > 0) {
+			text::add_line(state, contents, "factory_industrial_and_consumer_count", text::variable_type::val, mils);
+		}
+	}
+};
+
+
 class diplomacy_country_select : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1228,7 +1292,7 @@ private:
 
 	std::array<element_base*, 7> gp_elements;
 	std::array<element_base*, 9> non_gp_elements;
-	std::array<element_base*, 21> war_elements;
+	std::array<element_base*, 23> war_elements;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1419,6 +1483,14 @@ public:
 		} else if(name == "add_wargoal") {
 			auto ptr = make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 			war_elements[20] = ptr.get();
+			return ptr;
+		} else if(name == "industry_size_text") {
+			auto ptr = make_element_by_type<diplomacy_industry_size>(state, id);
+			war_elements[21] = ptr.get();
+			return ptr;
+		} else if(name == "industry_size_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			war_elements[22] = ptr.get();
 			return ptr;
 		} else if(name == "selected_military_icon") {
 			return make_element_by_type<military_score_icon>(state, id);

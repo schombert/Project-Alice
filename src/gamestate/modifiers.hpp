@@ -196,8 +196,16 @@ namespace sys {
 	MOD_LIST_ELEMENT(123, diplomacy_tech_research_bonus, true, modifier_display_type::percent, "diplomacy_theory_tech_research_bonus") \
 	MOD_LIST_ELEMENT(124, flavor_tech_research_bonus, true, modifier_display_type::percent, "flavor_theory_tech_research_bonus") \
 	MOD_LIST_ELEMENT(125, seperatism, false, modifier_display_type::fp_two_places, "seperatism") \
+	MOD_LIST_ELEMENT(126, aristocrat_reinvestment, true, modifier_display_type::percent, "aristocrat_reinvestment") \
+	MOD_LIST_ELEMENT(127, capitalist_reinvestment, true, modifier_display_type::percent, "capitalist_reinvestment") \
+	MOD_LIST_ELEMENT(128, middle_class_reinvestment, true, modifier_display_type::percent, "middle_class_reinvestment") \
+	MOD_LIST_ELEMENT(129, farmers_reinvestment, true, modifier_display_type::percent, "farmers_reinvestment") \
+	MOD_LIST_ELEMENT(130, aristocrat_savings, true, modifier_display_type::percent, "aristocrat_savings") \
+	MOD_LIST_ELEMENT(131, capitalist_savings, true, modifier_display_type::percent, "capitalist_savings") \
+	MOD_LIST_ELEMENT(132, middle_class_savings, true, modifier_display_type::percent, "middle_class_savings") \
+	MOD_LIST_ELEMENT(133, farmers_savings, true, modifier_display_type::percent, "farmers_savings") \
 
-#define MOD_NAT_LIST_COUNT 126
+#define MOD_NAT_LIST_COUNT 134
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \

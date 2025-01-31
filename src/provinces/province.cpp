@@ -9,6 +9,7 @@
 #include "math_fns.hpp"
 #include "prng.hpp"
 #include "triggers.hpp"
+#include "economy_stats.hpp"
 #include <set>
 
 namespace province {
@@ -770,10 +771,27 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			auto new_market = state.world.create_market();
 
 			// set prices to something to avoid infinite demand:
-
-			state.world.for_each_commodity([&](auto cid){
-				state.world.market_set_price(new_market, cid, state.world.market_get_price(old_market, cid));
-			});
+			if(old_market) {
+				state.world.for_each_commodity([&](auto cid){
+					state.world.market_set_price(new_market, cid, state.world.market_get_price(old_market, cid));
+				});
+				for(auto index = 0; index < economy::labor::total; index++) {
+					state.world.market_set_labor_price(new_market, index, state.world.market_get_labor_price(old_market, index));
+				}
+				for(auto index = 0; index < economy::pop_labor::total; index++) {
+					state.world.market_set_pop_labor_distribution(new_market, index, state.world.market_get_pop_labor_distribution(old_market, index));
+				}
+			} else {
+				state.world.for_each_commodity([&](auto cid) {
+					state.world.market_set_price(new_market, cid, economy::median_price(state, cid));
+				});
+				for(auto index = 0; index < economy::labor::total; index++) {
+					state.world.market_set_labor_price(new_market, index, 1.f);
+				}
+				for(auto index = 0; index < economy::pop_labor::total; index++) {
+					state.world.market_set_pop_labor_distribution(new_market, index, 0.f);
+				}
+			}
 
 			auto new_local_market = state.world.force_create_local_market(new_market, new_si);
 

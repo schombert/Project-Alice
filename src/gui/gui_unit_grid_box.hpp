@@ -433,13 +433,16 @@ inline outline_color to_color(sys::state& state, unit_var display_unit) {
 		return outline_color::gray;
 	}
 
+	auto subjects = nations::nation_get_subjects(state, state.local_player_nation);
+	auto is_subject = std::find(subjects.begin(), subjects.end(), controller) != subjects.end();
+
 	if(selected && controller == state.local_player_nation) {
 		return outline_color::gold;
 	} else if(controller == state.local_player_nation) {
 		return outline_color::blue;
 	} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
 		return outline_color::red;
-	} else if(military::are_allied_in_war(state, controller, state.local_player_nation)) {
+	} else if(military::are_allied_in_war(state, controller, state.local_player_nation) || is_subject) {
 		return outline_color::cyan;
 	} else {
 		return outline_color::gray;
