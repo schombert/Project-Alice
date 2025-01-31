@@ -453,7 +453,9 @@ float max_loan(sys::state& state, dcon::nation_id n);
 
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
 
+bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c);
 int8_t calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c);
+int32_t calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c);
 
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);

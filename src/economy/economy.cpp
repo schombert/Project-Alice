@@ -8970,10 +8970,36 @@ float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n) 
 	return state.world.nation_get_private_investment(n) * 0.001f;
 }
 
+// Does this commodity has any factory using potentials mechanic
+// Since in vanilla there are no such factories, it will return false.
+bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c) {
+	for(auto type : state.world.in_factory_type) {
+		if(type.get_output() == c && type.get_is_limited()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 int8_t calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c) {
 	int8_t res = 0;
 	for(auto p : state.world.in_province) {
 		if(p.get_state_membership() != sid) {
+			continue;
+		}
+
+		if(p.get_factory_limit_was_set_during_scenario_creation()) {
+			res += p.get_factory_max_level_per_good(c);
+		}
+	}
+
+	return res;
+}
+
+int32_t calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c) {
+	int32_t res = 0;
+	for(auto p : state.world.in_province) {
+		if(p.get_nation_from_province_ownership() != nid) {
 			continue;
 		}
 

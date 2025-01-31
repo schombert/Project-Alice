@@ -230,7 +230,7 @@ public:
 			auto output = state.world.factory_type_get_output(content);
 			auto limit = economy::calculate_state_factory_limit(state, sid, output);
 
-			text::add_line_with_condition(state, contents, "factory_upgrade_condition_11", 1 <= limit);
+			text::add_line_with_condition(state, contents, "factory_build_condition_11", 1 <= limit);
 		}
 	}
 };
