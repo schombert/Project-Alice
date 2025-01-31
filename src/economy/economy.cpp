@@ -8974,7 +8974,7 @@ float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n) 
 // Since in vanilla there are no such factories, it will return false.
 bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c) {
 	for(auto type : state.world.in_factory_type) {
-		if(type.get_output() == c && type.get_is_limited()) {
+		if(type.get_output() == c && type.get_uses_potentials()) {
 			return true;
 		}
 	}

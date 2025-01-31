@@ -40,7 +40,7 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto type = retrieve<dcon::factory_type_id>(state, parent);
 		/* If mod uses Factory Province limits */
-		if(state.world.factory_type_get_is_limited(type)) {
+		if(state.world.factory_type_get_uses_potentials(type)) {
 			auto output = state.world.factory_type_get_output(type);
 			auto limit = economy::calculate_state_factory_limit(state, sid, output);
 			text::add_line_with_condition(state, contents, "factory_build_condition_11", limit >= 1);
@@ -226,7 +226,7 @@ public:
 		text::add_line(state, contents, "alice_factory_total_bonus", text::variable_type::x, text::fp_four_places{ sum });
 
 		/* If mod uses Factory Province limits */
-		if(state.world.factory_type_get_is_limited(content)) {
+		if(state.world.factory_type_get_uses_potentials(content)) {
 			auto output = state.world.factory_type_get_output(content);
 			auto limit = economy::calculate_state_factory_limit(state, sid, output);
 

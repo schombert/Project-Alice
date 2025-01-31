@@ -628,7 +628,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 
 	/* If mod uses Factory Province limits */
-	if(state.world.factory_type_get_is_limited(type)) {
+	if(state.world.factory_type_get_uses_potentials(type)) {
 		auto output = state.world.factory_type_get_output(type);
 		auto limit = economy::calculate_state_factory_limit(state, location, output);
 		auto d = state.world.state_instance_get_definition(location);

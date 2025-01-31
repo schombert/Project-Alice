@@ -289,7 +289,7 @@ building_definition
 	production_type      value    text              member
 	default_enabled      value    bool              member
 	is_coastal           value    bool              member
-	is_limited           value    bool              member
+	uses_potentials           value    bool              member
 	colonial_points      group    int_vector        member
 	goods_cost           group    commodity_array   member
 

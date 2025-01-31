@@ -1063,7 +1063,7 @@ struct building_definition : public modifier_base {
 	commodity_array goods_cost;
 	bool default_enabled = false;
 	bool is_coastal = false;
-	bool is_limited = false;
+	bool uses_potentials = false;
 	std::string_view production_type;
 	float infrastructure = 0.0f;
 	int32_t colonial_range = 0;
