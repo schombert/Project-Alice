@@ -675,14 +675,23 @@ void update_influence_priorities(sys::state& state) {
 				continue;
 
 			auto natid = state.world.nation_get_identity_from_identity_holder(n.nation);
+			auto holdscores = false;
 			for(auto prov_owner : state.world.nation_get_province_ownership(t)) {
 				auto prov = prov_owner.get_province();
 
 				for(auto core : prov.get_core_as_province()) {
 					if(core.get_identity() == natid) {
-						continue; // holds our cores
+						holdscores = true;
+						break;
 					}
 				}
+
+				if(holdscores)
+					break;
+			}
+
+			if(holdscores) {
+				continue; // holds our cores
 			}
 
 			float weight = 0.0f;
