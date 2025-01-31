@@ -1062,6 +1062,8 @@ struct building_definition : public modifier_base {
 	int_vector colonial_points;
 	commodity_array goods_cost;
 	bool default_enabled = false;
+	bool is_coastal = false;
+	bool is_limited = false;
 	std::string_view production_type;
 	float infrastructure = 0.0f;
 	int32_t colonial_range = 0;
@@ -1562,6 +1564,19 @@ struct province_rgo_ext_2 {
 	void finish(province_file_context&) { }
 };
 
+struct province_factory_limit_desc {
+	dcon::commodity_id trade_good_id;
+	int8_t max_level_value;
+	void max_level(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+	void trade_good(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&);
+};
+
+struct province_factory_limit {
+	void entry(province_factory_limit_desc const& value, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) { }
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1576,6 +1591,7 @@ struct province_history_file {
 	void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution_add(province_rgo_ext_2 const& value, error_handler& err, int32_t line, province_file_context& context);
+	void factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context);
 	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };

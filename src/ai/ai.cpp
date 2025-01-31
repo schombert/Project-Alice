@@ -1127,13 +1127,14 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto sid = m.get_zone_from_local_market();
 
 	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
@@ -1152,6 +1153,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto sid = m.get_zone_from_local_market();
 
 	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
@@ -1161,7 +1163,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	// which are impossible to ignore if you are sane
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1204,7 +1206,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	// or have very high margins
 	if(desired_types.empty()) { 
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1245,7 +1247,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	// second pass: try to create factories which have a good profit margin
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1288,11 +1290,13 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto sid = m.get_zone_from_local_market();
 	auto treasury = n.get_stockpiles(economy::money);
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+
 				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
@@ -1308,13 +1312,13 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
-
+	auto sid = m.get_zone_from_local_market();
 	auto treasury = n.get_stockpiles(economy::money);
 
 	// first pass: try to create factories which will pay back investment fast - in a year at most:
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1341,7 +1345,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	// second pass: try to create factories which have a good profit margin
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;

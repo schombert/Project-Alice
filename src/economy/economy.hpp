@@ -453,6 +453,8 @@ float max_loan(sys::state& state, dcon::nation_id n);
 
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
 
+int8_t calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c);
+
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);
 } // namespace economy

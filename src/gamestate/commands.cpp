@@ -627,6 +627,52 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 	}
 
+	/* If mod uses Factory Province limits */
+	if(state.world.factory_type_get_is_limited(type)) {
+		auto output = state.world.factory_type_get_output(type);
+		auto limit = economy::calculate_state_factory_limit(state, location, output);
+		auto d = state.world.state_instance_get_definition(location);
+		if(is_upgrade) {
+			// Will upgrade put us over the limit?
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(p.get_province().get_nation_from_province_ownership() == owner) {
+					for(auto f : p.get_province().get_factory_location()) {
+						if(f.get_factory().get_building_type() == type && f.get_factory().get_level() + 1 > limit) {
+							return false;
+						}
+					}
+				}
+			}
+		} else if(refit_target) {
+			auto refit_levels = 0;
+			// How many levels changed factory has
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(p.get_province().get_nation_from_province_ownership() == owner) {
+					for(auto f : p.get_province().get_factory_location()) {
+						if(f.get_factory().get_building_type() == type) {
+							refit_levels = f.get_factory().get_level();
+						}
+					}
+				}
+			}
+			// Will that put us over the limit?
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(p.get_province().get_nation_from_province_ownership() == owner) {
+					for(auto f : p.get_province().get_factory_location()) {
+						if(f.get_factory().get_building_type() == refit_target && f.get_factory().get_level() + refit_levels > limit) {
+							return false;
+						}
+					}
+				}
+			}
+		} else {
+			// Is there the limit?
+			if(limit <= 1) {
+				return false;
+			}
+		}
+	}
+
 	if(is_upgrade) {
 		// no double upgrade
 		for(auto p : state.world.state_instance_get_state_building_construction(location)) {

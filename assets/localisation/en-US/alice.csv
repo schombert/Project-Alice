@@ -1406,3 +1406,5 @@ alice_religion_filter_header;Religion
 alice_location_filter_header;Location
 alice_pop_show_details;Individual Details
 alice_demographics_window_header;Demographics
+factory_build_condition_11;State has available resource potentials
+factory_update_condition_11;State has available resource potentials

@@ -2334,6 +2334,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	});
 
 	world.province_resize_rgo_max_size_per_good(world.commodity_size());
+	world.province_resize_factory_max_level_per_good(world.commodity_size());
 
 	// load province history files
 	auto history = open_directory(root, NATIVE("history"));

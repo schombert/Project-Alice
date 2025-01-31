@@ -468,6 +468,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ is_limited }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ inputs }
 		type{ economy::commodity_set }
 		tag{ scenario }
@@ -1533,6 +1538,16 @@ object {
 		name{ rgo_max_size_per_good }
 		type{ array{commodity_id}{float} }
 		tag{ save }
+	}
+	property{
+		name{ factory_limit_was_set_during_scenario_creation }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ factory_max_level_per_good }
+		type{ array{commodity_id}{uint8_t} }
+		tag{ scenario }
 	}
 	property{
 		name{ rgo_target_employment_per_good }

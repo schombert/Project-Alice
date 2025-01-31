@@ -350,6 +350,16 @@ public:
 		}
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
+
+		if(state.world.factory_type_get_is_limited(type)) {
+
+			auto output = state.world.factory_type_get_output(type);
+			auto limit = economy::calculate_state_factory_limit(state, fat.get_factory_location().get_province().get_state_membership(), output);
+			
+			// Will upgrade put us over the limit?
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_11", fat.get_level() + 1 <= limit);
+		}
+
 		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "factory_upgrade_shortcuts");
