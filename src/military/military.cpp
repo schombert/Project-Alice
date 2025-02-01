@@ -4873,9 +4873,9 @@ bool is_attacker_in_battle(sys::state& state, dcon::army_id a) {
 	auto lead_attacker = get_land_battle_lead_attacker(state, battle);
 	auto lead_defender = get_land_battle_lead_defender(state, battle);
 	auto thisnation = state.world.army_get_controller_from_army_control(a);
+	bool war_attacker = state.world.land_battle_get_war_attacker_is_attacker(battle);
 	// country vs country
 	if(lead_attacker && lead_defender) {
-		bool war_attacker = state.world.land_battle_get_war_attacker_is_attacker(battle);
 		for(const auto par : state.world.nation_get_war_participant(thisnation)) {
 			if((par.get_is_attacker() && war_attacker) || (!par.get_is_attacker() && !war_attacker)) {
 				return true;
@@ -4888,13 +4888,13 @@ bool is_attacker_in_battle(sys::state& state, dcon::army_id a) {
 	}
 	// country vs rebels
 	else {
-		// if the "this" nation is not rebels
-		if(thisnation) {
-			return lead_attacker == thisnation;
+		// if the "this" nation is the rebels, and they are attacking
+		if(!thisnation) {
+			return war_attacker;
 		}
-		// if the "this" nation is rebels
+		// if the "this" nation is not rebels
 		else {
-			return lead_defender == thisnation;
+			return !war_attacker;
 		}
 	}
 }
