@@ -498,6 +498,7 @@ dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_ba
 
 float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
 bool is_attacker_in_battle(sys::state& state, dcon::army_id a);
+bool is_attacker_in_battle(sys::state& state, dcon::navy_id a);
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
