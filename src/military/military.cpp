@@ -58,8 +58,11 @@ bool is_artillery_better(sys::state& state, dcon::nation_id n, dcon::unit_type_i
 	if(!best) {
 		return true;
 	}
-	auto& curbestdef = state.military_definitions.unit_base_definitions[best];
-	auto& def = state.military_definitions.unit_base_definitions[given];
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
 
 	if(def.support > curbestdef.support) {
 		return true;
@@ -93,11 +96,70 @@ bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id 
 	return false;
 }
 
+bool is_transport_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.maximum_speed > curbestdef.maximum_speed) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.defence_or_hull == curbestdef.defence_or_hull && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	}
+	return false;
+}
+
+bool is_light_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.maximum_speed > curbestdef.maximum_speed) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	}
+	return false;
+}
+
+bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	} else if(def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	} else if(def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.defence_or_hull == curbestdef.defence_or_hull && def.siege_or_torpedo_attack > curbestdef.siege_or_torpedo_attack) {
+		return true;
+	}
+	return false;
+}
+
 dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture) {
 	dcon::unit_type_id curbest;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
-	auto nationname = text::produce_simple_string(state, state.world.national_identity_get_name(ndef));
 
 	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
@@ -121,9 +183,6 @@ dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool 
 			curbest = uid;
 		}
 	}
-#ifndef NDEBUG
-	// state.console_log(nationname + " infantry type: " + std::to_string(curbest.index()));
-#endif
 	return curbest;
 }
 
@@ -177,6 +236,69 @@ dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool p
 		}
 
 		if(is_cavalry_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+		if(!available ||  def.type != military::unit_type::transport || def.primary_culture && !primary_culture) {
+			continue;
+		}
+
+		if(is_transport_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+		if(!available || def.type != military::unit_type::light_ship || def.primary_culture && !primary_culture) {
+			continue;
+		}
+
+		if(is_light_ship_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+		if(!available || def.type != military::unit_type::big_ship || def.primary_culture && !primary_culture) {
+			continue;
+		}
+
+		if(is_big_ship_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
 	}
