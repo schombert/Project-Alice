@@ -1404,9 +1404,9 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 						runner.done = true;
 					}
 				}
-			} else {
-				exists_running_runner = true;
+			} else {				
 				if(is_river_merge(river_data[runner.x + runner.y * size_x])) {
+					exists_running_runner = true;
 					runner.waiting_for_merge = true;
 				} else {
 					bool first_child = true;
@@ -1426,6 +1426,8 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 							}
 							width = runner.position->width;
 						}
+
+						exists_running_runner = true;
 
 						river_vertex* new_river_vertex = nullptr;
 
@@ -1462,6 +1464,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 					}
 
 					if(next_position != nullptr) {
+						exists_running_runner = true;
 						runner.x = next_x;
 						runner.y = next_y;
 						runner.position = next_position;
