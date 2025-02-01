@@ -4485,6 +4485,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 
 	state.world.army_set_battle_from_army_battle_participation(a, b);
 	state.world.army_set_arrival_time(a, sys::date{}); // pause movement
+	update_battle_leaders(state, b);
 }
 
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
@@ -4860,12 +4861,16 @@ float get_leader_select_score(sys::state& state, dcon::leader_id l) {
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b) {
 	auto la = get_land_battle_lead_attacker(state, b);
 	dcon::leader_id a_lid;
-	float a_score = 0.f;
+	float a_score = -999.f;
 	auto ld = get_land_battle_lead_defender(state, b);
 	dcon::leader_id d_lid;
-	float d_score = 0.f;
+		float d_score = -999.f;
 	for(const auto a : state.world.land_battle_get_army_battle_participation(b)) {
 		auto l = a.get_army().get_general_from_army_leadership();
+		// if its no leader, skip
+		if(!l.is_valid()) {
+			continue;
+		}
 		auto score = get_leader_select_score(state, l);
 		if(a.get_army().get_controller_from_army_control() == la) {
 			if(score > a_score) {
