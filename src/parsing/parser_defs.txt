@@ -43,6 +43,7 @@ good
 	cost           value      float            member_fn
 	color          group      color_from_3i    member_fn
 	available_from_start      value    bool    member_fn
+	is_local       value    bool    member_fn
 	tradeable      value      none             discard
 	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn

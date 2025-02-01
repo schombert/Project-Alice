@@ -336,6 +336,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ is_local }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ money_rgo }
 		type{ bitfield }
 		tag{ scenario }

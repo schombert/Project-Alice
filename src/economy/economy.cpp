@@ -5221,7 +5221,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 
 		for(auto c : state.world.in_commodity) {
-			if(state.world.commodity_get_money_rgo(c)) {
+			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
 				continue;
 			}
 
