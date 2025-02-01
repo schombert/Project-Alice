@@ -4838,7 +4838,7 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 	return dcon::nation_id{};
 }
 
-float get_leader_select_score(sys::state& state, dcon::leader_id l) {
+float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking) {
 	/*
 	- Each side has a leader that is in charge of the combat, which is the leader with the greatest
 	value as determined by the following formula: (organization x 5 + attack + defend + morale +
@@ -4846,10 +4846,17 @@ float get_leader_select_score(sys::state& state, dcon::leader_id l) {
 	*/
 	auto per = state.world.leader_get_personality(l);
 	auto bak = state.world.leader_get_background(l);
-	//
+	// atk and def are both set to 0 initally, and will be set to its actual amount depending if on the on_attacking input param
+	// this makes it so for example if the leader is attacking, it will disregard all "defence" stats for the purposes of calculating the score
+	float atk = 0.f;
+	float def = 0.f;
 	auto org = state.world.leader_trait_get_organisation(per) + state.world.leader_trait_get_organisation(bak);
-	auto atk = state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
-	auto def = state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
+	if(is_attacking) {
+		atk = state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
+	}
+	else {
+		def = state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
+	}
 	auto spd = state.world.leader_trait_get_speed(per) + state.world.leader_trait_get_speed(bak);
 	auto mor = state.world.leader_trait_get_morale(per) + state.world.leader_trait_get_morale(bak);
 	auto att = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
@@ -4925,7 +4932,7 @@ void update_battle_leaders(sys::state& state, dcon::land_battle_id b) {
 			continue;
 		}
 		bool is_attacking = is_attacker_in_battle(state, a.get_army());
-		auto score = get_leader_select_score(state, l);
+		auto score = get_leader_select_score(state, l, is_attacking);
 		/*if(a.get_army().get_controller_from_army_control() == la) {*/
 		if(is_attacking) {
 			if(score > a_score) {
@@ -4960,7 +4967,7 @@ void update_battle_leaders(sys::state& state, dcon::naval_battle_id b) {
 			continue;
 		}
 		bool is_attacking = is_attacker_in_battle(state, a.get_navy());
-		auto score = get_leader_select_score(state, l);
+		auto score = get_leader_select_score(state, l, is_attacking);
 		if(is_attacking) {
 			if(score > a_score) {
 				a_lid = l;
