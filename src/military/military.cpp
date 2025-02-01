@@ -4858,26 +4858,63 @@ float get_leader_select_score(sys::state& state, dcon::leader_id l) {
 	auto lp = state.world.leader_get_prestige(l);
 	return (org * 5.f + atk + def + mor + spd + att + exp / 2.f + rec / 5.f + rel / 5.f) * (lp + 1.f);
 }
+
+bool is_attacker_in_battle(sys::state& state, dcon::army_id a) {
+	assert(state.world.army_get_battle_from_army_battle_participation(a)); // make sure the army is actually in a battle
+	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
+	auto lead_attacker = get_land_battle_lead_attacker(state, battle);
+	auto lead_defender = get_land_battle_lead_defender(state, battle);
+	auto thisnation = state.world.army_get_controller_from_army_control(a);
+	// country vs country
+	if(lead_attacker && lead_defender) {
+		bool war_attacker = state.world.land_battle_get_war_attacker_is_attacker(battle);
+		for(const auto par : state.world.nation_get_war_participant(thisnation)) {
+			if((par.get_is_attacker() && war_attacker) || (!par.get_is_attacker() && !war_attacker)) {
+				return true;
+			}
+			else if((!par.get_is_attacker() && war_attacker) || (par.get_is_attacker() && !war_attacker)) {
+				return false;
+			}
+		}
+		return false;
+	}
+	// country vs rebels
+	else {
+		// if the "this" nation is not rebels
+		if(thisnation) {
+			return lead_attacker == thisnation;
+		}
+		// if the "this" nation is rebels
+		else {
+			return lead_defender == thisnation;
+		}
+	}
+}
+
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b) {
-	auto la = get_land_battle_lead_attacker(state, b);
+	/*auto la = get_land_battle_lead_attacker(state, b);*/
 	dcon::leader_id a_lid;
+	// starting a_score and d_score set to low number, so no-leader won't take over sometimes even if there is a leader available
 	float a_score = -999.f;
-	auto ld = get_land_battle_lead_defender(state, b);
+	/*auto ld = get_land_battle_lead_defender(state, b);*/
 	dcon::leader_id d_lid;
-		float d_score = -999.f;
+	float d_score = -999.f;
 	for(const auto a : state.world.land_battle_get_army_battle_participation(b)) {
 		auto l = a.get_army().get_general_from_army_leadership();
 		// if its no leader, skip
 		if(!l.is_valid()) {
 			continue;
 		}
+		bool is_attacking = is_attacker_in_battle(state, a.get_army());
 		auto score = get_leader_select_score(state, l);
-		if(a.get_army().get_controller_from_army_control() == la) {
+		/*if(a.get_army().get_controller_from_army_control() == la) {*/
+		if(is_attacking) {
 			if(score > a_score) {
 				a_lid = l;
 				a_score = score;
 			}
-		} else if(a.get_army().get_controller_from_army_control() == ld) {
+		} /*else if(a.get_army().get_controller_from_army_control() == ld) {*/
+		else if(!is_attacking) {
 			if(score > d_score) {
 				d_lid = l;
 				d_score = score;
