@@ -1,3 +1,5 @@
+global{no-conversions}
+
 include{<array>}
 include{"constants.hpp"}
 include{"modifiers.hpp"}
