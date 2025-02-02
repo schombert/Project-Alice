@@ -52,7 +52,7 @@ jobs:
           sudo bash ./generate_docs_post.sh
           cd ..
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v4
         with:
           # Upload entire repository
           path: 'docs/out/html/'
