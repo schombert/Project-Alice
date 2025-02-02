@@ -3601,19 +3601,20 @@ struct demographicswindow_culture_filter_filter_label_t : public ui::element_bas
 	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct demographicswindow_main_t : public ui::container_base {
-	demographicswindow_filters_window_t* filter_w;
-	ui::pop_details_window* details_w;
-	ui::national_focus_window* focus_w;
-	demographicswindow_main_close_button_t* close_button = nullptr;
-	demographicswindow_main_title_t* title = nullptr;
-	demographicswindow_main_main_page_t* main_page = nullptr;
-	demographicswindow_main_table_t* table = nullptr;
-	demographicswindow_main_show_filters_t* show_filters = nullptr;
-	demographicswindow_main_reset_filters_t* reset_filters = nullptr;
-	demographicswindow_main_only_pops_toggle_t* only_pops_toggle = nullptr;
-	demographicswindow_main_main_left_t* main_left = nullptr;
-	demographicswindow_main_main_right_t* main_right = nullptr;
+struct demographicswindow_main_t : public ui::non_owning_container_base {
+	std::unique_ptr<ui::element_base> filter_w;
+	std::unique_ptr<ui::pop_details_window> details_w;
+	std::unique_ptr<ui::element_base> focus_w;
+	std::unique_ptr<demographicswindow_main_close_button_t> close_button;
+	std::unique_ptr<demographicswindow_main_title_t> title;
+	std::unique_ptr<demographicswindow_main_main_page_t> main_page;
+	std::unique_ptr<demographicswindow_main_table_t> table;
+	std::unique_ptr<demographicswindow_main_show_filters_t> show_filters;
+	std::unique_ptr<demographicswindow_main_reset_filters_t> reset_filters;
+	std::unique_ptr<demographicswindow_main_only_pops_toggle_t> only_pops_toggle;
+	std::unique_ptr<demographicswindow_main_main_left_t> main_left;
+	std::unique_ptr<demographicswindow_main_main_right_t> main_right;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -3656,23 +3657,24 @@ struct demographicswindow_main_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
-struct demographicswindow_nation_row_t : public ui::container_base {
+struct demographicswindow_nation_row_t : public ui::non_owning_container_base {
 	dcon::nation_id content;
-	demographicswindow_nation_row_location_t* location = nullptr;
-	demographicswindow_nation_row_size_t* size = nullptr;
-	demographicswindow_nation_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_nation_row_culture_t* culture = nullptr;
-	demographicswindow_nation_row_job_t* job = nullptr;
-	demographicswindow_nation_row_religion_t* religion = nullptr;
-	demographicswindow_nation_row_ideology_t* ideology = nullptr;
-	demographicswindow_nation_row_issues_t* issues = nullptr;
-	demographicswindow_nation_row_militancy_t* militancy = nullptr;
-	demographicswindow_nation_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_nation_row_employment_t* employment = nullptr;
-	demographicswindow_nation_row_literacy_t* literacy = nullptr;
-	demographicswindow_nation_row_money_t* money = nullptr;
-	demographicswindow_nation_row_needs_t* needs = nullptr;
-	demographicswindow_nation_row_frames_t* frames = nullptr;
+	std::unique_ptr<demographicswindow_nation_row_location_t> location;
+	std::unique_ptr<demographicswindow_nation_row_size_t> size;
+	std::unique_ptr<demographicswindow_nation_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_nation_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_nation_row_job_t> job;
+	std::unique_ptr<demographicswindow_nation_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_nation_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_nation_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_nation_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_nation_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_nation_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_nation_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_nation_row_money_t> money;
+	std::unique_ptr<demographicswindow_nation_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_nation_row_frames_t> frames;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3694,25 +3696,26 @@ struct demographicswindow_nation_row_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_nation_row(sys::state& state);
-struct demographicswindow_state_row_t : public ui::container_base {
+struct demographicswindow_state_row_t : public ui::non_owning_container_base {
 	dcon::state_instance_id content;
-	demographicswindow_state_row_folder_icon_t* folder_icon = nullptr;
-	demographicswindow_state_row_location_t* location = nullptr;
-	demographicswindow_state_row_size_t* size = nullptr;
-	demographicswindow_state_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_state_row_culture_t* culture = nullptr;
-	demographicswindow_state_row_job_t* job = nullptr;
-	demographicswindow_state_row_religion_t* religion = nullptr;
-	demographicswindow_state_row_ideology_t* ideology = nullptr;
-	demographicswindow_state_row_issues_t* issues = nullptr;
-	demographicswindow_state_row_militancy_t* militancy = nullptr;
-	demographicswindow_state_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_state_row_employment_t* employment = nullptr;
-	demographicswindow_state_row_literacy_t* literacy = nullptr;
-	demographicswindow_state_row_money_t* money = nullptr;
-	demographicswindow_state_row_needs_t* needs = nullptr;
-	demographicswindow_state_row_frames_t* frames = nullptr;
-	demographicswindow_state_row_focus_button_t* focus_button = nullptr;
+	std::unique_ptr<demographicswindow_state_row_folder_icon_t> folder_icon;
+	std::unique_ptr<demographicswindow_state_row_location_t> location;
+	std::unique_ptr<demographicswindow_state_row_size_t> size;
+	std::unique_ptr<demographicswindow_state_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_state_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_state_row_job_t> job;
+	std::unique_ptr<demographicswindow_state_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_state_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_state_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_state_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_state_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_state_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_state_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_state_row_money_t> money;
+	std::unique_ptr<demographicswindow_state_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_state_row_frames_t> frames;
+	std::unique_ptr<demographicswindow_state_row_focus_button_t> focus_button;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3734,24 +3737,25 @@ struct demographicswindow_state_row_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_state_row(sys::state& state);
-struct demographicswindow_province_row_t : public ui::container_base {
+struct demographicswindow_province_row_t : public ui::non_owning_container_base {
 	dcon::province_id content;
-	demographicswindow_province_row_folder_icon_t* folder_icon = nullptr;
-	demographicswindow_province_row_location_t* location = nullptr;
-	demographicswindow_province_row_size_t* size = nullptr;
-	demographicswindow_province_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_province_row_culture_t* culture = nullptr;
-	demographicswindow_province_row_job_t* job = nullptr;
-	demographicswindow_province_row_religion_t* religion = nullptr;
-	demographicswindow_province_row_ideology_t* ideology = nullptr;
-	demographicswindow_province_row_issues_t* issues = nullptr;
-	demographicswindow_province_row_militancy_t* militancy = nullptr;
-	demographicswindow_province_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_province_row_employment_t* employment = nullptr;
-	demographicswindow_province_row_literacy_t* literacy = nullptr;
-	demographicswindow_province_row_money_t* money = nullptr;
-	demographicswindow_province_row_needs_t* needs = nullptr;
-	demographicswindow_province_row_frames_t* frames = nullptr;
+	std::unique_ptr<demographicswindow_province_row_folder_icon_t> folder_icon;
+	std::unique_ptr<demographicswindow_province_row_location_t> location;
+	std::unique_ptr<demographicswindow_province_row_size_t> size;
+	std::unique_ptr<demographicswindow_province_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_province_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_province_row_job_t> job;
+	std::unique_ptr<demographicswindow_province_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_province_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_province_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_province_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_province_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_province_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_province_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_province_row_money_t> money;
+	std::unique_ptr<demographicswindow_province_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_province_row_frames_t> frames;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3773,30 +3777,31 @@ struct demographicswindow_province_row_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_province_row(sys::state& state);
-struct demographicswindow_pop_row_t : public ui::container_base {
+struct demographicswindow_pop_row_t : public ui::non_owning_container_base {
 	dcon::pop_id value;
-	demographicswindow_pop_row_location_t* location = nullptr;
-	demographicswindow_pop_row_size_t* size = nullptr;
-	demographicswindow_pop_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_pop_row_culture_t* culture = nullptr;
-	demographicswindow_pop_row_job_t* job = nullptr;
-	demographicswindow_pop_row_religion_t* religion = nullptr;
-	demographicswindow_pop_row_ideology_t* ideology = nullptr;
-	demographicswindow_pop_row_issues_t* issues = nullptr;
-	demographicswindow_pop_row_militancy_t* militancy = nullptr;
-	demographicswindow_pop_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_pop_row_employment_t* employment = nullptr;
-	demographicswindow_pop_row_literacy_t* literacy = nullptr;
-	demographicswindow_pop_row_money_t* money = nullptr;
-	demographicswindow_pop_row_needs_t* needs = nullptr;
-	demographicswindow_pop_row_rebel_flag_t* rebel_flag = nullptr;
-	demographicswindow_pop_row_culture_name_t* culture_name = nullptr;
-	demographicswindow_pop_row_job_name_t* job_name = nullptr;
-	demographicswindow_pop_row_religion_name_t* religion_name = nullptr;
-	demographicswindow_pop_row_frames_t* frames = nullptr;
-	demographicswindow_pop_row_movement_political_t* movement_political = nullptr;
-	demographicswindow_pop_row_movement_social_t* movement_social = nullptr;
-	demographicswindow_pop_row_details_button_t* details_button = nullptr;
+	std::unique_ptr<demographicswindow_pop_row_location_t> location;
+	std::unique_ptr<demographicswindow_pop_row_size_t> size;
+	std::unique_ptr<demographicswindow_pop_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_pop_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_pop_row_job_t> job;
+	std::unique_ptr<demographicswindow_pop_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_pop_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_pop_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_pop_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_pop_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_pop_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_pop_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_pop_row_money_t> money;
+	std::unique_ptr<demographicswindow_pop_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_pop_row_rebel_flag_t> rebel_flag;
+	std::unique_ptr<demographicswindow_pop_row_culture_name_t> culture_name;
+	std::unique_ptr<demographicswindow_pop_row_job_name_t> job_name;
+	std::unique_ptr<demographicswindow_pop_row_religion_name_t> religion_name;
+	std::unique_ptr<demographicswindow_pop_row_frames_t> frames;
+	std::unique_ptr<demographicswindow_pop_row_movement_political_t> movement_political;
+	std::unique_ptr<demographicswindow_pop_row_movement_social_t> movement_social;
+	std::unique_ptr<demographicswindow_pop_row_details_button_t> details_button;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3818,38 +3823,39 @@ struct demographicswindow_pop_row_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_pop_row(sys::state& state);
-struct demographicswindow_filters_window_t : public ui::container_base {
-	demographicswindow_filters_window_job_all_t* job_all = nullptr;
-	demographicswindow_filters_window_job_none_t* job_none = nullptr;
-	demographicswindow_filters_window_culture_all_t* culture_all = nullptr;
-	demographicswindow_filters_window_culture_none_t* culture_none = nullptr;
-	demographicswindow_filters_window_religion_all_t* religion_all = nullptr;
-	demographicswindow_filters_window_religion_none_t* religion_none = nullptr;
-	demographicswindow_filters_window_location_all_t* location_all = nullptr;
-	demographicswindow_filters_window_location_none_t* location_none = nullptr;
-	demographicswindow_filters_window_non_colonial_t* non_colonial = nullptr;
-	demographicswindow_filters_window_colonial_t* colonial = nullptr;
-	demographicswindow_filters_window_job_list_t* job_list = nullptr;
-	demographicswindow_filters_window_culture_list_t* culture_list = nullptr;
-	demographicswindow_filters_window_religion_list_t* religion_list = nullptr;
-	demographicswindow_filters_window_location_list_t* location_list = nullptr;
-	demographicswindow_filters_window_close_button_t* close_button = nullptr;
-	demographicswindow_filters_window_job_left_t* job_left = nullptr;
-	demographicswindow_filters_window_culture_left_t* culture_left = nullptr;
-	demographicswindow_filters_window_religion_left_t* religion_left = nullptr;
-	demographicswindow_filters_window_location_left_t* location_left = nullptr;
-	demographicswindow_filters_window_job_right_t* job_right = nullptr;
-	demographicswindow_filters_window_culture_right_t* culture_right = nullptr;
-	demographicswindow_filters_window_religion_right_t* religion_right = nullptr;
-	demographicswindow_filters_window_location_right_t* location_right = nullptr;
-	demographicswindow_filters_window_job_page_t* job_page = nullptr;
-	demographicswindow_filters_window_culture_page_t* culture_page = nullptr;
-	demographicswindow_filters_window_religion_page_t* religion_page = nullptr;
-	demographicswindow_filters_window_location_page_t* location_page = nullptr;
-	demographicswindow_filters_window_job_header_t* job_header = nullptr;
-	demographicswindow_filters_window_culture_header_t* culture_header = nullptr;
-	demographicswindow_filters_window_religion_header_t* religion_header = nullptr;
-	demographicswindow_filters_window_location_header_t* location_header = nullptr;
+struct demographicswindow_filters_window_t : public ui::non_owning_container_base {
+	std::unique_ptr<demographicswindow_filters_window_job_all_t> job_all;
+	std::unique_ptr<demographicswindow_filters_window_job_none_t> job_none;
+	std::unique_ptr<demographicswindow_filters_window_culture_all_t> culture_all;
+	std::unique_ptr<demographicswindow_filters_window_culture_none_t> culture_none;
+	std::unique_ptr<demographicswindow_filters_window_religion_all_t> religion_all;
+	std::unique_ptr<demographicswindow_filters_window_religion_none_t> religion_none;
+	std::unique_ptr<demographicswindow_filters_window_location_all_t> location_all;
+	std::unique_ptr<demographicswindow_filters_window_location_none_t> location_none;
+	std::unique_ptr<demographicswindow_filters_window_non_colonial_t> non_colonial;
+	std::unique_ptr<demographicswindow_filters_window_colonial_t> colonial;
+	std::unique_ptr<demographicswindow_filters_window_job_list_t> job_list;
+	std::unique_ptr<demographicswindow_filters_window_culture_list_t> culture_list;
+	std::unique_ptr<demographicswindow_filters_window_religion_list_t> religion_list;
+	std::unique_ptr<demographicswindow_filters_window_location_list_t> location_list;
+	std::unique_ptr<demographicswindow_filters_window_close_button_t> close_button;
+	std::unique_ptr<demographicswindow_filters_window_job_left_t> job_left;
+	std::unique_ptr<demographicswindow_filters_window_culture_left_t> culture_left;
+	std::unique_ptr<demographicswindow_filters_window_religion_left_t> religion_left;
+	std::unique_ptr<demographicswindow_filters_window_location_left_t> location_left;
+	std::unique_ptr<demographicswindow_filters_window_job_right_t> job_right;
+	std::unique_ptr<demographicswindow_filters_window_culture_right_t> culture_right;
+	std::unique_ptr<demographicswindow_filters_window_religion_right_t> religion_right;
+	std::unique_ptr<demographicswindow_filters_window_location_right_t> location_right;
+	std::unique_ptr<demographicswindow_filters_window_job_page_t> job_page;
+	std::unique_ptr<demographicswindow_filters_window_culture_page_t> culture_page;
+	std::unique_ptr<demographicswindow_filters_window_religion_page_t> religion_page;
+	std::unique_ptr<demographicswindow_filters_window_location_page_t> location_page;
+	std::unique_ptr<demographicswindow_filters_window_job_header_t> job_header;
+	std::unique_ptr<demographicswindow_filters_window_culture_header_t> culture_header;
+	std::unique_ptr<demographicswindow_filters_window_religion_header_t> religion_header;
+	std::unique_ptr<demographicswindow_filters_window_location_header_t> location_header;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -3880,11 +3886,12 @@ struct demographicswindow_filters_window_t : public ui::container_base {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_filters_window(sys::state& state);
-struct demographicswindow_job_filter_t : public ui::container_base {
+struct demographicswindow_job_filter_t : public ui::non_owning_container_base {
 	dcon::pop_type_id value;
-	demographicswindow_job_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_job_filter_icon_t* icon = nullptr;
-	demographicswindow_job_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_job_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_job_filter_icon_t> icon;
+	std::unique_ptr<demographicswindow_job_filter_filter_label_t> filter_label;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
@@ -3898,11 +3905,12 @@ struct demographicswindow_job_filter_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_job_filter(sys::state& state);
-struct demographicswindow_religion_filter_t : public ui::container_base {
+struct demographicswindow_religion_filter_t : public ui::non_owning_container_base {
 	dcon::religion_id value;
-	demographicswindow_religion_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_religion_filter_icon_t* icon = nullptr;
-	demographicswindow_religion_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_religion_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_religion_filter_icon_t> icon;
+	std::unique_ptr<demographicswindow_religion_filter_filter_label_t> filter_label;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
@@ -3916,10 +3924,11 @@ struct demographicswindow_religion_filter_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_religion_filter(sys::state& state);
-struct demographicswindow_location_filter_t : public ui::container_base {
+struct demographicswindow_location_filter_t : public ui::non_owning_container_base {
 	dcon::state_instance_id value;
-	demographicswindow_location_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_location_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_location_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_location_filter_filter_label_t> filter_label;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
@@ -3933,10 +3942,11 @@ struct demographicswindow_location_filter_t : public ui::container_base {
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_location_filter(sys::state& state);
-struct demographicswindow_culture_filter_t : public ui::container_base {
+struct demographicswindow_culture_filter_t : public ui::non_owning_container_base {
 	dcon::culture_id value;
-	demographicswindow_culture_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_culture_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_culture_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_culture_filter_filter_label_t> filter_label;
+std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
@@ -5654,6 +5664,8 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -5661,9 +5673,9 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "close_button") {
-			auto cptr = std::make_unique<demographicswindow_main_close_button_t>();
-			cptr->parent = this;
-			close_button = cptr.get();
+			close_button = std::make_unique<demographicswindow_main_close_button_t>();
+			close_button->parent = this;
+			auto cptr = close_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5671,13 +5683,13 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "title") {
-			auto cptr = std::make_unique<demographicswindow_main_title_t>();
-			cptr->parent = this;
-			title = cptr.get();
+			title = std::make_unique<demographicswindow_main_title_t>();
+			title->parent = this;
+			auto cptr = title.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5688,13 +5700,13 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "main_page") {
-			auto cptr = std::make_unique<demographicswindow_main_main_page_t>();
-			cptr->parent = this;
-			main_page = cptr.get();
+			main_page = std::make_unique<demographicswindow_main_main_page_t>();
+			main_page->parent = this;
+			auto cptr = main_page.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5704,13 +5716,13 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "table") {
-			auto cptr = std::make_unique<demographicswindow_main_table_t>();
-			cptr->parent = this;
-			table = cptr.get();
+			table = std::make_unique<demographicswindow_main_table_t>();
+			table->parent = this;
+			auto cptr = table.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5825,13 +5837,13 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			demographicswindow_main_table_t::table_divider_color = child_data.table_divider_color;
 			demographicswindow_main_table_t::table_highlight_color = child_data.table_highlight_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "show_filters") {
-			auto cptr = std::make_unique<demographicswindow_main_show_filters_t>();
-			cptr->parent = this;
-			show_filters = cptr.get();
+			show_filters = std::make_unique<demographicswindow_main_show_filters_t>();
+			show_filters->parent = this;
+			auto cptr = show_filters.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5843,13 +5855,13 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "reset_filters") {
-			auto cptr = std::make_unique<demographicswindow_main_reset_filters_t>();
-			cptr->parent = this;
-			reset_filters = cptr.get();
+			reset_filters = std::make_unique<demographicswindow_main_reset_filters_t>();
+			reset_filters->parent = this;
+			auto cptr = reset_filters.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5861,13 +5873,13 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "only_pops_toggle") {
-			auto cptr = std::make_unique<demographicswindow_main_only_pops_toggle_t>();
-			cptr->parent = this;
-			only_pops_toggle = cptr.get();
+			only_pops_toggle = std::make_unique<demographicswindow_main_only_pops_toggle_t>();
+			only_pops_toggle->parent = this;
+			auto cptr = only_pops_toggle.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5880,52 +5892,49 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "main_left") {
-			auto cptr = std::make_unique<demographicswindow_main_main_left_t>();
-			cptr->parent = this;
-			main_left = cptr.get();
+			main_left = std::make_unique<demographicswindow_main_main_left_t>();
+			main_left->parent = this;
+			auto cptr = main_left.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "main_right") {
-			auto cptr = std::make_unique<demographicswindow_main_main_right_t>();
-			cptr->parent = this;
-			main_right = cptr.get();
+			main_right = std::make_unique<demographicswindow_main_main_right_t>();
+			main_right->parent = this;
+			auto cptr = main_right.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
 // BEGIN main::create
-	auto fw = make_demographicswindow_filters_window(state);
-	filter_w = (demographicswindow_filters_window_t*)(fw.get());
-	this->add_child_to_front(std::move(fw));
+	filter_w = make_demographicswindow_filters_window(state);
+	children.insert(children.begin(), filter_w.get());
 	filter_w->set_visible(state, false);
 
 	{
-		auto ptr = ui::make_element_by_type<ui::national_focus_window>(state, "state_focus_window");
-		focus_w = (ui::national_focus_window*)(ptr.get());
-		add_child_to_front(std::move(ptr));
+		focus_w = ui::make_element_by_type<ui::national_focus_window>(state, "state_focus_window");
+		children.insert(children.begin(), focus_w.get());
 		focus_w->set_visible(state, false);
 	}
 	{
-		auto win7 = ui::make_element_by_type<ui::pop_details_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("pop_details_win"))->second.definition);
-		details_w = (ui::pop_details_window*)(win7.get());
-		add_child_to_front(std::move(win7));
+		details_w = ui::make_element_by_type<ui::pop_details_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("pop_details_win"))->second.definition);
+		children.insert(children.begin(), details_w.get());
 		details_w->set_visible(state, false);
 	}
 // END
@@ -6900,6 +6909,8 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -6907,9 +6918,9 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_nation_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6919,13 +6930,13 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_nation_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6935,86 +6946,86 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_nation_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_nation_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_nation_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_nation_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_nation_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_nation_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_nation_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7024,13 +7035,13 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_nation_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7040,13 +7051,13 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_nation_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7056,13 +7067,13 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_nation_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7072,13 +7083,13 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_nation_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7088,32 +7099,32 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_nation_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_nation_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -8215,6 +8226,8 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -8222,9 +8235,9 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "folder_icon") {
-			auto cptr = std::make_unique<demographicswindow_state_row_folder_icon_t>();
-			cptr->parent = this;
-			folder_icon = cptr.get();
+			folder_icon = std::make_unique<demographicswindow_state_row_folder_icon_t>();
+			folder_icon->parent = this;
+			auto cptr = folder_icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8232,13 +8245,13 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_state_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_state_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8248,13 +8261,13 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_state_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_state_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8264,86 +8277,86 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_state_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_state_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_state_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_state_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_state_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_state_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_state_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_state_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_state_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_state_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_state_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_state_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_state_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_state_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8353,13 +8366,13 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_state_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_state_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8369,13 +8382,13 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_state_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_state_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8385,13 +8398,13 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_state_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_state_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8401,13 +8414,13 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_state_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_state_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8417,45 +8430,45 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_state_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_state_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_state_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_state_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "focus_button") {
-			auto cptr = std::make_unique<demographicswindow_state_row_focus_button_t>();
-			cptr->parent = this;
-			focus_button = cptr.get();
+			focus_button = std::make_unique<demographicswindow_state_row_focus_button_t>();
+			focus_button->parent = this;
+			auto cptr = focus_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -9451,6 +9464,8 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -9458,9 +9473,9 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "folder_icon") {
-			auto cptr = std::make_unique<demographicswindow_province_row_folder_icon_t>();
-			cptr->parent = this;
-			folder_icon = cptr.get();
+			folder_icon = std::make_unique<demographicswindow_province_row_folder_icon_t>();
+			folder_icon->parent = this;
+			auto cptr = folder_icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9468,13 +9483,13 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_province_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_province_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9484,13 +9499,13 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_province_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_province_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9500,86 +9515,86 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_province_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_province_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_province_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_province_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_province_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_province_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_province_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_province_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_province_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_province_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_province_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_province_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_province_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_province_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9589,13 +9604,13 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_province_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_province_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9605,13 +9620,13 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_province_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_province_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9621,13 +9636,13 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_province_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_province_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9637,13 +9652,13 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_province_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_province_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9653,32 +9668,32 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_province_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_province_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_province_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_province_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -10864,6 +10879,8 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -10871,9 +10888,9 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_pop_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -10883,13 +10900,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_pop_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -10899,89 +10916,89 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_pop_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_pop_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->color = child_data.table_highlight_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_pop_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_pop_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_pop_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_pop_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_pop_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -10991,13 +11008,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_pop_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11007,13 +11024,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_pop_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11023,13 +11040,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_pop_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11039,13 +11056,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_pop_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11055,38 +11072,38 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_pop_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "rebel_flag") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_rebel_flag_t>();
-			cptr->parent = this;
-			rebel_flag = cptr.get();
+			rebel_flag = std::make_unique<demographicswindow_pop_row_rebel_flag_t>();
+			rebel_flag->parent = this;
+			auto cptr = rebel_flag.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_name") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_culture_name_t>();
-			cptr->parent = this;
-			culture_name = cptr.get();
+			culture_name = std::make_unique<demographicswindow_pop_row_culture_name_t>();
+			culture_name->parent = this;
+			auto cptr = culture_name.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11096,13 +11113,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_name") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_job_name_t>();
-			cptr->parent = this;
-			job_name = cptr.get();
+			job_name = std::make_unique<demographicswindow_pop_row_job_name_t>();
+			job_name->parent = this;
+			auto cptr = job_name.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11112,13 +11129,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_name") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_religion_name_t>();
-			cptr->parent = this;
-			religion_name = cptr.get();
+			religion_name = std::make_unique<demographicswindow_pop_row_religion_name_t>();
+			religion_name->parent = this;
+			auto cptr = religion_name.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11128,26 +11145,26 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_pop_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "movement_political") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_movement_political_t>();
-			cptr->parent = this;
-			movement_political = cptr.get();
+			movement_political = std::make_unique<demographicswindow_pop_row_movement_political_t>();
+			movement_political->parent = this;
+			auto cptr = movement_political.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11155,13 +11172,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "movement_social") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_movement_social_t>();
-			cptr->parent = this;
-			movement_social = cptr.get();
+			movement_social = std::make_unique<demographicswindow_pop_row_movement_social_t>();
+			movement_social->parent = this;
+			auto cptr = movement_social.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11169,13 +11186,13 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "details_button") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_details_button_t>();
-			cptr->parent = this;
-			details_button = cptr.get();
+			details_button = std::make_unique<demographicswindow_pop_row_details_button_t>();
+			details_button->parent = this;
+			auto cptr = details_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11183,7 +11200,7 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -12544,6 +12561,8 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -12551,9 +12570,9 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "job_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_all_t>();
-			cptr->parent = this;
-			job_all = cptr.get();
+			job_all = std::make_unique<demographicswindow_filters_window_job_all_t>();
+			job_all->parent = this;
+			auto cptr = job_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12566,13 +12585,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_none_t>();
-			cptr->parent = this;
-			job_none = cptr.get();
+			job_none = std::make_unique<demographicswindow_filters_window_job_none_t>();
+			job_none->parent = this;
+			auto cptr = job_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12585,13 +12604,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_all_t>();
-			cptr->parent = this;
-			culture_all = cptr.get();
+			culture_all = std::make_unique<demographicswindow_filters_window_culture_all_t>();
+			culture_all->parent = this;
+			auto cptr = culture_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12604,13 +12623,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_none_t>();
-			cptr->parent = this;
-			culture_none = cptr.get();
+			culture_none = std::make_unique<demographicswindow_filters_window_culture_none_t>();
+			culture_none->parent = this;
+			auto cptr = culture_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12623,13 +12642,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_all_t>();
-			cptr->parent = this;
-			religion_all = cptr.get();
+			religion_all = std::make_unique<demographicswindow_filters_window_religion_all_t>();
+			religion_all->parent = this;
+			auto cptr = religion_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12642,13 +12661,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_none_t>();
-			cptr->parent = this;
-			religion_none = cptr.get();
+			religion_none = std::make_unique<demographicswindow_filters_window_religion_none_t>();
+			religion_none->parent = this;
+			auto cptr = religion_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12661,13 +12680,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_all_t>();
-			cptr->parent = this;
-			location_all = cptr.get();
+			location_all = std::make_unique<demographicswindow_filters_window_location_all_t>();
+			location_all->parent = this;
+			auto cptr = location_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12680,13 +12699,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_none_t>();
-			cptr->parent = this;
-			location_none = cptr.get();
+			location_none = std::make_unique<demographicswindow_filters_window_location_none_t>();
+			location_none->parent = this;
+			auto cptr = location_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12699,13 +12718,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "non_colonial") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_non_colonial_t>();
-			cptr->parent = this;
-			non_colonial = cptr.get();
+			non_colonial = std::make_unique<demographicswindow_filters_window_non_colonial_t>();
+			non_colonial->parent = this;
+			auto cptr = non_colonial.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12718,13 +12737,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "colonial") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_colonial_t>();
-			cptr->parent = this;
-			colonial = cptr.get();
+			colonial = std::make_unique<demographicswindow_filters_window_colonial_t>();
+			colonial->parent = this;
+			auto cptr = colonial.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12737,61 +12756,61 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_list_t>();
-			cptr->parent = this;
-			job_list = cptr.get();
+			job_list = std::make_unique<demographicswindow_filters_window_job_list_t>();
+			job_list->parent = this;
+			auto cptr = job_list.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_list_t>();
-			cptr->parent = this;
-			culture_list = cptr.get();
+			culture_list = std::make_unique<demographicswindow_filters_window_culture_list_t>();
+			culture_list->parent = this;
+			auto cptr = culture_list.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_list_t>();
-			cptr->parent = this;
-			religion_list = cptr.get();
+			religion_list = std::make_unique<demographicswindow_filters_window_religion_list_t>();
+			religion_list->parent = this;
+			auto cptr = religion_list.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_list_t>();
-			cptr->parent = this;
-			location_list = cptr.get();
+			location_list = std::make_unique<demographicswindow_filters_window_location_list_t>();
+			location_list->parent = this;
+			auto cptr = location_list.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "close_button") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_close_button_t>();
-			cptr->parent = this;
-			close_button = cptr.get();
+			close_button = std::make_unique<demographicswindow_filters_window_close_button_t>();
+			close_button->parent = this;
+			auto cptr = close_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12799,13 +12818,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_left_t>();
-			cptr->parent = this;
-			job_left = cptr.get();
+			job_left = std::make_unique<demographicswindow_filters_window_job_left_t>();
+			job_left->parent = this;
+			auto cptr = job_left.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12813,13 +12832,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_left_t>();
-			cptr->parent = this;
-			culture_left = cptr.get();
+			culture_left = std::make_unique<demographicswindow_filters_window_culture_left_t>();
+			culture_left->parent = this;
+			auto cptr = culture_left.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12827,13 +12846,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_left_t>();
-			cptr->parent = this;
-			religion_left = cptr.get();
+			religion_left = std::make_unique<demographicswindow_filters_window_religion_left_t>();
+			religion_left->parent = this;
+			auto cptr = religion_left.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12841,13 +12860,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_left_t>();
-			cptr->parent = this;
-			location_left = cptr.get();
+			location_left = std::make_unique<demographicswindow_filters_window_location_left_t>();
+			location_left->parent = this;
+			auto cptr = location_left.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12855,13 +12874,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_right_t>();
-			cptr->parent = this;
-			job_right = cptr.get();
+			job_right = std::make_unique<demographicswindow_filters_window_job_right_t>();
+			job_right->parent = this;
+			auto cptr = job_right.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12869,13 +12888,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_right_t>();
-			cptr->parent = this;
-			culture_right = cptr.get();
+			culture_right = std::make_unique<demographicswindow_filters_window_culture_right_t>();
+			culture_right->parent = this;
+			auto cptr = culture_right.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12883,13 +12902,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_right_t>();
-			cptr->parent = this;
-			religion_right = cptr.get();
+			religion_right = std::make_unique<demographicswindow_filters_window_religion_right_t>();
+			religion_right->parent = this;
+			auto cptr = religion_right.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12897,13 +12916,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_right_t>();
-			cptr->parent = this;
-			location_right = cptr.get();
+			location_right = std::make_unique<demographicswindow_filters_window_location_right_t>();
+			location_right->parent = this;
+			auto cptr = location_right.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12911,13 +12930,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_page_t>();
-			cptr->parent = this;
-			job_page = cptr.get();
+			job_page = std::make_unique<demographicswindow_filters_window_job_page_t>();
+			job_page->parent = this;
+			auto cptr = job_page.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12927,13 +12946,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_page_t>();
-			cptr->parent = this;
-			culture_page = cptr.get();
+			culture_page = std::make_unique<demographicswindow_filters_window_culture_page_t>();
+			culture_page->parent = this;
+			auto cptr = culture_page.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12943,13 +12962,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_page_t>();
-			cptr->parent = this;
-			religion_page = cptr.get();
+			religion_page = std::make_unique<demographicswindow_filters_window_religion_page_t>();
+			religion_page->parent = this;
+			auto cptr = religion_page.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12959,13 +12978,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_page_t>();
-			cptr->parent = this;
-			location_page = cptr.get();
+			location_page = std::make_unique<demographicswindow_filters_window_location_page_t>();
+			location_page->parent = this;
+			auto cptr = location_page.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12975,13 +12994,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "job_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_header_t>();
-			cptr->parent = this;
-			job_header = cptr.get();
+			job_header = std::make_unique<demographicswindow_filters_window_job_header_t>();
+			job_header->parent = this;
+			auto cptr = job_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12992,13 +13011,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "culture_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_header_t>();
-			cptr->parent = this;
-			culture_header = cptr.get();
+			culture_header = std::make_unique<demographicswindow_filters_window_culture_header_t>();
+			culture_header->parent = this;
+			auto cptr = culture_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13009,13 +13028,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "religion_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_header_t>();
-			cptr->parent = this;
-			religion_header = cptr.get();
+			religion_header = std::make_unique<demographicswindow_filters_window_religion_header_t>();
+			religion_header->parent = this;
+			auto cptr = religion_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13026,13 +13045,13 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "location_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_header_t>();
-			cptr->parent = this;
-			location_header = cptr.get();
+			location_header = std::make_unique<demographicswindow_filters_window_location_header_t>();
+			location_header->parent = this;
+			auto cptr = location_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13043,7 +13062,7 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -13177,6 +13196,8 @@ void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -13184,9 +13205,9 @@ void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_job_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_job_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13194,26 +13215,26 @@ void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "icon") {
-			auto cptr = std::make_unique<demographicswindow_job_filter_icon_t>();
-			cptr->parent = this;
-			icon = cptr.get();
+			icon = std::make_unique<demographicswindow_job_filter_icon_t>();
+			icon->parent = this;
+			auto cptr = icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_job_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_job_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13223,7 +13244,7 @@ void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -13357,6 +13378,8 @@ void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -13364,9 +13387,9 @@ void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_religion_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_religion_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13374,26 +13397,26 @@ void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "icon") {
-			auto cptr = std::make_unique<demographicswindow_religion_filter_icon_t>();
-			cptr->parent = this;
-			icon = cptr.get();
+			icon = std::make_unique<demographicswindow_religion_filter_icon_t>();
+			icon->parent = this;
+			auto cptr = icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_religion_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_religion_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13403,7 +13426,7 @@ void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -13503,6 +13526,8 @@ void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -13510,9 +13535,9 @@ void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_location_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_location_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13520,13 +13545,13 @@ void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_location_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_location_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13536,7 +13561,7 @@ void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}
@@ -13636,6 +13661,8 @@ void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept 
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -13643,9 +13670,9 @@ void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept 
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_culture_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_culture_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13653,13 +13680,13 @@ void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept 
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_culture_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_culture_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13669,7 +13696,7 @@ void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept 
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
+			children.push_back(cptr);
 		continue;
 		}
 	}

@@ -15,7 +15,7 @@ jobs:
     name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -49,7 +49,7 @@ jobs:
     runs-on: [windows-latest]
     name: Windows (${{ matrix.config }})
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
