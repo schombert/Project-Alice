@@ -165,16 +165,6 @@ public:
 		read_position += (section_size - 4);
 		return in_buffer(data, std::min(size_t(start_postion + section_size - 4), size), start_postion);
 	}
-	template<>
-	std::string_view read<std::string_view>() {
-		auto s = read_variable<char>();
-		return std::string_view(s.data(), s.size());
-	}
-	template<>
-	std::wstring_view read<std::wstring_view>() {
-		auto s = read_variable<wchar_t>();
-		return std::wstring_view(s.data(), s.size());
-	}
 	void read(std::string& out) {
 		auto s = read_variable<char>();
 		out = std::string(s.data(), s.size());
@@ -184,5 +174,16 @@ public:
 		out = std::wstring(s.data(), s.size());
 	}
 };
+
+template<>
+inline std::string_view in_buffer::read<std::string_view>() {
+	auto s = read_variable<char>();
+	return std::string_view(s.data(), s.size());
+}
+template<>
+inline std::wstring_view in_buffer::read<std::wstring_view>() {
+	auto s = read_variable<wchar_t>();
+	return std::wstring_view(s.data(), s.size());
+}
 
 }
