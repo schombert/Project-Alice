@@ -20,7 +20,7 @@ jobs:
         fetch-depth: 0
 
     - name: "Install"
-      uses: awalsh128/cache-apt-pkgs-action@v1.3.1
+      uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
         version: 1.0
