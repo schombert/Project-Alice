@@ -1894,7 +1894,7 @@ float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_
 		* std::max(0.f, 1.f + national_t)
 		* std::max(0.f, 1.f + provincial_fac_t)
 		* std::max(0.f, 1.f + nationnal_fac_t) *
-		1.f + (levels / 100.f) /* Economies of scale throughput bonus */;
+		(1.f + levels / 100.f) /* Economies of scale throughput bonus */;
 
 	return production_throughput_multiplier * result;
 }
