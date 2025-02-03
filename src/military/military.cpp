@@ -2885,7 +2885,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 		if(war != wfor)
 			continue;
 		auto attacker_goal = military::is_attacker(state, war, wg.get_added_by());
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag()) * 2.f;
 
 		if(for_attacker == attacker_goal) {
 			wg.get_ticking_war_score() = std::clamp(wg.get_ticking_war_score(), float(-max_score), float(max_score));
@@ -4173,7 +4173,7 @@ void update_ticking_war_score(sys::state& state) {
 				}
 			}
 		}
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag()) * 2.f;
 
 		wg.get_ticking_war_score() =
 			std::clamp(wg.get_ticking_war_score(), -float(max_score), float(max_score));
