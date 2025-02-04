@@ -106,7 +106,7 @@ public:
 		}
 
 		if(background) {
-			auto background_id = state.world.leader_get_background(content).get_name();
+			auto background_id = fatten(state.world, military::get_leader_background_wrapper(state, content)).get_name();
 			auto background_content = text::produce_simple_string(state, background_id);
 			background->set_text(state, background_content);
 		}

@@ -146,6 +146,7 @@ struct global_military_state {
 	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
 
 	dcon::leader_trait_id first_background_trait;
+	dcon::leader_trait_id first_personality_trait;
 
 	bool great_wars_enabled = false;
 	bool world_wars_enabled = false;

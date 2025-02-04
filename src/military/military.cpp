@@ -4334,7 +4334,7 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	 + 1)
 	*/
 	auto leader = state.world.army_get_general_from_army_leadership(a);
-	auto bg = state.world.leader_get_background(leader);
+	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = state.world.leader_get_personality(leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
@@ -4352,7 +4352,7 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	}
 
 	auto leader = state.world.navy_get_admiral_from_navy_leadership(n);
-	auto bg = state.world.leader_get_background(leader);
+	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = state.world.leader_get_personality(leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
@@ -4845,7 +4845,7 @@ float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_atta
 	speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
 	*/
 	auto per = state.world.leader_get_personality(l);
-	auto bak = state.world.leader_get_background(l);
+	auto bak = get_leader_background_wrapper(state, l);
 	// atk and def are both set to 0 initally, and will be set to its actual amount depending if on the on_attacking input param
 	// this makes it so for example if the leader is attacking, it will disregard all "defence" stats for the purposes of calculating the score
 	float atk = 0.f;
@@ -4918,7 +4918,7 @@ bool is_attacker_in_battle(sys::state& state, dcon::navy_id a) {
 
 // the wrapper will assign the proper background to a no_leader general if detected
 dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::leader_id id) {
-	return (bool(id)) ? state.world.leader_get_background(id) : state.world.leader_get_background(dcon::leader_id(0));
+	return (bool(id)) ? state.world.leader_get_background(id) : state.military_definitions.first_background_trait;
 }
 
 
@@ -5859,7 +5859,7 @@ void update_land_battles(sys::state& state) {
 		auto terrain_bonus = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::defense);
 
 		auto attacker_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
-		auto attacker_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_attacking_general(b));
+		auto attacker_bg = fatten(state.world, get_leader_background_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b)));
 
 		auto attack_bonus =
 				int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
@@ -5868,7 +5868,7 @@ void update_land_battles(sys::state& state) {
 			* (1.0f + state.world.leader_get_prestige(state.world.land_battle_get_general_from_attacking_general(b)) * state.defines.leader_prestige_to_max_org_factor);
 
 		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
-		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_defending_general(b));
+		auto defender_bg = get_leader_background_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
 
 		auto atk_leader_exp_mod = 1 + attacker_per.get_experience() + attacker_bg.get_experience();
 		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_per.get_experience();
@@ -6382,7 +6382,7 @@ void update_naval_battles(sys::state& state) {
 		auto defender_dice = (both_dice >> 4) & 0x0F;
 
 		auto attacker_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
-		auto attacker_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto attacker_bg = fatten(state.world, get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b)));
 
 		auto attack_bonus =
 				int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
@@ -6390,7 +6390,7 @@ void update_naval_battles(sys::state& state) {
 				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
 		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
-		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_bg = get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
 		auto atk_leader_exp_mod = 1 + attacker_per.get_experience() + attacker_bg.get_experience();
 		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_per.get_experience();
