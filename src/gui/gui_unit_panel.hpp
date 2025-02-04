@@ -232,8 +232,7 @@ public:
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 	
 
@@ -319,8 +318,7 @@ public:
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 
 
@@ -2696,8 +2694,7 @@ public:
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 
 

@@ -206,8 +206,7 @@ class leader_in_army_img : public image_element_base {
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 };
 

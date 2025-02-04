@@ -113,10 +113,15 @@ void display_leader_attributes(sys::state& state, dcon::leader_id lid, text::lay
 
 void display_leader_full(sys::state& state, dcon::leader_id lid, text::layout_base& contents, int32_t indent) {
 	auto lname = state.world.leader_get_name(lid);
-	auto resolved = state.to_string_view(lname);
-
+	//auto resolved = state.to_string_view(lname);
 	auto box = text::open_layout_box(contents, indent);
-	text::add_to_layout_box(state, contents, box, resolved);
+	if(bool(lname)) {
+		text::add_to_layout_box(state, contents, box, state.to_string_view(lname));
+	}
+	// if no leader
+	else {
+		text::add_to_layout_box(state, contents, box, state.lookup_key("no_leader"));
+	}
 	text::close_layout_box(contents, box);
 
 	display_leader_attributes(state, lid, contents, indent + 15);
