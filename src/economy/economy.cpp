@@ -4866,16 +4866,19 @@ void run_private_investment(sys::state& state) {
 			auto overlord = state.world.overlord_get_ruler(rel);
 
 			auto amt = state.world.nation_get_private_investment(n) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
-			state.world.nation_get_private_investment(n) -= amt;
 
 			auto subjects = nations::nation_get_subjects(state, n);
 			if(subjects.size() > 0) {
+				state.world.nation_get_private_investment(n) -= amt;
+
 				auto part = amt / subjects.size();
 				for(auto s : subjects) {
+
 					state.world.nation_get_private_investment(s) += part;
 				}
 			}
 			else if(overlord) {
+				state.world.nation_get_private_investment(n) -= amt;
 				state.world.nation_get_private_investment(overlord) += amt;
 			}
 		}

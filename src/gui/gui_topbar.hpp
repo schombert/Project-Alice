@@ -480,12 +480,10 @@ public:
 			auto province_constr = economy::estimate_private_investment_province(state, state.local_player_nation);
 
 			if(private_constr < 1.f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
-				auto rel = state.world.nation_get_overlord_as_subject(state.local_player_nation);
-				auto overlord = state.world.overlord_get_ruler(rel);
-
+				auto subjects = nations::nation_get_subjects(state, state.local_player_nation);
 				auto amt = state.world.nation_get_private_investment(state.local_player_nation) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
 
-				if(!overlord) {
+				if(subjects.size() > 0) {
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
 					auto box = text::open_layout_box(contents, 15);
