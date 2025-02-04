@@ -3525,13 +3525,19 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 
 		if(containseverywargoal) {
 			military::implement_peace_offer(state, pending_offer);
+
+			if(target == state.local_player_nation) {
+				sound::play_interface_sound(state, sound::get_enemycapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			}
 		}
 	}
-
 	// A peace offer must be accepted when war score reaches 100.
-	if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
-
+	else if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
 		military::implement_peace_offer(state, pending_offer);
+
+		if(target == state.local_player_nation) {
+			sound::play_interface_sound(state, sound::get_wecapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
 	}
 	else {
 		diplomatic_message::message m;
