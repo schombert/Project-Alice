@@ -43,11 +43,10 @@ class nc_attacker_leader_img : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
 		auto lid = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class nc_defending_leader_img : public image_element_base {
@@ -86,11 +85,10 @@ class nc_defending_leader_img : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
 		auto lid = state.world.naval_battle_get_admiral_from_defending_admiral(b);
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 
@@ -756,11 +754,10 @@ class nc_our_leader_img : public image_element_base {
 		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
 		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
 		dcon::leader_id lid = we_are_attacker ? report->attacking_admiral : report->defending_admiral;
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class nc_our_leader_name : public simple_text_element_base {
@@ -816,11 +813,10 @@ class nc_their_leader_img : public image_element_base {
 		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
 		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
 		dcon::leader_id lid = !we_are_attacker ? report->attacking_admiral : report->defending_admiral;
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class nc_their_leader_name : public simple_text_element_base {

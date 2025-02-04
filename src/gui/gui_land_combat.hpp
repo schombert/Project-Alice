@@ -43,11 +43,10 @@ class lc_attacker_leader_img : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		auto lid = state.world.land_battle_get_general_from_attacking_general(b);
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class lc_defending_leader_img : public image_element_base {
@@ -86,11 +85,10 @@ class lc_defending_leader_img : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		auto lid = state.world.land_battle_get_general_from_defending_general(b);
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 
@@ -1100,11 +1098,10 @@ class lc_our_leader_img : public image_element_base {
 		military::land_battle_report* report = retrieve< military::land_battle_report*>(state, parent);
 		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
 		dcon::leader_id lid = we_are_attacker ? report->attacking_general : report->defending_general;
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class lc_our_leader_name : public simple_text_element_base {
@@ -1160,11 +1157,10 @@ class lc_their_leader_img : public image_element_base {
 		military::land_battle_report* report = retrieve< military::land_battle_report*>(state, parent);
 		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
 		dcon::leader_id lid = !we_are_attacker ? report->attacking_general : report->defending_general;
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class lc_their_leader_name : public simple_text_element_base {
