@@ -4916,6 +4916,11 @@ bool is_attacker_in_battle(sys::state& state, dcon::navy_id a) {
 	
 }
 
+// the wrapper will assign the proper background to a no_leader general if detected
+dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::leader_id id) {
+	return (bool(id)) ? state.world.leader_get_background(id) : state.world.leader_get_background(dcon::leader_id(0));
+}
+
 
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b) {
 	/*auto la = get_land_battle_lead_attacker(state, b);*/
