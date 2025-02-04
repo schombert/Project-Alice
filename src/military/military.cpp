@@ -4922,7 +4922,7 @@ dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::lea
 }
 // the wrapper will assign the proper personality to a no_leader general if detected
 dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::leader_id id) {
-	return (bool(id)) ? state.world.leader_get_personality(id) : state.military_definitions.first_personality_trait;
+	return (bool(id)) ? state.world.leader_get_personality(id) : dcon::leader_trait_id(0);
 }
 
 
