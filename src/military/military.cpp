@@ -4916,9 +4916,13 @@ bool is_attacker_in_battle(sys::state& state, dcon::navy_id a) {
 	
 }
 
-// the wrapper will assign the proper background to a no_leader general if detected
+// this wrapper will also assign the proper background to a no_leader general if detected
 dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::leader_id id) {
 	return (bool(id)) ? state.world.leader_get_background(id) : state.military_definitions.first_background_trait;
+}
+// the wrapper will assign the proper personality to a no_leader general if detected
+dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::leader_id id) {
+	return (bool(id)) ? state.world.leader_get_personality(id) : state.military_definitions.first_personality_trait;
 }
 
 
@@ -6389,11 +6393,11 @@ void update_naval_battles(sys::state& state) {
 		auto attacker_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
-		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
-		auto defender_bg = get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_per = fatten(state.world, get_leader_personality_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b)));
+		auto defender_bg = fatten(state.world, get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b)));
 
 		auto atk_leader_exp_mod = 1 + attacker_per.get_experience() + attacker_bg.get_experience();
-		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_per.get_experience();
+		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_bg.get_experience();
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
