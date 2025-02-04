@@ -1631,7 +1631,7 @@ float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::
 		total_population += s_pop;
 		total_states += (s_pop > 0) ? 1 : 0;
 
-		if(s.get_definition() == cb_state) {
+		if(s.get_definition() == cb_state && s.get_nation_from_state_ownership() == target) {
 			state_population = s_pop;
 		}
 	}
