@@ -74,168 +74,128 @@ public:
 class passive_leader_attack : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto attack = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_attack(military::get_leader_personality_wrapper(state, lid));
-			if(attack > 0) {
-				set_text(state, std::string("+") + text::format_float(attack, 2));
-				color = text::text_color::dark_green;
-			} else if(attack == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(attack, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto attack = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_attack(military::get_leader_personality_wrapper(state, lid));
+		if(attack > 0) {
+			set_text(state, std::string("+") + text::format_float(attack, 2));
+			color = text::text_color::dark_green;
+		} else if(attack == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(attack, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_defense : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_defense(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_defense(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_org : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_organisation(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_organisation(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_morale : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_morale(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_morale(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_speed : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_speed(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_speed(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_recon : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reconnaissance(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reconnaissance(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_reliability : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reliability(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reliability(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
 class passive_leader_exp : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		if(lid) {
-			auto v = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_experience(military::get_leader_personality_wrapper(state, lid));
-			if(v > 0) {
-				set_text(state, std::string("+") + text::format_float(v, 2));
-				color = text::text_color::dark_green;
-			} else if(v == 0) {
-				set_text(state, "0");
-				color = text::text_color::black;
-			} else {
-				set_text(state, text::format_float(v, 2));
-				color = text::text_color::red;
-			}
-		} else {
+		auto v = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_experience(military::get_leader_personality_wrapper(state, lid));
+		if(v > 0) {
+			set_text(state, std::string("+") + text::format_float(v, 2));
+			color = text::text_color::dark_green;
+		} else if(v == 0) {
 			set_text(state, "0");
 			color = text::text_color::black;
+		} else {
+			set_text(state, text::format_float(v, 2));
+			color = text::text_color::red;
 		}
 	}
 };
