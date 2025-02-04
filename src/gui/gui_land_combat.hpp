@@ -102,7 +102,7 @@ public:
 			auto name = state.to_string_view(state.world.leader_get_name(lid));
 			set_text(state, std::string(name));
 		} else {
-			set_text(state, "");
+			set_text(state, text::produce_simple_string(state, "no_leader"));
 		}
 	}
 };
@@ -116,7 +116,7 @@ public:
 			auto name = state.to_string_view(state.world.leader_get_name(lid));
 			set_text(state, std::string(name));
 		} else {
-			set_text(state, "");
+			set_text(state, text::produce_simple_string(state, "no_leader"));
 		}
 	}
 };
