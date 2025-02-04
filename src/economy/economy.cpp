@@ -5687,6 +5687,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					go_bankrupt(state, n);
 					spending_scale = 0.f;
 				}
+				// Interest payments
 				if(ip > 0) {
 					sp -= ip;
 					state.world.nation_get_national_bank(n) += ip;
@@ -5719,15 +5720,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_stockpiles(n, economy::money) -= std::min(budget, total * spending_scale);
 			state.world.nation_set_spending_level(n, spending_scale);
 
-			auto s = state.world.nation_get_stockpiles(n, economy::money);
-			auto l = state.world.nation_get_local_loan(n);
-			if(s < 0 && l < max_loan(state, n) &&
-				std::abs(s) <= max_loan(state, n) - l) {
+			auto& s = state.world.nation_get_stockpiles(n, economy::money);
+			auto& l = state.world.nation_get_local_loan(n);
+
+			// Take loan
+			if(s < 0 && l < max_loan(state, n) && std::abs(s) <= max_loan(state, n) - l) {
 				state.world.nation_get_local_loan(n) += std::abs(s);
 				state.world.nation_set_stockpiles(n, economy::money, 0);
 			} else if(s < 0) {
 				// Nation somehow got into negative bigger than its loans allow
 				go_bankrupt(state, n);
+			// Repay loan
 			} else if(s > 0 && l > 0) {
 				auto change = std::min(s, l);
 				state.world.nation_get_local_loan(n) -= change;
