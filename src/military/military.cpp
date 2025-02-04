@@ -5875,7 +5875,7 @@ void update_land_battles(sys::state& state) {
 		auto defender_bg = get_leader_background_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
 
 		auto atk_leader_exp_mod = 1 + attacker_per.get_experience() + attacker_bg.get_experience();
-		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_per.get_experience();
+		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_bg.get_experience();
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -6385,7 +6385,7 @@ void update_naval_battles(sys::state& state) {
 		auto attacker_dice = both_dice & 0x0F;
 		auto defender_dice = (both_dice >> 4) & 0x0F;
 
-		auto attacker_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto attacker_per = fatten(state.world, get_leader_personality_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b)));
 		auto attacker_bg = fatten(state.world, get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b)));
 
 		auto attack_bonus =
