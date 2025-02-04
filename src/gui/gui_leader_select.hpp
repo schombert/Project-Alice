@@ -75,7 +75,7 @@ class passive_leader_attack : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto attack = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_attack(state.world.leader_get_personality(lid));
+			auto attack = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_attack(military::get_leader_personality_wrapper(state, lid));
 			if(attack > 0) {
 				set_text(state, std::string("+") + text::format_float(attack, 2));
 				color = text::text_color::dark_green;
@@ -96,7 +96,7 @@ class passive_leader_defense : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_defense(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_defense(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -117,7 +117,7 @@ class passive_leader_org : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_organisation(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_organisation(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -138,7 +138,7 @@ class passive_leader_morale : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_morale(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_morale(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -159,7 +159,7 @@ class passive_leader_speed : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_speed(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_speed(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -180,7 +180,7 @@ class passive_leader_recon : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reconnaissance(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reconnaissance(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -201,7 +201,7 @@ class passive_leader_reliability : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reliability(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_reliability(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -222,7 +222,7 @@ class passive_leader_exp : public  color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			auto v = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_experience(state.world.leader_get_personality(lid));
+			auto v = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, lid)) + state.world.leader_trait_get_experience(military::get_leader_personality_wrapper(state, lid));
 			if(v > 0) {
 				set_text(state, std::string("+") + text::format_float(v, 2));
 				color = text::text_color::dark_green;
@@ -506,8 +506,8 @@ public:
 		switch(sort_type) {
 			case leader_select_sort::attack:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_attack(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_attack(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_attack(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_attack(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_attack(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -516,8 +516,8 @@ public:
 				break;
 			case leader_select_sort::defense:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_defense(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_defense(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_defense(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_defense(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_defense(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -526,8 +526,8 @@ public:
 				break;
 			case leader_select_sort::recon:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_reconnaissance(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_reconnaissance(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_reconnaissance(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_reconnaissance(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_reconnaissance(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -536,8 +536,8 @@ public:
 				break;
 			case leader_select_sort::morale:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_morale(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_morale(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_morale(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_morale(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_morale(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -546,8 +546,8 @@ public:
 				break;
 			case leader_select_sort::reliability:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_reliability(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_reliability(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_reliability(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_reliability(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_reliability(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -556,8 +556,8 @@ public:
 				break;
 			case leader_select_sort::org:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_organisation(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_organisation(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_organisation(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_organisation(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_organisation(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -566,8 +566,8 @@ public:
 				break;
 			case leader_select_sort::speed:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_speed(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_speed(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_speed(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_speed(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_speed(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else
@@ -576,8 +576,8 @@ public:
 				break;
 			case leader_select_sort::experience:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
-					auto av = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_experience(state.world.leader_get_personality(a));
-					auto bv = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_experience(state.world.leader_get_personality(b));
+					auto av = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, a)) + state.world.leader_trait_get_experience(military::get_leader_personality_wrapper(state, a));
+					auto bv = state.world.leader_trait_get_experience(military::get_leader_background_wrapper(state, b)) + state.world.leader_trait_get_experience(military::get_leader_personality_wrapper(state, b));
 					if(av != bv)
 						return av > bv;
 					else

@@ -2,7 +2,7 @@
 
 namespace ui {
 void display_leader_attributes(sys::state& state, dcon::leader_id lid, text::layout_base& contents, int32_t indent) {
-	auto leader_per = state.world.leader_get_personality(lid);
+	auto leader_per = military::get_leader_personality_wrapper(state, lid);
 	auto leader_bak = military::get_leader_background_wrapper(state, lid);
 	auto attack = state.world.leader_trait_get_attack(leader_per) + state.world.leader_trait_get_attack(leader_bak);
 	auto organisation = state.world.leader_trait_get_organisation(leader_per) + state.world.leader_trait_get_organisation(leader_bak);

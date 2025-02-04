@@ -490,7 +490,7 @@ class nc_defender_combat_modifiers : public overlapping_listbox_element_base<lc_
 
 		auto defender_dice = (both_dice >> 4) & 0x0F;
 
-		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_per = military::get_leader_personality_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b));
 		auto defender_bg = military::get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
 		auto defence_bonus =
@@ -517,7 +517,7 @@ class nc_attacker_combat_modifiers : public overlapping_listbox_element_base<lc_
 		auto both_dice = state.world.naval_battle_get_dice_rolls(b);
 		auto attacker_dice = both_dice & 0x0F;
 
-		auto attacker_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto attacker_per = military::get_leader_personality_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b));
 		auto attacker_bg = military::get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b));
 
 		auto attack_bonus =

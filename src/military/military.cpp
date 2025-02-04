@@ -4335,7 +4335,7 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	*/
 	auto leader = state.world.army_get_general_from_army_leadership(a);
 	auto bg = get_leader_background_wrapper(state, leader);
-	auto per = state.world.leader_get_personality(leader);
+	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
 				 (1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
@@ -4353,7 +4353,7 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 
 	auto leader = state.world.navy_get_admiral_from_navy_leadership(n);
 	auto bg = get_leader_background_wrapper(state, leader);
-	auto per = state.world.leader_get_personality(leader);
+	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
 }
@@ -4844,7 +4844,7 @@ float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_atta
 	value as determined by the following formula: (organization x 5 + attack + defend + morale +
 	speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
 	*/
-	auto per = state.world.leader_get_personality(l);
+	auto per = get_leader_personality_wrapper(state, l);
 	auto bak = get_leader_background_wrapper(state, l);
 	// atk and def are both set to 0 initally, and will be set to its actual amount depending if on the on_attacking input param
 	// this makes it so for example if the leader is attacking, it will disregard all "defence" stats for the purposes of calculating the score
@@ -5862,7 +5862,7 @@ void update_land_battles(sys::state& state) {
 		auto location = state.world.land_battle_get_location_from_land_battle_location(b);
 		auto terrain_bonus = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::defense);
 
-		auto attacker_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
+ 		auto attacker_per = fatten(state.world, get_leader_personality_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b)));
 		auto attacker_bg = fatten(state.world, get_leader_background_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b)));
 
 		auto attack_bonus =
@@ -5871,8 +5871,8 @@ void update_land_battles(sys::state& state) {
 				(1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg))
 			* (1.0f + state.world.leader_get_prestige(state.world.land_battle_get_general_from_attacking_general(b)) * state.defines.leader_prestige_to_max_org_factor);
 
-		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
-		auto defender_bg = get_leader_background_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
+		auto defender_per = fatten(state.world, get_leader_personality_wrapper(state, state.world.land_battle_get_general_from_defending_general(b)));
+		auto defender_bg = fatten(state.world, get_leader_background_wrapper(state, state.world.land_battle_get_general_from_defending_general(b)));
 
 		auto atk_leader_exp_mod = 1 + attacker_per.get_experience() + attacker_bg.get_experience();
 		auto def_leader_exp_mod = 1 + defender_per.get_experience() + defender_bg.get_experience();

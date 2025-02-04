@@ -568,7 +568,7 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		auto location = state.world.land_battle_get_location_from_land_battle_location(b);
 		auto terrain_bonus = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::defense);
 
-		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
+		auto defender_per = military::get_leader_personality_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
 		auto defender_bg = military::get_leader_background_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
 
 		auto defence_bonus =
@@ -615,7 +615,7 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 
 		auto attacker_dice = both_dice & 0x0F;
 
-		auto attacker_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
+		auto attacker_per = military::get_leader_personality_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b));
 		auto attacker_bg = military::get_leader_background_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b));
 
 		auto attack_bonus =

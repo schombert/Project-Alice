@@ -5257,7 +5257,7 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 		if(!n)
 			n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 		auto back = military::get_leader_background_wrapper(state, gen);
-		auto pers = state.world.leader_get_personality(gen);
+		auto pers = military::get_leader_personality_wrapper(state, gen);
 		float morale = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::org_regain)
 			+ state.world.leader_trait_get_morale(back)
 			+ state.world.leader_trait_get_morale(pers) + 1.0f;
@@ -5291,7 +5291,7 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 		if(!n)
 			n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 		auto back = military::get_leader_background_wrapper(state, gen);
-		auto pers = state.world.leader_get_personality(gen);
+		auto pers = military::get_leader_personality_wrapper(state, gen);
 		float morale = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::org_regain)
 			+ state.world.leader_trait_get_morale(back)
 			+ state.world.leader_trait_get_morale(pers) + 1.0f;
