@@ -172,6 +172,7 @@ public:
 	void remake_layout(sys::state& state, bool remake_lists) {
 		children.clear();
 		remake_layout_internal(layout, state, 0, 0, base_data.size.x, base_data.size.y, remake_lists);
+		std::reverse(children.begin(), children.end());
 	}
 	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 
