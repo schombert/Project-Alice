@@ -724,6 +724,13 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		}
 	} // end: remake lists
 
+	for(auto& m : lvl.contents) {
+		if(holds_alternative<generator_instance>(m)) {
+			auto& i = std::get<generator_instance>(m);
+			i.generator->reset_pools();
+		}
+	}
+
 	switch(lvl.type) {
 	case layout_type::single_horizontal:
 	{

@@ -3,16 +3,8 @@ struct budgetwindow_main_close_button_t;
 struct budgetwindow_main_title_t;
 struct budgetwindow_main_income_label_t;
 struct budgetwindow_main_income_amount_t;
-struct budgetwindow_main_income_page_left_t;
-struct budgetwindow_main_income_page_right_t;
-struct budgetwindow_main_income_page_number_t;
-struct budgetwindow_main_income_table_t;
-struct budgetwindow_main_expenses_page_left_t;
-struct budgetwindow_main_expenses_page_number_t;
-struct budgetwindow_main_expenses_page_right_t;
 struct budgetwindow_main_expenses_label_t;
 struct budgetwindow_main_expenses_amount_t;
-struct budgetwindow_main_expenses_table_t;
 struct budgetwindow_main_admin_eff1_t;
 struct budgetwindow_main_admin_eff2_t;
 struct budgetwindow_main_admin_eff_amount_t;
@@ -51,7 +43,13 @@ struct budgetwindow_section_header_t;
 struct budgetwindow_neutral_spacer_t;
 struct budgetwindow_top_spacer_t;
 struct budgetwindow_bottom_spacer_t;
+struct budgetwindow_budget_row_contents_t;
+struct budgetwindow_budget_row_t;
+struct budgetwindow_budget_header_contents_t;
+struct budgetwindow_budget_header_t;
 struct budgetwindow_main_close_button_t : public ui::element_base {
+// BEGIN main::close_button::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -78,6 +76,8 @@ struct budgetwindow_main_close_button_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_title_t : public ui::element_base {
+// BEGIN main::title::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 2.500000f; 
@@ -106,6 +106,8 @@ struct budgetwindow_main_title_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_income_label_t : public ui::element_base {
+// BEGIN main::income_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 2.000000f; 
@@ -134,6 +136,8 @@ struct budgetwindow_main_income_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_income_amount_t : public ui::element_base {
+// BEGIN main::income_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 2.000000f; 
@@ -160,282 +164,9 @@ struct budgetwindow_main_income_amount_t : public ui::element_base {
 	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct budgetwindow_main_income_page_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct budgetwindow_main_income_page_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct budgetwindow_main_income_page_number_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct budgetwindow_main_income_table_header_t : public ui::element_base {
-	inline static int16_t lead_space_column_start = 0;
-	inline static int16_t lead_space_column_width = 0;
-	text::layout item_name_internal_layout;
-	inline static text::text_color  item_name_text_color = text::text_color::black;
-	std::string item_name_cached_text;
-	inline static dcon::text_key item_name_text_key;
-	inline static int8_t item_name_sort_direction = 0;
-	inline static int16_t item_name_column_start = 0;
-	inline static int16_t item_name_column_width = 0;
-	text::layout item_value_internal_layout;
-	inline static text::text_color  item_value_text_color = text::text_color::black;
-	std::string item_value_cached_text;
-	inline static dcon::text_key item_value_text_key;
-	inline static int8_t item_value_sort_direction = 0;
-	inline static int16_t item_value_column_start = 0;
-	inline static int16_t item_value_column_width = 0;
-	inline static std::string_view ascending_icon_key;
-	inline static dcon::texture_id ascending_icon;
-	inline static std::string_view descending_icon_key;
-	inline static dcon::texture_id descending_icon;
-	void on_reset_text(sys::state & state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-struct budgetwindow_main_income_table_row_t : public ui::element_base {
-	std::pair<std::string, float> value;
-	bool alternate_row = false;
-	text::layout item_name_internal_layout;
-	inline static text::text_color  item_name_default_text_color = text::text_color::black;
-	text::text_color  item_name_text_color = item_name_default_text_color ;
-	std::string item_name_cached_text;
-	inline static text::alignment item_name_text_alignment = text::alignment::right;
-	void set_item_name_text(sys::state & state, std::string const& new_text);
-	text::layout item_value_internal_layout;
-	inline static text::text_color  item_value_default_text_color = text::text_color::black;
-	text::text_color  item_value_text_color = item_value_default_text_color ;
-	std::string item_value_cached_text;
-	inline static text::alignment item_value_text_alignment = text::alignment::right;
-	void set_item_value_text(sys::state & state, std::string const& new_text);
-	inline static std::string_view row_texture_key;
-	inline static dcon::texture_id row_background_texture;
-	inline static std::string_view alt_row_texture_key;
-	inline static dcon::texture_id alt_row_background_texture;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-struct budgetwindow_main_income_table_t : public ui::non_owning_container_base {
-	struct section_header_option { int32_t section_type; };
-	std::vector<std::unique_ptr<ui::element_base>> section_header_pool;
-	struct neutral_spacer_option { };
-	std::vector<std::unique_ptr<ui::element_base>> neutral_spacer_pool;
-	struct bottom_spacer_option { };
-	std::vector<std::unique_ptr<ui::element_base>> bottom_spacer_pool;
-	struct top_spacer_option { };
-	std::vector<std::unique_ptr<ui::element_base>> top_spacer_pool;
-	std::vector<std::unique_ptr<budgetwindow_main_income_table_row_t>> row_pool;
-	std::vector<std::unique_ptr<budgetwindow_main_income_table_header_t>> header_pool;
-	struct value_option { std::pair<std::string, float> value; };
-	int32_t page = 0;
-	inline static float row_height = 0;
-	inline static ogl::color4f table_highlight_color{float(1.000000), float(1.000000), float(1.000000), float(0.156863)};
-	inline static ogl::color3f table_divider_color{float(0.000000), float(0.000000), float(0.000000)};
-	std::vector<std::variant<std::monostate, value_option, section_header_option, neutral_spacer_option, bottom_spacer_option, top_spacer_option>> values;
-	std::vector<int32_t> page_starts;
-	bool open_page = false;
-	int16_t layout_space = 0;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::consumed;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void clear_table(); 
-	void impl_change_page(sys::state & state, int32_t new_page); 
-	void add_value(std::pair<std::string, float> const& v); 
-	void add_insert_section_header(sys::state& state, int32_t const& section_type); 
-	void add_insert_neutral_spacer(sys::state& state); 
-	void add_insert_bottom_spacer(sys::state& state); 
-	void add_insert_top_spacer(sys::state& state); 
-	std::unique_ptr<budgetwindow_main_income_table_row_t> make_row(sys::state& state);
-	std::unique_ptr<budgetwindow_main_income_table_header_t> make_headers(sys::state& state);
-	void apply_sort(sys::state& state); 
-	void impl_apply_sort(sys::state& state); 
-	void on_update(sys::state& state) noexcept override;
-};
-struct budgetwindow_main_expenses_page_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct budgetwindow_main_expenses_page_number_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct budgetwindow_main_expenses_page_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
 struct budgetwindow_main_expenses_label_t : public ui::element_base {
+// BEGIN main::expenses_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 2.000000f; 
@@ -464,6 +195,8 @@ struct budgetwindow_main_expenses_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_expenses_amount_t : public ui::element_base {
+// BEGIN main::expenses_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 2.000000f; 
@@ -490,136 +223,9 @@ struct budgetwindow_main_expenses_amount_t : public ui::element_base {
 	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct budgetwindow_main_expenses_table_header_t : public ui::element_base {
-	inline static int16_t lead_space_column_start = 0;
-	inline static int16_t lead_space_column_width = 0;
-	text::layout item_name_internal_layout;
-	inline static text::text_color  item_name_text_color = text::text_color::black;
-	std::string item_name_cached_text;
-	inline static dcon::text_key item_name_text_key;
-	inline static int8_t item_name_sort_direction = 0;
-	inline static int16_t item_name_column_start = 0;
-	inline static int16_t item_name_column_width = 0;
-	text::layout item_value_internal_layout;
-	inline static text::text_color  item_value_text_color = text::text_color::black;
-	std::string item_value_cached_text;
-	inline static dcon::text_key item_value_text_key;
-	inline static int8_t item_value_sort_direction = 0;
-	inline static int16_t item_value_column_start = 0;
-	inline static int16_t item_value_column_width = 0;
-	inline static std::string_view ascending_icon_key;
-	inline static dcon::texture_id ascending_icon;
-	inline static std::string_view descending_icon_key;
-	inline static dcon::texture_id descending_icon;
-	void on_reset_text(sys::state & state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-struct budgetwindow_main_expenses_table_row_t : public ui::element_base {
-	std::pair<std::string, float> value;
-	bool alternate_row = false;
-	text::layout item_name_internal_layout;
-	inline static text::text_color  item_name_default_text_color = text::text_color::black;
-	text::text_color  item_name_text_color = item_name_default_text_color ;
-	std::string item_name_cached_text;
-	inline static text::alignment item_name_text_alignment = text::alignment::right;
-	void set_item_name_text(sys::state & state, std::string const& new_text);
-	text::layout item_value_internal_layout;
-	inline static text::text_color  item_value_default_text_color = text::text_color::black;
-	text::text_color  item_value_text_color = item_value_default_text_color ;
-	std::string item_value_cached_text;
-	inline static text::alignment item_value_text_alignment = text::alignment::right;
-	void set_item_value_text(sys::state & state, std::string const& new_text);
-	inline static std::string_view row_texture_key;
-	inline static dcon::texture_id row_background_texture;
-	inline static std::string_view alt_row_texture_key;
-	inline static dcon::texture_id alt_row_background_texture;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-struct budgetwindow_main_expenses_table_t : public ui::non_owning_container_base {
-	struct section_header_option { int32_t section_type; };
-	std::vector<std::unique_ptr<ui::element_base>> section_header_pool;
-	struct neutral_spacer_option { };
-	std::vector<std::unique_ptr<ui::element_base>> neutral_spacer_pool;
-	struct bottom_spacer_option { };
-	std::vector<std::unique_ptr<ui::element_base>> bottom_spacer_pool;
-	struct top_spacer_option { };
-	std::vector<std::unique_ptr<ui::element_base>> top_spacer_pool;
-	std::vector<std::unique_ptr<budgetwindow_main_expenses_table_row_t>> row_pool;
-	std::vector<std::unique_ptr<budgetwindow_main_expenses_table_header_t>> header_pool;
-	struct value_option { std::pair<std::string, float> value; };
-	int32_t page = 0;
-	inline static float row_height = 0;
-	inline static ogl::color4f table_highlight_color{float(1.000000), float(1.000000), float(1.000000), float(0.156863)};
-	inline static ogl::color3f table_divider_color{float(0.000000), float(0.000000), float(0.000000)};
-	std::vector<std::variant<std::monostate, value_option, section_header_option, neutral_spacer_option, bottom_spacer_option, top_spacer_option>> values;
-	std::vector<int32_t> page_starts;
-	bool open_page = false;
-	int16_t layout_space = 0;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::consumed;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void clear_table(); 
-	void impl_change_page(sys::state & state, int32_t new_page); 
-	void add_value(std::pair<std::string, float> const& v); 
-	void add_insert_section_header(sys::state& state, int32_t const& section_type); 
-	void add_insert_neutral_spacer(sys::state& state); 
-	void add_insert_bottom_spacer(sys::state& state); 
-	void add_insert_top_spacer(sys::state& state); 
-	std::unique_ptr<budgetwindow_main_expenses_table_row_t> make_row(sys::state& state);
-	std::unique_ptr<budgetwindow_main_expenses_table_header_t> make_headers(sys::state& state);
-	void apply_sort(sys::state& state); 
-	void impl_apply_sort(sys::state& state); 
-	void on_update(sys::state& state) noexcept override;
-};
 struct budgetwindow_main_admin_eff1_t : public ui::element_base {
+// BEGIN main::admin_eff1::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.500000f; 
@@ -648,6 +254,8 @@ struct budgetwindow_main_admin_eff1_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_admin_eff2_t : public ui::element_base {
+// BEGIN main::admin_eff2::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.500000f; 
@@ -676,6 +284,8 @@ struct budgetwindow_main_admin_eff2_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_admin_eff_amount_t : public ui::element_base {
+// BEGIN main::admin_eff_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.500000f; 
@@ -704,6 +314,8 @@ struct budgetwindow_main_admin_eff_amount_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_welfare_label_t : public ui::element_base {
+// BEGIN main::welfare_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.500000f; 
@@ -732,6 +344,8 @@ struct budgetwindow_main_welfare_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_chart_max_a_t : public ui::element_base {
+// BEGIN main::chart_max_a::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -760,6 +374,8 @@ struct budgetwindow_main_chart_max_a_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_chart_min_t : public ui::element_base {
+// BEGIN main::chart_min::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -788,6 +404,8 @@ struct budgetwindow_main_chart_min_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_chart_max_b_t : public ui::element_base {
+// BEGIN main::chart_max_b::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -816,6 +434,8 @@ struct budgetwindow_main_chart_max_b_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_chart_poplabel_t : public ui::element_base {
+// BEGIN main::chart_poplabel::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -844,6 +464,8 @@ struct budgetwindow_main_chart_poplabel_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_chart_needslabel_t : public ui::element_base {
+// BEGIN main::chart_needslabel::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -872,6 +494,8 @@ struct budgetwindow_main_chart_needslabel_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_welfare_chart_poor_t : public ui::element_base {
+// BEGIN main::welfare_chart_poor::variables
+// END
 	ogl::lines lines{ 32 };
 	ogl::color4f line_color{ 0.854902f, 0.254902f, 0.192157f, 1.000000f };
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max);
@@ -896,6 +520,8 @@ struct budgetwindow_main_welfare_chart_poor_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_welfare_chart_middle_t : public ui::element_base {
+// BEGIN main::welfare_chart_middle::variables
+// END
 	ogl::lines lines{ 32 };
 	ogl::color4f line_color{ 0.462745f, 0.313726f, 1.000000f, 1.000000f };
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max);
@@ -920,6 +546,8 @@ struct budgetwindow_main_welfare_chart_middle_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_welfare_chart_rich_t : public ui::element_base {
+// BEGIN main::welfare_chart_rich::variables
+// END
 	ogl::lines lines{ 32 };
 	ogl::color4f line_color{ 0.133333f, 0.658824f, 0.203922f, 1.000000f };
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max);
@@ -944,6 +572,8 @@ struct budgetwindow_main_welfare_chart_rich_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_hover_poor_t : public ui::element_base {
+// BEGIN main::hover_poor::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	text::layout internal_layout;
@@ -978,6 +608,8 @@ struct budgetwindow_main_hover_poor_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_hover_middle_t : public ui::element_base {
+// BEGIN main::hover_middle::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	text::layout internal_layout;
@@ -1012,6 +644,8 @@ struct budgetwindow_main_hover_middle_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_hover_rich_t : public ui::element_base {
+// BEGIN main::hover_rich::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	text::layout internal_layout;
@@ -1046,6 +680,8 @@ struct budgetwindow_main_hover_rich_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_debt_label_t : public ui::element_base {
+// BEGIN main::debt_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.500000f; 
@@ -1074,6 +710,8 @@ struct budgetwindow_main_debt_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_debt_enable_t : public ui::element_base {
+// BEGIN main::debt_enable::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -1111,6 +749,8 @@ struct budgetwindow_main_debt_enable_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_total_debt_label_t : public ui::element_base {
+// BEGIN main::total_debt_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1139,6 +779,8 @@ struct budgetwindow_main_total_debt_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_max_debt_label_t : public ui::element_base {
+// BEGIN main::max_debt_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1167,6 +809,8 @@ struct budgetwindow_main_max_debt_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_total_debt_amount_t : public ui::element_base {
+// BEGIN main::total_debt_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1195,6 +839,8 @@ struct budgetwindow_main_total_debt_amount_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_max_debt_amount_t : public ui::element_base {
+// BEGIN main::max_debt_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1223,6 +869,8 @@ struct budgetwindow_main_max_debt_amount_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_debt_chart_t : public ui::element_base {
+// BEGIN main::debt_chart::variables
+// END
 	ogl::data_texture data_texture{ 200, 3 };
 	struct graph_entry {dcon::text_key key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1249,6 +897,8 @@ struct budgetwindow_main_debt_chart_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_debt_overlay_t : public ui::element_base {
+// BEGIN main::debt_overlay::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1271,7 +921,73 @@ struct budgetwindow_main_debt_overlay_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct budgetwindow_main_income_table_t : public layout_generator {
+// BEGIN main::income_table::variables
+// END
+	struct section_header_option { int32_t section_type; };
+	std::vector<std::unique_ptr<ui::element_base>> section_header_pool;
+	int32_t section_header_pool_used = 0;
+	void add_section_header( int32_t section_type);
+	struct neutral_spacer_option { };
+	std::vector<std::unique_ptr<ui::element_base>> neutral_spacer_pool;
+	int32_t neutral_spacer_pool_used = 0;
+	void add_neutral_spacer();
+	struct top_spacer_option { };
+	std::vector<std::unique_ptr<ui::element_base>> top_spacer_pool;
+	int32_t top_spacer_pool_used = 0;
+	void add_top_spacer();
+	struct bottom_spacer_option { };
+	std::vector<std::unique_ptr<ui::element_base>> bottom_spacer_pool;
+	int32_t bottom_spacer_pool_used = 0;
+	void add_bottom_spacer();
+	struct budget_row_option { std::string name; float value; };
+	std::vector<std::unique_ptr<ui::element_base>> budget_row_pool;
+	int32_t budget_row_pool_used = 0;
+	void add_budget_row( std::string name,  float value);
+	std::vector<std::unique_ptr<ui::element_base>> budget_header_pool;
+	int32_t budget_header_pool_used = 0;
+	std::vector<std::variant<std::monostate, section_header_option, neutral_spacer_option, top_spacer_option, bottom_spacer_option, budget_row_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
+struct budgetwindow_main_espenses_table_t : public layout_generator {
+// BEGIN main::espenses_table::variables
+// END
+	struct section_header_option { int32_t section_type; };
+	std::vector<std::unique_ptr<ui::element_base>> section_header_pool;
+	int32_t section_header_pool_used = 0;
+	void add_section_header( int32_t section_type);
+	struct neutral_spacer_option { };
+	std::vector<std::unique_ptr<ui::element_base>> neutral_spacer_pool;
+	int32_t neutral_spacer_pool_used = 0;
+	void add_neutral_spacer();
+	struct top_spacer_option { };
+	std::vector<std::unique_ptr<ui::element_base>> top_spacer_pool;
+	int32_t top_spacer_pool_used = 0;
+	void add_top_spacer();
+	struct bottom_spacer_option { };
+	std::vector<std::unique_ptr<ui::element_base>> bottom_spacer_pool;
+	int32_t bottom_spacer_pool_used = 0;
+	void add_bottom_spacer();
+	struct budget_row_option { std::string name; float value; };
+	std::vector<std::unique_ptr<ui::element_base>> budget_row_pool;
+	int32_t budget_row_pool_used = 0;
+	void add_budget_row( std::string name,  float value);
+	std::vector<std::unique_ptr<ui::element_base>> budget_header_pool;
+	int32_t budget_header_pool_used = 0;
+	std::vector<std::variant<std::monostate, section_header_option, neutral_spacer_option, top_spacer_option, bottom_spacer_option, budget_row_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
 struct budgetwindow_section_header_label_t : public ui::element_base {
+// BEGIN section_header::label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.400000f; 
@@ -1299,6 +1015,8 @@ struct budgetwindow_section_header_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_llbutton_t : public ui::element_base {
+// BEGIN section_header::llbutton::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -1324,6 +1042,8 @@ struct budgetwindow_section_header_llbutton_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_lbutton_t : public ui::element_base {
+// BEGIN section_header::lbutton::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -1349,6 +1069,8 @@ struct budgetwindow_section_header_lbutton_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_rbutton_t : public ui::element_base {
+// BEGIN section_header::rbutton::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -1374,6 +1096,8 @@ struct budgetwindow_section_header_rbutton_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_rrbutton_t : public ui::element_base {
+// BEGIN section_header::rrbutton::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -1399,6 +1123,8 @@ struct budgetwindow_section_header_rrbutton_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_setting_amount_t : public ui::element_base {
+// BEGIN section_header::setting_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1426,6 +1152,8 @@ struct budgetwindow_section_header_setting_amount_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_expand_button_t : public ui::element_base {
+// BEGIN section_header::expand_button::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -1454,6 +1182,8 @@ struct budgetwindow_section_header_expand_button_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_total_amount_t : public ui::element_base {
+// BEGIN section_header::total_amount::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1481,6 +1211,8 @@ struct budgetwindow_section_header_total_amount_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_min_setting_t : public ui::element_base {
+// BEGIN section_header::min_setting::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1509,6 +1241,8 @@ struct budgetwindow_section_header_min_setting_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_max_setting_t : public ui::element_base {
+// BEGIN section_header::max_setting::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.000000f; 
@@ -1536,52 +1270,134 @@ struct budgetwindow_section_header_max_setting_t : public ui::element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct budgetwindow_main_t : public ui::container_base {
-	budgetwindow_main_close_button_t* close_button = nullptr;
-	budgetwindow_main_title_t* title = nullptr;
-	budgetwindow_main_income_label_t* income_label = nullptr;
-	budgetwindow_main_income_amount_t* income_amount = nullptr;
-	budgetwindow_main_income_page_left_t* income_page_left = nullptr;
-	budgetwindow_main_income_page_right_t* income_page_right = nullptr;
-	budgetwindow_main_income_page_number_t* income_page_number = nullptr;
-	budgetwindow_main_income_table_t* income_table = nullptr;
-	budgetwindow_main_expenses_page_left_t* expenses_page_left = nullptr;
-	budgetwindow_main_expenses_page_number_t* expenses_page_number = nullptr;
-	budgetwindow_main_expenses_page_right_t* expenses_page_right = nullptr;
-	budgetwindow_main_expenses_label_t* expenses_label = nullptr;
-	budgetwindow_main_expenses_amount_t* expenses_amount = nullptr;
-	budgetwindow_main_expenses_table_t* expenses_table = nullptr;
-	budgetwindow_main_admin_eff1_t* admin_eff1 = nullptr;
-	budgetwindow_main_admin_eff2_t* admin_eff2 = nullptr;
-	budgetwindow_main_admin_eff_amount_t* admin_eff_amount = nullptr;
-	budgetwindow_main_welfare_label_t* welfare_label = nullptr;
-	budgetwindow_main_chart_max_a_t* chart_max_a = nullptr;
-	budgetwindow_main_chart_min_t* chart_min = nullptr;
-	budgetwindow_main_chart_max_b_t* chart_max_b = nullptr;
-	budgetwindow_main_chart_poplabel_t* chart_poplabel = nullptr;
-	budgetwindow_main_chart_needslabel_t* chart_needslabel = nullptr;
-	budgetwindow_main_welfare_chart_poor_t* welfare_chart_poor = nullptr;
-	budgetwindow_main_welfare_chart_middle_t* welfare_chart_middle = nullptr;
-	budgetwindow_main_welfare_chart_rich_t* welfare_chart_rich = nullptr;
-	budgetwindow_main_hover_poor_t* hover_poor = nullptr;
-	budgetwindow_main_hover_middle_t* hover_middle = nullptr;
-	budgetwindow_main_hover_rich_t* hover_rich = nullptr;
-	budgetwindow_main_debt_label_t* debt_label = nullptr;
-	budgetwindow_main_debt_enable_t* debt_enable = nullptr;
-	budgetwindow_main_total_debt_label_t* total_debt_label = nullptr;
-	budgetwindow_main_max_debt_label_t* max_debt_label = nullptr;
-	budgetwindow_main_total_debt_amount_t* total_debt_amount = nullptr;
-	budgetwindow_main_max_debt_amount_t* max_debt_amount = nullptr;
-	budgetwindow_main_debt_chart_t* debt_chart = nullptr;
-	budgetwindow_main_debt_overlay_t* debt_overlay = nullptr;
+struct budgetwindow_budget_row_contents_t : public ui::element_base {
+// BEGIN budget_row::contents::variables
+// END
+	text::layout item_name_internal_layout;
+	text::text_color  item_name_text_color = text::text_color::black;
+	std::string item_name_cached_text;
+	void set_item_name_text(sys::state & state, std::string const& new_text);
+	text::layout item_value_internal_layout;
+	text::text_color  item_value_text_color = text::text_color::black;
+	std::string item_value_cached_text;
+	void set_item_value_text(sys::state & state, std::string const& new_text);
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_budget_header_contents_t : public ui::element_base {
+// BEGIN budget_header::contents::variables
+// END
+	text::layout item_name_internal_layout;
+	std::string item_name_cached_text;
+	text::layout item_value_internal_layout;
+	std::string item_value_cached_text;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_reset_text(sys::state & state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_t : public layout_window_element {
+// BEGIN main::variables
+// END
+	std::unique_ptr<budgetwindow_main_close_button_t> close_button;
+	std::unique_ptr<budgetwindow_main_title_t> title;
+	std::unique_ptr<budgetwindow_main_income_label_t> income_label;
+	std::unique_ptr<budgetwindow_main_income_amount_t> income_amount;
+	std::unique_ptr<budgetwindow_main_expenses_label_t> expenses_label;
+	std::unique_ptr<budgetwindow_main_expenses_amount_t> expenses_amount;
+	std::unique_ptr<budgetwindow_main_admin_eff1_t> admin_eff1;
+	std::unique_ptr<budgetwindow_main_admin_eff2_t> admin_eff2;
+	std::unique_ptr<budgetwindow_main_admin_eff_amount_t> admin_eff_amount;
+	std::unique_ptr<budgetwindow_main_welfare_label_t> welfare_label;
+	std::unique_ptr<budgetwindow_main_chart_max_a_t> chart_max_a;
+	std::unique_ptr<budgetwindow_main_chart_min_t> chart_min;
+	std::unique_ptr<budgetwindow_main_chart_max_b_t> chart_max_b;
+	std::unique_ptr<budgetwindow_main_chart_poplabel_t> chart_poplabel;
+	std::unique_ptr<budgetwindow_main_chart_needslabel_t> chart_needslabel;
+	std::unique_ptr<budgetwindow_main_welfare_chart_poor_t> welfare_chart_poor;
+	std::unique_ptr<budgetwindow_main_welfare_chart_middle_t> welfare_chart_middle;
+	std::unique_ptr<budgetwindow_main_welfare_chart_rich_t> welfare_chart_rich;
+	std::unique_ptr<budgetwindow_main_hover_poor_t> hover_poor;
+	std::unique_ptr<budgetwindow_main_hover_middle_t> hover_middle;
+	std::unique_ptr<budgetwindow_main_hover_rich_t> hover_rich;
+	std::unique_ptr<budgetwindow_main_debt_label_t> debt_label;
+	std::unique_ptr<budgetwindow_main_debt_enable_t> debt_enable;
+	std::unique_ptr<budgetwindow_main_total_debt_label_t> total_debt_label;
+	std::unique_ptr<budgetwindow_main_max_debt_label_t> max_debt_label;
+	std::unique_ptr<budgetwindow_main_total_debt_amount_t> total_debt_amount;
+	std::unique_ptr<budgetwindow_main_max_debt_amount_t> max_debt_amount;
+	std::unique_ptr<budgetwindow_main_debt_chart_t> debt_chart;
+	std::unique_ptr<budgetwindow_main_debt_overlay_t> debt_overlay;
+	budgetwindow_main_income_table_t income_table;
+	budgetwindow_main_espenses_table_t espenses_table;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	int16_t income_table_lead_space_column_start = 0;
+	int16_t income_table_lead_space_column_width = 0;
+	std::string_view income_table_item_name_header_text_key;
+	text::text_color income_table_item_name_header_text_color = text::text_color::black;
+	text::text_color income_table_item_name_column_text_color = text::text_color::black;
+	text::alignment income_table_item_name_text_alignment = text::alignment::right;
+	int8_t income_table_item_name_sort_direction = 0;
+	int16_t income_table_item_name_column_start = 0;
+	int16_t income_table_item_name_column_width = 0;
+	std::string_view income_table_item_value_header_text_key;
+	text::text_color income_table_item_value_header_text_color = text::text_color::black;
+	text::text_color income_table_item_value_column_text_color = text::text_color::black;
+	text::alignment income_table_item_value_text_alignment = text::alignment::right;
+	int8_t income_table_item_value_sort_direction = 0;
+	int16_t income_table_item_value_column_start = 0;
+	int16_t income_table_item_value_column_width = 0;
+	std::string_view income_table_ascending_icon_key;
+	dcon::texture_id income_table_ascending_icon;
+	std::string_view income_table_descending_icon_key;
+	dcon::texture_id income_table_descending_icon;
+	ogl::color3f income_table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+		return ui::message_result::consumed;
 	}
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto location_abs = get_absolute_location(state, *this);
@@ -1604,20 +1420,24 @@ struct budgetwindow_main_t : public ui::container_base {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
-struct budgetwindow_section_header_t : public ui::container_base {
+struct budgetwindow_section_header_t : public layout_window_element {
+// BEGIN section_header::variables
+// END
 	int32_t section_type;
-	budgetwindow_section_header_label_t* label = nullptr;
-	budgetwindow_section_header_llbutton_t* llbutton = nullptr;
-	budgetwindow_section_header_lbutton_t* lbutton = nullptr;
-	budgetwindow_section_header_rbutton_t* rbutton = nullptr;
-	budgetwindow_section_header_rrbutton_t* rrbutton = nullptr;
-	budgetwindow_section_header_setting_amount_t* setting_amount = nullptr;
-	budgetwindow_section_header_expand_button_t* expand_button = nullptr;
-	budgetwindow_section_header_total_amount_t* total_amount = nullptr;
-	budgetwindow_section_header_min_setting_t* min_setting = nullptr;
-	budgetwindow_section_header_max_setting_t* max_setting = nullptr;
+	std::unique_ptr<budgetwindow_section_header_label_t> label;
+	std::unique_ptr<budgetwindow_section_header_llbutton_t> llbutton;
+	std::unique_ptr<budgetwindow_section_header_lbutton_t> lbutton;
+	std::unique_ptr<budgetwindow_section_header_rbutton_t> rbutton;
+	std::unique_ptr<budgetwindow_section_header_rrbutton_t> rrbutton;
+	std::unique_ptr<budgetwindow_section_header_setting_amount_t> setting_amount;
+	std::unique_ptr<budgetwindow_section_header_expand_button_t> expand_button;
+	std::unique_ptr<budgetwindow_section_header_total_amount_t> total_amount;
+	std::unique_ptr<budgetwindow_section_header_min_setting_t> min_setting;
+	std::unique_ptr<budgetwindow_section_header_max_setting_t> max_setting;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -1626,15 +1446,18 @@ struct budgetwindow_section_header_t : public ui::container_base {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "section_type") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "section_type") {
 			return (void*)(&section_type);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_budgetwindow_section_header(sys::state& state);
-struct budgetwindow_neutral_spacer_t : public ui::container_base {
+struct budgetwindow_neutral_spacer_t : public ui::non_owning_container_base {
+// BEGIN neutral_spacer::variables
+// END
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1647,7 +1470,10 @@ struct budgetwindow_neutral_spacer_t : public ui::container_base {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_budgetwindow_neutral_spacer(sys::state& state);
-struct budgetwindow_top_spacer_t : public ui::container_base {
+struct budgetwindow_top_spacer_t : public ui::non_owning_container_base {
+// BEGIN top_spacer::variables
+// END
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1660,7 +1486,10 @@ struct budgetwindow_top_spacer_t : public ui::container_base {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_budgetwindow_top_spacer(sys::state& state);
-struct budgetwindow_bottom_spacer_t : public ui::container_base {
+struct budgetwindow_bottom_spacer_t : public ui::non_owning_container_base {
+// BEGIN bottom_spacer::variables
+// END
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1673,6 +1502,841 @@ struct budgetwindow_bottom_spacer_t : public ui::container_base {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_budgetwindow_bottom_spacer(sys::state& state);
+struct budgetwindow_budget_row_t : public layout_window_element {
+// BEGIN budget_row::variables
+// END
+	std::string name;
+	float value;
+	std::unique_ptr<budgetwindow_budget_row_contents_t> contents;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+	}
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "name") {
+			return (void*)(&name);
+		}
+		if(name_parameter == "value") {
+			return (void*)(&value);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_budgetwindow_budget_row(sys::state& state);
+struct budgetwindow_budget_header_t : public layout_window_element {
+// BEGIN budget_header::variables
+// END
+	std::unique_ptr<budgetwindow_budget_header_contents_t> contents;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+std::unique_ptr<ui::element_base> make_budgetwindow_budget_header(sys::state& state);
+void budgetwindow_main_income_table_t::add_section_header(int32_t section_type) {
+	values.emplace_back(section_header_option{section_type});
+}
+void budgetwindow_main_income_table_t::add_neutral_spacer() {
+	values.emplace_back(neutral_spacer_option{});
+}
+void budgetwindow_main_income_table_t::add_top_spacer() {
+	values.emplace_back(top_spacer_option{});
+}
+void budgetwindow_main_income_table_t::add_bottom_spacer() {
+	values.emplace_back(bottom_spacer_option{});
+}
+void budgetwindow_main_income_table_t::add_budget_row(std::string name, float value) {
+	values.emplace_back(budget_row_option{name, value});
+}
+void  budgetwindow_main_income_table_t::on_create(sys::state& state, layout_window_element* parent) {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::income_table::on_create
+// END
+}
+void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_element* parent) {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::income_table::update
+	values.clear();
+	add_section_header(budget_categories::poor_tax);
+	if(budget_categories::expanded[budget_categories::poor_tax]) {
+		add_top_spacer();
+		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			auto s = so.get_state();
+			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
+			add_budget_row(
+				text::get_short_state_name(state, s),
+				info.poor
+			);
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::middle_tax);
+	if(budget_categories::expanded[budget_categories::middle_tax]) {
+		add_top_spacer();
+		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			auto s = so.get_state();
+			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
+			add_budget_row(
+				text::get_short_state_name(state, s),
+				info.mid
+			);
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::rich_tax);
+	if(budget_categories::expanded[budget_categories::rich_tax]) {
+		add_top_spacer();
+		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			auto s = so.get_state();
+			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
+			add_budget_row(
+				text::get_short_state_name(state, s),
+				info.rich
+			);
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::tariffs_import);
+	if(budget_categories::expanded[budget_categories::tariffs_import]) {
+		add_top_spacer();
+		auto totals = economy::explain_national_tariff(state, state.local_player_nation, true, false);
+		for(auto& item : totals) {
+			add_budget_row(
+				text::produce_simple_string(state,
+					state.world.national_identity_get_name(
+						state.world.nation_get_identity_from_identity_holder(item.trade_partner)
+					)
+				)
+				+
+				" ("
+				+ 
+				text::produce_simple_string(state,
+					state.world.commodity_get_name(item.commodity)
+				)
+				+
+				")",
+				item.tariff
+			);
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::tariffs_export);
+	if(budget_categories::expanded[budget_categories::tariffs_export]) {
+		add_top_spacer();
+		auto totals = economy::explain_national_tariff(state, state.local_player_nation, false, true);
+		for(auto& item : totals) {
+			add_budget_row(
+				text::produce_simple_string(state,
+					state.world.national_identity_get_name(
+						state.world.nation_get_identity_from_identity_holder(item.trade_partner)
+					)
+				)
+				+
+				" ("
+				+
+				text::produce_simple_string(state,
+					state.world.commodity_get_name(item.commodity)
+				)
+				+
+				")",
+				item.tariff
+			);
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::diplomatic_income);
+	if(budget_categories::expanded[budget_categories::diplomatic_income]) {
+		add_top_spacer();
+		add_budget_row(text::produce_simple_string(state, "warsubsidies_button"), economy::estimate_war_subsidies_income(state, state.local_player_nation));
+		add_budget_row(text::produce_simple_string(state, "alice_budget_indemnities"), economy::estimate_reparations_income(state, state.local_player_nation));
+		for(auto n : state.world.nation_get_overlord_as_ruler(state.local_player_nation)) {
+			auto transferamt = economy::estimate_subject_payments_paid(state, n.get_subject());
+			add_budget_row(text::produce_simple_string(state, text::get_name(state, n.get_subject())), transferamt);
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::gold);
+	if(budget_categories::expanded[budget_categories::gold]) {
+		add_top_spacer();
+		for(auto poid : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+			auto prov = poid.get_province();
+
+			float amount = 0.0f;
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				if(state.world.commodity_get_money_rgo(c)) {
+					amount += province::rgo_production_quantity(state, prov.id, c) * state.world.commodity_get_cost(c);
+				}
+			});
+
+			if(amount > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.province_get_name(prov)), amount * state.defines.gold_to_cash_rate);
+			}
+		}
+		add_bottom_spacer();
+	}
+// END
+	{
+	bool work_to_do = false;
+	auto table_source = (budgetwindow_main_t*)(parent);
+	if(table_source->income_table_item_name_sort_direction != 0) work_to_do = true;
+	if(table_source->income_table_item_value_sort_direction != 0) work_to_do = true;
+	if(work_to_do) {
+		for(size_t i = 0; i < values.size(); ++i) {
+			if(std::holds_alternative<budget_row_option>(values[i])) {
+				auto start_i = i;
+				while(i < values.size() && std::holds_alternative<budget_row_option>(values[i])) ++i;
+				if(table_source->income_table_item_name_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<budget_row_option>(raw_a);
+							auto const& b = std::get<budget_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::income_table::income_table::sort::item_name
+						result = int8_t(std::clamp(a.name.compare(b.name), -1, 1));
+// END
+						return -result == table_source->income_table_item_name_sort_direction;
+					});
+				}
+				if(table_source->income_table_item_value_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<budget_row_option>(raw_a);
+							auto const& b = std::get<budget_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::income_table::income_table::sort::item_value
+						if(a.value < b.value) result = -1;
+						if(a.value > b.value) result = 1;
+// END
+						return -result == table_source->income_table_item_value_sort_direction;
+					});
+				}
+			} else {
+				++i;
+			}
+		}
+	}
+	}
+}
+measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<section_header_option>(values[index])) {
+		if(section_header_pool.empty()) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
+		if(destination) {
+			if(section_header_pool.size() <= size_t(section_header_pool_used)) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
+			section_header_pool[section_header_pool_used]->base_data.position.x = int16_t(x);
+			section_header_pool[section_header_pool_used]->base_data.position.y = int16_t(y);
+			section_header_pool[section_header_pool_used]->parent = destination;
+			destination->children.push_back(section_header_pool[section_header_pool_used].get());
+			((budgetwindow_section_header_t*)(section_header_pool[section_header_pool_used].get()))->section_type = std::get<section_header_option>(values[index]).section_type;
+			section_header_pool[section_header_pool_used]->impl_on_update(state);
+			section_header_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ section_header_pool[0]->base_data.size.x, section_header_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<neutral_spacer_option>(values[index])) {
+		if(neutral_spacer_pool.empty()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
+		if(destination) {
+			if(neutral_spacer_pool.size() <= size_t(neutral_spacer_pool_used)) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
+			neutral_spacer_pool[neutral_spacer_pool_used]->base_data.position.x = int16_t(x);
+			neutral_spacer_pool[neutral_spacer_pool_used]->base_data.position.y = int16_t(y);
+			neutral_spacer_pool[neutral_spacer_pool_used]->parent = destination;
+			destination->children.push_back(neutral_spacer_pool[neutral_spacer_pool_used].get());
+			neutral_spacer_pool[neutral_spacer_pool_used]->impl_on_update(state);
+			neutral_spacer_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ neutral_spacer_pool[0]->base_data.size.x, neutral_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<top_spacer_option>(values[index])) {
+		if(top_spacer_pool.empty()) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
+		if(destination) {
+			if(top_spacer_pool.size() <= size_t(top_spacer_pool_used)) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
+			top_spacer_pool[top_spacer_pool_used]->base_data.position.x = int16_t(x);
+			top_spacer_pool[top_spacer_pool_used]->base_data.position.y = int16_t(y);
+			top_spacer_pool[top_spacer_pool_used]->parent = destination;
+			destination->children.push_back(top_spacer_pool[top_spacer_pool_used].get());
+			top_spacer_pool[top_spacer_pool_used]->impl_on_update(state);
+			top_spacer_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ top_spacer_pool[0]->base_data.size.x, top_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<bottom_spacer_option>(values[index])) {
+		if(bottom_spacer_pool.empty()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
+		if(destination) {
+			if(bottom_spacer_pool.size() <= size_t(bottom_spacer_pool_used)) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
+			bottom_spacer_pool[bottom_spacer_pool_used]->base_data.position.x = int16_t(x);
+			bottom_spacer_pool[bottom_spacer_pool_used]->base_data.position.y = int16_t(y);
+			bottom_spacer_pool[bottom_spacer_pool_used]->parent = destination;
+			destination->children.push_back(bottom_spacer_pool[bottom_spacer_pool_used].get());
+			bottom_spacer_pool[bottom_spacer_pool_used]->impl_on_update(state);
+			bottom_spacer_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ bottom_spacer_pool[0]->base_data.size.x, bottom_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<budget_row_option>(values[index])) {
+		if(budget_header_pool.empty()) budget_header_pool.emplace_back(make_budgetwindow_budget_header(state));
+		if(budget_row_pool.empty()) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
+		if(index == 0 || first_in_section || (true && !std::holds_alternative<budget_row_option>(values[index - 1]))) {
+			if(destination) {
+				if(budget_header_pool.size() <= size_t(budget_header_pool_used)) budget_header_pool.emplace_back(make_budgetwindow_budget_header(state));
+				if(budget_row_pool.size() <= size_t(budget_row_pool_used)) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
+				budget_header_pool[budget_header_pool_used]->base_data.position.x = int16_t(x);
+				budget_header_pool[budget_header_pool_used]->base_data.position.y = int16_t(y);
+				if(!budget_header_pool[budget_header_pool_used]->parent) {
+					budget_header_pool[budget_header_pool_used]->parent = destination;
+					budget_header_pool[budget_header_pool_used]->impl_on_update(state);
+					budget_header_pool[budget_header_pool_used]->impl_on_reset_text(state);
+				}
+				destination->children.push_back(budget_header_pool[budget_header_pool_used].get());
+			((budgetwindow_budget_header_t*)(budget_header_pool[budget_header_pool_used].get()))->is_active = alternate;
+				budget_row_pool[budget_row_pool_used]->base_data.position.x = int16_t(x);
+				budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y +  budget_row_pool[0]->base_data.size.y + 0);
+				budget_row_pool[budget_row_pool_used]->parent = destination;
+				destination->children.push_back(budget_row_pool[budget_row_pool_used].get());
+				((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->name = std::get<budget_row_option>(values[index]).name;
+				((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->value = std::get<budget_row_option>(values[index]).value;
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->is_active = !alternate;
+				budget_row_pool[budget_row_pool_used]->impl_on_update(state);
+				budget_header_pool_used++;
+				budget_row_pool_used++;
+			}
+			return measure_result{std::max(budget_header_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.x), budget_header_pool[0]->base_data.size.y + budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+		}
+		if(destination) {
+			if(budget_row_pool.size() <= size_t(budget_row_pool_used)) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
+			budget_row_pool[budget_row_pool_used]->base_data.position.x = int16_t(x);
+			budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y);
+			budget_row_pool[budget_row_pool_used]->parent = destination;
+			destination->children.push_back(budget_row_pool[budget_row_pool_used].get());
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->name = std::get<budget_row_option>(values[index]).name;
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->value = std::get<budget_row_option>(values[index]).value;
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->is_active = alternate;
+			budget_row_pool[budget_row_pool_used]->impl_on_update(state);
+			budget_row_pool_used++;
+		}
+		alternate = !alternate;
+		return measure_result{ budget_row_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  budgetwindow_main_income_table_t::reset_pools() {
+	section_header_pool_used = 0;
+	neutral_spacer_pool_used = 0;
+	top_spacer_pool_used = 0;
+	bottom_spacer_pool_used = 0;
+	budget_header_pool_used = 0;
+	budget_row_pool_used = 0;
+}
+void budgetwindow_main_espenses_table_t::add_section_header(int32_t section_type) {
+	values.emplace_back(section_header_option{section_type});
+}
+void budgetwindow_main_espenses_table_t::add_neutral_spacer() {
+	values.emplace_back(neutral_spacer_option{});
+}
+void budgetwindow_main_espenses_table_t::add_top_spacer() {
+	values.emplace_back(top_spacer_option{});
+}
+void budgetwindow_main_espenses_table_t::add_bottom_spacer() {
+	values.emplace_back(bottom_spacer_option{});
+}
+void budgetwindow_main_espenses_table_t::add_budget_row(std::string name, float value) {
+	values.emplace_back(budget_row_option{name, value});
+}
+void  budgetwindow_main_espenses_table_t::on_create(sys::state& state, layout_window_element* parent) {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::espenses_table::on_create
+// END
+}
+void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_window_element* parent) {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::espenses_table::update
+	values.clear();
+	add_section_header(budget_categories::construction);
+	if(budget_categories::expanded[budget_categories::construction]) {
+		// TODO
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::army_upkeep);
+	if(budget_categories::expanded[budget_categories::army_upkeep]) {
+		add_top_spacer();
+		auto fraction = float(state.world.nation_get_land_spending(state.local_player_nation)) / 100.0f;
+		auto goods = state.world.commodity_make_vectorizable_float_buffer();
+
+		uint32_t total_commodities = state.world.commodity_size();
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+				goods.set(cid, goods.get(cid) + state.world.market_get_army_demand(market, cid)
+					* economy::price(state, market, cid)
+					* state.world.market_get_demand_satisfaction(market, cid));
+			}
+		});
+		for(auto c : state.world.in_commodity) {
+			if(goods.get(c) > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(c)), goods.get(c) * fraction);
+			}
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::navy_upkeep);
+	if(budget_categories::expanded[budget_categories::navy_upkeep]) {
+		add_top_spacer();
+		auto fraction = float(state.world.nation_get_naval_spending(state.local_player_nation)) / 100.0f;
+		auto goods = state.world.commodity_make_vectorizable_float_buffer();
+
+		uint32_t total_commodities = state.world.commodity_size();
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+				goods.set(cid, goods.get(cid) + state.world.market_get_navy_demand(market, cid)
+					* economy::price(state, market, cid)
+					* state.world.market_get_demand_satisfaction(market, cid));
+			}
+		});
+		for(auto c : state.world.in_commodity) {
+			if(goods.get(c) > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(c)), goods.get(c) * fraction);
+			}
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::admin);
+	if(budget_categories::expanded[budget_categories::admin]) {
+		add_top_spacer();
+		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
+
+		add_budget_row(
+			"capital",
+			economy::estimate_spendings_administration_capital(
+				state, state.local_player_nation, fraction
+			)
+		);
+
+		auto in = culture::income_type::administration;
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			add_budget_row(
+					text::get_dynamic_state_name(state, local_state),
+					economy::estimate_spendings_administration_state(
+						state, state.local_player_nation, local_state, fraction
+					)
+			);
+		});
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::education);
+	if(budget_categories::expanded[budget_categories::education]) {
+		add_top_spacer();
+		auto fraction = float(state.world.nation_get_education_spending(state.local_player_nation)) / 100.0f;
+		auto in = culture::income_type::education;
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			float total = 0.0f;
+			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+				auto adj_pop_of_type =
+					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt)) / state.defines.alice_needs_scaling_factor;
+
+				if(adj_pop_of_type <= 0)
+					return;
+
+				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
+				if(ln_type == in) {
+					total += adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
+				}
+				auto en_type = culture::income_type(state.world.pop_type_get_everyday_needs_income_type(pt));
+				if(en_type == in) {
+					total += adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
+				}
+				auto lx_type = culture::income_type(state.world.pop_type_get_luxury_needs_income_type(pt));
+				if(lx_type == in) {
+					total += adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
+				}
+			});
+			if(total > 0.0f) {
+				add_budget_row(text::get_dynamic_state_name(state, local_state), total * fraction);
+			}
+		});
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::social);
+	if(budget_categories::expanded[budget_categories::social]) {
+		add_top_spacer();
+		auto const p_level = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::pension_level);
+		auto const unemp_level = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::unemployment_benefit);
+		auto fraction = float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
+
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			float total = 0.0f;
+
+			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+				auto adj_pop_of_type =
+					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt))
+					/ state.defines.alice_needs_scaling_factor;
+				if(adj_pop_of_type <= 0)
+					return;
+
+				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
+				if(ln_type == culture::income_type::administration || ln_type == culture::income_type::education || ln_type == culture::income_type::military) {
+					//nothing
+				} else { // unemployment, pensions
+					total += adj_pop_of_type * p_level * state.world.market_get_life_needs_costs(market, pt);
+					if(state.world.pop_type_get_has_unemployment(pt)) {
+						auto emp = state.world.state_instance_get_demographics(local_state, demographics::to_employment_key(state, pt)) / state.defines.alice_needs_scaling_factor;
+						total +=
+							(adj_pop_of_type - emp)
+							* unemp_level
+							* state.world.market_get_life_needs_costs(market, pt);
+					}
+				}
+			});
+			if(total > 0.0f) {
+				add_budget_row(text::get_dynamic_state_name(state, local_state), total * fraction);
+			}
+		});
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::military);
+	if(budget_categories::expanded[budget_categories::military]) {
+		add_top_spacer();
+		auto fraction = float(state.world.nation_get_military_spending(state.local_player_nation)) / 100.0f;
+		auto in = culture::income_type::military;
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			float total = 0.0f;
+			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+				auto adj_pop_of_type =
+					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt)) / state.defines.alice_needs_scaling_factor;
+
+				if(adj_pop_of_type <= 0)
+					return;
+
+				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
+				if(ln_type == in) {
+					total += adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
+				}
+				auto en_type = culture::income_type(state.world.pop_type_get_everyday_needs_income_type(pt));
+				if(en_type == in) {
+					total += adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
+				}
+				auto lx_type = culture::income_type(state.world.pop_type_get_luxury_needs_income_type(pt));
+				if(lx_type == in) {
+					total += adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
+				}
+			});
+			if(total > 0.0f) {
+				add_budget_row(text::get_dynamic_state_name(state, local_state), total * fraction);
+			}
+		});
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::domestic_investment);
+	if(budget_categories::expanded[budget_categories::domestic_investment]) {
+		add_top_spacer();
+		auto cap_total = 0.f;
+		auto aristo_total = 0.f;
+		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
+			auto local_state = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+			auto adj_pop_of_type_capis = (state.world.state_instance_get_demographics(
+				local_state, demographics::to_key(state, state.culture_definitions.capitalists))
+				) / state.defines.alice_needs_scaling_factor;
+			auto adj_pop_of_type_arist = (state.world.state_instance_get_demographics(
+				local_state, demographics::to_key(state, state.culture_definitions.aristocrat))
+				) / state.defines.alice_needs_scaling_factor;
+			float arist_costs =
+				state.world.market_get_life_needs_costs(market, state.culture_definitions.aristocrat)
+				+ state.world.market_get_everyday_needs_costs(market, state.culture_definitions.aristocrat)
+				+ state.world.market_get_luxury_needs_costs(market, state.culture_definitions.aristocrat);
+			float capis_costs =
+				state.world.market_get_life_needs_costs(market, state.culture_definitions.capitalists)
+				+ state.world.market_get_everyday_needs_costs(market, state.culture_definitions.capitalists)
+				+ state.world.market_get_luxury_needs_costs(market, state.culture_definitions.capitalists);
+
+			cap_total += state.defines.alice_domestic_investment_multiplier * ( adj_pop_of_type_capis * capis_costs );
+			aristo_total += state.defines.alice_domestic_investment_multiplier * (adj_pop_of_type_arist * arist_costs );
+		});
+		add_budget_row(text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)), cap_total * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.0f);
+		add_budget_row(text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.aristocrat)), aristo_total * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.0f);
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::overseas_spending);
+	if(budget_categories::expanded[budget_categories::overseas_spending]) {
+		add_top_spacer();
+		auto capital = state.world.nation_get_capital(state.local_player_nation);
+		auto capital_state = state.world.province_get_state_membership(capital);
+		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
+
+		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(state.local_player_nation) - state.world.nation_get_central_province_count(state.local_player_nation));
+		uint32_t total_commodities = state.world.commodity_size();
+
+		if(overseas_factor > 0) {
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+
+				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(state.local_player_nation, cid))) {
+					auto amount =
+						overseas_factor * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
+					add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount);
+				}
+			}
+		}
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::diplomatic_expenses);
+	if(budget_categories::expanded[budget_categories::diplomatic_expenses]) {
+		add_top_spacer();
+		add_budget_row(text::produce_simple_string(state, "warsubsidies_button"), economy::estimate_war_subsidies_spending(state, state.local_player_nation));
+		add_budget_row(text::produce_simple_string(state, "alice_budget_indemnities"), economy::estimate_reparations_spending(state, state.local_player_nation));
+		add_budget_row(text::produce_simple_string(state, "alice_budget_overlord"), economy::estimate_subject_payments_paid(state, state.local_player_nation));
+		add_bottom_spacer();
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::debt_payment);
+	if(budget_categories::expanded[budget_categories::debt_payment]) {
+		// TODO?
+	} else {
+		add_neutral_spacer();
+	}
+	add_section_header(budget_categories::stockpile);
+	if(budget_categories::expanded[budget_categories::stockpile]) {
+		add_top_spacer();
+		uint32_t total_commodities = state.world.commodity_size();
+
+		auto capital = state.world.nation_get_capital(state.local_player_nation);
+		auto capital_state = state.world.province_get_state_membership(capital);
+		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
+
+		for(uint32_t i = 1; i < total_commodities; ++i) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+			auto difference =
+				state.world.nation_get_stockpile_targets(state.local_player_nation, cid)
+				- state.world.nation_get_stockpiles(state.local_player_nation, cid);
+
+			if(difference > 0 && state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, cid) == false) {
+				auto amount = difference * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid);
+				if(amount > 0) {
+					add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount);
+				}
+			}
+		}
+		add_bottom_spacer();
+	}
+// END
+	{
+	bool work_to_do = false;
+	auto table_source = (budgetwindow_main_t*)(parent);
+	if(table_source->income_table_item_name_sort_direction != 0) work_to_do = true;
+	if(table_source->income_table_item_value_sort_direction != 0) work_to_do = true;
+	if(work_to_do) {
+		for(size_t i = 0; i < values.size(); ++i) {
+			if(std::holds_alternative<budget_row_option>(values[i])) {
+				auto start_i = i;
+				while(i < values.size() && std::holds_alternative<budget_row_option>(values[i])) ++i;
+				if(table_source->income_table_item_name_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<budget_row_option>(raw_a);
+							auto const& b = std::get<budget_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::espenses_table::income_table::sort::item_name
+						result = int8_t(std::clamp(a.name.compare(b.name), -1, 1));
+// END
+						return -result == table_source->income_table_item_name_sort_direction;
+					});
+				}
+				if(table_source->income_table_item_value_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<budget_row_option>(raw_a);
+							auto const& b = std::get<budget_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::espenses_table::income_table::sort::item_value
+						if(a.value < b.value) result = -1;
+						if(a.value > b.value) result = 1;
+// END
+						return -result == table_source->income_table_item_value_sort_direction;
+					});
+				}
+			} else {
+				++i;
+			}
+		}
+	}
+	}
+}
+measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<section_header_option>(values[index])) {
+		if(section_header_pool.empty()) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
+		if(destination) {
+			if(section_header_pool.size() <= size_t(section_header_pool_used)) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
+			section_header_pool[section_header_pool_used]->base_data.position.x = int16_t(x);
+			section_header_pool[section_header_pool_used]->base_data.position.y = int16_t(y);
+			section_header_pool[section_header_pool_used]->parent = destination;
+			destination->children.push_back(section_header_pool[section_header_pool_used].get());
+			((budgetwindow_section_header_t*)(section_header_pool[section_header_pool_used].get()))->section_type = std::get<section_header_option>(values[index]).section_type;
+			section_header_pool[section_header_pool_used]->impl_on_update(state);
+			section_header_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ section_header_pool[0]->base_data.size.x, section_header_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<neutral_spacer_option>(values[index])) {
+		if(neutral_spacer_pool.empty()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
+		if(destination) {
+			if(neutral_spacer_pool.size() <= size_t(neutral_spacer_pool_used)) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
+			neutral_spacer_pool[neutral_spacer_pool_used]->base_data.position.x = int16_t(x);
+			neutral_spacer_pool[neutral_spacer_pool_used]->base_data.position.y = int16_t(y);
+			neutral_spacer_pool[neutral_spacer_pool_used]->parent = destination;
+			destination->children.push_back(neutral_spacer_pool[neutral_spacer_pool_used].get());
+			neutral_spacer_pool[neutral_spacer_pool_used]->impl_on_update(state);
+			neutral_spacer_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ neutral_spacer_pool[0]->base_data.size.x, neutral_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<top_spacer_option>(values[index])) {
+		if(top_spacer_pool.empty()) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
+		if(destination) {
+			if(top_spacer_pool.size() <= size_t(top_spacer_pool_used)) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
+			top_spacer_pool[top_spacer_pool_used]->base_data.position.x = int16_t(x);
+			top_spacer_pool[top_spacer_pool_used]->base_data.position.y = int16_t(y);
+			top_spacer_pool[top_spacer_pool_used]->parent = destination;
+			destination->children.push_back(top_spacer_pool[top_spacer_pool_used].get());
+			top_spacer_pool[top_spacer_pool_used]->impl_on_update(state);
+			top_spacer_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ top_spacer_pool[0]->base_data.size.x, top_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<bottom_spacer_option>(values[index])) {
+		if(bottom_spacer_pool.empty()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
+		if(destination) {
+			if(bottom_spacer_pool.size() <= size_t(bottom_spacer_pool_used)) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
+			bottom_spacer_pool[bottom_spacer_pool_used]->base_data.position.x = int16_t(x);
+			bottom_spacer_pool[bottom_spacer_pool_used]->base_data.position.y = int16_t(y);
+			bottom_spacer_pool[bottom_spacer_pool_used]->parent = destination;
+			destination->children.push_back(bottom_spacer_pool[bottom_spacer_pool_used].get());
+			bottom_spacer_pool[bottom_spacer_pool_used]->impl_on_update(state);
+			bottom_spacer_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ bottom_spacer_pool[0]->base_data.size.x, bottom_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<budget_row_option>(values[index])) {
+		if(budget_header_pool.empty()) budget_header_pool.emplace_back(make_budgetwindow_budget_header(state));
+		if(budget_row_pool.empty()) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
+		if(index == 0 || first_in_section || (true && !std::holds_alternative<budget_row_option>(values[index - 1]))) {
+			if(destination) {
+				if(budget_header_pool.size() <= size_t(budget_header_pool_used)) budget_header_pool.emplace_back(make_budgetwindow_budget_header(state));
+				if(budget_row_pool.size() <= size_t(budget_row_pool_used)) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
+				budget_header_pool[budget_header_pool_used]->base_data.position.x = int16_t(x);
+				budget_header_pool[budget_header_pool_used]->base_data.position.y = int16_t(y);
+				if(!budget_header_pool[budget_header_pool_used]->parent) {
+					budget_header_pool[budget_header_pool_used]->parent = destination;
+					budget_header_pool[budget_header_pool_used]->impl_on_update(state);
+					budget_header_pool[budget_header_pool_used]->impl_on_reset_text(state);
+				}
+				destination->children.push_back(budget_header_pool[budget_header_pool_used].get());
+			((budgetwindow_budget_header_t*)(budget_header_pool[budget_header_pool_used].get()))->is_active = alternate;
+				budget_row_pool[budget_row_pool_used]->base_data.position.x = int16_t(x);
+				budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y +  budget_row_pool[0]->base_data.size.y + 0);
+				budget_row_pool[budget_row_pool_used]->parent = destination;
+				destination->children.push_back(budget_row_pool[budget_row_pool_used].get());
+				((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->name = std::get<budget_row_option>(values[index]).name;
+				((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->value = std::get<budget_row_option>(values[index]).value;
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->is_active = !alternate;
+				budget_row_pool[budget_row_pool_used]->impl_on_update(state);
+				budget_header_pool_used++;
+				budget_row_pool_used++;
+			}
+			return measure_result{std::max(budget_header_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.x), budget_header_pool[0]->base_data.size.y + budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+		}
+		if(destination) {
+			if(budget_row_pool.size() <= size_t(budget_row_pool_used)) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
+			budget_row_pool[budget_row_pool_used]->base_data.position.x = int16_t(x);
+			budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y);
+			budget_row_pool[budget_row_pool_used]->parent = destination;
+			destination->children.push_back(budget_row_pool[budget_row_pool_used].get());
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->name = std::get<budget_row_option>(values[index]).name;
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->value = std::get<budget_row_option>(values[index]).value;
+			((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->is_active = alternate;
+			budget_row_pool[budget_row_pool_used]->impl_on_update(state);
+			budget_row_pool_used++;
+		}
+		alternate = !alternate;
+		return measure_result{ budget_row_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  budgetwindow_main_espenses_table_t::reset_pools() {
+	section_header_pool_used = 0;
+	neutral_spacer_pool_used = 0;
+	top_spacer_pool_used = 0;
+	bottom_spacer_pool_used = 0;
+	budget_header_pool_used = 0;
+	budget_row_pool_used = 0;
+}
 ui::message_result budgetwindow_main_close_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
@@ -1821,756 +2485,6 @@ void budgetwindow_main_income_amount_t::on_create(sys::state& state) noexcept {
 // BEGIN main::income_amount::create
 // END
 }
-ui::message_result budgetwindow_main_income_page_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::income_page_left::lbutton_action
-	main.income_table->change_page(state, main.income_table->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result budgetwindow_main_income_page_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void budgetwindow_main_income_page_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void budgetwindow_main_income_page_left_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::income_page_left::update
-	set_visible(state, main.income_table->max_page() > 0);
-// END
-}
-void budgetwindow_main_income_page_left_t::on_create(sys::state& state) noexcept {
-// BEGIN main::income_page_left::create
-// END
-}
-ui::message_result budgetwindow_main_income_page_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::income_page_right::lbutton_action
-	main.income_table->change_page(state, main.income_table->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result budgetwindow_main_income_page_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void budgetwindow_main_income_page_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void budgetwindow_main_income_page_right_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::income_page_right::update
-	set_visible(state, main.income_table->max_page() > 0);
-// END
-}
-void budgetwindow_main_income_page_right_t::on_create(sys::state& state) noexcept {
-// BEGIN main::income_page_right::create
-// END
-}
-void budgetwindow_main_income_page_number_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void budgetwindow_main_income_page_number_t::on_reset_text(sys::state& state) noexcept {
-}
-void budgetwindow_main_income_page_number_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void budgetwindow_main_income_page_number_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::income_page_number::update
-	if(main.income_table->max_page() > 0) {
-		set_text(state, std::to_string(main.income_table->page + 1)  + "/" + std::to_string(main.income_table->max_page() + 1));
-	} else {
-		set_text(state, "");
-	}
-// END
-}
-void budgetwindow_main_income_page_number_t::on_create(sys::state& state) noexcept {
-// BEGIN main::income_page_number::create
-// END
-}
-void budgetwindow_main_income_table_header_t::on_reset_text(sys::state & state) noexcept {
-	{
-	item_name_cached_text = text::produce_simple_string(state, item_name_text_key);
-	 item_name_internal_layout.contents.clear();
-	 item_name_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  item_name_internal_layout, text::layout_parameters{ 0, 0, int16_t(item_name_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, budgetwindow_main_income_table_row_t::item_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, item_name_cached_text);
-	}
-	{
-	item_value_cached_text = text::produce_simple_string(state, item_value_text_key);
-	 item_value_internal_layout.contents.clear();
-	 item_value_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  item_value_internal_layout, text::layout_parameters{ 0, 0, int16_t(item_value_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, budgetwindow_main_income_table_row_t::item_value_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, item_value_cached_text);
-	}
-}
-void  budgetwindow_main_income_table_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto fh = text::make_font_id(state, false, 1.0f * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, budgetwindow_main_income_table_row_t::row_background_texture, budgetwindow_main_income_table_row_t::row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	bool col_um_lead_space = rel_mouse_x >= lead_space_column_start && rel_mouse_x < (lead_space_column_start + lead_space_column_width);
-	bool col_um_item_name = rel_mouse_x >= item_name_column_start && rel_mouse_x < (item_name_column_start + item_name_column_width);
-	if(col_um_item_name) {
-		ogl::render_alpha_colored_rect(state, float(x + item_name_column_start), float(y), float(item_name_column_width), float(base_data.size.y),budgetwindow_main_income_table_t::table_highlight_color.r, budgetwindow_main_income_table_t::table_highlight_color.g, budgetwindow_main_income_table_t::table_highlight_color.b, budgetwindow_main_income_table_t::table_highlight_color.a);
-	}
-if(item_name_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name, false, true), float(x + item_name_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(item_name_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name, false, true), float(x + item_name_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!item_name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name , false, true); 
-		for(auto& t : item_name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + item_name_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_name_text_color), cmod);
-		}
-	}
-	bool col_um_item_value = rel_mouse_x >= item_value_column_start && rel_mouse_x < (item_value_column_start + item_value_column_width);
-	if(col_um_item_value) {
-		ogl::render_alpha_colored_rect(state, float(x + item_value_column_start), float(y), float(item_value_column_width), float(base_data.size.y),budgetwindow_main_income_table_t::table_highlight_color.r, budgetwindow_main_income_table_t::table_highlight_color.g, budgetwindow_main_income_table_t::table_highlight_color.b, budgetwindow_main_income_table_t::table_highlight_color.a);
-	}
-if(item_value_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value, false, true), float(x + item_value_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(item_value_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value, false, true), float(x + item_value_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!item_value_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value , false, true); 
-		for(auto& t : item_value_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + item_value_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_value_text_color), cmod);
-		}
-	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), budgetwindow_main_income_table_t::table_divider_color.r, budgetwindow_main_income_table_t::table_divider_color.g, budgetwindow_main_income_table_t::table_divider_color.b, 1.0f);
-}
-ui::message_result budgetwindow_main_income_table_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(x >= item_name_column_start && x < item_name_column_start + item_name_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = item_name_sort_direction;
-		item_name_sort_direction = 0;
-		item_value_sort_direction = 0;
-		item_name_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( budgetwindow_main_income_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= item_value_column_start && x < item_value_column_start + item_value_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = item_value_sort_direction;
-		item_name_sort_direction = 0;
-		item_value_sort_direction = 0;
-		item_value_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( budgetwindow_main_income_table_t*)parent)->apply_sort(state);
-	}
-	return ui::message_result::consumed;}
-ui::message_result budgetwindow_main_income_table_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-void budgetwindow_main_income_table_header_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(x >= lead_space_column_start && x < lead_space_column_start + lead_space_column_width) {
-	}
-	if(x >= item_name_column_start && x < item_name_column_start + item_name_column_width) {
-	}
-	if(x >= item_value_column_start && x < item_value_column_start + item_value_column_width) {
-	}
-}
-void budgetwindow_main_income_table_header_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
-	if(x >= lead_space_column_start && x < lead_space_column_start + lead_space_column_width) {
-	}
-	if(x >= item_name_column_start && x < item_name_column_start + item_name_column_width) {
-	}
-	if(x >= item_value_column_start && x < item_value_column_start + item_value_column_width) {
-	}
-		ident = -1;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-}
-void budgetwindow_main_income_table_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-}
-void  budgetwindow_main_income_table_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto fh = text::make_font_id(state, false, 1.0f * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(alternate_row) {
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_row_background_texture, alt_row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	} else {
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, row_background_texture, row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	}
-	if(this == state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x ), float(y), float(base_data.size.x), float(base_data.size.y), budgetwindow_main_income_table_t::table_highlight_color.r, budgetwindow_main_income_table_t::table_highlight_color.g, budgetwindow_main_income_table_t::table_highlight_color.b, budgetwindow_main_income_table_t::table_highlight_color.a);
-	}
-	bool col_um_lead_space = rel_mouse_x >= budgetwindow_main_income_table_header_t::lead_space_column_start && rel_mouse_x < (budgetwindow_main_income_table_header_t::lead_space_column_start + budgetwindow_main_income_table_header_t::lead_space_column_width);
-	bool col_um_item_name = rel_mouse_x >= budgetwindow_main_income_table_header_t::item_name_column_start && rel_mouse_x < (budgetwindow_main_income_table_header_t::item_name_column_start + budgetwindow_main_income_table_header_t::item_name_column_width);
-	if(col_um_item_name && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + budgetwindow_main_income_table_header_t::item_name_column_start), float(y), float(budgetwindow_main_income_table_header_t::item_name_column_width), float(base_data.size.y), budgetwindow_main_income_table_t::table_highlight_color.r, budgetwindow_main_income_table_t::table_highlight_color.g, budgetwindow_main_income_table_t::table_highlight_color.b, budgetwindow_main_income_table_t::table_highlight_color.a);
-	}
-	if(!item_name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name , false, false); 
-		for(auto& t : item_name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + budgetwindow_main_income_table_header_t::item_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_name_text_color), cmod);
-	}
-	}
-	bool col_um_item_value = rel_mouse_x >= budgetwindow_main_income_table_header_t::item_value_column_start && rel_mouse_x < (budgetwindow_main_income_table_header_t::item_value_column_start + budgetwindow_main_income_table_header_t::item_value_column_width);
-	if(col_um_item_value && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + budgetwindow_main_income_table_header_t::item_value_column_start), float(y), float(budgetwindow_main_income_table_header_t::item_value_column_width), float(base_data.size.y), budgetwindow_main_income_table_t::table_highlight_color.r, budgetwindow_main_income_table_t::table_highlight_color.g, budgetwindow_main_income_table_t::table_highlight_color.b, budgetwindow_main_income_table_t::table_highlight_color.a);
-	}
-	if(!item_value_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value , false, false); 
-		for(auto& t : item_value_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + budgetwindow_main_income_table_header_t::item_value_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_value_text_color), cmod);
-	}
-	}
-}
-ui::message_result budgetwindow_main_income_table_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-ui::message_result budgetwindow_main_income_table_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-void budgetwindow_main_income_table_row_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(x >= budgetwindow_main_income_table_header_t::lead_space_column_start && x < budgetwindow_main_income_table_header_t::lead_space_column_start + budgetwindow_main_income_table_header_t::lead_space_column_width) {
-	}
-	if(x >= budgetwindow_main_income_table_header_t::item_name_column_start && x < budgetwindow_main_income_table_header_t::item_name_column_start + budgetwindow_main_income_table_header_t::item_name_column_width) {
-	}
-	if(x >= budgetwindow_main_income_table_header_t::item_value_column_start && x < budgetwindow_main_income_table_header_t::item_value_column_start + budgetwindow_main_income_table_header_t::item_value_column_width) {
-	}
-}
-void budgetwindow_main_income_table_row_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
-	if(x >= budgetwindow_main_income_table_header_t::lead_space_column_start && x < budgetwindow_main_income_table_header_t::lead_space_column_start + budgetwindow_main_income_table_header_t::lead_space_column_width) {
-	}
-	if(x >= budgetwindow_main_income_table_header_t::item_name_column_start && x < budgetwindow_main_income_table_header_t::item_name_column_start + budgetwindow_main_income_table_header_t::item_name_column_width) {
-	}
-	if(x >= budgetwindow_main_income_table_header_t::item_value_column_start && x < budgetwindow_main_income_table_header_t::item_value_column_start + budgetwindow_main_income_table_header_t::item_value_column_width) {
-	}
-		ident = -1;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-}
-void budgetwindow_main_income_table_row_t::on_create(sys::state& state) noexcept {
-}
-void budgetwindow_main_income_table_row_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_income_table_t& income_table = *((budgetwindow_main_income_table_t*)(parent)); 
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
-// BEGIN main::income_table::row_update
-	set_item_name_text(state, value.first);
-	set_item_value_text(state, text::prettify_currency(value.second));
-// END
-}
-void budgetwindow_main_income_table_row_t::set_item_name_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  item_name_cached_text) {
-		item_name_cached_text = new_text;
-		item_name_internal_layout.contents.clear();
-		item_name_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ item_name_internal_layout, text::layout_parameters{ 0, 0, int16_t(budgetwindow_main_income_table_header_t::item_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, item_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, item_name_cached_text);
-		}
-	} else {
-	}
-}
-void budgetwindow_main_income_table_row_t::set_item_value_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  item_value_cached_text) {
-		item_value_cached_text = new_text;
-		item_value_internal_layout.contents.clear();
-		item_value_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ item_value_internal_layout, text::layout_parameters{ 0, 0, int16_t(budgetwindow_main_income_table_header_t::item_value_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, item_value_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, item_value_cached_text);
-		}
-	} else {
-	}
-}
-void budgetwindow_main_income_table_t::impl_change_page(sys::state & state, int32_t new_page){
-	size_t section_header_pool_used = 0;
-	size_t neutral_spacer_pool_used = 0;
-	size_t bottom_spacer_pool_used = 0;
-	size_t top_spacer_pool_used = 0;
-	size_t row_pool_used = 0;
-	size_t header_pool_used = 0;
-	int16_t vert_used = 0;
-	bool alt_bg  = true;
-	page = std::clamp(new_page, 0, max_page());
-	children.clear();
-	if(page_starts.empty()) return;
-	if(open_page) { page_starts.push_back(int32_t(values.size())); open_page = false; }
-	for(int32_t i = page_starts[page]; i < page_starts[page + 1]; ++i) {
-		if(std::holds_alternative<section_header_option>(values[i])) {
-			if(section_header_pool_used >= section_header_pool.size()) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
-			children.push_back(section_header_pool[section_header_pool_used].get());
-			children.back()->parent = this;
-			((budgetwindow_section_header_t*)(section_header_pool[section_header_pool_used].get()))->section_type = std::get<section_header_option>(values[i]).section_type;
-			section_header_pool[section_header_pool_used]->base_data.position.y = vert_used;
-			vert_used += section_header_pool[section_header_pool_used]->base_data.size.y;
-			++section_header_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<neutral_spacer_option>(values[i])) {
-			if(neutral_spacer_pool_used >= neutral_spacer_pool.size()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
-			children.push_back(neutral_spacer_pool[neutral_spacer_pool_used].get());
-			children.back()->parent = this;
-			neutral_spacer_pool[neutral_spacer_pool_used]->base_data.position.y = vert_used;
-			vert_used += neutral_spacer_pool[neutral_spacer_pool_used]->base_data.size.y;
-			++neutral_spacer_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<bottom_spacer_option>(values[i])) {
-			if(bottom_spacer_pool_used >= bottom_spacer_pool.size()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
-			children.push_back(bottom_spacer_pool[bottom_spacer_pool_used].get());
-			children.back()->parent = this;
-			bottom_spacer_pool[bottom_spacer_pool_used]->base_data.position.y = vert_used;
-			vert_used += bottom_spacer_pool[bottom_spacer_pool_used]->base_data.size.y;
-			++bottom_spacer_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<top_spacer_option>(values[i])) {
-			if(top_spacer_pool_used >= top_spacer_pool.size()) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
-			children.push_back(top_spacer_pool[top_spacer_pool_used].get());
-			children.back()->parent = this;
-			top_spacer_pool[top_spacer_pool_used]->base_data.position.y = vert_used;
-			vert_used += top_spacer_pool[top_spacer_pool_used]->base_data.size.y;
-			++top_spacer_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<value_option>(values[i])) {
-			if(row_pool_used >= row_pool.size())row_pool.emplace_back(make_row(state));
-			children.push_back(row_pool[row_pool_used].get());
-			children.back()->parent = this;
-			row_pool[row_pool_used]->value = std::get<value_option>(values[i]).value;
-			row_pool[row_pool_used]->alternate_row = alt_bg;
-			row_pool[row_pool_used]->base_data.position.y = vert_used;
-			vert_used += row_pool[row_pool_used]->base_data.size.y;
-			++row_pool_used;
-			alt_bg  = !alt_bg;
-		}
-		if(std::holds_alternative<std::monostate>(values[i])) {
-			if(header_pool_used >= header_pool.size()) header_pool.emplace_back(make_headers(state));
-			children.push_back(header_pool[header_pool_used].get());
-			children.back()->parent = this;
-			header_pool[header_pool_used]->base_data.position.y = vert_used;
-			vert_used += header_pool[header_pool_used]->base_data.size.y;
-			++header_pool_used;
-			alt_bg  = true;
-		}
-	}
-}
-void budgetwindow_main_income_table_t::change_page(sys::state & state, int32_t new_page){
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
-	}
-	impl_change_page(state, new_page);	for(auto c : children) c->impl_on_update(state);
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		state.ui_animation.post_update_frame(state);
-	}
-}
-int32_t budgetwindow_main_income_table_t::max_page(){
-	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
-}
-void budgetwindow_main_income_table_t::clear_table() {
-	children.clear();
-	page_starts.clear();
-	values.clear();
-	open_page = false;
-	layout_space = 0;
-}
-void budgetwindow_main_income_table_t::add_value(std::pair<std::string, float> const& v) {
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty() || !std::holds_alternative<value_option>(values.back())) {
-		if(base_data.size.y - layout_space <= 2 * int32_t(row_height * 8)) {
-			page_starts.push_back(int32_t(values.size()));
-			layout_space = 0;
-		}
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <= int32_t(row_height * 8)) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(value_option{v});
-	layout_space += int16_t(row_height * 8);
-}
-void budgetwindow_main_income_table_t::add_insert_section_header(sys::state& state, int32_t const& section_type) {
-	if(section_header_pool.empty()) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  section_header_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(section_header_option{section_type});
-	layout_space += int16_t(section_header_pool[0]->base_data.size.y);
-}
-void budgetwindow_main_income_table_t::add_insert_neutral_spacer(sys::state& state) {
-	if(neutral_spacer_pool.empty()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  neutral_spacer_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(neutral_spacer_option{});
-	layout_space += int16_t(neutral_spacer_pool[0]->base_data.size.y);
-}
-void budgetwindow_main_income_table_t::add_insert_bottom_spacer(sys::state& state) {
-	if(bottom_spacer_pool.empty()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  bottom_spacer_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(bottom_spacer_option{});
-	layout_space += int16_t(bottom_spacer_pool[0]->base_data.size.y);
-}
-void budgetwindow_main_income_table_t::add_insert_top_spacer(sys::state& state) {
-	if(top_spacer_pool.empty()) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  top_spacer_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(top_spacer_option{});
-	layout_space += int16_t(top_spacer_pool[0]->base_data.size.y);
-}
-std::unique_ptr<budgetwindow_main_income_table_row_t> budgetwindow_main_income_table_t::make_row(sys::state& state) {
-	auto cptr = std::make_unique<budgetwindow_main_income_table_row_t>();
-	cptr->parent = this;
-	cptr->base_data.position.x = 0;
-	cptr->base_data.position.y = 0;
-	cptr->base_data.size.y = int16_t(row_height * 8);
-	cptr->base_data.size.x = this->base_data.size.x;
-	cptr->on_create(state);
-	return cptr;
-}
-std::unique_ptr<budgetwindow_main_income_table_header_t> budgetwindow_main_income_table_t::make_headers(sys::state& state){
-	auto cptr = std::make_unique<budgetwindow_main_income_table_header_t>();
-	cptr->parent = this;
-	cptr->base_data.position.x = 0;
-	cptr->base_data.position.y = 0;
-	cptr->base_data.size.y = int16_t(row_height * 8);
-	cptr->base_data.size.x = this->base_data.size.x;
-	cptr->on_create(state);
-	return cptr;
-}
-void budgetwindow_main_income_table_t::impl_apply_sort(sys::state& state) {
-	bool work_to_do = false;
-	if(budgetwindow_main_income_table_header_t::item_name_sort_direction != 0) work_to_do = true;
-	if(budgetwindow_main_income_table_header_t::item_value_sort_direction != 0) work_to_do = true;
-	if(!work_to_do) return;
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-	std::vector<std::pair<std::string, float>> val_temp;
-	size_t i = 0;
-	while(i < values.size()) {
-		if(std::holds_alternative<value_option>(values[i])) {
-			auto start_pos = i;
-			do {
-				if(std::holds_alternative<value_option>(values[i])) val_temp.push_back(std::get<value_option>(values[i]).value);
-				++i;
-			} while(i < values.size() && (std::holds_alternative<value_option>(values[i]) || std::holds_alternative<std::monostate>(values[i])));
-			if(budgetwindow_main_income_table_header_t::item_name_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const std::pair<std::string, float>& a, const std::pair<std::string, float>& b){
-					int8_t result = 0;
-// BEGIN main::income_table::sort::item_name
-					result = int8_t(std::clamp(a.first.compare(b.first), -1, 1));
-// END
-					return result == budgetwindow_main_income_table_header_t::item_name_sort_direction;
-				});
-			}
-			if(budgetwindow_main_income_table_header_t::item_value_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const std::pair<std::string, float>& a, const std::pair<std::string, float>& b){
-					int8_t result = 0;
-// BEGIN main::income_table::sort::item_value
-					if(a.second == b.second)
-						result = 0;
-					else
-						result = (a.second < b.second) ? -1 : 1;
-// END
-					return result == budgetwindow_main_income_table_header_t::item_value_sort_direction;
-				});
-			}
-			while(start_pos < i) {
-				if(std::holds_alternative<value_option>(values[start_pos])) {
-					std::get<value_option>(values[start_pos]).value = val_temp.back();
-					val_temp.pop_back();
-				}
-				++start_pos;
-			}
-			val_temp.clear();
-		} else {
-			++i;
-		}
-	}
-}
-void budgetwindow_main_income_table_t::apply_sort(sys::state& state) {
-	impl_apply_sort(state);
-	impl_change_page(state, page);	for(auto c : children) c->impl_on_update(state);
-}
-ui::message_result budgetwindow_main_income_table_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void budgetwindow_main_income_table_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::income_table::update
-	clear_table();
-	add_insert_section_header(state, budget_categories::poor_tax);
-	if(budget_categories::expanded[budget_categories::poor_tax]) {
-		add_insert_top_spacer(state);
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			auto s = so.get_state();
-			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
-			add_value(std::pair<std::string, float>(
-				text::produce_simple_string(state, s.get_definition().get_name()),
-				info.poor
-			));
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::middle_tax);
-	if(budget_categories::expanded[budget_categories::middle_tax]) {
-		add_insert_top_spacer(state);
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			auto s = so.get_state();
-			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
-			add_value(std::pair<std::string, float>(
-				text::produce_simple_string(state, s.get_definition().get_name()),
-				info.mid
-			));
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::rich_tax);
-	if(budget_categories::expanded[budget_categories::rich_tax]) {
-		add_insert_top_spacer(state);
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			auto s = so.get_state();
-			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
-			add_value(std::pair<std::string, float>(
-				text::produce_simple_string(state, s.get_definition().get_name()),
-				info.rich
-			));
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::tariffs_import);
-	if(budget_categories::expanded[budget_categories::tariffs_import]) {
-		add_insert_top_spacer(state);
-		auto totals = economy::explain_national_tariff(state, state.local_player_nation, true, false);
-		for(auto& item : totals) {
-			add_value(std::pair<std::string, float>(
-				text::produce_simple_string(state,
-					state.world.national_identity_get_name(
-						state.world.nation_get_identity_from_identity_holder(item.trade_partner)
-					)
-				)
-				+
-				" ("
-				+ 
-				text::produce_simple_string(state,
-					state.world.commodity_get_name(item.commodity)
-				)
-				+
-				")",
-				item.tariff
-			));
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::tariffs_export);
-	if(budget_categories::expanded[budget_categories::tariffs_export]) {
-		add_insert_top_spacer(state);
-		auto totals = economy::explain_national_tariff(state, state.local_player_nation, false, true);
-		for(auto& item : totals) {
-			add_value(std::pair<std::string, float>(
-				text::produce_simple_string(state,
-					state.world.national_identity_get_name(
-						state.world.nation_get_identity_from_identity_holder(item.trade_partner)
-					)
-				)
-				+
-				" ("
-				+
-				text::produce_simple_string(state,
-					state.world.commodity_get_name(item.commodity)
-				)
-				+
-				")",
-				item.tariff
-			));
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::diplomatic_income);
-	if(budget_categories::expanded[budget_categories::diplomatic_income]) {
-		add_insert_top_spacer(state);
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "warsubsidies_button"), economy::estimate_war_subsidies_income(state, state.local_player_nation)));
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "alice_budget_indemnities"), economy::estimate_reparations_income(state, state.local_player_nation)));
-		for(auto n : state.world.nation_get_overlord_as_ruler(state.local_player_nation)) {
-			auto transferamt = economy::estimate_subject_payments_paid(state, n.get_subject());
-			add_value(std::pair<std::string, float>(text::produce_simple_string(state, text::get_name(state, n.get_subject())), transferamt));
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::gold);
-	if(budget_categories::expanded[budget_categories::gold]) {
-		add_insert_top_spacer(state);
-		for(auto poid : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-			auto prov = poid.get_province();
-
-			float amount = 0.0f;
-			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				if(state.world.commodity_get_money_rgo(c)) {
-					amount += province::rgo_production_quantity(state, prov.id, c) * state.world.commodity_get_cost(c);
-				}
-			});
-
-			if(amount > 0.0f) {
-				add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.province_get_name(prov)), amount * state.defines.gold_to_cash_rate));
-			}
-		}
-		add_insert_bottom_spacer(state);
-	}
-// END
-	impl_apply_sort(state);
-	impl_change_page(state, page);
-}
-void budgetwindow_main_income_table_t::on_create(sys::state& state) noexcept {
-// BEGIN main::income_table::create
-// END
-}
-ui::message_result budgetwindow_main_expenses_page_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::expenses_page_left::lbutton_action
-	main.expenses_table->change_page(state, main.expenses_table->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result budgetwindow_main_expenses_page_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void budgetwindow_main_expenses_page_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void budgetwindow_main_expenses_page_left_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::expenses_page_left::update
-	set_visible(state, main.expenses_table->max_page() > 0);
-// END
-}
-void budgetwindow_main_expenses_page_left_t::on_create(sys::state& state) noexcept {
-// BEGIN main::expenses_page_left::create
-// END
-}
-void budgetwindow_main_expenses_page_number_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void budgetwindow_main_expenses_page_number_t::on_reset_text(sys::state& state) noexcept {
-}
-void budgetwindow_main_expenses_page_number_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void budgetwindow_main_expenses_page_number_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::expenses_page_number::update
-	if(main.expenses_table->max_page() > 0) {
-		set_text(state, std::to_string(main.expenses_table->page + 1) + "/" + std::to_string(main.expenses_table->max_page() + 1));
-	} else {
-		set_text(state, "");
-	}
-// END
-}
-void budgetwindow_main_expenses_page_number_t::on_create(sys::state& state) noexcept {
-// BEGIN main::expenses_page_number::create
-// END
-}
-ui::message_result budgetwindow_main_expenses_page_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::expenses_page_right::lbutton_action
-	main.expenses_table->change_page(state, main.expenses_table->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result budgetwindow_main_expenses_page_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void budgetwindow_main_expenses_page_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void budgetwindow_main_expenses_page_right_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::expenses_page_right::update
-	set_visible(state, main.expenses_table->max_page() > 0);
-// END
-}
-void budgetwindow_main_expenses_page_right_t::on_create(sys::state& state) noexcept {
-// BEGIN main::expenses_page_right::create
-// END
-}
 void budgetwindow_main_expenses_label_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
@@ -2652,758 +2566,6 @@ void budgetwindow_main_expenses_amount_t::on_update(sys::state& state) noexcept 
 }
 void budgetwindow_main_expenses_amount_t::on_create(sys::state& state) noexcept {
 // BEGIN main::expenses_amount::create
-// END
-}
-void budgetwindow_main_expenses_table_header_t::on_reset_text(sys::state & state) noexcept {
-	{
-	item_name_cached_text = text::produce_simple_string(state, item_name_text_key);
-	 item_name_internal_layout.contents.clear();
-	 item_name_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  item_name_internal_layout, text::layout_parameters{ 0, 0, int16_t(item_name_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, budgetwindow_main_expenses_table_row_t::item_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, item_name_cached_text);
-	}
-	{
-	item_value_cached_text = text::produce_simple_string(state, item_value_text_key);
-	 item_value_internal_layout.contents.clear();
-	 item_value_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  item_value_internal_layout, text::layout_parameters{ 0, 0, int16_t(item_value_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, budgetwindow_main_expenses_table_row_t::item_value_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, item_value_cached_text);
-	}
-}
-void  budgetwindow_main_expenses_table_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto fh = text::make_font_id(state, false, 1.0f * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, budgetwindow_main_expenses_table_row_t::row_background_texture, budgetwindow_main_expenses_table_row_t::row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	bool col_um_lead_space = rel_mouse_x >= lead_space_column_start && rel_mouse_x < (lead_space_column_start + lead_space_column_width);
-	bool col_um_item_name = rel_mouse_x >= item_name_column_start && rel_mouse_x < (item_name_column_start + item_name_column_width);
-	if(col_um_item_name) {
-		ogl::render_alpha_colored_rect(state, float(x + item_name_column_start), float(y), float(item_name_column_width), float(base_data.size.y),budgetwindow_main_expenses_table_t::table_highlight_color.r, budgetwindow_main_expenses_table_t::table_highlight_color.g, budgetwindow_main_expenses_table_t::table_highlight_color.b, budgetwindow_main_expenses_table_t::table_highlight_color.a);
-	}
-if(item_name_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name, false, true), float(x + item_name_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(item_name_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name, false, true), float(x + item_name_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!item_name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name , false, true); 
-		for(auto& t : item_name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + item_name_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_name_text_color), cmod);
-		}
-	}
-	bool col_um_item_value = rel_mouse_x >= item_value_column_start && rel_mouse_x < (item_value_column_start + item_value_column_width);
-	if(col_um_item_value) {
-		ogl::render_alpha_colored_rect(state, float(x + item_value_column_start), float(y), float(item_value_column_width), float(base_data.size.y),budgetwindow_main_expenses_table_t::table_highlight_color.r, budgetwindow_main_expenses_table_t::table_highlight_color.g, budgetwindow_main_expenses_table_t::table_highlight_color.b, budgetwindow_main_expenses_table_t::table_highlight_color.a);
-	}
-if(item_value_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value, false, true), float(x + item_value_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(item_value_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value, false, true), float(x + item_value_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!item_value_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value , false, true); 
-		for(auto& t : item_value_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + item_value_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_value_text_color), cmod);
-		}
-	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), budgetwindow_main_expenses_table_t::table_divider_color.r, budgetwindow_main_expenses_table_t::table_divider_color.g, budgetwindow_main_expenses_table_t::table_divider_color.b, 1.0f);
-}
-ui::message_result budgetwindow_main_expenses_table_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(x >= item_name_column_start && x < item_name_column_start + item_name_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = item_name_sort_direction;
-		item_name_sort_direction = 0;
-		item_value_sort_direction = 0;
-		item_name_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( budgetwindow_main_expenses_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= item_value_column_start && x < item_value_column_start + item_value_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = item_value_sort_direction;
-		item_name_sort_direction = 0;
-		item_value_sort_direction = 0;
-		item_value_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( budgetwindow_main_expenses_table_t*)parent)->apply_sort(state);
-	}
-	return ui::message_result::consumed;}
-ui::message_result budgetwindow_main_expenses_table_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-void budgetwindow_main_expenses_table_header_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(x >= lead_space_column_start && x < lead_space_column_start + lead_space_column_width) {
-	}
-	if(x >= item_name_column_start && x < item_name_column_start + item_name_column_width) {
-	}
-	if(x >= item_value_column_start && x < item_value_column_start + item_value_column_width) {
-	}
-}
-void budgetwindow_main_expenses_table_header_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
-	if(x >= lead_space_column_start && x < lead_space_column_start + lead_space_column_width) {
-	}
-	if(x >= item_name_column_start && x < item_name_column_start + item_name_column_width) {
-	}
-	if(x >= item_value_column_start && x < item_value_column_start + item_value_column_width) {
-	}
-		ident = -1;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-}
-void budgetwindow_main_expenses_table_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-}
-void  budgetwindow_main_expenses_table_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto fh = text::make_font_id(state, false, 1.0f * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(alternate_row) {
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_row_background_texture, alt_row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	} else {
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, row_background_texture, row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	}
-	if(this == state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x ), float(y), float(base_data.size.x), float(base_data.size.y), budgetwindow_main_expenses_table_t::table_highlight_color.r, budgetwindow_main_expenses_table_t::table_highlight_color.g, budgetwindow_main_expenses_table_t::table_highlight_color.b, budgetwindow_main_expenses_table_t::table_highlight_color.a);
-	}
-	bool col_um_lead_space = rel_mouse_x >= budgetwindow_main_expenses_table_header_t::lead_space_column_start && rel_mouse_x < (budgetwindow_main_expenses_table_header_t::lead_space_column_start + budgetwindow_main_expenses_table_header_t::lead_space_column_width);
-	bool col_um_item_name = rel_mouse_x >= budgetwindow_main_expenses_table_header_t::item_name_column_start && rel_mouse_x < (budgetwindow_main_expenses_table_header_t::item_name_column_start + budgetwindow_main_expenses_table_header_t::item_name_column_width);
-	if(col_um_item_name && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + budgetwindow_main_expenses_table_header_t::item_name_column_start), float(y), float(budgetwindow_main_expenses_table_header_t::item_name_column_width), float(base_data.size.y), budgetwindow_main_expenses_table_t::table_highlight_color.r, budgetwindow_main_expenses_table_t::table_highlight_color.g, budgetwindow_main_expenses_table_t::table_highlight_color.b, budgetwindow_main_expenses_table_t::table_highlight_color.a);
-	}
-	if(!item_name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name , false, false); 
-		for(auto& t : item_name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + budgetwindow_main_expenses_table_header_t::item_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_name_text_color), cmod);
-	}
-	}
-	bool col_um_item_value = rel_mouse_x >= budgetwindow_main_expenses_table_header_t::item_value_column_start && rel_mouse_x < (budgetwindow_main_expenses_table_header_t::item_value_column_start + budgetwindow_main_expenses_table_header_t::item_value_column_width);
-	if(col_um_item_value && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + budgetwindow_main_expenses_table_header_t::item_value_column_start), float(y), float(budgetwindow_main_expenses_table_header_t::item_value_column_width), float(base_data.size.y), budgetwindow_main_expenses_table_t::table_highlight_color.r, budgetwindow_main_expenses_table_t::table_highlight_color.g, budgetwindow_main_expenses_table_t::table_highlight_color.b, budgetwindow_main_expenses_table_t::table_highlight_color.a);
-	}
-	if(!item_value_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value , false, false); 
-		for(auto& t : item_value_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + budgetwindow_main_expenses_table_header_t::item_value_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_value_text_color), cmod);
-	}
-	}
-}
-ui::message_result budgetwindow_main_expenses_table_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-ui::message_result budgetwindow_main_expenses_table_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-void budgetwindow_main_expenses_table_row_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(x >= budgetwindow_main_expenses_table_header_t::lead_space_column_start && x < budgetwindow_main_expenses_table_header_t::lead_space_column_start + budgetwindow_main_expenses_table_header_t::lead_space_column_width) {
-	}
-	if(x >= budgetwindow_main_expenses_table_header_t::item_name_column_start && x < budgetwindow_main_expenses_table_header_t::item_name_column_start + budgetwindow_main_expenses_table_header_t::item_name_column_width) {
-	}
-	if(x >= budgetwindow_main_expenses_table_header_t::item_value_column_start && x < budgetwindow_main_expenses_table_header_t::item_value_column_start + budgetwindow_main_expenses_table_header_t::item_value_column_width) {
-	}
-}
-void budgetwindow_main_expenses_table_row_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
-	if(x >= budgetwindow_main_expenses_table_header_t::lead_space_column_start && x < budgetwindow_main_expenses_table_header_t::lead_space_column_start + budgetwindow_main_expenses_table_header_t::lead_space_column_width) {
-	}
-	if(x >= budgetwindow_main_expenses_table_header_t::item_name_column_start && x < budgetwindow_main_expenses_table_header_t::item_name_column_start + budgetwindow_main_expenses_table_header_t::item_name_column_width) {
-	}
-	if(x >= budgetwindow_main_expenses_table_header_t::item_value_column_start && x < budgetwindow_main_expenses_table_header_t::item_value_column_start + budgetwindow_main_expenses_table_header_t::item_value_column_width) {
-	}
-		ident = -1;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-}
-void budgetwindow_main_expenses_table_row_t::on_create(sys::state& state) noexcept {
-}
-void budgetwindow_main_expenses_table_row_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_expenses_table_t& expenses_table = *((budgetwindow_main_expenses_table_t*)(parent)); 
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
-// BEGIN main::expenses_table::row_update
-	set_item_name_text(state, value.first);
-	set_item_value_text(state, text::prettify_currency(value.second));
-// END
-}
-void budgetwindow_main_expenses_table_row_t::set_item_name_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  item_name_cached_text) {
-		item_name_cached_text = new_text;
-		item_name_internal_layout.contents.clear();
-		item_name_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ item_name_internal_layout, text::layout_parameters{ 0, 0, int16_t(budgetwindow_main_expenses_table_header_t::item_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, item_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, item_name_cached_text);
-		}
-	} else {
-	}
-}
-void budgetwindow_main_expenses_table_row_t::set_item_value_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  item_value_cached_text) {
-		item_value_cached_text = new_text;
-		item_value_internal_layout.contents.clear();
-		item_value_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ item_value_internal_layout, text::layout_parameters{ 0, 0, int16_t(budgetwindow_main_expenses_table_header_t::item_value_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, item_value_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, item_value_cached_text);
-		}
-	} else {
-	}
-}
-void budgetwindow_main_expenses_table_t::impl_change_page(sys::state & state, int32_t new_page){
-	size_t section_header_pool_used = 0;
-	size_t neutral_spacer_pool_used = 0;
-	size_t bottom_spacer_pool_used = 0;
-	size_t top_spacer_pool_used = 0;
-	size_t row_pool_used = 0;
-	size_t header_pool_used = 0;
-	int16_t vert_used = 0;
-	bool alt_bg  = true;
-	page = std::clamp(new_page, 0, max_page());
-	children.clear();
-	if(page_starts.empty()) return;
-	if(open_page) { page_starts.push_back(int32_t(values.size())); open_page = false; }
-	for(int32_t i = page_starts[page]; i < page_starts[page + 1]; ++i) {
-		if(std::holds_alternative<section_header_option>(values[i])) {
-			if(section_header_pool_used >= section_header_pool.size()) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
-			children.push_back(section_header_pool[section_header_pool_used].get());
-			children.back()->parent = this;
-			((budgetwindow_section_header_t*)(section_header_pool[section_header_pool_used].get()))->section_type = std::get<section_header_option>(values[i]).section_type;
-			section_header_pool[section_header_pool_used]->base_data.position.y = vert_used;
-			vert_used += section_header_pool[section_header_pool_used]->base_data.size.y;
-			++section_header_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<neutral_spacer_option>(values[i])) {
-			if(neutral_spacer_pool_used >= neutral_spacer_pool.size()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
-			children.push_back(neutral_spacer_pool[neutral_spacer_pool_used].get());
-			children.back()->parent = this;
-			neutral_spacer_pool[neutral_spacer_pool_used]->base_data.position.y = vert_used;
-			vert_used += neutral_spacer_pool[neutral_spacer_pool_used]->base_data.size.y;
-			++neutral_spacer_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<bottom_spacer_option>(values[i])) {
-			if(bottom_spacer_pool_used >= bottom_spacer_pool.size()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
-			children.push_back(bottom_spacer_pool[bottom_spacer_pool_used].get());
-			children.back()->parent = this;
-			bottom_spacer_pool[bottom_spacer_pool_used]->base_data.position.y = vert_used;
-			vert_used += bottom_spacer_pool[bottom_spacer_pool_used]->base_data.size.y;
-			++bottom_spacer_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<top_spacer_option>(values[i])) {
-			if(top_spacer_pool_used >= top_spacer_pool.size()) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
-			children.push_back(top_spacer_pool[top_spacer_pool_used].get());
-			children.back()->parent = this;
-			top_spacer_pool[top_spacer_pool_used]->base_data.position.y = vert_used;
-			vert_used += top_spacer_pool[top_spacer_pool_used]->base_data.size.y;
-			++top_spacer_pool_used;
-			alt_bg  = false;
-		}
-		if(std::holds_alternative<value_option>(values[i])) {
-			if(row_pool_used >= row_pool.size())row_pool.emplace_back(make_row(state));
-			children.push_back(row_pool[row_pool_used].get());
-			children.back()->parent = this;
-			row_pool[row_pool_used]->value = std::get<value_option>(values[i]).value;
-			row_pool[row_pool_used]->alternate_row = alt_bg;
-			row_pool[row_pool_used]->base_data.position.y = vert_used;
-			vert_used += row_pool[row_pool_used]->base_data.size.y;
-			++row_pool_used;
-			alt_bg  = !alt_bg;
-		}
-		if(std::holds_alternative<std::monostate>(values[i])) {
-			if(header_pool_used >= header_pool.size()) header_pool.emplace_back(make_headers(state));
-			children.push_back(header_pool[header_pool_used].get());
-			children.back()->parent = this;
-			header_pool[header_pool_used]->base_data.position.y = vert_used;
-			vert_used += header_pool[header_pool_used]->base_data.size.y;
-			++header_pool_used;
-			alt_bg  = true;
-		}
-	}
-}
-void budgetwindow_main_expenses_table_t::change_page(sys::state & state, int32_t new_page){
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
-	}
-	impl_change_page(state, new_page);	for(auto c : children) c->impl_on_update(state);
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		state.ui_animation.post_update_frame(state);
-	}
-}
-int32_t budgetwindow_main_expenses_table_t::max_page(){
-	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
-}
-void budgetwindow_main_expenses_table_t::clear_table() {
-	children.clear();
-	page_starts.clear();
-	values.clear();
-	open_page = false;
-	layout_space = 0;
-}
-void budgetwindow_main_expenses_table_t::add_value(std::pair<std::string, float> const& v) {
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty() || !std::holds_alternative<value_option>(values.back())) {
-		if(base_data.size.y - layout_space <= 2 * int32_t(row_height * 8)) {
-			page_starts.push_back(int32_t(values.size()));
-			layout_space = 0;
-		}
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <= int32_t(row_height * 8)) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(value_option{v});
-	layout_space += int16_t(row_height * 8);
-}
-void budgetwindow_main_expenses_table_t::add_insert_section_header(sys::state& state, int32_t const& section_type) {
-	if(section_header_pool.empty()) section_header_pool.emplace_back(make_budgetwindow_section_header(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  section_header_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(section_header_option{section_type});
-	layout_space += int16_t(section_header_pool[0]->base_data.size.y);
-}
-void budgetwindow_main_expenses_table_t::add_insert_neutral_spacer(sys::state& state) {
-	if(neutral_spacer_pool.empty()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  neutral_spacer_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(neutral_spacer_option{});
-	layout_space += int16_t(neutral_spacer_pool[0]->base_data.size.y);
-}
-void budgetwindow_main_expenses_table_t::add_insert_bottom_spacer(sys::state& state) {
-	if(bottom_spacer_pool.empty()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  bottom_spacer_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(bottom_spacer_option{});
-	layout_space += int16_t(bottom_spacer_pool[0]->base_data.size.y);
-}
-void budgetwindow_main_expenses_table_t::add_insert_top_spacer(sys::state& state) {
-	if(top_spacer_pool.empty()) top_spacer_pool.emplace_back(make_budgetwindow_top_spacer(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(base_data.size.y - layout_space <=  top_spacer_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-	}
-	values.emplace_back(top_spacer_option{});
-	layout_space += int16_t(top_spacer_pool[0]->base_data.size.y);
-}
-std::unique_ptr<budgetwindow_main_expenses_table_row_t> budgetwindow_main_expenses_table_t::make_row(sys::state& state) {
-	auto cptr = std::make_unique<budgetwindow_main_expenses_table_row_t>();
-	cptr->parent = this;
-	cptr->base_data.position.x = 0;
-	cptr->base_data.position.y = 0;
-	cptr->base_data.size.y = int16_t(row_height * 8);
-	cptr->base_data.size.x = this->base_data.size.x;
-	cptr->on_create(state);
-	return cptr;
-}
-std::unique_ptr<budgetwindow_main_expenses_table_header_t> budgetwindow_main_expenses_table_t::make_headers(sys::state& state){
-	auto cptr = std::make_unique<budgetwindow_main_expenses_table_header_t>();
-	cptr->parent = this;
-	cptr->base_data.position.x = 0;
-	cptr->base_data.position.y = 0;
-	cptr->base_data.size.y = int16_t(row_height * 8);
-	cptr->base_data.size.x = this->base_data.size.x;
-	cptr->on_create(state);
-	return cptr;
-}
-void budgetwindow_main_expenses_table_t::impl_apply_sort(sys::state& state) {
-	bool work_to_do = false;
-	if(budgetwindow_main_expenses_table_header_t::item_name_sort_direction != 0) work_to_do = true;
-	if(budgetwindow_main_expenses_table_header_t::item_value_sort_direction != 0) work_to_do = true;
-	if(!work_to_do) return;
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-	std::vector<std::pair<std::string, float>> val_temp;
-	size_t i = 0;
-	while(i < values.size()) {
-		if(std::holds_alternative<value_option>(values[i])) {
-			auto start_pos = i;
-			do {
-				if(std::holds_alternative<value_option>(values[i])) val_temp.push_back(std::get<value_option>(values[i]).value);
-				++i;
-			} while(i < values.size() && (std::holds_alternative<value_option>(values[i]) || std::holds_alternative<std::monostate>(values[i])));
-			if(budgetwindow_main_expenses_table_header_t::item_name_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const std::pair<std::string, float>& a, const std::pair<std::string, float>& b){
-					int8_t result = 0;
-// BEGIN main::expenses_table::sort::item_name
-					result = int8_t(std::clamp(a.first.compare(b.first), -1, 1));
-// END
-					return result == budgetwindow_main_expenses_table_header_t::item_name_sort_direction;
-				});
-			}
-			if(budgetwindow_main_expenses_table_header_t::item_value_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const std::pair<std::string, float>& a, const std::pair<std::string, float>& b){
-					int8_t result = 0;
-// BEGIN main::expenses_table::sort::item_value
-					if(a.second == b.second)
-						result = 0;
-					else
-						result = (a.second < b.second) ? -1 : 1;
-// END
-					return result == budgetwindow_main_expenses_table_header_t::item_value_sort_direction;
-				});
-			}
-			while(start_pos < i) {
-				if(std::holds_alternative<value_option>(values[start_pos])) {
-					std::get<value_option>(values[start_pos]).value = val_temp.back();
-					val_temp.pop_back();
-				}
-				++start_pos;
-			}
-			val_temp.clear();
-		} else {
-			++i;
-		}
-	}
-}
-void budgetwindow_main_expenses_table_t::apply_sort(sys::state& state) {
-	impl_apply_sort(state);
-	impl_change_page(state, page);	for(auto c : children) c->impl_on_update(state);
-}
-ui::message_result budgetwindow_main_expenses_table_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void budgetwindow_main_expenses_table_t::on_update(sys::state& state) noexcept {
-	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
-// BEGIN main::expenses_table::update
-	clear_table();
-	add_insert_section_header(state, budget_categories::construction);
-	if(budget_categories::expanded[budget_categories::construction]) {
-		// TODO
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::army_upkeep);
-	if(budget_categories::expanded[budget_categories::army_upkeep]) {
-		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_land_spending(state.local_player_nation)) / 100.0f;
-		auto goods = state.world.commodity_make_vectorizable_float_buffer();
-
-		uint32_t total_commodities = state.world.commodity_size();
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-				goods.set(cid, goods.get(cid) + state.world.market_get_army_demand(market, cid)
-					* economy::price(state, market, cid)
-					* state.world.market_get_demand_satisfaction(market, cid));
-			}
-		});
-		for(auto c : state.world.in_commodity) {
-			if(goods.get(c) > 0.0f) {
-				add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.commodity_get_name(c)), goods.get(c) * fraction));
-			}
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::navy_upkeep);
-	if(budget_categories::expanded[budget_categories::navy_upkeep]) {
-		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_naval_spending(state.local_player_nation)) / 100.0f;
-		auto goods = state.world.commodity_make_vectorizable_float_buffer();
-
-		uint32_t total_commodities = state.world.commodity_size();
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-				goods.set(cid, goods.get(cid) + state.world.market_get_navy_demand(market, cid)
-					* economy::price(state, market, cid)
-					* state.world.market_get_demand_satisfaction(market, cid));
-			}
-		});
-		for(auto c : state.world.in_commodity) {
-			if(goods.get(c) > 0.0f) {
-				add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.commodity_get_name(c)), goods.get(c) * fraction));
-			}
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::admin);
-	if(budget_categories::expanded[budget_categories::admin]) {
-		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
-
-		add_value(std::pair<std::string, float>(
-			"capital",
-			economy::estimate_spendings_administration_capital(
-				state, state.local_player_nation, fraction
-			)
-		));
-
-		auto in = culture::income_type::administration;
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			add_value(
-				std::pair<std::string, float>(
-					text::get_dynamic_state_name(state, local_state),
-					economy::estimate_spendings_administration_state(
-						state, state.local_player_nation, local_state, fraction
-					)
-				)
-			);
-		});
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::education);
-	if(budget_categories::expanded[budget_categories::education]) {
-		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_education_spending(state.local_player_nation)) / 100.0f;
-		auto in = culture::income_type::education;
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			float total = 0.0f;
-			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-				auto adj_pop_of_type =
-					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt)) / state.defines.alice_needs_scaling_factor;
-
-				if(adj_pop_of_type <= 0)
-					return;
-
-				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
-				if(ln_type == in) {
-					total += adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
-				}
-				auto en_type = culture::income_type(state.world.pop_type_get_everyday_needs_income_type(pt));
-				if(en_type == in) {
-					total += adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
-				}
-				auto lx_type = culture::income_type(state.world.pop_type_get_luxury_needs_income_type(pt));
-				if(lx_type == in) {
-					total += adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
-				}
-			});
-			if(total > 0.0f) {
-				add_value(std::pair<std::string, float>(text::get_dynamic_state_name(state, local_state), total * fraction));
-			}
-		});
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::social);
-	if(budget_categories::expanded[budget_categories::social]) {
-		add_insert_top_spacer(state);
-		auto const p_level = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::pension_level);
-		auto const unemp_level = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::unemployment_benefit);
-		auto fraction = float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
-
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			float total = 0.0f;
-
-			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-				auto adj_pop_of_type =
-					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt))
-					/ state.defines.alice_needs_scaling_factor;
-				if(adj_pop_of_type <= 0)
-					return;
-
-				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
-				if(ln_type == culture::income_type::administration || ln_type == culture::income_type::education || ln_type == culture::income_type::military) {
-					//nothing
-				} else { // unemployment, pensions
-					total += adj_pop_of_type * p_level * state.world.market_get_life_needs_costs(market, pt);
-					if(state.world.pop_type_get_has_unemployment(pt)) {
-						auto emp = state.world.state_instance_get_demographics(local_state, demographics::to_employment_key(state, pt)) / state.defines.alice_needs_scaling_factor;
-						total +=
-							(adj_pop_of_type - emp)
-							* unemp_level
-							* state.world.market_get_life_needs_costs(market, pt);
-					}
-				}
-			});
-			if(total > 0.0f) {
-				add_value(std::pair<std::string, float>(text::get_dynamic_state_name(state, local_state), total * fraction));
-			}
-		});
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::military);
-	if(budget_categories::expanded[budget_categories::military]) {
-		add_insert_top_spacer(state);
-		auto fraction = float(state.world.nation_get_military_spending(state.local_player_nation)) / 100.0f;
-		auto in = culture::income_type::military;
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			float total = 0.0f;
-			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-				auto adj_pop_of_type =
-					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt)) / state.defines.alice_needs_scaling_factor;
-
-				if(adj_pop_of_type <= 0)
-					return;
-
-				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
-				if(ln_type == in) {
-					total += adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
-				}
-				auto en_type = culture::income_type(state.world.pop_type_get_everyday_needs_income_type(pt));
-				if(en_type == in) {
-					total += adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
-				}
-				auto lx_type = culture::income_type(state.world.pop_type_get_luxury_needs_income_type(pt));
-				if(lx_type == in) {
-					total += adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
-				}
-			});
-			if(total > 0.0f) {
-				add_value(std::pair<std::string, float>(text::get_dynamic_state_name(state, local_state), total * fraction));
-			}
-		});
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::domestic_investment);
-	if(budget_categories::expanded[budget_categories::domestic_investment]) {
-		add_insert_top_spacer(state);
-		auto cap_total = 0.f;
-		auto aristo_total = 0.f;
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			auto adj_pop_of_type_capis = (state.world.state_instance_get_demographics(
-				local_state, demographics::to_key(state, state.culture_definitions.capitalists))
-				) / state.defines.alice_needs_scaling_factor;
-			auto adj_pop_of_type_arist = (state.world.state_instance_get_demographics(
-				local_state, demographics::to_key(state, state.culture_definitions.aristocrat))
-				) / state.defines.alice_needs_scaling_factor;
-			float arist_costs =
-				state.world.market_get_life_needs_costs(market, state.culture_definitions.aristocrat)
-				+ state.world.market_get_everyday_needs_costs(market, state.culture_definitions.aristocrat)
-				+ state.world.market_get_luxury_needs_costs(market, state.culture_definitions.aristocrat);
-			float capis_costs =
-				state.world.market_get_life_needs_costs(market, state.culture_definitions.capitalists)
-				+ state.world.market_get_everyday_needs_costs(market, state.culture_definitions.capitalists)
-				+ state.world.market_get_luxury_needs_costs(market, state.culture_definitions.capitalists);
-
-			cap_total += state.defines.alice_domestic_investment_multiplier * ( adj_pop_of_type_capis * capis_costs );
-			aristo_total += state.defines.alice_domestic_investment_multiplier * (adj_pop_of_type_arist * arist_costs );
-		});
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)), cap_total * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.0f));
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.aristocrat)), aristo_total * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.0f));
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::overseas_spending);
-	if(budget_categories::expanded[budget_categories::overseas_spending]) {
-		add_insert_top_spacer(state);
-		auto capital = state.world.nation_get_capital(state.local_player_nation);
-		auto capital_state = state.world.province_get_state_membership(capital);
-		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
-
-		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(state.local_player_nation) - state.world.nation_get_central_province_count(state.local_player_nation));
-		uint32_t total_commodities = state.world.commodity_size();
-
-		if(overseas_factor > 0) {
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-
-				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(state.local_player_nation, cid))) {
-					auto amount =
-						overseas_factor * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
-					add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount));
-				}
-			}
-		}
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::diplomatic_expenses);
-	if(budget_categories::expanded[budget_categories::diplomatic_expenses]) {
-		add_insert_top_spacer(state);
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "warsubsidies_button"), economy::estimate_war_subsidies_spending(state, state.local_player_nation)));
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "alice_budget_indemnities"), economy::estimate_reparations_spending(state, state.local_player_nation)));
-		add_value(std::pair<std::string, float>(text::produce_simple_string(state, "alice_budget_overlord"), economy::estimate_subject_payments_paid(state, state.local_player_nation)));
-		add_insert_bottom_spacer(state);
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::debt_payment);
-	if(budget_categories::expanded[budget_categories::debt_payment]) {
-		// TODO?
-	} else {
-		add_insert_neutral_spacer(state);
-	}
-	add_insert_section_header(state, budget_categories::stockpile);
-	if(budget_categories::expanded[budget_categories::stockpile]) {
-		add_insert_top_spacer(state);
-		uint32_t total_commodities = state.world.commodity_size();
-
-		auto capital = state.world.nation_get_capital(state.local_player_nation);
-		auto capital_state = state.world.province_get_state_membership(capital);
-		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
-
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto difference =
-				state.world.nation_get_stockpile_targets(state.local_player_nation, cid)
-				- state.world.nation_get_stockpiles(state.local_player_nation, cid);
-
-			if(difference > 0 && state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, cid) == false) {
-				auto amount = difference * economy::price(state, market, cid) * state.world.market_get_demand_satisfaction(market, cid);
-				if(amount > 0) {
-					add_value(std::pair<std::string, float>(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount));
-				}
-			}
-		}
-		add_insert_bottom_spacer(state);
-	}
-// END
-	impl_apply_sort(state);
-	impl_change_page(state, page);
-}
-void budgetwindow_main_expenses_table_t::on_create(sys::state& state) noexcept {
-// BEGIN main::expenses_table::create
 // END
 }
 void budgetwindow_main_admin_eff1_t::set_text(sys::state& state, std::string const& new_text) {
@@ -4592,6 +3754,193 @@ void budgetwindow_main_t::render(sys::state & state, int32_t x, int32_t y) noexc
 void budgetwindow_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
 // END
+	income_table.update(state, this);
+	espenses_table.update(state, this);
+	remake_layout(state, true);
+}
+void budgetwindow_main_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "close_button") {
+					temp.ptr = close_button.get();
+				}
+				if(cname == "title") {
+					temp.ptr = title.get();
+				}
+				if(cname == "income_label") {
+					temp.ptr = income_label.get();
+				}
+				if(cname == "income_amount") {
+					temp.ptr = income_amount.get();
+				}
+				if(cname == "expenses_label") {
+					temp.ptr = expenses_label.get();
+				}
+				if(cname == "expenses_amount") {
+					temp.ptr = expenses_amount.get();
+				}
+				if(cname == "admin_eff1") {
+					temp.ptr = admin_eff1.get();
+				}
+				if(cname == "admin_eff2") {
+					temp.ptr = admin_eff2.get();
+				}
+				if(cname == "admin_eff_amount") {
+					temp.ptr = admin_eff_amount.get();
+				}
+				if(cname == "welfare_label") {
+					temp.ptr = welfare_label.get();
+				}
+				if(cname == "chart_max_a") {
+					temp.ptr = chart_max_a.get();
+				}
+				if(cname == "chart_min") {
+					temp.ptr = chart_min.get();
+				}
+				if(cname == "chart_max_b") {
+					temp.ptr = chart_max_b.get();
+				}
+				if(cname == "chart_poplabel") {
+					temp.ptr = chart_poplabel.get();
+				}
+				if(cname == "chart_needslabel") {
+					temp.ptr = chart_needslabel.get();
+				}
+				if(cname == "welfare_chart_poor") {
+					temp.ptr = welfare_chart_poor.get();
+				}
+				if(cname == "welfare_chart_middle") {
+					temp.ptr = welfare_chart_middle.get();
+				}
+				if(cname == "welfare_chart_rich") {
+					temp.ptr = welfare_chart_rich.get();
+				}
+				if(cname == "hover_poor") {
+					temp.ptr = hover_poor.get();
+				}
+				if(cname == "hover_middle") {
+					temp.ptr = hover_middle.get();
+				}
+				if(cname == "hover_rich") {
+					temp.ptr = hover_rich.get();
+				}
+				if(cname == "debt_label") {
+					temp.ptr = debt_label.get();
+				}
+				if(cname == "debt_enable") {
+					temp.ptr = debt_enable.get();
+				}
+				if(cname == "total_debt_label") {
+					temp.ptr = total_debt_label.get();
+				}
+				if(cname == "max_debt_label") {
+					temp.ptr = max_debt_label.get();
+				}
+				if(cname == "total_debt_amount") {
+					temp.ptr = total_debt_amount.get();
+				}
+				if(cname == "max_debt_amount") {
+					temp.ptr = max_debt_amount.get();
+				}
+				if(cname == "debt_chart") {
+					temp.ptr = debt_chart.get();
+				}
+				if(cname == "debt_overlay") {
+					temp.ptr = debt_overlay.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_budgetwindow_main(state);
+				}
+				if(cname == "section_header") {
+					temp.ptr = make_budgetwindow_section_header(state);
+				}
+				if(cname == "neutral_spacer") {
+					temp.ptr = make_budgetwindow_neutral_spacer(state);
+				}
+				if(cname == "top_spacer") {
+					temp.ptr = make_budgetwindow_top_spacer(state);
+				}
+				if(cname == "bottom_spacer") {
+					temp.ptr = make_budgetwindow_bottom_spacer(state);
+				}
+				if(cname == "budget_row") {
+					temp.ptr = make_budgetwindow_budget_row(state);
+				}
+				if(cname == "budget_header") {
+					temp.ptr = make_budgetwindow_budget_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				if(cname == "income_table") {
+					temp.generator = &income_table;
+				}
+				if(cname == "espenses_table") {
+					temp.generator = &espenses_table;
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("budgetwindow::main"));
@@ -4610,30 +3959,32 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "close_button") {
-			auto cptr = std::make_unique<budgetwindow_main_close_button_t>();
-			cptr->parent = this;
-			close_button = cptr.get();
+			close_button = std::make_unique<budgetwindow_main_close_button_t>();
+			close_button->parent = this;
+			auto cptr = close_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "title") {
-			auto cptr = std::make_unique<budgetwindow_main_title_t>();
-			cptr->parent = this;
-			title = cptr.get();
+			title = std::make_unique<budgetwindow_main_title_t>();
+			title->parent = this;
+			auto cptr = title.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4643,14 +3994,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "income_label") {
-			auto cptr = std::make_unique<budgetwindow_main_income_label_t>();
-			cptr->parent = this;
-			income_label = cptr.get();
+			income_label = std::make_unique<budgetwindow_main_income_label_t>();
+			income_label->parent = this;
+			auto cptr = income_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4660,14 +4012,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "income_amount") {
-			auto cptr = std::make_unique<budgetwindow_main_income_amount_t>();
-			cptr->parent = this;
-			income_amount = cptr.get();
+			income_amount = std::make_unique<budgetwindow_main_income_amount_t>();
+			income_amount->parent = this;
+			auto cptr = income_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4676,139 +4029,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "income_page_left") {
-			auto cptr = std::make_unique<budgetwindow_main_income_page_left_t>();
 			cptr->parent = this;
-			income_page_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "income_page_right") {
-			auto cptr = std::make_unique<budgetwindow_main_income_page_right_t>();
-			cptr->parent = this;
-			income_page_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "income_page_number") {
-			auto cptr = std::make_unique<budgetwindow_main_income_page_number_t>();
-			cptr->parent = this;
-			income_page_number = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "income_table") {
-			auto cptr = std::make_unique<budgetwindow_main_income_table_t>();
-			cptr->parent = this;
-			income_table = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			int16_t col_sz_used = 0;
-			budgetwindow_main_income_table_header_t::lead_space_column_start = col_sz_used;
-			budgetwindow_main_income_table_header_t::lead_space_column_width = child_data.table_columns[0].width;
-			col_sz_used += child_data.table_columns[0].width; 
-			budgetwindow_main_income_table_header_t::item_name_text_color = child_data.table_columns[1].header_text_color;
-			budgetwindow_main_income_table_header_t::item_name_text_key = state.lookup_key(child_data.table_columns[1].header_key);
-			budgetwindow_main_income_table_row_t::item_name_default_text_color = child_data.table_columns[1].cell_text_color;
-			budgetwindow_main_income_table_row_t::item_name_text_alignment = child_data.table_columns[1].text_alignment;
-			budgetwindow_main_income_table_header_t::item_name_column_start = col_sz_used;
-			budgetwindow_main_income_table_header_t::item_name_column_width = child_data.table_columns[1].width;
-			col_sz_used += child_data.table_columns[1].width; 
-			budgetwindow_main_income_table_header_t::item_value_text_color = child_data.table_columns[2].header_text_color;
-			budgetwindow_main_income_table_header_t::item_value_text_key = state.lookup_key(child_data.table_columns[2].header_key);
-			budgetwindow_main_income_table_row_t::item_value_default_text_color = child_data.table_columns[2].cell_text_color;
-			budgetwindow_main_income_table_row_t::item_value_text_alignment = child_data.table_columns[2].text_alignment;
-			budgetwindow_main_income_table_header_t::item_value_column_start = col_sz_used;
-			budgetwindow_main_income_table_header_t::item_value_column_width = child_data.table_columns[2].width;
-			col_sz_used += child_data.table_columns[2].width; 
-			budgetwindow_main_income_table_header_t::ascending_icon_key = child_data.ascending_sort_icon;
-			budgetwindow_main_income_table_header_t::descending_icon_key = child_data.descending_sort_icon;
-			budgetwindow_main_income_table_row_t::row_texture_key = child_data.row_background_a;
-			budgetwindow_main_income_table_row_t::alt_row_texture_key = child_data.row_background_b;
-			budgetwindow_main_income_table_t::row_height = child_data.row_height;
-			budgetwindow_main_income_table_t::table_divider_color = child_data.table_divider_color;
-			budgetwindow_main_income_table_t::table_highlight_color = child_data.table_highlight_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "expenses_page_left") {
-			auto cptr = std::make_unique<budgetwindow_main_expenses_page_left_t>();
-			cptr->parent = this;
-			expenses_page_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "expenses_page_number") {
-			auto cptr = std::make_unique<budgetwindow_main_expenses_page_number_t>();
-			cptr->parent = this;
-			expenses_page_number = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "expenses_page_right") {
-			auto cptr = std::make_unique<budgetwindow_main_expenses_page_right_t>();
-			cptr->parent = this;
-			expenses_page_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "expenses_label") {
-			auto cptr = std::make_unique<budgetwindow_main_expenses_label_t>();
-			cptr->parent = this;
-			expenses_label = cptr.get();
+			expenses_label = std::make_unique<budgetwindow_main_expenses_label_t>();
+			expenses_label->parent = this;
+			auto cptr = expenses_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4818,14 +4047,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "expenses_amount") {
-			auto cptr = std::make_unique<budgetwindow_main_expenses_amount_t>();
-			cptr->parent = this;
-			expenses_amount = cptr.get();
+			expenses_amount = std::make_unique<budgetwindow_main_expenses_amount_t>();
+			expenses_amount->parent = this;
+			auto cptr = expenses_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4834,51 +4064,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "expenses_table") {
-			auto cptr = std::make_unique<budgetwindow_main_expenses_table_t>();
 			cptr->parent = this;
-			expenses_table = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			int16_t col_sz_used = 0;
-			budgetwindow_main_expenses_table_header_t::lead_space_column_start = col_sz_used;
-			budgetwindow_main_expenses_table_header_t::lead_space_column_width = child_data.table_columns[0].width;
-			col_sz_used += child_data.table_columns[0].width; 
-			budgetwindow_main_expenses_table_header_t::item_name_text_color = child_data.table_columns[1].header_text_color;
-			budgetwindow_main_expenses_table_header_t::item_name_text_key = state.lookup_key(child_data.table_columns[1].header_key);
-			budgetwindow_main_expenses_table_row_t::item_name_default_text_color = child_data.table_columns[1].cell_text_color;
-			budgetwindow_main_expenses_table_row_t::item_name_text_alignment = child_data.table_columns[1].text_alignment;
-			budgetwindow_main_expenses_table_header_t::item_name_column_start = col_sz_used;
-			budgetwindow_main_expenses_table_header_t::item_name_column_width = child_data.table_columns[1].width;
-			col_sz_used += child_data.table_columns[1].width; 
-			budgetwindow_main_expenses_table_header_t::item_value_text_color = child_data.table_columns[2].header_text_color;
-			budgetwindow_main_expenses_table_header_t::item_value_text_key = state.lookup_key(child_data.table_columns[2].header_key);
-			budgetwindow_main_expenses_table_row_t::item_value_default_text_color = child_data.table_columns[2].cell_text_color;
-			budgetwindow_main_expenses_table_row_t::item_value_text_alignment = child_data.table_columns[2].text_alignment;
-			budgetwindow_main_expenses_table_header_t::item_value_column_start = col_sz_used;
-			budgetwindow_main_expenses_table_header_t::item_value_column_width = child_data.table_columns[2].width;
-			col_sz_used += child_data.table_columns[2].width; 
-			budgetwindow_main_expenses_table_header_t::ascending_icon_key = child_data.ascending_sort_icon;
-			budgetwindow_main_expenses_table_header_t::descending_icon_key = child_data.descending_sort_icon;
-			budgetwindow_main_expenses_table_row_t::row_texture_key = child_data.row_background_a;
-			budgetwindow_main_expenses_table_row_t::alt_row_texture_key = child_data.row_background_b;
-			budgetwindow_main_expenses_table_t::row_height = child_data.row_height;
-			budgetwindow_main_expenses_table_t::table_divider_color = child_data.table_divider_color;
-			budgetwindow_main_expenses_table_t::table_highlight_color = child_data.table_highlight_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "admin_eff1") {
-			auto cptr = std::make_unique<budgetwindow_main_admin_eff1_t>();
-			cptr->parent = this;
-			admin_eff1 = cptr.get();
+			admin_eff1 = std::make_unique<budgetwindow_main_admin_eff1_t>();
+			admin_eff1->parent = this;
+			auto cptr = admin_eff1.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4888,14 +4082,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "admin_eff2") {
-			auto cptr = std::make_unique<budgetwindow_main_admin_eff2_t>();
-			cptr->parent = this;
-			admin_eff2 = cptr.get();
+			admin_eff2 = std::make_unique<budgetwindow_main_admin_eff2_t>();
+			admin_eff2->parent = this;
+			auto cptr = admin_eff2.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4905,14 +4100,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "admin_eff_amount") {
-			auto cptr = std::make_unique<budgetwindow_main_admin_eff_amount_t>();
-			cptr->parent = this;
-			admin_eff_amount = cptr.get();
+			admin_eff_amount = std::make_unique<budgetwindow_main_admin_eff_amount_t>();
+			admin_eff_amount->parent = this;
+			auto cptr = admin_eff_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4921,14 +4117,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "welfare_label") {
-			auto cptr = std::make_unique<budgetwindow_main_welfare_label_t>();
-			cptr->parent = this;
-			welfare_label = cptr.get();
+			welfare_label = std::make_unique<budgetwindow_main_welfare_label_t>();
+			welfare_label->parent = this;
+			auto cptr = welfare_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4938,14 +4135,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "chart_max_a") {
-			auto cptr = std::make_unique<budgetwindow_main_chart_max_a_t>();
-			cptr->parent = this;
-			chart_max_a = cptr.get();
+			chart_max_a = std::make_unique<budgetwindow_main_chart_max_a_t>();
+			chart_max_a->parent = this;
+			auto cptr = chart_max_a.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4955,14 +4153,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "chart_min") {
-			auto cptr = std::make_unique<budgetwindow_main_chart_min_t>();
-			cptr->parent = this;
-			chart_min = cptr.get();
+			chart_min = std::make_unique<budgetwindow_main_chart_min_t>();
+			chart_min->parent = this;
+			auto cptr = chart_min.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4972,14 +4171,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "chart_max_b") {
-			auto cptr = std::make_unique<budgetwindow_main_chart_max_b_t>();
-			cptr->parent = this;
-			chart_max_b = cptr.get();
+			chart_max_b = std::make_unique<budgetwindow_main_chart_max_b_t>();
+			chart_max_b->parent = this;
+			auto cptr = chart_max_b.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4989,14 +4189,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "chart_poplabel") {
-			auto cptr = std::make_unique<budgetwindow_main_chart_poplabel_t>();
-			cptr->parent = this;
-			chart_poplabel = cptr.get();
+			chart_poplabel = std::make_unique<budgetwindow_main_chart_poplabel_t>();
+			chart_poplabel->parent = this;
+			auto cptr = chart_poplabel.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5006,14 +4207,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "chart_needslabel") {
-			auto cptr = std::make_unique<budgetwindow_main_chart_needslabel_t>();
-			cptr->parent = this;
-			chart_needslabel = cptr.get();
+			chart_needslabel = std::make_unique<budgetwindow_main_chart_needslabel_t>();
+			chart_needslabel->parent = this;
+			auto cptr = chart_needslabel.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5023,53 +4225,57 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "welfare_chart_poor") {
-			auto cptr = std::make_unique<budgetwindow_main_welfare_chart_poor_t>();
-			cptr->parent = this;
-			welfare_chart_poor = cptr.get();
+			welfare_chart_poor = std::make_unique<budgetwindow_main_welfare_chart_poor_t>();
+			welfare_chart_poor->parent = this;
+			auto cptr = welfare_chart_poor.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->line_color = child_data.table_highlight_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "welfare_chart_middle") {
-			auto cptr = std::make_unique<budgetwindow_main_welfare_chart_middle_t>();
-			cptr->parent = this;
-			welfare_chart_middle = cptr.get();
+			welfare_chart_middle = std::make_unique<budgetwindow_main_welfare_chart_middle_t>();
+			welfare_chart_middle->parent = this;
+			auto cptr = welfare_chart_middle.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->line_color = child_data.table_highlight_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "welfare_chart_rich") {
-			auto cptr = std::make_unique<budgetwindow_main_welfare_chart_rich_t>();
-			cptr->parent = this;
-			welfare_chart_rich = cptr.get();
+			welfare_chart_rich = std::make_unique<budgetwindow_main_welfare_chart_rich_t>();
+			welfare_chart_rich->parent = this;
+			auto cptr = welfare_chart_rich.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->line_color = child_data.table_highlight_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "hover_poor") {
-			auto cptr = std::make_unique<budgetwindow_main_hover_poor_t>();
-			cptr->parent = this;
-			hover_poor = cptr.get();
+			hover_poor = std::make_unique<budgetwindow_main_hover_poor_t>();
+			hover_poor->parent = this;
+			auto cptr = hover_poor.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5080,14 +4286,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "hover_middle") {
-			auto cptr = std::make_unique<budgetwindow_main_hover_middle_t>();
-			cptr->parent = this;
-			hover_middle = cptr.get();
+			hover_middle = std::make_unique<budgetwindow_main_hover_middle_t>();
+			hover_middle->parent = this;
+			auto cptr = hover_middle.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5098,14 +4305,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "hover_rich") {
-			auto cptr = std::make_unique<budgetwindow_main_hover_rich_t>();
-			cptr->parent = this;
-			hover_rich = cptr.get();
+			hover_rich = std::make_unique<budgetwindow_main_hover_rich_t>();
+			hover_rich->parent = this;
+			auto cptr = hover_rich.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5116,14 +4324,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "debt_label") {
-			auto cptr = std::make_unique<budgetwindow_main_debt_label_t>();
-			cptr->parent = this;
-			debt_label = cptr.get();
+			debt_label = std::make_unique<budgetwindow_main_debt_label_t>();
+			debt_label->parent = this;
+			auto cptr = debt_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5133,14 +4342,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "debt_enable") {
-			auto cptr = std::make_unique<budgetwindow_main_debt_enable_t>();
-			cptr->parent = this;
-			debt_enable = cptr.get();
+			debt_enable = std::make_unique<budgetwindow_main_debt_enable_t>();
+			debt_enable->parent = this;
+			auto cptr = debt_enable.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5152,14 +4362,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "total_debt_label") {
-			auto cptr = std::make_unique<budgetwindow_main_total_debt_label_t>();
-			cptr->parent = this;
-			total_debt_label = cptr.get();
+			total_debt_label = std::make_unique<budgetwindow_main_total_debt_label_t>();
+			total_debt_label->parent = this;
+			auto cptr = total_debt_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5169,14 +4380,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "max_debt_label") {
-			auto cptr = std::make_unique<budgetwindow_main_max_debt_label_t>();
-			cptr->parent = this;
-			max_debt_label = cptr.get();
+			max_debt_label = std::make_unique<budgetwindow_main_max_debt_label_t>();
+			max_debt_label->parent = this;
+			auto cptr = max_debt_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5186,14 +4398,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "total_debt_amount") {
-			auto cptr = std::make_unique<budgetwindow_main_total_debt_amount_t>();
-			cptr->parent = this;
-			total_debt_amount = cptr.get();
+			total_debt_amount = std::make_unique<budgetwindow_main_total_debt_amount_t>();
+			total_debt_amount->parent = this;
+			auto cptr = total_debt_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5203,14 +4416,15 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "max_debt_amount") {
-			auto cptr = std::make_unique<budgetwindow_main_max_debt_amount_t>();
-			cptr->parent = this;
-			max_debt_amount = cptr.get();
+			max_debt_amount = std::make_unique<budgetwindow_main_max_debt_amount_t>();
+			max_debt_amount->parent = this;
+			auto cptr = max_debt_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5220,38 +4434,84 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "debt_chart") {
-			auto cptr = std::make_unique<budgetwindow_main_debt_chart_t>();
-			cptr->parent = this;
-			debt_chart = cptr.get();
+			debt_chart = std::make_unique<budgetwindow_main_debt_chart_t>();
+			debt_chart->parent = this;
+			auto cptr = debt_chart.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "debt_overlay") {
-			auto cptr = std::make_unique<budgetwindow_main_debt_overlay_t>();
-			cptr->parent = this;
-			debt_overlay = cptr.get();
+			debt_overlay = std::make_unique<budgetwindow_main_debt_overlay_t>();
+			debt_overlay->parent = this;
+			auto cptr = debt_overlay.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		if(child_data.name == ".tabincome_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			income_table_ascending_icon_key = main_section.read<std::string_view>();
+			income_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read(income_table_divider_color);
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			running_w_total += col_section.read<int16_t>();
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			income_table_item_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_item_name_column_start = running_w_total;
+			col_section.read(income_table_item_name_column_width);
+			running_w_total += income_table_item_name_column_width;
+			col_section.read(income_table_item_name_column_text_color);
+			col_section.read(income_table_item_name_header_text_color);
+			col_section.read(income_table_item_name_text_alignment);
+			income_table_item_value_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_item_value_column_start = running_w_total;
+			col_section.read(income_table_item_value_column_width);
+			running_w_total += income_table_item_value_column_width;
+			col_section.read(income_table_item_value_column_text_color);
+			col_section.read(income_table_item_value_header_text_color);
+			col_section.read(income_table_item_value_text_alignment);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
 	}
+	income_table.on_create(state, this);
+	espenses_table.on_create(state, this);
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN main::create
 // END
 }
@@ -5284,6 +4544,7 @@ void budgetwindow_section_header_label_t::render(sys::state & state, int32_t x, 
 }
 void budgetwindow_section_header_label_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::label::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_text(state, text::produce_simple_string(state, "alice_budget_diplo_income")); break;
@@ -5316,6 +4577,7 @@ void budgetwindow_section_header_label_t::on_create(sys::state& state) noexcept 
 }
 ui::message_result budgetwindow_section_header_llbutton_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN section_header::llbutton::lbutton_action
 	auto vals = command::make_empty_budget_settings();
@@ -5357,6 +4619,7 @@ void budgetwindow_section_header_llbutton_t::render(sys::state & state, int32_t 
 }
 void budgetwindow_section_header_llbutton_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::llbutton::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_visible(state, false); break;
@@ -5389,6 +4652,7 @@ void budgetwindow_section_header_llbutton_t::on_create(sys::state& state) noexce
 }
 ui::message_result budgetwindow_section_header_lbutton_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 	if(mods == sys::key_modifiers::modifiers_shift) {
 // BEGIN section_header::lbutton::lbutton_shift_action
@@ -5460,6 +4724,7 @@ void budgetwindow_section_header_lbutton_t::render(sys::state & state, int32_t x
 }
 void budgetwindow_section_header_lbutton_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::lbutton::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_visible(state, false); break;
@@ -5492,6 +4757,7 @@ void budgetwindow_section_header_lbutton_t::on_create(sys::state& state) noexcep
 }
 ui::message_result budgetwindow_section_header_rbutton_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 	if(mods == sys::key_modifiers::modifiers_shift) {
 // BEGIN section_header::rbutton::lbutton_shift_action
@@ -5563,6 +4829,7 @@ void budgetwindow_section_header_rbutton_t::render(sys::state & state, int32_t x
 }
 void budgetwindow_section_header_rbutton_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rbutton::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_visible(state, false); break;
@@ -5595,6 +4862,7 @@ void budgetwindow_section_header_rbutton_t::on_create(sys::state& state) noexcep
 }
 ui::message_result budgetwindow_section_header_rrbutton_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN section_header::rrbutton::lbutton_action
 	auto vals = command::make_empty_budget_settings();
@@ -5636,6 +4904,7 @@ void budgetwindow_section_header_rrbutton_t::render(sys::state & state, int32_t 
 }
 void budgetwindow_section_header_rrbutton_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rrbutton::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_visible(state, false); break;
@@ -5690,6 +4959,7 @@ void budgetwindow_section_header_setting_amount_t::render(sys::state & state, in
 }
 void budgetwindow_section_header_setting_amount_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::setting_amount::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_text(state, ""); break;
@@ -5723,6 +4993,7 @@ void budgetwindow_section_header_setting_amount_t::on_create(sys::state& state) 
 ui::message_result budgetwindow_section_header_expand_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(disabled) return ui::message_result::consumed;
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN section_header::expand_button::lbutton_action
 	budget_categories::expanded[section_header.section_type] = !budget_categories::expanded[section_header.section_type];
@@ -5735,6 +5006,7 @@ ui::message_result budgetwindow_section_header_expand_button_t::on_rbutton_down(
 }
 void budgetwindow_section_header_expand_button_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::expand_button::tooltip
 	if(!budget_categories::expanded[section_header.section_type])
 		text::add_line(state, contents, "alice_budget_expand_tt");
@@ -5750,6 +5022,7 @@ void budgetwindow_section_header_expand_button_t::render(sys::state & state, int
 }
 void budgetwindow_section_header_expand_button_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::expand_button::update
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: disabled = (economy::estimate_diplomatic_income(state, state.local_player_nation) <= 0); break;
@@ -5807,6 +5080,7 @@ void budgetwindow_section_header_total_amount_t::render(sys::state & state, int3
 }
 void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::total_amount::update
 	auto info = economy::explain_tax_income(state, state.local_player_nation);
 	switch(section_header.section_type) {
@@ -5840,6 +5114,7 @@ void budgetwindow_section_header_total_amount_t::on_create(sys::state& state) no
 }
 void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::min_setting::tooltip
 	auto value = 0;
 	switch(section_header.section_type) {
@@ -5918,6 +5193,7 @@ void budgetwindow_section_header_min_setting_t::render(sys::state & state, int32
 }
 void budgetwindow_section_header_min_setting_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::min_setting::update
 	auto value = 0;
 	switch(section_header.section_type) {
@@ -5958,6 +5234,7 @@ void budgetwindow_section_header_min_setting_t::on_create(sys::state& state) noe
 }
 void budgetwindow_section_header_max_setting_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::max_setting::tooltip
 	auto value = 100;
 	switch(section_header.section_type) {
@@ -6036,6 +5313,7 @@ void budgetwindow_section_header_max_setting_t::render(sys::state & state, int32
 }
 void budgetwindow_section_header_max_setting_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::max_setting::update
 	auto value = 100;
 	switch(section_header.section_type) {
@@ -6084,8 +5362,131 @@ void budgetwindow_section_header_t::render(sys::state & state, int32_t x, int32_
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 }
 void budgetwindow_section_header_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN section_header::update
 // END
+	remake_layout(state, true);
+}
+void budgetwindow_section_header_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "label") {
+					temp.ptr = label.get();
+				}
+				if(cname == "llbutton") {
+					temp.ptr = llbutton.get();
+				}
+				if(cname == "lbutton") {
+					temp.ptr = lbutton.get();
+				}
+				if(cname == "rbutton") {
+					temp.ptr = rbutton.get();
+				}
+				if(cname == "rrbutton") {
+					temp.ptr = rrbutton.get();
+				}
+				if(cname == "setting_amount") {
+					temp.ptr = setting_amount.get();
+				}
+				if(cname == "expand_button") {
+					temp.ptr = expand_button.get();
+				}
+				if(cname == "total_amount") {
+					temp.ptr = total_amount.get();
+				}
+				if(cname == "min_setting") {
+					temp.ptr = min_setting.get();
+				}
+				if(cname == "max_setting") {
+					temp.ptr = max_setting.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_budgetwindow_main(state);
+				}
+				if(cname == "section_header") {
+					temp.ptr = make_budgetwindow_section_header(state);
+				}
+				if(cname == "neutral_spacer") {
+					temp.ptr = make_budgetwindow_neutral_spacer(state);
+				}
+				if(cname == "top_spacer") {
+					temp.ptr = make_budgetwindow_top_spacer(state);
+				}
+				if(cname == "bottom_spacer") {
+					temp.ptr = make_budgetwindow_bottom_spacer(state);
+				}
+				if(cname == "budget_row") {
+					temp.ptr = make_budgetwindow_budget_row(state);
+				}
+				if(cname == "budget_header") {
+					temp.ptr = make_budgetwindow_budget_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("budgetwindow::section_header"));
@@ -6104,16 +5505,17 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "label") {
-			auto cptr = std::make_unique<budgetwindow_section_header_label_t>();
-			cptr->parent = this;
-			label = cptr.get();
+			label = std::make_unique<budgetwindow_section_header_label_t>();
+			label->parent = this;
+			auto cptr = label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6122,14 +5524,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "llbutton") {
-			auto cptr = std::make_unique<budgetwindow_section_header_llbutton_t>();
-			cptr->parent = this;
-			llbutton = cptr.get();
+			llbutton = std::make_unique<budgetwindow_section_header_llbutton_t>();
+			llbutton->parent = this;
+			auto cptr = llbutton.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6137,14 +5540,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "lbutton") {
-			auto cptr = std::make_unique<budgetwindow_section_header_lbutton_t>();
-			cptr->parent = this;
-			lbutton = cptr.get();
+			lbutton = std::make_unique<budgetwindow_section_header_lbutton_t>();
+			lbutton->parent = this;
+			auto cptr = lbutton.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6152,14 +5556,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "rbutton") {
-			auto cptr = std::make_unique<budgetwindow_section_header_rbutton_t>();
-			cptr->parent = this;
-			rbutton = cptr.get();
+			rbutton = std::make_unique<budgetwindow_section_header_rbutton_t>();
+			rbutton->parent = this;
+			auto cptr = rbutton.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6167,14 +5572,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "rrbutton") {
-			auto cptr = std::make_unique<budgetwindow_section_header_rrbutton_t>();
-			cptr->parent = this;
-			rrbutton = cptr.get();
+			rrbutton = std::make_unique<budgetwindow_section_header_rrbutton_t>();
+			rrbutton->parent = this;
+			auto cptr = rrbutton.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6182,14 +5588,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "setting_amount") {
-			auto cptr = std::make_unique<budgetwindow_section_header_setting_amount_t>();
-			cptr->parent = this;
-			setting_amount = cptr.get();
+			setting_amount = std::make_unique<budgetwindow_section_header_setting_amount_t>();
+			setting_amount->parent = this;
+			auto cptr = setting_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6198,28 +5605,30 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "expand_button") {
-			auto cptr = std::make_unique<budgetwindow_section_header_expand_button_t>();
-			cptr->parent = this;
-			expand_button = cptr.get();
+			expand_button = std::make_unique<budgetwindow_section_header_expand_button_t>();
+			expand_button->parent = this;
+			auto cptr = expand_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "total_amount") {
-			auto cptr = std::make_unique<budgetwindow_section_header_total_amount_t>();
-			cptr->parent = this;
-			total_amount = cptr.get();
+			total_amount = std::make_unique<budgetwindow_section_header_total_amount_t>();
+			total_amount->parent = this;
+			auto cptr = total_amount.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6228,14 +5637,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "min_setting") {
-			auto cptr = std::make_unique<budgetwindow_section_header_min_setting_t>();
-			cptr->parent = this;
-			min_setting = cptr.get();
+			min_setting = std::make_unique<budgetwindow_section_header_min_setting_t>();
+			min_setting->parent = this;
+			auto cptr = min_setting.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6244,14 +5654,15 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "max_setting") {
-			auto cptr = std::make_unique<budgetwindow_section_header_max_setting_t>();
-			cptr->parent = this;
-			max_setting = cptr.get();
+			max_setting = std::make_unique<budgetwindow_section_header_max_setting_t>();
+			max_setting->parent = this;
+			auto cptr = max_setting.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6260,11 +5671,17 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN section_header::create
 // END
 }
@@ -6283,6 +5700,7 @@ void budgetwindow_neutral_spacer_t::render(sys::state & state, int32_t x, int32_
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 }
 void budgetwindow_neutral_spacer_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN neutral_spacer::update
 // END
 }
@@ -6303,6 +5721,8 @@ void budgetwindow_neutral_spacer_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -6328,6 +5748,7 @@ void budgetwindow_top_spacer_t::render(sys::state & state, int32_t x, int32_t y)
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 }
 void budgetwindow_top_spacer_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN top_spacer::update
 // END
 }
@@ -6348,6 +5769,8 @@ void budgetwindow_top_spacer_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -6373,6 +5796,7 @@ void budgetwindow_bottom_spacer_t::render(sys::state & state, int32_t x, int32_t
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 }
 void budgetwindow_bottom_spacer_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
 // BEGIN bottom_spacer::update
 // END
 }
@@ -6393,6 +5817,8 @@ void budgetwindow_bottom_spacer_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
@@ -6405,6 +5831,544 @@ void budgetwindow_bottom_spacer_t::on_create(sys::state& state) noexcept {
 }
 std::unique_ptr<ui::element_base> make_budgetwindow_bottom_spacer(sys::state& state) {
 	auto ptr = std::make_unique<budgetwindow_bottom_spacer_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+ui::message_result budgetwindow_budget_row_contents_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result budgetwindow_budget_row_contents_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void budgetwindow_budget_row_contents_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(x >= table_source->income_table_item_name_column_start && x < table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width) {
+	}
+	if(x >= table_source->income_table_item_value_column_start && x < table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width) {
+	}
+		ident = -1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.size = base_data.size;
+}
+void budgetwindow_budget_row_contents_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(x >=  table_source->income_table_item_name_column_start && x <  table_source->income_table_item_name_column_start +  table_source->income_table_item_name_column_width) {
+	}
+	if(x >=  table_source->income_table_item_value_column_start && x <  table_source->income_table_item_value_column_start +  table_source->income_table_item_value_column_width) {
+	}
+}
+void budgetwindow_budget_row_contents_t::set_item_name_text(sys::state & state, std::string const& new_text) {
+		auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(new_text !=  item_name_cached_text) {
+		item_name_cached_text = new_text;
+		item_name_internal_layout.contents.clear();
+		item_name_internal_layout.number_of_lines = 0;
+		{
+		text::single_line_layout sl{ item_name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->income_table_item_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->income_table_item_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		sl.add_text(state, item_name_cached_text);
+		}
+	} else {
+	}
+}
+void budgetwindow_budget_row_contents_t::set_item_value_text(sys::state & state, std::string const& new_text) {
+		auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(new_text !=  item_value_cached_text) {
+		item_value_cached_text = new_text;
+		item_value_internal_layout.contents.clear();
+		item_value_internal_layout.number_of_lines = 0;
+		{
+		text::single_line_layout sl{ item_value_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->income_table_item_value_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->income_table_item_value_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		sl.add_text(state, item_value_cached_text);
+		}
+	} else {
+	}
+}
+void budgetwindow_budget_row_contents_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto fh = text::make_font_id(state, false, 1.0f * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	bool col_um_item_name = rel_mouse_x >= table_source->income_table_item_name_column_start && rel_mouse_x < (table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width);
+	if(!item_name_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name , false, false); 
+		for(auto& t : item_name_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->income_table_item_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_name_text_color), cmod);
+		}
+	}
+	bool col_um_item_value = rel_mouse_x >= table_source->income_table_item_value_column_start && rel_mouse_x < (table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width);
+	if(!item_value_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value , false, false); 
+		for(auto& t : item_value_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->income_table_item_value_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_value_text_color), cmod);
+		}
+	}
+}
+void budgetwindow_budget_row_contents_t::on_update(sys::state& state) noexcept {
+	budgetwindow_budget_row_t& budget_row = *((budgetwindow_budget_row_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
+// BEGIN budget_row::contents::update
+	set_item_name_text(state, budget_row.name);
+	set_item_value_text(state, text::prettify_currency(budget_row.value));
+// END
+}
+void budgetwindow_budget_row_contents_t::on_create(sys::state& state) noexcept {
+// BEGIN budget_row::contents::create
+// END
+}
+ui::message_result budgetwindow_budget_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result budgetwindow_budget_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void budgetwindow_budget_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	else
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (budgetwindow_main_t*)(parent);
+	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	if(under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_item_name = rel_mouse_x >= table_source->income_table_item_name_column_start && rel_mouse_x < (table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width);
+	if(col_um_item_name && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->income_table_item_name_column_start), float(y), float(table_source->income_table_item_name_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_item_value = rel_mouse_x >= table_source->income_table_item_value_column_start && rel_mouse_x < (table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width);
+	if(col_um_item_value && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->income_table_item_value_column_start), float(y), float(table_source->income_table_item_value_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+}
+void budgetwindow_budget_row_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
+// BEGIN budget_row::update
+// END
+	remake_layout(state, true);
+}
+void budgetwindow_budget_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "contents") {
+					temp.ptr = contents.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_budgetwindow_main(state);
+				}
+				if(cname == "section_header") {
+					temp.ptr = make_budgetwindow_section_header(state);
+				}
+				if(cname == "neutral_spacer") {
+					temp.ptr = make_budgetwindow_neutral_spacer(state);
+				}
+				if(cname == "top_spacer") {
+					temp.ptr = make_budgetwindow_top_spacer(state);
+				}
+				if(cname == "bottom_spacer") {
+					temp.ptr = make_budgetwindow_bottom_spacer(state);
+				}
+				if(cname == "budget_row") {
+					temp.ptr = make_budgetwindow_budget_row(state);
+				}
+				if(cname == "budget_header") {
+					temp.ptr = make_budgetwindow_budget_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void budgetwindow_budget_row_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("budgetwindow::budget_row"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	texture_key = win_data.texture;
+	alt_texture_key = win_data.alt_texture;
+	auto name_key = state.lookup_key("budgetwindow::budget_row");
+	for(auto ex : state.ui_defs.extensions) {
+		if(name_key && ex.window == name_key) {
+			auto ch_res = ui::make_element_immediate(state, ex.child);
+			if(ch_res) {
+				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
+			}
+		}
+	}
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "contents") {
+			contents = std::make_unique<budgetwindow_budget_row_contents_t>();
+			contents->parent = this;
+			auto cptr = contents.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN budget_row::create
+// END
+}
+std::unique_ptr<ui::element_base> make_budgetwindow_budget_row(sys::state& state) {
+	auto ptr = std::make_unique<budgetwindow_budget_row_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+ui::message_result budgetwindow_budget_header_contents_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(x >= table_source->income_table_item_name_column_start && x < table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->income_table_item_name_sort_direction;
+		table_source->income_table_item_name_sort_direction = 0;
+		table_source->income_table_item_value_sort_direction = 0;
+		table_source->income_table_item_name_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->income_table_item_value_column_start && x < table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->income_table_item_value_sort_direction;
+		table_source->income_table_item_name_sort_direction = 0;
+		table_source->income_table_item_value_sort_direction = 0;
+		table_source->income_table_item_value_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	return ui::message_result::consumed;}
+ui::message_result budgetwindow_budget_header_contents_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void budgetwindow_budget_header_contents_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(x >= table_source->income_table_item_name_column_start && x < table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width) {
+	}
+	if(x >= table_source->income_table_item_value_column_start && x < table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width) {
+	}
+		ident = -1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.size = base_data.size;
+}
+void budgetwindow_budget_header_contents_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	if(x >=  table_source->income_table_item_name_column_start && x <  table_source->income_table_item_name_column_start +  table_source->income_table_item_name_column_width) {
+	}
+	if(x >=  table_source->income_table_item_value_column_start && x <  table_source->income_table_item_value_column_start +  table_source->income_table_item_value_column_width) {
+	}
+}
+void budgetwindow_budget_header_contents_t::on_reset_text(sys::state& state) noexcept {
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	{
+	item_name_cached_text = text::produce_simple_string(state, table_source->income_table_item_name_header_text_key);
+	 item_name_internal_layout.contents.clear();
+	 item_name_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  item_name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->income_table_item_name_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->income_table_item_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, item_name_cached_text);
+	}
+	{
+	item_value_cached_text = text::produce_simple_string(state, table_source->income_table_item_value_header_text_key);
+	 item_value_internal_layout.contents.clear();
+	 item_value_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  item_value_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->income_table_item_value_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->income_table_item_value_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, item_value_cached_text);
+	}
+}
+void budgetwindow_budget_header_contents_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto fh = text::make_font_id(state, false, 1.0f * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto table_source = (budgetwindow_main_t*)(parent->parent);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	bool col_um_item_name = rel_mouse_x >= table_source->income_table_item_name_column_start && rel_mouse_x < (table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width);
+	if(table_source->income_table_item_name_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name, false, true), float(x + table_source->income_table_item_name_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->income_table_ascending_icon, table_source->income_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+	if(table_source->income_table_item_name_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name, false, true), float(x + table_source->income_table_item_name_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->income_table_descending_icon, table_source->income_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+	if(!item_name_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_name , false, true); 
+		for(auto& t : item_name_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->income_table_item_name_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->income_table_item_name_header_text_color), cmod);
+		}
+	}
+	bool col_um_item_value = rel_mouse_x >= table_source->income_table_item_value_column_start && rel_mouse_x < (table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width);
+	if(table_source->income_table_item_value_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value, false, true), float(x + table_source->income_table_item_value_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->income_table_ascending_icon, table_source->income_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+	if(table_source->income_table_item_value_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value, false, true), float(x + table_source->income_table_item_value_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->income_table_descending_icon, table_source->income_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+	if(!item_value_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item_value , false, true); 
+		for(auto& t : item_value_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->income_table_item_value_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->income_table_item_value_header_text_color), cmod);
+		}
+	}
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->income_table_divider_color.r, table_source->income_table_divider_color.g, table_source->income_table_divider_color.b, 1.0f);
+}
+void budgetwindow_budget_header_contents_t::on_update(sys::state& state) noexcept {
+	budgetwindow_budget_header_t& budget_header = *((budgetwindow_budget_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
+// BEGIN budget_header::contents::update
+// END
+}
+void budgetwindow_budget_header_contents_t::on_create(sys::state& state) noexcept {
+// BEGIN budget_header::contents::create
+// END
+}
+ui::message_result budgetwindow_budget_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result budgetwindow_budget_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void budgetwindow_budget_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	else
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (budgetwindow_main_t*)(parent);
+	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	if(under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_item_name = rel_mouse_x >= table_source->income_table_item_name_column_start && rel_mouse_x < (table_source->income_table_item_name_column_start + table_source->income_table_item_name_column_width);
+	if(col_um_item_name && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->income_table_item_name_column_start), float(y), float(table_source->income_table_item_name_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_item_value = rel_mouse_x >= table_source->income_table_item_value_column_start && rel_mouse_x < (table_source->income_table_item_value_column_start + table_source->income_table_item_value_column_width);
+	if(col_um_item_value && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->income_table_item_value_column_start), float(y), float(table_source->income_table_item_value_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+}
+void budgetwindow_budget_header_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
+// BEGIN budget_header::update
+// END
+	remake_layout(state, true);
+}
+void budgetwindow_budget_header_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "contents") {
+					temp.ptr = contents.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_budgetwindow_main(state);
+				}
+				if(cname == "section_header") {
+					temp.ptr = make_budgetwindow_section_header(state);
+				}
+				if(cname == "neutral_spacer") {
+					temp.ptr = make_budgetwindow_neutral_spacer(state);
+				}
+				if(cname == "top_spacer") {
+					temp.ptr = make_budgetwindow_top_spacer(state);
+				}
+				if(cname == "bottom_spacer") {
+					temp.ptr = make_budgetwindow_bottom_spacer(state);
+				}
+				if(cname == "budget_row") {
+					temp.ptr = make_budgetwindow_budget_row(state);
+				}
+				if(cname == "budget_header") {
+					temp.ptr = make_budgetwindow_budget_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void budgetwindow_budget_header_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("budgetwindow::budget_header"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	texture_key = win_data.texture;
+	alt_texture_key = win_data.alt_texture;
+	auto name_key = state.lookup_key("budgetwindow::budget_header");
+	for(auto ex : state.ui_defs.extensions) {
+		if(name_key && ex.window == name_key) {
+			auto ch_res = ui::make_element_immediate(state, ex.child);
+			if(ch_res) {
+				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
+			}
+		}
+	}
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "contents") {
+			contents = std::make_unique<budgetwindow_budget_header_contents_t>();
+			contents->parent = this;
+			auto cptr = contents.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN budget_header::create
+// END
+}
+std::unique_ptr<ui::element_base> make_budgetwindow_budget_header(sys::state& state) {
+	auto ptr = std::make_unique<budgetwindow_budget_header_t>();
 	ptr->on_create(state);
 	return ptr;
 }

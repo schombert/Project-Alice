@@ -83,8 +83,8 @@ inline void bytes_to_windows(char const* bytes, size_t size, std::string const& 
 
 		std::string name;
 		essential_window_section.read(name);
-
-		map.insert_or_assign(project_name + "::" + name, sys::aui_pending_bytes{ bytes + window_offset, window_size });
+		if(name != ".TABLE")
+			map.insert_or_assign(project_name + "::" + name, sys::aui_pending_bytes{ bytes + window_offset, window_size });
 	}
 }
 
@@ -213,6 +213,9 @@ inline aui_element_data read_child_bytes(char const* bytes, size_t size) {
 	auto essential_child_section = window_section.read_section();
 
 	result.name = essential_child_section.read<std::string_view>();
+	if(result.name.starts_with(".tab"))
+		return result;
+
 	essential_child_section.read(result.x_pos);
 	essential_child_section.read(result.y_pos);
 	essential_child_section.read(result.x_size);
