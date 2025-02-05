@@ -804,18 +804,38 @@ bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 }
 
 void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
-	std::vector<dcon::war_id> wars;
+	// Since removing primary participant effectively stops the war without peace treaty or truces, we shouldn't do it.
+	// If A is war leader, remove B. If B is war leader, remove A
+
+	std::vector<dcon::war_id> removeA;
+	std::vector<dcon::war_id> removeB;
+
+	// For every war of A, if B is participant on the same side and not primary, remove B
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b && o.get_is_attacker() == wa.get_is_attacker()) {
-				wars.push_back(wa.get_war());
+			auto is_primary = (o.get_is_attacker()) ? o.get_war().get_primary_attacker() == o.get_nation() : o.get_war().get_primary_defender() == o.get_nation();
+			if(o.get_nation() == b && o.get_is_attacker() == wa.get_is_attacker()&& !is_primary) {
+				removeB.push_back(wa.get_war());
 			}
 		}
 	}
-	for(const auto w : wars) {
-		//military::remove_from_war(state, w, a, false);
+	// For every war of B, if A is participant on the same side and not primary, remove A
+	for(auto wa : state.world.nation_get_war_participant(b)) {
+		for(auto o : wa.get_war().get_war_participant()) {
+			auto is_primary = (o.get_is_attacker()) ? o.get_war().get_primary_attacker() == o.get_nation() : o.get_war().get_primary_defender() == o.get_nation();
+			if(o.get_nation() == a && o.get_is_attacker() == wa.get_is_attacker() && !is_primary) {
+				removeA.push_back(wa.get_war());
+			}
+		}
+	}
+
+	for(const auto w : removeA) {
+		military::remove_from_war(state, w, a, false);
+	}
+	for(const auto w : removeB) {
 		military::remove_from_war(state, w, b, false);
 	}
+	
 }
 
 struct participation {
@@ -1605,6 +1625,38 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 	return std::clamp(math::sqrt(country_population / (total_population / total_countries)), 0.5f, 2.0f);
 }
 
+/* New logic for conquest infamy: take `demand state` infamy and multiply it by the proportion of the target nation population to the states average
+Basically conquest costs the same as conquering every state of the country */
+float cb_infamy_conquest_modifier(sys::state& state, dcon::nation_id target) {
+	if(target == dcon::nation_id{}) {
+		assert(false && "This shouldn't happen");
+		return 10.0f; // Default cap for infamy price
+	}
+
+	float country_population = state.world.nation_get_demographics(target, demographics::total);
+
+	float total_population = 0.f;
+	auto total_states = 0;
+
+	auto target_civilized = state.world.nation_get_is_civilized(target);
+
+	for(auto s : state.world.in_state_instance) {
+		/* Use correct reference group for average country population calculation.
+		Civs are compared vs civs and uncivs vs uncivs as they have just too big a difference in averages.*/
+		auto n = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto is_civilized = state.world.nation_get_is_civilized(n);
+
+		if(target_civilized != is_civilized) {
+			continue;
+		}
+		auto s_pop = state.world.state_instance_get_demographics(s, demographics::total);
+		total_population += s_pop;
+		total_states += (s_pop > 0) ? 1 : 0;
+	}
+
+	return std::clamp(math::sqrt(country_population / (total_population / total_states)), 0.5f, 10.0f);
+}
+
 float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
 	if(cb_state == dcon::state_definition_id{}) {
 		// assert(false && "This shouldn't happen");
@@ -1653,7 +1705,7 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 		total += state.defines.infamy_gunboat * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_annex) != 0) {
-		total += state.defines.infamy_annex * cb_infamy_country_modifier(state, target);
+		total += state.defines.infamy_demand_state * cb_infamy_conquest_modifier(state, target);
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.infamy_make_puppet * cb_infamy_country_modifier(state, target);
@@ -2876,21 +2928,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 		new_wg.set_type(type);
 		new_wg.set_war_from_wargoals_attached(wfor);
 	}
-
-	// Adding new wargoal reduce ticking warscore on previous ones to their max limits
-	for(auto wg : state.world.in_wargoal) {
-		auto war = wg.get_war_from_wargoals_attached();
-		if(!war)
-			continue;
-		if(war != wfor)
-			continue;
-		auto attacker_goal = military::is_attacker(state, war, wg.get_added_by());
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag()) * 2.f;
-
-		if(for_attacker == attacker_goal) {
-			wg.get_ticking_war_score() = std::clamp(wg.get_ticking_war_score(), float(-max_score), float(max_score));
-		}
-	}
+	
 
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
 		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target),
