@@ -254,7 +254,8 @@ modifier_base
 	capitalist_savings              value      float            member_fn
 	middle_class_savings              value      float            member_fn
 	farmers_savings              value      float            member_fn
-
+	disallow_naval_trade              value      float            member_fn
+	disallow_land_trade              value      float            member_fn
 
 
 int_vector

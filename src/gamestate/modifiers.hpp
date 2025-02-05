@@ -204,8 +204,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(131, capitalist_savings, true, modifier_display_type::percent, "capitalist_savings") \
 	MOD_LIST_ELEMENT(132, middle_class_savings, true, modifier_display_type::percent, "middle_class_savings") \
 	MOD_LIST_ELEMENT(133, farmers_savings, true, modifier_display_type::percent, "farmers_savings") \
+	MOD_LIST_ELEMENT(134, disallow_naval_trade, false, modifier_display_type::yesno, "disallow_naval_trade") \
+	MOD_LIST_ELEMENT(135, disallow_land_trade, false, modifier_display_type::yesno, "disallow_land_trade") \
 
-#define MOD_NAT_LIST_COUNT 134
+#define MOD_NAT_LIST_COUNT 136
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \

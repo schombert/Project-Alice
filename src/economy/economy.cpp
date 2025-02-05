@@ -5140,10 +5140,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
 		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
+		auto same_nation = controller_capital_A == controller_capital_B;
+
+		// Ban international sea routes or international land routes based on the corresponding modifiers
+		auto A_bans_sea_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
+		auto B_bans_sea_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
+		auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
+		auto A_bans_land_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_land_trade) > 0.f;
+		auto B_bans_land_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_land_trade) > 0.f;
+		auto land_trade_banned = A_bans_land_trade || B_bans_land_trade;
+		auto trade_banned = (is_sea_route && sea_trade_banned && !same_nation) || is_land_route && land_trade_banned && !same_nation;
 
 		is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
-
-		auto same_nation = controller_capital_A == controller_capital_B;
 
 		// sphere joins embargo
 		// subject joins embargo
@@ -5259,7 +5267,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			change = ve::select(
 				at_war
 				|| A_joins_sphere_wide_embargo
-				|| B_joins_sphere_wide_embargo,
+				|| B_joins_sphere_wide_embargo
+				|| trade_banned,
 				-current_volume,
 				change
 			);

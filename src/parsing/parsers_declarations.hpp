@@ -873,6 +873,10 @@ public:
 	MOD_NAT_FUNCTION(capitalist_savings)
 	MOD_NAT_FUNCTION(middle_class_savings)
 	MOD_NAT_FUNCTION(farmers_savings)
+
+	MOD_NAT_FUNCTION(disallow_naval_trade)
+	MOD_NAT_FUNCTION(disallow_land_trade)
+
 	template<typename T>
 	void finish(T& context) { }
 

@@ -1396,6 +1396,8 @@ aristocrat_savings;Aristocrats saving rate
 capitalist_savings;Capitalists saving rate
 middle_class_savings;Middle class saving rate
 farmers_savings;Farmers saving rate
+disallow_naval_trade;Ban naval trade
+disallow_land_trade;Ban land trade
 alice_filter_all;All
 alice_filter_none;None
 alice_filter_noncolonial;Non Colonial
