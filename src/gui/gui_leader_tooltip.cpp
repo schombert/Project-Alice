@@ -2,8 +2,8 @@
 
 namespace ui {
 void display_leader_attributes(sys::state& state, dcon::leader_id lid, text::layout_base& contents, int32_t indent) {
-	auto leader_per = state.world.leader_get_personality(lid);
-	auto leader_bak = state.world.leader_get_background(lid);
+	auto leader_per = military::get_leader_personality_wrapper(state, lid);
+	auto leader_bak = military::get_leader_background_wrapper(state, lid);
 	auto attack = state.world.leader_trait_get_attack(leader_per) + state.world.leader_trait_get_attack(leader_bak);
 	auto organisation = state.world.leader_trait_get_organisation(leader_per) + state.world.leader_trait_get_organisation(leader_bak);
 	auto morale = state.world.leader_trait_get_morale(leader_per) + state.world.leader_trait_get_morale(leader_bak);
@@ -113,10 +113,15 @@ void display_leader_attributes(sys::state& state, dcon::leader_id lid, text::lay
 
 void display_leader_full(sys::state& state, dcon::leader_id lid, text::layout_base& contents, int32_t indent) {
 	auto lname = state.world.leader_get_name(lid);
-	auto resolved = state.to_string_view(lname);
-
+	//auto resolved = state.to_string_view(lname);
 	auto box = text::open_layout_box(contents, indent);
-	text::add_to_layout_box(state, contents, box, resolved);
+	if(bool(lname)) {
+		text::add_to_layout_box(state, contents, box, state.to_string_view(lname));
+	}
+	// if no leader
+	else {
+		text::add_to_layout_box(state, contents, box, state.lookup_key("no_leader"));
+	}
 	text::close_layout_box(contents, box);
 
 	display_leader_attributes(state, lid, contents, indent + 15);
