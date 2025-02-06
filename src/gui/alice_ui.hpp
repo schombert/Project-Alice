@@ -221,4 +221,14 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
+
+inline int8_t cmp3(std::string_view a, std::string_view b) {
+	return int8_t(std::clamp(a.compare(b), -1, 1));
+}
+template<typename T>
+int8_t cmp3(T const& a, T const& b) {
+	if(a == b) return int8_t(0);
+	return (a < b) ? int8_t(-1) : int8_t(1);
+}
+
 }

@@ -535,8 +535,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	ui::urect tooltip_bounds;
 	int32_t tooltip_sub_index = -1;
 	if(tooltip_probe.under_mouse) {
-		tooltip_probe.under_mouse->tooltip_position(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-		int32_t(mouse_y_position / user_settings.ui_scale), tooltip_sub_index, tooltip_bounds);
+		tooltip_probe.under_mouse->tooltip_position(*this, tooltip_probe.relative_location.x,
+		tooltip_probe.relative_location.y, tooltip_sub_index, tooltip_bounds);
 	}
 
 	if(game_state_was_updated) {
