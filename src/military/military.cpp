@@ -7612,6 +7612,66 @@ float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
 float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
 	return state.world.ship_get_strength(ship_id);
 }
+bool province_has_battle(sys::state& state, dcon::province_id prov) {
+	for(auto b : state.world.province_get_land_battle_location(prov)) {
+		if(b.get_battle() && b.get_location().id == prov) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+	for(auto army : state.world.province_get_army_location(location)) {
+		if(!army.get_army()) {
+			// no armies present
+			return false;
+		}
+		else if(!army.get_army().get_controller_from_army_control()) {
+			// rebels are here, and they are always enemies
+			return true;
+		}
+		else if(are_at_war(state, our_nation, army.get_army().get_controller_from_army_control())) {
+			// someone who we are at war with has a unit in the province
+			return true;
+		}
+	}
+	return false;
+}
+
+float calculate_location_reinforce_modifier(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
+	// calculate the reinforcement location mod for units in a battle
+	if(province_has_battle(state, location)) {
+		float highest_adj_prov_modifier = 0.0f;
+		// iterate over adjacent provinces
+		for(auto adj : state.world.province_get_province_adjacency(location)) {
+			auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
+			auto prov = adj.get_connected_provinces(indx);
+			// if there are battles or enemy units sourrinding the province, it will get no reinforcements
+			if(province_has_battle(state, prov) || province_has_enemy_unit(state, prov, in_nation) ) {
+				highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
+			}
+			else {
+				highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, calculate_location_reinforce_modifier(state, prov, in_nation));
+			}
+		}
+		return highest_adj_prov_modifier;
+	}
+	// calculate the reinforcement location mod for units not in a battle
+	else {
+		float location_modifier = 1.0f;
+		if(state.world.province_get_nation_from_province_ownership(location) == in_nation) {
+			location_modifier = 2.0f;
+		} else if(state.world.province_get_nation_from_province_control(location) == in_nation) {
+			location_modifier = 1.0f;
+		} else {
+			location_modifier = 0.1f;
+		}
+		return location_modifier;
+	}
+
+}
+
 /* === Army reinforcement === */
 // Calculates max reinforcement for units in the army
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
@@ -7624,14 +7684,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 
 	auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 
-	float location_modifier = 1.0f;
-	if(ar.get_location_from_army_location().get_nation_from_province_ownership() == in_nation) {
-		location_modifier = 2.0f;
-	} else if(ar.get_location_from_army_location().get_nation_from_province_control() == in_nation) {
-		location_modifier = 1.0f;
-	} else {
-		location_modifier = 0.1f;
-	}
+	float location_modifier = calculate_location_reinforce_modifier(state, ar.get_location_from_army_location(), in_nation);
 
 	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
