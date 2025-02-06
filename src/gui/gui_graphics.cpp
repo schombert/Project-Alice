@@ -140,8 +140,8 @@ xy_pair child_relative_non_mirror_location(sys::state& state, element_base const
 
 xy_pair child_relative_location(sys::state& state, element_base const& parent, element_base const& child) {
 	auto orientation = child.base_data.get_orientation();
-	int16_t y = child_relative_location_y_component(parent, child);
 	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		int16_t y = child_relative_location_y_component(parent, child);
 		switch(orientation) {
 		case orientation::upper_left:
 		case orientation::lower_left:

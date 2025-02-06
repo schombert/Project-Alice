@@ -210,11 +210,9 @@ class unit_selection_leader_name : public simple_text_element_base {
 			auto fat = dcon::fatten(state.world, content);
 			auto name = fat.get_general_from_army_leadership().get_name();
 			if(bool(name)) {
-				// if its a actual leader
 				set_text(state, std::string(state.to_string_view(name)));
 			}
 			else {
-				// if its no leader
 				set_text(state, text::produce_simple_string(state, "no_leader"));
 			}
 		}
@@ -222,11 +220,9 @@ class unit_selection_leader_name : public simple_text_element_base {
 			auto fat = dcon::fatten(state.world, content);
 			auto name = fat.get_admiral_from_navy_leadership().get_name();
 			if(bool(name)) {
-				// if its a actual leader
 				set_text(state, std::string(state.to_string_view(name)));
 			}
 			else {
-				// if its no leader
 				set_text(state, text::produce_simple_string(state, "no_leader"));
 			}
 		}

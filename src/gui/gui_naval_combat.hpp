@@ -43,11 +43,10 @@ class nc_attacker_leader_img : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
 		auto lid = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class nc_defending_leader_img : public image_element_base {
@@ -86,11 +85,10 @@ class nc_defending_leader_img : public image_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
 		auto lid = state.world.naval_battle_get_admiral_from_defending_admiral(b);
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 
@@ -104,7 +102,7 @@ public:
 			auto name = state.to_string_view(state.world.leader_get_name(lid));
 			set_text(state, std::string(name));
 		} else {
-			set_text(state, "");
+			set_text(state, text::produce_simple_string(state, "no_leader"));
 		}
 	}
 };
@@ -118,7 +116,7 @@ public:
 			auto name = state.to_string_view(state.world.leader_get_name(lid));
 			set_text(state, std::string(name));
 		} else {
-			set_text(state, "");
+			set_text(state, text::produce_simple_string(state, "no_leader"));
 		}
 	}
 };
@@ -490,8 +488,8 @@ class nc_defender_combat_modifiers : public overlapping_listbox_element_base<lc_
 
 		auto defender_dice = (both_dice >> 4) & 0x0F;
 
-		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
-		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_per = military::get_leader_personality_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_bg = military::get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
 		auto defence_bonus =
 			int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -517,8 +515,8 @@ class nc_attacker_combat_modifiers : public overlapping_listbox_element_base<lc_
 		auto both_dice = state.world.naval_battle_get_dice_rolls(b);
 		auto attacker_dice = both_dice & 0x0F;
 
-		auto attacker_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
-		auto attacker_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto attacker_per = military::get_leader_personality_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto attacker_bg = military::get_leader_background_wrapper(state, state.world.naval_battle_get_admiral_from_attacking_admiral(b));
 
 		auto attack_bonus =
 			int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
@@ -756,11 +754,10 @@ class nc_our_leader_img : public image_element_base {
 		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
 		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
 		dcon::leader_id lid = we_are_attacker ? report->attacking_admiral : report->defending_admiral;
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class nc_our_leader_name : public simple_text_element_base {
@@ -816,11 +813,10 @@ class nc_their_leader_img : public image_element_base {
 		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
 		bool we_are_attacker = (report->attacker_won == report->player_on_winning_side);
 		dcon::leader_id lid = !we_are_attacker ? report->attacking_admiral : report->defending_admiral;
-
-		if(lid)
-			display_leader_attributes(state, lid, contents, 0);
-		else
+		if(!lid) {
 			text::add_line(state, contents, "no_leader");
+		}
+		display_leader_attributes(state, lid, contents, 0);
 	}
 };
 class nc_their_leader_name : public simple_text_element_base {

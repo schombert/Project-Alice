@@ -30,7 +30,19 @@ Then simply click on the `launch_alice` executable.
 - `readme OR ELSE.txt`: Contains relevant information, again, optional and it's fine if you don't have it.
 - `assets`: Folder NEEDED for Alice to work properly.
 
-## Ubuntu/PopOS
+
+## Linux
+### With Proton
+- follow the same steps for installation and download as for Windows
+- On Steam click add a game --> non steam game and select 'launch_alice.exe'
+- Right click --> properties --> Compatibility --> Force the Use of Steam Play compatibility tool
+- Select Proton
+
+#### Without Proton (Distrobox)
+- [follow the instructions here](https://github.com/ComradeNiobe/project-alice-distrobox)
+
+
+### Ubuntu/PopOS
 
 To install the game on Ubuntu/PopOS, follow the same steps for installation and download as for Windows until the point of launching `launch_alice`. At that point, download [Lutris](https://lutris.net).
 

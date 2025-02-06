@@ -7910,8 +7910,13 @@ float estimate_tariff_import_income(sys::state& state, dcon::nation_id n) {
 		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
 			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
 			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
-				trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
-				if(route_data.target == mid) {
+				auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+				auto target =
+					current_volume <= 0.f
+					? state.world.trade_route_get_connected_markets(trade_route, 0)
+					: state.world.trade_route_get_connected_markets(trade_route, 1);
+				if(target == mid) {
+					trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
 					result += route_data.tariff_target;
 				}
 			});
@@ -7926,8 +7931,13 @@ float estimate_tariff_export_income(sys::state& state, dcon::nation_id n) {
 		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
 			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
 			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
-				trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
-				if(route_data.origin == mid) {
+				auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+				auto origin =
+					current_volume > 0.f
+					? state.world.trade_route_get_connected_markets(trade_route, 0)
+					: state.world.trade_route_get_connected_markets(trade_route, 1);
+				if(origin == mid) {
+					trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
 					result += route_data.tariff_origin;
 				}
 			});
