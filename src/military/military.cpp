@@ -5854,9 +5854,19 @@ void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon:
 			break;
 		}
 	}
-	
-	
-	
+}
+
+bool is_regiment_in_reserve(sys::state& state,dcon::regiment_id reg) {
+	auto army = state.world.regiment_get_army_from_army_membership(reg);
+	auto bat = state.world.army_get_battle_from_army_battle_participation(army);
+	assert(bat);
+	auto reserves = state.world.land_battle_get_reserves(bat);
+	for(uint32_t i = reserves.size(); i-- > 0;) {
+		if(reserves[i].regiment == reg) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void update_land_battles(sys::state& state) {
@@ -7542,8 +7552,8 @@ void recover_org(sys::state& state) {
 	*/
 
 	for(auto ar : state.world.in_army) {
-		if(ar.get_army_battle_participation().get_battle() || ar.get_navy_from_army_transport())
-		continue;
+		if(ar.get_navy_from_army_transport())
+			continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
 		auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
@@ -7558,6 +7568,9 @@ void recover_org(sys::state& state) {
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 		auto modified_regen = regen_mod * spending_level / 150.f;
 		for(auto reg : ar.get_army_membership()) {
+			if(reg.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg.get_regiment())) {
+				continue;
+			}
 			auto c_org = reg.get_regiment().get_org();
 			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
 			auto max_org = std::max(c_org, 0.25f + 0.75f * spending_level);
@@ -7603,7 +7616,7 @@ float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
 // Calculates max reinforcement for units in the army
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
-	if(ar.get_battle_from_army_battle_participation() || ar.get_navy_from_army_transport() || ar.get_is_retreating())
+	if(ar.get_navy_from_army_transport() || ar.get_is_retreating())
 		return 0.0f;
 
 	auto in_nation = ar.get_controller_from_army_control();
@@ -7630,6 +7643,9 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 // Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
 float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
+	if(reg.get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg)) {
+		return 0.0f;
+	}
 	auto pop = reg.get_pop_from_regiment_source();
 	auto pop_size = pop.get_size();
 	auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
@@ -7658,12 +7674,11 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 	*/
 
 	for(auto ar : state.world.in_army) {
-		if(ar.get_battle_from_army_battle_participation() || ar.get_navy_from_army_transport() || ar.get_is_retreating())
+		if(ar.get_navy_from_army_transport() || ar.get_is_retreating())
 			continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
 		auto combined = calculate_army_combined_reinforce(state, ar);
-
 		for(auto reg : ar.get_army_membership()) {
 			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
 			reg.get_regiment().get_strength() += reinforcement;
