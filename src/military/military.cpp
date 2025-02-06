@@ -5802,6 +5802,63 @@ void apply_regiment_damage(sys::state& state) {
 	}
 }
 
+uint16_t unit_type_to_reserve_regiment_type(unit_type utype) {
+	switch(utype) {
+	case unit_type::infantry:
+		return reserve_regiment::type_infantry;
+	case unit_type::support:
+		return reserve_regiment::type_support;
+	case unit_type::cavalry:
+		return reserve_regiment::type_cavalry;
+	case unit_type::special:
+		return reserve_regiment::type_support; // placeholder, no "special" class for reserve regs
+	default:
+		assert(false);
+	}
+	return reserve_regiment::type_infantry;
+}
+
+void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking) {
+	auto reserves = state.world.land_battle_get_reserves(bat);
+	auto type = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(reg)].type;
+	uint16_t reserve_type = unit_type_to_reserve_regiment_type(type);
+	uint16_t bitmask = reserve_type;
+	if(is_attacking) {
+		bitmask = bitmask | reserve_regiment::is_attacking;
+	}
+	reserves.push_back(
+						reserve_regiment{ reg,  bitmask });
+	if(is_attacking) {
+		switch(reserve_type) {
+		case reserve_regiment::type_infantry:
+			state.world.land_battle_get_attacker_infantry(bat) += state.world.regiment_get_strength(reg);
+			break;
+		case reserve_regiment::type_support:
+			state.world.land_battle_get_attacker_support(bat) += state.world.regiment_get_strength(reg);
+			break;
+		case reserve_regiment::type_cavalry:
+			state.world.land_battle_get_attacker_cav(bat) += state.world.regiment_get_strength(reg);
+			break;
+		}
+	}
+	else {
+		switch(reserve_type) {
+		case reserve_regiment::type_infantry:
+			state.world.land_battle_get_defender_infantry(bat) += state.world.regiment_get_strength(reg);
+			break;
+		case reserve_regiment::type_support:
+			state.world.land_battle_get_defender_support(bat) += state.world.regiment_get_strength(reg);
+			break;
+		case reserve_regiment::type_cavalry:
+			state.world.land_battle_get_defender_cav(bat) += state.world.regiment_get_strength(reg);
+			break;
+		}
+	}
+	
+	
+	
+}
+
 void update_land_battles(sys::state& state) {
 	auto isize = state.world.land_battle_size();
 	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::land_battle_id>(isize);
@@ -6150,33 +6207,41 @@ void update_land_battles(sys::state& state) {
 
 
 		// clear dead / retreated regiments out
-
+		// puts them back into the reserve
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(def_back[i]) {
 				if(state.world.regiment_get_strength(def_back[i]) <= 0.0f) {
+					add_regiment_to_reserves(state, b, def_back[i], false);
 					def_back[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(def_back[i]) < 0.1f) {
+					add_regiment_to_reserves(state, b, def_back[i], false);
 					def_back[i] = dcon::regiment_id{};
 				}
 			}
 			if(def_front[i]) {
 				if(state.world.regiment_get_strength(def_front[i]) <= 0.0f) {
+					add_regiment_to_reserves(state, b, def_front[i], false);
 					def_front[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(def_front[i]) < 0.1f) {
+					add_regiment_to_reserves(state, b, def_front[i], false);
 					def_front[i] = dcon::regiment_id{};
 				}
 			}
 			if(att_back[i]) {
 				if(state.world.regiment_get_strength(att_back[i]) <= 0.0f) {
+					add_regiment_to_reserves(state, b, att_back[i], true);
 					att_back[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(att_back[i]) < 0.1f) {
+					add_regiment_to_reserves(state, b, att_back[i], true);
 					att_back[i] = dcon::regiment_id{};
 				}
 			}
 			if(att_front[i]) {
 				if(state.world.regiment_get_strength(att_front[i]) <= 0.0f) {
+					add_regiment_to_reserves(state, b, att_front[i], true);
 					att_front[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(att_front[i]) < 0.1f) {
+					add_regiment_to_reserves(state, b, att_front[i], true);
 					att_front[i] = dcon::regiment_id{};
 				}
 			}
@@ -6241,11 +6306,12 @@ void update_land_battles(sys::state& state) {
 		if(!def_front[0]) {
 			std::swap(def_front[0], def_front[1]);
 		}
-
+		// won't use troops from the reserve which are > 10% org, or zero strength
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support)) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > 0.0f && state.world.regiment_get_org(reserves[j].regiment) >= 0.1f) {
 						att_back[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
 						reserves.pop_back();
@@ -6256,7 +6322,8 @@ void update_land_battles(sys::state& state) {
 
 			if(!def_back[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_support)) {
+					if(reserves[j].flags == (reserve_regiment::type_support) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > 0.0f && state.world.regiment_get_org(reserves[j].regiment) >= 0.1f) {
 						def_back[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
 						reserves.pop_back();
@@ -6267,12 +6334,12 @@ void update_land_battles(sys::state& state) {
 		}
 
 		// front row
-
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_front[i]) {
 
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry)) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > 0.0f && state.world.regiment_get_org(reserves[j].regiment) >= 0.1f) {
 						att_front[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
 						reserves.pop_back();
@@ -6282,7 +6349,8 @@ void update_land_battles(sys::state& state) {
 
 				if(!att_front[i]) {
 					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_cavalry)) {
+						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_cavalry) &&
+						state.world.regiment_get_strength(reserves[j].regiment) > 0.0f && state.world.regiment_get_org(reserves[j].regiment) >= 0.1f) {
 							att_front[i] = reserves[j].regiment;
 							std::swap(reserves[j], reserves[reserves.size() - 1]);
 							reserves.pop_back();
@@ -6297,7 +6365,8 @@ void update_land_battles(sys::state& state) {
 
 			if(!def_front[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_infantry)) {
+					if(reserves[j].flags == (reserve_regiment::type_infantry) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > 0.0f && state.world.regiment_get_org(reserves[j].regiment) >= 0.1f) {
 						def_front[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
 						reserves.pop_back();
@@ -6307,7 +6376,8 @@ void update_land_battles(sys::state& state) {
 
 				if(!def_front[i]) {
 					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::type_cavalry)) {
+						if(reserves[j].flags == (reserve_regiment::type_cavalry) &&
+						state.world.regiment_get_strength(reserves[j].regiment) > 0.0f && state.world.regiment_get_org(reserves[j].regiment) >= 0.1f) {
 							def_front[i] = reserves[j].regiment;
 							std::swap(reserves[j], reserves[reserves.size() - 1]);
 							reserves.pop_back();
