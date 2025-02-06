@@ -3145,6 +3145,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{leadership_cost}
+		type{int32_t}
+		tag{ scenario }
+	}
+	property{
 		name{ colonial_points }
 		type{int16_t}
 		tag{ scenario }

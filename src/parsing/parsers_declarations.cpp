@@ -1600,6 +1600,10 @@ void technology_contents::cost(association_type, int32_t value, error_handler& e
 	context.outer_context.state.world.technology_set_cost(context.id, value);
 }
 
+void technology_contents::leadership_cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+	context.outer_context.state.world.technology_set_leadership_cost(context.id, value);
+}
+
 void technology_contents::area(association_type, std::string_view value, error_handler& err, int32_t line,
 		tech_context& context) {
 	if(auto it = context.outer_context.map_of_tech_folders.find(std::string(value));

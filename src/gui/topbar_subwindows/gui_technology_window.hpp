@@ -544,14 +544,42 @@ public:
 	}
 };
 
-class technology_research_points_text : public simple_text_element_base {
+class technology_points_type : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto t = retrieve<dcon::technology_id>(state, parent);
+
+		if(t) {
+			auto leadership_cost = state.world.technology_get_leadership_cost(t);
+
+			if(leadership_cost > 0.f) {
+				set_text(state, text::produce_simple_string(state, "TECHNOLOGY_LEADERSHIP_POINTS"));
+			}
+			else {
+				set_text(state, text::produce_simple_string(state, "TECHNOLOGY_RESEARCH_POINTS"));
+			}
+		} else {
+			set_text(state, "");
+		}
+	}
+};
+
+class technology_points_cost : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto t = retrieve<dcon::technology_id>(state, parent);
 		if(t) {
-			set_text(state, std::to_string(int64_t(
-				culture::effective_technology_cost(state, state.ui_date.to_ymd(state.start_date).year, state.local_player_nation, t)
-			)));
+			auto leadership_cost = state.world.technology_get_leadership_cost(t);
+
+			if(leadership_cost > 0.f) {
+				set_text(state, std::to_string(int64_t(
+					culture::effective_technology_lp_cost(state, state.ui_date.to_ymd(state.start_date).year, state.local_player_nation, t)
+				)));
+			} else {
+				set_text(state, std::to_string(int64_t(
+					culture::effective_technology_rp_cost(state, state.ui_date.to_ymd(state.start_date).year, state.local_player_nation, t)
+				)));
+			}
 		} else {
 			set_text(state, "");
 		}
@@ -566,7 +594,9 @@ public:
 		if(!tech_id)
 			return;
 
-		auto base_cost = state.world.technology_get_cost(tech_id);
+		auto leadership_cost = state.world.technology_get_leadership_cost(tech_id);
+		auto base_cost = (leadership_cost > 0.f) ? leadership_cost : state.world.technology_get_cost(tech_id);
+
 		auto availability_year = state.world.technology_get_year(tech_id);
 		auto folder = state.world.technology_get_folder_index(tech_id);
 		auto category = state.culture_definitions.tech_folders[folder].category;
@@ -669,9 +699,9 @@ public:
 		} else if(name == "diff_icon") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "diff_label") {
-			return make_element_by_type<simple_body_text>(state, id);
+			return make_element_by_type<technology_points_type>(state, id);
 		} else if(name == "diff") {
-			return make_element_by_type<technology_research_points_text>(state, id);
+			return make_element_by_type<technology_points_cost>(state, id);
 		} else if(name == "year_label") {
 			return make_element_by_type<simple_body_text>(state, id);
 		} else if(name == "year") {
@@ -778,9 +808,10 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
+		auto tech_categories = culture::get_active_tech_categories(state);
+
 		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("folder_offset"))->second.definition].position;
-		for(auto curr_folder = culture::tech_category::army; curr_folder != culture::tech_category(5);
-				curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
+		for(auto curr_folder : tech_categories) {
 			auto ptr = make_element_by_type<technology_folder_tab_button>(state,
 					state.ui_state.defs_by_name.find(state.lookup_key("folder_window"))->second.definition);
 			ptr->set_category(state, curr_folder);
@@ -794,7 +825,7 @@ public:
 		// Order of category
 		// **** Order of folders within category
 		// ******** Order of appearance of technologies that have said folder?
-		std::vector<std::vector<size_t>> folders_by_category(static_cast<size_t>(5));
+		std::vector<std::vector<size_t>> folders_by_category(tech_categories.size());
 		for(size_t i = 0; i < state.culture_definitions.tech_folders.size(); i++) {
 			auto const& folder = state.culture_definitions.tech_folders[i];
 			folders_by_category[static_cast<size_t>(folder.category)].push_back(i);
@@ -814,8 +845,7 @@ public:
 			state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_group_offset"))->second.definition].position;
 		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_offset"))->second.definition].position;
 
-		for(auto cat = culture::tech_category::army; cat != culture::tech_category(5);
-				cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
+		for(auto cat : tech_categories) {
 			// Add tech group names
 			int16_t group_count = 0;
 			for(auto const& folder : state.culture_definitions.tech_folders) {

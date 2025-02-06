@@ -474,7 +474,7 @@ void update_ai_research(sys::state& state) {
 				base *= 2.0f;
 			}
 
-			auto cost = std::max(1.0f, culture::effective_technology_cost(state, year, n, pt.id));
+			auto cost = std::max(1.0f, culture::effective_technology_rp_cost(state, year, n, pt.id));
 			pt.weight = base / cost;
 		}
 		auto rval = rng::get_random(state, id);

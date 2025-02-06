@@ -4113,7 +4113,7 @@ void state::single_game_tick() {
 				for(auto n : this->cheat_data.instant_research_nations) {
 					auto tech = this->world.nation_get_current_research(n);
 					if(tech.is_valid()) {
-						float points = culture::effective_technology_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
+						float points = culture::effective_technology_rp_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
 						this->world.nation_set_research_points(n, points);
 					}
 				}

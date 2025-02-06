@@ -36,6 +36,20 @@ std::string get_tech_category_name(tech_category t) {
 	return "none";
 }
 
+std::vector<culture::tech_category> get_active_tech_categories(sys::state& state) {
+	std::vector<culture::tech_category> res;
+
+
+	for(auto tech : state.world.in_technology) {
+		auto const& folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
+		if(std::find(res.begin(), res.end(), folder.category) == res.end()) {
+			res.push_back(folder.category);
+		}
+	}
+
+	return res;
+}
+
 void set_default_issue_and_reform_options(sys::state& state) {
 	state.world.nation_resize_issues(state.world.issue_size());
 
@@ -966,7 +980,51 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 	});
 }
 
-float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation,
+
+float effective_technology_lp_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation,
+		dcon::technology_id tech_id) {
+	/*
+	The effective amount of leadership points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) /
+	define:TECH_YEAR_SPAN) x define:TECH_FACTOR_VASSAL(if your overlord has the tech) / (1 + tech-category-research-modifier)
+	*/
+	auto base_cost = state.world.technology_get_leadership_cost(tech_id);
+	auto availability_year = state.world.technology_get_year(tech_id);
+	auto folder = state.world.technology_get_folder_index(tech_id);
+	auto category = state.culture_definitions.tech_folders[folder].category;
+	auto research_mod = [&]() {
+		switch(category) {
+		case tech_category::army:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::army_tech_research_bonus) + 1.0f;
+		case tech_category::navy:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::navy_tech_research_bonus) + 1.0f;
+		case tech_category::commerce:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) + 1.0f;
+		case tech_category::culture:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::culture_tech_research_bonus) + 1.0f;
+		case tech_category::industry:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) + 1.0f;
+			//non vanilla
+		case tech_category::military_theory:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::military_theory_tech_research_bonus) + 1.0f;
+		case tech_category::population:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::population_tech_research_bonus) + 1.0f;
+		case tech_category::diplomacy:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::diplomacy_tech_research_bonus) + 1.0f;
+		case tech_category::flavor:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::flavor_tech_research_bonus) + 1.0f;
+		default:
+			return 1.0f;
+		}
+		}();
+	auto ol_mod = state.world.nation_get_active_technologies(
+										state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target_nation)), tech_id)
+		? state.defines.tech_factor_vassal
+		: 1.0f;
+	return float(base_cost) * ol_mod * (1.0f / research_mod) *
+		(1.0f - std::max(0.0f, float(int32_t(current_year) - availability_year) / state.defines.tech_year_span));
+}
+
+float effective_technology_rp_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation,
 		dcon::technology_id tech_id) {
 	/*
 	The effective amount of research points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) /
@@ -1015,9 +1073,12 @@ void update_research(sys::state& state, uint32_t current_year) {
 			if(n.get_active_technologies(n.get_current_research())) {
 				n.set_current_research(dcon::technology_id{});
 			} else {
-				auto cost = effective_technology_cost(state, current_year, n, n.get_current_research());
-				if(n.get_research_points() >= cost) {
-					n.get_research_points() -= cost;
+				auto rp_cost = effective_technology_rp_cost(state, current_year, n, n.get_current_research());
+				auto lp_cost = effective_technology_lp_cost(state, current_year, n, n.get_current_research());
+
+				if (n.get_research_points() >= rp_cost && n.get_leadership_points() >= lp_cost) {
+					n.get_research_points() -= rp_cost;
+					n.get_leadership_points() -= lp_cost;
 					apply_technology(state, n, n.get_current_research());
 
 					notification::post(state, notification::message{

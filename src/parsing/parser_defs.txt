@@ -895,6 +895,7 @@ technology_contents
 	area                  value      text                   member_fn
 	year                  value      int                    member_fn
 	cost                  value      int                    member_fn
+	leadership_cost                  value      int                    member_fn
 	unit                  value      int                    discard
 	activate_unit         value      text                   member_fn
 	activate_building     value      text                   member_fn
