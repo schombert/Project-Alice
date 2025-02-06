@@ -509,7 +509,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glViewport(0, 0, int(screen_size.x), int(screen_size.y));
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE12);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
@@ -528,11 +528,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(vao_array[vo_border]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearDepth(1.f);
+	glDepthFunc(GL_LESS);
+
 	for(auto b : borders) {
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.001f); // width
-		if(b.count < 50) {
-			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.0f); // width
-		}
+		//if(b.count < 50) {
+		//	glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.0f); // width
+		//}
 		glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count / 2);
 		glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
 	}
@@ -546,6 +551,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
+	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
 	glActiveTexture(GL_TEXTURE0);
