@@ -463,7 +463,10 @@ New leaders get a random name based on the primary culture of their nation. Lead
 
 Nations appear to be able to store up to define:LEADER_RECRUIT_COST x 3 leadership points. Nations accumulate leadership points monthly. To calculate the amount, we first take for each pop that provides leadership points, and multiply the amount of points it gives by the ratio of the fraction of the national population composed of that pop type to its research optimum (capping this ratio at 1). We then sum up those values and add the nation's modifier for leadership. Finally, we multiply that sum by (national-leadership-modifier-modifier + 1), giving up the monthly leadership points increase.
 
-A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1) leadership points per month.
+**Leadership points.**
+
+Nation generates this much leadership points monthly:
+`((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount / alice_leadership_generation_divisor-define + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1)`.
 
 #### Daily death chances
 

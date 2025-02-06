@@ -2420,9 +2420,13 @@ void monthly_leaders_update(sys::state& state) {
 
 	state.world.execute_serial_over_nation(
 			[&, optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers)](auto ids) {
+				// % of officers in the population
 				auto ofrac = state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.officers)) /
 										 ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f);
-				auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points);
+				// How much leadership these officers generate PRE national modifiers
+				// officer_leadership_points is `leadership = 3` from poptypes/officers.txt
+				auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points) / state.defines.alice_leadership_generation_divisor;
+				// Calculate national modifiers
 				auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) *
 										state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
 
@@ -5160,6 +5164,12 @@ void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
 	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
 	state.world.leader_set_prestige(l, v);
 }
+
+// Won and lost battles give leadership points to highlight the growing experience of the military high command
+void adjust_leadership_from_battle(sys::state& state, dcon::nation_id n, float value) {
+	state.world.nation_get_leadership_points(n) += value;
+}
+
 void adjust_regiment_experience(sys::state& state, dcon::nation_id n, dcon::regiment_id l, float value) {
 	auto v = state.world.regiment_get_experience(l);
 
@@ -5257,9 +5267,15 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				nations::adjust_prestige(state, a_nation, score / 50.0f);
 				nations::adjust_prestige(state, d_nation, score / -50.0f);
 
-				adjust_leader_prestige(state, a_leader, score / 50.f / 100.f);
-				adjust_leader_prestige(state, b_leader, -score / 50.f / 100.f);
+				adjust_leader_prestige(state, a_leader, score / 100.f);
+				adjust_leader_prestige(state, b_leader, -score / 100.f);
 			}
+
+			// Both victories and losses give leadership points to showcase growing experience of the high command
+			if(a_nation)
+				adjust_leadership_from_battle(state, a_nation, score / state.defines.alice_battle_won_score_to_leadership);
+			if(d_nation)
+				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_lost_score_to_leadership);
 
 			// Report
 			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
@@ -5323,6 +5339,12 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				adjust_leader_prestige(state, a_leader, -score / 50.f / 100.f);
 				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 			}
+
+			// Both victories and losses give leadership points to showcase growing experience of the high command
+			if(a_nation)
+				adjust_leadership_from_battle(state, a_nation, score / state.defines.alice_battle_lost_score_to_leadership);
+			if(d_nation)
+				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_won_score_to_leadership);
 
 			// Report
 			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
