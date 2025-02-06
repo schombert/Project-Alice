@@ -15,12 +15,12 @@ jobs:
     name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: "Install"
-      uses: awalsh128/cache-apt-pkgs-action@v1.3.1
+      uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
         version: 1.0
@@ -49,7 +49,7 @@ jobs:
     runs-on: [windows-latest]
     name: Windows (${{ matrix.config }})
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 

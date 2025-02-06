@@ -405,10 +405,12 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 	//update en demand
 	ui::element_base* root_elm = current_scene.get_root(*this);
-	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
+	auto probe_result = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale),
-		ui::mouse_probe_type::scroll).under_mouse;
+		ui::mouse_probe_type::scroll);
+
+	ui_state.scroll_target = probe_result.under_mouse;
 
 	auto belongs_on_map = [&](ui::element_base* b) {
 		while(b != nullptr) {
@@ -422,7 +424,7 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 		};
 
 	if(ui_state.scroll_target != nullptr) {
-		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
+		ui_state.scroll_target->impl_on_scroll(*this, probe_result.relative_location.x, probe_result.relative_location.y, amount, mod);
 	} else if(ui_state.under_mouse == nullptr || belongs_on_map(ui_state.under_mouse)) {
 		map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 
@@ -533,8 +535,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	ui::urect tooltip_bounds;
 	int32_t tooltip_sub_index = -1;
 	if(tooltip_probe.under_mouse) {
-		tooltip_probe.under_mouse->tooltip_position(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-		int32_t(mouse_y_position / user_settings.ui_scale), tooltip_sub_index, tooltip_bounds);
+		tooltip_probe.under_mouse->tooltip_position(*this, tooltip_probe.relative_location.x,
+		tooltip_probe.relative_location.y, tooltip_sub_index, tooltip_bounds);
 	}
 
 	if(game_state_was_updated) {

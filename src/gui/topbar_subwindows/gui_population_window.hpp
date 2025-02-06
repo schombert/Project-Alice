@@ -12,8 +12,6 @@
 
 namespace ui {
 
-std::vector<dcon::pop_id> const& get_pop_window_list(sys::state& state);
-dcon::pop_id get_pop_details_pop(sys::state& state);
 void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
@@ -1071,11 +1069,11 @@ protected:
 
 		if(piechart<T>::parent) {
 			if constexpr(Multiple) {
-				auto& pop_list = get_pop_window_list(state);
-				for(auto const pop_id : pop_list)
-					iterate_one_pop(state, pop_id);
+				//auto& pop_list = get_pop_window_list(state);
+				//for(auto const pop_id : pop_list)
+				//	iterate_one_pop(state, pop_id);
 			} else {
-				iterate_one_pop(state, get_pop_details_pop(state));
+				iterate_one_pop(state, retrieve<dcon::pop_id>(state, piechart<T>::parent));
 			}
 		}
 
@@ -1167,6 +1165,7 @@ public:
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
+		/*
 		if(parent) {
 			auto& pop_list = get_pop_window_list(state);
 
@@ -1223,6 +1222,7 @@ public:
 				distrib_listbox->row_contents.emplace_back(e.first, e.second / total);
 			distrib_listbox->update(state);
 		}
+		*/
 	}
 };
 
@@ -2819,8 +2819,6 @@ public:
 	}
 
 	friend class pop_national_focus_button;
-	friend std::vector<dcon::pop_id> const& get_pop_window_list(sys::state& state);
-	friend dcon::pop_id get_pop_details_pop(sys::state& state);
 };
 
 } // namespace ui

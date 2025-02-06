@@ -1,13 +1,9 @@
 namespace alice_ui {
 struct demographicswindow_main_close_button_t;
 struct demographicswindow_main_title_t;
-struct demographicswindow_main_main_page_t;
-struct demographicswindow_main_table_t;
 struct demographicswindow_main_show_filters_t;
 struct demographicswindow_main_reset_filters_t;
 struct demographicswindow_main_only_pops_toggle_t;
-struct demographicswindow_main_main_left_t;
-struct demographicswindow_main_main_right_t;
 struct demographicswindow_main_t;
 struct demographicswindow_nation_row_location_t;
 struct demographicswindow_nation_row_size_t;
@@ -93,23 +89,7 @@ struct demographicswindow_filters_window_location_all_t;
 struct demographicswindow_filters_window_location_none_t;
 struct demographicswindow_filters_window_non_colonial_t;
 struct demographicswindow_filters_window_colonial_t;
-struct demographicswindow_filters_window_job_list_t;
-struct demographicswindow_filters_window_culture_list_t;
-struct demographicswindow_filters_window_religion_list_t;
-struct demographicswindow_filters_window_location_list_t;
 struct demographicswindow_filters_window_close_button_t;
-struct demographicswindow_filters_window_job_left_t;
-struct demographicswindow_filters_window_culture_left_t;
-struct demographicswindow_filters_window_religion_left_t;
-struct demographicswindow_filters_window_location_left_t;
-struct demographicswindow_filters_window_job_right_t;
-struct demographicswindow_filters_window_culture_right_t;
-struct demographicswindow_filters_window_religion_right_t;
-struct demographicswindow_filters_window_location_right_t;
-struct demographicswindow_filters_window_job_page_t;
-struct demographicswindow_filters_window_culture_page_t;
-struct demographicswindow_filters_window_religion_page_t;
-struct demographicswindow_filters_window_location_page_t;
 struct demographicswindow_filters_window_job_header_t;
 struct demographicswindow_filters_window_culture_header_t;
 struct demographicswindow_filters_window_religion_header_t;
@@ -129,7 +109,17 @@ struct demographicswindow_location_filter_t;
 struct demographicswindow_culture_filter_filter_button_t;
 struct demographicswindow_culture_filter_filter_label_t;
 struct demographicswindow_culture_filter_t;
+struct demographicswindow_pops_header_content_t;
+struct demographicswindow_pops_header_mil_icon_t;
+struct demographicswindow_pops_header_con_icon_t;
+struct demographicswindow_pops_header_emp_icon_t;
+struct demographicswindow_pops_header_lit_icon_t;
+struct demographicswindow_pops_header_reb_icon_t;
+struct demographicswindow_pops_header_cash_icon_t;
+struct demographicswindow_pops_header_t;
 struct demographicswindow_main_close_button_t : public ui::element_base {
+// BEGIN main::close_button::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -156,6 +146,8 @@ struct demographicswindow_main_close_button_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_main_title_t : public ui::element_base {
+// BEGIN main::title::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 2.000000f; 
@@ -183,315 +175,9 @@ struct demographicswindow_main_title_t : public ui::element_base {
 	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct demographicswindow_main_main_page_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_main_table_header_t : public ui::element_base {
-	inline static int16_t spacer_column_start = 0;
-	inline static int16_t spacer_column_width = 0;
-	text::layout location_internal_layout;
-	inline static text::text_color  location_text_color = text::text_color::black;
-	std::string location_cached_text;
-	inline static dcon::text_key location_text_key;
-	inline static int16_t location_column_start = 0;
-	inline static int16_t location_column_width = 0;
-	text::layout size_internal_layout;
-	inline static text::text_color  size_text_color = text::text_color::black;
-	std::string size_cached_text;
-	inline static dcon::text_key size_text_key;
-	inline static int8_t size_sort_direction = 0;
-	inline static int16_t size_column_start = 0;
-	inline static int16_t size_column_width = 0;
-	text::layout culture_internal_layout;
-	inline static text::text_color  culture_text_color = text::text_color::black;
-	std::string culture_cached_text;
-	inline static dcon::text_key culture_text_key;
-	inline static int8_t culture_sort_direction = 0;
-	inline static int16_t culture_column_start = 0;
-	inline static int16_t culture_column_width = 0;
-	text::layout job_internal_layout;
-	inline static text::text_color  job_text_color = text::text_color::black;
-	std::string job_cached_text;
-	inline static dcon::text_key job_text_key;
-	inline static int8_t job_sort_direction = 0;
-	inline static int16_t job_column_start = 0;
-	inline static int16_t job_column_width = 0;
-	text::layout religion_internal_layout;
-	inline static text::text_color  religion_text_color = text::text_color::black;
-	std::string religion_cached_text;
-	inline static dcon::text_key religion_text_key;
-	inline static int8_t religion_sort_direction = 0;
-	inline static int16_t religion_column_start = 0;
-	inline static int16_t religion_column_width = 0;
-	text::layout ideology_internal_layout;
-	inline static text::text_color  ideology_text_color = text::text_color::black;
-	std::string ideology_cached_text;
-	inline static dcon::text_key ideology_text_key;
-	inline static int16_t ideology_column_start = 0;
-	inline static int16_t ideology_column_width = 0;
-	text::layout issues_internal_layout;
-	inline static text::text_color  issues_text_color = text::text_color::black;
-	std::string issues_cached_text;
-	inline static dcon::text_key issues_text_key;
-	inline static int16_t issues_column_start = 0;
-	inline static int16_t issues_column_width = 0;
-	text::layout militancy_internal_layout;
-	inline static text::text_color  militancy_text_color = text::text_color::black;
-	std::string militancy_cached_text;
-	inline static dcon::text_key militancy_text_key;
-	inline static int8_t militancy_sort_direction = 0;
-	inline static int16_t militancy_column_start = 0;
-	inline static int16_t militancy_column_width = 0;
-	text::layout consciousness_internal_layout;
-	inline static text::text_color  consciousness_text_color = text::text_color::black;
-	std::string consciousness_cached_text;
-	inline static dcon::text_key consciousness_text_key;
-	inline static int8_t consciousness_sort_direction = 0;
-	inline static int16_t consciousness_column_start = 0;
-	inline static int16_t consciousness_column_width = 0;
-	text::layout employment_internal_layout;
-	inline static text::text_color  employment_text_color = text::text_color::black;
-	std::string employment_cached_text;
-	inline static dcon::text_key employment_text_key;
-	inline static int8_t employment_sort_direction = 0;
-	inline static int16_t employment_column_start = 0;
-	inline static int16_t employment_column_width = 0;
-	text::layout literacy_internal_layout;
-	inline static text::text_color  literacy_text_color = text::text_color::black;
-	std::string literacy_cached_text;
-	inline static dcon::text_key literacy_text_key;
-	inline static int8_t literacy_sort_direction = 0;
-	inline static int16_t literacy_column_start = 0;
-	inline static int16_t literacy_column_width = 0;
-	text::layout money_internal_layout;
-	inline static text::text_color  money_text_color = text::text_color::black;
-	std::string money_cached_text;
-	inline static dcon::text_key money_text_key;
-	inline static int8_t money_sort_direction = 0;
-	inline static int16_t money_column_start = 0;
-	inline static int16_t money_column_width = 0;
-	text::layout needs_internal_layout;
-	inline static text::text_color  needs_text_color = text::text_color::black;
-	std::string needs_cached_text;
-	inline static dcon::text_key needs_text_key;
-	inline static int8_t needs_sort_direction = 0;
-	inline static int16_t needs_column_start = 0;
-	inline static int16_t needs_column_width = 0;
-	text::layout rebels_internal_layout;
-	inline static text::text_color  rebels_text_color = text::text_color::black;
-	std::string rebels_cached_text;
-	inline static dcon::text_key rebels_text_key;
-	inline static int16_t rebels_column_start = 0;
-	inline static int16_t rebels_column_width = 0;
-	inline static std::string_view ascending_icon_key;
-	inline static dcon::texture_id ascending_icon;
-	inline static std::string_view descending_icon_key;
-	inline static dcon::texture_id descending_icon;
-	void on_reset_text(sys::state & state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-struct demographicswindow_main_table_row_t : public ui::element_base {
-	dcon::pop_id value;
-	bool alternate_row = false;
-	text::layout location_internal_layout;
-	inline static text::text_color  location_default_text_color = text::text_color::black;
-	text::text_color  location_text_color = location_default_text_color ;
-	std::string location_cached_text;
-	inline static text::alignment location_text_alignment = text::alignment::right;
-	void set_location_text(sys::state & state, std::string const& new_text);
-	text::layout size_internal_layout;
-	inline static text::text_color  size_default_text_color = text::text_color::black;
-	text::text_color  size_text_color = size_default_text_color ;
-	std::string size_cached_text;
-	inline static text::alignment size_text_alignment = text::alignment::center;
-	void set_size_text(sys::state & state, std::string const& new_text);
-	text::layout culture_internal_layout;
-	inline static text::text_color  culture_default_text_color = text::text_color::black;
-	text::text_color  culture_text_color = culture_default_text_color ;
-	std::string culture_cached_text;
-	inline static text::alignment culture_text_alignment = text::alignment::center;
-	void set_culture_text(sys::state & state, std::string const& new_text);
-	text::layout job_internal_layout;
-	inline static text::text_color  job_default_text_color = text::text_color::black;
-	text::text_color  job_text_color = job_default_text_color ;
-	std::string job_cached_text;
-	inline static text::alignment job_text_alignment = text::alignment::center;
-	void set_job_text(sys::state & state, std::string const& new_text);
-	text::layout religion_internal_layout;
-	inline static text::text_color  religion_default_text_color = text::text_color::black;
-	text::text_color  religion_text_color = religion_default_text_color ;
-	std::string religion_cached_text;
-	inline static text::alignment religion_text_alignment = text::alignment::center;
-	void set_religion_text(sys::state & state, std::string const& new_text);
-	text::layout ideology_internal_layout;
-	inline static text::text_color  ideology_default_text_color = text::text_color::black;
-	text::text_color  ideology_text_color = ideology_default_text_color ;
-	std::string ideology_cached_text;
-	inline static text::alignment ideology_text_alignment = text::alignment::center;
-	void set_ideology_text(sys::state & state, std::string const& new_text);
-	text::layout issues_internal_layout;
-	inline static text::text_color  issues_default_text_color = text::text_color::black;
-	text::text_color  issues_text_color = issues_default_text_color ;
-	std::string issues_cached_text;
-	inline static text::alignment issues_text_alignment = text::alignment::center;
-	void set_issues_text(sys::state & state, std::string const& new_text);
-	text::layout militancy_internal_layout;
-	inline static text::text_color  militancy_default_text_color = text::text_color::black;
-	text::text_color  militancy_text_color = militancy_default_text_color ;
-	std::string militancy_cached_text;
-	inline static text::alignment militancy_text_alignment = text::alignment::center;
-	void set_militancy_text(sys::state & state, std::string const& new_text);
-	text::layout consciousness_internal_layout;
-	inline static text::text_color  consciousness_default_text_color = text::text_color::black;
-	text::text_color  consciousness_text_color = consciousness_default_text_color ;
-	std::string consciousness_cached_text;
-	inline static text::alignment consciousness_text_alignment = text::alignment::center;
-	void set_consciousness_text(sys::state & state, std::string const& new_text);
-	text::layout employment_internal_layout;
-	inline static text::text_color  employment_default_text_color = text::text_color::black;
-	text::text_color  employment_text_color = employment_default_text_color ;
-	std::string employment_cached_text;
-	inline static text::alignment employment_text_alignment = text::alignment::center;
-	void set_employment_text(sys::state & state, std::string const& new_text);
-	text::layout literacy_internal_layout;
-	inline static text::text_color  literacy_default_text_color = text::text_color::black;
-	text::text_color  literacy_text_color = literacy_default_text_color ;
-	std::string literacy_cached_text;
-	inline static text::alignment literacy_text_alignment = text::alignment::center;
-	void set_literacy_text(sys::state & state, std::string const& new_text);
-	text::layout money_internal_layout;
-	inline static text::text_color  money_default_text_color = text::text_color::black;
-	text::text_color  money_text_color = money_default_text_color ;
-	std::string money_cached_text;
-	inline static text::alignment money_text_alignment = text::alignment::center;
-	void set_money_text(sys::state & state, std::string const& new_text);
-	text::layout needs_internal_layout;
-	inline static text::text_color  needs_default_text_color = text::text_color::black;
-	text::text_color  needs_text_color = needs_default_text_color ;
-	std::string needs_cached_text;
-	inline static text::alignment needs_text_alignment = text::alignment::center;
-	void set_needs_text(sys::state & state, std::string const& new_text);
-	text::layout rebels_internal_layout;
-	inline static text::text_color  rebels_default_text_color = text::text_color::black;
-	text::text_color  rebels_text_color = rebels_default_text_color ;
-	std::string rebels_cached_text;
-	inline static text::alignment rebels_text_alignment = text::alignment::center;
-	void set_rebels_text(sys::state & state, std::string const& new_text);
-	inline static std::string_view row_texture_key;
-	inline static dcon::texture_id row_background_texture;
-	inline static std::string_view alt_row_texture_key;
-	inline static dcon::texture_id alt_row_background_texture;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-struct demographicswindow_main_table_t : public ui::non_owning_container_base {
-	struct nation_row_option { dcon::nation_id content; };
-	std::vector<std::unique_ptr<ui::element_base>> nation_row_pool;
-	struct state_row_option { dcon::state_instance_id content; };
-	std::vector<std::unique_ptr<ui::element_base>> state_row_pool;
-	struct province_row_option { dcon::province_id content; };
-	std::vector<std::unique_ptr<ui::element_base>> province_row_pool;
-	struct pop_row_option { dcon::pop_id value; };
-	std::vector<std::unique_ptr<ui::element_base>> pop_row_pool;
-	std::vector<std::unique_ptr<demographicswindow_main_table_row_t>> row_pool;
-	std::vector<std::unique_ptr<demographicswindow_main_table_header_t>> header_pool;
-	struct value_option { dcon::pop_id value; };
-	int32_t page = 0;
-	inline static float row_height = 0;
-	inline static ogl::color4f table_highlight_color{float(1.000000), float(1.000000), float(1.000000), float(0.294118)};
-	inline static ogl::color3f table_divider_color{float(0.000000), float(0.000000), float(0.000000)};
-	std::vector<std::variant<std::monostate, value_option, nation_row_option, state_row_option, province_row_option, pop_row_option>> values;
-	std::vector<int32_t> page_starts;
-	bool open_page = false;
-	int16_t layout_space = 0;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::consumed;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void clear_table(); 
-	void impl_change_page(sys::state & state, int32_t new_page); 
-	void add_value(dcon::pop_id const& v); 
-	void add_insert_nation_row(sys::state& state, dcon::nation_id const& content); 
-	void add_insert_state_row(sys::state& state, dcon::state_instance_id const& content); 
-	void add_insert_province_row(sys::state& state, dcon::province_id const& content); 
-	void add_insert_pop_row(sys::state& state, dcon::pop_id const& value); 
-	std::unique_ptr<demographicswindow_main_table_row_t> make_row(sys::state& state);
-	std::unique_ptr<demographicswindow_main_table_header_t> make_headers(sys::state& state);
-	void apply_sort(sys::state& state); 
-	void impl_apply_sort(sys::state& state); 
-	void on_update(sys::state& state) noexcept override;
-};
 struct demographicswindow_main_show_filters_t : public ui::element_base {
+// BEGIN main::show_filters::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	text::layout internal_layout;
@@ -524,6 +210,8 @@ struct demographicswindow_main_show_filters_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_main_reset_filters_t : public ui::element_base {
+// BEGIN main::reset_filters::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	text::layout internal_layout;
@@ -556,6 +244,8 @@ struct demographicswindow_main_reset_filters_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_main_only_pops_toggle_t : public ui::element_base {
+// BEGIN main::only_pops_toggle::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -590,53 +280,37 @@ struct demographicswindow_main_only_pops_toggle_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct demographicswindow_main_main_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_main_main_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
+struct demographicswindow_main_table_t : public layout_generator {
+// BEGIN main::table::variables
+// END
+	struct nation_row_option { dcon::nation_id content; };
+	std::vector<std::unique_ptr<ui::element_base>> nation_row_pool;
+	int32_t nation_row_pool_used = 0;
+	void add_nation_row( dcon::nation_id content);
+	struct state_row_option { dcon::state_instance_id content; };
+	std::vector<std::unique_ptr<ui::element_base>> state_row_pool;
+	int32_t state_row_pool_used = 0;
+	void add_state_row( dcon::state_instance_id content);
+	struct province_row_option { dcon::province_id content; };
+	std::vector<std::unique_ptr<ui::element_base>> province_row_pool;
+	int32_t province_row_pool_used = 0;
+	void add_province_row( dcon::province_id content);
+	struct pop_row_option { dcon::pop_id value; };
+	std::vector<std::unique_ptr<ui::element_base>> pop_row_pool;
+	int32_t pop_row_pool_used = 0;
+	void add_pop_row( dcon::pop_id value);
+	std::vector<std::unique_ptr<ui::element_base>> pops_header_pool;
+	int32_t pops_header_pool_used = 0;
+	std::vector<std::variant<std::monostate, nation_row_option, state_row_option, province_row_option, pop_row_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
 };
 struct demographicswindow_nation_row_location_t : public ui::element_base {
+// BEGIN nation_row::location::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -664,6 +338,8 @@ struct demographicswindow_nation_row_location_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_size_t : public ui::element_base {
+// BEGIN nation_row::size::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -691,6 +367,8 @@ struct demographicswindow_nation_row_size_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_size_trend_t : public ui::element_base {
+// BEGIN nation_row::size_trend::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -716,6 +394,8 @@ struct demographicswindow_nation_row_size_trend_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_culture_t : public ui::element_base {
+// BEGIN nation_row::culture::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::culture_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -742,6 +422,8 @@ struct demographicswindow_nation_row_culture_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_job_t : public ui::element_base {
+// BEGIN nation_row::job::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::pop_type_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -768,6 +450,8 @@ struct demographicswindow_nation_row_job_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_religion_t : public ui::element_base {
+// BEGIN nation_row::religion::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::religion_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -794,6 +478,8 @@ struct demographicswindow_nation_row_religion_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_ideology_t : public ui::element_base {
+// BEGIN nation_row::ideology::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::ideology_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -820,6 +506,8 @@ struct demographicswindow_nation_row_ideology_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_issues_t : public ui::element_base {
+// BEGIN nation_row::issues::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::issue_option_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -846,6 +534,8 @@ struct demographicswindow_nation_row_issues_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_militancy_t : public ui::element_base {
+// BEGIN nation_row::militancy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -873,6 +563,8 @@ struct demographicswindow_nation_row_militancy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_consciousness_t : public ui::element_base {
+// BEGIN nation_row::consciousness::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -900,6 +592,8 @@ struct demographicswindow_nation_row_consciousness_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_employment_t : public ui::element_base {
+// BEGIN nation_row::employment::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -927,6 +621,8 @@ struct demographicswindow_nation_row_employment_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_literacy_t : public ui::element_base {
+// BEGIN nation_row::literacy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -954,6 +650,8 @@ struct demographicswindow_nation_row_literacy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_money_t : public ui::element_base {
+// BEGIN nation_row::money::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -981,6 +679,8 @@ struct demographicswindow_nation_row_money_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_needs_t : public ui::element_base {
+// BEGIN nation_row::needs::variables
+// END
 	ogl::data_texture data_texture{ 99, 3 };
 	struct graph_entry {int key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1007,6 +707,8 @@ struct demographicswindow_nation_row_needs_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_nation_row_frames_t : public ui::element_base {
+// BEGIN nation_row::frames::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1030,6 +732,8 @@ struct demographicswindow_nation_row_frames_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_folder_icon_t : public ui::element_base {
+// BEGIN state_row::folder_icon::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -1056,6 +760,8 @@ struct demographicswindow_state_row_folder_icon_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_location_t : public ui::element_base {
+// BEGIN state_row::location::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1083,6 +789,8 @@ struct demographicswindow_state_row_location_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_size_t : public ui::element_base {
+// BEGIN state_row::size::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1110,6 +818,8 @@ struct demographicswindow_state_row_size_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_size_trend_t : public ui::element_base {
+// BEGIN state_row::size_trend::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -1135,6 +845,8 @@ struct demographicswindow_state_row_size_trend_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_culture_t : public ui::element_base {
+// BEGIN state_row::culture::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::culture_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1161,6 +873,8 @@ struct demographicswindow_state_row_culture_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_job_t : public ui::element_base {
+// BEGIN state_row::job::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::pop_type_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1187,6 +901,8 @@ struct demographicswindow_state_row_job_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_religion_t : public ui::element_base {
+// BEGIN state_row::religion::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::religion_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1213,6 +929,8 @@ struct demographicswindow_state_row_religion_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_ideology_t : public ui::element_base {
+// BEGIN state_row::ideology::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::ideology_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1239,6 +957,8 @@ struct demographicswindow_state_row_ideology_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_issues_t : public ui::element_base {
+// BEGIN state_row::issues::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::issue_option_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1265,6 +985,8 @@ struct demographicswindow_state_row_issues_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_militancy_t : public ui::element_base {
+// BEGIN state_row::militancy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1292,6 +1014,8 @@ struct demographicswindow_state_row_militancy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_consciousness_t : public ui::element_base {
+// BEGIN state_row::consciousness::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1319,6 +1043,8 @@ struct demographicswindow_state_row_consciousness_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_employment_t : public ui::element_base {
+// BEGIN state_row::employment::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1346,6 +1072,8 @@ struct demographicswindow_state_row_employment_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_literacy_t : public ui::element_base {
+// BEGIN state_row::literacy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1373,6 +1101,8 @@ struct demographicswindow_state_row_literacy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_money_t : public ui::element_base {
+// BEGIN state_row::money::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1400,6 +1130,8 @@ struct demographicswindow_state_row_money_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_needs_t : public ui::element_base {
+// BEGIN state_row::needs::variables
+// END
 	ogl::data_texture data_texture{ 99, 3 };
 	struct graph_entry {int key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1426,6 +1158,8 @@ struct demographicswindow_state_row_needs_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_frames_t : public ui::element_base {
+// BEGIN state_row::frames::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1449,6 +1183,8 @@ struct demographicswindow_state_row_frames_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_focus_button_t : public ui::element_base {
+// BEGIN state_row::focus_button::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -1475,6 +1211,8 @@ struct demographicswindow_state_row_focus_button_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_folder_icon_t : public ui::element_base {
+// BEGIN province_row::folder_icon::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -1501,6 +1239,8 @@ struct demographicswindow_province_row_folder_icon_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_location_t : public ui::element_base {
+// BEGIN province_row::location::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1528,6 +1268,8 @@ struct demographicswindow_province_row_location_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_size_t : public ui::element_base {
+// BEGIN province_row::size::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1555,6 +1297,8 @@ struct demographicswindow_province_row_size_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_size_trend_t : public ui::element_base {
+// BEGIN province_row::size_trend::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -1580,6 +1324,8 @@ struct demographicswindow_province_row_size_trend_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_culture_t : public ui::element_base {
+// BEGIN province_row::culture::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::culture_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1606,6 +1352,8 @@ struct demographicswindow_province_row_culture_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_job_t : public ui::element_base {
+// BEGIN province_row::job::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::pop_type_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1632,6 +1380,8 @@ struct demographicswindow_province_row_job_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_religion_t : public ui::element_base {
+// BEGIN province_row::religion::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::religion_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1658,6 +1408,8 @@ struct demographicswindow_province_row_religion_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_ideology_t : public ui::element_base {
+// BEGIN province_row::ideology::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::ideology_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1684,6 +1436,8 @@ struct demographicswindow_province_row_ideology_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_issues_t : public ui::element_base {
+// BEGIN province_row::issues::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::issue_option_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1710,6 +1464,8 @@ struct demographicswindow_province_row_issues_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_militancy_t : public ui::element_base {
+// BEGIN province_row::militancy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1737,6 +1493,8 @@ struct demographicswindow_province_row_militancy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_consciousness_t : public ui::element_base {
+// BEGIN province_row::consciousness::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1764,6 +1522,8 @@ struct demographicswindow_province_row_consciousness_t : public ui::element_base
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_employment_t : public ui::element_base {
+// BEGIN province_row::employment::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1791,6 +1551,8 @@ struct demographicswindow_province_row_employment_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_literacy_t : public ui::element_base {
+// BEGIN province_row::literacy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1818,6 +1580,8 @@ struct demographicswindow_province_row_literacy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_money_t : public ui::element_base {
+// BEGIN province_row::money::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1845,6 +1609,8 @@ struct demographicswindow_province_row_money_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_needs_t : public ui::element_base {
+// BEGIN province_row::needs::variables
+// END
 	ogl::data_texture data_texture{ 99, 3 };
 	struct graph_entry {int key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1871,6 +1637,8 @@ struct demographicswindow_province_row_needs_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_frames_t : public ui::element_base {
+// BEGIN province_row::frames::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -1894,6 +1662,8 @@ struct demographicswindow_province_row_frames_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_location_t : public ui::element_base {
+// BEGIN pop_row::location::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1921,6 +1691,8 @@ struct demographicswindow_pop_row_location_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_size_t : public ui::element_base {
+// BEGIN pop_row::size::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -1949,6 +1721,8 @@ struct demographicswindow_pop_row_size_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_size_trend_t : public ui::element_base {
+// BEGIN pop_row::size_trend::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -1974,6 +1748,8 @@ struct demographicswindow_pop_row_size_trend_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_culture_t : public ui::element_base {
+// BEGIN pop_row::culture::variables
+// END
 	ogl::color4f color{ 1.000000f, 0.996078f, 1.000000f, 1.000000f };
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
@@ -1997,6 +1773,8 @@ struct demographicswindow_pop_row_culture_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_job_t : public ui::element_base {
+// BEGIN pop_row::job::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -2022,6 +1800,8 @@ struct demographicswindow_pop_row_job_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_religion_t : public ui::element_base {
+// BEGIN pop_row::religion::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -2047,6 +1827,8 @@ struct demographicswindow_pop_row_religion_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_ideology_t : public ui::element_base {
+// BEGIN pop_row::ideology::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::ideology_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -2073,6 +1855,8 @@ struct demographicswindow_pop_row_ideology_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_issues_t : public ui::element_base {
+// BEGIN pop_row::issues::variables
+// END
 	ogl::data_texture data_texture{ 100, 3 };
 	struct graph_entry {dcon::issue_option_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -2099,6 +1883,8 @@ struct demographicswindow_pop_row_issues_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_militancy_t : public ui::element_base {
+// BEGIN pop_row::militancy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2127,6 +1913,8 @@ struct demographicswindow_pop_row_militancy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_consciousness_t : public ui::element_base {
+// BEGIN pop_row::consciousness::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2155,6 +1943,8 @@ struct demographicswindow_pop_row_consciousness_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_employment_t : public ui::element_base {
+// BEGIN pop_row::employment::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2182,6 +1972,8 @@ struct demographicswindow_pop_row_employment_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_literacy_t : public ui::element_base {
+// BEGIN pop_row::literacy::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2210,6 +2002,8 @@ struct demographicswindow_pop_row_literacy_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_money_t : public ui::element_base {
+// BEGIN pop_row::money::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2237,6 +2031,8 @@ struct demographicswindow_pop_row_money_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_needs_t : public ui::element_base {
+// BEGIN pop_row::needs::variables
+// END
 	ogl::data_texture data_texture{ 99, 3 };
 	struct graph_entry {int key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -2263,6 +2059,8 @@ struct demographicswindow_pop_row_needs_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_rebel_flag_t : public ui::element_base {
+// BEGIN pop_row::rebel_flag::variables
+// END
 	std::variant<std::monostate, dcon::national_identity_id, dcon::rebel_faction_id, dcon::nation_id> flag;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
@@ -2286,6 +2084,8 @@ struct demographicswindow_pop_row_rebel_flag_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_culture_name_t : public ui::element_base {
+// BEGIN pop_row::culture_name::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2314,6 +2114,8 @@ struct demographicswindow_pop_row_culture_name_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_job_name_t : public ui::element_base {
+// BEGIN pop_row::job_name::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2341,6 +2143,8 @@ struct demographicswindow_pop_row_job_name_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_religion_name_t : public ui::element_base {
+// BEGIN pop_row::religion_name::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -2368,6 +2172,8 @@ struct demographicswindow_pop_row_religion_name_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_frames_t : public ui::element_base {
+// BEGIN pop_row::frames::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void on_create(sys::state& state) noexcept override;
@@ -2391,6 +2197,8 @@ struct demographicswindow_pop_row_frames_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_movement_political_t : public ui::element_base {
+// BEGIN pop_row::movement_political::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -2416,6 +2224,8 @@ struct demographicswindow_pop_row_movement_political_t : public ui::element_base
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_movement_social_t : public ui::element_base {
+// BEGIN pop_row::movement_social::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -2441,6 +2251,8 @@ struct demographicswindow_pop_row_movement_social_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_details_button_t : public ui::element_base {
+// BEGIN pop_row::details_button::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -2466,6 +2278,8 @@ struct demographicswindow_pop_row_details_button_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_job_all_t : public ui::element_base {
+// BEGIN filters_window::job_all::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2501,6 +2315,8 @@ struct demographicswindow_filters_window_job_all_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_job_none_t : public ui::element_base {
+// BEGIN filters_window::job_none::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2536,6 +2352,8 @@ struct demographicswindow_filters_window_job_none_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_culture_all_t : public ui::element_base {
+// BEGIN filters_window::culture_all::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2571,6 +2389,8 @@ struct demographicswindow_filters_window_culture_all_t : public ui::element_base
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_culture_none_t : public ui::element_base {
+// BEGIN filters_window::culture_none::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2606,6 +2426,8 @@ struct demographicswindow_filters_window_culture_none_t : public ui::element_bas
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_religion_all_t : public ui::element_base {
+// BEGIN filters_window::religion_all::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2641,6 +2463,8 @@ struct demographicswindow_filters_window_religion_all_t : public ui::element_bas
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_religion_none_t : public ui::element_base {
+// BEGIN filters_window::religion_none::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2676,6 +2500,8 @@ struct demographicswindow_filters_window_religion_none_t : public ui::element_ba
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_location_all_t : public ui::element_base {
+// BEGIN filters_window::location_all::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2711,6 +2537,8 @@ struct demographicswindow_filters_window_location_all_t : public ui::element_bas
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_location_none_t : public ui::element_base {
+// BEGIN filters_window::location_none::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2746,6 +2574,8 @@ struct demographicswindow_filters_window_location_none_t : public ui::element_ba
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_non_colonial_t : public ui::element_base {
+// BEGIN filters_window::non_colonial::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2781,6 +2611,8 @@ struct demographicswindow_filters_window_non_colonial_t : public ui::element_bas
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_colonial_t : public ui::element_base {
+// BEGIN filters_window::colonial::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -2815,103 +2647,9 @@ struct demographicswindow_filters_window_colonial_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct demographicswindow_filters_window_job_list_t : public ui::container_base {
-	int32_t page = 0;
-	std::vector<dcon::pop_type_id> values;
-	std::vector<ui::element_base*> visible_items;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return (values.size() > visible_items.size()) ? ui::message_result::consumed : ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_culture_list_t : public ui::container_base {
-	int32_t page = 0;
-	std::vector<dcon::culture_id> values;
-	std::vector<ui::element_base*> visible_items;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return (values.size() > visible_items.size()) ? ui::message_result::consumed : ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_religion_list_t : public ui::container_base {
-	int32_t page = 0;
-	std::vector<dcon::religion_id> values;
-	std::vector<ui::element_base*> visible_items;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return (values.size() > visible_items.size()) ? ui::message_result::consumed : ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_location_list_t : public ui::container_base {
-	int32_t page = 0;
-	std::vector<dcon::state_instance_id> values;
-	std::vector<ui::element_base*> visible_items;
-	void on_create(sys::state& state) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return (values.size() > visible_items.size()) ? ui::message_result::consumed : ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_scroll(sys::state & state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override; 
-	void change_page(sys::state & state, int32_t new_page); 
-	int32_t max_page(); 
-	void on_update(sys::state& state) noexcept override;
-};
 struct demographicswindow_filters_window_close_button_t : public ui::element_base {
+// BEGIN filters_window::close_button::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	dcon::text_key tooltip_key;
@@ -2937,299 +2675,9 @@ struct demographicswindow_filters_window_close_button_t : public ui::element_bas
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct demographicswindow_filters_window_job_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_culture_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_religion_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_location_left_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_job_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_culture_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_religion_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_location_right_t : public ui::element_base {
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_job_page_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_culture_page_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_religion_page_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct demographicswindow_filters_window_location_page_t : public ui::element_base {
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
 struct demographicswindow_filters_window_job_header_t : public ui::element_base {
+// BEGIN filters_window::job_header::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.250000f; 
@@ -3258,6 +2706,8 @@ struct demographicswindow_filters_window_job_header_t : public ui::element_base 
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_culture_header_t : public ui::element_base {
+// BEGIN filters_window::culture_header::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.250000f; 
@@ -3286,6 +2736,8 @@ struct demographicswindow_filters_window_culture_header_t : public ui::element_b
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_religion_header_t : public ui::element_base {
+// BEGIN filters_window::religion_header::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.250000f; 
@@ -3314,6 +2766,8 @@ struct demographicswindow_filters_window_religion_header_t : public ui::element_
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_filters_window_location_header_t : public ui::element_base {
+// BEGIN filters_window::location_header::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::gold;
 	float text_scale = 1.250000f; 
@@ -3341,7 +2795,65 @@ struct demographicswindow_filters_window_location_header_t : public ui::element_
 	}
 	void on_update(sys::state& state) noexcept override;
 };
+struct demographicswindow_filters_window_jobs_list_t : public layout_generator {
+// BEGIN filters_window::jobs_list::variables
+// END
+	struct job_filter_option { dcon::pop_type_id value; };
+	std::vector<std::unique_ptr<ui::element_base>> job_filter_pool;
+	int32_t job_filter_pool_used = 0;
+	void add_job_filter( dcon::pop_type_id value);
+	std::vector<std::variant<std::monostate, job_filter_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
+struct demographicswindow_filters_window_culture_list_t : public layout_generator {
+// BEGIN filters_window::culture_list::variables
+// END
+	struct culture_filter_option { dcon::culture_id value; };
+	std::vector<std::unique_ptr<ui::element_base>> culture_filter_pool;
+	int32_t culture_filter_pool_used = 0;
+	void add_culture_filter( dcon::culture_id value);
+	std::vector<std::variant<std::monostate, culture_filter_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
+struct demographicswindow_filters_window_religion_list_t : public layout_generator {
+// BEGIN filters_window::religion_list::variables
+// END
+	struct religion_filter_option { dcon::religion_id value; };
+	std::vector<std::unique_ptr<ui::element_base>> religion_filter_pool;
+	int32_t religion_filter_pool_used = 0;
+	void add_religion_filter( dcon::religion_id value);
+	std::vector<std::variant<std::monostate, religion_filter_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
+struct demographicswindow_filters_window_location_list_t : public layout_generator {
+// BEGIN filters_window::location_list::variables
+// END
+	struct location_filter_option { dcon::state_instance_id value; };
+	std::vector<std::unique_ptr<ui::element_base>> location_filter_pool;
+	int32_t location_filter_pool_used = 0;
+	void add_location_filter( dcon::state_instance_id value);
+	std::vector<std::variant<std::monostate, location_filter_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
 struct demographicswindow_job_filter_filter_button_t : public ui::element_base {
+// BEGIN job_filter::filter_button::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3368,6 +2880,8 @@ struct demographicswindow_job_filter_filter_button_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_job_filter_icon_t : public ui::element_base {
+// BEGIN job_filter::icon::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -3392,6 +2906,8 @@ struct demographicswindow_job_filter_icon_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_job_filter_filter_label_t : public ui::element_base {
+// BEGIN job_filter::filter_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -3419,6 +2935,8 @@ struct demographicswindow_job_filter_filter_label_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_religion_filter_filter_button_t : public ui::element_base {
+// BEGIN religion_filter::filter_button::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3445,6 +2963,8 @@ struct demographicswindow_religion_filter_filter_button_t : public ui::element_b
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_religion_filter_icon_t : public ui::element_base {
+// BEGIN religion_filter::icon::variables
+// END
 	std::string_view gfx_key;
 	dcon::gfx_object_id background_gid;
 	int32_t frame = 0;
@@ -3469,6 +2989,8 @@ struct demographicswindow_religion_filter_icon_t : public ui::element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_religion_filter_filter_label_t : public ui::element_base {
+// BEGIN religion_filter::filter_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -3496,6 +3018,8 @@ struct demographicswindow_religion_filter_filter_label_t : public ui::element_ba
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_location_filter_filter_button_t : public ui::element_base {
+// BEGIN location_filter::filter_button::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3522,6 +3046,8 @@ struct demographicswindow_location_filter_filter_button_t : public ui::element_b
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_location_filter_filter_label_t : public ui::element_base {
+// BEGIN location_filter::filter_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -3549,6 +3075,8 @@ struct demographicswindow_location_filter_filter_label_t : public ui::element_ba
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_culture_filter_filter_button_t : public ui::element_base {
+// BEGIN culture_filter::filter_button::variables
+// END
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
@@ -3575,6 +3103,8 @@ struct demographicswindow_culture_filter_filter_button_t : public ui::element_ba
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_culture_filter_filter_label_t : public ui::element_base {
+// BEGIN culture_filter::filter_label::variables
+// END
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -3601,27 +3131,322 @@ struct demographicswindow_culture_filter_filter_label_t : public ui::element_bas
 	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct demographicswindow_main_t : public ui::container_base {
-	demographicswindow_filters_window_t* filter_w;
-	ui::pop_details_window* details_w;
-	ui::national_focus_window* focus_w;
-	demographicswindow_main_close_button_t* close_button = nullptr;
-	demographicswindow_main_title_t* title = nullptr;
-	demographicswindow_main_main_page_t* main_page = nullptr;
-	demographicswindow_main_table_t* table = nullptr;
-	demographicswindow_main_show_filters_t* show_filters = nullptr;
-	demographicswindow_main_reset_filters_t* reset_filters = nullptr;
-	demographicswindow_main_only_pops_toggle_t* only_pops_toggle = nullptr;
-	demographicswindow_main_main_left_t* main_left = nullptr;
-	demographicswindow_main_main_right_t* main_right = nullptr;
+struct demographicswindow_pops_header_content_t : public ui::element_base {
+// BEGIN pops_header::content::variables
+// END
+	text::layout location_internal_layout;
+	std::string location_cached_text;
+	text::layout size_internal_layout;
+	std::string size_cached_text;
+	text::layout culture_internal_layout;
+	std::string culture_cached_text;
+	text::layout job_internal_layout;
+	std::string job_cached_text;
+	text::layout religion_internal_layout;
+	std::string religion_cached_text;
+	text::layout ideology_internal_layout;
+	std::string ideology_cached_text;
+	text::layout issues_internal_layout;
+	std::string issues_cached_text;
+	text::layout needs_internal_layout;
+	std::string needs_cached_text;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_reset_text(sys::state & state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_pops_header_mil_icon_t : public ui::element_base {
+// BEGIN pops_header::mil_icon::variables
+// END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_pops_header_con_icon_t : public ui::element_base {
+// BEGIN pops_header::con_icon::variables
+// END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_pops_header_emp_icon_t : public ui::element_base {
+// BEGIN pops_header::emp_icon::variables
+// END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_pops_header_lit_icon_t : public ui::element_base {
+// BEGIN pops_header::lit_icon::variables
+// END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_pops_header_reb_icon_t : public ui::element_base {
+// BEGIN pops_header::reb_icon::variables
+// END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_pops_header_cash_icon_t : public ui::element_base {
+// BEGIN pops_header::cash_icon::variables
+// END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_main_t : public layout_window_element {
+// BEGIN main::variables
+// END
+	ui::element_base* filter_w;
+	ui::pop_details_window* details_w;
+	ui::element_base* focus_w;
+	std::unique_ptr<demographicswindow_main_close_button_t> close_button;
+	std::unique_ptr<demographicswindow_main_title_t> title;
+	std::unique_ptr<demographicswindow_main_show_filters_t> show_filters;
+	std::unique_ptr<demographicswindow_main_reset_filters_t> reset_filters;
+	std::unique_ptr<demographicswindow_main_only_pops_toggle_t> only_pops_toggle;
+	demographicswindow_main_table_t table;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	int16_t table_spacer_column_start = 0;
+	int16_t table_spacer_column_width = 0;
+	std::string_view table_location_header_text_key;
+	text::text_color table_location_header_text_color = text::text_color::black;
+	text::text_color table_location_column_text_color = text::text_color::black;
+	text::alignment table_location_text_alignment = text::alignment::center;
+	int8_t table_location_sort_direction = 0;
+	int16_t table_location_column_start = 0;
+	int16_t table_location_column_width = 0;
+	std::string_view table_size_header_text_key;
+	text::text_color table_size_header_text_color = text::text_color::black;
+	text::text_color table_size_column_text_color = text::text_color::black;
+	text::alignment table_size_text_alignment = text::alignment::left;
+	int8_t table_size_sort_direction = 0;
+	int16_t table_size_column_start = 0;
+	int16_t table_size_column_width = 0;
+	std::string_view table_culture_header_text_key;
+	text::text_color table_culture_header_text_color = text::text_color::black;
+	text::text_color table_culture_column_text_color = text::text_color::black;
+	text::alignment table_culture_text_alignment = text::alignment::left;
+	int8_t table_culture_sort_direction = 0;
+	int16_t table_culture_column_start = 0;
+	int16_t table_culture_column_width = 0;
+	std::string_view table_job_header_text_key;
+	text::text_color table_job_header_text_color = text::text_color::black;
+	text::text_color table_job_column_text_color = text::text_color::black;
+	text::alignment table_job_text_alignment = text::alignment::left;
+	int8_t table_job_sort_direction = 0;
+	int16_t table_job_column_start = 0;
+	int16_t table_job_column_width = 0;
+	std::string_view table_religion_header_text_key;
+	text::text_color table_religion_header_text_color = text::text_color::black;
+	text::text_color table_religion_column_text_color = text::text_color::black;
+	text::alignment table_religion_text_alignment = text::alignment::left;
+	int8_t table_religion_sort_direction = 0;
+	int16_t table_religion_column_start = 0;
+	int16_t table_religion_column_width = 0;
+	std::string_view table_ideology_header_text_key;
+	text::text_color table_ideology_header_text_color = text::text_color::black;
+	text::text_color table_ideology_column_text_color = text::text_color::black;
+	text::alignment table_ideology_text_alignment = text::alignment::center;
+	int16_t table_ideology_column_start = 0;
+	int16_t table_ideology_column_width = 0;
+	std::string_view table_issues_header_text_key;
+	text::text_color table_issues_header_text_color = text::text_color::black;
+	text::text_color table_issues_column_text_color = text::text_color::black;
+	text::alignment table_issues_text_alignment = text::alignment::center;
+	int16_t table_issues_column_start = 0;
+	int16_t table_issues_column_width = 0;
+	std::string_view table_militancy_header_tooltip_key;
+	text::text_color table_militancy_header_text_color = text::text_color::black;
+	text::text_color table_militancy_column_text_color = text::text_color::black;
+	text::alignment table_militancy_text_alignment = text::alignment::center;
+	int8_t table_militancy_sort_direction = 0;
+	int16_t table_militancy_column_start = 0;
+	int16_t table_militancy_column_width = 0;
+	std::string_view table_consciousness_header_tooltip_key;
+	text::text_color table_consciousness_header_text_color = text::text_color::black;
+	text::text_color table_consciousness_column_text_color = text::text_color::black;
+	text::alignment table_consciousness_text_alignment = text::alignment::center;
+	int8_t table_consciousness_sort_direction = 0;
+	int16_t table_consciousness_column_start = 0;
+	int16_t table_consciousness_column_width = 0;
+	std::string_view table_employment_header_tooltip_key;
+	text::text_color table_employment_header_text_color = text::text_color::black;
+	text::text_color table_employment_column_text_color = text::text_color::black;
+	text::alignment table_employment_text_alignment = text::alignment::center;
+	int8_t table_employment_sort_direction = 0;
+	int16_t table_employment_column_start = 0;
+	int16_t table_employment_column_width = 0;
+	std::string_view table_literacy_header_tooltip_key;
+	text::text_color table_literacy_header_text_color = text::text_color::black;
+	text::text_color table_literacy_column_text_color = text::text_color::black;
+	text::alignment table_literacy_text_alignment = text::alignment::center;
+	int8_t table_literacy_sort_direction = 0;
+	int16_t table_literacy_column_start = 0;
+	int16_t table_literacy_column_width = 0;
+	std::string_view table_money_header_tooltip_key;
+	text::text_color table_money_header_text_color = text::text_color::black;
+	text::text_color table_money_column_text_color = text::text_color::black;
+	text::alignment table_money_text_alignment = text::alignment::center;
+	int8_t table_money_sort_direction = 0;
+	int16_t table_money_column_start = 0;
+	int16_t table_money_column_width = 0;
+	std::string_view table_needs_header_text_key;
+	text::text_color table_needs_header_text_color = text::text_color::black;
+	text::text_color table_needs_column_text_color = text::text_color::black;
+	text::alignment table_needs_text_alignment = text::alignment::left;
+	int8_t table_needs_sort_direction = 0;
+	int16_t table_needs_column_start = 0;
+	int16_t table_needs_column_width = 0;
+	std::string_view table_rebels_header_tooltip_key;
+	text::text_color table_rebels_header_text_color = text::text_color::black;
+	text::text_color table_rebels_column_text_color = text::text_color::black;
+	text::alignment table_rebels_text_alignment = text::alignment::center;
+	int16_t table_rebels_column_start = 0;
+	int16_t table_rebels_column_width = 0;
+	std::string_view table_ascending_icon_key;
+	dcon::texture_id table_ascending_icon;
+	std::string_view table_descending_icon_key;
+	dcon::texture_id table_descending_icon;
+	ogl::color3f table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+		return ui::message_result::consumed;
 	}
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto location_abs = get_absolute_location(state, *this);
@@ -3642,42 +3467,46 @@ struct demographicswindow_main_t : public ui::container_base {
 		}
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "filter_w") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "filter_w") {
 			return (void*)(&filter_w);
 		}
-		if(name == "details_w") {
+		if(name_parameter == "details_w") {
 			return (void*)(&details_w);
 		}
-		if(name == "focus_w") {
+		if(name_parameter == "focus_w") {
 			return (void*)(&focus_w);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
-struct demographicswindow_nation_row_t : public ui::container_base {
+struct demographicswindow_nation_row_t : public layout_window_element {
+// BEGIN nation_row::variables
+// END
 	dcon::nation_id content;
-	demographicswindow_nation_row_location_t* location = nullptr;
-	demographicswindow_nation_row_size_t* size = nullptr;
-	demographicswindow_nation_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_nation_row_culture_t* culture = nullptr;
-	demographicswindow_nation_row_job_t* job = nullptr;
-	demographicswindow_nation_row_religion_t* religion = nullptr;
-	demographicswindow_nation_row_ideology_t* ideology = nullptr;
-	demographicswindow_nation_row_issues_t* issues = nullptr;
-	demographicswindow_nation_row_militancy_t* militancy = nullptr;
-	demographicswindow_nation_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_nation_row_employment_t* employment = nullptr;
-	demographicswindow_nation_row_literacy_t* literacy = nullptr;
-	demographicswindow_nation_row_money_t* money = nullptr;
-	demographicswindow_nation_row_needs_t* needs = nullptr;
-	demographicswindow_nation_row_frames_t* frames = nullptr;
+	std::unique_ptr<demographicswindow_nation_row_location_t> location;
+	std::unique_ptr<demographicswindow_nation_row_size_t> size;
+	std::unique_ptr<demographicswindow_nation_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_nation_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_nation_row_job_t> job;
+	std::unique_ptr<demographicswindow_nation_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_nation_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_nation_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_nation_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_nation_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_nation_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_nation_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_nation_row_money_t> money;
+	std::unique_ptr<demographicswindow_nation_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_nation_row_frames_t> frames;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
 	bool is_active = false;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -3686,38 +3515,42 @@ struct demographicswindow_nation_row_t : public ui::container_base {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "content") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "content") {
 			return (void*)(&content);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_nation_row(sys::state& state);
-struct demographicswindow_state_row_t : public ui::container_base {
+struct demographicswindow_state_row_t : public layout_window_element {
+// BEGIN state_row::variables
+// END
 	dcon::state_instance_id content;
-	demographicswindow_state_row_folder_icon_t* folder_icon = nullptr;
-	demographicswindow_state_row_location_t* location = nullptr;
-	demographicswindow_state_row_size_t* size = nullptr;
-	demographicswindow_state_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_state_row_culture_t* culture = nullptr;
-	demographicswindow_state_row_job_t* job = nullptr;
-	demographicswindow_state_row_religion_t* religion = nullptr;
-	demographicswindow_state_row_ideology_t* ideology = nullptr;
-	demographicswindow_state_row_issues_t* issues = nullptr;
-	demographicswindow_state_row_militancy_t* militancy = nullptr;
-	demographicswindow_state_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_state_row_employment_t* employment = nullptr;
-	demographicswindow_state_row_literacy_t* literacy = nullptr;
-	demographicswindow_state_row_money_t* money = nullptr;
-	demographicswindow_state_row_needs_t* needs = nullptr;
-	demographicswindow_state_row_frames_t* frames = nullptr;
-	demographicswindow_state_row_focus_button_t* focus_button = nullptr;
+	std::unique_ptr<demographicswindow_state_row_folder_icon_t> folder_icon;
+	std::unique_ptr<demographicswindow_state_row_location_t> location;
+	std::unique_ptr<demographicswindow_state_row_size_t> size;
+	std::unique_ptr<demographicswindow_state_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_state_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_state_row_job_t> job;
+	std::unique_ptr<demographicswindow_state_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_state_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_state_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_state_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_state_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_state_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_state_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_state_row_money_t> money;
+	std::unique_ptr<demographicswindow_state_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_state_row_frames_t> frames;
+	std::unique_ptr<demographicswindow_state_row_focus_button_t> focus_button;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
 	bool is_active = false;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -3726,37 +3559,41 @@ struct demographicswindow_state_row_t : public ui::container_base {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "content") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "content") {
 			return (void*)(&content);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_state_row(sys::state& state);
-struct demographicswindow_province_row_t : public ui::container_base {
+struct demographicswindow_province_row_t : public layout_window_element {
+// BEGIN province_row::variables
+// END
 	dcon::province_id content;
-	demographicswindow_province_row_folder_icon_t* folder_icon = nullptr;
-	demographicswindow_province_row_location_t* location = nullptr;
-	demographicswindow_province_row_size_t* size = nullptr;
-	demographicswindow_province_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_province_row_culture_t* culture = nullptr;
-	demographicswindow_province_row_job_t* job = nullptr;
-	demographicswindow_province_row_religion_t* religion = nullptr;
-	demographicswindow_province_row_ideology_t* ideology = nullptr;
-	demographicswindow_province_row_issues_t* issues = nullptr;
-	demographicswindow_province_row_militancy_t* militancy = nullptr;
-	demographicswindow_province_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_province_row_employment_t* employment = nullptr;
-	demographicswindow_province_row_literacy_t* literacy = nullptr;
-	demographicswindow_province_row_money_t* money = nullptr;
-	demographicswindow_province_row_needs_t* needs = nullptr;
-	demographicswindow_province_row_frames_t* frames = nullptr;
+	std::unique_ptr<demographicswindow_province_row_folder_icon_t> folder_icon;
+	std::unique_ptr<demographicswindow_province_row_location_t> location;
+	std::unique_ptr<demographicswindow_province_row_size_t> size;
+	std::unique_ptr<demographicswindow_province_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_province_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_province_row_job_t> job;
+	std::unique_ptr<demographicswindow_province_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_province_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_province_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_province_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_province_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_province_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_province_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_province_row_money_t> money;
+	std::unique_ptr<demographicswindow_province_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_province_row_frames_t> frames;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
 	bool is_active = false;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -3765,43 +3602,47 @@ struct demographicswindow_province_row_t : public ui::container_base {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "content") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "content") {
 			return (void*)(&content);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_province_row(sys::state& state);
-struct demographicswindow_pop_row_t : public ui::container_base {
+struct demographicswindow_pop_row_t : public layout_window_element {
+// BEGIN pop_row::variables
+// END
 	dcon::pop_id value;
-	demographicswindow_pop_row_location_t* location = nullptr;
-	demographicswindow_pop_row_size_t* size = nullptr;
-	demographicswindow_pop_row_size_trend_t* size_trend = nullptr;
-	demographicswindow_pop_row_culture_t* culture = nullptr;
-	demographicswindow_pop_row_job_t* job = nullptr;
-	demographicswindow_pop_row_religion_t* religion = nullptr;
-	demographicswindow_pop_row_ideology_t* ideology = nullptr;
-	demographicswindow_pop_row_issues_t* issues = nullptr;
-	demographicswindow_pop_row_militancy_t* militancy = nullptr;
-	demographicswindow_pop_row_consciousness_t* consciousness = nullptr;
-	demographicswindow_pop_row_employment_t* employment = nullptr;
-	demographicswindow_pop_row_literacy_t* literacy = nullptr;
-	demographicswindow_pop_row_money_t* money = nullptr;
-	demographicswindow_pop_row_needs_t* needs = nullptr;
-	demographicswindow_pop_row_rebel_flag_t* rebel_flag = nullptr;
-	demographicswindow_pop_row_culture_name_t* culture_name = nullptr;
-	demographicswindow_pop_row_job_name_t* job_name = nullptr;
-	demographicswindow_pop_row_religion_name_t* religion_name = nullptr;
-	demographicswindow_pop_row_frames_t* frames = nullptr;
-	demographicswindow_pop_row_movement_political_t* movement_political = nullptr;
-	demographicswindow_pop_row_movement_social_t* movement_social = nullptr;
-	demographicswindow_pop_row_details_button_t* details_button = nullptr;
+	std::unique_ptr<demographicswindow_pop_row_location_t> location;
+	std::unique_ptr<demographicswindow_pop_row_size_t> size;
+	std::unique_ptr<demographicswindow_pop_row_size_trend_t> size_trend;
+	std::unique_ptr<demographicswindow_pop_row_culture_t> culture;
+	std::unique_ptr<demographicswindow_pop_row_job_t> job;
+	std::unique_ptr<demographicswindow_pop_row_religion_t> religion;
+	std::unique_ptr<demographicswindow_pop_row_ideology_t> ideology;
+	std::unique_ptr<demographicswindow_pop_row_issues_t> issues;
+	std::unique_ptr<demographicswindow_pop_row_militancy_t> militancy;
+	std::unique_ptr<demographicswindow_pop_row_consciousness_t> consciousness;
+	std::unique_ptr<demographicswindow_pop_row_employment_t> employment;
+	std::unique_ptr<demographicswindow_pop_row_literacy_t> literacy;
+	std::unique_ptr<demographicswindow_pop_row_money_t> money;
+	std::unique_ptr<demographicswindow_pop_row_needs_t> needs;
+	std::unique_ptr<demographicswindow_pop_row_rebel_flag_t> rebel_flag;
+	std::unique_ptr<demographicswindow_pop_row_culture_name_t> culture_name;
+	std::unique_ptr<demographicswindow_pop_row_job_name_t> job_name;
+	std::unique_ptr<demographicswindow_pop_row_religion_name_t> religion_name;
+	std::unique_ptr<demographicswindow_pop_row_frames_t> frames;
+	std::unique_ptr<demographicswindow_pop_row_movement_political_t> movement_political;
+	std::unique_ptr<demographicswindow_pop_row_movement_social_t> movement_social;
+	std::unique_ptr<demographicswindow_pop_row_details_button_t> details_button;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	std::string_view alt_texture_key;
 	dcon::texture_id alt_background_texture;
 	bool is_active = false;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -3810,54 +3651,46 @@ struct demographicswindow_pop_row_t : public ui::container_base {
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_pop_row(sys::state& state);
-struct demographicswindow_filters_window_t : public ui::container_base {
-	demographicswindow_filters_window_job_all_t* job_all = nullptr;
-	demographicswindow_filters_window_job_none_t* job_none = nullptr;
-	demographicswindow_filters_window_culture_all_t* culture_all = nullptr;
-	demographicswindow_filters_window_culture_none_t* culture_none = nullptr;
-	demographicswindow_filters_window_religion_all_t* religion_all = nullptr;
-	demographicswindow_filters_window_religion_none_t* religion_none = nullptr;
-	demographicswindow_filters_window_location_all_t* location_all = nullptr;
-	demographicswindow_filters_window_location_none_t* location_none = nullptr;
-	demographicswindow_filters_window_non_colonial_t* non_colonial = nullptr;
-	demographicswindow_filters_window_colonial_t* colonial = nullptr;
-	demographicswindow_filters_window_job_list_t* job_list = nullptr;
-	demographicswindow_filters_window_culture_list_t* culture_list = nullptr;
-	demographicswindow_filters_window_religion_list_t* religion_list = nullptr;
-	demographicswindow_filters_window_location_list_t* location_list = nullptr;
-	demographicswindow_filters_window_close_button_t* close_button = nullptr;
-	demographicswindow_filters_window_job_left_t* job_left = nullptr;
-	demographicswindow_filters_window_culture_left_t* culture_left = nullptr;
-	demographicswindow_filters_window_religion_left_t* religion_left = nullptr;
-	demographicswindow_filters_window_location_left_t* location_left = nullptr;
-	demographicswindow_filters_window_job_right_t* job_right = nullptr;
-	demographicswindow_filters_window_culture_right_t* culture_right = nullptr;
-	demographicswindow_filters_window_religion_right_t* religion_right = nullptr;
-	demographicswindow_filters_window_location_right_t* location_right = nullptr;
-	demographicswindow_filters_window_job_page_t* job_page = nullptr;
-	demographicswindow_filters_window_culture_page_t* culture_page = nullptr;
-	demographicswindow_filters_window_religion_page_t* religion_page = nullptr;
-	demographicswindow_filters_window_location_page_t* location_page = nullptr;
-	demographicswindow_filters_window_job_header_t* job_header = nullptr;
-	demographicswindow_filters_window_culture_header_t* culture_header = nullptr;
-	demographicswindow_filters_window_religion_header_t* religion_header = nullptr;
-	demographicswindow_filters_window_location_header_t* location_header = nullptr;
+struct demographicswindow_filters_window_t : public layout_window_element {
+// BEGIN filters_window::variables
+// END
+	std::unique_ptr<demographicswindow_filters_window_job_all_t> job_all;
+	std::unique_ptr<demographicswindow_filters_window_job_none_t> job_none;
+	std::unique_ptr<demographicswindow_filters_window_culture_all_t> culture_all;
+	std::unique_ptr<demographicswindow_filters_window_culture_none_t> culture_none;
+	std::unique_ptr<demographicswindow_filters_window_religion_all_t> religion_all;
+	std::unique_ptr<demographicswindow_filters_window_religion_none_t> religion_none;
+	std::unique_ptr<demographicswindow_filters_window_location_all_t> location_all;
+	std::unique_ptr<demographicswindow_filters_window_location_none_t> location_none;
+	std::unique_ptr<demographicswindow_filters_window_non_colonial_t> non_colonial;
+	std::unique_ptr<demographicswindow_filters_window_colonial_t> colonial;
+	std::unique_ptr<demographicswindow_filters_window_close_button_t> close_button;
+	std::unique_ptr<demographicswindow_filters_window_job_header_t> job_header;
+	std::unique_ptr<demographicswindow_filters_window_culture_header_t> culture_header;
+	std::unique_ptr<demographicswindow_filters_window_religion_header_t> religion_header;
+	std::unique_ptr<demographicswindow_filters_window_location_header_t> location_header;
+	demographicswindow_filters_window_jobs_list_t jobs_list;
+	demographicswindow_filters_window_culture_list_t culture_list;
+	demographicswindow_filters_window_religion_list_t religion_list;
+	demographicswindow_filters_window_location_list_t location_list;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+		return ui::message_result::consumed;
 	}
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto location_abs = get_absolute_location(state, *this);
@@ -3880,76 +3713,542 @@ struct demographicswindow_filters_window_t : public ui::container_base {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_filters_window(sys::state& state);
-struct demographicswindow_job_filter_t : public ui::container_base {
+struct demographicswindow_job_filter_t : public layout_window_element {
+// BEGIN job_filter::variables
+// END
 	dcon::pop_type_id value;
-	demographicswindow_job_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_job_filter_icon_t* icon = nullptr;
-	demographicswindow_job_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_job_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_job_filter_icon_t> icon;
+	std::unique_ptr<demographicswindow_job_filter_filter_label_t> filter_label;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_job_filter(sys::state& state);
-struct demographicswindow_religion_filter_t : public ui::container_base {
+struct demographicswindow_religion_filter_t : public layout_window_element {
+// BEGIN religion_filter::variables
+// END
 	dcon::religion_id value;
-	demographicswindow_religion_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_religion_filter_icon_t* icon = nullptr;
-	demographicswindow_religion_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_religion_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_religion_filter_icon_t> icon;
+	std::unique_ptr<demographicswindow_religion_filter_filter_label_t> filter_label;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_religion_filter(sys::state& state);
-struct demographicswindow_location_filter_t : public ui::container_base {
+struct demographicswindow_location_filter_t : public layout_window_element {
+// BEGIN location_filter::variables
+// END
 	dcon::state_instance_id value;
-	demographicswindow_location_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_location_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_location_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_location_filter_filter_label_t> filter_label;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_location_filter(sys::state& state);
-struct demographicswindow_culture_filter_t : public ui::container_base {
+struct demographicswindow_culture_filter_t : public layout_window_element {
+// BEGIN culture_filter::variables
+// END
 	dcon::culture_id value;
-	demographicswindow_culture_filter_filter_button_t* filter_button = nullptr;
-	demographicswindow_culture_filter_filter_label_t* filter_label = nullptr;
+	std::unique_ptr<demographicswindow_culture_filter_filter_button_t> filter_button;
+	std::unique_ptr<demographicswindow_culture_filter_filter_label_t> filter_label;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
 	}
 };
 std::unique_ptr<ui::element_base> make_demographicswindow_culture_filter(sys::state& state);
+struct demographicswindow_pops_header_t : public layout_window_element {
+// BEGIN pops_header::variables
+// END
+	dcon::pop_id value;
+	std::unique_ptr<demographicswindow_pops_header_content_t> content;
+	std::unique_ptr<demographicswindow_pops_header_mil_icon_t> mil_icon;
+	std::unique_ptr<demographicswindow_pops_header_con_icon_t> con_icon;
+	std::unique_ptr<demographicswindow_pops_header_emp_icon_t> emp_icon;
+	std::unique_ptr<demographicswindow_pops_header_lit_icon_t> lit_icon;
+	std::unique_ptr<demographicswindow_pops_header_reb_icon_t> reb_icon;
+	std::unique_ptr<demographicswindow_pops_header_cash_icon_t> cash_icon;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+	}
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
+			return (void*)(&value);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state& state);
+void demographicswindow_main_table_t::add_nation_row(dcon::nation_id content) {
+	values.emplace_back(nation_row_option{content});
+}
+void demographicswindow_main_table_t::add_state_row(dcon::state_instance_id content) {
+	values.emplace_back(state_row_option{content});
+}
+void demographicswindow_main_table_t::add_province_row(dcon::province_id content) {
+	values.emplace_back(province_row_option{content});
+}
+void demographicswindow_main_table_t::add_pop_row(dcon::pop_id value) {
+	values.emplace_back(pop_row_option{value});
+}
+void  demographicswindow_main_table_t::on_create(sys::state& state, layout_window_element* parent) {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
+// BEGIN main::table::on_create
+// END
+}
+void  demographicswindow_main_table_t::update(sys::state& state, layout_window_element* parent) {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
+// BEGIN main::table::update
+	values.clear();
+	if(!popwindow::show_only_pops) {
+		add_nation_row(state.local_player_nation);
+
+		std::vector<dcon::state_instance_id> si;
+		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			si.push_back(so.get_state().id);
+		}
+		sys::merge_sort(si.begin(), si.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+			if(!state.world.state_instance_get_capital(a).get_is_colonial() && state.world.state_instance_get_capital(b).get_is_colonial()) {
+				return true;
+			}
+			if(state.world.state_instance_get_capital(a).get_is_colonial() && !state.world.state_instance_get_capital(b).get_is_colonial()) {
+				return false;
+			}
+			// return state.world.state_instance_get_demographics(a, demographics::total) > state.world.state_instance_get_demographics(b, demographics::total);
+			return text::get_short_state_name(state, a) < text::get_short_state_name(state, b);
+		});
+		for(auto s : si) {
+			bool added_header = false;
+			bool state_is_open = popwindow::open_states.contains(s.index());
+
+			std::vector<dcon::province_id> provs;
+			province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) { provs.push_back(p); });
+
+			sys::merge_sort(provs.begin(), provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+				return text::produce_simple_string(state, state.world.province_get_name(a)) < text::produce_simple_string(state, state.world.province_get_name(b));
+			});
+
+			for(auto p : provs) {
+				bool added_pop = false;
+				bool province_is_open = popwindow::open_provs.contains(p.index());
+
+				for(auto po : state.world.province_get_pop_location(p)) {
+					if(pop_passes_filter(state, po.get_pop())) {
+						if(!added_pop) {
+							if(!added_header) {
+								added_header = true;
+								add_state_row(s);
+							}
+							if(state_is_open) {
+								add_province_row(p);
+							}
+							added_pop = true;
+						}
+						if(state_is_open && province_is_open) {
+							add_pop_row(po.get_pop().id);
+						}
+					}
+				}
+			}
+		}
+	} else {
+		add_nation_row(state.local_player_nation);
+		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			for(auto po : p.get_province().get_pop_location()) {
+				if(pop_passes_filter(state, po.get_pop())) {
+					add_pop_row(po.get_pop().id);
+				}
+			}
+		}
+	}
+// END
+	{
+	bool work_to_do = false;
+	auto table_source = (demographicswindow_main_t*)(parent);
+	if(table_source->table_location_sort_direction != 0) work_to_do = true;
+	if(table_source->table_size_sort_direction != 0) work_to_do = true;
+	if(table_source->table_culture_sort_direction != 0) work_to_do = true;
+	if(table_source->table_job_sort_direction != 0) work_to_do = true;
+	if(table_source->table_religion_sort_direction != 0) work_to_do = true;
+	if(table_source->table_militancy_sort_direction != 0) work_to_do = true;
+	if(table_source->table_consciousness_sort_direction != 0) work_to_do = true;
+	if(table_source->table_employment_sort_direction != 0) work_to_do = true;
+	if(table_source->table_literacy_sort_direction != 0) work_to_do = true;
+	if(table_source->table_money_sort_direction != 0) work_to_do = true;
+	if(table_source->table_needs_sort_direction != 0) work_to_do = true;
+	if(work_to_do) {
+		for(size_t i = 0; i < values.size(); ) {
+			if(std::holds_alternative<pop_row_option>(values[i])) {
+				auto start_i = i;
+				while(i < values.size() && std::holds_alternative<pop_row_option>(values[i])) ++i;
+				if(table_source->table_location_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::location
+						result = cmp3(text::produce_simple_string(state, state.world.province_get_name(state.world.pop_get_province_from_pop_location(a.value))),
+							text::produce_simple_string(state, state.world.province_get_name(state.world.pop_get_province_from_pop_location(b.value))));
+// END
+						return -result == table_source->table_location_sort_direction;
+					});
+				}
+				if(table_source->table_size_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::size
+						result = cmp3(state.world.pop_get_size(a.value), state.world.pop_get_size(b.value));
+// END
+						return -result == table_source->table_size_sort_direction;
+					});
+				}
+				if(table_source->table_culture_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::culture
+						result = cmp3(text::produce_simple_string(state, state.world.culture_get_name(state.world.pop_get_culture(a.value))),
+							text::produce_simple_string(state, state.world.culture_get_name(state.world.pop_get_culture(b.value))));
+// END
+						return -result == table_source->table_culture_sort_direction;
+					});
+				}
+				if(table_source->table_job_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::job
+						result = cmp3(text::produce_simple_string(state, state.world.pop_type_get_name(state.world.pop_get_poptype(a.value))),
+							text::produce_simple_string(state, state.world.pop_type_get_name(state.world.pop_get_poptype(b.value))));
+// END
+						return -result == table_source->table_job_sort_direction;
+					});
+				}
+				if(table_source->table_religion_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::religion
+						result = cmp3(text::produce_simple_string(state, state.world.religion_get_name(state.world.pop_get_religion(a.value))),
+							text::produce_simple_string(state, state.world.religion_get_name(state.world.pop_get_religion(b.value))));
+// END
+						return -result == table_source->table_religion_sort_direction;
+					});
+				}
+				if(table_source->table_militancy_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::militancy
+						result = cmp3(pop_demographics::get_militancy(state, a.value), pop_demographics::get_militancy(state, b.value));
+// END
+						return -result == table_source->table_militancy_sort_direction;
+					});
+				}
+				if(table_source->table_consciousness_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::consciousness
+						result = cmp3(pop_demographics::get_consciousness(state, a.value), pop_demographics::get_consciousness(state, b.value));
+// END
+						return -result == table_source->table_consciousness_sort_direction;
+					});
+				}
+				if(table_source->table_employment_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::employment
+						result = cmp3(pop_demographics::get_employment(state, a.value), pop_demographics::get_employment(state, b.value));
+// END
+						return -result == table_source->table_employment_sort_direction;
+					});
+				}
+				if(table_source->table_literacy_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::literacy
+						result = cmp3(pop_demographics::get_literacy(state, a.value), pop_demographics::get_literacy(state, b.value));
+// END
+						return -result == table_source->table_literacy_sort_direction;
+					});
+				}
+				if(table_source->table_money_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::money
+						result = cmp3(state.world.pop_get_savings(a.value), state.world.pop_get_savings(b.value));
+// END
+						return -result == table_source->table_money_sort_direction;
+					});
+				}
+				if(table_source->table_needs_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<pop_row_option>(raw_a);
+							auto const& b = std::get<pop_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::table::table::sort::needs
+						result = cmp3(pop_demographics::get_life_needs(state, a.value) + pop_demographics::get_everyday_needs(state, a.value) + pop_demographics::get_luxury_needs(state, a.value), pop_demographics::get_life_needs(state, b.value) + pop_demographics::get_everyday_needs(state, b.value) + pop_demographics::get_luxury_needs(state,b.value));
+// END
+						return -result == table_source->table_needs_sort_direction;
+					});
+				}
+			} else {
+				++i;
+			}
+		}
+	}
+	}
+}
+measure_result  demographicswindow_main_table_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<nation_row_option>(values[index])) {
+		if(pops_header_pool.empty()) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+		if(nation_row_pool.empty()) nation_row_pool.emplace_back(make_demographicswindow_nation_row(state));
+		if(index == 0 || first_in_section || (true && !std::holds_alternative<nation_row_option>(values[index - 1]) && !std::holds_alternative<state_row_option>(values[index - 1]) && !std::holds_alternative<province_row_option>(values[index - 1]) && !std::holds_alternative<pop_row_option>(values[index - 1]))) {
+			if(destination) {
+				if(pops_header_pool.size() <= size_t(pops_header_pool_used)) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+				if(nation_row_pool.size() <= size_t(nation_row_pool_used)) nation_row_pool.emplace_back(make_demographicswindow_nation_row(state));
+				pops_header_pool[pops_header_pool_used]->base_data.position.x = int16_t(x);
+				pops_header_pool[pops_header_pool_used]->base_data.position.y = int16_t(y);
+				if(!pops_header_pool[pops_header_pool_used]->parent) {
+					pops_header_pool[pops_header_pool_used]->parent = destination;
+					pops_header_pool[pops_header_pool_used]->impl_on_update(state);
+					pops_header_pool[pops_header_pool_used]->impl_on_reset_text(state);
+				}
+				destination->children.push_back(pops_header_pool[pops_header_pool_used].get());
+			((demographicswindow_pops_header_t*)(pops_header_pool[pops_header_pool_used].get()))->is_active = alternate;
+				nation_row_pool[nation_row_pool_used]->base_data.position.x = int16_t(x);
+				nation_row_pool[nation_row_pool_used]->base_data.position.y = int16_t(y +  nation_row_pool[0]->base_data.size.y + 0);
+				nation_row_pool[nation_row_pool_used]->parent = destination;
+				destination->children.push_back(nation_row_pool[nation_row_pool_used].get());
+				((demographicswindow_nation_row_t*)(nation_row_pool[nation_row_pool_used].get()))->content = std::get<nation_row_option>(values[index]).content;
+			((demographicswindow_nation_row_t*)(nation_row_pool[nation_row_pool_used].get()))->is_active = !alternate;
+				nation_row_pool[nation_row_pool_used]->impl_on_update(state);
+				pops_header_pool_used++;
+				nation_row_pool_used++;
+			}
+			return measure_result{std::max(pops_header_pool[0]->base_data.size.x, nation_row_pool[0]->base_data.size.x), pops_header_pool[0]->base_data.size.y + nation_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+		}
+		if(destination) {
+			if(nation_row_pool.size() <= size_t(nation_row_pool_used)) nation_row_pool.emplace_back(make_demographicswindow_nation_row(state));
+			nation_row_pool[nation_row_pool_used]->base_data.position.x = int16_t(x);
+			nation_row_pool[nation_row_pool_used]->base_data.position.y = int16_t(y);
+			nation_row_pool[nation_row_pool_used]->parent = destination;
+			destination->children.push_back(nation_row_pool[nation_row_pool_used].get());
+			((demographicswindow_nation_row_t*)(nation_row_pool[nation_row_pool_used].get()))->content = std::get<nation_row_option>(values[index]).content;
+			((demographicswindow_nation_row_t*)(nation_row_pool[nation_row_pool_used].get()))->is_active = alternate;
+			nation_row_pool[nation_row_pool_used]->impl_on_update(state);
+			nation_row_pool_used++;
+		}
+		alternate = !alternate;
+		return measure_result{ nation_row_pool[0]->base_data.size.x, nation_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<state_row_option>(values[index])) {
+		if(pops_header_pool.empty()) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+		if(state_row_pool.empty()) state_row_pool.emplace_back(make_demographicswindow_state_row(state));
+		if(index == 0 || first_in_section || (true && !std::holds_alternative<nation_row_option>(values[index - 1]) && !std::holds_alternative<state_row_option>(values[index - 1]) && !std::holds_alternative<province_row_option>(values[index - 1]) && !std::holds_alternative<pop_row_option>(values[index - 1]))) {
+			if(destination) {
+				if(pops_header_pool.size() <= size_t(pops_header_pool_used)) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+				if(state_row_pool.size() <= size_t(state_row_pool_used)) state_row_pool.emplace_back(make_demographicswindow_state_row(state));
+				pops_header_pool[pops_header_pool_used]->base_data.position.x = int16_t(x);
+				pops_header_pool[pops_header_pool_used]->base_data.position.y = int16_t(y);
+				if(!pops_header_pool[pops_header_pool_used]->parent) {
+					pops_header_pool[pops_header_pool_used]->parent = destination;
+					pops_header_pool[pops_header_pool_used]->impl_on_update(state);
+					pops_header_pool[pops_header_pool_used]->impl_on_reset_text(state);
+				}
+				destination->children.push_back(pops_header_pool[pops_header_pool_used].get());
+			((demographicswindow_pops_header_t*)(pops_header_pool[pops_header_pool_used].get()))->is_active = alternate;
+				state_row_pool[state_row_pool_used]->base_data.position.x = int16_t(x);
+				state_row_pool[state_row_pool_used]->base_data.position.y = int16_t(y +  state_row_pool[0]->base_data.size.y + 0);
+				state_row_pool[state_row_pool_used]->parent = destination;
+				destination->children.push_back(state_row_pool[state_row_pool_used].get());
+				((demographicswindow_state_row_t*)(state_row_pool[state_row_pool_used].get()))->content = std::get<state_row_option>(values[index]).content;
+			((demographicswindow_state_row_t*)(state_row_pool[state_row_pool_used].get()))->is_active = !alternate;
+				state_row_pool[state_row_pool_used]->impl_on_update(state);
+				pops_header_pool_used++;
+				state_row_pool_used++;
+			}
+			return measure_result{std::max(pops_header_pool[0]->base_data.size.x, state_row_pool[0]->base_data.size.x), pops_header_pool[0]->base_data.size.y + state_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+		}
+		if(destination) {
+			if(state_row_pool.size() <= size_t(state_row_pool_used)) state_row_pool.emplace_back(make_demographicswindow_state_row(state));
+			state_row_pool[state_row_pool_used]->base_data.position.x = int16_t(x);
+			state_row_pool[state_row_pool_used]->base_data.position.y = int16_t(y);
+			state_row_pool[state_row_pool_used]->parent = destination;
+			destination->children.push_back(state_row_pool[state_row_pool_used].get());
+			((demographicswindow_state_row_t*)(state_row_pool[state_row_pool_used].get()))->content = std::get<state_row_option>(values[index]).content;
+			((demographicswindow_state_row_t*)(state_row_pool[state_row_pool_used].get()))->is_active = alternate;
+			state_row_pool[state_row_pool_used]->impl_on_update(state);
+			state_row_pool_used++;
+		}
+		alternate = !alternate;
+		return measure_result{ state_row_pool[0]->base_data.size.x, state_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<province_row_option>(values[index])) {
+		if(pops_header_pool.empty()) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+		if(province_row_pool.empty()) province_row_pool.emplace_back(make_demographicswindow_province_row(state));
+		if(index == 0 || first_in_section || (true && !std::holds_alternative<nation_row_option>(values[index - 1]) && !std::holds_alternative<state_row_option>(values[index - 1]) && !std::holds_alternative<province_row_option>(values[index - 1]) && !std::holds_alternative<pop_row_option>(values[index - 1]))) {
+			if(destination) {
+				if(pops_header_pool.size() <= size_t(pops_header_pool_used)) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+				if(province_row_pool.size() <= size_t(province_row_pool_used)) province_row_pool.emplace_back(make_demographicswindow_province_row(state));
+				pops_header_pool[pops_header_pool_used]->base_data.position.x = int16_t(x);
+				pops_header_pool[pops_header_pool_used]->base_data.position.y = int16_t(y);
+				if(!pops_header_pool[pops_header_pool_used]->parent) {
+					pops_header_pool[pops_header_pool_used]->parent = destination;
+					pops_header_pool[pops_header_pool_used]->impl_on_update(state);
+					pops_header_pool[pops_header_pool_used]->impl_on_reset_text(state);
+				}
+				destination->children.push_back(pops_header_pool[pops_header_pool_used].get());
+			((demographicswindow_pops_header_t*)(pops_header_pool[pops_header_pool_used].get()))->is_active = alternate;
+				province_row_pool[province_row_pool_used]->base_data.position.x = int16_t(x);
+				province_row_pool[province_row_pool_used]->base_data.position.y = int16_t(y +  province_row_pool[0]->base_data.size.y + 0);
+				province_row_pool[province_row_pool_used]->parent = destination;
+				destination->children.push_back(province_row_pool[province_row_pool_used].get());
+				((demographicswindow_province_row_t*)(province_row_pool[province_row_pool_used].get()))->content = std::get<province_row_option>(values[index]).content;
+			((demographicswindow_province_row_t*)(province_row_pool[province_row_pool_used].get()))->is_active = !alternate;
+				province_row_pool[province_row_pool_used]->impl_on_update(state);
+				pops_header_pool_used++;
+				province_row_pool_used++;
+			}
+			return measure_result{std::max(pops_header_pool[0]->base_data.size.x, province_row_pool[0]->base_data.size.x), pops_header_pool[0]->base_data.size.y + province_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+		}
+		if(destination) {
+			if(province_row_pool.size() <= size_t(province_row_pool_used)) province_row_pool.emplace_back(make_demographicswindow_province_row(state));
+			province_row_pool[province_row_pool_used]->base_data.position.x = int16_t(x);
+			province_row_pool[province_row_pool_used]->base_data.position.y = int16_t(y);
+			province_row_pool[province_row_pool_used]->parent = destination;
+			destination->children.push_back(province_row_pool[province_row_pool_used].get());
+			((demographicswindow_province_row_t*)(province_row_pool[province_row_pool_used].get()))->content = std::get<province_row_option>(values[index]).content;
+			((demographicswindow_province_row_t*)(province_row_pool[province_row_pool_used].get()))->is_active = alternate;
+			province_row_pool[province_row_pool_used]->impl_on_update(state);
+			province_row_pool_used++;
+		}
+		alternate = !alternate;
+		return measure_result{ province_row_pool[0]->base_data.size.x, province_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	if(std::holds_alternative<pop_row_option>(values[index])) {
+		if(pops_header_pool.empty()) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+		if(pop_row_pool.empty()) pop_row_pool.emplace_back(make_demographicswindow_pop_row(state));
+		if(index == 0 || first_in_section || (true && !std::holds_alternative<nation_row_option>(values[index - 1]) && !std::holds_alternative<state_row_option>(values[index - 1]) && !std::holds_alternative<province_row_option>(values[index - 1]) && !std::holds_alternative<pop_row_option>(values[index - 1]))) {
+			if(destination) {
+				if(pops_header_pool.size() <= size_t(pops_header_pool_used)) pops_header_pool.emplace_back(make_demographicswindow_pops_header(state));
+				if(pop_row_pool.size() <= size_t(pop_row_pool_used)) pop_row_pool.emplace_back(make_demographicswindow_pop_row(state));
+				pops_header_pool[pops_header_pool_used]->base_data.position.x = int16_t(x);
+				pops_header_pool[pops_header_pool_used]->base_data.position.y = int16_t(y);
+				if(!pops_header_pool[pops_header_pool_used]->parent) {
+					pops_header_pool[pops_header_pool_used]->parent = destination;
+					pops_header_pool[pops_header_pool_used]->impl_on_update(state);
+					pops_header_pool[pops_header_pool_used]->impl_on_reset_text(state);
+				}
+				destination->children.push_back(pops_header_pool[pops_header_pool_used].get());
+			((demographicswindow_pops_header_t*)(pops_header_pool[pops_header_pool_used].get()))->is_active = alternate;
+				pop_row_pool[pop_row_pool_used]->base_data.position.x = int16_t(x);
+				pop_row_pool[pop_row_pool_used]->base_data.position.y = int16_t(y +  pop_row_pool[0]->base_data.size.y + 0);
+				pop_row_pool[pop_row_pool_used]->parent = destination;
+				destination->children.push_back(pop_row_pool[pop_row_pool_used].get());
+				((demographicswindow_pop_row_t*)(pop_row_pool[pop_row_pool_used].get()))->value = std::get<pop_row_option>(values[index]).value;
+			((demographicswindow_pop_row_t*)(pop_row_pool[pop_row_pool_used].get()))->is_active = !alternate;
+				pop_row_pool[pop_row_pool_used]->impl_on_update(state);
+				pops_header_pool_used++;
+				pop_row_pool_used++;
+			}
+			return measure_result{std::max(pops_header_pool[0]->base_data.size.x, pop_row_pool[0]->base_data.size.x), pops_header_pool[0]->base_data.size.y + pop_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+		}
+		if(destination) {
+			if(pop_row_pool.size() <= size_t(pop_row_pool_used)) pop_row_pool.emplace_back(make_demographicswindow_pop_row(state));
+			pop_row_pool[pop_row_pool_used]->base_data.position.x = int16_t(x);
+			pop_row_pool[pop_row_pool_used]->base_data.position.y = int16_t(y);
+			pop_row_pool[pop_row_pool_used]->parent = destination;
+			destination->children.push_back(pop_row_pool[pop_row_pool_used].get());
+			((demographicswindow_pop_row_t*)(pop_row_pool[pop_row_pool_used].get()))->value = std::get<pop_row_option>(values[index]).value;
+			((demographicswindow_pop_row_t*)(pop_row_pool[pop_row_pool_used].get()))->is_active = alternate;
+			pop_row_pool[pop_row_pool_used]->impl_on_update(state);
+			pop_row_pool_used++;
+		}
+		alternate = !alternate;
+		return measure_result{ pop_row_pool[0]->base_data.size.x, pop_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  demographicswindow_main_table_t::reset_pools() {
+	pops_header_pool_used = 0;
+	nation_row_pool_used = 0;
+	pops_header_pool_used = 0;
+	state_row_pool_used = 0;
+	pops_header_pool_used = 0;
+	province_row_pool_used = 0;
+	pops_header_pool_used = 0;
+	pop_row_pool_used = 0;
+}
 ui::message_result demographicswindow_main_close_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
@@ -4020,1409 +4319,11 @@ void demographicswindow_main_title_t::on_create(sys::state& state) noexcept {
 // BEGIN main::title::create
 // END
 }
-void demographicswindow_main_main_page_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void demographicswindow_main_main_page_t::on_reset_text(sys::state& state) noexcept {
-}
-void demographicswindow_main_main_page_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void demographicswindow_main_main_page_t::on_update(sys::state& state) noexcept {
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-// BEGIN main::main_page::update
-	set_text(state, std::to_string(main.table->page + 1) + "/" + std::to_string(1 + main.table->max_page()));
-// END
-}
-void demographicswindow_main_main_page_t::on_create(sys::state& state) noexcept {
-// BEGIN main::main_page::create
-// END
-}
-void demographicswindow_main_table_header_t::on_reset_text(sys::state & state) noexcept {
-	{
-	location_cached_text = text::produce_simple_string(state, location_text_key);
-	 location_internal_layout.contents.clear();
-	 location_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  location_internal_layout, text::layout_parameters{ 0, 0, int16_t(location_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::location_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, location_cached_text);
-	}
-	{
-	size_cached_text = text::produce_simple_string(state, size_text_key);
-	 size_internal_layout.contents.clear();
-	 size_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  size_internal_layout, text::layout_parameters{ 0, 0, int16_t(size_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::size_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, size_cached_text);
-	}
-	{
-	culture_cached_text = text::produce_simple_string(state, culture_text_key);
-	 culture_internal_layout.contents.clear();
-	 culture_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  culture_internal_layout, text::layout_parameters{ 0, 0, int16_t(culture_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::culture_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, culture_cached_text);
-	}
-	{
-	job_cached_text = text::produce_simple_string(state, job_text_key);
-	 job_internal_layout.contents.clear();
-	 job_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  job_internal_layout, text::layout_parameters{ 0, 0, int16_t(job_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::job_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, job_cached_text);
-	}
-	{
-	religion_cached_text = text::produce_simple_string(state, religion_text_key);
-	 religion_internal_layout.contents.clear();
-	 religion_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  religion_internal_layout, text::layout_parameters{ 0, 0, int16_t(religion_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::religion_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, religion_cached_text);
-	}
-	{
-	ideology_cached_text = text::produce_simple_string(state, ideology_text_key);
-	 ideology_internal_layout.contents.clear();
-	 ideology_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  ideology_internal_layout, text::layout_parameters{ 0, 0, int16_t(ideology_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::ideology_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, ideology_cached_text);
-	}
-	{
-	issues_cached_text = text::produce_simple_string(state, issues_text_key);
-	 issues_internal_layout.contents.clear();
-	 issues_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  issues_internal_layout, text::layout_parameters{ 0, 0, int16_t(issues_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::issues_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, issues_cached_text);
-	}
-	{
-	militancy_cached_text = text::produce_simple_string(state, militancy_text_key);
-	 militancy_internal_layout.contents.clear();
-	 militancy_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  militancy_internal_layout, text::layout_parameters{ 0, 0, int16_t(militancy_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::militancy_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, militancy_cached_text);
-	}
-	{
-	consciousness_cached_text = text::produce_simple_string(state, consciousness_text_key);
-	 consciousness_internal_layout.contents.clear();
-	 consciousness_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  consciousness_internal_layout, text::layout_parameters{ 0, 0, int16_t(consciousness_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::consciousness_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, consciousness_cached_text);
-	}
-	{
-	employment_cached_text = text::produce_simple_string(state, employment_text_key);
-	 employment_internal_layout.contents.clear();
-	 employment_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  employment_internal_layout, text::layout_parameters{ 0, 0, int16_t(employment_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::employment_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, employment_cached_text);
-	}
-	{
-	literacy_cached_text = text::produce_simple_string(state, literacy_text_key);
-	 literacy_internal_layout.contents.clear();
-	 literacy_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  literacy_internal_layout, text::layout_parameters{ 0, 0, int16_t(literacy_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::literacy_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, literacy_cached_text);
-	}
-	{
-	money_cached_text = text::produce_simple_string(state, money_text_key);
-	 money_internal_layout.contents.clear();
-	 money_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  money_internal_layout, text::layout_parameters{ 0, 0, int16_t(money_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::money_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, money_cached_text);
-	}
-	{
-	needs_cached_text = text::produce_simple_string(state, needs_text_key);
-	 needs_internal_layout.contents.clear();
-	 needs_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  needs_internal_layout, text::layout_parameters{ 0, 0, int16_t(needs_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::needs_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, needs_cached_text);
-	}
-	{
-	rebels_cached_text = text::produce_simple_string(state, rebels_text_key);
-	 rebels_internal_layout.contents.clear();
-	 rebels_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  rebels_internal_layout, text::layout_parameters{ 0, 0, int16_t(rebels_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, demographicswindow_main_table_row_t::rebels_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, rebels_cached_text);
-	}
-}
-void  demographicswindow_main_table_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto fh = text::make_font_id(state, false, 1.0f * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, demographicswindow_main_table_row_t::row_background_texture, demographicswindow_main_table_row_t::row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	bool col_um_spacer = rel_mouse_x >= spacer_column_start && rel_mouse_x < (spacer_column_start + spacer_column_width);
-	bool col_um_location = rel_mouse_x >= location_column_start && rel_mouse_x < (location_column_start + location_column_width);
-	if(col_um_location) {
-		ogl::render_alpha_colored_rect(state, float(x + location_column_start), float(y), float(location_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!location_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_location , false, false); 
-		for(auto& t : location_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + location_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, location_text_color), cmod);
-		}
-	}
-	bool col_um_size = rel_mouse_x >= size_column_start && rel_mouse_x < (size_column_start + size_column_width);
-	if(col_um_size) {
-		ogl::render_alpha_colored_rect(state, float(x + size_column_start), float(y), float(size_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(size_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size, false, true), float(x + size_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(size_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size, false, true), float(x + size_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!size_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size , false, true); 
-		for(auto& t : size_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + size_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, size_text_color), cmod);
-		}
-	}
-	bool col_um_culture = rel_mouse_x >= culture_column_start && rel_mouse_x < (culture_column_start + culture_column_width);
-	if(col_um_culture) {
-		ogl::render_alpha_colored_rect(state, float(x + culture_column_start), float(y), float(culture_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(culture_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture, false, true), float(x + culture_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(culture_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture, false, true), float(x + culture_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!culture_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture , false, true); 
-		for(auto& t : culture_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + culture_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, culture_text_color), cmod);
-		}
-	}
-	bool col_um_job = rel_mouse_x >= job_column_start && rel_mouse_x < (job_column_start + job_column_width);
-	if(col_um_job) {
-		ogl::render_alpha_colored_rect(state, float(x + job_column_start), float(y), float(job_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(job_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job, false, true), float(x + job_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(job_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job, false, true), float(x + job_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!job_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job , false, true); 
-		for(auto& t : job_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + job_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, job_text_color), cmod);
-		}
-	}
-	bool col_um_religion = rel_mouse_x >= religion_column_start && rel_mouse_x < (religion_column_start + religion_column_width);
-	if(col_um_religion) {
-		ogl::render_alpha_colored_rect(state, float(x + religion_column_start), float(y), float(religion_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(religion_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion, false, true), float(x + religion_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(religion_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion, false, true), float(x + religion_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!religion_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion , false, true); 
-		for(auto& t : religion_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + religion_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, religion_text_color), cmod);
-		}
-	}
-	bool col_um_ideology = rel_mouse_x >= ideology_column_start && rel_mouse_x < (ideology_column_start + ideology_column_width);
-	if(col_um_ideology) {
-		ogl::render_alpha_colored_rect(state, float(x + ideology_column_start), float(y), float(ideology_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!ideology_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_ideology , false, false); 
-		for(auto& t : ideology_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + ideology_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, ideology_text_color), cmod);
-		}
-	}
-	bool col_um_issues = rel_mouse_x >= issues_column_start && rel_mouse_x < (issues_column_start + issues_column_width);
-	if(col_um_issues) {
-		ogl::render_alpha_colored_rect(state, float(x + issues_column_start), float(y), float(issues_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!issues_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_issues , false, false); 
-		for(auto& t : issues_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + issues_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, issues_text_color), cmod);
-		}
-	}
-	bool col_um_militancy = rel_mouse_x >= militancy_column_start && rel_mouse_x < (militancy_column_start + militancy_column_width);
-	if(col_um_militancy) {
-		ogl::render_alpha_colored_rect(state, float(x + militancy_column_start), float(y), float(militancy_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(militancy_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_militancy, false, true), float(x + militancy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(militancy_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_militancy, false, true), float(x + militancy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!militancy_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_militancy , false, true); 
-		for(auto& t : militancy_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + militancy_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, militancy_text_color), cmod);
-		}
-	}
-	bool col_um_consciousness = rel_mouse_x >= consciousness_column_start && rel_mouse_x < (consciousness_column_start + consciousness_column_width);
-	if(col_um_consciousness) {
-		ogl::render_alpha_colored_rect(state, float(x + consciousness_column_start), float(y), float(consciousness_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(consciousness_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_consciousness, false, true), float(x + consciousness_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(consciousness_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_consciousness, false, true), float(x + consciousness_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!consciousness_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_consciousness , false, true); 
-		for(auto& t : consciousness_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + consciousness_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, consciousness_text_color), cmod);
-		}
-	}
-	bool col_um_employment = rel_mouse_x >= employment_column_start && rel_mouse_x < (employment_column_start + employment_column_width);
-	if(col_um_employment) {
-		ogl::render_alpha_colored_rect(state, float(x + employment_column_start), float(y), float(employment_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(employment_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_employment, false, true), float(x + employment_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(employment_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_employment, false, true), float(x + employment_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!employment_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_employment , false, true); 
-		for(auto& t : employment_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + employment_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, employment_text_color), cmod);
-		}
-	}
-	bool col_um_literacy = rel_mouse_x >= literacy_column_start && rel_mouse_x < (literacy_column_start + literacy_column_width);
-	if(col_um_literacy) {
-		ogl::render_alpha_colored_rect(state, float(x + literacy_column_start), float(y), float(literacy_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(literacy_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_literacy, false, true), float(x + literacy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(literacy_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_literacy, false, true), float(x + literacy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!literacy_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_literacy , false, true); 
-		for(auto& t : literacy_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + literacy_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, literacy_text_color), cmod);
-		}
-	}
-	bool col_um_money = rel_mouse_x >= money_column_start && rel_mouse_x < (money_column_start + money_column_width);
-	if(col_um_money) {
-		ogl::render_alpha_colored_rect(state, float(x + money_column_start), float(y), float(money_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(money_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_money, false, true), float(x + money_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(money_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_money, false, true), float(x + money_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!money_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_money , false, true); 
-		for(auto& t : money_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + money_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, money_text_color), cmod);
-		}
-	}
-	bool col_um_needs = rel_mouse_x >= needs_column_start && rel_mouse_x < (needs_column_start + needs_column_width);
-	if(col_um_needs) {
-		ogl::render_alpha_colored_rect(state, float(x + needs_column_start), float(y), float(needs_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-if(needs_sort_direction > 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs, false, true), float(x + needs_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, ascending_icon, ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-if(needs_sort_direction < 0) {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs, false, true), float(x + needs_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, descending_icon, descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-	if(!needs_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs , false, true); 
-		for(auto& t : needs_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + needs_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, needs_text_color), cmod);
-		}
-	}
-	bool col_um_rebels = rel_mouse_x >= rebels_column_start && rel_mouse_x < (rebels_column_start + rebels_column_width);
-	if(col_um_rebels) {
-		ogl::render_alpha_colored_rect(state, float(x + rebels_column_start), float(y), float(rebels_column_width), float(base_data.size.y),demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!rebels_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_rebels , false, false); 
-		for(auto& t : rebels_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + rebels_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, rebels_text_color), cmod);
-		}
-	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), demographicswindow_main_table_t::table_divider_color.r, demographicswindow_main_table_t::table_divider_color.g, demographicswindow_main_table_t::table_divider_color.b, 1.0f);
-}
-ui::message_result demographicswindow_main_table_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(x >= size_column_start && x < size_column_start + size_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = size_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		size_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= culture_column_start && x < culture_column_start + culture_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = culture_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		culture_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= job_column_start && x < job_column_start + job_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = job_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		job_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= religion_column_start && x < religion_column_start + religion_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = religion_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		religion_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= militancy_column_start && x < militancy_column_start + militancy_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = militancy_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		militancy_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= consciousness_column_start && x < consciousness_column_start + consciousness_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = consciousness_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		consciousness_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= employment_column_start && x < employment_column_start + employment_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = employment_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		employment_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= literacy_column_start && x < literacy_column_start + literacy_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = literacy_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		literacy_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= money_column_start && x < money_column_start + money_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = money_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		money_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	if(x >= needs_column_start && x < needs_column_start + needs_column_width) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-		auto old_direction = needs_sort_direction;
-		size_sort_direction = 0;
-		culture_sort_direction = 0;
-		job_sort_direction = 0;
-		religion_sort_direction = 0;
-		militancy_sort_direction = 0;
-		consciousness_sort_direction = 0;
-		employment_sort_direction = 0;
-		literacy_sort_direction = 0;
-		money_sort_direction = 0;
-		needs_sort_direction = 0;
-		needs_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
-		(( demographicswindow_main_table_t*)parent)->apply_sort(state);
-	}
-	return ui::message_result::consumed;}
-ui::message_result demographicswindow_main_table_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-void demographicswindow_main_table_header_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(x >= spacer_column_start && x < spacer_column_start + spacer_column_width) {
-	}
-	if(x >= location_column_start && x < location_column_start + location_column_width) {
-	}
-	if(x >= size_column_start && x < size_column_start + size_column_width) {
-	}
-	if(x >= culture_column_start && x < culture_column_start + culture_column_width) {
-	}
-	if(x >= job_column_start && x < job_column_start + job_column_width) {
-	}
-	if(x >= religion_column_start && x < religion_column_start + religion_column_width) {
-	}
-	if(x >= ideology_column_start && x < ideology_column_start + ideology_column_width) {
-	}
-	if(x >= issues_column_start && x < issues_column_start + issues_column_width) {
-	}
-	if(x >= militancy_column_start && x < militancy_column_start + militancy_column_width) {
-	}
-	if(x >= consciousness_column_start && x < consciousness_column_start + consciousness_column_width) {
-	}
-	if(x >= employment_column_start && x < employment_column_start + employment_column_width) {
-	}
-	if(x >= literacy_column_start && x < literacy_column_start + literacy_column_width) {
-	}
-	if(x >= money_column_start && x < money_column_start + money_column_width) {
-	}
-	if(x >= needs_column_start && x < needs_column_start + needs_column_width) {
-	}
-	if(x >= rebels_column_start && x < rebels_column_start + rebels_column_width) {
-	}
-}
-void demographicswindow_main_table_header_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
-	if(x >= spacer_column_start && x < spacer_column_start + spacer_column_width) {
-	}
-	if(x >= location_column_start && x < location_column_start + location_column_width) {
-	}
-	if(x >= size_column_start && x < size_column_start + size_column_width) {
-	}
-	if(x >= culture_column_start && x < culture_column_start + culture_column_width) {
-	}
-	if(x >= job_column_start && x < job_column_start + job_column_width) {
-	}
-	if(x >= religion_column_start && x < religion_column_start + religion_column_width) {
-	}
-	if(x >= ideology_column_start && x < ideology_column_start + ideology_column_width) {
-	}
-	if(x >= issues_column_start && x < issues_column_start + issues_column_width) {
-	}
-	if(x >= militancy_column_start && x < militancy_column_start + militancy_column_width) {
-	}
-	if(x >= consciousness_column_start && x < consciousness_column_start + consciousness_column_width) {
-	}
-	if(x >= employment_column_start && x < employment_column_start + employment_column_width) {
-	}
-	if(x >= literacy_column_start && x < literacy_column_start + literacy_column_width) {
-	}
-	if(x >= money_column_start && x < money_column_start + money_column_width) {
-	}
-	if(x >= needs_column_start && x < needs_column_start + needs_column_width) {
-	}
-	if(x >= rebels_column_start && x < rebels_column_start + rebels_column_width) {
-	}
-		ident = -1;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-}
-void demographicswindow_main_table_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-}
-void  demographicswindow_main_table_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto fh = text::make_font_id(state, false, 1.0f * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(alternate_row) {
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_row_background_texture, alt_row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	} else {
-		ogl::render_textured_rect(state, ui::get_color_modification(false, false,  false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, row_background_texture, row_texture_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	}
-	if(this == state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x ), float(y), float(base_data.size.x), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	bool col_um_spacer = rel_mouse_x >= demographicswindow_main_table_header_t::spacer_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width);
-	bool col_um_location = rel_mouse_x >= demographicswindow_main_table_header_t::location_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width);
-	if(col_um_location && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::location_column_start), float(y), float(demographicswindow_main_table_header_t::location_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!location_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_location , false, false); 
-		for(auto& t : location_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::location_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, location_text_color), cmod);
-	}
-	}
-	bool col_um_size = rel_mouse_x >= demographicswindow_main_table_header_t::size_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width);
-	if(col_um_size && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::size_column_start), float(y), float(demographicswindow_main_table_header_t::size_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!size_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size , false, false); 
-		for(auto& t : size_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::size_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, size_text_color), cmod);
-	}
-	}
-	bool col_um_culture = rel_mouse_x >= demographicswindow_main_table_header_t::culture_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width);
-	if(col_um_culture && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::culture_column_start), float(y), float(demographicswindow_main_table_header_t::culture_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!culture_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture , false, false); 
-		for(auto& t : culture_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::culture_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, culture_text_color), cmod);
-	}
-	}
-	bool col_um_job = rel_mouse_x >= demographicswindow_main_table_header_t::job_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width);
-	if(col_um_job && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::job_column_start), float(y), float(demographicswindow_main_table_header_t::job_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!job_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job , false, false); 
-		for(auto& t : job_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::job_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, job_text_color), cmod);
-	}
-	}
-	bool col_um_religion = rel_mouse_x >= demographicswindow_main_table_header_t::religion_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width);
-	if(col_um_religion && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::religion_column_start), float(y), float(demographicswindow_main_table_header_t::religion_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!religion_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion , false, false); 
-		for(auto& t : religion_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::religion_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, religion_text_color), cmod);
-	}
-	}
-	bool col_um_ideology = rel_mouse_x >= demographicswindow_main_table_header_t::ideology_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width);
-	if(col_um_ideology && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::ideology_column_start), float(y), float(demographicswindow_main_table_header_t::ideology_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!ideology_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_ideology , false, false); 
-		for(auto& t : ideology_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::ideology_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, ideology_text_color), cmod);
-	}
-	}
-	bool col_um_issues = rel_mouse_x >= demographicswindow_main_table_header_t::issues_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width);
-	if(col_um_issues && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::issues_column_start), float(y), float(demographicswindow_main_table_header_t::issues_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!issues_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_issues , false, false); 
-		for(auto& t : issues_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::issues_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, issues_text_color), cmod);
-	}
-	}
-	bool col_um_militancy = rel_mouse_x >= demographicswindow_main_table_header_t::militancy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width);
-	if(col_um_militancy && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::militancy_column_start), float(y), float(demographicswindow_main_table_header_t::militancy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!militancy_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_militancy , false, false); 
-		for(auto& t : militancy_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::militancy_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, militancy_text_color), cmod);
-	}
-	}
-	bool col_um_consciousness = rel_mouse_x >= demographicswindow_main_table_header_t::consciousness_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width);
-	if(col_um_consciousness && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::consciousness_column_start), float(y), float(demographicswindow_main_table_header_t::consciousness_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!consciousness_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_consciousness , false, false); 
-		for(auto& t : consciousness_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::consciousness_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, consciousness_text_color), cmod);
-	}
-	}
-	bool col_um_employment = rel_mouse_x >= demographicswindow_main_table_header_t::employment_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width);
-	if(col_um_employment && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::employment_column_start), float(y), float(demographicswindow_main_table_header_t::employment_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!employment_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_employment , false, false); 
-		for(auto& t : employment_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::employment_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, employment_text_color), cmod);
-	}
-	}
-	bool col_um_literacy = rel_mouse_x >= demographicswindow_main_table_header_t::literacy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width);
-	if(col_um_literacy && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::literacy_column_start), float(y), float(demographicswindow_main_table_header_t::literacy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!literacy_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_literacy , false, false); 
-		for(auto& t : literacy_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::literacy_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, literacy_text_color), cmod);
-	}
-	}
-	bool col_um_money = rel_mouse_x >= demographicswindow_main_table_header_t::money_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width);
-	if(col_um_money && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::money_column_start), float(y), float(demographicswindow_main_table_header_t::money_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!money_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_money , false, false); 
-		for(auto& t : money_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::money_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, money_text_color), cmod);
-	}
-	}
-	bool col_um_needs = rel_mouse_x >= demographicswindow_main_table_header_t::needs_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width);
-	if(col_um_needs && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::needs_column_start), float(y), float(demographicswindow_main_table_header_t::needs_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!needs_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs , false, false); 
-		for(auto& t : needs_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::needs_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, needs_text_color), cmod);
-	}
-	}
-	bool col_um_rebels = rel_mouse_x >= demographicswindow_main_table_header_t::rebels_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width);
-	if(col_um_rebels && this != state.ui_state.under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::rebels_column_start), float(y), float(demographicswindow_main_table_header_t::rebels_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
-	}
-	if(!rebels_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_rebels , false, false); 
-		for(auto& t : rebels_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + demographicswindow_main_table_header_t::rebels_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, rebels_text_color), cmod);
-	}
-	}
-}
-ui::message_result demographicswindow_main_table_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-ui::message_result demographicswindow_main_table_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;}
-void demographicswindow_main_table_row_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(x >= demographicswindow_main_table_header_t::spacer_column_start && x < demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::location_column_start && x < demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::size_column_start && x < demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::culture_column_start && x < demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::job_column_start && x < demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::religion_column_start && x < demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::ideology_column_start && x < demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::issues_column_start && x < demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::militancy_column_start && x < demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::consciousness_column_start && x < demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::employment_column_start && x < demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::literacy_column_start && x < demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::money_column_start && x < demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::needs_column_start && x < demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::rebels_column_start && x < demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width) {
-	}
-}
-void demographicswindow_main_table_row_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
-	if(x >= demographicswindow_main_table_header_t::spacer_column_start && x < demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::location_column_start && x < demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::size_column_start && x < demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::culture_column_start && x < demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::job_column_start && x < demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::religion_column_start && x < demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::ideology_column_start && x < demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::issues_column_start && x < demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::militancy_column_start && x < demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::consciousness_column_start && x < demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::employment_column_start && x < demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::literacy_column_start && x < demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::money_column_start && x < demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::needs_column_start && x < demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width) {
-	}
-	if(x >= demographicswindow_main_table_header_t::rebels_column_start && x < demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width) {
-	}
-		ident = -1;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-}
-void demographicswindow_main_table_row_t::on_create(sys::state& state) noexcept {
-}
-void demographicswindow_main_table_row_t::on_update(sys::state& state) noexcept {
-	demographicswindow_main_table_t& table = *((demographicswindow_main_table_t*)(parent)); 
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
-// BEGIN main::table::row_update
-// END
-}
-void demographicswindow_main_table_row_t::set_location_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  location_cached_text) {
-		location_cached_text = new_text;
-		location_internal_layout.contents.clear();
-		location_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ location_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::location_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, location_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, location_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_size_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  size_cached_text) {
-		size_cached_text = new_text;
-		size_internal_layout.contents.clear();
-		size_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ size_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::size_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, size_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, size_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_culture_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  culture_cached_text) {
-		culture_cached_text = new_text;
-		culture_internal_layout.contents.clear();
-		culture_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ culture_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::culture_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, culture_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, culture_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_job_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  job_cached_text) {
-		job_cached_text = new_text;
-		job_internal_layout.contents.clear();
-		job_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ job_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::job_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, job_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, job_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_religion_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  religion_cached_text) {
-		religion_cached_text = new_text;
-		religion_internal_layout.contents.clear();
-		religion_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ religion_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::religion_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, religion_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, religion_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_ideology_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  ideology_cached_text) {
-		ideology_cached_text = new_text;
-		ideology_internal_layout.contents.clear();
-		ideology_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ ideology_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::ideology_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, ideology_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, ideology_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_issues_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  issues_cached_text) {
-		issues_cached_text = new_text;
-		issues_internal_layout.contents.clear();
-		issues_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ issues_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::issues_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, issues_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, issues_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_militancy_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  militancy_cached_text) {
-		militancy_cached_text = new_text;
-		militancy_internal_layout.contents.clear();
-		militancy_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ militancy_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::militancy_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, militancy_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, militancy_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_consciousness_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  consciousness_cached_text) {
-		consciousness_cached_text = new_text;
-		consciousness_internal_layout.contents.clear();
-		consciousness_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ consciousness_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::consciousness_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, consciousness_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, consciousness_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_employment_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  employment_cached_text) {
-		employment_cached_text = new_text;
-		employment_internal_layout.contents.clear();
-		employment_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ employment_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::employment_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, employment_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, employment_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_literacy_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  literacy_cached_text) {
-		literacy_cached_text = new_text;
-		literacy_internal_layout.contents.clear();
-		literacy_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ literacy_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::literacy_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, literacy_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, literacy_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_money_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  money_cached_text) {
-		money_cached_text = new_text;
-		money_internal_layout.contents.clear();
-		money_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ money_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::money_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, money_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, money_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_needs_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  needs_cached_text) {
-		needs_cached_text = new_text;
-		needs_internal_layout.contents.clear();
-		needs_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ needs_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::needs_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, needs_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, needs_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_row_t::set_rebels_text(sys::state & state, std::string const& new_text) {
-	if(new_text !=  rebels_cached_text) {
-		rebels_cached_text = new_text;
-		rebels_internal_layout.contents.clear();
-		rebels_internal_layout.number_of_lines = 0;
-		{
-		text::single_line_layout sl{ rebels_internal_layout, text::layout_parameters{ 0, 0, int16_t(demographicswindow_main_table_header_t::rebels_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, rebels_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
-		sl.add_text(state, rebels_cached_text);
-		}
-	} else {
-	}
-}
-void demographicswindow_main_table_t::impl_change_page(sys::state & state, int32_t new_page){
-	size_t nation_row_pool_used = 0;
-	size_t state_row_pool_used = 0;
-	size_t province_row_pool_used = 0;
-	size_t pop_row_pool_used = 0;
-	size_t row_pool_used = 0;
-	size_t header_pool_used = 0;
-	int16_t vert_used = 0;
-	bool alt_bg  = true;
-	page = std::clamp(new_page, 0, max_page());
-	children.clear();
-	if(page_starts.empty()) return;
-	if(open_page) { page_starts.push_back(int32_t(values.size())); open_page = false; }
-	for(int32_t i = page_starts[page]; i < page_starts[page + 1]; ++i) {
-		if(std::holds_alternative<nation_row_option>(values[i])) {
-			if(nation_row_pool_used >= nation_row_pool.size()) nation_row_pool.emplace_back(make_demographicswindow_nation_row(state));
-			children.push_back(nation_row_pool[nation_row_pool_used].get());
-			children.back()->parent = this;
-			((demographicswindow_nation_row_t*)(nation_row_pool[nation_row_pool_used].get()))->content = std::get<nation_row_option>(values[i]).content;
-			nation_row_pool[nation_row_pool_used]->base_data.position.y = vert_used;
-			vert_used += nation_row_pool[nation_row_pool_used]->base_data.size.y;
-			((demographicswindow_nation_row_t*)(nation_row_pool[nation_row_pool_used].get()))->is_active = alt_bg;
-			alt_bg  = !alt_bg;
-			++nation_row_pool_used;
-		}
-		if(std::holds_alternative<state_row_option>(values[i])) {
-			if(state_row_pool_used >= state_row_pool.size()) state_row_pool.emplace_back(make_demographicswindow_state_row(state));
-			children.push_back(state_row_pool[state_row_pool_used].get());
-			children.back()->parent = this;
-			((demographicswindow_state_row_t*)(state_row_pool[state_row_pool_used].get()))->content = std::get<state_row_option>(values[i]).content;
-			state_row_pool[state_row_pool_used]->base_data.position.y = vert_used;
-			vert_used += state_row_pool[state_row_pool_used]->base_data.size.y;
-			((demographicswindow_state_row_t*)(state_row_pool[state_row_pool_used].get()))->is_active = alt_bg;
-			alt_bg  = !alt_bg;
-			++state_row_pool_used;
-		}
-		if(std::holds_alternative<province_row_option>(values[i])) {
-			if(province_row_pool_used >= province_row_pool.size()) province_row_pool.emplace_back(make_demographicswindow_province_row(state));
-			children.push_back(province_row_pool[province_row_pool_used].get());
-			children.back()->parent = this;
-			((demographicswindow_province_row_t*)(province_row_pool[province_row_pool_used].get()))->content = std::get<province_row_option>(values[i]).content;
-			province_row_pool[province_row_pool_used]->base_data.position.y = vert_used;
-			vert_used += province_row_pool[province_row_pool_used]->base_data.size.y;
-			((demographicswindow_province_row_t*)(province_row_pool[province_row_pool_used].get()))->is_active = alt_bg;
-			alt_bg  = !alt_bg;
-			++province_row_pool_used;
-		}
-		if(std::holds_alternative<pop_row_option>(values[i])) {
-			if(pop_row_pool_used >= pop_row_pool.size()) pop_row_pool.emplace_back(make_demographicswindow_pop_row(state));
-			children.push_back(pop_row_pool[pop_row_pool_used].get());
-			children.back()->parent = this;
-			((demographicswindow_pop_row_t*)(pop_row_pool[pop_row_pool_used].get()))->value = std::get<pop_row_option>(values[i]).value;
-			pop_row_pool[pop_row_pool_used]->base_data.position.y = vert_used;
-			vert_used += pop_row_pool[pop_row_pool_used]->base_data.size.y;
-			((demographicswindow_pop_row_t*)(pop_row_pool[pop_row_pool_used].get()))->is_active = alt_bg;
-			alt_bg  = !alt_bg;
-			++pop_row_pool_used;
-		}
-		if(std::holds_alternative<value_option>(values[i])) {
-			if(row_pool_used >= row_pool.size())row_pool.emplace_back(make_row(state));
-			children.push_back(row_pool[row_pool_used].get());
-			children.back()->parent = this;
-			row_pool[row_pool_used]->value = std::get<value_option>(values[i]).value;
-			row_pool[row_pool_used]->alternate_row = alt_bg;
-			row_pool[row_pool_used]->base_data.position.y = vert_used;
-			vert_used += row_pool[row_pool_used]->base_data.size.y;
-			++row_pool_used;
-			alt_bg  = !alt_bg;
-		}
-		if(std::holds_alternative<std::monostate>(values[i])) {
-			if(header_pool_used >= header_pool.size()) header_pool.emplace_back(make_headers(state));
-			children.push_back(header_pool[header_pool_used].get());
-			children.back()->parent = this;
-			header_pool[header_pool_used]->base_data.position.y = vert_used;
-			vert_used += header_pool[header_pool_used]->base_data.size.y;
-			++header_pool_used;
-			alt_bg  = true;
-		}
-	}
-}
-void demographicswindow_main_table_t::change_page(sys::state & state, int32_t new_page){
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_up, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_up_rev, 200);
-	}
-	impl_change_page(state, new_page);	for(auto c : children) c->impl_on_update(state);
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		state.ui_animation.post_update_frame(state);
-	}
-}
-int32_t demographicswindow_main_table_t::max_page(){
-	return open_page ? std::max(int32_t(page_starts.size()) - 1, 0) : std::max(int32_t(page_starts.size()) - 2, 0);
-}
-void demographicswindow_main_table_t::clear_table() {
-	children.clear();
-	page_starts.clear();
-	values.clear();
-	open_page = false;
-	layout_space = 0;
-}
-void demographicswindow_main_table_t::add_value(dcon::pop_id const& v) {
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty()) {
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <= int32_t(row_height * 8)) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(value_option{v});
-	layout_space += int16_t(row_height * 8);
-}
-void demographicswindow_main_table_t::add_insert_nation_row(sys::state& state, dcon::nation_id const& content) {
-	if(nation_row_pool.empty()) nation_row_pool.emplace_back(make_demographicswindow_nation_row(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty()) {
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <=  nation_row_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(nation_row_option{content});
-	layout_space += int16_t(nation_row_pool[0]->base_data.size.y);
-}
-void demographicswindow_main_table_t::add_insert_state_row(sys::state& state, dcon::state_instance_id const& content) {
-	if(state_row_pool.empty()) state_row_pool.emplace_back(make_demographicswindow_state_row(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty()) {
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <=  state_row_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(state_row_option{content});
-	layout_space += int16_t(state_row_pool[0]->base_data.size.y);
-}
-void demographicswindow_main_table_t::add_insert_province_row(sys::state& state, dcon::province_id const& content) {
-	if(province_row_pool.empty()) province_row_pool.emplace_back(make_demographicswindow_province_row(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty()) {
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <=  province_row_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(province_row_option{content});
-	layout_space += int16_t(province_row_pool[0]->base_data.size.y);
-}
-void demographicswindow_main_table_t::add_insert_pop_row(sys::state& state, dcon::pop_id const& value) {
-	if(pop_row_pool.empty()) pop_row_pool.emplace_back(make_demographicswindow_pop_row(state));
-	if(!open_page) {
-		page_starts.push_back(0);
-		open_page = true;
-	}
-	if(values.empty()) {
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	if(base_data.size.y - layout_space <=  pop_row_pool[0]->base_data.size.y) {
-		page_starts.push_back(int32_t(values.size()));
-		layout_space = 0;
-		values.emplace_back(std::monostate{});
-		layout_space += int16_t(row_height * 8);
-	}
-	values.emplace_back(pop_row_option{value});
-	layout_space += int16_t(pop_row_pool[0]->base_data.size.y);
-}
-std::unique_ptr<demographicswindow_main_table_row_t> demographicswindow_main_table_t::make_row(sys::state& state) {
-	auto cptr = std::make_unique<demographicswindow_main_table_row_t>();
-	cptr->parent = this;
-	cptr->base_data.position.x = 0;
-	cptr->base_data.position.y = 0;
-	cptr->base_data.size.y = int16_t(row_height * 8);
-	cptr->base_data.size.x = this->base_data.size.x;
-	cptr->on_create(state);
-	return cptr;
-}
-std::unique_ptr<demographicswindow_main_table_header_t> demographicswindow_main_table_t::make_headers(sys::state& state){
-	auto cptr = std::make_unique<demographicswindow_main_table_header_t>();
-	cptr->parent = this;
-	cptr->base_data.position.x = 0;
-	cptr->base_data.position.y = 0;
-	cptr->base_data.size.y = int16_t(row_height * 8);
-	cptr->base_data.size.x = this->base_data.size.x;
-	cptr->on_create(state);
-	return cptr;
-}
-void demographicswindow_main_table_t::impl_apply_sort(sys::state& state) {
-	bool work_to_do = false;
-	if(demographicswindow_main_table_header_t::size_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::culture_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::job_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::religion_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::militancy_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::consciousness_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::employment_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::literacy_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::money_sort_direction != 0) work_to_do = true;
-	if(demographicswindow_main_table_header_t::needs_sort_direction != 0) work_to_do = true;
-	if(!work_to_do) return;
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-	std::vector<dcon::pop_id> val_temp;
-	size_t i = 0;
-	while(i < values.size()) {
-		if(std::holds_alternative<value_option>(values[i]) || std::holds_alternative<pop_row_option>(values[i])) {
-			auto start_pos = i;
-			do {
-				if(std::holds_alternative<value_option>(values[i])) val_temp.push_back(std::get<value_option>(values[i]).value);
-				if(std::holds_alternative<pop_row_option>(values[i])) val_temp.push_back(std::get<pop_row_option>(values[i]).value);
-				++i;
-			} while(i < values.size() && (std::holds_alternative<value_option>(values[i]) || std::holds_alternative<pop_row_option>(values[i]) || std::holds_alternative<std::monostate>(values[i])));
-			if(demographicswindow_main_table_header_t::size_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::size
-// END
-					return result == demographicswindow_main_table_header_t::size_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::culture_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::culture
-// END
-					return result == demographicswindow_main_table_header_t::culture_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::job_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::job
-// END
-					return result == demographicswindow_main_table_header_t::job_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::religion_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::religion
-// END
-					return result == demographicswindow_main_table_header_t::religion_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::militancy_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::militancy
-// END
-					return result == demographicswindow_main_table_header_t::militancy_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::consciousness_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::consciousness
-// END
-					return result == demographicswindow_main_table_header_t::consciousness_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::employment_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::employment
-// END
-					return result == demographicswindow_main_table_header_t::employment_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::literacy_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::literacy
-// END
-					return result == demographicswindow_main_table_header_t::literacy_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::money_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::money
-// END
-					return result == demographicswindow_main_table_header_t::money_sort_direction;
-				});
-			}
-			if(demographicswindow_main_table_header_t::needs_sort_direction != 0) {
-				sys::merge_sort(val_temp.begin(), val_temp.end(), [&](const dcon::pop_id& a, const dcon::pop_id& b){
-					int8_t result = 0;
-// BEGIN main::table::sort::needs
-// END
-					return result == demographicswindow_main_table_header_t::needs_sort_direction;
-				});
-			}
-			while(start_pos < i) {
-				if(std::holds_alternative<value_option>(values[start_pos])) {
-					std::get<value_option>(values[start_pos]).value = val_temp.back();
-					val_temp.pop_back();
-				}
-				if(std::holds_alternative<pop_row_option>(values[start_pos])) {
-					std::get<pop_row_option>(values[start_pos]).value = val_temp.back();
-					val_temp.pop_back();
-				}
-				++start_pos;
-			}
-			val_temp.clear();
-		} else {
-			++i;
-		}
-	}
-}
-void demographicswindow_main_table_t::apply_sort(sys::state& state) {
-	impl_apply_sort(state);
-	impl_change_page(state, page);	for(auto c : children) c->impl_on_update(state);
-}
-ui::message_result demographicswindow_main_table_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void demographicswindow_main_table_t::on_update(sys::state& state) noexcept {
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-// BEGIN main::table::update
-	clear_table();
-	if(!popwindow::show_only_pops) {
-		add_insert_nation_row(state, state.local_player_nation);
-
-		std::vector<dcon::state_instance_id> si;
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			si.push_back(so.get_state().id);
-		}
-		sys::merge_sort(si.begin(), si.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-			if(!state.world.state_instance_get_capital(a).get_is_colonial() && state.world.state_instance_get_capital(b).get_is_colonial()) {
-				return true;
-			}
-			if(state.world.state_instance_get_capital(a).get_is_colonial() && !state.world.state_instance_get_capital(b).get_is_colonial()) {
-				return false;
-			}
-			// return state.world.state_instance_get_demographics(a, demographics::total) > state.world.state_instance_get_demographics(b, demographics::total);
-			return text::get_short_state_name(state, a) < text::get_short_state_name(state, b);
-		});
-		for(auto s : si) {
-			bool added_header = false;
-			bool state_is_open = popwindow::open_states.contains(s.index());
-
-			std::vector<dcon::province_id> provs;
-			province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) { provs.push_back(p); });
-
-			sys::merge_sort(provs.begin(), provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-				return text::produce_simple_string(state, state.world.province_get_name(a)) < text::produce_simple_string(state, state.world.province_get_name(b));
-			});
-
-			for(auto p : provs) {
-				bool added_pop = false;
-				bool province_is_open = popwindow::open_provs.contains(p.index());
-
-				for(auto po : state.world.province_get_pop_location(p)) {
-					if(pop_passes_filter(state, po.get_pop())) {
-						if(!added_pop) {
-							if(!added_header) {
-								added_header = true;
-								add_insert_state_row(state, s);
-							}
-							if(state_is_open) {
-								add_insert_province_row(state, p);
-							}
-							added_pop = true;
-						}
-						if(state_is_open && province_is_open) {
-							add_insert_pop_row(state, po.get_pop().id);
-						}
-					}
-				}
-			}
-		}
-	} else {
-		add_insert_nation_row(state, state.local_player_nation);
-		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
-			for(auto po : p.get_province().get_pop_location()) {
-				if(pop_passes_filter(state, po.get_pop())) {
-					add_insert_pop_row(state, po.get_pop().id);
-				}
-			}
-		}
-	}
-// END
-	impl_apply_sort(state);
-	impl_change_page(state, page);
-}
-void demographicswindow_main_table_t::on_create(sys::state& state) noexcept {
-// BEGIN main::table::create
-// END
-}
 ui::message_result demographicswindow_main_show_filters_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::show_filters::lbutton_action
+	main.filter_w->parent->move_child_to_front(main.filter_w);
 	main.filter_w->set_visible(state, true);
 // END
 	return ui::message_result::consumed;
@@ -5577,52 +4478,6 @@ void demographicswindow_main_only_pops_toggle_t::on_create(sys::state& state) no
 // BEGIN main::only_pops_toggle::create
 // END
 }
-ui::message_result demographicswindow_main_main_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::main_left::lbutton_action
-	main.table->change_page(state, main.table->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_main_main_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_main_main_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_main_main_left_t::on_update(sys::state& state) noexcept {
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-// BEGIN main::main_left::update
-// END
-}
-void demographicswindow_main_main_left_t::on_create(sys::state& state) noexcept {
-// BEGIN main::main_left::create
-// END
-}
-ui::message_result demographicswindow_main_main_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::main_right::lbutton_action
-	main.table->change_page(state, main.table->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_main_main_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_main_main_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_main_main_right_t::on_update(sys::state& state) noexcept {
-	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
-// BEGIN main::main_right::update
-// END
-}
-void demographicswindow_main_main_right_t::on_create(sys::state& state) noexcept {
-// BEGIN main::main_right::create
-// END
-}
 ui::message_result demographicswindow_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -5636,6 +4491,129 @@ void demographicswindow_main_t::render(sys::state & state, int32_t x, int32_t y)
 void demographicswindow_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
 // END
+	table.update(state, this);
+	remake_layout(state, true);
+}
+void demographicswindow_main_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "close_button") {
+					temp.ptr = close_button.get();
+				}
+				if(cname == "title") {
+					temp.ptr = title.get();
+				}
+				if(cname == "show_filters") {
+					temp.ptr = show_filters.get();
+				}
+				if(cname == "reset_filters") {
+					temp.ptr = reset_filters.get();
+				}
+				if(cname == "only_pops_toggle") {
+					temp.ptr = only_pops_toggle.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				if(cname == "table") {
+					temp.generator = &table;
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::main"));
@@ -5654,30 +4632,32 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "close_button") {
-			auto cptr = std::make_unique<demographicswindow_main_close_button_t>();
-			cptr->parent = this;
-			close_button = cptr.get();
+			close_button = std::make_unique<demographicswindow_main_close_button_t>();
+			close_button->parent = this;
+			auto cptr = close_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "title") {
-			auto cptr = std::make_unique<demographicswindow_main_title_t>();
-			cptr->parent = this;
-			title = cptr.get();
+			title = std::make_unique<demographicswindow_main_title_t>();
+			title->parent = this;
+			auto cptr = title.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5687,151 +4667,15 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "main_page") {
-			auto cptr = std::make_unique<demographicswindow_main_main_page_t>();
 			cptr->parent = this;
-			main_page = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "table") {
-			auto cptr = std::make_unique<demographicswindow_main_table_t>();
-			cptr->parent = this;
-			table = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			int16_t col_sz_used = 0;
-			demographicswindow_main_table_header_t::spacer_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::spacer_column_width = child_data.table_columns[0].width;
-			col_sz_used += child_data.table_columns[0].width; 
-			demographicswindow_main_table_header_t::location_text_color = child_data.table_columns[1].header_text_color;
-			demographicswindow_main_table_header_t::location_text_key = state.lookup_key(child_data.table_columns[1].header_key);
-			demographicswindow_main_table_row_t::location_default_text_color = child_data.table_columns[1].cell_text_color;
-			demographicswindow_main_table_row_t::location_text_alignment = child_data.table_columns[1].text_alignment;
-			demographicswindow_main_table_header_t::location_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::location_column_width = child_data.table_columns[1].width;
-			col_sz_used += child_data.table_columns[1].width; 
-			demographicswindow_main_table_header_t::size_text_color = child_data.table_columns[2].header_text_color;
-			demographicswindow_main_table_header_t::size_text_key = state.lookup_key(child_data.table_columns[2].header_key);
-			demographicswindow_main_table_row_t::size_default_text_color = child_data.table_columns[2].cell_text_color;
-			demographicswindow_main_table_row_t::size_text_alignment = child_data.table_columns[2].text_alignment;
-			demographicswindow_main_table_header_t::size_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::size_column_width = child_data.table_columns[2].width;
-			col_sz_used += child_data.table_columns[2].width; 
-			demographicswindow_main_table_header_t::culture_text_color = child_data.table_columns[3].header_text_color;
-			demographicswindow_main_table_header_t::culture_text_key = state.lookup_key(child_data.table_columns[3].header_key);
-			demographicswindow_main_table_row_t::culture_default_text_color = child_data.table_columns[3].cell_text_color;
-			demographicswindow_main_table_row_t::culture_text_alignment = child_data.table_columns[3].text_alignment;
-			demographicswindow_main_table_header_t::culture_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::culture_column_width = child_data.table_columns[3].width;
-			col_sz_used += child_data.table_columns[3].width; 
-			demographicswindow_main_table_header_t::job_text_color = child_data.table_columns[4].header_text_color;
-			demographicswindow_main_table_header_t::job_text_key = state.lookup_key(child_data.table_columns[4].header_key);
-			demographicswindow_main_table_row_t::job_default_text_color = child_data.table_columns[4].cell_text_color;
-			demographicswindow_main_table_row_t::job_text_alignment = child_data.table_columns[4].text_alignment;
-			demographicswindow_main_table_header_t::job_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::job_column_width = child_data.table_columns[4].width;
-			col_sz_used += child_data.table_columns[4].width; 
-			demographicswindow_main_table_header_t::religion_text_color = child_data.table_columns[5].header_text_color;
-			demographicswindow_main_table_header_t::religion_text_key = state.lookup_key(child_data.table_columns[5].header_key);
-			demographicswindow_main_table_row_t::religion_default_text_color = child_data.table_columns[5].cell_text_color;
-			demographicswindow_main_table_row_t::religion_text_alignment = child_data.table_columns[5].text_alignment;
-			demographicswindow_main_table_header_t::religion_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::religion_column_width = child_data.table_columns[5].width;
-			col_sz_used += child_data.table_columns[5].width; 
-			demographicswindow_main_table_header_t::ideology_text_color = child_data.table_columns[6].header_text_color;
-			demographicswindow_main_table_header_t::ideology_text_key = state.lookup_key(child_data.table_columns[6].header_key);
-			demographicswindow_main_table_row_t::ideology_default_text_color = child_data.table_columns[6].cell_text_color;
-			demographicswindow_main_table_row_t::ideology_text_alignment = child_data.table_columns[6].text_alignment;
-			demographicswindow_main_table_header_t::ideology_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::ideology_column_width = child_data.table_columns[6].width;
-			col_sz_used += child_data.table_columns[6].width; 
-			demographicswindow_main_table_header_t::issues_text_color = child_data.table_columns[7].header_text_color;
-			demographicswindow_main_table_header_t::issues_text_key = state.lookup_key(child_data.table_columns[7].header_key);
-			demographicswindow_main_table_row_t::issues_default_text_color = child_data.table_columns[7].cell_text_color;
-			demographicswindow_main_table_row_t::issues_text_alignment = child_data.table_columns[7].text_alignment;
-			demographicswindow_main_table_header_t::issues_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::issues_column_width = child_data.table_columns[7].width;
-			col_sz_used += child_data.table_columns[7].width; 
-			demographicswindow_main_table_header_t::militancy_text_color = child_data.table_columns[8].header_text_color;
-			demographicswindow_main_table_header_t::militancy_text_key = state.lookup_key(child_data.table_columns[8].header_key);
-			demographicswindow_main_table_row_t::militancy_default_text_color = child_data.table_columns[8].cell_text_color;
-			demographicswindow_main_table_row_t::militancy_text_alignment = child_data.table_columns[8].text_alignment;
-			demographicswindow_main_table_header_t::militancy_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::militancy_column_width = child_data.table_columns[8].width;
-			col_sz_used += child_data.table_columns[8].width; 
-			demographicswindow_main_table_header_t::consciousness_text_color = child_data.table_columns[9].header_text_color;
-			demographicswindow_main_table_header_t::consciousness_text_key = state.lookup_key(child_data.table_columns[9].header_key);
-			demographicswindow_main_table_row_t::consciousness_default_text_color = child_data.table_columns[9].cell_text_color;
-			demographicswindow_main_table_row_t::consciousness_text_alignment = child_data.table_columns[9].text_alignment;
-			demographicswindow_main_table_header_t::consciousness_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::consciousness_column_width = child_data.table_columns[9].width;
-			col_sz_used += child_data.table_columns[9].width; 
-			demographicswindow_main_table_header_t::employment_text_color = child_data.table_columns[10].header_text_color;
-			demographicswindow_main_table_header_t::employment_text_key = state.lookup_key(child_data.table_columns[10].header_key);
-			demographicswindow_main_table_row_t::employment_default_text_color = child_data.table_columns[10].cell_text_color;
-			demographicswindow_main_table_row_t::employment_text_alignment = child_data.table_columns[10].text_alignment;
-			demographicswindow_main_table_header_t::employment_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::employment_column_width = child_data.table_columns[10].width;
-			col_sz_used += child_data.table_columns[10].width; 
-			demographicswindow_main_table_header_t::literacy_text_color = child_data.table_columns[11].header_text_color;
-			demographicswindow_main_table_header_t::literacy_text_key = state.lookup_key(child_data.table_columns[11].header_key);
-			demographicswindow_main_table_row_t::literacy_default_text_color = child_data.table_columns[11].cell_text_color;
-			demographicswindow_main_table_row_t::literacy_text_alignment = child_data.table_columns[11].text_alignment;
-			demographicswindow_main_table_header_t::literacy_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::literacy_column_width = child_data.table_columns[11].width;
-			col_sz_used += child_data.table_columns[11].width; 
-			demographicswindow_main_table_header_t::money_text_color = child_data.table_columns[12].header_text_color;
-			demographicswindow_main_table_header_t::money_text_key = state.lookup_key(child_data.table_columns[12].header_key);
-			demographicswindow_main_table_row_t::money_default_text_color = child_data.table_columns[12].cell_text_color;
-			demographicswindow_main_table_row_t::money_text_alignment = child_data.table_columns[12].text_alignment;
-			demographicswindow_main_table_header_t::money_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::money_column_width = child_data.table_columns[12].width;
-			col_sz_used += child_data.table_columns[12].width; 
-			demographicswindow_main_table_header_t::needs_text_color = child_data.table_columns[13].header_text_color;
-			demographicswindow_main_table_header_t::needs_text_key = state.lookup_key(child_data.table_columns[13].header_key);
-			demographicswindow_main_table_row_t::needs_default_text_color = child_data.table_columns[13].cell_text_color;
-			demographicswindow_main_table_row_t::needs_text_alignment = child_data.table_columns[13].text_alignment;
-			demographicswindow_main_table_header_t::needs_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::needs_column_width = child_data.table_columns[13].width;
-			col_sz_used += child_data.table_columns[13].width; 
-			demographicswindow_main_table_header_t::rebels_text_color = child_data.table_columns[14].header_text_color;
-			demographicswindow_main_table_header_t::rebels_text_key = state.lookup_key(child_data.table_columns[14].header_key);
-			demographicswindow_main_table_row_t::rebels_default_text_color = child_data.table_columns[14].cell_text_color;
-			demographicswindow_main_table_row_t::rebels_text_alignment = child_data.table_columns[14].text_alignment;
-			demographicswindow_main_table_header_t::rebels_column_start = col_sz_used;
-			demographicswindow_main_table_header_t::rebels_column_width = child_data.table_columns[14].width;
-			col_sz_used += child_data.table_columns[14].width; 
-			demographicswindow_main_table_header_t::ascending_icon_key = child_data.ascending_sort_icon;
-			demographicswindow_main_table_header_t::descending_icon_key = child_data.descending_sort_icon;
-			demographicswindow_main_table_row_t::row_texture_key = child_data.row_background_a;
-			demographicswindow_main_table_row_t::alt_row_texture_key = child_data.row_background_b;
-			demographicswindow_main_table_t::row_height = child_data.row_height;
-			demographicswindow_main_table_t::table_divider_color = child_data.table_divider_color;
-			demographicswindow_main_table_t::table_highlight_color = child_data.table_highlight_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "show_filters") {
-			auto cptr = std::make_unique<demographicswindow_main_show_filters_t>();
-			cptr->parent = this;
-			show_filters = cptr.get();
+			show_filters = std::make_unique<demographicswindow_main_show_filters_t>();
+			show_filters->parent = this;
+			auto cptr = show_filters.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5842,14 +4686,15 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "reset_filters") {
-			auto cptr = std::make_unique<demographicswindow_main_reset_filters_t>();
-			cptr->parent = this;
-			reset_filters = cptr.get();
+			reset_filters = std::make_unique<demographicswindow_main_reset_filters_t>();
+			reset_filters->parent = this;
+			auto cptr = reset_filters.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5860,14 +4705,15 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "only_pops_toggle") {
-			auto cptr = std::make_unique<demographicswindow_main_only_pops_toggle_t>();
-			cptr->parent = this;
-			only_pops_toggle = cptr.get();
+			only_pops_toggle = std::make_unique<demographicswindow_main_only_pops_toggle_t>();
+			only_pops_toggle->parent = this;
+			auto cptr = only_pops_toggle.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5879,54 +4725,183 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "main_left") {
-			auto cptr = std::make_unique<demographicswindow_main_main_left_t>();
 			cptr->parent = this;
-			main_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
-		if(child_data.name == "main_right") {
-			auto cptr = std::make_unique<demographicswindow_main_main_right_t>();
-			cptr->parent = this;
-			main_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+		if(child_data.name == ".tabtable") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			table_ascending_icon_key = main_section.read<std::string_view>();
+			table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read(table_divider_color);
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			running_w_total += col_section.read<int16_t>();
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			table_location_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_location_column_start = running_w_total;
+			col_section.read(table_location_column_width);
+			running_w_total += table_location_column_width;
+			col_section.read(table_location_column_text_color);
+			col_section.read(table_location_header_text_color);
+			col_section.read(table_location_text_alignment);
+			table_size_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_size_column_start = running_w_total;
+			col_section.read(table_size_column_width);
+			running_w_total += table_size_column_width;
+			col_section.read(table_size_column_text_color);
+			col_section.read(table_size_header_text_color);
+			col_section.read(table_size_text_alignment);
+			table_culture_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_culture_column_start = running_w_total;
+			col_section.read(table_culture_column_width);
+			running_w_total += table_culture_column_width;
+			col_section.read(table_culture_column_text_color);
+			col_section.read(table_culture_header_text_color);
+			col_section.read(table_culture_text_alignment);
+			table_job_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_job_column_start = running_w_total;
+			col_section.read(table_job_column_width);
+			running_w_total += table_job_column_width;
+			col_section.read(table_job_column_text_color);
+			col_section.read(table_job_header_text_color);
+			col_section.read(table_job_text_alignment);
+			table_religion_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_religion_column_start = running_w_total;
+			col_section.read(table_religion_column_width);
+			running_w_total += table_religion_column_width;
+			col_section.read(table_religion_column_text_color);
+			col_section.read(table_religion_header_text_color);
+			col_section.read(table_religion_text_alignment);
+			table_ideology_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_ideology_column_start = running_w_total;
+			col_section.read(table_ideology_column_width);
+			running_w_total += table_ideology_column_width;
+			col_section.read(table_ideology_column_text_color);
+			col_section.read(table_ideology_header_text_color);
+			col_section.read(table_ideology_text_alignment);
+			table_issues_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_issues_column_start = running_w_total;
+			col_section.read(table_issues_column_width);
+			running_w_total += table_issues_column_width;
+			col_section.read(table_issues_column_text_color);
+			col_section.read(table_issues_header_text_color);
+			col_section.read(table_issues_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			table_militancy_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			table_militancy_column_start = running_w_total;
+			col_section.read(table_militancy_column_width);
+			running_w_total += table_militancy_column_width;
+			col_section.read(table_militancy_column_text_color);
+			col_section.read(table_militancy_header_text_color);
+			col_section.read(table_militancy_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			table_consciousness_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			table_consciousness_column_start = running_w_total;
+			col_section.read(table_consciousness_column_width);
+			running_w_total += table_consciousness_column_width;
+			col_section.read(table_consciousness_column_text_color);
+			col_section.read(table_consciousness_header_text_color);
+			col_section.read(table_consciousness_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			table_employment_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			table_employment_column_start = running_w_total;
+			col_section.read(table_employment_column_width);
+			running_w_total += table_employment_column_width;
+			col_section.read(table_employment_column_text_color);
+			col_section.read(table_employment_header_text_color);
+			col_section.read(table_employment_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			table_literacy_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			table_literacy_column_start = running_w_total;
+			col_section.read(table_literacy_column_width);
+			running_w_total += table_literacy_column_width;
+			col_section.read(table_literacy_column_text_color);
+			col_section.read(table_literacy_header_text_color);
+			col_section.read(table_literacy_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			table_money_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			table_money_column_start = running_w_total;
+			col_section.read(table_money_column_width);
+			running_w_total += table_money_column_width;
+			col_section.read(table_money_column_text_color);
+			col_section.read(table_money_header_text_color);
+			col_section.read(table_money_text_alignment);
+			table_needs_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			table_needs_column_start = running_w_total;
+			col_section.read(table_needs_column_width);
+			running_w_total += table_needs_column_width;
+			col_section.read(table_needs_column_text_color);
+			col_section.read(table_needs_header_text_color);
+			col_section.read(table_needs_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			table_rebels_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			table_rebels_column_start = running_w_total;
+			col_section.read(table_rebels_column_width);
+			running_w_total += table_rebels_column_width;
+			col_section.read(table_rebels_column_text_color);
+			col_section.read(table_rebels_header_text_color);
+			col_section.read(table_rebels_text_alignment);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	table.on_create(state, this);
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN main::create
-	auto fw = make_demographicswindow_filters_window(state);
-	filter_w = (demographicswindow_filters_window_t*)(fw.get());
-	this->add_child_to_front(std::move(fw));
-	filter_w->set_visible(state, false);
-
+	{
+		auto ptr = make_demographicswindow_filters_window(state);
+		filter_w = ptr.get();
+		//children.insert(children.begin(), filter_w.get());
+		filter_w->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(ptr));
+	}
 	{
 		auto ptr = ui::make_element_by_type<ui::national_focus_window>(state, "state_focus_window");
-		focus_w = (ui::national_focus_window*)(ptr.get());
-		add_child_to_front(std::move(ptr));
+		focus_w = ptr.get();
+		//children.insert(children.begin(), focus_w.get());
 		focus_w->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(ptr));
 	}
 	{
-		auto win7 = ui::make_element_by_type<ui::pop_details_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("pop_details_win"))->second.definition);
-		details_w = (ui::pop_details_window*)(win7.get());
-		add_child_to_front(std::move(win7));
+		auto ptr = ui::make_element_by_type<ui::pop_details_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("pop_details_win"))->second.definition);
+		details_w = ptr.get();
+		//children.insert(children.begin(), details_w.get());
 		details_w->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(ptr));
 	}
 // END
 }
@@ -5959,6 +4934,7 @@ void demographicswindow_nation_row_location_t::render(sys::state & state, int32_
 }
 void demographicswindow_nation_row_location_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::location::update
 	set_text(state, text::get_name_as_string(state, nation_row.content));
 // END
@@ -5991,6 +4967,7 @@ void demographicswindow_nation_row_size_t::render(sys::state & state, int32_t x,
 }
 void demographicswindow_nation_row_size_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::size::update
 	float total = 0.0f;
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6015,6 +4992,7 @@ ui::message_result demographicswindow_nation_row_size_trend_t::on_rbutton_down(s
 }
 void demographicswindow_nation_row_size_trend_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::size_trend::tooltip
 	auto box = text::open_layout_box(contents);
 	text::localised_format_box(state, contents, box, "pop_growth_1");
@@ -6045,6 +5023,7 @@ void demographicswindow_nation_row_size_trend_t::render(sys::state & state, int3
 }
 void demographicswindow_nation_row_size_trend_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::size_trend::update
 	auto result = demographics::get_monthly_pop_increase(state, nation_row.content);
 	if(result > 0) {
@@ -6097,6 +5076,7 @@ void demographicswindow_nation_row_culture_t::update_chart(sys::state& state) {
 }
 void demographicswindow_nation_row_culture_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -6121,6 +5101,7 @@ void demographicswindow_nation_row_culture_t::render(sys::state & state, int32_t
 }
 void demographicswindow_nation_row_culture_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::culture::update
 	auto cultures = state.world.culture_make_vectorizable_float_buffer();
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6179,6 +5160,7 @@ void demographicswindow_nation_row_job_t::update_chart(sys::state& state) {
 }
 void demographicswindow_nation_row_job_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -6203,6 +5185,7 @@ void demographicswindow_nation_row_job_t::render(sys::state & state, int32_t x, 
 }
 void demographicswindow_nation_row_job_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::job::update
 	auto jobs = state.world.pop_type_make_vectorizable_float_buffer();
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6261,6 +5244,7 @@ void demographicswindow_nation_row_religion_t::update_chart(sys::state& state) {
 }
 void demographicswindow_nation_row_religion_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -6285,6 +5269,7 @@ void demographicswindow_nation_row_religion_t::render(sys::state & state, int32_
 }
 void demographicswindow_nation_row_religion_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::religion::update
 	auto religions = state.world.religion_make_vectorizable_float_buffer();
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6343,6 +5328,7 @@ void demographicswindow_nation_row_ideology_t::update_chart(sys::state& state) {
 }
 void demographicswindow_nation_row_ideology_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -6367,6 +5353,7 @@ void demographicswindow_nation_row_ideology_t::render(sys::state & state, int32_
 }
 void demographicswindow_nation_row_ideology_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::ideology::update
 	auto ideologies = state.world.ideology_make_vectorizable_float_buffer();
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6426,6 +5413,7 @@ void demographicswindow_nation_row_issues_t::update_chart(sys::state& state) {
 }
 void demographicswindow_nation_row_issues_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -6452,6 +5440,7 @@ void demographicswindow_nation_row_issues_t::render(sys::state & state, int32_t 
 }
 void demographicswindow_nation_row_issues_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::issues::update
 	auto issues = state.world.issue_option_make_vectorizable_float_buffer();
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6501,6 +5490,7 @@ void demographicswindow_nation_row_militancy_t::render(sys::state & state, int32
 }
 void demographicswindow_nation_row_militancy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::militancy::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -6543,6 +5533,7 @@ void demographicswindow_nation_row_consciousness_t::render(sys::state & state, i
 }
 void demographicswindow_nation_row_consciousness_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::consciousness::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -6585,6 +5576,7 @@ void demographicswindow_nation_row_employment_t::render(sys::state & state, int3
 }
 void demographicswindow_nation_row_employment_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::employment::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -6632,6 +5624,7 @@ void demographicswindow_nation_row_literacy_t::render(sys::state & state, int32_
 }
 void demographicswindow_nation_row_literacy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::literacy::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -6674,6 +5667,7 @@ void demographicswindow_nation_row_money_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_nation_row_money_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::money::update
 	float total = 0.0f;
 	for(auto p : state.world.nation_get_province_ownership(nation_row.content)) {
@@ -6723,6 +5717,7 @@ void demographicswindow_nation_row_needs_t::update_chart(sys::state& state) {
 }
 void demographicswindow_nation_row_needs_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -6756,6 +5751,7 @@ void demographicswindow_nation_row_needs_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_nation_row_needs_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::needs::update
 	float lntotal = 0.0f;
 	float entotal = 0.0f;
@@ -6797,6 +5793,7 @@ void demographicswindow_nation_row_frames_t::render(sys::state & state, int32_t 
 }
 void demographicswindow_nation_row_frames_t::on_update(sys::state& state) noexcept {
 	demographicswindow_nation_row_t& nation_row = *((demographicswindow_nation_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::frames::update
 // END
 }
@@ -6815,72 +5812,222 @@ void demographicswindow_nation_row_t::render(sys::state & state, int32_t x, int3
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_spacer = rel_mouse_x >= demographicswindow_main_table_header_t::spacer_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width);
-	bool col_um_location = rel_mouse_x >= demographicswindow_main_table_header_t::location_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width);
+	bool col_um_location = rel_mouse_x >= table_source->table_location_column_start && rel_mouse_x < (table_source->table_location_column_start + table_source->table_location_column_width);
 	if(col_um_location && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::location_column_start), float(y), float(demographicswindow_main_table_header_t::location_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_location_column_start), float(y), float(table_source->table_location_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_size = rel_mouse_x >= demographicswindow_main_table_header_t::size_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width);
+	bool col_um_size = rel_mouse_x >= table_source->table_size_column_start && rel_mouse_x < (table_source->table_size_column_start + table_source->table_size_column_width);
 	if(col_um_size && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::size_column_start), float(y), float(demographicswindow_main_table_header_t::size_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_size_column_start), float(y), float(table_source->table_size_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_culture = rel_mouse_x >= demographicswindow_main_table_header_t::culture_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width);
+	bool col_um_culture = rel_mouse_x >= table_source->table_culture_column_start && rel_mouse_x < (table_source->table_culture_column_start + table_source->table_culture_column_width);
 	if(col_um_culture && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::culture_column_start), float(y), float(demographicswindow_main_table_header_t::culture_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_culture_column_start), float(y), float(table_source->table_culture_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_job = rel_mouse_x >= demographicswindow_main_table_header_t::job_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width);
+	bool col_um_job = rel_mouse_x >= table_source->table_job_column_start && rel_mouse_x < (table_source->table_job_column_start + table_source->table_job_column_width);
 	if(col_um_job && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::job_column_start), float(y), float(demographicswindow_main_table_header_t::job_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_job_column_start), float(y), float(table_source->table_job_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_religion = rel_mouse_x >= demographicswindow_main_table_header_t::religion_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width);
+	bool col_um_religion = rel_mouse_x >= table_source->table_religion_column_start && rel_mouse_x < (table_source->table_religion_column_start + table_source->table_religion_column_width);
 	if(col_um_religion && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::religion_column_start), float(y), float(demographicswindow_main_table_header_t::religion_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_religion_column_start), float(y), float(table_source->table_religion_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_ideology = rel_mouse_x >= demographicswindow_main_table_header_t::ideology_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width);
+	bool col_um_ideology = rel_mouse_x >= table_source->table_ideology_column_start && rel_mouse_x < (table_source->table_ideology_column_start + table_source->table_ideology_column_width);
 	if(col_um_ideology && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::ideology_column_start), float(y), float(demographicswindow_main_table_header_t::ideology_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_ideology_column_start), float(y), float(table_source->table_ideology_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_issues = rel_mouse_x >= demographicswindow_main_table_header_t::issues_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width);
+	bool col_um_issues = rel_mouse_x >= table_source->table_issues_column_start && rel_mouse_x < (table_source->table_issues_column_start + table_source->table_issues_column_width);
 	if(col_um_issues && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::issues_column_start), float(y), float(demographicswindow_main_table_header_t::issues_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_issues_column_start), float(y), float(table_source->table_issues_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_militancy = rel_mouse_x >= demographicswindow_main_table_header_t::militancy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width);
+	bool col_um_militancy = rel_mouse_x >= table_source->table_militancy_column_start && rel_mouse_x < (table_source->table_militancy_column_start + table_source->table_militancy_column_width);
 	if(col_um_militancy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::militancy_column_start), float(y), float(demographicswindow_main_table_header_t::militancy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_militancy_column_start), float(y), float(table_source->table_militancy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_consciousness = rel_mouse_x >= demographicswindow_main_table_header_t::consciousness_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width);
+	bool col_um_consciousness = rel_mouse_x >= table_source->table_consciousness_column_start && rel_mouse_x < (table_source->table_consciousness_column_start + table_source->table_consciousness_column_width);
 	if(col_um_consciousness && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::consciousness_column_start), float(y), float(demographicswindow_main_table_header_t::consciousness_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_consciousness_column_start), float(y), float(table_source->table_consciousness_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_employment = rel_mouse_x >= demographicswindow_main_table_header_t::employment_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width);
+	bool col_um_employment = rel_mouse_x >= table_source->table_employment_column_start && rel_mouse_x < (table_source->table_employment_column_start + table_source->table_employment_column_width);
 	if(col_um_employment && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::employment_column_start), float(y), float(demographicswindow_main_table_header_t::employment_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_employment_column_start), float(y), float(table_source->table_employment_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_literacy = rel_mouse_x >= demographicswindow_main_table_header_t::literacy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width);
+	bool col_um_literacy = rel_mouse_x >= table_source->table_literacy_column_start && rel_mouse_x < (table_source->table_literacy_column_start + table_source->table_literacy_column_width);
 	if(col_um_literacy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::literacy_column_start), float(y), float(demographicswindow_main_table_header_t::literacy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_literacy_column_start), float(y), float(table_source->table_literacy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_money = rel_mouse_x >= demographicswindow_main_table_header_t::money_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width);
+	bool col_um_money = rel_mouse_x >= table_source->table_money_column_start && rel_mouse_x < (table_source->table_money_column_start + table_source->table_money_column_width);
 	if(col_um_money && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::money_column_start), float(y), float(demographicswindow_main_table_header_t::money_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_money_column_start), float(y), float(table_source->table_money_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_needs = rel_mouse_x >= demographicswindow_main_table_header_t::needs_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width);
+	bool col_um_needs = rel_mouse_x >= table_source->table_needs_column_start && rel_mouse_x < (table_source->table_needs_column_start + table_source->table_needs_column_width);
 	if(col_um_needs && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::needs_column_start), float(y), float(demographicswindow_main_table_header_t::needs_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_needs_column_start), float(y), float(table_source->table_needs_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_rebels = rel_mouse_x >= demographicswindow_main_table_header_t::rebels_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width);
+	bool col_um_rebels = rel_mouse_x >= table_source->table_rebels_column_start && rel_mouse_x < (table_source->table_rebels_column_start + table_source->table_rebels_column_width);
 	if(col_um_rebels && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::rebels_column_start), float(y), float(demographicswindow_main_table_header_t::rebels_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_rebels_column_start), float(y), float(table_source->table_rebels_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
 }
 void demographicswindow_nation_row_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN nation_row::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_nation_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "location") {
+					temp.ptr = location.get();
+				}
+				if(cname == "size") {
+					temp.ptr = size.get();
+				}
+				if(cname == "size_trend") {
+					temp.ptr = size_trend.get();
+				}
+				if(cname == "culture") {
+					temp.ptr = culture.get();
+				}
+				if(cname == "job") {
+					temp.ptr = job.get();
+				}
+				if(cname == "religion") {
+					temp.ptr = religion.get();
+				}
+				if(cname == "ideology") {
+					temp.ptr = ideology.get();
+				}
+				if(cname == "issues") {
+					temp.ptr = issues.get();
+				}
+				if(cname == "militancy") {
+					temp.ptr = militancy.get();
+				}
+				if(cname == "consciousness") {
+					temp.ptr = consciousness.get();
+				}
+				if(cname == "employment") {
+					temp.ptr = employment.get();
+				}
+				if(cname == "literacy") {
+					temp.ptr = literacy.get();
+				}
+				if(cname == "money") {
+					temp.ptr = money.get();
+				}
+				if(cname == "needs") {
+					temp.ptr = needs.get();
+				}
+				if(cname == "frames") {
+					temp.ptr = frames.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::nation_row"));
@@ -6900,16 +6047,17 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_nation_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6918,14 +6066,15 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_nation_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -6934,87 +6083,94 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_nation_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_nation_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_nation_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_nation_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_nation_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_nation_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_nation_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7023,14 +6179,15 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_nation_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7039,14 +6196,15 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_nation_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7055,14 +6213,15 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_nation_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7071,14 +6230,15 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_nation_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -7087,36 +6247,44 @@ void demographicswindow_nation_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_nation_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_nation_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_nation_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN nation_row::create
 // END
 }
@@ -7127,6 +6295,7 @@ std::unique_ptr<ui::element_base> make_demographicswindow_nation_row(sys::state&
 }
 ui::message_result demographicswindow_state_row_folder_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN state_row::folder_icon::lbutton_action
 	if(popwindow::open_states.contains(state_row.content.index()))
@@ -7148,6 +6317,7 @@ void demographicswindow_state_row_folder_icon_t::render(sys::state & state, int3
 }
 void demographicswindow_state_row_folder_icon_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::folder_icon::update
 	is_active = popwindow::open_states.contains(state_row.content.index());
 // END
@@ -7180,6 +6350,7 @@ void demographicswindow_state_row_location_t::render(sys::state & state, int32_t
 }
 void demographicswindow_state_row_location_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::location::update
 	set_text(state, text::get_short_state_name(state, state_row.content));
 // END
@@ -7212,6 +6383,7 @@ void demographicswindow_state_row_size_t::render(sys::state & state, int32_t x, 
 }
 void demographicswindow_state_row_size_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::size::update
 	float total = 0.0f;
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7236,6 +6408,7 @@ ui::message_result demographicswindow_state_row_size_trend_t::on_rbutton_down(sy
 }
 void demographicswindow_state_row_size_trend_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::size_trend::tooltip
 	auto box = text::open_layout_box(contents);
 	text::localised_format_box(state, contents, box, "pop_growth_1");
@@ -7266,6 +6439,7 @@ void demographicswindow_state_row_size_trend_t::render(sys::state & state, int32
 }
 void demographicswindow_state_row_size_trend_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::size_trend::update
 	auto result = demographics::get_monthly_pop_increase(state, state_row.content);
 	if(result > 0) {
@@ -7318,6 +6492,7 @@ void demographicswindow_state_row_culture_t::update_chart(sys::state& state) {
 }
 void demographicswindow_state_row_culture_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -7342,6 +6517,7 @@ void demographicswindow_state_row_culture_t::render(sys::state & state, int32_t 
 }
 void demographicswindow_state_row_culture_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::culture::update
 	auto cultures = state.world.culture_make_vectorizable_float_buffer();
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7400,6 +6576,7 @@ void demographicswindow_state_row_job_t::update_chart(sys::state& state) {
 }
 void demographicswindow_state_row_job_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -7424,6 +6601,7 @@ void demographicswindow_state_row_job_t::render(sys::state & state, int32_t x, i
 }
 void demographicswindow_state_row_job_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::job::update
 	auto jobs = state.world.pop_type_make_vectorizable_float_buffer();
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7482,6 +6660,7 @@ void demographicswindow_state_row_religion_t::update_chart(sys::state& state) {
 }
 void demographicswindow_state_row_religion_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -7506,6 +6685,7 @@ void demographicswindow_state_row_religion_t::render(sys::state & state, int32_t
 }
 void demographicswindow_state_row_religion_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::religion::update
 	auto religions = state.world.religion_make_vectorizable_float_buffer();
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7564,6 +6744,7 @@ void demographicswindow_state_row_ideology_t::update_chart(sys::state& state) {
 }
 void demographicswindow_state_row_ideology_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -7588,6 +6769,7 @@ void demographicswindow_state_row_ideology_t::render(sys::state & state, int32_t
 }
 void demographicswindow_state_row_ideology_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::ideology::update
 	auto ideologies = state.world.ideology_make_vectorizable_float_buffer();
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7647,6 +6829,7 @@ void demographicswindow_state_row_issues_t::update_chart(sys::state& state) {
 }
 void demographicswindow_state_row_issues_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -7673,6 +6856,7 @@ void demographicswindow_state_row_issues_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_state_row_issues_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::issues::update
 	auto issues = state.world.issue_option_make_vectorizable_float_buffer();
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7722,6 +6906,7 @@ void demographicswindow_state_row_militancy_t::render(sys::state & state, int32_
 }
 void demographicswindow_state_row_militancy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::militancy::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -7764,6 +6949,7 @@ void demographicswindow_state_row_consciousness_t::render(sys::state & state, in
 }
 void demographicswindow_state_row_consciousness_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::consciousness::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -7806,6 +6992,7 @@ void demographicswindow_state_row_employment_t::render(sys::state & state, int32
 }
 void demographicswindow_state_row_employment_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::employment::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -7853,6 +7040,7 @@ void demographicswindow_state_row_literacy_t::render(sys::state & state, int32_t
 }
 void demographicswindow_state_row_literacy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::literacy::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -7895,6 +7083,7 @@ void demographicswindow_state_row_money_t::render(sys::state & state, int32_t x,
 }
 void demographicswindow_state_row_money_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::money::update
 	float total = 0.0f;
 	province::for_each_province_in_state_instance(state, state_row.content, [&](dcon::province_id p) {
@@ -7944,6 +7133,7 @@ void demographicswindow_state_row_needs_t::update_chart(sys::state& state) {
 }
 void demographicswindow_state_row_needs_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -7977,6 +7167,7 @@ void demographicswindow_state_row_needs_t::render(sys::state & state, int32_t x,
 }
 void demographicswindow_state_row_needs_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::needs::update
 	float lntotal = 0.0f;
 	float entotal = 0.0f;
@@ -8018,6 +7209,7 @@ void demographicswindow_state_row_frames_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_state_row_frames_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::frames::update
 // END
 }
@@ -8028,22 +7220,26 @@ void demographicswindow_state_row_frames_t::on_create(sys::state& state) noexcep
 ui::message_result demographicswindow_state_row_focus_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(disabled) return ui::message_result::consumed;
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN state_row::focus_button::lbutton_action
-	auto fwindow_ptr = (ui::national_focus_window**)(parent->parent->parent->get_by_name(state, "focus_w"));
+	auto fwindow_ptr = (ui::national_focus_window*)(main.focus_w);
 	assert(fwindow_ptr);
-	(*fwindow_ptr)->provided = state_row.content;
-	if(!(*fwindow_ptr)->is_visible())
-		(*fwindow_ptr)->set_visible(state, true);
+	(fwindow_ptr)->provided = state_row.content;
+	if(!(fwindow_ptr)->is_visible())
+		(fwindow_ptr)->set_visible(state, true);
 	else
-		(*fwindow_ptr)->impl_on_update(state);
-	(*fwindow_ptr)->base_data.position = base_data.position;
+		(fwindow_ptr)->impl_on_update(state);
+	(fwindow_ptr)->parent->move_child_to_front(fwindow_ptr);
+	(fwindow_ptr)->base_data.position = ui::get_absolute_location(state, *this);
+	(fwindow_ptr)->base_data.position.y = std::min((fwindow_ptr)->base_data.position.y, int16_t(fwindow_ptr->parent->base_data.size.y - 460));
 // END
 	return ui::message_result::consumed;
 }
 ui::message_result demographicswindow_state_row_focus_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(disabled) return ui::message_result::consumed;
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN state_row::focus_button::rbutton_action
 	command::set_national_focus(state, state.local_player_nation, state_row.content, dcon::national_focus_id{});
@@ -8052,6 +7248,7 @@ ui::message_result demographicswindow_state_row_focus_button_t::on_rbutton_down(
 }
 void demographicswindow_state_row_focus_button_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::focus_button::tooltip
 	auto box = text::open_layout_box(contents, 0);
 
@@ -8103,6 +7300,7 @@ void demographicswindow_state_row_focus_button_t::render(sys::state & state, int
 }
 void demographicswindow_state_row_focus_button_t::on_update(sys::state& state) noexcept {
 	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::focus_button::update
 	auto content = state_row.content;
 	disabled = true;
@@ -8130,72 +7328,228 @@ void demographicswindow_state_row_t::render(sys::state & state, int32_t x, int32
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_spacer = rel_mouse_x >= demographicswindow_main_table_header_t::spacer_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width);
-	bool col_um_location = rel_mouse_x >= demographicswindow_main_table_header_t::location_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width);
+	bool col_um_location = rel_mouse_x >= table_source->table_location_column_start && rel_mouse_x < (table_source->table_location_column_start + table_source->table_location_column_width);
 	if(col_um_location && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::location_column_start), float(y), float(demographicswindow_main_table_header_t::location_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_location_column_start), float(y), float(table_source->table_location_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_size = rel_mouse_x >= demographicswindow_main_table_header_t::size_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width);
+	bool col_um_size = rel_mouse_x >= table_source->table_size_column_start && rel_mouse_x < (table_source->table_size_column_start + table_source->table_size_column_width);
 	if(col_um_size && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::size_column_start), float(y), float(demographicswindow_main_table_header_t::size_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_size_column_start), float(y), float(table_source->table_size_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_culture = rel_mouse_x >= demographicswindow_main_table_header_t::culture_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width);
+	bool col_um_culture = rel_mouse_x >= table_source->table_culture_column_start && rel_mouse_x < (table_source->table_culture_column_start + table_source->table_culture_column_width);
 	if(col_um_culture && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::culture_column_start), float(y), float(demographicswindow_main_table_header_t::culture_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_culture_column_start), float(y), float(table_source->table_culture_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_job = rel_mouse_x >= demographicswindow_main_table_header_t::job_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width);
+	bool col_um_job = rel_mouse_x >= table_source->table_job_column_start && rel_mouse_x < (table_source->table_job_column_start + table_source->table_job_column_width);
 	if(col_um_job && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::job_column_start), float(y), float(demographicswindow_main_table_header_t::job_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_job_column_start), float(y), float(table_source->table_job_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_religion = rel_mouse_x >= demographicswindow_main_table_header_t::religion_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width);
+	bool col_um_religion = rel_mouse_x >= table_source->table_religion_column_start && rel_mouse_x < (table_source->table_religion_column_start + table_source->table_religion_column_width);
 	if(col_um_religion && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::religion_column_start), float(y), float(demographicswindow_main_table_header_t::religion_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_religion_column_start), float(y), float(table_source->table_religion_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_ideology = rel_mouse_x >= demographicswindow_main_table_header_t::ideology_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width);
+	bool col_um_ideology = rel_mouse_x >= table_source->table_ideology_column_start && rel_mouse_x < (table_source->table_ideology_column_start + table_source->table_ideology_column_width);
 	if(col_um_ideology && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::ideology_column_start), float(y), float(demographicswindow_main_table_header_t::ideology_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_ideology_column_start), float(y), float(table_source->table_ideology_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_issues = rel_mouse_x >= demographicswindow_main_table_header_t::issues_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width);
+	bool col_um_issues = rel_mouse_x >= table_source->table_issues_column_start && rel_mouse_x < (table_source->table_issues_column_start + table_source->table_issues_column_width);
 	if(col_um_issues && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::issues_column_start), float(y), float(demographicswindow_main_table_header_t::issues_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_issues_column_start), float(y), float(table_source->table_issues_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_militancy = rel_mouse_x >= demographicswindow_main_table_header_t::militancy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width);
+	bool col_um_militancy = rel_mouse_x >= table_source->table_militancy_column_start && rel_mouse_x < (table_source->table_militancy_column_start + table_source->table_militancy_column_width);
 	if(col_um_militancy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::militancy_column_start), float(y), float(demographicswindow_main_table_header_t::militancy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_militancy_column_start), float(y), float(table_source->table_militancy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_consciousness = rel_mouse_x >= demographicswindow_main_table_header_t::consciousness_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width);
+	bool col_um_consciousness = rel_mouse_x >= table_source->table_consciousness_column_start && rel_mouse_x < (table_source->table_consciousness_column_start + table_source->table_consciousness_column_width);
 	if(col_um_consciousness && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::consciousness_column_start), float(y), float(demographicswindow_main_table_header_t::consciousness_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_consciousness_column_start), float(y), float(table_source->table_consciousness_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_employment = rel_mouse_x >= demographicswindow_main_table_header_t::employment_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width);
+	bool col_um_employment = rel_mouse_x >= table_source->table_employment_column_start && rel_mouse_x < (table_source->table_employment_column_start + table_source->table_employment_column_width);
 	if(col_um_employment && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::employment_column_start), float(y), float(demographicswindow_main_table_header_t::employment_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_employment_column_start), float(y), float(table_source->table_employment_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_literacy = rel_mouse_x >= demographicswindow_main_table_header_t::literacy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width);
+	bool col_um_literacy = rel_mouse_x >= table_source->table_literacy_column_start && rel_mouse_x < (table_source->table_literacy_column_start + table_source->table_literacy_column_width);
 	if(col_um_literacy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::literacy_column_start), float(y), float(demographicswindow_main_table_header_t::literacy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_literacy_column_start), float(y), float(table_source->table_literacy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_money = rel_mouse_x >= demographicswindow_main_table_header_t::money_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width);
+	bool col_um_money = rel_mouse_x >= table_source->table_money_column_start && rel_mouse_x < (table_source->table_money_column_start + table_source->table_money_column_width);
 	if(col_um_money && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::money_column_start), float(y), float(demographicswindow_main_table_header_t::money_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_money_column_start), float(y), float(table_source->table_money_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_needs = rel_mouse_x >= demographicswindow_main_table_header_t::needs_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width);
+	bool col_um_needs = rel_mouse_x >= table_source->table_needs_column_start && rel_mouse_x < (table_source->table_needs_column_start + table_source->table_needs_column_width);
 	if(col_um_needs && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::needs_column_start), float(y), float(demographicswindow_main_table_header_t::needs_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_needs_column_start), float(y), float(table_source->table_needs_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_rebels = rel_mouse_x >= demographicswindow_main_table_header_t::rebels_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width);
+	bool col_um_rebels = rel_mouse_x >= table_source->table_rebels_column_start && rel_mouse_x < (table_source->table_rebels_column_start + table_source->table_rebels_column_width);
 	if(col_um_rebels && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::rebels_column_start), float(y), float(demographicswindow_main_table_header_t::rebels_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_rebels_column_start), float(y), float(table_source->table_rebels_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
 }
 void demographicswindow_state_row_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN state_row::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_state_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "folder_icon") {
+					temp.ptr = folder_icon.get();
+				}
+				if(cname == "location") {
+					temp.ptr = location.get();
+				}
+				if(cname == "size") {
+					temp.ptr = size.get();
+				}
+				if(cname == "size_trend") {
+					temp.ptr = size_trend.get();
+				}
+				if(cname == "culture") {
+					temp.ptr = culture.get();
+				}
+				if(cname == "job") {
+					temp.ptr = job.get();
+				}
+				if(cname == "religion") {
+					temp.ptr = religion.get();
+				}
+				if(cname == "ideology") {
+					temp.ptr = ideology.get();
+				}
+				if(cname == "issues") {
+					temp.ptr = issues.get();
+				}
+				if(cname == "militancy") {
+					temp.ptr = militancy.get();
+				}
+				if(cname == "consciousness") {
+					temp.ptr = consciousness.get();
+				}
+				if(cname == "employment") {
+					temp.ptr = employment.get();
+				}
+				if(cname == "literacy") {
+					temp.ptr = literacy.get();
+				}
+				if(cname == "money") {
+					temp.ptr = money.get();
+				}
+				if(cname == "needs") {
+					temp.ptr = needs.get();
+				}
+				if(cname == "frames") {
+					temp.ptr = frames.get();
+				}
+				if(cname == "focus_button") {
+					temp.ptr = focus_button.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::state_row"));
@@ -8215,30 +7569,32 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "folder_icon") {
-			auto cptr = std::make_unique<demographicswindow_state_row_folder_icon_t>();
-			cptr->parent = this;
-			folder_icon = cptr.get();
+			folder_icon = std::make_unique<demographicswindow_state_row_folder_icon_t>();
+			folder_icon->parent = this;
+			auto cptr = folder_icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_state_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_state_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8247,14 +7603,15 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_state_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_state_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8263,87 +7620,94 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_state_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_state_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_state_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_state_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_state_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_state_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_state_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_state_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_state_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_state_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_state_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_state_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_state_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_state_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8352,14 +7716,15 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_state_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_state_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8368,14 +7733,15 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_state_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_state_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8384,14 +7750,15 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_state_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_state_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8400,14 +7767,15 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_state_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_state_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -8416,49 +7784,58 @@ void demographicswindow_state_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_state_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_state_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_state_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_state_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "focus_button") {
-			auto cptr = std::make_unique<demographicswindow_state_row_focus_button_t>();
-			cptr->parent = this;
-			focus_button = cptr.get();
+			focus_button = std::make_unique<demographicswindow_state_row_focus_button_t>();
+			focus_button->parent = this;
+			auto cptr = focus_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN state_row::create
 // END
 }
@@ -8469,6 +7846,7 @@ std::unique_ptr<ui::element_base> make_demographicswindow_state_row(sys::state& 
 }
 ui::message_result demographicswindow_province_row_folder_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN province_row::folder_icon::lbutton_action
 	if(popwindow::open_provs.contains(province_row.content.index()))
@@ -8490,6 +7868,7 @@ void demographicswindow_province_row_folder_icon_t::render(sys::state & state, i
 }
 void demographicswindow_province_row_folder_icon_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::folder_icon::update
 	is_active = popwindow::open_provs.contains(province_row.content.index());
 // END
@@ -8522,6 +7901,7 @@ void demographicswindow_province_row_location_t::render(sys::state & state, int3
 }
 void demographicswindow_province_row_location_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::location::update
 	set_text(state, text::produce_simple_string(state, state.world.province_get_name(province_row.content)));
 // END
@@ -8554,6 +7934,7 @@ void demographicswindow_province_row_size_t::render(sys::state & state, int32_t 
 }
 void demographicswindow_province_row_size_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::size::update
 	float total = 0.0f;
 	
@@ -8578,6 +7959,7 @@ ui::message_result demographicswindow_province_row_size_trend_t::on_rbutton_down
 }
 void demographicswindow_province_row_size_trend_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::size_trend::tooltip
 	auto box = text::open_layout_box(contents);
 	text::localised_format_box(state, contents, box, "pop_growth_1");
@@ -8608,6 +7990,7 @@ void demographicswindow_province_row_size_trend_t::render(sys::state & state, in
 }
 void demographicswindow_province_row_size_trend_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::size_trend::update
 	auto result = demographics::get_monthly_pop_increase(state, province_row.content);
 	if(result > 0) {
@@ -8660,6 +8043,7 @@ void demographicswindow_province_row_culture_t::update_chart(sys::state& state) 
 }
 void demographicswindow_province_row_culture_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -8684,6 +8068,7 @@ void demographicswindow_province_row_culture_t::render(sys::state & state, int32
 }
 void demographicswindow_province_row_culture_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::culture::update
 	auto cultures = state.world.culture_make_vectorizable_float_buffer();
 	
@@ -8741,6 +8126,7 @@ void demographicswindow_province_row_job_t::update_chart(sys::state& state) {
 }
 void demographicswindow_province_row_job_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -8765,6 +8151,7 @@ void demographicswindow_province_row_job_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_province_row_job_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::job::update
 	auto jobs = state.world.pop_type_make_vectorizable_float_buffer();
 	
@@ -8822,6 +8209,7 @@ void demographicswindow_province_row_religion_t::update_chart(sys::state& state)
 }
 void demographicswindow_province_row_religion_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -8846,6 +8234,7 @@ void demographicswindow_province_row_religion_t::render(sys::state & state, int3
 }
 void demographicswindow_province_row_religion_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::religion::update
 	auto religions = state.world.religion_make_vectorizable_float_buffer();
 	
@@ -8903,6 +8292,7 @@ void demographicswindow_province_row_ideology_t::update_chart(sys::state& state)
 }
 void demographicswindow_province_row_ideology_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -8927,6 +8317,7 @@ void demographicswindow_province_row_ideology_t::render(sys::state & state, int3
 }
 void demographicswindow_province_row_ideology_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::ideology::update
 	auto ideologies = state.world.ideology_make_vectorizable_float_buffer();
 	
@@ -8986,6 +8377,7 @@ void demographicswindow_province_row_issues_t::update_chart(sys::state& state) {
 }
 void demographicswindow_province_row_issues_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -9012,6 +8404,7 @@ void demographicswindow_province_row_issues_t::render(sys::state & state, int32_
 }
 void demographicswindow_province_row_issues_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::issues::update
 	auto issues = state.world.issue_option_make_vectorizable_float_buffer();
 	
@@ -9060,6 +8453,7 @@ void demographicswindow_province_row_militancy_t::render(sys::state & state, int
 }
 void demographicswindow_province_row_militancy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::militancy::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -9101,6 +8495,7 @@ void demographicswindow_province_row_consciousness_t::render(sys::state & state,
 }
 void demographicswindow_province_row_consciousness_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::consciousness::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -9142,6 +8537,7 @@ void demographicswindow_province_row_employment_t::render(sys::state & state, in
 }
 void demographicswindow_province_row_employment_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::employment::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -9188,6 +8584,7 @@ void demographicswindow_province_row_literacy_t::render(sys::state & state, int3
 }
 void demographicswindow_province_row_literacy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::literacy::update
 	float total = 0.0f;
 	float sz = 0.0f;
@@ -9228,6 +8625,7 @@ void demographicswindow_province_row_money_t::render(sys::state & state, int32_t
 }
 void demographicswindow_province_row_money_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::money::update
 	float total = 0.0f;
 		for(auto o : state.world.province_get_pop_location(province_row.content)) {
@@ -9275,6 +8673,7 @@ void demographicswindow_province_row_needs_t::update_chart(sys::state& state) {
 }
 void demographicswindow_province_row_needs_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -9308,6 +8707,7 @@ void demographicswindow_province_row_needs_t::render(sys::state & state, int32_t
 }
 void demographicswindow_province_row_needs_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::needs::update
 	float lntotal = 0.0f;
 	float entotal = 0.0f;
@@ -9348,6 +8748,7 @@ void demographicswindow_province_row_frames_t::render(sys::state & state, int32_
 }
 void demographicswindow_province_row_frames_t::on_update(sys::state& state) noexcept {
 	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::frames::update
 // END
 }
@@ -9366,72 +8767,225 @@ void demographicswindow_province_row_t::render(sys::state & state, int32_t x, in
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_spacer = rel_mouse_x >= demographicswindow_main_table_header_t::spacer_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width);
-	bool col_um_location = rel_mouse_x >= demographicswindow_main_table_header_t::location_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width);
+	bool col_um_location = rel_mouse_x >= table_source->table_location_column_start && rel_mouse_x < (table_source->table_location_column_start + table_source->table_location_column_width);
 	if(col_um_location && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::location_column_start), float(y), float(demographicswindow_main_table_header_t::location_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_location_column_start), float(y), float(table_source->table_location_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_size = rel_mouse_x >= demographicswindow_main_table_header_t::size_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width);
+	bool col_um_size = rel_mouse_x >= table_source->table_size_column_start && rel_mouse_x < (table_source->table_size_column_start + table_source->table_size_column_width);
 	if(col_um_size && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::size_column_start), float(y), float(demographicswindow_main_table_header_t::size_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_size_column_start), float(y), float(table_source->table_size_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_culture = rel_mouse_x >= demographicswindow_main_table_header_t::culture_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width);
+	bool col_um_culture = rel_mouse_x >= table_source->table_culture_column_start && rel_mouse_x < (table_source->table_culture_column_start + table_source->table_culture_column_width);
 	if(col_um_culture && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::culture_column_start), float(y), float(demographicswindow_main_table_header_t::culture_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_culture_column_start), float(y), float(table_source->table_culture_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_job = rel_mouse_x >= demographicswindow_main_table_header_t::job_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width);
+	bool col_um_job = rel_mouse_x >= table_source->table_job_column_start && rel_mouse_x < (table_source->table_job_column_start + table_source->table_job_column_width);
 	if(col_um_job && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::job_column_start), float(y), float(demographicswindow_main_table_header_t::job_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_job_column_start), float(y), float(table_source->table_job_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_religion = rel_mouse_x >= demographicswindow_main_table_header_t::religion_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width);
+	bool col_um_religion = rel_mouse_x >= table_source->table_religion_column_start && rel_mouse_x < (table_source->table_religion_column_start + table_source->table_religion_column_width);
 	if(col_um_religion && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::religion_column_start), float(y), float(demographicswindow_main_table_header_t::religion_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_religion_column_start), float(y), float(table_source->table_religion_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_ideology = rel_mouse_x >= demographicswindow_main_table_header_t::ideology_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width);
+	bool col_um_ideology = rel_mouse_x >= table_source->table_ideology_column_start && rel_mouse_x < (table_source->table_ideology_column_start + table_source->table_ideology_column_width);
 	if(col_um_ideology && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::ideology_column_start), float(y), float(demographicswindow_main_table_header_t::ideology_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_ideology_column_start), float(y), float(table_source->table_ideology_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_issues = rel_mouse_x >= demographicswindow_main_table_header_t::issues_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width);
+	bool col_um_issues = rel_mouse_x >= table_source->table_issues_column_start && rel_mouse_x < (table_source->table_issues_column_start + table_source->table_issues_column_width);
 	if(col_um_issues && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::issues_column_start), float(y), float(demographicswindow_main_table_header_t::issues_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_issues_column_start), float(y), float(table_source->table_issues_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_militancy = rel_mouse_x >= demographicswindow_main_table_header_t::militancy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width);
+	bool col_um_militancy = rel_mouse_x >= table_source->table_militancy_column_start && rel_mouse_x < (table_source->table_militancy_column_start + table_source->table_militancy_column_width);
 	if(col_um_militancy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::militancy_column_start), float(y), float(demographicswindow_main_table_header_t::militancy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_militancy_column_start), float(y), float(table_source->table_militancy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_consciousness = rel_mouse_x >= demographicswindow_main_table_header_t::consciousness_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width);
+	bool col_um_consciousness = rel_mouse_x >= table_source->table_consciousness_column_start && rel_mouse_x < (table_source->table_consciousness_column_start + table_source->table_consciousness_column_width);
 	if(col_um_consciousness && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::consciousness_column_start), float(y), float(demographicswindow_main_table_header_t::consciousness_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_consciousness_column_start), float(y), float(table_source->table_consciousness_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_employment = rel_mouse_x >= demographicswindow_main_table_header_t::employment_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width);
+	bool col_um_employment = rel_mouse_x >= table_source->table_employment_column_start && rel_mouse_x < (table_source->table_employment_column_start + table_source->table_employment_column_width);
 	if(col_um_employment && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::employment_column_start), float(y), float(demographicswindow_main_table_header_t::employment_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_employment_column_start), float(y), float(table_source->table_employment_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_literacy = rel_mouse_x >= demographicswindow_main_table_header_t::literacy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width);
+	bool col_um_literacy = rel_mouse_x >= table_source->table_literacy_column_start && rel_mouse_x < (table_source->table_literacy_column_start + table_source->table_literacy_column_width);
 	if(col_um_literacy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::literacy_column_start), float(y), float(demographicswindow_main_table_header_t::literacy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_literacy_column_start), float(y), float(table_source->table_literacy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_money = rel_mouse_x >= demographicswindow_main_table_header_t::money_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width);
+	bool col_um_money = rel_mouse_x >= table_source->table_money_column_start && rel_mouse_x < (table_source->table_money_column_start + table_source->table_money_column_width);
 	if(col_um_money && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::money_column_start), float(y), float(demographicswindow_main_table_header_t::money_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_money_column_start), float(y), float(table_source->table_money_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_needs = rel_mouse_x >= demographicswindow_main_table_header_t::needs_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width);
+	bool col_um_needs = rel_mouse_x >= table_source->table_needs_column_start && rel_mouse_x < (table_source->table_needs_column_start + table_source->table_needs_column_width);
 	if(col_um_needs && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::needs_column_start), float(y), float(demographicswindow_main_table_header_t::needs_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_needs_column_start), float(y), float(table_source->table_needs_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_rebels = rel_mouse_x >= demographicswindow_main_table_header_t::rebels_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width);
+	bool col_um_rebels = rel_mouse_x >= table_source->table_rebels_column_start && rel_mouse_x < (table_source->table_rebels_column_start + table_source->table_rebels_column_width);
 	if(col_um_rebels && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::rebels_column_start), float(y), float(demographicswindow_main_table_header_t::rebels_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_rebels_column_start), float(y), float(table_source->table_rebels_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
 }
 void demographicswindow_province_row_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN province_row::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_province_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "folder_icon") {
+					temp.ptr = folder_icon.get();
+				}
+				if(cname == "location") {
+					temp.ptr = location.get();
+				}
+				if(cname == "size") {
+					temp.ptr = size.get();
+				}
+				if(cname == "size_trend") {
+					temp.ptr = size_trend.get();
+				}
+				if(cname == "culture") {
+					temp.ptr = culture.get();
+				}
+				if(cname == "job") {
+					temp.ptr = job.get();
+				}
+				if(cname == "religion") {
+					temp.ptr = religion.get();
+				}
+				if(cname == "ideology") {
+					temp.ptr = ideology.get();
+				}
+				if(cname == "issues") {
+					temp.ptr = issues.get();
+				}
+				if(cname == "militancy") {
+					temp.ptr = militancy.get();
+				}
+				if(cname == "consciousness") {
+					temp.ptr = consciousness.get();
+				}
+				if(cname == "employment") {
+					temp.ptr = employment.get();
+				}
+				if(cname == "literacy") {
+					temp.ptr = literacy.get();
+				}
+				if(cname == "money") {
+					temp.ptr = money.get();
+				}
+				if(cname == "needs") {
+					temp.ptr = needs.get();
+				}
+				if(cname == "frames") {
+					temp.ptr = frames.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::province_row"));
@@ -9451,30 +9005,32 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "folder_icon") {
-			auto cptr = std::make_unique<demographicswindow_province_row_folder_icon_t>();
-			cptr->parent = this;
-			folder_icon = cptr.get();
+			folder_icon = std::make_unique<demographicswindow_province_row_folder_icon_t>();
+			folder_icon->parent = this;
+			auto cptr = folder_icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_province_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_province_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9483,14 +9039,15 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_province_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_province_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9499,87 +9056,94 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_province_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_province_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_province_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_province_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_province_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_province_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_province_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_province_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_province_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_province_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_province_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_province_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_province_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_province_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9588,14 +9152,15 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_province_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_province_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9604,14 +9169,15 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_province_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_province_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9620,14 +9186,15 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_province_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_province_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9636,14 +9203,15 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_province_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_province_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -9652,36 +9220,44 @@ void demographicswindow_province_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_province_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_province_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_province_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_province_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN province_row::create
 // END
 }
@@ -9714,6 +9290,7 @@ void demographicswindow_pop_row_location_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_pop_row_location_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::location::update
 	if(popwindow::show_only_pops) {
 		auto loc = state.world.pop_get_province_from_pop_location(pop_row.value);
@@ -9730,6 +9307,7 @@ void demographicswindow_pop_row_location_t::on_create(sys::state& state) noexcep
 }
 void demographicswindow_pop_row_size_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::size::tooltip
 	auto pop = pop_row.value;
 	auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
@@ -9844,6 +9422,7 @@ void demographicswindow_pop_row_size_t::render(sys::state & state, int32_t x, in
 }
 void demographicswindow_pop_row_size_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::size::update
 	set_text(state, text::prettify(int64_t(state.world.pop_get_size(pop_row.value))));
 // END
@@ -9860,6 +9439,7 @@ ui::message_result demographicswindow_pop_row_size_trend_t::on_rbutton_down(sys:
 }
 void demographicswindow_pop_row_size_trend_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::size_trend::tooltip
 	ui::describe_growth(state, contents, pop_row.value);
 // END
@@ -9880,6 +9460,7 @@ void demographicswindow_pop_row_size_trend_t::render(sys::state & state, int32_t
 }
 void demographicswindow_pop_row_size_trend_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::size_trend::update
 	auto result = int64_t(demographics::get_monthly_pop_increase(state, pop_row.value));
 	if(result > 0) {
@@ -9906,6 +9487,7 @@ ui::message_result demographicswindow_pop_row_culture_t::on_rbutton_down(sys::st
 }
 void demographicswindow_pop_row_culture_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::culture::tooltip
 	text::add_line(state, contents, state.world.pop_get_culture(pop_row.value).get_name());
 // END
@@ -9915,6 +9497,7 @@ void demographicswindow_pop_row_culture_t::render(sys::state & state, int32_t x,
 }
 void demographicswindow_pop_row_culture_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::culture::update
 	auto c = ogl::unpack_color(state.world.pop_get_culture(pop_row.value).get_color());
 	color.r = c.r; color.b = c.b; color.g = c.g;
@@ -9932,6 +9515,7 @@ ui::message_result demographicswindow_pop_row_job_t::on_rbutton_down(sys::state&
 }
 void demographicswindow_pop_row_job_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::job::tooltip
 	text::add_line(state, contents, state.world.pop_get_poptype(pop_row.value).get_name());
 // END
@@ -9952,6 +9536,7 @@ void demographicswindow_pop_row_job_t::render(sys::state & state, int32_t x, int
 }
 void demographicswindow_pop_row_job_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::job::update
 	frame = int32_t(state.world.pop_get_poptype(pop_row.value).get_sprite()) - 1;
 // END
@@ -9971,6 +9556,7 @@ ui::message_result demographicswindow_pop_row_religion_t::on_rbutton_down(sys::s
 }
 void demographicswindow_pop_row_religion_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::religion::tooltip
 	text::add_line(state, contents, state.world.pop_get_religion(pop_row.value).get_name());
 // END
@@ -9991,6 +9577,7 @@ void demographicswindow_pop_row_religion_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_pop_row_religion_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::religion::update
 	frame = int32_t(state.world.pop_get_religion(pop_row.value).get_icon()) - 1;
 // END
@@ -10036,6 +9623,7 @@ void demographicswindow_pop_row_ideology_t::update_chart(sys::state& state) {
 }
 void demographicswindow_pop_row_ideology_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -10060,6 +9648,7 @@ void demographicswindow_pop_row_ideology_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_pop_row_ideology_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::ideology::update
 	graph_content.clear();
 	for(auto i : state.world.in_ideology) {
@@ -10108,6 +9697,7 @@ void demographicswindow_pop_row_issues_t::update_chart(sys::state& state) {
 }
 void demographicswindow_pop_row_issues_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -10134,6 +9724,7 @@ void demographicswindow_pop_row_issues_t::render(sys::state & state, int32_t x, 
 }
 void demographicswindow_pop_row_issues_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::issues::update
 	graph_content.clear();
 	for(auto i : state.world.in_issue_option) {
@@ -10150,6 +9741,7 @@ void demographicswindow_pop_row_issues_t::on_create(sys::state& state) noexcept 
 }
 void demographicswindow_pop_row_militancy_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::militancy::tooltip
 	ui::describe_mil(state, contents, pop_row.value);
 // END
@@ -10178,6 +9770,7 @@ void demographicswindow_pop_row_militancy_t::render(sys::state & state, int32_t 
 }
 void demographicswindow_pop_row_militancy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::militancy::update
 	set_text(state, text::format_float(pop_demographics::get_militancy(state, pop_row.value), 1));
 // END
@@ -10188,6 +9781,7 @@ void demographicswindow_pop_row_militancy_t::on_create(sys::state& state) noexce
 }
 void demographicswindow_pop_row_consciousness_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::consciousness::tooltip
 	ui::describe_con(state, contents, pop_row.value);
 // END
@@ -10216,6 +9810,7 @@ void demographicswindow_pop_row_consciousness_t::render(sys::state & state, int3
 }
 void demographicswindow_pop_row_consciousness_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::consciousness::update
 	set_text(state, text::format_float(pop_demographics::get_consciousness(state, pop_row.value), 1));
 // END
@@ -10248,6 +9843,7 @@ void demographicswindow_pop_row_employment_t::render(sys::state & state, int32_t
 }
 void demographicswindow_pop_row_employment_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::employment::update
 	if(state.world.pop_get_poptype(pop_row.value).get_has_unemployment()) {
 		auto sz = state.world.pop_get_size(pop_row.value);
@@ -10263,6 +9859,7 @@ void demographicswindow_pop_row_employment_t::on_create(sys::state& state) noexc
 }
 void demographicswindow_pop_row_literacy_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::literacy::tooltip
 	ui::describe_lit(state, contents, pop_row.value);
 // END
@@ -10291,6 +9888,7 @@ void demographicswindow_pop_row_literacy_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_pop_row_literacy_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::literacy::update
 	set_text(state, text::format_percentage(pop_demographics::get_literacy(state, pop_row.value), 0));
 // END
@@ -10323,6 +9921,7 @@ void demographicswindow_pop_row_money_t::render(sys::state & state, int32_t x, i
 }
 void demographicswindow_pop_row_money_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::money::update
 	set_text(state, text::prettify_currency(state.world.pop_get_savings(pop_row.value)));
 // END
@@ -10364,6 +9963,7 @@ void demographicswindow_pop_row_needs_t::update_chart(sys::state& state) {
 }
 void demographicswindow_pop_row_needs_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float temp_offset = temp_total * float(x) / float(base_data.size.x);
@@ -10397,6 +9997,7 @@ void demographicswindow_pop_row_needs_t::render(sys::state & state, int32_t x, i
 }
 void demographicswindow_pop_row_needs_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::needs::update
 	float lntotal = pop_demographics::get_life_needs(state, pop_row.value);
 	float entotal = pop_demographics::get_everyday_needs(state, pop_row.value);
@@ -10487,6 +10088,7 @@ void demographicswindow_pop_row_rebel_flag_t::render(sys::state & state, int32_t
 }
 void demographicswindow_pop_row_rebel_flag_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::rebel_flag::update
 	if(auto rf = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop_row.value); rf) {
 		flag = rf;
@@ -10509,6 +10111,7 @@ void demographicswindow_pop_row_rebel_flag_t::on_create(sys::state& state) noexc
 }
 void demographicswindow_pop_row_culture_name_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::culture_name::tooltip
 	ui::describe_assimilation(state, contents, pop_row.value);
 // END
@@ -10537,6 +10140,7 @@ void demographicswindow_pop_row_culture_name_t::render(sys::state & state, int32
 }
 void demographicswindow_pop_row_culture_name_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::culture_name::update
 	set_text(state, text::produce_simple_string(state, state.world.pop_get_culture(pop_row.value).get_name()));
 // END
@@ -10569,6 +10173,7 @@ void demographicswindow_pop_row_job_name_t::render(sys::state & state, int32_t x
 }
 void demographicswindow_pop_row_job_name_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::job_name::update
 	set_text(state, text::produce_simple_string(state, state.world.pop_get_poptype(pop_row.value).get_name()));
 // END
@@ -10601,6 +10206,7 @@ void demographicswindow_pop_row_religion_name_t::render(sys::state & state, int3
 }
 void demographicswindow_pop_row_religion_name_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::religion_name::update
 	set_text(state, text::produce_simple_string(state, state.world.pop_get_religion(pop_row.value).get_name()));
 // END
@@ -10620,6 +10226,7 @@ void demographicswindow_pop_row_frames_t::render(sys::state & state, int32_t x, 
 }
 void demographicswindow_pop_row_frames_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::frames::update
 // END
 }
@@ -10635,6 +10242,7 @@ ui::message_result demographicswindow_pop_row_movement_political_t::on_rbutton_d
 }
 void demographicswindow_pop_row_movement_political_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::movement_political::tooltip
 	auto m = state.world.pop_get_movement_from_pop_movement_membership(pop_row.value);
 	if(m) {
@@ -10659,6 +10267,7 @@ void demographicswindow_pop_row_movement_political_t::render(sys::state & state,
 }
 void demographicswindow_pop_row_movement_political_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::movement_political::update
 	if(auto m = state.world.pop_get_movement_from_pop_movement_membership(pop_row.value); m) {
 		auto parent_issue = state.world.movement_get_associated_issue_option(m).get_parent_issue();
@@ -10690,6 +10299,7 @@ ui::message_result demographicswindow_pop_row_movement_social_t::on_rbutton_down
 }
 void demographicswindow_pop_row_movement_social_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::movement_social::tooltip
 	auto m = state.world.pop_get_movement_from_pop_movement_membership(pop_row.value);
 	if(m) {
@@ -10714,6 +10324,7 @@ void demographicswindow_pop_row_movement_social_t::render(sys::state & state, in
 }
 void demographicswindow_pop_row_movement_social_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::movement_social::update
 	if(auto m = state.world.pop_get_movement_from_pop_movement_membership(pop_row.value); m) {
 		auto parent_issue = state.world.movement_get_associated_issue_option(m).get_parent_issue();
@@ -10739,14 +10350,15 @@ void demographicswindow_pop_row_movement_social_t::on_create(sys::state& state) 
 }
 ui::message_result demographicswindow_pop_row_details_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN pop_row::details_button::lbutton_action
-	auto dwindow_ptr = (ui::pop_details_window**)(parent->parent->parent->get_by_name(state, "details_w"));
-	assert(dwindow_ptr);
+	assert(main.details_w);
 	Cyto::Any payload = ui::pop_details_data{ pop_row.value };
-	(*dwindow_ptr)->impl_set(state, payload);
-	if(!(*dwindow_ptr)->is_visible())
-		(*dwindow_ptr)->set_visible(state, true);
+	main.details_w->impl_set(state, payload);
+	if(!main.details_w->is_visible())
+		main.details_w->set_visible(state, true);
+	main.details_w->parent->move_child_to_front(main.details_w);
 // END
 	return ui::message_result::consumed;
 }
@@ -10761,6 +10373,7 @@ void demographicswindow_pop_row_details_button_t::render(sys::state & state, int
 }
 void demographicswindow_pop_row_details_button_t::on_update(sys::state& state) noexcept {
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::details_button::update
 // END
 }
@@ -10779,72 +10392,243 @@ void demographicswindow_pop_row_t::render(sys::state & state, int32_t x, int32_t
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_spacer = rel_mouse_x >= demographicswindow_main_table_header_t::spacer_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::spacer_column_start + demographicswindow_main_table_header_t::spacer_column_width);
-	bool col_um_location = rel_mouse_x >= demographicswindow_main_table_header_t::location_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::location_column_start + demographicswindow_main_table_header_t::location_column_width);
+	bool col_um_location = rel_mouse_x >= table_source->table_location_column_start && rel_mouse_x < (table_source->table_location_column_start + table_source->table_location_column_width);
 	if(col_um_location && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::location_column_start), float(y), float(demographicswindow_main_table_header_t::location_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_location_column_start), float(y), float(table_source->table_location_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_size = rel_mouse_x >= demographicswindow_main_table_header_t::size_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::size_column_start + demographicswindow_main_table_header_t::size_column_width);
+	bool col_um_size = rel_mouse_x >= table_source->table_size_column_start && rel_mouse_x < (table_source->table_size_column_start + table_source->table_size_column_width);
 	if(col_um_size && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::size_column_start), float(y), float(demographicswindow_main_table_header_t::size_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_size_column_start), float(y), float(table_source->table_size_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_culture = rel_mouse_x >= demographicswindow_main_table_header_t::culture_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::culture_column_start + demographicswindow_main_table_header_t::culture_column_width);
+	bool col_um_culture = rel_mouse_x >= table_source->table_culture_column_start && rel_mouse_x < (table_source->table_culture_column_start + table_source->table_culture_column_width);
 	if(col_um_culture && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::culture_column_start), float(y), float(demographicswindow_main_table_header_t::culture_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_culture_column_start), float(y), float(table_source->table_culture_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_job = rel_mouse_x >= demographicswindow_main_table_header_t::job_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::job_column_start + demographicswindow_main_table_header_t::job_column_width);
+	bool col_um_job = rel_mouse_x >= table_source->table_job_column_start && rel_mouse_x < (table_source->table_job_column_start + table_source->table_job_column_width);
 	if(col_um_job && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::job_column_start), float(y), float(demographicswindow_main_table_header_t::job_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_job_column_start), float(y), float(table_source->table_job_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_religion = rel_mouse_x >= demographicswindow_main_table_header_t::religion_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::religion_column_start + demographicswindow_main_table_header_t::religion_column_width);
+	bool col_um_religion = rel_mouse_x >= table_source->table_religion_column_start && rel_mouse_x < (table_source->table_religion_column_start + table_source->table_religion_column_width);
 	if(col_um_religion && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::religion_column_start), float(y), float(demographicswindow_main_table_header_t::religion_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_religion_column_start), float(y), float(table_source->table_religion_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_ideology = rel_mouse_x >= demographicswindow_main_table_header_t::ideology_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::ideology_column_start + demographicswindow_main_table_header_t::ideology_column_width);
+	bool col_um_ideology = rel_mouse_x >= table_source->table_ideology_column_start && rel_mouse_x < (table_source->table_ideology_column_start + table_source->table_ideology_column_width);
 	if(col_um_ideology && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::ideology_column_start), float(y), float(demographicswindow_main_table_header_t::ideology_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_ideology_column_start), float(y), float(table_source->table_ideology_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_issues = rel_mouse_x >= demographicswindow_main_table_header_t::issues_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::issues_column_start + demographicswindow_main_table_header_t::issues_column_width);
+	bool col_um_issues = rel_mouse_x >= table_source->table_issues_column_start && rel_mouse_x < (table_source->table_issues_column_start + table_source->table_issues_column_width);
 	if(col_um_issues && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::issues_column_start), float(y), float(demographicswindow_main_table_header_t::issues_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_issues_column_start), float(y), float(table_source->table_issues_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_militancy = rel_mouse_x >= demographicswindow_main_table_header_t::militancy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::militancy_column_start + demographicswindow_main_table_header_t::militancy_column_width);
+	bool col_um_militancy = rel_mouse_x >= table_source->table_militancy_column_start && rel_mouse_x < (table_source->table_militancy_column_start + table_source->table_militancy_column_width);
 	if(col_um_militancy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::militancy_column_start), float(y), float(demographicswindow_main_table_header_t::militancy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_militancy_column_start), float(y), float(table_source->table_militancy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_consciousness = rel_mouse_x >= demographicswindow_main_table_header_t::consciousness_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::consciousness_column_start + demographicswindow_main_table_header_t::consciousness_column_width);
+	bool col_um_consciousness = rel_mouse_x >= table_source->table_consciousness_column_start && rel_mouse_x < (table_source->table_consciousness_column_start + table_source->table_consciousness_column_width);
 	if(col_um_consciousness && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::consciousness_column_start), float(y), float(demographicswindow_main_table_header_t::consciousness_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_consciousness_column_start), float(y), float(table_source->table_consciousness_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_employment = rel_mouse_x >= demographicswindow_main_table_header_t::employment_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::employment_column_start + demographicswindow_main_table_header_t::employment_column_width);
+	bool col_um_employment = rel_mouse_x >= table_source->table_employment_column_start && rel_mouse_x < (table_source->table_employment_column_start + table_source->table_employment_column_width);
 	if(col_um_employment && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::employment_column_start), float(y), float(demographicswindow_main_table_header_t::employment_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_employment_column_start), float(y), float(table_source->table_employment_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_literacy = rel_mouse_x >= demographicswindow_main_table_header_t::literacy_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::literacy_column_start + demographicswindow_main_table_header_t::literacy_column_width);
+	bool col_um_literacy = rel_mouse_x >= table_source->table_literacy_column_start && rel_mouse_x < (table_source->table_literacy_column_start + table_source->table_literacy_column_width);
 	if(col_um_literacy && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::literacy_column_start), float(y), float(demographicswindow_main_table_header_t::literacy_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_literacy_column_start), float(y), float(table_source->table_literacy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_money = rel_mouse_x >= demographicswindow_main_table_header_t::money_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::money_column_start + demographicswindow_main_table_header_t::money_column_width);
+	bool col_um_money = rel_mouse_x >= table_source->table_money_column_start && rel_mouse_x < (table_source->table_money_column_start + table_source->table_money_column_width);
 	if(col_um_money && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::money_column_start), float(y), float(demographicswindow_main_table_header_t::money_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_money_column_start), float(y), float(table_source->table_money_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_needs = rel_mouse_x >= demographicswindow_main_table_header_t::needs_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::needs_column_start + demographicswindow_main_table_header_t::needs_column_width);
+	bool col_um_needs = rel_mouse_x >= table_source->table_needs_column_start && rel_mouse_x < (table_source->table_needs_column_start + table_source->table_needs_column_width);
 	if(col_um_needs && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::needs_column_start), float(y), float(demographicswindow_main_table_header_t::needs_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_needs_column_start), float(y), float(table_source->table_needs_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
-	bool col_um_rebels = rel_mouse_x >= demographicswindow_main_table_header_t::rebels_column_start && rel_mouse_x < (demographicswindow_main_table_header_t::rebels_column_start + demographicswindow_main_table_header_t::rebels_column_width);
+	bool col_um_rebels = rel_mouse_x >= table_source->table_rebels_column_start && rel_mouse_x < (table_source->table_rebels_column_start + table_source->table_rebels_column_width);
 	if(col_um_rebels && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + demographicswindow_main_table_header_t::rebels_column_start), float(y), float(demographicswindow_main_table_header_t::rebels_column_width), float(base_data.size.y), demographicswindow_main_table_t::table_highlight_color.r, demographicswindow_main_table_t::table_highlight_color.g, demographicswindow_main_table_t::table_highlight_color.b, demographicswindow_main_table_t::table_highlight_color.a);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_rebels_column_start), float(y), float(table_source->table_rebels_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
 	}
 }
 void demographicswindow_pop_row_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_pop_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "location") {
+					temp.ptr = location.get();
+				}
+				if(cname == "size") {
+					temp.ptr = size.get();
+				}
+				if(cname == "size_trend") {
+					temp.ptr = size_trend.get();
+				}
+				if(cname == "culture") {
+					temp.ptr = culture.get();
+				}
+				if(cname == "job") {
+					temp.ptr = job.get();
+				}
+				if(cname == "religion") {
+					temp.ptr = religion.get();
+				}
+				if(cname == "ideology") {
+					temp.ptr = ideology.get();
+				}
+				if(cname == "issues") {
+					temp.ptr = issues.get();
+				}
+				if(cname == "militancy") {
+					temp.ptr = militancy.get();
+				}
+				if(cname == "consciousness") {
+					temp.ptr = consciousness.get();
+				}
+				if(cname == "employment") {
+					temp.ptr = employment.get();
+				}
+				if(cname == "literacy") {
+					temp.ptr = literacy.get();
+				}
+				if(cname == "money") {
+					temp.ptr = money.get();
+				}
+				if(cname == "needs") {
+					temp.ptr = needs.get();
+				}
+				if(cname == "rebel_flag") {
+					temp.ptr = rebel_flag.get();
+				}
+				if(cname == "culture_name") {
+					temp.ptr = culture_name.get();
+				}
+				if(cname == "job_name") {
+					temp.ptr = job_name.get();
+				}
+				if(cname == "religion_name") {
+					temp.ptr = religion_name.get();
+				}
+				if(cname == "frames") {
+					temp.ptr = frames.get();
+				}
+				if(cname == "movement_political") {
+					temp.ptr = movement_political.get();
+				}
+				if(cname == "movement_social") {
+					temp.ptr = movement_social.get();
+				}
+				if(cname == "details_button") {
+					temp.ptr = details_button.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::pop_row"));
@@ -10864,16 +10648,17 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "location") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_location_t>();
-			cptr->parent = this;
-			location = cptr.get();
+			location = std::make_unique<demographicswindow_pop_row_location_t>();
+			location->parent = this;
+			auto cptr = location.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -10882,14 +10667,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_size_t>();
-			cptr->parent = this;
-			size = cptr.get();
+			size = std::make_unique<demographicswindow_pop_row_size_t>();
+			size->parent = this;
+			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -10898,90 +10684,97 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "size_trend") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_size_trend_t>();
-			cptr->parent = this;
-			size_trend = cptr.get();
+			size_trend = std::make_unique<demographicswindow_pop_row_size_trend_t>();
+			size_trend->parent = this;
+			auto cptr = size_trend.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_culture_t>();
-			cptr->parent = this;
-			culture = cptr.get();
+			culture = std::make_unique<demographicswindow_pop_row_culture_t>();
+			culture->parent = this;
+			auto cptr = culture.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->color = child_data.table_highlight_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_job_t>();
-			cptr->parent = this;
-			job = cptr.get();
+			job = std::make_unique<demographicswindow_pop_row_job_t>();
+			job->parent = this;
+			auto cptr = job.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_religion_t>();
-			cptr->parent = this;
-			religion = cptr.get();
+			religion = std::make_unique<demographicswindow_pop_row_religion_t>();
+			religion->parent = this;
+			auto cptr = religion.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "ideology") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_ideology_t>();
-			cptr->parent = this;
-			ideology = cptr.get();
+			ideology = std::make_unique<demographicswindow_pop_row_ideology_t>();
+			ideology->parent = this;
+			auto cptr = ideology.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "issues") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_issues_t>();
-			cptr->parent = this;
-			issues = cptr.get();
+			issues = std::make_unique<demographicswindow_pop_row_issues_t>();
+			issues->parent = this;
+			auto cptr = issues.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "militancy") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_militancy_t>();
-			cptr->parent = this;
-			militancy = cptr.get();
+			militancy = std::make_unique<demographicswindow_pop_row_militancy_t>();
+			militancy->parent = this;
+			auto cptr = militancy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -10990,14 +10783,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "consciousness") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_consciousness_t>();
-			cptr->parent = this;
-			consciousness = cptr.get();
+			consciousness = std::make_unique<demographicswindow_pop_row_consciousness_t>();
+			consciousness->parent = this;
+			auto cptr = consciousness.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11006,14 +10800,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "employment") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_employment_t>();
-			cptr->parent = this;
-			employment = cptr.get();
+			employment = std::make_unique<demographicswindow_pop_row_employment_t>();
+			employment->parent = this;
+			auto cptr = employment.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11022,14 +10817,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "literacy") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_literacy_t>();
-			cptr->parent = this;
-			literacy = cptr.get();
+			literacy = std::make_unique<demographicswindow_pop_row_literacy_t>();
+			literacy->parent = this;
+			auto cptr = literacy.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11038,14 +10834,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "money") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_money_t>();
-			cptr->parent = this;
-			money = cptr.get();
+			money = std::make_unique<demographicswindow_pop_row_money_t>();
+			money->parent = this;
+			auto cptr = money.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11054,39 +10851,42 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "needs") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_needs_t>();
-			cptr->parent = this;
-			needs = cptr.get();
+			needs = std::make_unique<demographicswindow_pop_row_needs_t>();
+			needs->parent = this;
+			auto cptr = needs.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "rebel_flag") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_rebel_flag_t>();
-			cptr->parent = this;
-			rebel_flag = cptr.get();
+			rebel_flag = std::make_unique<demographicswindow_pop_row_rebel_flag_t>();
+			rebel_flag->parent = this;
+			auto cptr = rebel_flag.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture_name") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_culture_name_t>();
-			cptr->parent = this;
-			culture_name = cptr.get();
+			culture_name = std::make_unique<demographicswindow_pop_row_culture_name_t>();
+			culture_name->parent = this;
+			auto cptr = culture_name.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11095,14 +10895,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job_name") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_job_name_t>();
-			cptr->parent = this;
-			job_name = cptr.get();
+			job_name = std::make_unique<demographicswindow_pop_row_job_name_t>();
+			job_name->parent = this;
+			auto cptr = job_name.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11111,14 +10912,15 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion_name") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_religion_name_t>();
-			cptr->parent = this;
-			religion_name = cptr.get();
+			religion_name = std::make_unique<demographicswindow_pop_row_religion_name_t>();
+			religion_name->parent = this;
+			auto cptr = religion_name.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -11127,66 +10929,76 @@ void demographicswindow_pop_row_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "frames") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_frames_t>();
-			cptr->parent = this;
-			frames = cptr.get();
+			frames = std::make_unique<demographicswindow_pop_row_frames_t>();
+			frames->parent = this;
+			auto cptr = frames.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "movement_political") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_movement_political_t>();
-			cptr->parent = this;
-			movement_political = cptr.get();
+			movement_political = std::make_unique<demographicswindow_pop_row_movement_political_t>();
+			movement_political->parent = this;
+			auto cptr = movement_political.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "movement_social") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_movement_social_t>();
-			cptr->parent = this;
-			movement_social = cptr.get();
+			movement_social = std::make_unique<demographicswindow_pop_row_movement_social_t>();
+			movement_social->parent = this;
+			auto cptr = movement_social.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "details_button") {
-			auto cptr = std::make_unique<demographicswindow_pop_row_details_button_t>();
-			cptr->parent = this;
-			details_button = cptr.get();
+			details_button = std::make_unique<demographicswindow_pop_row_details_button_t>();
+			details_button->parent = this;
+			auto cptr = details_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN pop_row::create
 // END
 }
@@ -11194,6 +11006,169 @@ std::unique_ptr<ui::element_base> make_demographicswindow_pop_row(sys::state& st
 	auto ptr = std::make_unique<demographicswindow_pop_row_t>();
 	ptr->on_create(state);
 	return ptr;
+}
+void demographicswindow_filters_window_jobs_list_t::add_job_filter(dcon::pop_type_id value) {
+	values.emplace_back(job_filter_option{value});
+}
+void  demographicswindow_filters_window_jobs_list_t::on_create(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::jobs_list::on_create
+	for(auto j : state.world.in_pop_type)
+		add_job_filter(j.id);
+	std::sort(values.begin(), values.end(), [&](auto& a, auto& b) {
+		return text::produce_simple_string(state, state.world.pop_type_get_name(get<job_filter_option>(a).value)) < text::produce_simple_string(state, state.world.pop_type_get_name(get<job_filter_option>(b).value));
+	});
+// END
+}
+void  demographicswindow_filters_window_jobs_list_t::update(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::jobs_list::update
+// END
+}
+measure_result  demographicswindow_filters_window_jobs_list_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<job_filter_option>(values[index])) {
+		if(job_filter_pool.empty()) job_filter_pool.emplace_back(make_demographicswindow_job_filter(state));
+		if(destination) {
+			if(job_filter_pool.size() <= size_t(job_filter_pool_used)) job_filter_pool.emplace_back(make_demographicswindow_job_filter(state));
+			job_filter_pool[job_filter_pool_used]->base_data.position.x = int16_t(x);
+			job_filter_pool[job_filter_pool_used]->base_data.position.y = int16_t(y);
+			job_filter_pool[job_filter_pool_used]->parent = destination;
+			destination->children.push_back(job_filter_pool[job_filter_pool_used].get());
+			((demographicswindow_job_filter_t*)(job_filter_pool[job_filter_pool_used].get()))->value = std::get<job_filter_option>(values[index]).value;
+			job_filter_pool[job_filter_pool_used]->impl_on_update(state);
+			job_filter_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ job_filter_pool[0]->base_data.size.x, job_filter_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  demographicswindow_filters_window_jobs_list_t::reset_pools() {
+	job_filter_pool_used = 0;
+}
+void demographicswindow_filters_window_culture_list_t::add_culture_filter(dcon::culture_id value) {
+	values.emplace_back(culture_filter_option{value});
+}
+void  demographicswindow_filters_window_culture_list_t::on_create(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::culture_list::on_create
+	for(auto c : state.world.in_culture) {
+		add_culture_filter(c.id);
+	}
+	std::sort(values.begin(), values.end(), [&](auto& a, auto& b) {
+		return text::produce_simple_string(state, state.world.culture_get_name(get<culture_filter_option>(a).value)) < text::produce_simple_string(state, state.world.culture_get_name(get<culture_filter_option>(b).value));
+	});
+// END
+}
+void  demographicswindow_filters_window_culture_list_t::update(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::culture_list::update
+// END
+}
+measure_result  demographicswindow_filters_window_culture_list_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<culture_filter_option>(values[index])) {
+		if(culture_filter_pool.empty()) culture_filter_pool.emplace_back(make_demographicswindow_culture_filter(state));
+		if(destination) {
+			if(culture_filter_pool.size() <= size_t(culture_filter_pool_used)) culture_filter_pool.emplace_back(make_demographicswindow_culture_filter(state));
+			culture_filter_pool[culture_filter_pool_used]->base_data.position.x = int16_t(x);
+			culture_filter_pool[culture_filter_pool_used]->base_data.position.y = int16_t(y);
+			culture_filter_pool[culture_filter_pool_used]->parent = destination;
+			destination->children.push_back(culture_filter_pool[culture_filter_pool_used].get());
+			((demographicswindow_culture_filter_t*)(culture_filter_pool[culture_filter_pool_used].get()))->value = std::get<culture_filter_option>(values[index]).value;
+			culture_filter_pool[culture_filter_pool_used]->impl_on_update(state);
+			culture_filter_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ culture_filter_pool[0]->base_data.size.x, culture_filter_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  demographicswindow_filters_window_culture_list_t::reset_pools() {
+	culture_filter_pool_used = 0;
+}
+void demographicswindow_filters_window_religion_list_t::add_religion_filter(dcon::religion_id value) {
+	values.emplace_back(religion_filter_option{value});
+}
+void  demographicswindow_filters_window_religion_list_t::on_create(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::religion_list::on_create
+	for(auto r : state.world.in_religion)
+		add_religion_filter(r.id);
+	std::sort(values.begin(), values.end(), [&](auto& a, auto& b) {
+		return text::produce_simple_string(state, state.world.religion_get_name(get<religion_filter_option>(a).value)) < text::produce_simple_string(state, state.world.religion_get_name(get<religion_filter_option>(b).value));
+	});
+// END
+}
+void  demographicswindow_filters_window_religion_list_t::update(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::religion_list::update
+// END
+}
+measure_result  demographicswindow_filters_window_religion_list_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<religion_filter_option>(values[index])) {
+		if(religion_filter_pool.empty()) religion_filter_pool.emplace_back(make_demographicswindow_religion_filter(state));
+		if(destination) {
+			if(religion_filter_pool.size() <= size_t(religion_filter_pool_used)) religion_filter_pool.emplace_back(make_demographicswindow_religion_filter(state));
+			religion_filter_pool[religion_filter_pool_used]->base_data.position.x = int16_t(x);
+			religion_filter_pool[religion_filter_pool_used]->base_data.position.y = int16_t(y);
+			religion_filter_pool[religion_filter_pool_used]->parent = destination;
+			destination->children.push_back(religion_filter_pool[religion_filter_pool_used].get());
+			((demographicswindow_religion_filter_t*)(religion_filter_pool[religion_filter_pool_used].get()))->value = std::get<religion_filter_option>(values[index]).value;
+			religion_filter_pool[religion_filter_pool_used]->impl_on_update(state);
+			religion_filter_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ religion_filter_pool[0]->base_data.size.x, religion_filter_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  demographicswindow_filters_window_religion_list_t::reset_pools() {
+	religion_filter_pool_used = 0;
+}
+void demographicswindow_filters_window_location_list_t::add_location_filter(dcon::state_instance_id value) {
+	values.emplace_back(location_filter_option{value});
+}
+void  demographicswindow_filters_window_location_list_t::on_create(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::location_list::on_create
+// END
+}
+void  demographicswindow_filters_window_location_list_t::update(sys::state& state, layout_window_element* parent) {
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
+// BEGIN filters_window::location_list::update
+	values.clear();
+	for(auto s : state.world.nation_get_state_ownership(state.local_player_nation)) {
+		add_location_filter(s.get_state().id);
+	}
+	sys::merge_sort(values.begin(), values.end(), [&](auto& a, auto& b) {
+		return text::get_short_state_name(state, get<location_filter_option>(a).value) < text::get_short_state_name(state, get<location_filter_option>(b).value);
+	});
+// END
+}
+measure_result  demographicswindow_filters_window_location_list_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<location_filter_option>(values[index])) {
+		if(location_filter_pool.empty()) location_filter_pool.emplace_back(make_demographicswindow_location_filter(state));
+		if(destination) {
+			if(location_filter_pool.size() <= size_t(location_filter_pool_used)) location_filter_pool.emplace_back(make_demographicswindow_location_filter(state));
+			location_filter_pool[location_filter_pool_used]->base_data.position.x = int16_t(x);
+			location_filter_pool[location_filter_pool_used]->base_data.position.y = int16_t(y);
+			location_filter_pool[location_filter_pool_used]->parent = destination;
+			destination->children.push_back(location_filter_pool[location_filter_pool_used].get());
+			((demographicswindow_location_filter_t*)(location_filter_pool[location_filter_pool_used].get()))->value = std::get<location_filter_option>(values[index]).value;
+			location_filter_pool[location_filter_pool_used]->impl_on_update(state);
+			location_filter_pool_used++;
+		}
+		alternate = true;
+		return measure_result{ location_filter_pool[0]->base_data.size.x, location_filter_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  demographicswindow_filters_window_location_list_t::reset_pools() {
+	location_filter_pool_used = 0;
 }
 ui::message_result demographicswindow_filters_window_job_all_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
@@ -11753,257 +11728,6 @@ void demographicswindow_filters_window_colonial_t::on_create(sys::state& state) 
 // BEGIN filters_window::colonial::create
 // END
 }
-int32_t demographicswindow_filters_window_job_list_t::max_page(){
-	if(values.size() == 0) return 0;
-	if(visible_items.size() == 0) return 0;
-	return int32_t(values.size() - 1) / int32_t(visible_items.size());
-}
-void demographicswindow_filters_window_job_list_t::change_page(sys::state & state, int32_t new_page) {
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
-	}
-	page = std::clamp(new_page, 0, max_page());
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		impl_on_update(state);
-		state.ui_animation.post_update_frame(state);
-	}
-}
-ui::message_result demographicswindow_filters_window_job_list_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_job_list_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::job_list::update
-// END
-	page = std::clamp(page, 0, max_page());
-	auto fill_count = visible_items.size();
-	auto fill_start = size_t(page) * fill_count;
-	for(size_t fill_position = 0; fill_position < fill_count; ++fill_position) {
-		if(fill_position + fill_start < values.size()) {
-			((demographicswindow_job_filter_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
-			visible_items[fill_position]->flags &= ~ui::element_base::is_invisible_mask;
-		} else {
-			visible_items[fill_position]->set_visible(state, false);
-		}
-	}
-}
-void demographicswindow_filters_window_job_list_t::on_create(sys::state& state) noexcept {
-	auto ptr = make_demographicswindow_job_filter(state);
-	int32_t item_y_size = ptr->base_data.size.y;
-	visible_items.push_back(ptr.get());
-	add_child_to_back(std::move(ptr));
-	auto total_rows = int32_t(base_data.size.y) / item_y_size;
-	for(int32_t i = 1; i < total_rows; ++i) {
-		auto ptrb = make_demographicswindow_job_filter(state);
-		ptrb->base_data.position.y = int16_t(i * item_y_size);
-		visible_items.push_back(ptrb.get());
-		add_child_to_back(std::move(ptrb));
-	}
-// BEGIN filters_window::job_list::create
-	for(auto j : state.world.in_pop_type)
-		values.push_back(j.id);
-	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
-	});
-// END
-}
-int32_t demographicswindow_filters_window_culture_list_t::max_page(){
-	if(values.size() == 0) return 0;
-	if(visible_items.size() == 0) return 0;
-	return int32_t(values.size() - 1) / int32_t(visible_items.size());
-}
-void demographicswindow_filters_window_culture_list_t::change_page(sys::state & state, int32_t new_page) {
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
-	}
-	page = std::clamp(new_page, 0, max_page());
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		impl_on_update(state);
-		state.ui_animation.post_update_frame(state);
-	}
-}
-ui::message_result demographicswindow_filters_window_culture_list_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_culture_list_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::culture_list::update
-// END
-	page = std::clamp(page, 0, max_page());
-	auto fill_count = visible_items.size();
-	auto fill_start = size_t(page) * fill_count;
-	for(size_t fill_position = 0; fill_position < fill_count; ++fill_position) {
-		if(fill_position + fill_start < values.size()) {
-			((demographicswindow_culture_filter_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
-			visible_items[fill_position]->flags &= ~ui::element_base::is_invisible_mask;
-		} else {
-			visible_items[fill_position]->set_visible(state, false);
-		}
-	}
-}
-void demographicswindow_filters_window_culture_list_t::on_create(sys::state& state) noexcept {
-	auto ptr = make_demographicswindow_culture_filter(state);
-	int32_t item_y_size = ptr->base_data.size.y;
-	visible_items.push_back(ptr.get());
-	add_child_to_back(std::move(ptr));
-	auto total_rows = int32_t(base_data.size.y) / item_y_size;
-	for(int32_t i = 1; i < total_rows; ++i) {
-		auto ptrb = make_demographicswindow_culture_filter(state);
-		ptrb->base_data.position.y = int16_t(i * item_y_size);
-		visible_items.push_back(ptrb.get());
-		add_child_to_back(std::move(ptrb));
-	}
-// BEGIN filters_window::culture_list::create
-	for(auto c : state.world.in_culture) {
-		values.push_back(c.id);
-	}
-	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
-	});
-// END
-}
-int32_t demographicswindow_filters_window_religion_list_t::max_page(){
-	if(values.size() == 0) return 0;
-	if(visible_items.size() == 0) return 0;
-	return int32_t(values.size() - 1) / int32_t(visible_items.size());
-}
-void demographicswindow_filters_window_religion_list_t::change_page(sys::state & state, int32_t new_page) {
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
-	}
-	page = std::clamp(new_page, 0, max_page());
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		impl_on_update(state);
-		state.ui_animation.post_update_frame(state);
-	}
-}
-ui::message_result demographicswindow_filters_window_religion_list_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_religion_list_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::religion_list::update
-// END
-	page = std::clamp(page, 0, max_page());
-	auto fill_count = visible_items.size();
-	auto fill_start = size_t(page) * fill_count;
-	for(size_t fill_position = 0; fill_position < fill_count; ++fill_position) {
-		if(fill_position + fill_start < values.size()) {
-			((demographicswindow_religion_filter_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
-			visible_items[fill_position]->flags &= ~ui::element_base::is_invisible_mask;
-		} else {
-			visible_items[fill_position]->set_visible(state, false);
-		}
-	}
-}
-void demographicswindow_filters_window_religion_list_t::on_create(sys::state& state) noexcept {
-	auto ptr = make_demographicswindow_religion_filter(state);
-	int32_t item_y_size = ptr->base_data.size.y;
-	visible_items.push_back(ptr.get());
-	add_child_to_back(std::move(ptr));
-	auto total_rows = int32_t(base_data.size.y) / item_y_size;
-	for(int32_t i = 1; i < total_rows; ++i) {
-		auto ptrb = make_demographicswindow_religion_filter(state);
-		ptrb->base_data.position.y = int16_t(i * item_y_size);
-		visible_items.push_back(ptrb.get());
-		add_child_to_back(std::move(ptrb));
-	}
-// BEGIN filters_window::religion_list::create
-	for(auto r : state.world.in_religion)
-		values.push_back(r.id);
-	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
-	});
-// END
-}
-int32_t demographicswindow_filters_window_location_list_t::max_page(){
-	if(values.size() == 0) return 0;
-	if(visible_items.size() == 0) return 0;
-	return int32_t(values.size() - 1) / int32_t(visible_items.size());
-}
-void demographicswindow_filters_window_location_list_t::change_page(sys::state & state, int32_t new_page) {
-	bool lflip = new_page < page && page > 0;
-	bool rflip = new_page > page && page < max_page();
-	if(rflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left, 200); 
-	} else if(lflip) {
-		auto pos = ui::get_absolute_location(state, *this);
-		state.ui_animation.start_animation(state, pos.x, pos.y, base_data.size.x, base_data.size.y, ogl::animation::type::page_flip_left_rev, 200);
-	}
-	page = std::clamp(new_page, 0, max_page());
-	state.game_state_updated.store(true, std::memory_order::release);
-	if(rflip || lflip) {
-		impl_on_update(state);
-		state.ui_animation.post_update_frame(state);
-	}
-}
-ui::message_result demographicswindow_filters_window_location_list_t::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	change_page(state, page + ((amount < 0) ? 1 : -1));
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_location_list_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::location_list::update
-	values.clear();
-	for(auto s : state.world.nation_get_state_ownership(state.local_player_nation)) {
-		values.push_back(s.get_state().id);
-	}
-	sys::merge_sort(values.begin(), values.end(), [&](auto a, auto b) {
-		return text::get_short_state_name(state, a) < text::get_short_state_name(state, b);
-	});
-// END
-	page = std::clamp(page, 0, max_page());
-	auto fill_count = visible_items.size();
-	auto fill_start = size_t(page) * fill_count;
-	for(size_t fill_position = 0; fill_position < fill_count; ++fill_position) {
-		if(fill_position + fill_start < values.size()) {
-			((demographicswindow_location_filter_t*)visible_items[fill_position])->value = values[fill_position + fill_start];
-			visible_items[fill_position]->flags &= ~ui::element_base::is_invisible_mask;
-		} else {
-			visible_items[fill_position]->set_visible(state, false);
-		}
-	}
-}
-void demographicswindow_filters_window_location_list_t::on_create(sys::state& state) noexcept {
-	auto ptr = make_demographicswindow_location_filter(state);
-	int32_t item_y_size = ptr->base_data.size.y;
-	visible_items.push_back(ptr.get());
-	add_child_to_back(std::move(ptr));
-	auto total_rows = int32_t(base_data.size.y) / item_y_size;
-	for(int32_t i = 1; i < total_rows; ++i) {
-		auto ptrb = make_demographicswindow_location_filter(state);
-		ptrb->base_data.position.y = int16_t(i * item_y_size);
-		visible_items.push_back(ptrb.get());
-		add_child_to_back(std::move(ptrb));
-	}
-// BEGIN filters_window::location_list::create
-// END
-}
 ui::message_result demographicswindow_filters_window_close_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
@@ -12035,334 +11759,6 @@ void demographicswindow_filters_window_close_button_t::on_update(sys::state& sta
 }
 void demographicswindow_filters_window_close_button_t::on_create(sys::state& state) noexcept {
 // BEGIN filters_window::close_button::create
-// END
-}
-ui::message_result demographicswindow_filters_window_job_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::job_left::lbutton_action
-	filters_window.job_list->change_page(state, filters_window.job_list->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_job_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_job_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_job_left_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::job_left::update
-// END
-}
-void demographicswindow_filters_window_job_left_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::job_left::create
-// END
-}
-ui::message_result demographicswindow_filters_window_culture_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::culture_left::lbutton_action
-	filters_window.culture_list->change_page(state, filters_window.culture_list->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_culture_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_culture_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_culture_left_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::culture_left::update
-// END
-}
-void demographicswindow_filters_window_culture_left_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::culture_left::create
-// END
-}
-ui::message_result demographicswindow_filters_window_religion_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::religion_left::lbutton_action
-	filters_window.religion_list->change_page(state, filters_window.religion_list->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_religion_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_religion_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_religion_left_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::religion_left::update
-// END
-}
-void demographicswindow_filters_window_religion_left_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::religion_left::create
-// END
-}
-ui::message_result demographicswindow_filters_window_location_left_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::location_left::lbutton_action
-	filters_window.location_list->change_page(state, filters_window.location_list->page - 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_location_left_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_location_left_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_location_left_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::location_left::update
-// END
-}
-void demographicswindow_filters_window_location_left_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::location_left::create
-// END
-}
-ui::message_result demographicswindow_filters_window_job_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::job_right::lbutton_action
-	filters_window.job_list->change_page(state, filters_window.job_list->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_job_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_job_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_job_right_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::job_right::update
-// END
-}
-void demographicswindow_filters_window_job_right_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::job_right::create
-// END
-}
-ui::message_result demographicswindow_filters_window_culture_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::culture_right::lbutton_action
-	filters_window.culture_list->change_page(state, filters_window.culture_list->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_culture_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_culture_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_culture_right_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::culture_right::update
-// END
-}
-void demographicswindow_filters_window_culture_right_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::culture_right::create
-// END
-}
-ui::message_result demographicswindow_filters_window_religion_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::religion_right::lbutton_action
-	filters_window.religion_list->change_page(state, filters_window.religion_list->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_religion_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_religion_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_religion_right_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::religion_right::update
-// END
-}
-void demographicswindow_filters_window_religion_right_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::religion_right::create
-// END
-}
-ui::message_result demographicswindow_filters_window_location_right_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN filters_window::location_right::lbutton_action
-	filters_window.location_list->change_page(state, filters_window.location_list->page + 1);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_filters_window_location_right_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void demographicswindow_filters_window_location_right_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-}
-void demographicswindow_filters_window_location_right_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::location_right::update
-// END
-}
-void demographicswindow_filters_window_location_right_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::location_right::create
-// END
-}
-void demographicswindow_filters_window_job_page_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void demographicswindow_filters_window_job_page_t::on_reset_text(sys::state& state) noexcept {
-}
-void demographicswindow_filters_window_job_page_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void demographicswindow_filters_window_job_page_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::job_page::update
-	if(filters_window.job_list->values.size() > filters_window.job_list->visible_items.size()) {
-		set_text(state, std::to_string(filters_window.job_list->page + 1) + "/" + std::to_string(1 + filters_window.job_list->max_page()));
-	} else {
-		set_text(state, "");
-	}
-// END
-}
-void demographicswindow_filters_window_job_page_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::job_page::create
-// END
-}
-void demographicswindow_filters_window_culture_page_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void demographicswindow_filters_window_culture_page_t::on_reset_text(sys::state& state) noexcept {
-}
-void demographicswindow_filters_window_culture_page_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void demographicswindow_filters_window_culture_page_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::culture_page::update
-	if(filters_window.culture_list->values.size() > filters_window.culture_list->visible_items.size()) {
-		set_text(state, std::to_string(filters_window.culture_list->page + 1) + "/" + std::to_string(1 + filters_window.culture_list->max_page()));
-	} else {
-		set_text(state, "");
-	}
-// END
-}
-void demographicswindow_filters_window_culture_page_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::culture_page::create
-// END
-}
-void demographicswindow_filters_window_religion_page_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void demographicswindow_filters_window_religion_page_t::on_reset_text(sys::state& state) noexcept {
-}
-void demographicswindow_filters_window_religion_page_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void demographicswindow_filters_window_religion_page_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::religion_page::update
-	if(filters_window.religion_list->values.size() > filters_window.religion_list->visible_items.size()) {
-		set_text(state, std::to_string(filters_window.religion_list->page + 1) + "/" + std::to_string(1 + filters_window.religion_list->max_page()));
-	} else {
-		set_text(state, "");
-	}
-// END
-}
-void demographicswindow_filters_window_religion_page_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::religion_page::create
-// END
-}
-void demographicswindow_filters_window_location_page_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void demographicswindow_filters_window_location_page_t::on_reset_text(sys::state& state) noexcept {
-}
-void demographicswindow_filters_window_location_page_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void demographicswindow_filters_window_location_page_t::on_update(sys::state& state) noexcept {
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent)); 
-// BEGIN filters_window::location_page::update
-	if(filters_window.location_list->values.size() > filters_window.location_list->visible_items.size()) {
-		set_text(state, std::to_string(filters_window.location_list->page + 1) + "/" + std::to_string(1 + filters_window.location_list->max_page()));
-	} else {
-		set_text(state, "");
-	}
-// END
-}
-void demographicswindow_filters_window_location_page_t::on_create(sys::state& state) noexcept {
-// BEGIN filters_window::location_page::create
 // END
 }
 void demographicswindow_filters_window_job_header_t::set_text(sys::state& state, std::string const& new_text) {
@@ -12526,6 +11922,171 @@ void demographicswindow_filters_window_t::render(sys::state & state, int32_t x, 
 void demographicswindow_filters_window_t::on_update(sys::state& state) noexcept {
 // BEGIN filters_window::update
 // END
+	jobs_list.update(state, this);
+	culture_list.update(state, this);
+	religion_list.update(state, this);
+	location_list.update(state, this);
+	remake_layout(state, true);
+}
+void demographicswindow_filters_window_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "job_all") {
+					temp.ptr = job_all.get();
+				}
+				if(cname == "job_none") {
+					temp.ptr = job_none.get();
+				}
+				if(cname == "culture_all") {
+					temp.ptr = culture_all.get();
+				}
+				if(cname == "culture_none") {
+					temp.ptr = culture_none.get();
+				}
+				if(cname == "religion_all") {
+					temp.ptr = religion_all.get();
+				}
+				if(cname == "religion_none") {
+					temp.ptr = religion_none.get();
+				}
+				if(cname == "location_all") {
+					temp.ptr = location_all.get();
+				}
+				if(cname == "location_none") {
+					temp.ptr = location_none.get();
+				}
+				if(cname == "non_colonial") {
+					temp.ptr = non_colonial.get();
+				}
+				if(cname == "colonial") {
+					temp.ptr = colonial.get();
+				}
+				if(cname == "close_button") {
+					temp.ptr = close_button.get();
+				}
+				if(cname == "job_header") {
+					temp.ptr = job_header.get();
+				}
+				if(cname == "culture_header") {
+					temp.ptr = culture_header.get();
+				}
+				if(cname == "religion_header") {
+					temp.ptr = religion_header.get();
+				}
+				if(cname == "location_header") {
+					temp.ptr = location_header.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				if(cname == "jobs_list") {
+					temp.generator = &jobs_list;
+				}
+				if(cname == "culture_list") {
+					temp.generator = &culture_list;
+				}
+				if(cname == "religion_list") {
+					temp.generator = &religion_list;
+				}
+				if(cname == "location_list") {
+					temp.generator = &location_list;
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::filters_window"));
@@ -12544,16 +12105,17 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "job_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_all_t>();
-			cptr->parent = this;
-			job_all = cptr.get();
+			job_all = std::make_unique<demographicswindow_filters_window_job_all_t>();
+			job_all->parent = this;
+			auto cptr = job_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12565,14 +12127,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_none_t>();
-			cptr->parent = this;
-			job_none = cptr.get();
+			job_none = std::make_unique<demographicswindow_filters_window_job_none_t>();
+			job_none->parent = this;
+			auto cptr = job_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12584,14 +12147,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_all_t>();
-			cptr->parent = this;
-			culture_all = cptr.get();
+			culture_all = std::make_unique<demographicswindow_filters_window_culture_all_t>();
+			culture_all->parent = this;
+			auto cptr = culture_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12603,14 +12167,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_none_t>();
-			cptr->parent = this;
-			culture_none = cptr.get();
+			culture_none = std::make_unique<demographicswindow_filters_window_culture_none_t>();
+			culture_none->parent = this;
+			auto cptr = culture_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12622,14 +12187,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_all_t>();
-			cptr->parent = this;
-			religion_all = cptr.get();
+			religion_all = std::make_unique<demographicswindow_filters_window_religion_all_t>();
+			religion_all->parent = this;
+			auto cptr = religion_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12641,14 +12207,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_none_t>();
-			cptr->parent = this;
-			religion_none = cptr.get();
+			religion_none = std::make_unique<demographicswindow_filters_window_religion_none_t>();
+			religion_none->parent = this;
+			auto cptr = religion_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12660,14 +12227,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "location_all") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_all_t>();
-			cptr->parent = this;
-			location_all = cptr.get();
+			location_all = std::make_unique<demographicswindow_filters_window_location_all_t>();
+			location_all->parent = this;
+			auto cptr = location_all.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12679,14 +12247,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "location_none") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_none_t>();
-			cptr->parent = this;
-			location_none = cptr.get();
+			location_none = std::make_unique<demographicswindow_filters_window_location_none_t>();
+			location_none->parent = this;
+			auto cptr = location_none.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12698,14 +12267,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "non_colonial") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_non_colonial_t>();
-			cptr->parent = this;
-			non_colonial = cptr.get();
+			non_colonial = std::make_unique<demographicswindow_filters_window_non_colonial_t>();
+			non_colonial->parent = this;
+			auto cptr = non_colonial.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12717,14 +12287,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "colonial") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_colonial_t>();
-			cptr->parent = this;
-			colonial = cptr.get();
+			colonial = std::make_unique<demographicswindow_filters_window_colonial_t>();
+			colonial->parent = this;
+			auto cptr = colonial.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12736,252 +12307,30 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "job_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_list_t>();
 			cptr->parent = this;
-			job_list = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "culture_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_list_t>();
-			cptr->parent = this;
-			culture_list = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "religion_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_list_t>();
-			cptr->parent = this;
-			religion_list = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "location_list") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_list_t>();
-			cptr->parent = this;
-			location_list = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "close_button") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_close_button_t>();
-			cptr->parent = this;
-			close_button = cptr.get();
+			close_button = std::make_unique<demographicswindow_filters_window_close_button_t>();
+			close_button->parent = this;
+			auto cptr = close_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "job_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_left_t>();
 			cptr->parent = this;
-			job_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "culture_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_left_t>();
-			cptr->parent = this;
-			culture_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "religion_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_left_t>();
-			cptr->parent = this;
-			religion_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "location_left") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_left_t>();
-			cptr->parent = this;
-			location_left = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "job_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_right_t>();
-			cptr->parent = this;
-			job_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "culture_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_right_t>();
-			cptr->parent = this;
-			culture_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "religion_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_right_t>();
-			cptr->parent = this;
-			religion_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "location_right") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_right_t>();
-			cptr->parent = this;
-			location_right = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
-			cptr->texture_key = child_data.texture;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "job_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_page_t>();
-			cptr->parent = this;
-			job_page = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "culture_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_page_t>();
-			cptr->parent = this;
-			culture_page = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "religion_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_page_t>();
-			cptr->parent = this;
-			religion_page = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
-		}
-		if(child_data.name == "location_page") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_page_t>();
-			cptr->parent = this;
-			location_page = cptr.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "job_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_job_header_t>();
-			cptr->parent = this;
-			job_header = cptr.get();
+			job_header = std::make_unique<demographicswindow_filters_window_job_header_t>();
+			job_header->parent = this;
+			auto cptr = job_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -12991,14 +12340,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "culture_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_culture_header_t>();
-			cptr->parent = this;
-			culture_header = cptr.get();
+			culture_header = std::make_unique<demographicswindow_filters_window_culture_header_t>();
+			culture_header->parent = this;
+			auto cptr = culture_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13008,14 +12358,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "religion_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_religion_header_t>();
-			cptr->parent = this;
-			religion_header = cptr.get();
+			religion_header = std::make_unique<demographicswindow_filters_window_religion_header_t>();
+			religion_header->parent = this;
+			auto cptr = religion_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13025,14 +12376,15 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "location_header") {
-			auto cptr = std::make_unique<demographicswindow_filters_window_location_header_t>();
-			cptr->parent = this;
-			location_header = cptr.get();
+			location_header = std::make_unique<demographicswindow_filters_window_location_header_t>();
+			location_header->parent = this;
+			auto cptr = location_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13042,11 +12394,21 @@ void demographicswindow_filters_window_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	jobs_list.on_create(state, this);
+	culture_list.on_create(state, this);
+	religion_list.on_create(state, this);
+	location_list.on_create(state, this);
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN filters_window::create
 // END
 }
@@ -13057,7 +12419,7 @@ std::unique_ptr<ui::element_base> make_demographicswindow_filters_window(sys::st
 }
 ui::message_result demographicswindow_job_filter_filter_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_job_filter_t& job_filter = *((demographicswindow_job_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN job_filter::filter_button::lbutton_action
 	if(popwindow::excluded_types.contains(job_filter.value.index()))
@@ -13079,7 +12441,7 @@ void demographicswindow_job_filter_filter_button_t::render(sys::state & state, i
 }
 void demographicswindow_job_filter_filter_button_t::on_update(sys::state& state) noexcept {
 	demographicswindow_job_filter_t& job_filter = *((demographicswindow_job_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN job_filter::filter_button::update
 	is_active = !popwindow::excluded_types.contains(job_filter.value.index());
 // END
@@ -13110,7 +12472,7 @@ void demographicswindow_job_filter_icon_t::render(sys::state & state, int32_t x,
 }
 void demographicswindow_job_filter_icon_t::on_update(sys::state& state) noexcept {
 	demographicswindow_job_filter_t& job_filter = *((demographicswindow_job_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN job_filter::icon::update
 	frame = int32_t(state.world.pop_type_get_sprite(job_filter.value)) - 1;
 // END
@@ -13146,7 +12508,7 @@ void demographicswindow_job_filter_filter_label_t::render(sys::state & state, in
 }
 void demographicswindow_job_filter_filter_label_t::on_update(sys::state& state) noexcept {
 	demographicswindow_job_filter_t& job_filter = *((demographicswindow_job_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN job_filter::filter_label::update
 	set_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(job_filter.value)));
 	text_color = !popwindow::excluded_types.contains(job_filter.value.index()) ? text::text_color::black : text::text_color::gold;
@@ -13160,6 +12522,119 @@ void demographicswindow_job_filter_t::on_update(sys::state& state) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN job_filter::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_job_filter_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "filter_button") {
+					temp.ptr = filter_button.get();
+				}
+				if(cname == "icon") {
+					temp.ptr = icon.get();
+				}
+				if(cname == "filter_label") {
+					temp.ptr = filter_label.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::job_filter"));
@@ -13177,43 +12652,46 @@ void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_job_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_job_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "icon") {
-			auto cptr = std::make_unique<demographicswindow_job_filter_icon_t>();
-			cptr->parent = this;
-			icon = cptr.get();
+			icon = std::make_unique<demographicswindow_job_filter_icon_t>();
+			icon->parent = this;
+			auto cptr = icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_job_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_job_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13222,11 +12700,17 @@ void demographicswindow_job_filter_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN job_filter::create
 // END
 }
@@ -13237,7 +12721,7 @@ std::unique_ptr<ui::element_base> make_demographicswindow_job_filter(sys::state&
 }
 ui::message_result demographicswindow_religion_filter_filter_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_religion_filter_t& religion_filter = *((demographicswindow_religion_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN religion_filter::filter_button::lbutton_action
 	if(popwindow::excluded_religions.contains(religion_filter.value.index()))
@@ -13259,7 +12743,7 @@ void demographicswindow_religion_filter_filter_button_t::render(sys::state & sta
 }
 void demographicswindow_religion_filter_filter_button_t::on_update(sys::state& state) noexcept {
 	demographicswindow_religion_filter_t& religion_filter = *((demographicswindow_religion_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN religion_filter::filter_button::update
 	is_active = !popwindow::excluded_religions.contains(religion_filter.value.index());
 // END
@@ -13290,7 +12774,7 @@ void demographicswindow_religion_filter_icon_t::render(sys::state & state, int32
 }
 void demographicswindow_religion_filter_icon_t::on_update(sys::state& state) noexcept {
 	demographicswindow_religion_filter_t& religion_filter = *((demographicswindow_religion_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN religion_filter::icon::update
 	frame = int32_t(state.world.religion_get_icon(religion_filter.value)) - 1;
 // END
@@ -13326,7 +12810,7 @@ void demographicswindow_religion_filter_filter_label_t::render(sys::state & stat
 }
 void demographicswindow_religion_filter_filter_label_t::on_update(sys::state& state) noexcept {
 	demographicswindow_religion_filter_t& religion_filter = *((demographicswindow_religion_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN religion_filter::filter_label::update
 	set_text(state, text::produce_simple_string(state, state.world.religion_get_name(religion_filter.value)));
 	text_color = !popwindow::excluded_religions.contains(religion_filter.value.index()) ? text::text_color::black : text::text_color::gold;
@@ -13340,6 +12824,119 @@ void demographicswindow_religion_filter_t::on_update(sys::state& state) noexcept
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN religion_filter::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_religion_filter_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "filter_button") {
+					temp.ptr = filter_button.get();
+				}
+				if(cname == "icon") {
+					temp.ptr = icon.get();
+				}
+				if(cname == "filter_label") {
+					temp.ptr = filter_label.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::religion_filter"));
@@ -13357,43 +12954,46 @@ void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_religion_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_religion_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "icon") {
-			auto cptr = std::make_unique<demographicswindow_religion_filter_icon_t>();
-			cptr->parent = this;
-			icon = cptr.get();
+			icon = std::make_unique<demographicswindow_religion_filter_icon_t>();
+			icon->parent = this;
+			auto cptr = icon.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_religion_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_religion_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13402,11 +13002,17 @@ void demographicswindow_religion_filter_t::on_create(sys::state& state) noexcept
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN religion_filter::create
 // END
 }
@@ -13417,7 +13023,7 @@ std::unique_ptr<ui::element_base> make_demographicswindow_religion_filter(sys::s
 }
 ui::message_result demographicswindow_location_filter_filter_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_location_filter_t& location_filter = *((demographicswindow_location_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN location_filter::filter_button::lbutton_action
 	if(popwindow::excluded_states.contains(location_filter.value.index()))
@@ -13439,7 +13045,7 @@ void demographicswindow_location_filter_filter_button_t::render(sys::state & sta
 }
 void demographicswindow_location_filter_filter_button_t::on_update(sys::state& state) noexcept {
 	demographicswindow_location_filter_t& location_filter = *((demographicswindow_location_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN location_filter::filter_button::update
 	is_active = !popwindow::excluded_states.contains(location_filter.value.index());
 // END
@@ -13472,7 +13078,7 @@ void demographicswindow_location_filter_filter_label_t::render(sys::state & stat
 }
 void demographicswindow_location_filter_filter_label_t::on_update(sys::state& state) noexcept {
 	demographicswindow_location_filter_t& location_filter = *((demographicswindow_location_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN location_filter::filter_label::update
 	set_text(state, text::get_short_state_name(state, location_filter.value));
 	text_color = !popwindow::excluded_states.contains(location_filter.value.index()) ? text::text_color::black : text::text_color::gold;
@@ -13486,6 +13092,116 @@ void demographicswindow_location_filter_t::on_update(sys::state& state) noexcept
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN location_filter::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_location_filter_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "filter_button") {
+					temp.ptr = filter_button.get();
+				}
+				if(cname == "filter_label") {
+					temp.ptr = filter_label.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::location_filter"));
@@ -13503,30 +13219,32 @@ void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_location_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_location_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_location_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_location_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13535,11 +13253,17 @@ void demographicswindow_location_filter_t::on_create(sys::state& state) noexcept
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN location_filter::create
 // END
 }
@@ -13550,7 +13274,7 @@ std::unique_ptr<ui::element_base> make_demographicswindow_location_filter(sys::s
 }
 ui::message_result demographicswindow_culture_filter_filter_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_culture_filter_t& culture_filter = *((demographicswindow_culture_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN culture_filter::filter_button::lbutton_action
 	if(popwindow::excluded_cultures.contains(culture_filter.value.index()))
@@ -13572,7 +13296,7 @@ void demographicswindow_culture_filter_filter_button_t::render(sys::state & stat
 }
 void demographicswindow_culture_filter_filter_button_t::on_update(sys::state& state) noexcept {
 	demographicswindow_culture_filter_t& culture_filter = *((demographicswindow_culture_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN culture_filter::filter_button::update
 	is_active = !popwindow::excluded_cultures.contains(culture_filter.value.index());
 // END
@@ -13605,7 +13329,7 @@ void demographicswindow_culture_filter_filter_label_t::render(sys::state & state
 }
 void demographicswindow_culture_filter_filter_label_t::on_update(sys::state& state) noexcept {
 	demographicswindow_culture_filter_t& culture_filter = *((demographicswindow_culture_filter_t*)(parent)); 
-	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent->parent)); 
+	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN culture_filter::filter_label::update
 	set_text(state, text::produce_simple_string(state, state.world.culture_get_name(culture_filter.value)));
 	text_color = !popwindow::excluded_cultures.contains(culture_filter.value.index()) ? text::text_color::black : text::text_color::gold;
@@ -13619,6 +13343,116 @@ void demographicswindow_culture_filter_t::on_update(sys::state& state) noexcept 
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN culture_filter::update
 // END
+	remake_layout(state, true);
+}
+void demographicswindow_culture_filter_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "filter_button") {
+					temp.ptr = filter_button.get();
+				}
+				if(cname == "filter_label") {
+					temp.ptr = filter_label.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
 }
 void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept {
 	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::culture_filter"));
@@ -13636,30 +13470,32 @@ void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept 
 			auto ch_res = ui::make_element_immediate(state, ex.child);
 			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
 			}
 		}
 	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "filter_button") {
-			auto cptr = std::make_unique<demographicswindow_culture_filter_filter_button_t>();
-			cptr->parent = this;
-			filter_button = cptr.get();
+			filter_button = std::make_unique<demographicswindow_culture_filter_filter_button_t>();
+			filter_button->parent = this;
+			auto cptr = filter_button.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
 			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "filter_label") {
-			auto cptr = std::make_unique<demographicswindow_culture_filter_filter_label_t>();
-			cptr->parent = this;
-			filter_label = cptr.get();
+			filter_label = std::make_unique<demographicswindow_culture_filter_filter_label_t>();
+			filter_label->parent = this;
+			auto cptr = filter_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -13668,11 +13504,17 @@ void demographicswindow_culture_filter_t::on_create(sys::state& state) noexcept 
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
 			cptr->on_create(state);
-			this->add_child_to_back(std::move(cptr));
-		continue;
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN culture_filter::create
 // END
 }
@@ -13681,5 +13523,986 @@ std::unique_ptr<ui::element_base> make_demographicswindow_culture_filter(sys::st
 	ptr->on_create(state);
 	return ptr;
 }
+ui::message_result demographicswindow_pops_header_content_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	auto table_source = (demographicswindow_main_t*)(parent->parent);
+	if(x >= table_source->table_location_column_start && x < table_source->table_location_column_start + table_source->table_location_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_location_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_location_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_size_column_start && x < table_source->table_size_column_start + table_source->table_size_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_size_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_size_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_culture_column_start && x < table_source->table_culture_column_start + table_source->table_culture_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_culture_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_culture_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_job_column_start && x < table_source->table_job_column_start + table_source->table_job_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_job_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_job_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_religion_column_start && x < table_source->table_religion_column_start + table_source->table_religion_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_religion_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_religion_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_militancy_column_start && x < table_source->table_militancy_column_start + table_source->table_militancy_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_militancy_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_militancy_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_consciousness_column_start && x < table_source->table_consciousness_column_start + table_source->table_consciousness_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_consciousness_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_employment_column_start && x < table_source->table_employment_column_start + table_source->table_employment_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_employment_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_employment_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_literacy_column_start && x < table_source->table_literacy_column_start + table_source->table_literacy_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_literacy_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_literacy_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_money_column_start && x < table_source->table_money_column_start + table_source->table_money_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_money_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_money_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->table_needs_column_start && x < table_source->table_needs_column_start + table_source->table_needs_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->table_needs_sort_direction;
+		table_source->table_location_sort_direction = 0;
+		table_source->table_size_sort_direction = 0;
+		table_source->table_culture_sort_direction = 0;
+		table_source->table_job_sort_direction = 0;
+		table_source->table_religion_sort_direction = 0;
+		table_source->table_militancy_sort_direction = 0;
+		table_source->table_consciousness_sort_direction = 0;
+		table_source->table_employment_sort_direction = 0;
+		table_source->table_literacy_sort_direction = 0;
+		table_source->table_money_sort_direction = 0;
+		table_source->table_needs_sort_direction = 0;
+		table_source->table_needs_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	return ui::message_result::consumed;}
+ui::message_result demographicswindow_pops_header_content_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void demographicswindow_pops_header_content_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
+	auto table_source = (demographicswindow_main_t*)(parent->parent);
+	if(x >= table_source->table_location_column_start && x < table_source->table_location_column_start + table_source->table_location_column_width) {
+	}
+	if(x >= table_source->table_size_column_start && x < table_source->table_size_column_start + table_source->table_size_column_width) {
+	}
+	if(x >= table_source->table_culture_column_start && x < table_source->table_culture_column_start + table_source->table_culture_column_width) {
+	}
+	if(x >= table_source->table_job_column_start && x < table_source->table_job_column_start + table_source->table_job_column_width) {
+	}
+	if(x >= table_source->table_religion_column_start && x < table_source->table_religion_column_start + table_source->table_religion_column_width) {
+	}
+	if(x >= table_source->table_ideology_column_start && x < table_source->table_ideology_column_start + table_source->table_ideology_column_width) {
+	}
+	if(x >= table_source->table_issues_column_start && x < table_source->table_issues_column_start + table_source->table_issues_column_width) {
+	}
+	if(x >= table_source->table_militancy_column_start && x < table_source->table_militancy_column_start + table_source->table_militancy_column_width) {
+		ident = 7;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->table_militancy_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->table_militancy_column_width);
+		return;
+	}
+	if(x >= table_source->table_consciousness_column_start && x < table_source->table_consciousness_column_start + table_source->table_consciousness_column_width) {
+		ident = 8;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->table_consciousness_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->table_consciousness_column_width);
+		return;
+	}
+	if(x >= table_source->table_employment_column_start && x < table_source->table_employment_column_start + table_source->table_employment_column_width) {
+		ident = 9;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->table_employment_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->table_employment_column_width);
+		return;
+	}
+	if(x >= table_source->table_literacy_column_start && x < table_source->table_literacy_column_start + table_source->table_literacy_column_width) {
+		ident = 10;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->table_literacy_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->table_literacy_column_width);
+		return;
+	}
+	if(x >= table_source->table_money_column_start && x < table_source->table_money_column_start + table_source->table_money_column_width) {
+		ident = 11;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->table_money_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->table_money_column_width);
+		return;
+	}
+	if(x >= table_source->table_needs_column_start && x < table_source->table_needs_column_start + table_source->table_needs_column_width) {
+	}
+	if(x >= table_source->table_rebels_column_start && x < table_source->table_rebels_column_start + table_source->table_rebels_column_width) {
+		ident = 13;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->table_rebels_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->table_rebels_column_width);
+		return;
+	}
+		ident = -1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.size = base_data.size;
+}
+void demographicswindow_pops_header_content_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto table_source = (demographicswindow_main_t*)(parent->parent);
+	if(x >=  table_source->table_location_column_start && x <  table_source->table_location_column_start +  table_source->table_location_column_width) {
+	}
+	if(x >=  table_source->table_size_column_start && x <  table_source->table_size_column_start +  table_source->table_size_column_width) {
+	}
+	if(x >=  table_source->table_culture_column_start && x <  table_source->table_culture_column_start +  table_source->table_culture_column_width) {
+	}
+	if(x >=  table_source->table_job_column_start && x <  table_source->table_job_column_start +  table_source->table_job_column_width) {
+	}
+	if(x >=  table_source->table_religion_column_start && x <  table_source->table_religion_column_start +  table_source->table_religion_column_width) {
+	}
+	if(x >=  table_source->table_ideology_column_start && x <  table_source->table_ideology_column_start +  table_source->table_ideology_column_width) {
+	}
+	if(x >=  table_source->table_issues_column_start && x <  table_source->table_issues_column_start +  table_source->table_issues_column_width) {
+	}
+	if(x >=  table_source->table_militancy_column_start && x <  table_source->table_militancy_column_start +  table_source->table_militancy_column_width) {
+	text::add_line(state, contents, table_source->table_militancy_header_tooltip_key);
+	}
+	if(x >=  table_source->table_consciousness_column_start && x <  table_source->table_consciousness_column_start +  table_source->table_consciousness_column_width) {
+	text::add_line(state, contents, table_source->table_consciousness_header_tooltip_key);
+	}
+	if(x >=  table_source->table_employment_column_start && x <  table_source->table_employment_column_start +  table_source->table_employment_column_width) {
+	text::add_line(state, contents, table_source->table_employment_header_tooltip_key);
+	}
+	if(x >=  table_source->table_literacy_column_start && x <  table_source->table_literacy_column_start +  table_source->table_literacy_column_width) {
+	text::add_line(state, contents, table_source->table_literacy_header_tooltip_key);
+	}
+	if(x >=  table_source->table_money_column_start && x <  table_source->table_money_column_start +  table_source->table_money_column_width) {
+	text::add_line(state, contents, table_source->table_money_header_tooltip_key);
+	}
+	if(x >=  table_source->table_needs_column_start && x <  table_source->table_needs_column_start +  table_source->table_needs_column_width) {
+	}
+	if(x >=  table_source->table_rebels_column_start && x <  table_source->table_rebels_column_start +  table_source->table_rebels_column_width) {
+	text::add_line(state, contents, table_source->table_rebels_header_tooltip_key);
+	}
+}
+void demographicswindow_pops_header_content_t::on_reset_text(sys::state& state) noexcept {
+	auto table_source = (demographicswindow_main_t*)(parent->parent);
+	{
+	location_cached_text = text::produce_simple_string(state, table_source->table_location_header_text_key);
+	 location_internal_layout.contents.clear();
+	 location_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  location_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_location_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_location_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, location_cached_text);
+	}
+	{
+	size_cached_text = text::produce_simple_string(state, table_source->table_size_header_text_key);
+	 size_internal_layout.contents.clear();
+	 size_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  size_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_size_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_size_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, size_cached_text);
+	}
+	{
+	culture_cached_text = text::produce_simple_string(state, table_source->table_culture_header_text_key);
+	 culture_internal_layout.contents.clear();
+	 culture_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  culture_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_culture_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_culture_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, culture_cached_text);
+	}
+	{
+	job_cached_text = text::produce_simple_string(state, table_source->table_job_header_text_key);
+	 job_internal_layout.contents.clear();
+	 job_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  job_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_job_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_job_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, job_cached_text);
+	}
+	{
+	religion_cached_text = text::produce_simple_string(state, table_source->table_religion_header_text_key);
+	 religion_internal_layout.contents.clear();
+	 religion_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  religion_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_religion_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_religion_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, religion_cached_text);
+	}
+	{
+	ideology_cached_text = text::produce_simple_string(state, table_source->table_ideology_header_text_key);
+	 ideology_internal_layout.contents.clear();
+	 ideology_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  ideology_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_ideology_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_ideology_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, ideology_cached_text);
+	}
+	{
+	issues_cached_text = text::produce_simple_string(state, table_source->table_issues_header_text_key);
+	 issues_internal_layout.contents.clear();
+	 issues_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  issues_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_issues_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_issues_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, issues_cached_text);
+	}
+	{
+	needs_cached_text = text::produce_simple_string(state, table_source->table_needs_header_text_key);
+	 needs_internal_layout.contents.clear();
+	 needs_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  needs_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->table_needs_column_width - 24 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->table_needs_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, needs_cached_text);
+	}
+}
+void demographicswindow_pops_header_content_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto fh = text::make_font_id(state, false, 1.0f * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto table_source = (demographicswindow_main_t*)(parent->parent);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	bool col_um_location = rel_mouse_x >= table_source->table_location_column_start && rel_mouse_x < (table_source->table_location_column_start + table_source->table_location_column_width);
+	if(table_source->table_location_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_location, false, true), float(x + table_source->table_location_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_location_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_location, false, true), float(x + table_source->table_location_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(!location_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_location , false, true); 
+		for(auto& t : location_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_location_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_location_header_text_color), cmod);
+		}
+	}
+	bool col_um_size = rel_mouse_x >= table_source->table_size_column_start && rel_mouse_x < (table_source->table_size_column_start + table_source->table_size_column_width);
+	if(table_source->table_size_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size, false, true), float(x + table_source->table_size_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_size_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size, false, true), float(x + table_source->table_size_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(!size_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_size , false, true); 
+		for(auto& t : size_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_size_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_size_header_text_color), cmod);
+		}
+	}
+	bool col_um_culture = rel_mouse_x >= table_source->table_culture_column_start && rel_mouse_x < (table_source->table_culture_column_start + table_source->table_culture_column_width);
+	if(table_source->table_culture_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture, false, true), float(x + table_source->table_culture_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_culture_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture, false, true), float(x + table_source->table_culture_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(!culture_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_culture , false, true); 
+		for(auto& t : culture_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_culture_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_culture_header_text_color), cmod);
+		}
+	}
+	bool col_um_job = rel_mouse_x >= table_source->table_job_column_start && rel_mouse_x < (table_source->table_job_column_start + table_source->table_job_column_width);
+	if(table_source->table_job_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job, false, true), float(x + table_source->table_job_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_job_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job, false, true), float(x + table_source->table_job_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(!job_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_job , false, true); 
+		for(auto& t : job_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_job_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_job_header_text_color), cmod);
+		}
+	}
+	bool col_um_religion = rel_mouse_x >= table_source->table_religion_column_start && rel_mouse_x < (table_source->table_religion_column_start + table_source->table_religion_column_width);
+	if(table_source->table_religion_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion, false, true), float(x + table_source->table_religion_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_religion_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion, false, true), float(x + table_source->table_religion_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(!religion_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_religion , false, true); 
+		for(auto& t : religion_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_religion_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_religion_header_text_color), cmod);
+		}
+	}
+	bool col_um_ideology = rel_mouse_x >= table_source->table_ideology_column_start && rel_mouse_x < (table_source->table_ideology_column_start + table_source->table_ideology_column_width);
+	if(!ideology_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_ideology , false, false); 
+		for(auto& t : ideology_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_ideology_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_ideology_header_text_color), cmod);
+		}
+	}
+	bool col_um_issues = rel_mouse_x >= table_source->table_issues_column_start && rel_mouse_x < (table_source->table_issues_column_start + table_source->table_issues_column_width);
+	if(!issues_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_issues , false, false); 
+		for(auto& t : issues_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_issues_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_issues_header_text_color), cmod);
+		}
+	}
+	bool col_um_militancy = rel_mouse_x >= table_source->table_militancy_column_start && rel_mouse_x < (table_source->table_militancy_column_start + table_source->table_militancy_column_width);
+	if(table_source->table_militancy_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_militancy, false, true), float(x + table_source->table_militancy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_militancy_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_militancy, false, true), float(x + table_source->table_militancy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	bool col_um_consciousness = rel_mouse_x >= table_source->table_consciousness_column_start && rel_mouse_x < (table_source->table_consciousness_column_start + table_source->table_consciousness_column_width);
+	if(table_source->table_consciousness_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_consciousness, false, true), float(x + table_source->table_consciousness_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_consciousness_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_consciousness, false, true), float(x + table_source->table_consciousness_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	bool col_um_employment = rel_mouse_x >= table_source->table_employment_column_start && rel_mouse_x < (table_source->table_employment_column_start + table_source->table_employment_column_width);
+	if(table_source->table_employment_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_employment, false, true), float(x + table_source->table_employment_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_employment_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_employment, false, true), float(x + table_source->table_employment_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	bool col_um_literacy = rel_mouse_x >= table_source->table_literacy_column_start && rel_mouse_x < (table_source->table_literacy_column_start + table_source->table_literacy_column_width);
+	if(table_source->table_literacy_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_literacy, false, true), float(x + table_source->table_literacy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_literacy_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_literacy, false, true), float(x + table_source->table_literacy_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	bool col_um_money = rel_mouse_x >= table_source->table_money_column_start && rel_mouse_x < (table_source->table_money_column_start + table_source->table_money_column_width);
+	if(table_source->table_money_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_money, false, true), float(x + table_source->table_money_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_money_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_money, false, true), float(x + table_source->table_money_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	bool col_um_needs = rel_mouse_x >= table_source->table_needs_column_start && rel_mouse_x < (table_source->table_needs_column_start + table_source->table_needs_column_width);
+	if(table_source->table_needs_sort_direction > 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs, false, true), float(x + table_source->table_needs_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_ascending_icon, table_source->table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(table_source->table_needs_sort_direction < 0) {
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs, false, true), float(x + table_source->table_needs_column_start + 8), float(y + base_data.size.y / 2 - 8), float(16), float(16), ogl::get_late_load_texture_handle(state, table_source->table_descending_icon, table_source->table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	}
+	if(!needs_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_needs , false, true); 
+		for(auto& t : needs_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->table_needs_column_start + 24 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->table_needs_header_text_color), cmod);
+		}
+	}
+	bool col_um_rebels = rel_mouse_x >= table_source->table_rebels_column_start && rel_mouse_x < (table_source->table_rebels_column_start + table_source->table_rebels_column_width);
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->table_divider_color.r, table_source->table_divider_color.g, table_source->table_divider_color.b, 1.0f);
+}
+void demographicswindow_pops_header_content_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::content::update
+// END
+}
+void demographicswindow_pops_header_content_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::content::create
+// END
+}
+ui::message_result demographicswindow_pops_header_mil_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result demographicswindow_pops_header_mil_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void demographicswindow_pops_header_mil_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+void demographicswindow_pops_header_mil_icon_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::mil_icon::update
+// END
+}
+void demographicswindow_pops_header_mil_icon_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::mil_icon::create
+// END
+}
+ui::message_result demographicswindow_pops_header_con_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result demographicswindow_pops_header_con_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void demographicswindow_pops_header_con_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+void demographicswindow_pops_header_con_icon_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::con_icon::update
+// END
+}
+void demographicswindow_pops_header_con_icon_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::con_icon::create
+// END
+}
+ui::message_result demographicswindow_pops_header_emp_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result demographicswindow_pops_header_emp_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void demographicswindow_pops_header_emp_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+void demographicswindow_pops_header_emp_icon_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::emp_icon::update
+// END
+}
+void demographicswindow_pops_header_emp_icon_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::emp_icon::create
+// END
+}
+ui::message_result demographicswindow_pops_header_lit_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result demographicswindow_pops_header_lit_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void demographicswindow_pops_header_lit_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+void demographicswindow_pops_header_lit_icon_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::lit_icon::update
+// END
+}
+void demographicswindow_pops_header_lit_icon_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::lit_icon::create
+// END
+}
+ui::message_result demographicswindow_pops_header_reb_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result demographicswindow_pops_header_reb_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void demographicswindow_pops_header_reb_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+void demographicswindow_pops_header_reb_icon_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::reb_icon::update
+// END
+}
+void demographicswindow_pops_header_reb_icon_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::reb_icon::create
+// END
+}
+ui::message_result demographicswindow_pops_header_cash_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result demographicswindow_pops_header_cash_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void demographicswindow_pops_header_cash_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+}
+void demographicswindow_pops_header_cash_icon_t::on_update(sys::state& state) noexcept {
+	demographicswindow_pops_header_t& pops_header = *((demographicswindow_pops_header_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::cash_icon::update
+// END
+}
+void demographicswindow_pops_header_cash_icon_t::on_create(sys::state& state) noexcept {
+// BEGIN pops_header::cash_icon::create
+// END
+}
+ui::message_result demographicswindow_pops_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result demographicswindow_pops_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void demographicswindow_pops_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	else
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	auto table_source = (demographicswindow_main_t*)(parent);
+	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	if(under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_location = rel_mouse_x >= table_source->table_location_column_start && rel_mouse_x < (table_source->table_location_column_start + table_source->table_location_column_width);
+	if(col_um_location && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_location_column_start), float(y), float(table_source->table_location_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_size = rel_mouse_x >= table_source->table_size_column_start && rel_mouse_x < (table_source->table_size_column_start + table_source->table_size_column_width);
+	if(col_um_size && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_size_column_start), float(y), float(table_source->table_size_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_culture = rel_mouse_x >= table_source->table_culture_column_start && rel_mouse_x < (table_source->table_culture_column_start + table_source->table_culture_column_width);
+	if(col_um_culture && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_culture_column_start), float(y), float(table_source->table_culture_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_job = rel_mouse_x >= table_source->table_job_column_start && rel_mouse_x < (table_source->table_job_column_start + table_source->table_job_column_width);
+	if(col_um_job && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_job_column_start), float(y), float(table_source->table_job_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_religion = rel_mouse_x >= table_source->table_religion_column_start && rel_mouse_x < (table_source->table_religion_column_start + table_source->table_religion_column_width);
+	if(col_um_religion && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_religion_column_start), float(y), float(table_source->table_religion_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_ideology = rel_mouse_x >= table_source->table_ideology_column_start && rel_mouse_x < (table_source->table_ideology_column_start + table_source->table_ideology_column_width);
+	if(col_um_ideology && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_ideology_column_start), float(y), float(table_source->table_ideology_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_issues = rel_mouse_x >= table_source->table_issues_column_start && rel_mouse_x < (table_source->table_issues_column_start + table_source->table_issues_column_width);
+	if(col_um_issues && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_issues_column_start), float(y), float(table_source->table_issues_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_militancy = rel_mouse_x >= table_source->table_militancy_column_start && rel_mouse_x < (table_source->table_militancy_column_start + table_source->table_militancy_column_width);
+	if(col_um_militancy && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_militancy_column_start), float(y), float(table_source->table_militancy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_consciousness = rel_mouse_x >= table_source->table_consciousness_column_start && rel_mouse_x < (table_source->table_consciousness_column_start + table_source->table_consciousness_column_width);
+	if(col_um_consciousness && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_consciousness_column_start), float(y), float(table_source->table_consciousness_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_employment = rel_mouse_x >= table_source->table_employment_column_start && rel_mouse_x < (table_source->table_employment_column_start + table_source->table_employment_column_width);
+	if(col_um_employment && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_employment_column_start), float(y), float(table_source->table_employment_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_literacy = rel_mouse_x >= table_source->table_literacy_column_start && rel_mouse_x < (table_source->table_literacy_column_start + table_source->table_literacy_column_width);
+	if(col_um_literacy && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_literacy_column_start), float(y), float(table_source->table_literacy_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_money = rel_mouse_x >= table_source->table_money_column_start && rel_mouse_x < (table_source->table_money_column_start + table_source->table_money_column_width);
+	if(col_um_money && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_money_column_start), float(y), float(table_source->table_money_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_needs = rel_mouse_x >= table_source->table_needs_column_start && rel_mouse_x < (table_source->table_needs_column_start + table_source->table_needs_column_width);
+	if(col_um_needs && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_needs_column_start), float(y), float(table_source->table_needs_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+	bool col_um_rebels = rel_mouse_x >= table_source->table_rebels_column_start && rel_mouse_x < (table_source->table_rebels_column_start + table_source->table_rebels_column_width);
+	if(col_um_rebels && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->table_rebels_column_start), float(y), float(table_source->table_rebels_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
+	}
+}
+void demographicswindow_pops_header_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+// BEGIN pops_header::update
+// END
+	remake_layout(state, true);
+}
+void demographicswindow_pops_header_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(80);
+		lvl.page_controls->base_data.size.y = int16_t(16);
+	}
+	auto optional_section = buffer.read_section(); // nothing
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::control:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				temp.ptr = nullptr;
+				if(cname == "content") {
+					temp.ptr = content.get();
+				}
+				if(cname == "mil_icon") {
+					temp.ptr = mil_icon.get();
+				}
+				if(cname == "con_icon") {
+					temp.ptr = con_icon.get();
+				}
+				if(cname == "emp_icon") {
+					temp.ptr = emp_icon.get();
+				}
+				if(cname == "lit_icon") {
+					temp.ptr = lit_icon.get();
+				}
+				if(cname == "reb_icon") {
+					temp.ptr = reb_icon.get();
+				}
+				if(cname == "cash_icon") {
+					temp.ptr = cash_icon.get();
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				if(cname == "main") {
+					temp.ptr = make_demographicswindow_main(state);
+				}
+				if(cname == "nation_row") {
+					temp.ptr = make_demographicswindow_nation_row(state);
+				}
+				if(cname == "state_row") {
+					temp.ptr = make_demographicswindow_state_row(state);
+				}
+				if(cname == "province_row") {
+					temp.ptr = make_demographicswindow_province_row(state);
+				}
+				if(cname == "pop_row") {
+					temp.ptr = make_demographicswindow_pop_row(state);
+				}
+				if(cname == "filters_window") {
+					temp.ptr = make_demographicswindow_filters_window(state);
+				}
+				if(cname == "job_filter") {
+					temp.ptr = make_demographicswindow_job_filter(state);
+				}
+				if(cname == "religion_filter") {
+					temp.ptr = make_demographicswindow_religion_filter(state);
+				}
+				if(cname == "location_filter") {
+					temp.ptr = make_demographicswindow_location_filter(state);
+				}
+				if(cname == "culture_filter") {
+					temp.ptr = make_demographicswindow_culture_filter(state);
+				}
+				if(cname == "pops_header") {
+					temp.ptr = make_demographicswindow_pops_header(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void demographicswindow_pops_header_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("demographicswindow::pops_header"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	texture_key = win_data.texture;
+	alt_texture_key = win_data.alt_texture;
+	auto name_key = state.lookup_key("demographicswindow::pops_header");
+	for(auto ex : state.ui_defs.extensions) {
+		if(name_key && ex.window == name_key) {
+			auto ch_res = ui::make_element_immediate(state, ex.child);
+			if(ch_res) {
+				this->add_child_to_back(std::move(ch_res));
+				children.push_back(ch_res.get());
+				gui_inserts.push_back(std::move(ch_res));
+			}
+		}
+	}
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "content") {
+			content = std::make_unique<demographicswindow_pops_header_content_t>();
+			content->parent = this;
+			auto cptr = content.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "mil_icon") {
+			mil_icon = std::make_unique<demographicswindow_pops_header_mil_icon_t>();
+			mil_icon->parent = this;
+			auto cptr = mil_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "con_icon") {
+			con_icon = std::make_unique<demographicswindow_pops_header_con_icon_t>();
+			con_icon->parent = this;
+			auto cptr = con_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "emp_icon") {
+			emp_icon = std::make_unique<demographicswindow_pops_header_emp_icon_t>();
+			emp_icon->parent = this;
+			auto cptr = emp_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "lit_icon") {
+			lit_icon = std::make_unique<demographicswindow_pops_header_lit_icon_t>();
+			lit_icon->parent = this;
+			auto cptr = lit_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "reb_icon") {
+			reb_icon = std::make_unique<demographicswindow_pops_header_reb_icon_t>();
+			reb_icon->parent = this;
+			auto cptr = reb_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "cash_icon") {
+			cash_icon = std::make_unique<demographicswindow_pops_header_cash_icon_t>();
+			cash_icon->parent = this;
+			auto cptr = cash_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN pops_header::create
+// END
+}
+std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state& state) {
+	auto ptr = std::make_unique<demographicswindow_pops_header_t>();
+	ptr->on_create(state);
+	return ptr;
+}
 // LOST-CODE
+// BEGIN filters_window::culture_list::create
+////////////////////////////	for(auto c : state.world.in_culture) {
+////////////////////////////		values.push_back(c.id);
+////////////////////////////	}
+////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
+////////////////////////////	});
+// END
+// BEGIN filters_window::religion_list::create
+////////////////////////////	for(auto r : state.world.in_religion)
+////////////////////////////		values.push_back(r.id);
+////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
+////////////////////////////	});
+// END
+// BEGIN filters_window::job_list::create
+////////////////////////////	for(auto j : state.world.in_pop_type)
+////////////////////////////		values.push_back(j.id);
+////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
+////////////////////////////	});
+// END
 }

@@ -285,7 +285,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		auto old_size = map_data.trade_flow_vertices.size();
 		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
 
-		auto width = std::sqrt(std::abs(volume) / cutoff) * 1000.f;
+		auto width = std::min(std::sqrt(std::abs(volume)) / cutoff, 5.f) * 1000.f;
 
 		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
 			norm_pos,
@@ -357,7 +357,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				auto old_size = map_data.trade_flow_vertices.size();
 				map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
 
-				auto width = std::sqrt(std::abs(volume) / cutoff) * 1000.f;
+				auto width = std::min(std::sqrt(std::abs(volume)) / cutoff, 5.f) * 1000.f;
 
 				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
 					norm_pos,

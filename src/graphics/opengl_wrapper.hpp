@@ -211,6 +211,7 @@ struct data {
 
 	GLuint province_map_framebuffer;
 	GLuint province_map_rendertexture;
+	GLuint province_map_depthbuffer;
 
 	GLuint ui_shader_d_rect_uniform = 0;
 	GLuint ui_shader_subroutines_index_uniform = 0;

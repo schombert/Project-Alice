@@ -502,7 +502,11 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_battle_id b);
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
-float get_leader_select_score(sys::state& state, dcon::leader_id l);
+float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
+bool is_attacker_in_battle(sys::state& state, dcon::army_id a);
+bool is_attacker_in_battle(sys::state& state, dcon::navy_id a);
+dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::leader_id id);
+dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::leader_id id);
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 

@@ -9,6 +9,8 @@ include{"military.hpp"}
 include{<glm/glm.hpp>}
 include{"hb.h"}
 
+global{no-conversions}
+
 make_index{text_key}{uint32_t}
 make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}

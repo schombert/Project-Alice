@@ -188,12 +188,18 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+	glGenRenderbuffers(1, &state.open_gl.province_map_depthbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, state.open_gl.province_map_depthbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size_x, size_y);
+
 	// framebuffer
 	glGenFramebuffers(1, &state.open_gl.province_map_framebuffer);
 	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.province_map_framebuffer);
 	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state.open_gl.province_map_rendertexture, 0);
+	state.console_log(ogl::opengl_get_error_name(glGetError()));
+	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, state.open_gl.province_map_depthbuffer);
 	state.console_log(ogl::opengl_get_error_name(glGetError()));
 
 	// drawbuffers
@@ -212,8 +218,11 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 void deinitialize_framebuffer_for_province_indices(sys::state& state) {
 	if(state.open_gl.province_map_rendertexture)
 		glDeleteTextures(1, &state.open_gl.province_map_rendertexture);
+	if(state.open_gl.province_map_rendertexture)
+		glDeleteRenderbuffers(1, &state.open_gl.province_map_rendertexture);
 	if(state.open_gl.province_map_framebuffer)
 		glDeleteFramebuffers(1, &state.open_gl.province_map_framebuffer);
+	
 }
 
 void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {

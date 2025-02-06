@@ -662,26 +662,6 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 			trigger::to_generic(ids), 0);
 }
 
-std::vector<dcon::pop_id> const& get_pop_window_list(sys::state& state) {
-	static const std::vector<dcon::pop_id> empty{};
-	if(state.ui_state.population_subwindow)
-		return static_cast<population_window*>(state.ui_state.population_subwindow)->country_pop_listbox->row_contents;
-	return empty;
-}
-
-dcon::pop_id get_pop_details_pop(sys::state& state) {
-	dcon::pop_id id{};
-	if(state.ui_state.population_subwindow) {
-		auto win = static_cast<population_window*>(state.ui_state.population_subwindow)->details_win;
-		if(win) {
-			Cyto::Any payload = dcon::pop_id{};
-			win->impl_get(state, payload);
-			id = any_cast<dcon::pop_id>(payload);
-		}
-	}
-	return id;
-}
-
 void pop_national_focus_button::button_action(sys::state& state) noexcept {
 	if(parent) {
 		Cyto::Any payload = dcon::state_instance_id{};
