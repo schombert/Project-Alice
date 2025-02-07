@@ -275,6 +275,18 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 				}
 				text::close_layout_box(contents, box);
 			}
+			if(mod.maneuver != 0) {
+				auto box = text::open_layout_box(contents, indent + 15);
+				text::localised_format_box(state, contents, box, "maneuver");
+				text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+				if(mod.maneuver < 0) {
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.maneuver }, text::text_color::red);
+				} else {
+					text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::green);
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.maneuver }, text::text_color::green);
+				}
+				text::close_layout_box(contents, box);
+			}
 			if(mod.discipline_or_evasion != 0) {
 				auto box = text::open_layout_box(contents, indent + 15);
 				text::localised_format_box(state, contents, box, "discipline");
@@ -623,6 +635,18 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 				} else {
 					text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
 					text::add_to_layout_box(state, contents, box, text::fp_two_places{mod.support}, text::text_color::green);
+				}
+				text::close_layout_box(contents, box);
+			}
+			if(mod.maneuver != 0) {
+				auto box = text::open_layout_box(contents, 15);
+				text::localised_format_box(state, contents, box, "maneuver");
+				text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+				if(mod.maneuver < 0) {
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.maneuver }, text::text_color::red);
+				} else {
+					text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::green);
+					text::add_to_layout_box(state, contents, box, text::fp_two_places{ mod.maneuver }, text::text_color::green);
 				}
 				text::close_layout_box(contents, box);
 			}

@@ -6209,7 +6209,7 @@ void update_land_battles(sys::state& state) {
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
 				auto att_front_target = def_front[i];
-				if(auto mv = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].maneuver; !att_front_target && mv > 0.0f) {
+				if(auto mv = att_stats.maneuver; !att_front_target && mv > 0.0f) {
 					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
 						if(def_front[i - cnt * 2]) {
 							att_front_target = def_front[i - cnt * 2];
@@ -6274,7 +6274,7 @@ void update_land_battles(sys::state& state) {
 
 				auto def_front_target = att_front[i];
 
-				if(auto mv = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].maneuver; !def_front_target && mv > 0.0f) {
+				if(auto mv = def_stats.maneuver; !def_front_target && mv > 0.0f) {
 					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
 						if(att_front[i - cnt * 2]) {
 							def_front_target = att_front[i - cnt * 2];

@@ -181,7 +181,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(108, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech")                              \
 	MOD_LIST_ELEMENT(109, supply_range, true, modifier_display_type::percent, "supply_range_tech")                                 \
 	MOD_LIST_ELEMENT(110, regular_experience_level, true, modifier_display_type::integer, "regular_exp_tech")                      \
-	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
+	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, false, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
 	MOD_LIST_ELEMENT(112, naval_attrition, false, modifier_display_type::percent, "naval_attrition_tech")                           \
 	MOD_LIST_ELEMENT(113, land_attrition, false, modifier_display_type::percent, "land_attrition_tech")                             \
 	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
@@ -270,6 +270,7 @@ struct unit_variable_stats {
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
 	float discipline_or_evasion = 0.0f;
+	float maneuver = 0.0f;
 
 	void operator+=(unit_variable_stats const& other) {
 		build_time += other.build_time;
@@ -279,6 +280,7 @@ struct unit_variable_stats {
 		attack_or_gun_power += other.attack_or_gun_power;
 		supply_consumption += other.supply_consumption;
 		support += other.support;
+		maneuver += other.maneuver;
 		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
 		discipline_or_evasion += other.discipline_or_evasion;
@@ -291,6 +293,7 @@ struct unit_variable_stats {
 		attack_or_gun_power -= other.attack_or_gun_power;
 		supply_consumption -= other.supply_consumption;
 		support -= other.support;
+		maneuver -= other.maneuver;
 		siege_or_torpedo_attack -= other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range -= other.reconnaissance_or_fire_range;
 		discipline_or_evasion -= other.discipline_or_evasion;
@@ -304,6 +307,7 @@ static_assert(sizeof(unit_variable_stats) ==
 	+ sizeof(unit_variable_stats::attack_or_gun_power)
 	+ sizeof(unit_variable_stats::supply_consumption)
 	+ sizeof(unit_variable_stats::support)
+	+ sizeof(unit_variable_stats::maneuver)
 	+ sizeof(unit_variable_stats::siege_or_torpedo_attack)
 	+ sizeof(unit_variable_stats::reconnaissance_or_fire_range)
 	+ sizeof(unit_variable_stats::discipline_or_evasion));

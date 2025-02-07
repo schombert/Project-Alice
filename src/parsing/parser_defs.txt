@@ -873,7 +873,7 @@ unit_modifier_body
 	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
 	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
 	fire_range            value      float            member  (reconnaissance_or_fire_range)
-	maneuver           value       float          discard
+	maneuver           value       float          member (maneuver)
 	evasion              value        float          member (discipline_or_evasion)
 	discipline              value        float          member (discipline_or_evasion)
 
