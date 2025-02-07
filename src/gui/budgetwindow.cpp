@@ -1888,7 +1888,44 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	values.clear();
 	add_section_header(budget_categories::construction);
 	if(budget_categories::expanded[budget_categories::construction]) {
-		// TODO
+		auto explanation = economy::explain_construction_spending_now(state, state.local_player_nation);
+		for(auto& data : explanation.factories) {
+			auto building_type = state.world.state_building_construction_get_type(data.construction);
+			auto location = state.world.state_building_construction_get_state(data.construction);
+			add_budget_row(
+				text::produce_simple_string(state, state.world.factory_type_get_name(building_type))
+				+ "(" + text::get_dynamic_state_name(state, location) + ")",
+				data.spending
+			);
+		}
+		for(auto& data : explanation.province_buildings) {
+			auto building_type = state.world.province_building_construction_get_type(data.construction);
+			auto location = state.world.province_building_construction_get_province(data.construction);
+			add_budget_row(
+				text::produce_simple_string(state, state.world.province_get_name(location)) ,
+				data.spending
+			);
+		}
+		for(auto& data : explanation.land_units) {
+			auto unit_type = state.world.province_land_construction_get_type(data.construction);
+			auto location = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(data.construction));
+			auto unit_name = state.military_definitions.unit_base_definitions[unit_type].name;
+			add_budget_row(
+				text::produce_simple_string(state, unit_name)
+				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
+				data.spending
+			);
+		}
+		for(auto& data : explanation.naval_units) {
+			auto unit_type = state.world.province_naval_construction_get_type(data.construction);
+			auto location = state.world.province_naval_construction_get_province(data.construction);
+			auto unit_name = state.military_definitions.unit_base_definitions[unit_type].name;
+			add_budget_row(
+				text::produce_simple_string(state, unit_name)
+				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
+				data.spending
+			);
+		}
 	} else {
 		add_neutral_spacer();
 	}

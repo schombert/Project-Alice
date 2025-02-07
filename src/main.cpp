@@ -23,6 +23,7 @@
 #include "economy_stats.cpp"
 #include "economy.cpp"
 #include "economy_government.cpp"
+#include "construction.cpp"
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"
