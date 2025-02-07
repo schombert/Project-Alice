@@ -362,7 +362,8 @@ float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n);
-float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
+float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n);
+float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);

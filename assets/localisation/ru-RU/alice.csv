@@ -1325,8 +1325,9 @@ alice_take_province_4;Это даст ?R$val$ лет национализма?W 
 alice_take_province_5;Субъект игрока
 alice_take_province_6;В мире
 alice_take_province_7;Провинция принадлежит субъекту
-investment_pool_income_1;Реинвестиции: ?G$x$?W
+investment_pool_income_1;Инвестиции населения: ?G$x$?W
 investment_pool_income_2;Трансфер от субъекта $country$: ?G$x$W
+investment_pool_income_3;Государственные субсидии: ?G$x$W
 investment_pool_spending_1;Административные расходы: ?R$x$?W
 investment_pool_spending_2;Расходы на строительство: ?R$x$?W
 investment_pool_spending_3;Трансфер субъектам: ?R$x$?W
