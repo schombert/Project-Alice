@@ -3,6 +3,249 @@
 
 namespace economy {
 
+ve::fp_vector ve_price(
+	sys::state const& state,
+	ve::contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id c
+) {
+	return state.world.market_get_price(s, c);
+}
+ve::fp_vector ve_price(
+	sys::state const& state,
+	ve::partial_contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id c
+) {
+	return state.world.market_get_price(s, c);
+}
+ve::fp_vector ve_price(
+	sys::state const& state,
+	ve::tagged_vector<dcon::market_id> s,
+	dcon::commodity_id c
+) {
+	return state.world.market_get_price(s, c);
+}
+
+void register_demand(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id commodity_type,
+	float amount,
+	economy_reason reason
+) {
+	assert(amount >= 0.f);
+	state.world.market_get_demand(s, commodity_type) += amount;
+	assert(std::isfinite(state.world.market_get_demand(s, commodity_type)));
+}
+
+void register_demand(
+	sys::state& state,
+	ve::contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve::apply(
+		[](float amount) {
+			assert(std::isfinite(amount) && amount >= 0.f);
+		}, amount
+	);
+	state.world.market_set_demand(
+		s,
+		commodity_type,
+		state.world.market_get_demand(s, commodity_type) + amount
+	);
+	ve::apply(
+		[](float demand) {
+			assert(std::isfinite(demand) && demand >= 0.f);
+		}, state.world.market_get_demand(s, commodity_type)
+			);
+}
+void register_demand(
+	sys::state& state,
+	ve::partial_contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve::apply(
+		[](float amount) {
+			assert(std::isfinite(amount) && amount >= 0.f);
+		}, amount
+	);
+	state.world.market_set_demand(
+		s,
+		commodity_type,
+		state.world.market_get_demand(s, commodity_type) + amount
+	);
+	ve::apply(
+		[](float demand) {
+			assert(std::isfinite(demand) && demand >= 0.f);
+		}, state.world.market_get_demand(s, commodity_type)
+			);
+}
+void register_demand(
+	sys::state& state,
+	ve::tagged_vector<dcon::market_id> s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve::apply(
+		[](float amount) {
+			assert(std::isfinite(amount) && amount >= 0.f);
+		}, amount
+	);
+	state.world.market_set_demand(
+		s,
+		commodity_type,
+		state.world.market_get_demand(s, commodity_type) + amount
+	);
+	ve::apply(
+		[](float demand) {
+			assert(std::isfinite(demand) && demand >= 0.f);
+		}, state.world.market_get_demand(s, commodity_type)
+			);
+}
+
+void register_intermediate_demand(
+	sys::state& state,
+	ve::contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id c,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	register_demand(state, s, c, amount, reason);
+	state.world.market_set_intermediate_demand(
+		s,
+		c,
+		state.world.market_get_intermediate_demand(s, c) + amount
+	);
+	auto local_price = ve_price(state, s, c);
+	auto sat = state.world.market_get_demand_satisfaction(s, c);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+}
+void register_intermediate_demand(
+	sys::state& state,
+	ve::partial_contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id c,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	register_demand(state, s, c, amount, reason);
+	state.world.market_set_intermediate_demand(
+		s,
+		c,
+		state.world.market_get_intermediate_demand(s, c) + amount
+	);
+	auto local_price = ve_price(state, s, c);
+	auto sat = state.world.market_get_demand_satisfaction(s, c);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+}
+void register_intermediate_demand(
+	sys::state& state,
+	ve::tagged_vector<dcon::market_id> s,
+	dcon::commodity_id c,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	register_demand(state, s, c, amount, reason);
+	state.world.market_set_intermediate_demand(
+		s,
+		c,
+		state.world.market_get_intermediate_demand(s, c) + amount
+	);
+	auto local_price = ve_price(state, s, c);
+	auto sat = state.world.market_get_demand_satisfaction(s, c);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+}
+
+void register_intermediate_demand(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c,
+	float amount,
+	economy_reason reason
+) {
+	register_demand(state, s, c, amount, reason);
+	state.world.market_set_intermediate_demand(
+		s,
+		c,
+		state.world.market_get_intermediate_demand(s, c) + amount
+	);
+	auto local_price = price(state, s, c);
+	auto sat = state.world.market_get_demand_satisfaction(s, c);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+}
+
+void register_domestic_supply(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id commodity_type,
+	float amount,
+	economy_reason reason
+) {
+	state.world.market_get_supply(s, commodity_type) += amount;
+	state.world.market_get_gdp(s) += amount * price(state, s, commodity_type);
+}
+
+void register_foreign_supply(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id commodity_type,
+	float amount,
+	economy_reason reason
+) {
+	state.world.market_get_supply(s, commodity_type) += amount;
+}
+
+template<typename T>
+void ve_register_domestic_supply(
+	sys::state& state,
+	T s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	state.world.market_set_supply(
+		s,
+		commodity_type,
+		state.world.market_get_supply(s, commodity_type) + amount
+	);
+	state.world.market_set_gdp(
+		s,
+		state.world.market_get_gdp(s)
+		+ amount * ve_price(state, s, commodity_type)
+	);
+}
+
+void register_domestic_supply(
+	sys::state& state,
+	ve::contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve_register_domestic_supply(state, s, commodity_type, amount, reason);
+}
+void register_domestic_supply(
+	sys::state& state,
+	ve::partial_contiguous_tags<dcon::market_id> s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve_register_domestic_supply(state, s, commodity_type, amount, reason);
+}
+void register_domestic_supply(
+	sys::state& state,
+	ve::tagged_vector<dcon::market_id> s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve_register_domestic_supply(state, s, commodity_type, amount, reason);
+}
+
 float price(sys::state const& state, dcon::state_instance_id s, dcon::commodity_id c) {
 	auto market = state.world.state_instance_get_market_from_local_market(s);
 	return state.world.market_get_price(market, c);

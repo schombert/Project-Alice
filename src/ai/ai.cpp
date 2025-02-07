@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
+#include "construction.hpp"
 #include "effects.hpp"
 #include "gui_effect_tooltips.hpp"
 #include "math_fns.hpp"
