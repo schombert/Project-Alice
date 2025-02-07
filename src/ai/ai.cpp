@@ -4013,7 +4013,7 @@ void update_budget(sys::state& state) {
 		auto rules = n.get_combined_issue_rules();
 		if(n.get_is_civilized() && (rules & issue_rule::build_factory) == 0) {
 			float investment_budget = investments_budget_ratio * base_income;
-			float max_investment_budget = 1.f + economy::estimate_domestic_investment(state, n);
+			float max_investment_budget = 1.f + economy::estimate_max_domestic_investment(state, n);
 			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
 			investment_ratio = std::clamp(investment_ratio, 0.f, 100.f);
 			n.set_domestic_investment_spending(int8_t(investment_ratio));

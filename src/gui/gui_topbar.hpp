@@ -431,7 +431,18 @@ public:
 				text::add_line(state, contents, "farmers_investment_ratio", text::variable_type::x, text::fp_percentage{ farmers_investment_ratio }, 15);
 			}
 		}
-		text::add_line_break_to_layout(state, contents);
+		{
+			auto domestic_investment = economy::estimate_current_domestic_investment(state, state.local_player_nation);
+
+			if(domestic_investment > 0.f) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ domestic_investment });
+				text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "investment_pool_income_3", sub);
+				text::close_layout_box(contents, box);
+			}
+		}
 		{
 			for(auto n : state.world.in_nation) {
 				auto rel = state.world.nation_get_overlord_as_subject(n);
@@ -449,13 +460,14 @@ public:
 						text::substitution_map sub{};
 						text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
 						text::add_to_substitution_map(sub, text::variable_type::country, n);
-						auto box = text::open_layout_box(contents, 15);
+						auto box = text::open_layout_box(contents, 0);
 						text::localised_format_box(state, contents, box, "investment_pool_income_2", sub);
 						text::close_layout_box(contents, box);
 					}
 				}
 			}
 		}
+		
 		text::add_line_break_to_layout(state, contents);
 		{
 			text::substitution_map sub{};

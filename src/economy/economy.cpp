@@ -8106,7 +8106,7 @@ float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
 
 
 
-float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
+float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n) {
 	auto total = 0.f;
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
@@ -8134,6 +8134,10 @@ float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
 			);
 	});
 	return total;
+}
+
+float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n) {
+	return estimate_max_domestic_investment(state, n) * float(state.world.nation_get_domestic_investment_spending(n)) / 10000.0f;
 }
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n) {
