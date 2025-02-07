@@ -7550,7 +7550,7 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 
 void recover_org(sys::state& state) {
 	/*
-	- Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier
+	- Units that are not on the frontline of a battle, and not embarked recover organization daily at: (national-organization-regeneration-modifier
 	+ morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible
 	for the unit times (0.25 + 0.75 x effective land or naval spending).
 	- Additionally, the prestige of the leader factors in morale as unit-morale
@@ -7559,7 +7559,7 @@ void recover_org(sys::state& state) {
 	*/
 
 	for(auto ar : state.world.in_army) {
-		if(ar.get_navy_from_army_transport())
+		if(ar.get_navy_from_army_transport() || ar.get_black_flag())
 			continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
@@ -7721,7 +7721,11 @@ float calculate_location_reinforce_modifier(sys::state& state, dcon::province_id
 			}
 			
 		}
-		// territory whom we do not own, but are not at war with, 100% bonus
+		// if the units has access to the province, if they dont, they are blackflagged and shall get no reinforcements
+		else if(!province::has_access_to_province(state, in_nation, location)) {
+			location_modifier = 0.0f;
+		}
+		// territory whom we do not own, but are not at war with, while having access to it, 100% bonus
 		else {
 			location_modifier = 1.0f;
 		}
@@ -7734,7 +7738,7 @@ float calculate_location_reinforce_modifier(sys::state& state, dcon::province_id
 // Calculates max reinforcement for units in the army
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
-	if(ar.get_navy_from_army_transport() || ar.get_is_retreating())
+	if(ar.get_navy_from_army_transport() || ar.get_is_retreating() || ar.get_black_flag())
 		return 0.0f;
 
 	auto in_nation = ar.get_controller_from_army_control();
