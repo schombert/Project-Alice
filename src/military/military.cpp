@@ -2434,7 +2434,7 @@ void monthly_leaders_update(sys::state& state) {
 			});
 
 	for(auto n : state.world.in_nation) {
-		if(n.get_leadership_points() > state.defines.leader_recruit_cost * 3.0f) {
+		if(n.get_leadership_points() > state.defines.leader_recruit_cost * 3.0f && state.defines.alice_auto_hire_generals > 0.f) {
 			// automatically make new leader
 			auto new_l = [&]() {
 				auto existing_leaders = count_leaders(state, n);

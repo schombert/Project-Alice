@@ -667,6 +667,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_overestimate, 1.150000)                                                               \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_attack_target_radius, -0.996000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
+	LUA_DEFINES_LIST_ELEMENT(alice_auto_hire_generals, 1.00000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 4.000000) \
