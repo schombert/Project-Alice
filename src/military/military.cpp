@@ -4906,14 +4906,17 @@ bool is_attacker_in_battle(sys::state& state, dcon::army_id a) {
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a) {
 	assert(state.world.navy_get_battle_from_navy_battle_participation(a)); // make sure the army is actually in a battle
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(a);
+	auto war = state.world.naval_battle_get_war_from_naval_battle_in_war(battle);
 	auto thisnation = state.world.navy_get_controller_from_navy_control(a);
 	// country vs country
 	bool war_attacker = state.world.naval_battle_get_war_attacker_is_attacker(battle);
 	for(const auto par : state.world.nation_get_war_participant(thisnation)) {
-		if((par.get_is_attacker() && war_attacker) || (!par.get_is_attacker() && !war_attacker)) {
-			return true;
-		} else if((!par.get_is_attacker() && war_attacker) || (par.get_is_attacker() && !war_attacker)) {
-			return false;
+		if(par.get_war() == war) {
+			if((par.get_is_attacker() && war_attacker) || (!par.get_is_attacker() && !war_attacker)) {
+				return true;
+			} else if((!par.get_is_attacker() && war_attacker) || (par.get_is_attacker() && !war_attacker)) {
+				return false;
+			}
 		}
 	}
 	return false;
