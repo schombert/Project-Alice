@@ -7619,13 +7619,13 @@ float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
 float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
 	return state.world.ship_get_strength(ship_id);
 }
-bool province_has_battle(sys::state& state, dcon::province_id prov) {
+dcon::land_battle_id get_province_battle(sys::state& state, dcon::province_id prov) {
 	for(auto b : state.world.province_get_land_battle_location(prov)) {
 		if(b.get_battle() && b.get_location().id == prov) {
-			return true;
+			return b.get_battle();
 		}
 	}
-	return false;
+	return dcon::land_battle_id{};
 }
 
 bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
@@ -7645,9 +7645,22 @@ bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon
 	}
 	return false;
 }
-
+// returns true if there is a battle at the location, where one of the participants is an enemy to our_nation
+bool enemy_battle(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+	auto battle = get_province_battle(state, location);
+	if(battle) {
+		for(auto par : state.world.land_battle_get_army_battle_participation(battle)) {
+			auto army_controller = par.get_army().get_controller_from_army_control();
+			if(are_at_war(state, our_nation, army_controller)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+// returns true if the province "location" will get a reinforce bonus by being adjacent to a "allied" province.
 // checks if the province parameter "location" is adjacent to a "allied" controlled province from the perspective of the "our_nation" param.
-// "allied" means either: controlled by yourself, or controlled by an ally who is also fighting the controller of "location"
+// "allied" means either: controlled by yourself, or controlled by an nation who is fighting the controller of "location"
 bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 	auto location_controller = state.world.province_get_nation_from_province_control(location);
 	assert(are_at_war(state, our_nation, location_controller)); // this func should not be called if we arent at war with the location owner either
@@ -7655,12 +7668,12 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
-		if(prov_controller == our_nation) {
-			return true;
-		}		
-		// checks if the province is not controlled by rebels, and is controlled by someone who is at war with the owner of location, whom we are also allied to
-		else if(!prov_controller && are_at_war(state, location_controller, prov_controller) &&
-			nations::are_allied(state, our_nation, prov_controller)) {
+		// enemy battles or units will not allow for reinforcements
+		if(enemy_battle(state, prov, our_nation) || province_has_enemy_unit(state, prov, our_nation)) {
+			return false;
+		}	
+		// checks if the province controlled by us, or is controlled by someone who is at war with the owner of location and it is not rebels
+		else if(prov_controller == our_nation || (!prov_controller && are_at_war(state, location_controller, prov_controller))) {
 			return true;
 		}
 	}
@@ -7669,14 +7682,14 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 
 float calculate_location_reinforce_modifier(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
 	// calculate the reinforcement location mod for units in a battle
-	if(province_has_battle(state, location)) {
+	if(get_province_battle(state, location)) {
 		float highest_adj_prov_modifier = 0.0f;
 		// iterate over adjacent provinces
 		for(auto adj : state.world.province_get_province_adjacency(location)) {
 			auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 			auto prov = adj.get_connected_provinces(indx);
-			// if there are battles or enemy units sourrinding the province, it will get no reinforcements
-			if(province_has_battle(state, prov) || province_has_enemy_unit(state, prov, in_nation) ) {
+			// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
+			if(enemy_battle(state, prov, in_nation) || province_has_enemy_unit(state, prov, in_nation) ) {
 				highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
 			}
 			else {
@@ -7783,7 +7796,7 @@ void reinforce_regiments(sys::state& state) {
 	/*
 	A unit that is not retreating, not embarked, not in combat is reinforced (has its strength increased) by:
 define:REINFORCE_SPEED x (technology-reinforcement-modifier + 1.0) x (2 if in owned province, 0.1 in an unowned port province, 1
-in a controlled province, 0.5 if in a province adjacent to a province with military access, 0.25 in a hostile, unblockaded port,
+in a controlled province, 0.5 if in a province adjacent to a province with a war ally, 0.25 in a hostile, unblockaded port,
 and 0.1 in any other hostile province) x (national-reinforce-speed-modifier + 1) x army-supplies x (number of actual regiments /
 max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 	*/
