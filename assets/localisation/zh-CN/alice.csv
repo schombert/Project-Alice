@@ -1371,9 +1371,16 @@ alice_filter_colonial;殖民
 alice_open_filters;开启筛选
 alice_reset_filters;默认筛选
 alice_only_show_pops;仅显示人群
-alice_job_filter_header;类型
+alice_job_filter_header;职业
 alice_culture_filter_header;民族
 alice_religion_filter_header;宗教
 alice_location_filter_header;位置
 alice_pop_show_details;个人资料
 alice_demographics_window_header;人口统计
+alice_demographics_size_header;规模
+alice_demographics_job_header;职业
+alice_demographics_religion_header;宗教
+alice_demographics_location_header;位置
+alice_demographics_employment_header;就业
+alice_demographics_needs_header;需求
+alice_demographics_rebel_header;支持运动
