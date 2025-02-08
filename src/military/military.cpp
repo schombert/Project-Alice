@@ -7683,25 +7683,7 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 	}
 	return false;
 }
-// calculate the reinforcement location mod for units in a battle
-float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
-	float highest_adj_prov_modifier = 0.0f;
-	// iterate over adjacent provinces
-	for(auto adj : state.world.province_get_province_adjacency(location)) {
-		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
-		auto prov = adj.get_connected_provinces(indx);
-		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
-		if(enemy_battle(state, prov, in_nation) || province_has_enemy_unit(state, prov, in_nation) ) {
-			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
-		}
-		else {
-			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, calculate_location_reinforce_modifier_no_battle(state, prov, in_nation));
-		}
-	}
-	return highest_adj_prov_modifier;
-	
 
-}
 
 // calculate the reinforcement location mod for units not in a battle
 float calculate_location_reinforce_modifier_no_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
@@ -7752,6 +7734,27 @@ float calculate_location_reinforce_modifier_no_battle(sys::state& state, dcon::p
 
 
 
+// calculate the reinforcement location mod for units in a battle
+float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
+	float highest_adj_prov_modifier = 0.0f;
+	// iterate over adjacent provinces
+	for(auto adj : state.world.province_get_province_adjacency(location)) {
+		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
+		auto prov = adj.get_connected_provinces(indx);
+		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
+		if(enemy_battle(state, prov, in_nation) || province_has_enemy_unit(state, prov, in_nation) ) {
+			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
+		}
+		else {
+			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, calculate_location_reinforce_modifier_no_battle(state, prov, in_nation));
+		}
+	}
+	return highest_adj_prov_modifier;
+	
+
+}
+
+
 // Calculates max reinforcement for units in the army
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
@@ -7765,10 +7768,10 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 
 	float location_modifier;
 	if(ar.get_battle_from_army_battle_participation()) {
-		float location_modifier = calculate_location_reinforce_modifier_battle(state, ar.get_location_from_army_location(), in_nation);
+		location_modifier = calculate_location_reinforce_modifier_battle(state, ar.get_location_from_army_location(), in_nation);
 	}
 	else {
-		float location_modifier = calculate_location_reinforce_modifier_no_battle(state, ar.get_location_from_army_location(), in_nation);
+		location_modifier = calculate_location_reinforce_modifier_no_battle(state, ar.get_location_from_army_location(), in_nation);
 	}
 	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
