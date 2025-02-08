@@ -7658,6 +7658,10 @@ bool enemy_battle(sys::state& state, dcon::province_id location, dcon::nation_id
 	}
 	return false;
 }
+
+
+/* === Army reinforcement === */
+
 // returns true if the province "location" will get a reinforce bonus by being adjacent to a "allied" province.
 // checks if the province parameter "location" is adjacent to a "allied" controlled province from the perspective of the "our_nation" param.
 // "allied" means either: controlled by yourself, or controlled by an nation who is fighting the controller of "location"
@@ -7679,75 +7683,75 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 	}
 	return false;
 }
-
-float calculate_location_reinforce_modifier(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
-	// calculate the reinforcement location mod for units in a battle
-	if(get_province_battle(state, location)) {
-		float highest_adj_prov_modifier = 0.0f;
-		// iterate over adjacent provinces
-		for(auto adj : state.world.province_get_province_adjacency(location)) {
-			auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
-			auto prov = adj.get_connected_provinces(indx);
-			// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
-			if(enemy_battle(state, prov, in_nation) || province_has_enemy_unit(state, prov, in_nation) ) {
-				highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
-			}
-			else {
-				highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, calculate_location_reinforce_modifier(state, prov, in_nation));
-			}
+// calculate the reinforcement location mod for units in a battle
+float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
+	float highest_adj_prov_modifier = 0.0f;
+	// iterate over adjacent provinces
+	for(auto adj : state.world.province_get_province_adjacency(location)) {
+		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
+		auto prov = adj.get_connected_provinces(indx);
+		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
+		if(enemy_battle(state, prov, in_nation) || province_has_enemy_unit(state, prov, in_nation) ) {
+			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
 		}
-		return highest_adj_prov_modifier;
-	}
-	// calculate the reinforcement location mod for units not in a battle
-	else {
-		float location_modifier = 1.0f;
-		auto location_controller = state.world.province_get_nation_from_province_control(location);
-		auto location_owner = state.world.province_get_nation_from_province_ownership(location);
-		// in your owned territory, occupied or not
-		if(location_owner == in_nation) {
-			location_modifier = 2.0f;
-		}
-		// uncolonized (unowned) territory
-		else if(!location_owner) {
-			// if its a coastal uncolonized prov
-			if(state.world.province_get_is_coast(location)) {
-				location_modifier = 0.1f;
-			}
-			else {
-				location_modifier = 0.0f;
-			}
-		}
-		//if you are at war with the location controller, so enemy territory
-		else if(are_at_war(state, in_nation, location_controller)) {
-			// if we are eligible to get the 50% bonus by being adj to an allied province
-			if(get_allied_prov_adjacency_reinforcement_bonus(state, location, in_nation)) {
-				
-				location_modifier = 0.5f;
-			}
-			// if its coastal, give 25%
-			else if(state.world.province_get_is_coast(location)) {
-				location_modifier = 0.25f;
-			}
-			// if its neither, give 10%
-			else {
-				location_modifier = 0.1f;
-			}
-			
-		}
-		// if the units has access to the province, if they dont, they are blackflagged and shall get no reinforcements
-		else if(!province::has_access_to_province(state, in_nation, location)) {
-			location_modifier = 0.0f;
-		}
-		// territory whom we do not own, but are not at war with, while having access to it, 100% bonus
 		else {
-			location_modifier = 1.0f;
+			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, calculate_location_reinforce_modifier_no_battle(state, prov, in_nation));
 		}
-		return location_modifier;
 	}
+	return highest_adj_prov_modifier;
+	
 
 }
 
-/* === Army reinforcement === */
+// calculate the reinforcement location mod for units not in a battle
+float calculate_location_reinforce_modifier_no_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation) {
+	float location_modifier = 1.0f;
+	auto location_controller = state.world.province_get_nation_from_province_control(location);
+	auto location_owner = state.world.province_get_nation_from_province_ownership(location);
+	// in your owned territory, occupied or not
+	if(location_owner == in_nation) {
+		location_modifier = 2.0f;
+	}
+	// uncolonized (unowned) territory
+	else if(!location_owner) {
+		// if its a coastal uncolonized prov
+		if(state.world.province_get_is_coast(location)) {
+			location_modifier = 0.1f;
+		} else {
+			location_modifier = 0.0f;
+		}
+	}
+	//if you are at war with the location controller, so enemy territory
+	else if(are_at_war(state, in_nation, location_controller)) {
+		// if we are eligible to get the 50% bonus by being adj to an allied province
+		if(get_allied_prov_adjacency_reinforcement_bonus(state, location, in_nation)) {
+
+			location_modifier = 0.5f;
+		}
+		// if its coastal, give 25%
+		else if(state.world.province_get_is_coast(location)) {
+			location_modifier = 0.25f;
+		}
+		// if its neither, give 10%
+		else {
+			location_modifier = 0.1f;
+		}
+
+	}
+	// if the units has access to the province, if they dont, they are blackflagged and shall get no reinforcements
+	else if(!province::has_access_to_province(state, in_nation, location)) {
+		location_modifier = 0.0f;
+	}
+	// territory whom we do not own, but are not at war with, while having access to it, 100% bonus
+	else {
+		location_modifier = 1.0f;
+	}
+	return location_modifier;
+
+}
+
+
+
 // Calculates max reinforcement for units in the army
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
@@ -7759,8 +7763,13 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 
 	auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 
-	float location_modifier = calculate_location_reinforce_modifier(state, ar.get_location_from_army_location(), in_nation);
-
+	float location_modifier;
+	if(ar.get_battle_from_army_battle_participation()) {
+		float location_modifier = calculate_location_reinforce_modifier_battle(state, ar.get_location_from_army_location(), in_nation);
+	}
+	else {
+		float location_modifier = calculate_location_reinforce_modifier_no_battle(state, ar.get_location_from_army_location(), in_nation);
+	}
 	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
