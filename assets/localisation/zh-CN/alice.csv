@@ -510,7 +510,7 @@ factory_stats_wage;工资：;;;;;;;;;;;;x
 factory_stats_expenses;总支出;;;;;;;;;;;;x
 factory_stats_desired_income;目标收入（101%支出）;;;;;;;;;;;;x
 speed;$val$ kph;;;;;;;;;;;;x
-shift_to_hold_open;按住 ?Shift?! 保持本窗口打开, ?Y点击右shift?! 在每个州建造 (但不扩建);;;;;;;;;;;;x
+shift_to_hold_open;按住 ?YShift?W 保持本窗口打开, ?Y点击右shift?W 在每个州建造 (但不扩建)
 factory_upgrade_shortcuts;?YSHIFT+左键?W升级?G所有?!S在此地区的工厂\n?YSHIFT+右键?W升级?G所有盈利的?W在此地区的工厂\n?YCTRL+左键?W升级?G所有?W在此国的工厂\n?YCTRL+右键?W升级?G所有盈利的?W在此国的工厂\n?YCTRL+SHIFT+左键?W升级?G所有盈利且满员的?W在此地区的工厂\n?YCTRL+SHIFT+右键?W升级?G所有盈利且满员的?W在此地区的工厂;;;;;;;;;;;;x
 blank_org_gain;组织度获得;;;;;;;;;;;;x
 plurality_change_reason;（基于平均觉醒度）;;;;;;;;;;;;x
