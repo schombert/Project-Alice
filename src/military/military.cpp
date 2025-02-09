@@ -7791,10 +7791,11 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 // Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
 float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
-	if(reg.get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg)) {
+	auto pop = reg.get_pop_from_regiment_source();
+	if((reg.get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg)) ||
+		!pop) {
 		return 0.0f;
 	}
-	auto pop = reg.get_pop_from_regiment_source();
 	auto pop_size = pop.get_size();
 	auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
 	auto curstr = reg.get_strength();
