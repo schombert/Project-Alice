@@ -2,6 +2,7 @@
 #include "gui_element_base.hpp"
 #include "system_state.hpp"
 #include "economy_government.hpp"
+#include "construction.hpp"
 #include "graphics/color.hpp"
 #include "province_templates.hpp"
 #include "rebels.hpp"
