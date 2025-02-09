@@ -3327,7 +3327,7 @@ struct demographicswindow_main_t : public layout_window_element {
 // BEGIN main::variables
 // END
 	ui::element_base* filter_w;
-	ui::pop_details_window* details_w;
+	ui::element_base* details_w;
 	ui::element_base* focus_w;
 	std::unique_ptr<demographicswindow_main_close_button_t> close_button;
 	std::unique_ptr<demographicswindow_main_title_t> title;
@@ -4897,7 +4897,7 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 		state.ui_state.root->add_child_to_back(std::move(ptr));
 	}
 	{
-		auto ptr = ui::make_element_by_type<ui::pop_details_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("pop_details_win"))->second.definition);
+		auto ptr = make_pop_details_main(state);
 		details_w = ptr.get();
 		//children.insert(children.begin(), details_w.get());
 		details_w->set_visible(state, false);
@@ -9441,7 +9441,7 @@ void demographicswindow_pop_row_size_trend_t::update_tooltip(sys::state& state, 
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::size_trend::tooltip
-	ui::describe_growth(state, contents, pop_row.value);
+	alice_ui::describe_growth(state, contents, pop_row.value);
 // END
 }
 void demographicswindow_pop_row_size_trend_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -9743,7 +9743,7 @@ void demographicswindow_pop_row_militancy_t::update_tooltip(sys::state& state, i
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::militancy::tooltip
-	ui::describe_mil(state, contents, pop_row.value);
+	describe_mil(state, contents, pop_row.value);
 // END
 }
 void demographicswindow_pop_row_militancy_t::set_text(sys::state& state, std::string const& new_text) {
@@ -9783,7 +9783,7 @@ void demographicswindow_pop_row_consciousness_t::update_tooltip(sys::state& stat
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::consciousness::tooltip
-	ui::describe_con(state, contents, pop_row.value);
+	alice_ui::describe_con(state, contents, pop_row.value);
 // END
 }
 void demographicswindow_pop_row_consciousness_t::set_text(sys::state& state, std::string const& new_text) {
@@ -9861,7 +9861,7 @@ void demographicswindow_pop_row_literacy_t::update_tooltip(sys::state& state, in
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::literacy::tooltip
-	ui::describe_lit(state, contents, pop_row.value);
+	alice_ui::describe_lit(state, contents, pop_row.value);
 // END
 }
 void demographicswindow_pop_row_literacy_t::set_text(sys::state& state, std::string const& new_text) {
@@ -10113,7 +10113,7 @@ void demographicswindow_pop_row_culture_name_t::update_tooltip(sys::state& state
 	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::culture_name::tooltip
-	ui::describe_assimilation(state, contents, pop_row.value);
+	describe_assimilation(state, contents, pop_row.value);
 // END
 }
 void demographicswindow_pop_row_culture_name_t::set_text(sys::state& state, std::string const& new_text) {
@@ -10354,10 +10354,13 @@ ui::message_result demographicswindow_pop_row_details_button_t::on_lbutton_down(
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN pop_row::details_button::lbutton_action
 	assert(main.details_w);
-	Cyto::Any payload = ui::pop_details_data{ pop_row.value };
-	main.details_w->impl_set(state, payload);
+	auto pop_ptr =(dcon::pop_id*)main.details_w->get_by_name(state, "for_pop");
+	*pop_ptr = pop_row.value;
+
 	if(!main.details_w->is_visible())
 		main.details_w->set_visible(state, true);
+	else
+		main.details_w->impl_on_update(state);
 	main.details_w->parent->move_child_to_front(main.details_w);
 // END
 	return ui::message_result::consumed;
@@ -14484,25 +14487,25 @@ std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state
 }
 // LOST-CODE
 // BEGIN filters_window::culture_list::create
-////////////////////////////	for(auto c : state.world.in_culture) {
-////////////////////////////		values.push_back(c.id);
-////////////////////////////	}
-////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
-////////////////////////////	});
+//////////////////////////////	for(auto c : state.world.in_culture) {
+//////////////////////////////		values.push_back(c.id);
+//////////////////////////////	}
+//////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
+//////////////////////////////	});
 // END
 // BEGIN filters_window::religion_list::create
-////////////////////////////	for(auto r : state.world.in_religion)
-////////////////////////////		values.push_back(r.id);
-////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
-////////////////////////////	});
+//////////////////////////////	for(auto r : state.world.in_religion)
+//////////////////////////////		values.push_back(r.id);
+//////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
+//////////////////////////////	});
 // END
 // BEGIN filters_window::job_list::create
-////////////////////////////	for(auto j : state.world.in_pop_type)
-////////////////////////////		values.push_back(j.id);
-////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
-////////////////////////////	});
+//////////////////////////////	for(auto j : state.world.in_pop_type)
+//////////////////////////////		values.push_back(j.id);
+//////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
+//////////////////////////////	});
 // END
 }
