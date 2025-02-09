@@ -470,7 +470,7 @@ public:
 				state,
 				this,
 				*(signal.tooltip_layout),
-				content.data[signal.row],
+				content.data[signal.row + table_body->scroll_pos],
 				content.columns[signal.column].header
 			);
 			return ui::message_result::consumed;
