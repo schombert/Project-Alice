@@ -5790,7 +5790,7 @@ void apply_regiment_damage(sys::state& state) {
 
 					auto reserves = state.world.land_battle_get_reserves(b);
 					// if the dead brigade with not enough supporting pop is in the reserves, remove it from the reserves first before deletion
-					if(!controller || state.world.pop_get_size(pop_backer) < 1000.0f) {
+					if(!controller || state.world.pop_get_size(pop_backer) < state.defines.pop_min_size_for_regiment) {
 						for(uint32_t j = reserves.size(); j-- > 0;) {
 							if(reserves[j].regiment == s) {
 								std::swap(reserves[j], reserves[reserves.size() - 1]);
@@ -5806,7 +5806,7 @@ void apply_regiment_damage(sys::state& state) {
 					
 				}
 				else {
-					if(!controller || state.world.pop_get_size(pop_backer) < 1000.0f)
+					if(!controller || state.world.pop_get_size(pop_backer) < state.defines.pop_min_size_for_regiment)
 						state.world.delete_regiment(s);
 					else
 						current_strength = 0.0f;
