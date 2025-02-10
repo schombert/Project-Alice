@@ -1161,8 +1161,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto tech_id = nations::current_research(state, nation_id);
-		if(bool(tech_id)) {
+		if(tech_id && state.world.technology_get_cost(tech_id) > 0) {
 			progress = state.world.nation_get_research_points(nation_id) / culture::effective_technology_rp_cost(state, state.current_date.to_ymd(state.start_date).year, state.local_player_nation, tech_id);
+		} else if (tech_id && state.world.technology_get_leadership_cost(tech_id) > 0) {
+			progress = state.world.nation_get_leadership_points(nation_id) / culture::effective_technology_lp_cost(state, state.current_date.to_ymd(state.start_date).year, state.local_player_nation, tech_id);
 		} else {
 			progress = 0.f;
 		}
@@ -1174,13 +1176,20 @@ public:
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto tech_id = nations::current_research(state, nation_id);
 
-		if(tech_id) {
+		if(tech_id && state.world.technology_get_cost(tech_id) > 0) {
 			text::add_line(state, contents, "technologyview_research_tooltip",
 				text::variable_type::tech, state.world.technology_get_name(tech_id),
 				text::variable_type::date, nations::get_research_end_date(state, tech_id, nation_id));
 			text::add_line(state, contents, "technologyview_research_invested_tooltip",
 				text::variable_type::invested, int64_t(state.world.nation_get_research_points(nation_id)),
 				text::variable_type::cost, int64_t(culture::effective_technology_rp_cost(state, state.ui_date.to_ymd(state.start_date).year, nation_id, tech_id)));
+		} else if(tech_id && state.world.technology_get_leadership_cost(tech_id) > 0) {
+			text::add_line(state, contents, "technologyview_research_tooltip",
+				text::variable_type::tech, state.world.technology_get_name(tech_id),
+				text::variable_type::date, nations::get_research_end_date(state, tech_id, nation_id));
+			text::add_line(state, contents, "technologyview_research_invested_tooltip",
+				text::variable_type::invested, int64_t(state.world.nation_get_leadership_points(nation_id)),
+				text::variable_type::cost, int64_t(culture::effective_technology_lp_cost(state, state.ui_date.to_ymd(state.start_date).year, nation_id, tech_id)));
 		} else {
 			text::add_line(state, contents, "technologyview_no_research_tooltip");
 		}
