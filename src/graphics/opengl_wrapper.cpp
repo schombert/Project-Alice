@@ -1416,7 +1416,7 @@ void animation::start_animation(sys::state& state, int32_t x, int32_t y, int32_t
 }
 void animation::post_update_frame(sys::state& state) {
 	if(running) {
-		bool needs_new_state = (ani_type == type::page_flip_left_rev || ani_type == type::page_flip_right_rev || ani_type == type::page_flip_up_rev);
+		bool needs_new_state = (ani_type == type::page_flip_left_rev || ani_type == type::page_flip_right_rev || ani_type == type::page_flip_up_rev || ani_type == type::page_flip_mid || ani_type == type::page_flip_mid_rev);
 		if(needs_new_state) {
 			end_state.ready(state);
 			state.current_scene.get_root(state)->impl_render(state, 0, 0);
@@ -1458,6 +1458,48 @@ void animation::render(sys::state& state) {
 				start_state.get());
 		}
 			break;
+		case type::page_flip_mid:
+		{
+			if(percent < 0.5f) {
+				float extent = cos((percent * 2.0f) * 3.14159f / 2.0f);
+				render_subrect(state, float(x_size / 2 + x_pos), float(y_pos), float(x_size * extent / 2.0f), float(y_size),
+					float(x_size / 2 + x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					start_state.get());
+				render_subrect(state, float(x_pos), float(y_pos), float(x_size / 2.0f), float(y_size),
+					float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					start_state.get());
+			} else {
+				float extent = cos((percent - 0.5f) * 2.0f * 3.14159f / 2.0f);
+				render_subrect(state, float(x_pos), float(y_pos), float(x_size / 2.0f), float(y_size),
+					float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					start_state.get());
+				render_subrect(state, float(extent * x_size / 2.0f + x_pos), float(y_pos), float(x_size / 2.0f - extent * x_size / 2.0f), float(y_size),
+					float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					end_state.get());
+
+			}
+		} break;
+		case type::page_flip_mid_rev:
+		{
+			if(percent < 0.5f) {
+				float extent = sin((percent * 2.0f) * 3.14159f / 2.0f);
+				render_subrect(state, float(x_pos + x_size * extent / 2.0f), float(y_pos), float(x_size * (1.0f - extent) / 2.0f), float(y_size),
+					float(x_pos) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					start_state.get());
+				render_subrect(state, float(x_pos + x_size / 2.0f), float(y_pos), float(x_size / 2.0f), float(y_size),
+					float(x_pos + x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					start_state.get());
+			} else {
+				float extent = sin((percent - 0.5f) * 2.0f * 3.14159f / 2.0f);
+				render_subrect(state, float(x_pos + x_size / 2.0f), float(y_pos), float(x_size / 2.0f), float(y_size),
+					float(x_pos + x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					start_state.get());
+				render_subrect(state, float(x_pos + x_size / 2.0f), float(y_pos), float(extent * x_size / 2.0f), float(y_size),
+					float(x_pos + x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(start_state.max_y - y_pos) * state.user_settings.ui_scale / float(start_state.max_y), float(x_size / 2.0f) * state.user_settings.ui_scale / float(start_state.max_x), float(-y_size) * state.user_settings.ui_scale / float(start_state.max_y),
+					end_state.get());
+
+			}
+		} break;
 		case type::page_flip_left_rev:
 		{
 			float extent = cos((1.0f - percent) * 3.14159f / 2.0f);

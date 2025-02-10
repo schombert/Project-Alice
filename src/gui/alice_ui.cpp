@@ -23,6 +23,8 @@ ogl::animation::type to_ogl_type(animation_type type, bool forwards) {
 		return forwards ? ogl::animation::type::page_flip_up : ogl::animation::type::page_flip_up_rev;
 	case animation_type::none:
 		return ogl::animation::type::page_flip_left;
+	case animation_type::page_middle:
+		return forwards ? ogl::animation::type::page_flip_mid : ogl::animation::type::page_flip_mid_rev;
 	default:
 		return ogl::animation::type::page_flip_left;
 	}
@@ -34,10 +36,10 @@ void layout_level::change_page(sys::state& state, layout_window_element& contain
 		bool rflip = new_page > current_page && current_page < int32_t(page_starts.size() - 1);
 		if(rflip) {
 			auto pos = ui::get_absolute_location(state, container);
-			state.ui_animation.start_animation(state, pos.x + resolved_x_pos, pos.y + resolved_y_pos, resolved_x_size, resolved_y_size, to_ogl_type(page_animation, true), 200);
+			state.ui_animation.start_animation(state, pos.x + resolved_x_pos, pos.y + resolved_y_pos, resolved_x_size, resolved_y_size, to_ogl_type(page_animation, true), 220);
 		} else if(lflip) {
 			auto pos = ui::get_absolute_location(state, container);
-			state.ui_animation.start_animation(state, pos.x + resolved_x_pos, pos.y + resolved_y_pos, resolved_x_size, resolved_y_size, to_ogl_type(page_animation, false), 200);
+			state.ui_animation.start_animation(state, pos.x + resolved_x_pos, pos.y + resolved_y_pos, resolved_x_size, resolved_y_size, to_ogl_type(page_animation, false), 220);
 		}
 
 		current_page = int16_t(std::clamp(new_page, 0, int32_t(page_starts.size() - 1)));
