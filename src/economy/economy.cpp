@@ -2850,9 +2850,6 @@ void update_pop_consumption(
 
 	state.ui_state.last_tick_investment_pool_change = 0;
 
-	static const ve::fp_vector zero = ve::fp_vector{ 0.f };
-	static const ve::fp_vector one = ve::fp_vector{ 1.f };
-
 	// satisfaction buffers
 	// they store how well pops satisfy their needs
 	// we store them per pop now
@@ -2972,12 +2969,12 @@ void update_pop_consumption(
 		auto landowners_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::aristocrat_reinvestment);
 
 		auto investment_ratio =
-			ve::select(nation_allows_investment && capitalists_mask, capitalists_mod + state.defines.alice_invest_capitalist, zero)
-			+ ve::select(nation_allows_investment && landowners_mask,landowners_mod + state.defines.alice_invest_aristocrat, zero)
-			+ ve::select(nation_allows_investment && middle_class_investors_mask, middle_class_investors_mod + state.defines.alice_invest_middle_class, zero)
-			+ve::select(nation_allows_investment && farmers_mask, farmers_mod + state.defines.alice_invest_farmer, zero);
+			ve::select(nation_allows_investment && capitalists_mask, capitalists_mod + state.defines.alice_invest_capitalist, 0.0f)
+			+ ve::select(nation_allows_investment && landowners_mask,landowners_mod + state.defines.alice_invest_aristocrat, 0.0f)
+			+ ve::select(nation_allows_investment && middle_class_investors_mask, middle_class_investors_mod + state.defines.alice_invest_middle_class, 0.0f)
+			+ve::select(nation_allows_investment && farmers_mask, farmers_mod + state.defines.alice_invest_farmer, 0.0f);
 
-		investment_ratio = ve::max(investment_ratio, zero);
+		investment_ratio = ve::max(investment_ratio, 0.0f);
 
 		ve::apply([&](float r) {
 			assert(r >= 0.f);
@@ -3007,13 +3004,13 @@ void update_pop_consumption(
 		auto landowners_savings_mod = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::aristocrat_savings);
 
 		auto saving_ratio =
-			ve::select(capitalists_mask, capitalists_savings_mod + state.defines.alice_save_capitalist, zero)
-			+ ve::select(landowners_mask, landowners_savings_mod + state.defines.alice_save_aristocrat, zero)
-			+ ve::select(middle_class_investors_mask, middle_class_savings_mod + state.defines.alice_save_middle_class, zero)
-			+ ve::select(farmers_mask, farmers_savings_mod + state.defines.alice_save_farmer, zero);
+			ve::select(capitalists_mask, capitalists_savings_mod + state.defines.alice_save_capitalist, 0.0f)
+			+ ve::select(landowners_mask, landowners_savings_mod + state.defines.alice_save_aristocrat, 0.0f)
+			+ ve::select(middle_class_investors_mask, middle_class_savings_mod + state.defines.alice_save_middle_class, 0.0f)
+			+ ve::select(farmers_mask, farmers_savings_mod + state.defines.alice_save_farmer, 0.0f);
 
 		auto bank_deposits = savings * saving_ratio;
-		bank_deposits = ve::max(bank_deposits, zero);
+		bank_deposits = ve::max(bank_deposits, 0.0f);
 
 		ve::apply([&](float r) {
 			assert(r >= 0.f);
@@ -3657,10 +3654,6 @@ void run_private_investment(sys::state& state) {
 }
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
-
-	static const ve::fp_vector zero = ve::fp_vector{ 0.f };
-	static const ve::fp_vector one = ve::fp_vector{ 1.f };
-
 	float average_expected_savings = expected_savings_per_capita(state);
 
 	sanity_check(state);
@@ -4089,7 +4082,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.execute_serial_over_nation([&](auto nations) {
 			auto count =
 				invention_count.get(nations)
-				+ ve::select(state.world.nation_get_active_inventions(nations, iid), one, zero);
+				+ ve::select(state.world.nation_get_active_inventions(nations, iid), 1.0f, 0.0f);
 			invention_count.set(nations, count);
 		});
 	});
