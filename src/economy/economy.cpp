@@ -4082,7 +4082,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.execute_serial_over_nation([&](auto nations) {
 			auto count =
 				invention_count.get(nations)
-				+ ve::select(state.world.nation_get_active_inventions(nations, iid), 1.0f, 0.0f);
+				+ ve::select(state.world.nation_get_active_inventions(nations, iid), ve::fp_vector(1.0f), ve::fp_vector(0.0f));
 			invention_count.set(nations, count);
 		});
 	});
