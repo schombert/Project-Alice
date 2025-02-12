@@ -372,81 +372,6 @@ void initialize_opengl(sys::state& state) {
 	initialize_framebuffer_for_province_indices(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
 
-static const GLfloat global_square_data[] = {
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 0.0f, 1.0f, 0.0f
-};
-static const GLfloat global_square_right_data[] = {
-	0.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 0.0f
-};
-static const GLfloat global_square_left_data[] = {
-	0.0f, 0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 1.0f, 1.0f
-};
-static const GLfloat global_square_flipped_data[] = {
-	0.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 0.0f, 1.0f, 1.0f
-};
-static const GLfloat global_square_right_flipped_data[] = {
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 1.0f
-};
-static const GLfloat global_square_left_flipped_data[] = {
-	0.0f, 0.0f, 1.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 1.0f, 0.0f
-};
-
-//RTL squares
-static const GLfloat global_rtl_square_data[] = {
-	0.0f, 0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 0.0f
-};
-static const GLfloat global_rtl_square_right_data[] = {
-	0.0f, 1.0f, 1.0f, 0.0f,
-	0.0f, 0.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 1.0f,
-	1.0f, 1.0f, 1.0f, 1.0f
-};
-static const GLfloat global_rtl_square_left_data[] = {
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 1.0f
-};
-static const GLfloat global_rtl_square_flipped_data[] = {
-	0.0f, 0.0f, 1.0f, 1.0f,
-	0.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 1.0f
-};
-static const GLfloat global_rtl_square_right_flipped_data[] = {
-	0.0f, 0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 1.0f, 1.0f
-};
-static const GLfloat global_rtl_square_left_flipped_data[] = {
-	0.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 0.0f
-};
-
 void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
 	auto ui_fshader = open_file(root, NATIVE("assets/shaders/glsl/ui_f_shader.glsl"));
@@ -473,79 +398,90 @@ void load_shaders(sys::state& state) {
 }
 
 void load_global_squares(sys::state& state) {
-	// Populate the position buffer
-	glGenBuffers(1, &state.open_gl.global_square_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_data, GL_STATIC_DRAW);
-	//RTL version
-	glGenBuffers(1, &state.open_gl.global_rtl_square_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_data, GL_STATIC_DRAW);
+	static const GLushort global_square_data[] = {
+		//global_square_data
+		0, 0, 0, 0,
+		0, 65535, 0, 65535,
+		65535, 65535, 65535, 65535,
+		65535, 0, 65535, 0,
+		//global_square_left_data
+		0, 0, 65535, 0,
+		0, 65535, 0, 0,
+		65535, 65535, 0, 65535,
+		65535, 0, 65535, 65535,
+		//global_square_right_data
+		0, 0, 0, 65535,
+		0, 65535, 65535, 65535,
+		65535, 65535, 65535, 0,
+		65535, 0, 0, 0,
+		//global_square_right_flipped_data
+		0, 0, 0, 0,
+		0, 65535, 65535, 0,
+		65535, 65535, 65535, 65535,
+		65535, 0, 0, 65535,
+		//global_square_left_flipped_data
+		0, 0, 65535, 65535,
+		0, 65535, 0, 65535,
+		65535, 65535, 0, 0,
+		65535, 0, 65535, 0,
+		//global_square_flipped_data
+		0, 0, 0, 65535,
+		0, 65535, 0, 0,
+		65535, 65535, 65535, 0,
+		65535, 0, 65535, 65535,
+		//global_rtl_square_data
+		0, 0, 65535, 0,
+		0, 65535, 65535, 65535,
+		65535, 65535, 0, 65535,
+		65535, 0, 0, 0,
+		//global_rtl_square_left_data
+		0, 0, 0, 0,
+		0, 65535, 65535, 0,
+		65535, 65535, 65535, 65535,
+		65535, 0, 0, 65535,
+		//global_rtl_square_right_data
+		0, 65535, 65535, 0,
+		0, 0, 0, 0,
+		65535, 0, 0, 65535,
+		65535, 65535, 65535, 65535,
+		//global_rtl_square_right_flipped_data
+		0, 0, 65535, 0,
+		0, 65535, 0, 0,
+		65535, 65535, 0, 65535,
+		65535, 0, 65535, 65535,
+		//global_rtl_square_left_flipped_data
+		0, 0, 0, 65535,
+		0, 65535, 65535, 65535,
+		65535, 65535, 65535, 0,
+		65535, 0, 0, 0,
+		//global_rtl_square_flipped_data
+		0, 0, 65535, 65535,
+		0, 65535, 65535, 0,
+		65535, 65535, 0, 0,
+		65535, 0, 0, 65535,
+	};
 
 	glGenVertexArrays(1, &state.open_gl.global_square_vao);
+	glGenBuffers(1, &state.open_gl.global_square_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
 	glBindVertexArray(state.open_gl.global_square_vao);
+	glVertexAttribPointer(0, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(GLushort) * 4, 0); // position
+	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(GLushort) * 4, (const void*)(sizeof(GLushort) * 2)); // texture coordinates
 	glEnableVertexAttribArray(0); // position
 	glEnableVertexAttribArray(1); // texture coordinates
 
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
-
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);									 // position
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); // texture coordinates
-	glVertexAttribBinding(0, 0);																				 // position -> to array zero
-	glVertexAttribBinding(1, 0);																				 // texture coordinates -> to array zero
-
-	glGenBuffers(1, &state.open_gl.global_square_left_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_left_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_left_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_square_right_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_right_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_square_right_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_right_flipped_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_flipped_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_square_left_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_left_flipped_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_left_flipped_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_square_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_flipped_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_flipped_data, GL_STATIC_DRAW);
-
-	//RTL mode squares
-	glGenBuffers(1, &state.open_gl.global_rtl_square_left_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_left_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_left_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_rtl_square_right_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_right_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_right_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_rtl_square_right_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_right_flipped_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_right_flipped_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_rtl_square_left_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_left_flipped_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_left_flipped_data, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &state.open_gl.global_rtl_square_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_flipped_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_flipped_data, GL_STATIC_DRAW);
-
-	glGenBuffers(64, state.open_gl.sub_square_buffers);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLushort) * 16 * (12 + 64), NULL, GL_STATIC_DRAW); //64 sub squares, 12 squares
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLushort) * 16 * 12, global_square_data);
 	for(uint32_t i = 0; i < 64; ++i) {
-		glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.sub_square_buffers[i]);
-
-		float const cell_x = static_cast<float>(i & 7) / 8.0f;
-		float const cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
-
-		GLfloat global_sub_square_data[] = {0.0f, 0.0f, cell_x, cell_y, 0.0f, 1.0f, cell_x, cell_y + 1.0f / 8.0f, 1.0f, 1.0f,
-				cell_x + 1.0f / 8.0f, cell_y + 1.0f / 8.0f, 1.0f, 0.0f, cell_x + 1.0f / 8.0f, cell_y};
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_sub_square_data, GL_STATIC_DRAW);
+		const float cell_x = static_cast<float>(i & 7) / 8.0f;
+		const float cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
+		GLushort global_sub_square_data[16] = {
+			0, 0, uint16_t((cell_x) * 65535.f), uint16_t((cell_y) * 65535.f),
+			0, 65535, uint16_t((cell_x) * 65535.f), uint16_t((cell_y + 1.0f / 8.0f) * 65535.f),
+			65535, 65535, uint16_t((cell_x + 1.0f / 8.0f) * 65535.f), uint16_t((cell_y + 1.0f / 8.0f) * 65535.f),
+			65535, 0, uint16_t((cell_x + 1.0f / 8.0f) * 65535.f), uint16_t((cell_y) * 65535.f)
+		};
+		glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLushort) * 16 * (12 + i), sizeof(GLushort) * 16, global_sub_square_data);
 	}
 }
 
@@ -564,24 +500,29 @@ inline auto map_color_modification_to_index(color_modification e) {
 }
 
 void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool flipped, bool rtl) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
 	switch(r) {
 	case ui::rotation::upright:
-		if(!flipped)
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_buffer : state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
-		else
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_flipped_buffer : state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		if(!flipped) {
+			glDrawArrays(GL_TRIANGLE_FAN, (rtl ? 6 : 0) * 4, 4);
+		} else {
+			glDrawArrays(GL_TRIANGLE_FAN, (rtl ? 11 : 5) * 4, 4);
+		}
 		break;
 	case ui::rotation::r90_left:
-		if(!flipped)
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_left_buffer: state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
-		else
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_left_flipped_buffer : state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		if(!flipped) {
+			glDrawArrays(GL_TRIANGLE_FAN, (rtl ? 7 : 1) * 4, 4);
+		} else {
+			glDrawArrays(GL_TRIANGLE_FAN, (rtl ? 10 : 4) * 4, 4);
+		}
 		break;
 	case ui::rotation::r90_right:
-		if(!flipped)
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_right_buffer : state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
-		else
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_right_flipped_buffer : state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		if(!flipped) {
+			glDrawArrays(GL_TRIANGLE_FAN, (rtl ? 8 : 2) * 4, 4);
+		} else {
+			glDrawArrays(GL_TRIANGLE_FAN, (rtl ? 9 : 3) * 4, 4);
+		}
 		break;
 	}
 }
@@ -1108,10 +1049,13 @@ void render_text_commodity_icon(
 }
 
 void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
+	if(f.textures.empty()) {
+		return; //edge case
+	}
 	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::filter };
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
-	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-
+	glBindVertexArray(state.open_gl.global_square_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
@@ -1119,13 +1063,11 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		float x_offset = float(txt.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 		float y_offset = float(gso.y) - float(txt.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
 		assert(uint32_t(gso.texture_slot >> 6) < f.textures.size());
 		assert(f.textures[gso.texture_slot >> 6]);
-		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
 		glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glDrawArrays(GL_TRIANGLE_FAN, (12 + (gso.texture_slot & 63)) * 4, 4);
 		x += x_advance * size / 64.f;
 		baseline_y -= (float(txt.glyph_info[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
 	}
