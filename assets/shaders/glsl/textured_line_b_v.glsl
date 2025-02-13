@@ -43,7 +43,7 @@ vec4 globe_coords(vec2 world_pos) {
 	return vec4(
 		(2. * new_world_pos.x - 1.f) * zoom / aspect_ratio,
 		(2. * new_world_pos.z - 1.f) * zoom,
-		(2. * new_world_pos.y - 1.f) - 1.0f,
+		1.5f - new_world_pos.y,
 		1.0);
 }
 
@@ -133,7 +133,7 @@ void main() {
 		corner_shift.x /= aspect_ratio;
 	//}
 
-	gl_Position = central_pos + vec4(corner_shift.x, corner_shift.y, 0.0f, 0.0f);
+	gl_Position = central_pos + vec4(corner_shift.x, corner_shift.y, 0.001f * texture_coord, 0.0f);
 
 	// pass data to frag shader
 	tex_coord = texture_coord;

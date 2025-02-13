@@ -351,9 +351,8 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 
-		if(state.world.factory_type_get_uses_potentials(type)) {
-
-			auto output = state.world.factory_type_get_output(type);
+		auto output = state.world.factory_type_get_output(type);
+		if(state.world.commodity_get_uses_potentials(output)) {
 			auto limit = economy::calculate_state_factory_limit(state, fat.get_factory_location().get_province().get_state_membership(), output);
 			
 			// Will upgrade put us over the limit?
