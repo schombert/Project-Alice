@@ -375,23 +375,25 @@ float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n);
 float estimate_stockpile_filling_spending(sys::state& state, dcon::nation_id n);
 
 struct full_construction_state {
+	float cost = 0.0f;
 	dcon::nation_id nation;
 	dcon::state_instance_id state;
-	bool is_pop_project;
-	bool is_upgrade;
+	bool is_pop_project = false;
+	bool is_upgrade = false;
 	dcon::factory_type_id type;
 };
 
 struct full_construction_province {
+	float cost = 0.0f;
 	dcon::nation_id nation;
 	dcon::province_id province;
-	bool is_pop_project;
-	province_building_type type;
+	bool is_pop_project = false;
+	province_building_type type = province_building_type::railroad;
 };
 
-std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid);
-std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved);
-std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid);
+std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid, float est_private_const_spending);
+std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved, float est_private_const_spending);
+std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid, float est_private_const_spending);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment

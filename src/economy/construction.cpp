@@ -110,6 +110,7 @@ float province_building_construction_time(
 	sys::state& state,
 	economy::province_building_type building_type
 ) {
+	assert(0 <= int32_t(building_type) && int32_t(building_type) < int32_t(economy::max_building_types));
 	return global_non_factory_construction_time_modifier(state)
 		* float(state.economy_definitions.building_definitions[int32_t(building_type)].time);
 }
@@ -336,6 +337,7 @@ void advance_province_building_construction(
 	dcon::province_building_construction_id construction
 ) {
 	auto details = explain_province_building_construction(state, construction);
+	assert(0 <= int32_t(details.building_type) && int32_t(details.building_type) < int32_t(economy::max_building_types));
 	auto& base_cost = state.economy_definitions.building_definitions[int32_t(details.building_type)].cost;
 	auto& current_purchased = state.world.province_building_construction_get_purchased_goods(construction);
 
@@ -377,6 +379,7 @@ void populate_province_building_construction_demand(
 	if(!details.can_be_advanced) return;
 	if(details.is_pop_project) return;
 
+	assert(0 <= int32_t(details.building_type) && int32_t(details.building_type) < int32_t(economy::max_building_types));
 	auto& base_cost = state.economy_definitions.building_definitions[int32_t(details.building_type)].cost;
 	auto& current_purchased = state.world.province_building_construction_get_purchased_goods(construction);
 
@@ -657,6 +660,8 @@ void populate_explanation_province_construction(
 		if(details.owner != n) continue;
 		if(!details.can_be_advanced) continue;
 		if(details.is_pop_project) continue;
+
+		assert(0 <= int32_t(details.building_type) && int32_t(details.building_type) < int32_t(economy::max_building_types));
 		auto& base_cost = state.economy_definitions.building_definitions[int32_t(details.building_type)].cost;
 		auto& current_purchased = c.get_purchased_goods();
 		float total_cost = 0.f;
@@ -861,19 +866,15 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid) {
 	float total = 0.f;
 
-	for(auto c : state.world.in_province_building_construction) {
-		auto owner = c.get_nation().id;
-		if(owner != nid) {
-			continue;
-		}
-
+	for(auto c : state.world.nation_get_province_building_construction(nid)) {
 		auto market = state.world.state_instance_get_market_from_local_market(
 			c.get_province().get_state_membership()
 		);
 
 		// Rationale for not checking building type: Its an invalid state; should not occur under normal circumstances
-		if(owner && owner == c.get_province().get_nation_from_province_control() && c.get_is_pop_project()) {
+		if(nid == c.get_province().get_nation_from_province_control() && c.get_is_pop_project()) {
 			auto t = economy::province_building_type(c.get_type());
+			assert(0 <= int32_t(t) && int32_t(t) < int32_t(economy::max_building_types));
 			auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = global_non_factory_construction_time_modifier(state) *
@@ -892,19 +893,14 @@ float estimate_private_construction_spendings(sys::state& state, dcon::nation_id
 		}
 	}
 
-	for(auto c : state.world.in_state_building_construction) {
-		auto owner = c.get_nation().id;
-		if(owner != nid) {
-			continue;
-		}
-
+	for(auto c : state.world.nation_get_state_building_construction(nid)) {
 		auto market = state.world.state_instance_get_market_from_local_market(c.get_state());
-		if(owner && c.get_is_pop_project()) {
+		if(c.get_is_pop_project()) {
 			auto& base_cost = c.get_type().get_construction_costs();
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = global_factory_construction_time_modifier(state) *
 				float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
-			float factory_mod = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_cost) + 1.0f) * std::max(0.1f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::factory_owner_cost));
+			float factory_mod = (state.world.nation_get_modifier_values(nid, sys::national_mod_offsets::factory_cost) + 1.0f) * std::max(0.1f, state.world.nation_get_modifier_values(nid, sys::national_mod_offsets::factory_owner_cost));
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
@@ -932,6 +928,8 @@ void populate_province_building_construction_private_demand(
 	// Rationale for not checking building type: Its an invalid state; should not occur under normal circumstances
 	if(!details.can_be_advanced) return;
 	if(!details.is_pop_project) return;
+
+	assert(0 <= int32_t(details.building_type) && int32_t(details.building_type) < int32_t(economy::max_building_types));
 	auto& base_cost = state.economy_definitions.building_definitions[int32_t(details.building_type)].cost;
 	auto& current_purchased = state.world.province_building_construction_get_purchased_goods(construction);
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
