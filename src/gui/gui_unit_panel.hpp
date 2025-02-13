@@ -208,10 +208,27 @@ class unit_selection_leader_name : public simple_text_element_base {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			auto fat = dcon::fatten(state.world, content);
-			set_text(state, std::string(state.to_string_view(fat.get_general_from_army_leadership().get_name())));
-		} else {
+			auto name = fat.get_general_from_army_leadership().get_name();
+			if(bool(name)) {
+				// if its a actual leader
+				set_text(state, std::string(state.to_string_view(name)));
+			}
+			else {
+				// if its no leader
+				set_text(state, text::produce_simple_string(state, "no_leader"));
+			}
+		}
+		else {
 			auto fat = dcon::fatten(state.world, content);
-			set_text(state, std::string(state.to_string_view(fat.get_admiral_from_navy_leadership().get_name())));
+			auto name = fat.get_admiral_from_navy_leadership().get_name();
+			if(bool(name)) {
+				// if its a actual leader
+				set_text(state, std::string(state.to_string_view(name)));
+			}
+			else {
+				// if its no leader
+				set_text(state, text::produce_simple_string(state, "no_leader"));
+			}
 		}
 	}
 };
@@ -232,8 +249,7 @@ public:
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 	
 
@@ -319,8 +335,7 @@ public:
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 
 
@@ -2696,8 +2711,7 @@ public:
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
 		}
-		if(lid)
-			display_leader_full(state, lid, contents, 0);
+		display_leader_full(state, lid, contents, 0);
 	}
 
 

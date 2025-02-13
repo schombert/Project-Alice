@@ -63,6 +63,11 @@ enum class aui_property : uint8_t {
 	animation_type = 38,
 	datapoints = 39,
 	other_color = 40,
+	hover_activation = 41,
+	hotkey = 42,
+	share_table_highlight = 43,
+	page_button_textures = 44,
+	layout_information = 45,
 };
 
 inline void bytes_to_windows(char const* bytes, size_t size, std::string const& project_name, ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes>& map) {
@@ -78,20 +83,25 @@ inline void bytes_to_windows(char const* bytes, size_t size, std::string const& 
 
 		std::string name;
 		essential_window_section.read(name);
-
-		map.insert_or_assign(project_name + "::" + name, sys::aui_pending_bytes{ bytes + window_offset, window_size });
+		if(name != ".TABLE")
+			map.insert_or_assign(project_name + "::" + name, sys::aui_pending_bytes{ bytes + window_offset, window_size });
 	}
 }
 
 struct aui_window_data {
 	std::string_view texture;
 	std::string_view alt_texture;
+	std::string_view page_left_texture;
+	std::string_view page_right_texture;
+	char const* layout_data;
+	uint16_t layout_data_size;
 	int16_t x_pos;
 	int16_t y_pos;
 	int16_t x_size;
 	int16_t y_size;
 	int16_t border_size;
 	ui::orientation orientation;
+	text::text_color page_text_color = text::text_color::black;
 };
 
 namespace ogl {
@@ -170,6 +180,14 @@ inline aui_window_data read_window_bytes(char const* bytes, size_t size, std::ve
 			result.texture = essential_window_section.read<std::string_view>();
 		} else if(ptype == aui_property::alternate_bg) {
 			result.alt_texture = essential_window_section.read<std::string_view>();
+		} else if(ptype == aui_property::page_button_textures) {
+			result.page_left_texture = essential_window_section.read<std::string_view>();
+			result.page_right_texture = essential_window_section.read<std::string_view>();
+			essential_window_section.read(result.page_text_color);
+		} else if(ptype == aui_property::layout_information) {
+			auto lsection = essential_window_section.read_section();
+			result.layout_data = lsection.view_data() + lsection.view_read_position();
+			result.layout_data_size = uint16_t(lsection.view_size() - lsection.view_read_position());
 		} else {
 			abort();
 		}
@@ -195,6 +213,9 @@ inline aui_element_data read_child_bytes(char const* bytes, size_t size) {
 	auto essential_child_section = window_section.read_section();
 
 	result.name = essential_child_section.read<std::string_view>();
+	if(result.name.starts_with(".tab"))
+		return result;
+
 	essential_child_section.read(result.x_pos);
 	essential_child_section.read(result.y_pos);
 	essential_child_section.read(result.x_size);

@@ -12,8 +12,7 @@
 
 namespace ui {
 
-std::vector<dcon::pop_id> const& get_pop_window_list(sys::state& state);
-dcon::pop_id get_pop_details_pop(sys::state& state);
+/*
 void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
@@ -1071,11 +1070,11 @@ protected:
 
 		if(piechart<T>::parent) {
 			if constexpr(Multiple) {
-				auto& pop_list = get_pop_window_list(state);
-				for(auto const pop_id : pop_list)
-					iterate_one_pop(state, pop_id);
+				//auto& pop_list = get_pop_window_list(state);
+				//for(auto const pop_id : pop_list)
+				//	iterate_one_pop(state, pop_id);
 			} else {
-				iterate_one_pop(state, get_pop_details_pop(state));
+				iterate_one_pop(state, retrieve<dcon::pop_id>(state, piechart<T>::parent));
 			}
 		}
 
@@ -1167,62 +1166,7 @@ public:
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			auto& pop_list = get_pop_window_list(state);
-
-			std::unordered_map<typename T::value_base_t, float> distrib{};
-			for(auto const pop_id : pop_list) {
-				auto const weight_fn = [&](auto id) {
-					auto weight = pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, id));
-					distrib[typename T::value_base_t(id.index())] += weight;
-				};
-				// Can obtain via simple pop_demographics query
-				if constexpr(std::is_same_v<T, dcon::issue_option_id>)
-					state.world.for_each_issue_option(weight_fn);
-				else if constexpr(std::is_same_v<T, dcon::ideology_id>)
-					state.world.for_each_ideology(weight_fn);
-				// Needs to be queried directly from the pop
-				if constexpr(std::is_same_v<T, dcon::culture_id>)
-					distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-				else if constexpr(std::is_same_v<T, dcon::religion_id>)
-					distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-				else if constexpr(std::is_same_v<T, dcon::pop_type_id>)
-					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-				else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
-					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
-					if(state.world.province_get_is_colonial(prov_id))
-						continue;
-					auto tag = state.world.nation_get_identity_from_identity_holder(
-							state.world.province_get_nation_from_province_ownership(prov_id));
-					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
-					auto end = start + state.world.national_identity_get_political_party_count(tag);
-					for(int32_t i = start; i < end; i++) {
-						auto pid = T(typename T::value_base_t(i));
-						if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
-							auto support = politics::party_total_support(state, pop_id, pid,
-									state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
-							distrib[typename T::value_base_t(pid.index())] += support;
-						}
-					}
-				}
-			}
-
-			std::vector<std::pair<T, float>> sorted_distrib{};
-			for(auto const& e : distrib)
-				if(e.second > 0.f)
-					sorted_distrib.emplace_back(T(e.first), e.second);
-			std::sort(sorted_distrib.begin(), sorted_distrib.end(),
-					[&](std::pair<T, float> a, std::pair<T, float> b) { return a.second > b.second; });
-
-			distrib_listbox->row_contents.clear();
-			// Add (and scale elements) into the distribution listbox
-			auto total = 0.f;
-			for(auto const& e : sorted_distrib)
-				total += e.second;
-			for(auto const& e : sorted_distrib)
-				distrib_listbox->row_contents.emplace_back(e.first, e.second / total);
-			distrib_listbox->update(state);
-		}
+		
 	}
 };
 
@@ -2819,8 +2763,7 @@ public:
 	}
 
 	friend class pop_national_focus_button;
-	friend std::vector<dcon::pop_id> const& get_pop_window_list(sys::state& state);
-	friend dcon::pop_id get_pop_details_pop(sys::state& state);
 };
+*/
 
 } // namespace ui

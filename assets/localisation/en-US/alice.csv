@@ -1409,3 +1409,46 @@ alice_religion_filter_header;Religion
 alice_location_filter_header;Location
 alice_pop_show_details;Individual Details
 alice_demographics_window_header;Demographics
+alice_demographics_size_header;Size
+alice_demographics_job_header;Type
+alice_demographics_religion_header;Religion
+alice_demographics_location_header;Location
+alice_demographics_employment_header;Employment
+alice_demographics_needs_header;Needs
+alice_demographics_rebel_header;Rebel allegiance
+alice_pop_details_title;Pop Details
+alice_pop_details_location;Location
+alice_pop_details_job;Type:
+alice_pop_details_mil;Militancy:
+alice_pop_details_con;Consciousness:
+alice_pop_details_lit;Literacy:
+alice_pop_details_religion;Religion:
+alice_pop_details_culture;Culture:
+alice_pop_details_employment;Employment:
+alice_pop_details_income;Net Income:
+alice_pop_details_growth;Growth:
+alice_pop_details_assim;Assimilation:
+alice_pop_details_ln;Life Needs
+alice_pop_details_en;Everyday Needs
+alice_pop_details_lx;Luxury Needs
+alice_pop_details_need_name_h;Name
+alice_pop_details_need_amount_h;Qty
+alice_pop_details_need_cost_h;Price
+alice_pop_details_dest_h;Destination
+alice_pop_details_table_weight_h;Weight
+alice_pop_details_table_item_h;Item
+alice_pop_details_prom;Promotion
+alice_pop_details_dem;Demotion
+alice_pop_details_amount;Amount:
+alice_pop_details_ideo;Ideologies
+alice_pop_details_iss;Issues
+alice_pop_details_emm;Emigration
+alice_pop_details_mig;Migration
+alice_pop_details_i_amount;Internal amount:
+alice_pop_details_c_amount;Colonial amount:
+pop_emigration_attraction_1;Emigration attraction is the product of:
+pop_emigration_attraction_2;The national modifier to immigrant attraction: $x$
+pop_emigration_attraction_3;And the migration target factor: $x$
+pop_migration_attraction_1;Migration attraction is the product of:
+pop_migration_attraction_2;The provincial modifier to immigrant attraction: $x$
+pop_migration_attraction_3;And the migration target factor: $x$
