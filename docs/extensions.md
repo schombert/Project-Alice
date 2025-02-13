@@ -729,3 +729,19 @@ rgo_distribution_add = {
 	}
 }
 ```
+
+### Factory potentials
+
+Factory potentials (e.g. resource potentials) is a feature that allows modders to limit number of factories per province (state).
+
+To limit factory creation to provinces having potentials, factory definition must have `uses_potentials = yes`.
+
+In province history files define limits as follows:
+```
+factory_limit = {
+	entry = {
+        trade_good = iron
+        max_level = 16
+	}
+}
+```

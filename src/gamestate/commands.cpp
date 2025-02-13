@@ -627,6 +627,21 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 	}
 
+	/* If mod uses Factory Province limits */
+	if(is_upgrade) {
+		if(!economy::do_resource_potentials_allow_upgrade(state, source, location, type)) {
+			return false;
+		}
+	} else if(refit_target) {
+		if(!economy::do_resource_potentials_allow_refit(state, source, location, type, refit_target)) {
+			return false;
+		}
+	} else {
+		if(!economy::do_resource_potentials_allow_construction(state, source, location, type)) {
+			return false;
+		}
+	}
+
 	if(is_upgrade) {
 		// no double upgrade
 		for(auto p : state.world.state_instance_get_state_building_construction(location)) {

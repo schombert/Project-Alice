@@ -473,6 +473,7 @@ available_for;available for:
 support;support
 percentage;percentage
 stockpile;stockpile
+potentials;Potentials
 this_nat_religion;the national religion of this country
 from_nat_religion;the national religion of the from country
 event_show_requirements;Requirements for the event
@@ -501,6 +502,8 @@ factory_upgrade_condition_7;The investment target is not at war with you
 factory_upgrade_condition_8;The ruling party allows upgrading factories
 factory_upgrade_condition_9;The factory is not already being upgraded
 factory_upgrade_condition_10;The factory is not at max level
+factory_build_condition_11;State has available resource potentials
+factory_upgrade_condition_11;State has available resource potentials
 factory_delete_header;Delete factory
 factory_delete_not_allowed;The ruling party does not allow us to delete factories
 factory_stats_1;This factory is currently operating at $val$ capacity
@@ -509,6 +512,7 @@ factory_stats_3;It produced $val$ units of $x$ in the previous day
 factory_stats_4;It made a profit of $val$ in the previous day
 factory_stats_5;Inputs availability:
 factory_stats_6;Efficiency inputs availability:
+factory_stats_7;Economy of scale throughput bonus: ?G+$val$?!
 factory_stats_wage;Wage:
 factory_stats_expenses;Total expenses
 factory_stats_desired_income;Desired raw profit
@@ -1104,8 +1108,8 @@ CANCEL_WARSUBSIDIES_DESC;Cancel monetary help to this country;
 CANCEL_WARSUBSIDIES_BUTTON;Cancel Subsidies;
 production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production line
 production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
-production_refit_factory_tooltip_3;Either can build factories
-production_refit_factory_tooltip_4;Or old and new types match in inputs or outputs
+production_refit_factory_tooltip_3;Ruling party allows building factories
+production_refit_factory_tooltip_4;Old and new types match in inputs or outputs
 factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
 factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$

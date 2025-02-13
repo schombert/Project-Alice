@@ -170,6 +170,12 @@ void update(sys::state& state) {
 					state.iui_state.per_nation_data[n.index()] = economy::stockpile(state, n, state.selected_trade_good);
 					break;
 
+				case iui::commodity_info_mode::potentials:
+				{
+					state.iui_state.per_nation_data[n.index()] = (float) economy::calculate_nation_factory_limit(state, n, state.selected_trade_good);
+					break;
+				}
+
 				case iui::commodity_info_mode::balance:
 				{
 					auto supply = economy::supply(state, n, state.selected_trade_good);
@@ -240,6 +246,15 @@ void update(sys::state& state) {
 					case iui::commodity_info_mode::stockpiles:
 						state.iui_state.per_market_data[market.index()] = state.world.market_get_stockpile(market, state.selected_trade_good);
 						break;
+
+					case iui::commodity_info_mode::potentials:
+					{
+						auto loc = state.world.market_get_zone_from_local_market(market);
+						state.iui_state.per_market_data[market.index()] = (float) economy::calculate_state_factory_limit(state, loc, state.selected_trade_good);
+						cut_away_negative = true;
+						start_min_at_zero = true;
+						break;
+					}
 
 					case iui::commodity_info_mode::balance:
 					{
@@ -806,6 +821,10 @@ void render(sys::state& state) {
 		for(uint8_t i = 0; i < uint8_t(iui::commodity_info_mode::total); i++) {
 			iui::rect button_rect = { size_selector_w + 10.f, screen_size.y - 350.f + i * view_mode_height, view_mode_width, view_mode_height };
 
+			// Don't show Potentials buttons if there are no potentials for this good
+			if(!economy::get_commodity_uses_potentials(state, state.selected_trade_good) && (uint8_t)iui::commodity_info_mode::potentials == i) {
+				continue;
+			}
 			if(state.iui_state.button_textured(
 				state, (int32_t)(static_elements::commodities_mode_selector) + i,
 				button_rect, 3, state.iui_state.top_bar_button.texture_handle,
