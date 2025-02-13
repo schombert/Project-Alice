@@ -2103,7 +2103,7 @@ uint32_t ef_war_exhaustion(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_diplo_points(EFFECT_DISPLAY_PARAMS) {
-	auto amount = trigger::read_float_from_payload(tval + 1) / 100.0f;
+	auto amount = trigger::read_float_from_payload(tval + 1);
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
