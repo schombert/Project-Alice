@@ -750,6 +750,36 @@ inline table::column<dcon::commodity_id> trade_good_player_factory_needs = {
 	}
 };
 
+
+inline table::column<dcon::commodity_id> trade_good_player_production_artisan = {
+	.sortable = true,
+	.header = "artisan_production",
+	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
+		auto av = 0.f;
+		auto bv = 0.f;
+		for(auto n : state.world.in_market) {
+			if(n.get_zone_from_local_market().get_nation_from_state_ownership() == state.local_player_nation)
+				av += n.get_artisan_actual_production(a);
+		}
+		for(auto n : state.world.in_market) {
+			if(n.get_zone_from_local_market().get_nation_from_state_ownership() == state.local_player_nation)
+				bv += n.get_artisan_actual_production(b);
+		}
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
+		auto value = 0.f;
+		for(auto n : state.world.in_market) {
+			if(n.get_zone_from_local_market().get_nation_from_state_ownership() == state.local_player_nation)
+				value += n.get_artisan_actual_production(id);
+		}
+		return text::format_float(value);
+	}
+};
+
 inline table::column<dcon::commodity_id> trade_good_player_pop_needs = {
 	.sortable = true,
 	.header = "pop_need",
@@ -1579,7 +1609,7 @@ public:
 				trade_good_player_gov_needs,
 				trade_good_player_factory_needs,
 				trade_good_player_pop_needs,
-				//trade_good_artisan_distribution
+				trade_good_player_production_artisan
 			};
 			auto ptr = make_element_by_type<table::display<dcon::commodity_id>>(
 				state,
