@@ -552,6 +552,7 @@ struct good {
 	void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
 	void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context);
+	void uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 
 	void finish(good_context& context);
 };

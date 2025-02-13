@@ -398,6 +398,11 @@ object {
 		name{ is_luxury_need }
 		type{ bitfield }
 	}
+	property{
+		name{ uses_potentials }
+		type{ bitfield }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -466,11 +471,6 @@ object {
 	}
 	property{
 		name{ is_coastal }
-		type{ bitfield }
-		tag{ scenario }
-	}
-	property{
-		name{ uses_potentials }
 		type{ bitfield }
 		tag{ scenario }
 	}
