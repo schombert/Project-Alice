@@ -800,12 +800,7 @@ public:
 class topbar_nation_leadership_points_text : public nation_leadership_points_text {
 private:
 	float getResearchPointsFromPop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		// auto sum =  (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state,
-		// fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum() ));
-		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) /
-			state.world.nation_get_demographics(n, demographics::total)) /
-			state.world.pop_type_get_research_optimum(state.culture_definitions.officers) / state.defines.alice_leadership_generation_divisor);
-		return sum;
+		return military::calculate_monthly_leadership_points(state, n);
 	}
 
 public:

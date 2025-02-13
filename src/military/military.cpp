@@ -2412,6 +2412,23 @@ int32_t count_navies(sys::state& state, dcon::nation_id n) {
 	return int32_t(x.end() - x.begin());
 }
 
+float calculate_monthly_leadership_points(sys::state& state, dcon::nation_id n) {
+	if(state.world.nation_get_owned_province_count(n) == 0) {
+		return 0.f;
+	}
+	// % of officers in the population
+	auto optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers);
+	auto ofrac = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.officers)) / state.world.nation_get_demographics(n, demographics::total);
+	// How much leadership these officers generate PRE national modifiers
+	// officer_leadership_points is `leadership = 3` from poptypes/officers.txt
+	auto omod = std::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points) / state.defines.alice_leadership_generation_divisor;
+	// Calculate national modifiers
+	auto nmod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::leadership_modifier) + 1.0f) *
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::leadership);
+
+	return state.world.nation_get_leadership_points(n) + omod + nmod;
+}
+
 void monthly_leaders_update(sys::state& state) {
 	/*
 	- A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount +

@@ -1164,9 +1164,16 @@ status get_status(sys::state& state, dcon::nation_id n) {
 
 sys::date get_research_end_date(sys::state& state, dcon::technology_id tech_id, dcon::nation_id n) {
 	sys::date curr = state.current_date;
-	auto daily = nations::daily_research_points(state, n);
-	auto total = int32_t((culture::effective_technology_rp_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / daily);
-	return curr + total;
+	if(state.world.technology_get_leadership_cost(tech_id)) {
+		auto monthly = military::calculate_monthly_leadership_points(state, n);
+		auto total = int32_t((culture::effective_technology_lp_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / (monthly / 30.f));
+		return curr + total;
+	}
+	else {
+		auto daily = nations::daily_research_points(state, n);
+		auto total = int32_t((culture::effective_technology_rp_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / daily);
+		return curr + total;
+	}
 }
 
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {
