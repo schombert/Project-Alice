@@ -2809,12 +2809,23 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 	}
 };
 
-struct province_economy_toggle_signal { };
+enum province_subtab_toggle_signal {
+	economy = 1,
+	tiles = 2
+};
+
 
 class economy_data_toggle : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send<province_economy_toggle_signal>(state, parent, { });
+		send<province_subtab_toggle_signal>(state, parent, { province_subtab_toggle_signal::economy });
+	}
+};
+
+class province_tiles_toggle : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send<province_subtab_toggle_signal>(state, parent, { province_subtab_toggle_signal::tiles });
 	}
 };
 
@@ -2830,7 +2841,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "toggle-economy-province") {
 			return make_element_by_type<economy_data_toggle>(state, id);
-		}else if(name == "table_rgo_data") {
+		} else if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
 				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_expected_profit,
 				rgo_desired_profit, rgo_employment, rgo_max_employment, rgo_saturation
@@ -2947,17 +2958,24 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<province_economy_toggle_signal>()) {
-			if(rgo_bg->is_visible()) {
-				trade_table->set_visible(state, false);
-				trade_routes_bg->set_visible(state, false);
-				rgo_table->set_visible(state, false);
-				rgo_bg->set_visible(state, false);
-				rgo_headers->set_visible(state, false);
-			} else {
-				rgo_table->set_visible(state, true);
-				rgo_bg->set_visible(state, true);
-				rgo_headers->set_visible(state, true);
+		if(payload.holds_type<province_subtab_toggle_signal>()) {
+			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
+
+			if(enum_val == province_subtab_toggle_signal::economy) {
+				if(rgo_bg->is_visible()) {
+					trade_table->set_visible(state, false);
+					trade_routes_bg->set_visible(state, false);
+					rgo_table->set_visible(state, false);
+					rgo_bg->set_visible(state, false);
+					rgo_headers->set_visible(state, false);
+				} else {
+					rgo_table->set_visible(state, true);
+					rgo_bg->set_visible(state, true);
+					rgo_headers->set_visible(state, true);
+				}
+			}
+			else if(enum_val == province_subtab_toggle_signal::tiles) {
+
 			}
 			return message_result::consumed;
 		}
@@ -2975,6 +2993,7 @@ private:
 	province_window_colony* colony_window = nullptr;
 	province_economy_window* economy_window = nullptr;
 	element_base* nf_win = nullptr;
+	element_base* tiles_window = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -2985,6 +3004,11 @@ public:
 		auto ptr = make_element_by_type<build_unit_province_window>(state, "build_unit_view");
 		state.ui_state.build_province_unit_window = ptr.get();
 		add_child_to_front(std::move(ptr));
+
+		auto ptr2 = make_element_by_type<window_element_base>(state, "province_tiles_window");
+		tiles_window = ptr2.get();
+		tiles_window->set_visible(state, false);
+		add_child_to_front(std::move(ptr2));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -3025,6 +3049,8 @@ public:
 			auto ptr = make_element_by_type<province_economy_window>(state, id);
 			economy_window = ptr.get();
 			return ptr;
+		} else if(name == "toggle-tiles-province") {
+			return make_element_by_type<province_tiles_toggle>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -3049,10 +3075,17 @@ public:
 			dcon::market_id mid = dcon::fatten(state.world, active_province).get_state_membership().get_market_from_local_market();
 			payload.emplace<dcon::market_id>(mid);
 			return message_result::consumed;
+		} else if (payload.holds_type<province_subtab_toggle_signal>()) {
+			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
+
+			if(enum_val == province_subtab_toggle_signal::tiles) {
+				tiles_window->set_visible(state, !tiles_window->is_visible());
+			}
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
-
+	
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;

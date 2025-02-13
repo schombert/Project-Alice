@@ -626,4 +626,15 @@ spriteTypes = {
         texturefile = "assets\\map-label.png"
         noOfFrames = 1
 	}
+
+	spriteType = {
+        name = "provincetilesbg"
+        texturefile = "assets\\provincetilesbg.png"
+        noOfFrames = 1
+	}
+	spriteType = {
+        name = "provincetiles"
+        texturefile = "assets\\provincetiles.png"
+        noOfFrames = 12
+	}
 }

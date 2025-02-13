@@ -7860,6 +7860,8 @@ bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_i
 	if(limit <= 1) {
 		return false;
 	}
+
+	return true;
 }
 
 bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
@@ -7887,6 +7889,8 @@ bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id sou
 			}
 		}
 	}
+
+	return true;
 }
 
 bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target) {
@@ -7925,6 +7929,8 @@ bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id sourc
 			}
 		}
 	}
+
+	return true;
 }
 
 } // namespace economy
