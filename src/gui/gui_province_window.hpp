@@ -14,6 +14,7 @@
 #include "gui_build_unit_large_window.hpp"
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
+#include "gui_province_tiles_window.hpp"
 
 namespace ui {
 
@@ -3005,7 +3006,7 @@ public:
 		state.ui_state.build_province_unit_window = ptr.get();
 		add_child_to_front(std::move(ptr));
 
-		auto ptr2 = make_element_by_type<window_element_base>(state, "province_tiles_window");
+		auto ptr2 = make_element_by_type<province_tiles_window>(state, "province_tiles_window");
 		tiles_window = ptr2.get();
 		tiles_window->set_visible(state, false);
 		add_child_to_front(std::move(ptr2));

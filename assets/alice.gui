@@ -4670,14 +4670,8 @@ guiTypes = {
 
 	windowType = {
         name = "province_tiles_window"
-        position = { 412 0 }
-        size = { 201 201 }
-
-        listboxType = {
-            name = "province_tiles_list"
-            position = { 1 1 }	
-            size = { 201 201 }
-        }
+        position = { 422 0 }
+        size = { 210 210 }
 
 		iconType =
 		{
@@ -4688,88 +4682,12 @@ guiTypes = {
 		}
     }
 
-	windowType = {
-		name = "province_tiles_list_entry"
-		position = { x=0 y=0 }	
-		size = { x=201 y=24 }
-		horizontalBorder = "0"
-		orientation="UPPER_LEFT"
-
-		guiButtonType = {
-				position = { x=0 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_1"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=25 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_2"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=50 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_3"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=75 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_4"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=100 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_5"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=125 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_6"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=150 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_7"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
-		guiButtonType = {
-				position = { x=175 y=0 }	
-				size = { x=24 y=24 }
-				name = "tile_8"
-				quadTextureSprite = "provincetiles"
-				buttonFont = "vic_18_black"
-				Orientation = "UPPER_LEFT"
-				clicksound = click
-		}
+	iconType = {
+			position = { x=0 y=0 }	
+			size = { x=24 y=24 }
+			name = "province_tiles_tile"
+			spriteType = "provincetiles"
 	}
-    
-    
     
     windowType = {
         name = "table_production_methods"
