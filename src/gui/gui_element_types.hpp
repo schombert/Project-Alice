@@ -28,7 +28,7 @@ void render_text_chunk(
 );
 
 template<typename T, typename ...Params>
-std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name, Params&&... params) { // also bypasses global creation hooks
+std::unique_ptr<T> make_element_by_type(sys::state& state, std::string_view name, Params&&... params) { // also bypasses global creation hooks
 	auto it = state.ui_state.defs_by_name.find(state.lookup_key(name));
 	if(it != state.ui_state.defs_by_name.end()) {
 		auto res = std::make_unique<T>(std::forward<Params>(params)...);
@@ -37,7 +37,7 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::strin
 		res->on_create(state);
 		return res;
 	}
-	return std::unique_ptr<element_base>{};
+	return std::unique_ptr<T>{};
 }
 template<typename T, typename ...Params>
 std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params) { // also bypasses global creation hooks

@@ -40,6 +40,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/economy/economy.cpp"
 	"src/economy/economy_government.cpp"
 	"src/economy/construction.cpp"
+	"src/economy/province_tiles.cpp"
 	"src/gamestate/commands.cpp"
 	"src/gamestate/diplomatic_messages.cpp"
 	"src/gamestate/modifiers.cpp"

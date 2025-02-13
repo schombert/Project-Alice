@@ -4661,7 +4661,7 @@ guiTypes = {
 
 	guiButtonType = {
         name = "toggle-tiles-province"
-        position = { x=405 y=100}
+        position = { x=400 y=100}
         quadTextureSprite ="button-economy-province"
         buttonText = ""
         buttonFont = "vic_18_black"
