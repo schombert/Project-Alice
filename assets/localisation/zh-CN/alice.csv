@@ -1401,7 +1401,7 @@ alice_pop_details_en;日用品
 alice_pop_details_lx;奢侈品
 alice_pop_details_need_name_h;名称
 alice_pop_details_need_amount_h;数量
-alice_pop_details_need_cost_h;成本
+alice_pop_details_need_cost_h;生活成本
 alice_pop_details_dest_h;目标
 alice_pop_details_table_weight_h;权重
 alice_pop_details_table_item_h;项目
@@ -1418,5 +1418,5 @@ pop_emigration_attraction_1;移民吸引因素：
 pop_emigration_attraction_2;国家修正：$x$
 pop_emigration_attraction_3;移民目标：$x$
 pop_migration_attraction_1;迁移因素：
-pop_migration_attraction_2;省级修正：$x$
+pop_migration_attraction_2;地区修正：$x$
 pop_migration_attraction_3;迁移目标：$x$
