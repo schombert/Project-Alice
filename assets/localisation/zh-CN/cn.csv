@@ -12,3 +12,9 @@ stockpile_market;市场库存
 price_market;市场价格
 market_name;市场名称
 price_nation;全国均价
+per_nation;国家模式
+trade_in;贸易进口
+trade_out;贸易出口
+trade_balance;贸易平衡
+consumption;商品消费
+stockpiles;商品仓储
