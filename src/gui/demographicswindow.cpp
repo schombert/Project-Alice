@@ -379,7 +379,7 @@ struct demographicswindow_nation_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -407,7 +407,7 @@ struct demographicswindow_nation_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -435,7 +435,7 @@ struct demographicswindow_nation_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -463,7 +463,7 @@ struct demographicswindow_nation_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -491,7 +491,7 @@ struct demographicswindow_nation_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -519,7 +519,7 @@ struct demographicswindow_nation_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -692,7 +692,7 @@ struct demographicswindow_nation_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -718,7 +718,7 @@ struct demographicswindow_nation_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -777,7 +777,7 @@ struct demographicswindow_state_row_location_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -786,6 +786,8 @@ struct demographicswindow_state_row_location_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_state_row_size_t : public ui::element_base {
@@ -830,7 +832,7 @@ struct demographicswindow_state_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -858,7 +860,7 @@ struct demographicswindow_state_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -886,7 +888,7 @@ struct demographicswindow_state_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -914,7 +916,7 @@ struct demographicswindow_state_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -942,7 +944,7 @@ struct demographicswindow_state_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -970,7 +972,7 @@ struct demographicswindow_state_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1143,7 +1145,7 @@ struct demographicswindow_state_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1169,7 +1171,7 @@ struct demographicswindow_state_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1256,7 +1258,7 @@ struct demographicswindow_province_row_location_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1265,6 +1267,8 @@ struct demographicswindow_province_row_location_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_province_row_size_t : public ui::element_base {
@@ -1309,7 +1313,7 @@ struct demographicswindow_province_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1337,7 +1341,7 @@ struct demographicswindow_province_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1365,7 +1369,7 @@ struct demographicswindow_province_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1393,7 +1397,7 @@ struct demographicswindow_province_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1421,7 +1425,7 @@ struct demographicswindow_province_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1449,7 +1453,7 @@ struct demographicswindow_province_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1622,7 +1626,7 @@ struct demographicswindow_province_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1648,7 +1652,7 @@ struct demographicswindow_province_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1679,7 +1683,7 @@ struct demographicswindow_pop_row_location_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1688,6 +1692,8 @@ struct demographicswindow_pop_row_location_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct demographicswindow_pop_row_size_t : public ui::element_base {
@@ -1733,7 +1739,7 @@ struct demographicswindow_pop_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1758,7 +1764,7 @@ struct demographicswindow_pop_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1785,7 +1791,7 @@ struct demographicswindow_pop_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1812,7 +1818,7 @@ struct demographicswindow_pop_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1840,7 +1846,7 @@ struct demographicswindow_pop_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1868,7 +1874,7 @@ struct demographicswindow_pop_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2044,7 +2050,7 @@ struct demographicswindow_pop_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2069,7 +2075,7 @@ struct demographicswindow_pop_row_rebel_flag_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2183,7 +2189,7 @@ struct demographicswindow_pop_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2209,7 +2215,7 @@ struct demographicswindow_pop_row_movement_political_t : public ui::element_base
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2236,7 +2242,7 @@ struct demographicswindow_pop_row_movement_social_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2892,7 +2898,7 @@ struct demographicswindow_job_filter_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2975,7 +2981,7 @@ struct demographicswindow_religion_filter_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3185,7 +3191,7 @@ struct demographicswindow_pops_header_mil_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3210,7 +3216,7 @@ struct demographicswindow_pops_header_con_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3235,7 +3241,7 @@ struct demographicswindow_pops_header_emp_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3260,7 +3266,7 @@ struct demographicswindow_pops_header_lit_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3285,7 +3291,7 @@ struct demographicswindow_pops_header_reb_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3310,7 +3316,7 @@ struct demographicswindow_pops_header_cash_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3348,28 +3354,28 @@ struct demographicswindow_main_t : public layout_window_element {
 	std::string_view table_size_header_text_key;
 	text::text_color table_size_header_text_color = text::text_color::black;
 	text::text_color table_size_column_text_color = text::text_color::black;
-	text::alignment table_size_text_alignment = text::alignment::left;
+	text::alignment table_size_text_alignment = text::alignment::center;
 	int8_t table_size_sort_direction = 0;
 	int16_t table_size_column_start = 0;
 	int16_t table_size_column_width = 0;
 	std::string_view table_culture_header_text_key;
 	text::text_color table_culture_header_text_color = text::text_color::black;
 	text::text_color table_culture_column_text_color = text::text_color::black;
-	text::alignment table_culture_text_alignment = text::alignment::left;
+	text::alignment table_culture_text_alignment = text::alignment::center;
 	int8_t table_culture_sort_direction = 0;
 	int16_t table_culture_column_start = 0;
 	int16_t table_culture_column_width = 0;
 	std::string_view table_job_header_text_key;
 	text::text_color table_job_header_text_color = text::text_color::black;
 	text::text_color table_job_column_text_color = text::text_color::black;
-	text::alignment table_job_text_alignment = text::alignment::left;
+	text::alignment table_job_text_alignment = text::alignment::center;
 	int8_t table_job_sort_direction = 0;
 	int16_t table_job_column_start = 0;
 	int16_t table_job_column_width = 0;
 	std::string_view table_religion_header_text_key;
 	text::text_color table_religion_header_text_color = text::text_color::black;
 	text::text_color table_religion_column_text_color = text::text_color::black;
-	text::alignment table_religion_text_alignment = text::alignment::left;
+	text::alignment table_religion_text_alignment = text::alignment::center;
 	int8_t table_religion_sort_direction = 0;
 	int16_t table_religion_column_start = 0;
 	int16_t table_religion_column_width = 0;
@@ -3423,7 +3429,7 @@ struct demographicswindow_main_t : public layout_window_element {
 	std::string_view table_needs_header_text_key;
 	text::text_color table_needs_header_text_color = text::text_color::black;
 	text::text_color table_needs_column_text_color = text::text_color::black;
-	text::alignment table_needs_text_alignment = text::alignment::left;
+	text::alignment table_needs_text_alignment = text::alignment::center;
 	int8_t table_needs_sort_direction = 0;
 	int16_t table_needs_column_start = 0;
 	int16_t table_needs_column_width = 0;
@@ -6326,6 +6332,21 @@ void demographicswindow_state_row_folder_icon_t::on_create(sys::state& state) no
 // BEGIN state_row::folder_icon::create
 // END
 }
+ui::message_result demographicswindow_state_row_location_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	demographicswindow_state_row_t& state_row = *((demographicswindow_state_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN state_row::location::lbutton_action
+	auto p = state.world.state_instance_get_capital(state_row.content);
+	static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, p);
+	state.map_state.center_map_on_province(state, p);
+	main.set_visible(state, false);
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result demographicswindow_state_row_location_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
 void demographicswindow_state_row_location_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
@@ -6343,7 +6364,7 @@ void demographicswindow_state_row_location_t::render(sys::state & state, int32_t
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
 	for(auto& t : internal_layout.contents) {
 		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
 	}
@@ -7877,6 +7898,21 @@ void demographicswindow_province_row_folder_icon_t::on_create(sys::state& state)
 // BEGIN province_row::folder_icon::create
 // END
 }
+ui::message_result demographicswindow_province_row_location_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	demographicswindow_province_row_t& province_row = *((demographicswindow_province_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN province_row::location::lbutton_action
+	auto p = province_row.content;
+	static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, p);
+	state.map_state.center_map_on_province(state, p);
+	main.set_visible(state, false);
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result demographicswindow_province_row_location_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
 void demographicswindow_province_row_location_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
@@ -7894,7 +7930,7 @@ void demographicswindow_province_row_location_t::render(sys::state & state, int3
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
 	for(auto& t : internal_layout.contents) {
 		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
 	}
@@ -9266,6 +9302,21 @@ std::unique_ptr<ui::element_base> make_demographicswindow_province_row(sys::stat
 	ptr->on_create(state);
 	return ptr;
 }
+ui::message_result demographicswindow_pop_row_location_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	demographicswindow_pop_row_t& pop_row = *((demographicswindow_pop_row_t*)(parent)); 
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN pop_row::location::lbutton_action
+	auto p = state.world.pop_get_province_from_pop_location(pop_row.value);
+	static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, p);
+	state.map_state.center_map_on_province(state, p);
+	main.set_visible(state, false);
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result demographicswindow_pop_row_location_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
 void demographicswindow_pop_row_location_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
@@ -9283,7 +9334,7 @@ void demographicswindow_pop_row_location_t::render(sys::state & state, int32_t x
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
 	for(auto& t : internal_layout.contents) {
 		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
 	}
@@ -14487,25 +14538,25 @@ std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state
 }
 // LOST-CODE
 // BEGIN filters_window::culture_list::create
-//////////////////////////////////	for(auto c : state.world.in_culture) {
-//////////////////////////////////		values.push_back(c.id);
-//////////////////////////////////	}
-//////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
-//////////////////////////////////	});
+//////////////////////////////////////	for(auto c : state.world.in_culture) {
+//////////////////////////////////////		values.push_back(c.id);
+//////////////////////////////////////	}
+//////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
+//////////////////////////////////////	});
 // END
 // BEGIN filters_window::religion_list::create
-//////////////////////////////////	for(auto r : state.world.in_religion)
-//////////////////////////////////		values.push_back(r.id);
-//////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
-//////////////////////////////////	});
+//////////////////////////////////////	for(auto r : state.world.in_religion)
+//////////////////////////////////////		values.push_back(r.id);
+//////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
+//////////////////////////////////////	});
 // END
 // BEGIN filters_window::job_list::create
-//////////////////////////////////	for(auto j : state.world.in_pop_type)
-//////////////////////////////////		values.push_back(j.id);
-//////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
-//////////////////////////////////	});
+//////////////////////////////////////	for(auto j : state.world.in_pop_type)
+//////////////////////////////////////		values.push_back(j.id);
+//////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
+//////////////////////////////////////	});
 // END
 }
