@@ -1135,7 +1135,7 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				float cost = economy::factory_type_build_cost(state, n, m, type);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
@@ -1164,7 +1164,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	// which are impossible to ignore if you are sane
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1207,7 +1207,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	// or have very high margins
 	if(desired_types.empty()) { 
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1248,7 +1248,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	// second pass: try to create factories which have a good profit margin
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1296,7 +1296,7 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 
 				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
@@ -1319,7 +1319,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	// first pass: try to create factories which will pay back investment fast - in a year at most:
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1346,7 +1346,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	// second pass: try to create factories which have a good profit margin
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, nid, sid, type, false) || command::can_begin_factory_building_construction(state, nid, sid, type, true)) {
+			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1585,7 +1585,7 @@ void update_ai_econ_construction(sys::state& state) {
 								continue;
 
 							if(present_in_location) {
-								if((rules & issue_rule::expand_factory) != 0) {
+								if((rules & issue_rule::expand_factory) != 0 && economy::do_resource_potentials_allow_upgrade(state, n, si, type_selection)) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
 									new_up.set_is_upgrade(true);
@@ -1598,7 +1598,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 							// else -- try to build -- must have room
 							int32_t num_factories = economy::state_factory_count(state, si, n);
-							if(num_factories < int32_t(state.defines.factories_per_state)) {
+							if(num_factories < int32_t(state.defines.factories_per_state) && economy::do_resource_potentials_allow_construction(state, n, si, type_selection)) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
 								new_up.set_is_upgrade(false);
@@ -1657,7 +1657,7 @@ void update_ai_econ_construction(sys::state& state) {
 								if(budget - additional_expenses - expected_item_cost <= 0.f)
 									continue;
 
-								if(!ug_in_progress) {
+								if(!ug_in_progress && economy::do_resource_potentials_allow_upgrade(state, n, si, type)) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
 									new_up.set_is_upgrade(true);
@@ -1757,7 +1757,7 @@ void update_ai_econ_construction(sys::state& state) {
 							continue;
 
 						if(present_in_location) {
-							if((rules & issue_rule::expand_factory) != 0) {
+							if((rules & issue_rule::expand_factory) != 0 && economy::do_resource_potentials_allow_upgrade(state, n, si, type_selection)) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
 								new_up.set_is_upgrade(true);
@@ -1770,7 +1770,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 						// else -- try to build -- must have room
 						int32_t num_factories = economy::state_factory_count(state, si, n);
-						if(num_factories < int32_t(state.defines.factories_per_state)) {
+						if(num_factories < int32_t(state.defines.factories_per_state) && economy::do_resource_potentials_allow_construction(state, n, si, type_selection)) {
 							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 							new_up.set_is_pop_project(false);
 							new_up.set_is_upgrade(false);

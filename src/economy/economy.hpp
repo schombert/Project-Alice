@@ -455,6 +455,10 @@ bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c);
 int8_t calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c);
 int32_t calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c);
 
+bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
+bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
+bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target);
+
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);
 } // namespace economy

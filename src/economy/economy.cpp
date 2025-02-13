@@ -3603,43 +3603,49 @@ void run_private_investment(sys::state& state) {
 			auto craved_constructions = estimate_private_investment_construct(state, n, true, est_private_const_spending);
 			
 			for(auto const& r : craved_constructions) {
-				auto new_up = fatten(
-				state.world,
-				state.world.force_create_state_building_construction(r.state, r.nation)
-				);
+				if(economy::do_resource_potentials_allow_construction(state, r.nation, r.state, r.type)) {
+					auto new_up = fatten(
+					state.world,
+					state.world.force_create_state_building_construction(r.state, r.nation)
+					);
 
-				new_up.set_is_pop_project(r.is_pop_project);
-				new_up.set_is_upgrade(r.is_upgrade);
-				new_up.set_type(r.type);
-				est_private_const_spending += r.cost;
+					new_up.set_is_pop_project(r.is_pop_project);
+					new_up.set_is_upgrade(r.is_upgrade);
+					new_up.set_type(r.type);
+					est_private_const_spending += r.cost;
+				}
 			}
 
 			auto upgrades = estimate_private_investment_upgrade(state, n, est_private_const_spending);
 
 			for(auto const& r : upgrades) {
-				auto new_up = fatten(
-				state.world,
-				state.world.force_create_state_building_construction(r.state, r.nation)
-				);
+				if(economy::do_resource_potentials_allow_upgrade(state, r.nation, r.state, r.type)) {
+					auto new_up = fatten(
+					state.world,
+					state.world.force_create_state_building_construction(r.state, r.nation)
+					);
 
-				new_up.set_is_pop_project(r.is_pop_project);
-				new_up.set_is_upgrade(r.is_upgrade);
-				new_up.set_type(r.type);
-				est_private_const_spending += r.cost;
+					new_up.set_is_pop_project(r.is_pop_project);
+					new_up.set_is_upgrade(r.is_upgrade);
+					new_up.set_type(r.type);
+					est_private_const_spending += r.cost;
+				}
 			}
 
 			auto constructions = estimate_private_investment_construct(state, n, false, est_private_const_spending);
 
 			for(auto const& r : constructions) {
-				auto new_up = fatten(
-				state.world,
-				state.world.force_create_state_building_construction(r.state, r.nation)
-				);
+				if(economy::do_resource_potentials_allow_construction(state, r.nation, r.state, r.type)) {
+					auto new_up = fatten(
+					state.world,
+					state.world.force_create_state_building_construction(r.state, r.nation)
+					);
 
-				new_up.set_is_pop_project(r.is_pop_project);
-				new_up.set_is_upgrade(r.is_upgrade);
-				new_up.set_type(r.type);
-				est_private_const_spending += r.cost;
+					new_up.set_is_pop_project(r.is_pop_project);
+					new_up.set_is_upgrade(r.is_upgrade);
+					new_up.set_type(r.type);
+					est_private_const_spending += r.cost;
+				}
 			}
 
 			auto province_constr = estimate_private_investment_province(state, n, est_private_const_spending);
@@ -7822,6 +7828,87 @@ int32_t calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, d
 	}
 
 	return res;
+}
+
+bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
+	/* If mod uses Factory Province limits */
+	auto output = state.world.factory_type_get_output(type);
+	auto limit = economy::calculate_state_factory_limit(state, location, output);
+	auto d = state.world.state_instance_get_definition(location);
+
+	if(!output.get_uses_potentials()) {
+		return true;
+	}
+		
+	// Is there a potential for this commodity limit?
+	if(limit <= 1) {
+		return false;
+	}
+}
+
+bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
+	/* If mod uses Factory Province limits */
+	auto output = state.world.factory_type_get_output(type);
+	auto limit = economy::calculate_state_factory_limit(state, location, output);
+	auto d = state.world.state_instance_get_definition(location);
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
+
+	if(!output.get_uses_potentials()) {
+		return true;
+	}
+
+	// Will upgrade put us over the limit?
+	auto existing_levels = 0;
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == type) {
+					existing_levels += f.get_factory().get_level();
+				}
+				if(existing_levels + 1 > limit) {
+					return false;
+				}
+			}
+		}
+	}
+}
+
+bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target) {
+	/* If mod uses Factory Province limits */
+	auto output = state.world.factory_type_get_output(from);
+	auto limit = economy::calculate_state_factory_limit(state, location, output);
+	auto d = state.world.state_instance_get_definition(location);
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
+
+	if(!output.get_uses_potentials()) {
+		return true;
+	}
+
+	auto refit_levels = 0;
+	// How many levels changed factory has
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == from) {
+					refit_levels = f.get_factory().get_level();
+				}
+			}
+		}
+	}
+	// Will that put us over the limit?
+	auto existing_levels = 0;
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == from) {
+					existing_levels += f.get_factory().get_level();
+				}
+				if(existing_levels + refit_levels > limit) {
+					return false;
+				}
+			}
+		}
+	}
 }
 
 } // namespace economy
