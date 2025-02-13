@@ -1211,7 +1211,8 @@ alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
 alice_tt_wg_infamy_limit;?RThis wargoal will exceed the infamy limit?W
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
-province_id;Province Id
+province_id;Alice Province Id
+provid;Content Province Id
 nation_tag;Nation tag
 alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
 alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)

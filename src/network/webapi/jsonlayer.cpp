@@ -239,6 +239,7 @@ json format_province(sys::state& state, dcon::province_id prov) {
 
 	j["id"] = prov.index();
 	j["name"] = province_name;
+	j["provid"] = state.world.province_get_provid(prov);
 
 	j["owner"] = format_nation_link(state, owner);
 	j["state"] = format_state_link(state, sid);

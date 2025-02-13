@@ -1356,6 +1356,12 @@ object {
 	tag{ save }
 
 	property{
+		name{ provid }
+		type{ uint32_t }
+		tag{ scenario }
+	}
+
+	property{
 		name{ name }
 		type{ text_key }
 		tag{ save }
