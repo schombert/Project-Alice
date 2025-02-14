@@ -1433,9 +1433,9 @@ alice_pop_details_en;日用品
 alice_pop_details_lx;奢侈品
 alice_pop_details_need_name_h;名称
 alice_pop_details_need_amount_h;总需求
-alice_pop_details_need_cost_h;生活成本
+alice_pop_details_need_cost_h;成本
 alice_pop_details_dest_h;目标
-alice_pop_details_table_weight_h;权重
+alice_pop_details_table_weight_h;倾向
 alice_pop_details_table_item_h;项目
 alice_pop_details_prom;升职
 alice_pop_details_dem;降职

@@ -2,9 +2,9 @@ unit_experience;部队经验
 modifier_farm_rgo_size;农业规模
 modifier_mine_rgo_size;矿业规模
 method_research;专精点数
-profit;利润
-good;产品
-employed;雇工
+Profit;利润
+Good;产品
+Employed;雇工
 Subsistence;自给农
 province_percentage;当地比例
 mapmode_tooltip_factory_size;工厂规模：
@@ -18,3 +18,4 @@ trade_out;贸易出口
 trade_balance;贸易平衡
 consumption;商品消费
 stockpiles;商品仓储
+Max;最大
