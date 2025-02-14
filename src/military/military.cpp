@@ -7654,18 +7654,18 @@ bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon
 	return false;
 }
 // returns true if there is a battle at the location, where one of the participants is an enemy to our_nation
-bool enemy_battle(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
-	auto battle = get_province_battle(state, location);
-	if(battle) {
-		for(auto par : state.world.land_battle_get_army_battle_participation(battle)) {
-			auto army_controller = par.get_army().get_controller_from_army_control();
-			if(are_at_war(state, our_nation, army_controller)) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
+//bool enemy_battle(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+//	auto battle = get_province_battle(state, location);
+//	if(battle) {
+//		for(auto par : state.world.land_battle_get_army_battle_participation(battle)) {
+//			auto army_controller = par.get_army().get_controller_from_army_control();
+//			if(are_at_war(state, our_nation, army_controller)) {
+//				return true;
+//			}
+//		}
+//	}
+//	return false;
+//}
 
 
 /* === Army reinforcement === */
@@ -7681,7 +7681,7 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		auto prov = adj.get_connected_provinces(indx);
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
 		// enemy battles or units will not allow for reinforcements
-		if(enemy_battle(state, prov, our_nation) || province_has_enemy_unit(state, prov, our_nation)) {
+		if(province_has_enemy_unit(state, prov, our_nation)) {
 			return false;
 		}	
 		// checks if the province controlled by us, or is controlled by someone who is at war with the owner of location and it is not rebels
@@ -7750,7 +7750,7 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
 		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
-		if(enemy_battle(state, prov, in_nation) || province_has_enemy_unit(state, prov, in_nation) ) {
+		if(province_has_enemy_unit(state, prov, in_nation) ) {
 			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
 		}
 		else {
