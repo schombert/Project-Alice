@@ -1304,7 +1304,7 @@ alice_take_province_7;它受控
 investment_pool;投资池：?Y$x$?W
 investment_pool_income_1;再投资：?G$x$?W
 investment_pool_income_2;来自$country$：?G$x$W
-investment_pool_spending_1;刺激支出：?R$x$?W
+investment_pool_spending_1;每日损失（0.1%）：?R$x$?W
 investment_pool_spending_2;建设支出：?R$x$?W
 investment_pool_spending_3;转移到：?R$x$?W
 DIPLO_RUN_CONFERENCE;举行会议
