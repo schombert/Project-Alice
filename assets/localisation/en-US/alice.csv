@@ -1076,7 +1076,7 @@ alice_ca_cant_influence;We currently are unable to increase or decrease the opin
 alice_gp_status_regain_expiration;If we don't become rank ?Y$x$?W or higher, we will lose ?Ygreat power?W status by ?Y$date$?W!
 alice_mil_decay_description;Natural decay ?G-$x$
 alice_con_decay_description;Natural decay ?R-$x$
-x_from_y;$culture$ $x$ from $y$
+x_from_y;?Y$culture$?W $x$ from ?Y$y$?W
 x_in_y;$x$ at $y$
 reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 reinforce_rate_none;This regiment can't currently be reinforced.
@@ -1309,6 +1309,7 @@ rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
 topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
+provinceview_goodsprofit;With Profit of: ?Y$value$
 rgo_output;Output
 rgo_profit;Total
 rgo_expected_profit;Actual

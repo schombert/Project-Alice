@@ -40,7 +40,8 @@ public:
 		frame = tile_logic->get_frame(state, tile);
 	}
 	void button_action(sys::state& state) noexcept override {
-		// send(state, parent, open_factory_refit{fid});
+		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
+		tile_logic->button_action(state, tile, parent);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
