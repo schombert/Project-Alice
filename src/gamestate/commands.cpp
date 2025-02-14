@@ -628,48 +628,17 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 
 	/* If mod uses Factory Province limits */
-	if(state.world.factory_type_get_uses_potentials(type)) {
-		auto output = state.world.factory_type_get_output(type);
-		auto limit = economy::calculate_state_factory_limit(state, location, output);
-		auto d = state.world.state_instance_get_definition(location);
-		if(is_upgrade) {
-			// Will upgrade put us over the limit?
-			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == owner) {
-					for(auto f : p.get_province().get_factory_location()) {
-						if(f.get_factory().get_building_type() == type && f.get_factory().get_level() + 1 > limit) {
-							return false;
-						}
-					}
-				}
-			}
-		} else if(refit_target) {
-			auto refit_levels = 0;
-			// How many levels changed factory has
-			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == owner) {
-					for(auto f : p.get_province().get_factory_location()) {
-						if(f.get_factory().get_building_type() == type) {
-							refit_levels = f.get_factory().get_level();
-						}
-					}
-				}
-			}
-			// Will that put us over the limit?
-			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == owner) {
-					for(auto f : p.get_province().get_factory_location()) {
-						if(f.get_factory().get_building_type() == refit_target && f.get_factory().get_level() + refit_levels > limit) {
-							return false;
-						}
-					}
-				}
-			}
-		} else {
-			// Is there the limit?
-			if(limit <= 1) {
-				return false;
-			}
+	if(is_upgrade) {
+		if(!economy::do_resource_potentials_allow_upgrade(state, source, location, type)) {
+			return false;
+		}
+	} else if(refit_target) {
+		if(!economy::do_resource_potentials_allow_refit(state, source, location, type, refit_target)) {
+			return false;
+		}
+	} else {
+		if(!economy::do_resource_potentials_allow_construction(state, source, location, type)) {
+			return false;
 		}
 	}
 
@@ -2802,7 +2771,7 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	//	return false;
 
 	// Asker and target must be in a subject relation
-	if(state.defines.alice_state_transfer_limits) {
+	if(state.defines.alice_state_transfer_limits > 0.0f) {
 		auto ol2 = state.world.nation_get_overlord_as_subject(target);
 		if(state.world.overlord_get_ruler(ol) != target && state.world.overlord_get_ruler(ol2) != asker)
 			return false;
@@ -6035,6 +6004,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::grant_province:
 		return false;
+	case command_type::network_populate:
+		return false;
 	}
 	return false;
 }
@@ -6427,6 +6398,8 @@ void execute_command(sys::state& state, payload& c) {
 		execute_console_command(state);
 		break;
 	case command_type::grant_province:
+		break;
+	case command_type::network_populate:
 		break;
 	}
 }

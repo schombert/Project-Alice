@@ -47,6 +47,7 @@ good
 	tradeable      value      none             discard
 	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn
+	uses_potentials value     bool             member_fn
 
 goods_group
 	#any           extern     make_good             discard

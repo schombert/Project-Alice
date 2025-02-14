@@ -978,7 +978,7 @@ public:
 		auto asker = state.local_player_nation;
 
 		if(economy::nation_gives_free_trade_rights(state, state.local_player_nation, target)) {
-			text::add_line(state, contents, "trade_rights_desc", text::variable_type::x, text::fp_one_place(state.defines.alice_free_trade_agreement_years));
+			text::add_line(state, contents, "trade_rights_desc", text::variable_type::x, text::fp_one_place{ state.defines.alice_free_trade_agreement_years });
 			text::add_line_break_to_layout(state, contents);
 
 			// Rel source if obliged towards target
@@ -1013,7 +1013,7 @@ public:
 		}
 		else {
 
-			text::add_line(state, contents, "free_trade_desc", text::variable_type::x, text::fp_one_place(state.defines.alice_free_trade_agreement_years));
+			text::add_line(state, contents, "free_trade_desc", text::variable_type::x, text::fp_one_place{ state.defines.alice_free_trade_agreement_years });
 			text::add_line_break_to_layout(state, contents);
 
 			// Rel source if obliged towards target
@@ -1102,7 +1102,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
 		auto asker = state.local_player_nation;
 
-		text::add_line(state, contents, "embargo_desc", text::variable_type::x, text::fp_one_place(state.defines.alice_free_trade_agreement_years));
+		text::add_line(state, contents, "embargo_desc", text::variable_type::x, text::fp_one_place{ state.defines.alice_free_trade_agreement_years });
 		text::add_line_break_to_layout(state, contents);
 
 		// Rel source if obliged towards target
@@ -1982,7 +1982,7 @@ public:
 		text::add_line_with_condition(state, contents, "state_transfer_explain_6", state.world.nation_get_owned_state_count(source) > 1);
 
 		// Asker and target must be in a subject relation
-		if(state.defines.alice_state_transfer_limits) {
+		if(state.defines.alice_state_transfer_limits > 0.0f) {
 			auto ol = state.world.nation_get_overlord_as_subject(source);
 			auto ol2 = state.world.nation_get_overlord_as_subject(target);
 

@@ -1,4 +1,5 @@
 #include "gui_element_types.hpp"
+#include "construction.hpp"
 
 namespace ui {
 
@@ -32,11 +33,6 @@ public:
 
 		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
 		if(!state_is_not_colonial) {
-			disabled = true; return;
-		}
-
-		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
-		if((rules & issue_rule::expand_factory) == 0) {
 			disabled = true; return;
 		}
 
@@ -180,13 +176,12 @@ public:
 		bool is_activated = state.world.nation_get_active_building(n, refit_target) == true || state.world.factory_type_get_is_available_from_start(refit_target);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
 
-		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
-
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 
-		text::add_line_with_condition(state, contents, "production_refit_factory_tooltip_3", (rules & issue_rule::build_factory) != 0, 5);
+		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "OR", (rules & issue_rule::build_factory) != 0, 5);
+		text::add_line_with_condition(state, contents, "production_refit_factory_tooltip_3", (rules & issue_rule::build_factory) != 0, 15);
 
 		// For capitalist economies, refit factories must match in output good or inputs.
 		auto output_1 = state.world.factory_type_get_output(type);
@@ -205,7 +200,7 @@ public:
 			}
 		}
 
-		text::add_line_with_condition(state, contents, "production_refit_factory_tooltip_4", output_1 == output_2 || inputs_match, 5);
+		text::add_line_with_condition(state, contents, "production_refit_factory_tooltip_4", output_1 == output_2 || inputs_match, 15);
 	}
 };
 
