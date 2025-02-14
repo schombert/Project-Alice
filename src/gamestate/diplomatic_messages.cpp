@@ -130,6 +130,8 @@ void decline(sys::state& state, message const& m) {
 		break;
 	case type::state_transfer:
 		break;
+	case type::free_trade_agreement:
+		break;
 	}
 }
 
