@@ -682,23 +682,13 @@ bool valid_artisan_good(
 inline constexpr float ln_2 = 0.30103f;
 
 //crude approximation of exp
-float pseudo_exp_for_negative(float f) {
-	if(f < -128.f) {
-		return 0.f;
-	}
-
-	f = f / 128.f;
-	f = 1 + f + f * f / 2 + f * f * f / 6;
-
-	f = f * f; // 2
-	f = f * f; // 4
-	f = f * f; // 8
-	f = f * f; // 16
-	f = f * f; // 32
-	f = f * f; // 64
-	f = f * f; // 128
-
-	return f;
+float pseudo_exp_for_negative(float x) {
+	//if(x < -128.f) {
+	//	return 0.f;
+	//}
+	union { float f; int i; } y;
+	y.i = (int)(x * 0xB5645F + 0x3F7893F5);
+	return y.f;
 }
 //crude vectorised approximation of exp
 ve::fp_vector ve_pseudo_exp_for_negative(ve::fp_vector f) {
