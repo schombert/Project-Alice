@@ -507,6 +507,7 @@ factory_build_condition_11;State has available resource potentials
 factory_upgrade_condition_11;State has available resource potentials
 factory_delete_header;Delete factory
 factory_delete_not_allowed;The ruling party does not allow us to delete factories
+factory_level;Factory level ?Y$val$
 factory_stats_1;This factory is currently operating at $val$ capacity
 factory_stats_2;This factory is targeting $val$ capacity
 factory_stats_3;It produced $val$ units of $x$ in the previous day

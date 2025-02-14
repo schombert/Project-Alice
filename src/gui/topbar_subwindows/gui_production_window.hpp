@@ -961,6 +961,7 @@ class normal_factory_background : public opaque_element_base {
 			desired_income
 		);
 
+		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "factory_stats_7", text::variable_type::val, text::fp_percentage{ fac.get_level() / 100.f });
 	}
 };
