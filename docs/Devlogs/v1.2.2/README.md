@@ -33,4 +33,4 @@ Max loan, savings, reinvestment modifiers.
 ## by ZombieFreak115
 
   - Improving leader selection in land and naval battles
-  - Minor no-leader improvements 
+  - Minor no-leader improvements
