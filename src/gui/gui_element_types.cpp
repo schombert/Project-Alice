@@ -1356,43 +1356,6 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
-template<class SrcT, class DemoT>
-void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
-	this->distribution.clear();
-
-	Cyto::Any obj_id_payload = SrcT{};
-	size_t i = 0;
-	if(this->parent) {
-		this->parent->impl_get(state, obj_id_payload);
-		float total_pops = 0.f;
-
-		for_each_demo(state, [&](DemoT demo_id) {
-			float volume = 0.f;
-			if(obj_id_payload.holds_type<dcon::province_id>()) {
-				auto demo_key = demographics::to_key(state, demo_id);
-				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
-				volume = state.world.province_get_demographics(prov_id, demo_key);
-			} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
-				auto demo_key = demographics::to_key(state, demo_id);
-				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
-				volume = state.world.nation_get_demographics(nat_id, demo_key);
-			}
-
-			if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
-				if(obj_id_payload.holds_type<dcon::pop_id>()) {
-					auto demo_key = pop_demographics::to_key(state, demo_id);
-					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
-					volume = pop_demographics::get_demo(state, pop_id, demo_key);
-				}
-			}
-			if(volume > 0)
-				this->distribution.emplace_back(demo_id, volume);
-		});
-	}
-
-	this->update_chart(state);
-}
-
 void autoscaling_scrollbar::on_create(sys::state& state) noexcept {
 	base_data.data.scrollbar.flags &= ~ui::scrollbar_data::step_size_mask;
 	scrollbar::on_create(state);
@@ -1620,41 +1583,6 @@ void listbox2_base<contents_type>::render(sys::state& state, int32_t x, int32_t 
 		}
 	}
 	container_base::render(state, x, y);
-}
-
-template<class ItemWinT, class ItemConT>
-void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
-	auto spacing = int16_t(base_data.data.overlapping.spacing);
-	if(base_data.get_element_type() == element_type::overlapping) {
-		while(row_contents.size() > windows.size()) {
-			auto ptr = make_element_by_type<ItemWinT>(state, get_row_element_name());
-			if(subwindow_width <= 0) {
-				subwindow_width = ptr->base_data.size.x;
-			}
-			windows.push_back(static_cast<ItemWinT*>(ptr.get()));
-			add_child_to_front(std::move(ptr));
-		}
-
-		float size_ratio = float(row_contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
-		int16_t offset = spacing + subwindow_width;
-		if(size_ratio > 1.f) {
-			offset = int16_t(float(subwindow_width) / size_ratio);
-		}
-		int16_t current_x = 0;
-		if(base_data.data.overlapping.image_alignment == alignment::right) {
-			current_x = base_data.size.x - subwindow_width - offset * int16_t(row_contents.size() - 1);
-		}
-		for(size_t i = 0; i < windows.size(); i++) {
-			if(i < row_contents.size()) {
-				update_subwindow(state, *windows[i], row_contents[i]);
-				windows[i]->base_data.position.x = current_x;
-				current_x += offset;
-				windows[i]->set_visible(state, true);
-			} else {
-				windows[i]->set_visible(state, false);
-			}
-		}
-	}
 }
 
 std::string_view overlapping_flags_box::get_row_element_name() {
