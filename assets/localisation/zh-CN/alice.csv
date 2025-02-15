@@ -955,9 +955,9 @@ o_add_modifier;省份拥有者获得$text$
 o_relations_with;省份拥有者与$text$的关系
 o_add_to_treasury;为了省份拥有者
 w_rgo_prod;全球原材料生产: $x$
-w_artisan_prod;全球手工业者生产：$x$
-w_artisan_profit;国内手工业者利润：$x$
-w_artisan_distribution;国内手工业者分布：$x$
+w_artisan_prod;全球工匠生产
+w_artisan_profit;国内工匠利润
+w_artisan_distribution;国内工匠分布
 w_fac_prod;全球工厂生产：$x$
 alice_lose_gp;我们正失去?Y列强?!地位！
 alice_state_select_title;选择地区
@@ -1165,7 +1165,7 @@ nation_tag;国家tag
 alice_rgo_trade_prod_1;原料产地农业产出：$x$（$y$）
 alice_rgo_trade_prod_2;原料产地矿业产出：$x$（$y$）
 alice_rgo_trade_prod_3;原料产地铸造产出：$x$（$y$）
-alice_artisan_trade_prod;手工业者产出：$x$（$y$）
+alice_artisan_trade_prod;工匠产出：$x$（$y$）
 alice_factory_trade_prod;工厂产出：$x$（$y$）
 alice_all_trade_prod;总生产量：$x$
 alice_interested_in_alliance;（只对AI国家生效）标记我们有兴趣与这个国家结盟，并将立即接受结盟提议
@@ -1246,18 +1246,18 @@ pop_need;需求缺口
 rgo_production;RGO输出
 artisan_production;工匠输出
 factory_production;工厂输出
-artisan_distribution;手工业者优先级
+artisan_distribution;工匠优先级
 produced_nation;生产
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
 method_name;名字
-method_input;输入开销
-method_output;输出开销
+method_input;输入成本
+method_output;输出成本
 method_profit;期望利润
-method_margin;押金
-method_cost;建造花费
-method_payback;退还时间
+method_margin;利润率
+method_cost;建造成本
+method_payback;投资回收
 change_pname_to;$x$党派名称变为$text$
 change_rpname_to;执政党名称变为$text$
 change_pposition_to;移动$x$政党位置至$text$
