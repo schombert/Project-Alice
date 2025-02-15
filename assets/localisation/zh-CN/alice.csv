@@ -534,7 +534,7 @@ pop_l_migration_header;?Y迁移: $val$
 pop_l_c_migration_header;?Y殖民迁移: $val$
 pop_l_emigration_header;?Y移居国外: $val$
 pop_mig_1;无国内殖民地移民
-pop_mig_2;奴隶从不国内迁徙
+pop_mig_2;奴隶从不迁徙
 pop_mig_3;国内可能迁移人数=人群规模*移民规模（$x$）*当地移民潮规模修正（$y$）*移民系数（$val$）
 pop_mig_4;?Y移民因素：
 pop_cmig_1;此国没有殖民地
@@ -1443,12 +1443,12 @@ alice_pop_details_amount;数量：
 alice_pop_details_ideo;意识形态
 alice_pop_details_iss;政见
 alice_pop_details_emm;移民
-alice_pop_details_mig;迁徙
+alice_pop_details_mig;迁移
 alice_pop_details_i_amount;国内：
 alice_pop_details_c_amount;殖民：
 pop_emigration_attraction_1;移民因素：
 pop_emigration_attraction_2;国家修正：$x$
 pop_emigration_attraction_3;目标因素：$x$
-pop_migration_attraction_1;迁徙因素：
+pop_migration_attraction_1;迁移因素：
 pop_migration_attraction_2;地区修正：$x$
 pop_migration_attraction_3;目标因素：$x$
