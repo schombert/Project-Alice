@@ -1845,8 +1845,8 @@ TRADE_BUYING;补充库存
 TRADE_IN_DEMAND;属于高度需求
 TRADE_NOT_IN_DEMAND;不属于高度需求
 ACTUAL_BOUGHT;实际购买：$VAL$
-SUPPLY;供应：$VAL$
-DEMAND;需求：$VAL$
+SUPPLY;供应
+DEMAND;需求
 TRADE_SUPPLY_NEED;$VAL$用于供应部队\n
 TRADE_TEMP_PROD_NEED;$VAL$用于当前生产\n
 form_germany_title;为德意志三呼万岁！
@@ -3313,9 +3313,9 @@ desc_am_everywhere;一份法西斯主义报纸在省份内首次发行。
 the_massacre;大屠杀
 desc_the_massacre;包括社会主义者和自由主义者的一大群人已经遭到谋杀。
 fascist_welfare;法西斯福利
-desc_fascist_welfare; 
+desc_fascist_welfare;
 beer_hall_putsch;啤酒馆暴动
-desc_beer_hall_putsch; 
+desc_beer_hall_putsch;
 protector_of_eastern_christendom;东正教徒的保护者
 desc_protector_of_eastern_christendom;我们已经宣布担当起奥斯曼帝国内东正教徒的保护者的职责。我们由此获得了声望，但如果我们在战争中失败，我们就可能丢掉这一头衔。
 protect_eastern_christians_title;东正教徒的保护者
@@ -4898,10 +4898,10 @@ EVTDESC15130;对$PROVINCENAME$道路系统的日常维护有引爆冲突的危�
 EVTOPTA15130;用$COUNTRYCULTURE$的语言
 EVTOPTB15130;用$PROVINCECULTURE$的语言
 EVTNAME15140;平等的机会
-EVTDESC15140;一个代表$PROVINCECULTURE$商人和来自$PROVINCENAME$的贸易者的委员会已在$CAPITAL$与政府接洽，希望正式表达他们对自己在争夺政府合约的竞争中所遭受的公开歧视的不满。我国政府目前实行尽量优先$COUNTRYCULTURE$承包商的政策，这个导致了$PROVINCECULTURE$诸省的不满。该委员会同时代表了省内手工业者和资本家的利益，我们可以尝试对他们进行内部离间。
+EVTDESC15140;一个代表$PROVINCECULTURE$商人和来自$PROVINCENAME$的贸易者的委员会已在$CAPITAL$与政府接洽，希望正式表达他们对自己在争夺政府合约的竞争中所遭受的公开歧视的不满。我国政府目前实行尽量优先$COUNTRYCULTURE$承包商的政策，这个导致了$PROVINCECULTURE$诸省的不满。该委员会同时代表了省内工匠和资本家的利益，我们可以尝试对他们进行内部离间。
 EVTOPTA15140;很可悲，没有时间管他们啊
 EVTOPTB15140;支持资本家
-EVTOPTC15140;支持手工业者
+EVTOPTC15140;支持工匠
 EVTNAME15150;文化冲突
 EVTDESC15150;如果说$PROVINCENAME$是一出戏剧的主角，那么预示着风暴、冲突与争斗的漆黑乌云应该已低悬于它的地平线上。在$PROVINCECULTURE$，当地$PROVINCECULTURE$和$COUNTRY_ADJ$少数派的冲突一触即发，与此同时$CAPITAL$的中央政府收到请求作出干预。我们要么使用严厉手段打击$PROVINCECULTURE$的组织，要么是静静等待事情自己平息。
 EVTOPTA15150;使用严厉手段打击
@@ -6041,7 +6041,7 @@ EVTOPTB36204;武力镇压
 EVTNAME36205;哥本哈根的要塞
 EVTDESC36205;1886年到1892年间，超过25座现代化要塞在西兰岛建成，以确保来自德国方面的任何威胁不会得逞。
 EVTOPTA36205;加强哥本哈根的防御。
-EVTOPTB36205;这笔开销是不必要的。
+EVTOPTB36205;这笔成本是不必要的。
 EVTNAME36206;冯·库勒在石勒苏益格北部发起“德国化”运动
 EVTDESC36206;在丧失了西德尔兰德之后，厄内斯特·马塞厄斯·冯·库勒在前丹麦省份里开展了压迫式的德国化运动。丹麦居民被迫按照早前于1888年颁布如今被严格实施的法律的规定，在公共学校里只能以德语为唯一教学语言。
 EVTOPTA36206;这可不好！
@@ -6359,7 +6359,7 @@ colonial_focus;殖民
 colonize;殖民地化
 promotion_focus;升职
 promote_aristocrats;鼓励贵族
-promote_artisans;鼓励手工业者
+promote_artisans;鼓励工匠
 promote_bureaucrats;鼓励官员
 promote_capitalists;鼓励资本家
 promote_clergymen;鼓励神职人员
@@ -6683,9 +6683,9 @@ MODIFIER_FACTORY_THROUGHPUT;工厂吞吐
 MODIFIER_RGO_INPUT;原料产地输入
 MODIFIER_RGO_OUTPUT;原料产地输出
 MODIFIER_RGO_THROUGHPUT;原料产地吞吐
-MODIFIER_ARTISAN_INPUT;手工业者输入
-MODIFIER_ARTISAN_OUTPUT;手工业者输出
-MODIFIER_ARTISAN_THROUGHPUT;手工业者吞吐
+MODIFIER_ARTISAN_INPUT;工匠输入
+MODIFIER_ARTISAN_OUTPUT;工匠输出
+MODIFIER_ARTISAN_THROUGHPUT;工匠吞吐
 MODIFIER_NUMBER_OF_VOTERS;投票人数
 MODIFIER_GOODS_DEMAND;物资需求
 MODIFIER_ASSIMILATION_RATE;同化速度
@@ -9701,7 +9701,7 @@ MAJOREVENTHAPPENOTHEROPTION_MAP;*
 MAJOREVENTHAPPENOTHER_SETUP;当一个单项选择的事件在他国发生
 MAJOREVENTHAPPENOTHER_HEADER;外相报告
 MAJOREVENTHAPPENOTHER_1;$COUNTRY$
-MAJOREVENTHAPPENOTHER_2; 
+MAJOREVENTHAPPENOTHER_2;
 MAJOREVENTHAPPENOTHER_3;$EVENT$
 MAJOREVENTHAPPENOTHER_4;$EVENTDESC$
 MAJOREVENTHAPPENOTHER_5;*
@@ -9807,7 +9807,7 @@ POP_ASSM;?Y每月?Y$NUM$?W人将被同化为?Y$TYPE$?W
 POP_ASSM_FACTORS;同化因素：
 POP_NO_CONV_TARGET;非有效目标
 aristocrats;贵族
-artisans;手工业者
+artisans;工匠
 bureaucrats;官僚
 capitalists;资本家
 clergymen;神职人员
@@ -14665,9 +14665,9 @@ FACTORY_INPUT_TECH;工厂投入率科技
 FACTORY_OUTPUT_TECH;工厂产出率科技
 FACTORY_THROUGHPUT_TECH;工厂生产率科技
 FACTORY_NONE_EFFECT_TECH
-ARTISAN_INPUT_TECH;手工业者投入率科技
-ARTISAN_OUTPUT_TECH;手工业者产出率科技
-ARTISAN_THROUGHPUT_TECH;手工业者生产率科技
+ARTISAN_INPUT_TECH;工匠投入率科技
+ARTISAN_OUTPUT_TECH;工匠产出率科技
+ARTISAN_THROUGHPUT_TECH;工匠生产率科技
 ARTISAN_NONE_EFFECT_TECH
 NONE_TYPE_INPUT_TECH
 NONE_TYPE_OUTPUT_TECH
