@@ -5883,6 +5883,21 @@ bool is_regiment_in_reserve(sys::state& state,dcon::regiment_id reg) {
 	}
 	return false;
 }
+// uses insertion sort; we assume the reserves won't have a huge amount of items, and since reserves are only inserted/popped from the back, they will probably stay partially sorted even when changes happen
+// implementation of what it sorts by can change, for now it sorts by strength and puts the highest str brigades in front of the queue
+void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves) {
+	for(uint32_t i = 1; i < reserves.size(); ++i) {
+		auto key = reserves[i];
+		int j = i - 1;
+
+		// sort
+		while(j >= 0 && state.world.regiment_get_strength(reserves[j].regiment) > state.world.regiment_get_strength(key.regiment)) {
+			reserves[j + 1] = reserves[j];
+			j = j - 1;
+		}
+		reserves[j + 1] = key;
+	}
+}
 
 void update_land_battles(sys::state& state) {
 	auto isize = state.world.land_battle_size();
@@ -6331,6 +6346,10 @@ void update_land_battles(sys::state& state) {
 		if(!def_front[0]) {
 			std::swap(def_front[0], def_front[1]);
 		}
+
+		// sorts the reserves by some criteria so the most fit brigades for deployment are pushed to the front of the queue
+		sort_reserves_by_deployment_order(state, reserves);
+
 		// won't use troops from the reserve which are > 10% org, or zero strength
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
