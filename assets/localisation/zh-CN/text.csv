@@ -3259,7 +3259,7 @@ liquor_prohibition;禁酒令
 desc_liquor_prohibition;我国已经立法禁止销售、拥有和饮用酒精饮品。
 trek_boers;布尔人迁徙
 desc_trek_boers;好望角的布尔人正在迁入这个省份。现在还只是娟娟细流，但不久之后就将以“大迁徙”而闻名。
-boer_exodus;布尔人大迁徙
+boer_exodus;布尔人大外流
 desc_boer_exodus;布尔人大量从本省迁出，他们迁往内地或是布尔人的共和国。
 gold_rush;淘金热
 desc_gold_rush;本省因为发现金矿而迅速繁荣起来。
@@ -6719,7 +6719,7 @@ MODIFIER_GREATPOWER_INFLUENCE_GAIN;影响力
 MODIFIER_DIPLOPOINTS_GAIN;外交点数
 MODIFIER_SUPPLY_LIMIT;补给上限
 MODIFIER_MAX_ATTRITION;最大损耗
-MODIFIER_IMMIGANT_PUSH;移民潮
+MODIFIER_IMMIGANT_PUSH;移民外流
 NO_WAR_NAP;我们两国签署了互不侵犯条约
 DIPRELCH_DIP_SKILL;外交能力
 DIPRELCH_INFLUENCE;外交影响力
