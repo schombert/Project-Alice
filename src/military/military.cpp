@@ -5822,11 +5822,10 @@ uint16_t unit_type_to_reserve_regiment_type(unit_type utype) {
 	case unit_type::infantry:
 		return reserve_regiment::type_infantry;
 	case unit_type::support:
+	case unit_type::special:
 		return reserve_regiment::type_support;
 	case unit_type::cavalry:
 		return reserve_regiment::type_cavalry;
-	case unit_type::special:
-		return reserve_regiment::type_support; // placeholder, no "special" class for reserve regs
 	default:
 		assert(false);
 	}
