@@ -37,6 +37,31 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		}
 	}
 
+	for(auto c : state.world.in_commodity) {
+		if(state.world.province_get_factory_max_level_per_good(p, c) > 0) {
+			bool foundcorrespondingfactory = false;
+			// If there is already a factory developing this resource - don't show it with a separate tile.
+			for(int i = 0; i < curind; i++) {
+				// Not a factory tile
+				if(!tiles[i].factory) {
+					continue;
+				}
+				auto type = state.world.factory_get_building_type(tiles[i].factory);
+				if(state.world.factory_type_get_output(type) == c) {
+					foundcorrespondingfactory = true;
+					break;
+				}
+			}
+			if(foundcorrespondingfactory) {
+				continue;
+			}
+			tiles[curind].potential_commodity = c;
+			tiles[curind].empty = false;
+			tiles[curind].province = p;
+			curind++;
+		}
+	}
+
 	for(auto r : state.world.in_regiment_source) {
 		if(r.get_pop().get_province_from_pop_location() == p) {
 			tiles[curind].regiment = r.get_regiment();

@@ -42,6 +42,101 @@ public:
 	}
 };
 
+class context_menu_upgrade_factory : public context_menu_entry_logic {
+public:
+	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
+		return state.lookup_key("upgrade_factory");
+	}
+
+	bool is_available(sys::state& state, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		auto fat = dcon::fatten(state.world, fid);
+		auto sid = fat.get_province_from_factory_location().get_state_membership();
+		auto type = fat.get_building_type();
+
+		// no double upgrade
+		bool is_not_upgrading = true;
+		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+			if(p.get_type() == type)
+				is_not_upgrading = false;
+		}
+		if(is_not_upgrading) {
+			return true;
+		}
+		return false;
+	}
+
+	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
+		auto fid = context.factory;
+		auto fat = dcon::fatten(state.world, fid);
+		auto sid = fat.get_province_from_factory_location().get_state_membership();
+		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		auto fat = dcon::fatten(state.world, fid);
+		auto sid = fat.get_province_from_factory_location().get_state_membership();
+		const dcon::nation_id n = fat.get_province_from_factory_location().get_nation_from_province_ownership();
+		auto type = state.world.factory_get_building_type(fid);
+
+		// no double upgrade
+		bool is_not_upgrading = true;
+		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+			if(p.get_type() == type)
+				is_not_upgrading = false;
+		}
+		if(!is_not_upgrading) {
+			return;
+		}
+
+		text::add_line(state, contents, "production_expand_factory_tooltip");
+
+		text::add_line_break_to_layout(state, contents);
+
+		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_1", is_civ);
+
+		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_2", state_is_not_colonial);
+
+		bool is_activated = state.world.nation_get_active_building(n, type) == true || state.world.factory_type_get_is_available_from_start(type);
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
+		if(n != state.local_player_nation) {
+			bool gp_condition = (state.world.nation_get_is_great_power(state.local_player_nation) == true &&
+					state.world.nation_get_is_great_power(n) == false);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", gp_condition);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
+
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
+				(rules & issue_rule::allow_foreign_investment) != 0);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7",
+				!military::are_at_war(state, state.local_player_nation, n));
+		} else {
+			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
+		}
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
+		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
+
+		auto output = state.world.factory_type_get_output(type);
+		if(state.world.commodity_get_uses_potentials(output)) {
+			auto limit = economy::calculate_state_factory_limit(state, fat.get_factory_location().get_province().get_state_membership(), output);
+
+			// Will upgrade put us over the limit?
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_11", fat.get_level() + 1 <= limit);
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_upgrade_shortcuts");
+	}
+};
+
+inline static context_menu_upgrade_factory context_menu_upgrade_factory_logic;
 inline static context_menu_build_factory context_menu_build_factory_logic;
 
 class context_window_entry : public button_element_base {
@@ -105,7 +200,7 @@ public:
 	}
 };
 
-void hide_context_menu(sys::state& state, context_menu_context context) {
+void hide_context_menu(sys::state& state) {
 	
 	if(!state.ui_state.context_menu) {
 		return;
@@ -117,8 +212,11 @@ void hide_context_menu(sys::state& state, context_menu_context context) {
 void show_context_menu(sys::state& state, context_menu_context context) {
 	std::vector<context_menu_entry_logic*> logics = std::vector<context_menu_entry_logic*>(16);
 
-	if(context.province) {;
+	if(context.province) {
 		logics[0] = &context_menu_build_factory_logic;
+	}
+	else if(context.factory) {
+		logics[0] = &context_menu_upgrade_factory_logic;
 	}
 
 	if(!state.ui_state.context_menu) {

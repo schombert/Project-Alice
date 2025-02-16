@@ -11,6 +11,7 @@ inline static factory_tile factory_tile_logic;
 inline static rgo_tile rgo_tile_logic;
 inline static regiment_tile regiment_tile_logic;
 inline static province_building_tile province_building_tile_logic;
+inline static province_resource_potential_tile province_resource_potential_tile_logic;
 inline static province_build_new_tile province_build_new_tile_logic;
 
 class province_tile : public button_element_base {
@@ -27,6 +28,9 @@ public:
 		}
 		else if(tile.rgo_commodity) {
 			tile_logic = &rgo_tile_logic;
+		}
+		else if(tile.potential_commodity) {
+			tile_logic = &province_resource_potential_tile_logic;
 		}
 		else if(tile.factory) {
 			tile_logic = &factory_tile_logic;

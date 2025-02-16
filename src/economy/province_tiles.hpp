@@ -11,6 +11,7 @@ struct province_tile {
 	bool build_new = false;
 	dcon::province_id province;
 	dcon::commodity_id rgo_commodity;
+	dcon::commodity_id potential_commodity;
 	dcon::factory_id factory;
 	dcon::regiment_id regiment;
 	bool has_province_building = false;

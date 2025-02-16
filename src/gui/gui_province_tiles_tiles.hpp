@@ -70,6 +70,7 @@ public:
 	}
 
 	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {
+		show_context_menu(state, { .factory=target.factory });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
@@ -558,7 +559,7 @@ public:
 		} else if(target.province_building == economy::province_building_type::naval_base) {
 			return 9;
 		} else if(target.province_building == economy::province_building_type::fort) {
-			return 13;
+			return 12;
 		}
 		return 0;
 	}
@@ -568,6 +569,31 @@ public:
 	// Done
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
 		text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(target.province_building)));
+	}
+};
+
+
+class province_resource_potential_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, economy::province_tile target) noexcept override {
+		return state.lookup_key("resource_potential");
+	}
+
+	bool is_available(sys::state& state, economy::province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, economy::province_tile target) {
+		return 13;
+	}
+
+	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
+		auto limit = state.world.province_get_factory_max_level_per_good(target.province, target.potential_commodity);
+		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.potential_commodity),
+			text::variable_type::val, limit);
 	}
 };
 
@@ -587,7 +613,7 @@ public:
 	}
 
 	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {
-		show_context_menu(state, { target.province });
+		show_context_menu(state, { .province=target.province });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
