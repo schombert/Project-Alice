@@ -8,6 +8,7 @@ namespace economy {
 
 struct province_tile {
 	bool empty = true;
+	bool build_new = false;
 	dcon::province_id province;
 	dcon::commodity_id rgo_commodity;
 	dcon::factory_id factory;

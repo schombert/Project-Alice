@@ -11,6 +11,7 @@ inline static factory_tile factory_tile_logic;
 inline static rgo_tile rgo_tile_logic;
 inline static regiment_tile regiment_tile_logic;
 inline static province_building_tile province_building_tile_logic;
+inline static province_build_new_tile province_build_new_tile_logic;
 
 class province_tile : public button_element_base {
 public:
@@ -35,6 +36,9 @@ public:
 		}
 		else if(tile.has_province_building) {
 			tile_logic = &province_building_tile_logic;
+		}
+		else if(tile.build_new) {
+			tile_logic = &province_build_new_tile_logic;
 		}
 
 		frame = tile_logic->get_frame(state, tile);

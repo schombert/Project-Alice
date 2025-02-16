@@ -576,4 +576,26 @@ public:
 	}
 };
 
+
+class province_build_new_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, economy::province_tile target) noexcept override {
+		return state.lookup_key("new");
+	}
+
+	bool is_available(sys::state& state, economy::province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, economy::province_tile target) {
+		return 1;
+	}
+
+	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override { }
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
+		text::add_line(state, contents, state.lookup_key("new"));
+	}
+};
+
 } // namespace ui
