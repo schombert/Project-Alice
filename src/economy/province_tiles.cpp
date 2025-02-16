@@ -73,6 +73,7 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	if(curind < 64) {
 		tiles[curind].build_new = true;
 		tiles[curind].empty = false;
+		tiles[curind].province = p;
 		curind++;
 	}
 

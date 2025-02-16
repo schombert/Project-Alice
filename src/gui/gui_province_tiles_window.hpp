@@ -44,6 +44,7 @@ public:
 		frame = tile_logic->get_frame(state, tile);
 	}
 	void button_action(sys::state& state) noexcept override {
+		hide_context_menu(state);
 		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
 		tile_logic->button_action(state, tile, parent);
 	}
@@ -58,7 +59,6 @@ public:
 		tile_logic->update_tooltip(state, x, y, contents, tile);
 	}
 };
-
 
 class province_tiles_window : public window_element_base {
 public:
@@ -80,6 +80,5 @@ public:
 		}
 	}
 };
-
 
 }

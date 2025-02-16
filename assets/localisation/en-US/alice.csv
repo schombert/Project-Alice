@@ -273,6 +273,7 @@ a_cultural_union;a cultural union
 union_for_pop;the cultural union for the pop
 union_for_nation;the cultural union for the nation
 the_rebel_ind_nation;the rebel independence nation
+build_factory;Build factory
 capitalists_can_build;capitalists are allowed to build factories
 capitalists_cannot_build;capitalists are not allowed to build factories
 at_war;at war

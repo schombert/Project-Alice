@@ -4688,6 +4688,24 @@ guiTypes = {
 			name = "province_tiles_tile"
 			spriteType = "provincetiles"
 	}
+
+	windowType = {
+		name = "context_menu_window"
+		position = { 650 0 }	
+		size = { x=180 y=30 }
+		horizontalBorder = "0"
+		orientation="UPPER_LEFT"
+	}
+	
+	guiButtonType = {
+		name = "context_menu_item"
+		position = { x = 0 y = 0 }
+		size = { x=180 y=30 }
+		quadTextureSprite ="GFX_diplo_wargoal_button"
+		buttonFont = "vic_18_black"
+		buttonText = "Test"
+		clicksound = click
+	}
     
     windowType = {
         name = "table_production_methods"

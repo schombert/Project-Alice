@@ -1,16 +1,11 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_context_window.hpp"
 #include "military.hpp"
 #include "ai.hpp"
 
 namespace ui {
-
-enum class province_tile_types : uint8_t {
-	province_building,
-	factory,
-	regiment,
-};
 
 class tile_type_logic {
 public:
@@ -591,7 +586,9 @@ public:
 		return 1;
 	}
 
-	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override { }
+	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {
+		show_context_menu(state, { target.province });
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
 		text::add_line(state, contents, state.lookup_key("new"));
