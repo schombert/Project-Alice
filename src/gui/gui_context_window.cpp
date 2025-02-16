@@ -54,16 +54,7 @@ public:
 		auto sid = fat.get_province_from_factory_location().get_state_membership();
 		auto type = fat.get_building_type();
 
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
-		if(is_not_upgrading) {
-			return true;
-		}
-		return false;
+		return command::can_begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
 	}
 
 	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
@@ -146,8 +137,10 @@ public:
 	context_menu_context context;
 
 	void on_update(sys::state& state) noexcept override {
-		if (entry_logic)
+		if(entry_logic) {
 			this->set_button_text(state, text::produce_simple_string(state, entry_logic->get_name(state, context)));
+			disabled = !entry_logic->is_available(state, context);
+		}
 	}
 	void button_action(sys::state& state) noexcept override {
 		if (entry_logic)

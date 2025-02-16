@@ -17,6 +17,14 @@ public:
 		return 0;
 	}
 
+	virtual dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+		return dcon::commodity_id{};
+	}
+
+	virtual dcon::unit_type_id get_unit_frame(sys::state& state, economy::province_tile target) {
+		return dcon::unit_type_id{};
+	}
+
 	virtual bool is_available(sys::state& state, economy::province_tile target) {
 		return false;
 	}
@@ -67,6 +75,11 @@ public:
 
 	int get_frame(sys::state& state, economy::province_tile target) {
 		return 5;
+	}
+
+	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+		auto type = state.world.factory_get_building_type(target.factory);
+		return state.world.factory_type_get_output(type);
 	}
 
 	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {
@@ -424,6 +437,10 @@ public:
 		return (state.world.commodity_get_is_mine(target.rgo_commodity) ? 3 : 2);
 	}
 
+	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+		return target.rgo_commodity;
+	}
+
 	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override { }
 
 	// Done
@@ -498,8 +515,16 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override {
 		return 10;
+	}
+
+	dcon::unit_type_id get_unit_frame(sys::state& state, economy::province_tile target) noexcept override {
+		if(!target.regiment) {
+			return dcon::unit_type_id{};
+		}
+		dcon::unit_type_id utid = state.world.regiment_get_type(target.regiment);
+		return utid;
 	}
 
 	// Done
@@ -585,6 +610,10 @@ public:
 
 	int get_frame(sys::state& state, economy::province_tile target) {
 		return 13;
+	}
+
+	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+		return target.potential_commodity;
 	}
 
 	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {

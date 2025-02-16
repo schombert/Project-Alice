@@ -19,6 +19,8 @@ public:
 	int ind = 0;
 
 	tile_type_logic* tile_logic;
+	image_element_base* subicon_commodity;
+	image_element_base* subicon_unit;
 
 	void on_update(sys::state& state) noexcept override {
 		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
@@ -46,6 +48,16 @@ public:
 		}
 
 		frame = tile_logic->get_frame(state, tile);
+		subicon_commodity->frame = state.world.commodity_get_icon(tile_logic->get_commodity_frame(state, tile));
+		if(tile_logic->get_unit_frame(state, tile)) {
+			subicon_unit->set_visible(state, true);
+			subicon_unit->frame = state.military_definitions.unit_base_definitions[tile_logic->get_unit_frame(state, tile)].icon - 1;
+		}
+		else {
+			subicon_unit->set_visible(state, false);
+		}
+
+		hide_context_menu(state);
 	}
 	void button_action(sys::state& state) noexcept override {
 		hide_context_menu(state);
@@ -57,10 +69,13 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
 		tile_logic->update_tooltip(state, x, y, contents, tile);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
 	}
 };
 
@@ -73,13 +88,27 @@ public:
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
 				auto ptr = make_element_by_type<province_tile>(state, "province_tiles_tile");
-				ptr->base_data.position.y += int16_t((ptr->base_data.size.y + 1) * i);
-				ptr->base_data.position.x += int16_t((ptr->base_data.size.x + 1) * j);
+				ptr->base_data.position.y += int16_t(ptr->base_data.size.y * i);
+				ptr->base_data.position.x += int16_t(ptr->base_data.size.x * j);
 
 				tiles[i * 8 + j] = ptr.get();
 				tiles[i * 8 + j]->ind = i * 8 + j;
 
+
+				auto ptr2 = make_element_by_type<image_element_base>(state, "province_tiles_tile_subicon_commodity");
+				ptr->subicon_commodity = ptr2.get();
+				ptr2->base_data.position.y += int16_t(ptr->base_data.size.y * i);
+				ptr2->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+
+				auto ptr3 = make_element_by_type<image_element_base>(state, "province_tiles_tile_subicon_unit");
+				ptr->subicon_unit = ptr3.get();
+				ptr3->base_data.position.y += int16_t(ptr->base_data.size.y * i);
+				ptr3->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				ptr->subicon_unit->set_visible(state, false);
+
 				add_child_to_front(std::move(ptr));
+				add_child_to_front(std::move(ptr2));
+				add_child_to_front(std::move(ptr3));
 			}
 		}
 	}

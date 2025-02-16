@@ -4671,22 +4671,28 @@ guiTypes = {
 	windowType = {
         name = "province_tiles_window"
         position = { 422 0 }
-        size = { 210 210 }
-
-		iconType =
-		{
-			name ="province_tiles_bg"
-			spriteType = "provincetilesbg"
-			position = { x= 0 y = 0 }
-			Orientation = "UPPER_LEFT"
-		}
+        size = { 288 288 }
     }
 
 	iconType = {
 			position = { x=0 y=0 }	
-			size = { x=24 y=24 }
+			size = { x=36 y=36 }
 			name = "province_tiles_tile"
 			spriteType = "provincetiles"
+	}
+
+	iconType = {
+			position = { x=16 y=16 }	
+			size = { x=20 y=20 }
+			name = "province_tiles_tile_subicon_commodity"
+			spriteType = "GFX_resources_small"
+	}
+
+	iconType = {
+			position = { x=14 y=14 }	
+			size = { x=22 y=22 }
+			name = "province_tiles_tile_subicon_unit"
+			spriteType = "GFX_unit_strip"
 	}
 
 	windowType = {
