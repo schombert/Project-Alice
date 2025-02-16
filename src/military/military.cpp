@@ -4457,8 +4457,6 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 		}
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
-			if(reg.get_regiment().get_strength() <= 0.0f)
-				continue;
 
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
