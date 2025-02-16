@@ -5840,34 +5840,8 @@ void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon:
 	if(is_attacking) {
 		bitmask = bitmask | reserve_regiment::is_attacking;
 	}
-	reserves.push_back(
-						reserve_regiment{ reg,  bitmask });
-	if(is_attacking) {
-		switch(reserve_type) {
-		case reserve_regiment::type_infantry:
-			state.world.land_battle_get_attacker_infantry(bat) += state.world.regiment_get_strength(reg);
-			break;
-		case reserve_regiment::type_support:
-			state.world.land_battle_get_attacker_support(bat) += state.world.regiment_get_strength(reg);
-			break;
-		case reserve_regiment::type_cavalry:
-			state.world.land_battle_get_attacker_cav(bat) += state.world.regiment_get_strength(reg);
-			break;
-		}
-	}
-	else {
-		switch(reserve_type) {
-		case reserve_regiment::type_infantry:
-			state.world.land_battle_get_defender_infantry(bat) += state.world.regiment_get_strength(reg);
-			break;
-		case reserve_regiment::type_support:
-			state.world.land_battle_get_defender_support(bat) += state.world.regiment_get_strength(reg);
-			break;
-		case reserve_regiment::type_cavalry:
-			state.world.land_battle_get_defender_cav(bat) += state.world.regiment_get_strength(reg);
-			break;
-		}
-	}
+	reserves.push_back(reserve_regiment{ reg,  bitmask });
+
 }
 
 bool is_regiment_in_reserve(sys::state& state,dcon::regiment_id reg) {
