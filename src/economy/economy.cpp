@@ -922,7 +922,7 @@ void initialize(sys::state& state) {
 		}
 	}
 
-	if(state.defines.alice_rgo_generate_distribution) {
+	if(state.defines.alice_rgo_generate_distribution > 0.0f) {
 		province::for_each_land_province(state, [&](dcon::province_id p) {
 			auto fp = fatten(state.world, p);
 			//max size of exploitable land:

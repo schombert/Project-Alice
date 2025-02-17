@@ -2771,7 +2771,7 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	//	return false;
 
 	// Asker and target must be in a subject relation
-	if(state.defines.alice_state_transfer_limits) {
+	if(state.defines.alice_state_transfer_limits > 0.0f) {
 		auto ol2 = state.world.nation_get_overlord_as_subject(target);
 		if(state.world.overlord_get_ruler(ol) != target && state.world.overlord_get_ruler(ol2) != asker)
 			return false;
@@ -6004,6 +6004,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::grant_province:
 		return false;
+	case command_type::network_populate:
+		return false;
 	}
 	return false;
 }
@@ -6396,6 +6398,8 @@ void execute_command(sys::state& state, payload& c) {
 		execute_console_command(state);
 		break;
 	case command_type::grant_province:
+		break;
+	case command_type::network_populate:
 		break;
 	}
 }
