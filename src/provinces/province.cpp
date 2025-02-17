@@ -561,15 +561,18 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 		issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
 	}
 	auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
-	float non_core_effect = 0.0f;
+	float side_effects = 0.0f;
 	float bsum = 0.0f;
 	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
 		if(!state.world.province_get_is_owner_core(p)) {
-			non_core_effect += state.defines.noncore_tax_penalty;
+			side_effects += state.defines.noncore_tax_penalty;
+		}
+		if(state.world.province_get_nationalism(p) > 0.f) {
+			side_effects += state.defines.separatism_tax_penalty;
 		}
 		for(auto po : state.world.province_get_pop_location(p)) {
 			if(po.get_pop().get_is_primary_or_accepted_culture() &&
-					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat && po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
 				bsum += po.get_pop().get_size();
 			}
 		}
@@ -577,7 +580,7 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto total_pop = state.world.state_instance_get_demographics(id, demographics::total);
 	auto total =
 			total_pop > 0
-					? std::clamp(admin_mod + non_core_effect + state.defines.base_country_admin_efficiency +
+					? std::clamp(admin_mod + side_effects + state.defines.base_country_admin_efficiency +
 													 std::min(state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop, 1.0f) / from_issues,
 								0.0f, 1.0f)
 					: 0.0f;

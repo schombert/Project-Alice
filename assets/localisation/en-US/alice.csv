@@ -488,6 +488,10 @@ value_mod_sum_factor;Value $val$ is $x$ times the sum of:
 admin_explain_1;Administrative efficiency modifier of $val$
 admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$
 admin_explain_3;To the required percentage: $val$ (base $x$ + $y$ from reforms)
+admin_explain_4;Multiplier from issues: ?Y$val$?W
+admin_explain_5;Debuff from non-core provinces: ?R$val$?W
+admin_explain_6;Debuff from nationalism in provinces: ?R$val$?W
+admin_explain_7;?Y$x$?W out of ?Y$y$?W bureaucrats are members of rebels factions and refuse to collect taxes
 factory_condition_1;The nation is civilized
 factory_condition_2;This is not a colonial state
 factory_condition_3;The ruling party allows building factories

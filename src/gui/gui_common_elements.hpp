@@ -296,6 +296,61 @@ public:
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		set_text(state, text::format_percentage(province::state_admin_efficiency(state, content), 1));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(content);
+
+		auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
+
+		{
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::val,
+					text::fp_percentage{ 1.0f + admin_mod });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "admin_explain_1", m);
+			text::close_layout_box(contents, box);
+		}
+
+		float issue_sum = 0.0f;
+		for(auto i : state.culture_definitions.social_issues) {
+			issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
+		}
+		auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
+		float non_core_effect = 0.0f;
+		float separatism_effect = 0.0f;
+		float bsum = 0.0f;
+		float rebelb = 0.0f;
+
+		for(auto p : state.world.in_province) {
+			if(p.get_state_membership() == content) {
+				if(!state.world.province_get_is_owner_core(p)) {
+					non_core_effect += state.defines.noncore_tax_penalty;
+				}
+				if(state.world.province_get_nationalism(p) > 0.f) {
+					separatism_effect += state.defines.separatism_tax_penalty;
+				}
+				for(auto po : state.world.province_get_pop_location(p)) {
+					if(po.get_pop().get_is_primary_or_accepted_culture() &&
+							po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+						if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
+							rebelb += po.get_pop().get_size();
+						}
+						bsum += po.get_pop().get_size();
+					}
+				}
+			}
+		}
+		
+		text::add_line(state, contents, "admin_explain_7", text::variable_type::x, text::fp_one_place{ rebelb }, text::variable_type::y, text::fp_one_place{ bsum });
+		text::add_line(state, contents, "admin_explain_4", text::variable_type::val, text::fp_percentage{ 0.01f / from_issues });
+		text::add_line(state, contents, "admin_explain_5", text::variable_type::val, text::fp_one_place{ non_core_effect });
+		text::add_line(state, contents, "admin_explain_6", text::variable_type::val, text::fp_one_place{ separatism_effect });
+	}
 };
 
 class state_aristocrat_presence_text : public simple_text_element_base {
