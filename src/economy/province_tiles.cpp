@@ -1,5 +1,3 @@
-#pragma once
-
 #include "province_tiles.hpp"
 #include "container_types.hpp"
 #include "dcon_generated.hpp"

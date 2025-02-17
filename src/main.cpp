@@ -45,6 +45,8 @@
 #include "gui_technology_window.cpp"
 #include "gui_error_window.cpp"
 #include "game_scene.cpp"
+#include "gui_context_window.cpp"
+#include "province_tiles.cpp"
 #include "SHA512.cpp"
 #include "commands.cpp"
 #include "network.cpp"
