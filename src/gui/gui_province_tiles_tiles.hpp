@@ -87,11 +87,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
-		auto type = state.world.factory_get_building_type(target.factory);
 		auto fid = target.factory;
 
 		if(!fid)
 			return;
+
+		auto type = state.world.factory_get_building_type(target.factory);
 		dcon::nation_id n = state.world.province_get_nation_from_province_ownership(target.province);
 		auto p = target.province;
 		auto p_fat = fatten(state.world, target.province);
@@ -114,6 +115,7 @@ public:
 
 		auto& inputs = type.get_inputs();
 		auto& einputs = type.get_efficiency_inputs();
+		auto output = type.get_output();
 
 		//inputs
 
@@ -163,6 +165,12 @@ public:
 
 		text::add_line(state, contents, state.world.factory_type_get_name(type));
 		text::add_line(state, contents, "factory_level", text::variable_type::val, state.world.factory_get_level(fac));
+
+		if(state.world.commodity_get_uses_potentials(output)) {
+			auto limit = p_fat.get_factory_max_level_per_good(output);
+			text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(output),
+				text::variable_type::val, limit);
+		}
 
 		text::add_line_break_to_layout(state, contents);
 
