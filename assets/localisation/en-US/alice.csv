@@ -492,6 +492,11 @@ admin_explain_4;Multiplier from issues: ?Y$val$?W
 admin_explain_5;Debuff from non-core provinces: ?R$val$?W
 admin_explain_6;Debuff from nationalism in provinces: ?R$val$?W
 admin_explain_7;?Y$x$?W out of ?Y$y$?W bureaucrats are members of rebels factions and refuse to collect taxes
+admin_integrating_explain_1;State has ?Y$val$?W of the required number of bureaucrats of accepted/primary culture to incorporate
+admin_explain_8;State has ?Y$val$?W local administrative efficiency
+admin_explain_9;Local tax collection capacity: ?Y$val$?W
+admin_explain_10;Local bureaucrats expenses: ?Y$val$?W
+admin_explain_11;Nation population per admin: ?Y$val$?W
 factory_condition_1;The nation is civilized
 factory_condition_2;This is not a colonial state
 factory_condition_3;The ruling party allows building factories

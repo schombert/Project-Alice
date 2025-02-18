@@ -3,6 +3,7 @@
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "economy.hpp"
+#include "economy_government.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
 #include "military.hpp"
@@ -294,7 +295,9 @@ class state_admin_efficiency_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		set_text(state, text::format_percentage(province::state_admin_efficiency(state, content), 1));
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(content);
+		// 
+		set_text(state, text::format_percentage(economy::local_admin_ratio(state, owner, content), 1));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -305,17 +308,22 @@ public:
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(content);
 
-		auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
-
-		{
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val,
-					text::fp_percentage{ 1.0f + admin_mod });
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "admin_explain_1", m);
-			text::close_layout_box(contents, box);
+		// Vanilla numbers
+		// Show only in colonial states
+		for(auto p : state.world.in_province) {
+			if(p.get_state_membership() == content&& p.get_is_colonial()) {
+				text::add_line(state, contents, "admin_integrating_explain_1", text::variable_type::val, text::fp_percentage{ province::state_admin_efficiency(state, content) });
+				break;
+			}
 		}
+		// New administration
+		text::add_line(state, contents, "admin_explain_11", text::variable_type::val, text::fp_one_place{ economy::population_per_admin(state, owner) });
 
+		auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
+		text::add_line(state, contents, "admin_explain_1", text::variable_type::val, text::fp_percentage{ 1.0f + admin_mod }, 15);
+		ui::active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::administrative_efficiency_modifier, false);
+
+		text::add_line(state, contents, "admin_explain_8", text::variable_type::val, text::fp_percentage{ economy::local_admin_ratio(state, owner, content) });
 		float issue_sum = 0.0f;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
@@ -345,11 +353,16 @@ public:
 				}
 			}
 		}
-		
-		text::add_line(state, contents, "admin_explain_7", text::variable_type::x, text::fp_one_place{ rebelb }, text::variable_type::y, text::fp_one_place{ bsum });
-		text::add_line(state, contents, "admin_explain_4", text::variable_type::val, text::fp_percentage{ 0.01f / from_issues });
-		text::add_line(state, contents, "admin_explain_5", text::variable_type::val, text::fp_one_place{ non_core_effect });
-		text::add_line(state, contents, "admin_explain_6", text::variable_type::val, text::fp_one_place{ separatism_effect });
+
+		text::add_line(state, contents, "admin_explain_7", text::variable_type::x, text::fp_one_place{ rebelb }, text::variable_type::y, text::fp_one_place{ bsum }, 15);
+		text::add_line(state, contents, "admin_explain_4", text::variable_type::val, text::fp_percentage{ 0.01f / from_issues }, 15);
+		text::add_line(state, contents, "admin_explain_5", text::variable_type::val, text::fp_one_place{ non_core_effect }, 15);
+		text::add_line(state, contents, "admin_explain_6", text::variable_type::val, text::fp_one_place{ separatism_effect }, 15);
+
+		text::add_line(state, contents, "admin_explain_9", text::variable_type::val, text::fp_currency{ economy::tax_collection_capacity(state, owner, content) });
+
+		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
+		text::add_line(state, contents, "admin_explain_10", text::variable_type::val, text::fp_currency{ economy::estimate_spendings_administration_state(state, owner, content, fraction) });
 	}
 };
 

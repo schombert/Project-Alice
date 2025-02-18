@@ -8,6 +8,8 @@ struct state;
 namespace economy {
 // see details about internal workings of the system in cpp file
 
+float population_per_admin(sys::state& state, dcon::nation_id n);
+
 // amount of taxes you can collect in a given region
 float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid);
 // amount of taxes you can collect in a given region summed up for each region

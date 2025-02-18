@@ -551,6 +551,7 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 	return bsum;
 }
 
+/* Vanilla State Admin efficiency: used for integrating colonial states and thus still counts only accepted/primary culture bureaucrats */
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
