@@ -631,6 +631,48 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 	}
 };
 
+
+class attacker_reinforcement_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		auto w = state.world.land_battle_get_war_from_land_battle_in_war(b);
+		float total = 0.0f;
+
+		for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
+			auto owner = a.get_army().get_controller_from_army_control();
+			bool battle_attacker = false;
+			if(w) {
+				battle_attacker = (military::get_role(state, w, owner) == military::war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
+			} else {
+				battle_attacker = !bool(owner) == state.world.land_battle_get_war_attacker_is_attacker(b);
+			}
+			if(battle_attacker == true) {
+				total += military::calculate_army_combined_reinforce(state, a.get_army()) * state.defines.pop_size_per_regiment;
+			}
+		}
+
+		/*float count = 0.0f;
+		float total = 0.0f;
+		for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
+			auto owner = a.get_army().get_controller_from_army_control();
+			bool battle_attacker = false;
+			if(w) {
+				battle_attacker = (military::get_role(state, w, owner) == military::war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
+			} else {
+				battle_attacker = !bool(owner) == state.world.land_battle_get_war_attacker_is_attacker(b);
+			}
+			if(battle_attacker == true) {
+				for(auto r : a.get_army().get_army_membership()) {
+					++count;
+					total += r.get_regiment().get_strength();
+				}
+			}
+		}*/
+		set_text(state, text::format_float(total, 0));
+	}
+};
+
 class land_combat_defender_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -707,6 +749,10 @@ public:
 			return make_element_by_type<lc_unit_strength_txt<true, military::unit_type::support>>(state, id);
 		} else if(name == "modifiers") {
 			return make_element_by_type<attacker_combat_modifiers>(state, id);
+			
+		} else if(name == "reinforcement_info_txt") {
+			return make_element_by_type<attacker_reinforcement_text>(state, id);
+
 		} else {
 			return nullptr;
 		}

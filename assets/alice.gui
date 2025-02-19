@@ -2393,6 +2393,15 @@ guiTypes = {
 				format = left
 				spacing = 1.0
 			}
+			instantTextBoxType = {
+				name = "reinforcement_info_txt"
+				position = { 12 60 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = { 0 0}
+				maxsize = { 190 32 }
+				fixedsize = yes
+			}
 
 			iconType = {
 				name ="morale"
