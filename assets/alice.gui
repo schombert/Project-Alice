@@ -2395,7 +2395,7 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "reinforcement_info_txt"
-				position = { 15 65 }
+				position = { 28 65 }
 				textureFile = ""
 				font = "vic_22_black"
 				borderSize = { 0 0}

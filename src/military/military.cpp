@@ -7778,6 +7778,38 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	return combined;
 }
 
+
+
+// calculates the potential reinforcement of a brigade, even if they are already at max str
+float regiment_calculate_potential_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
+	auto pop = reg.get_pop_from_regiment_source();
+	if((reg.get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg)) ||
+		!pop) {
+		return 0.0f;
+	}
+	auto pop_size = pop.get_size();
+	auto curstr = reg.get_strength();
+	auto newstr = curstr + combined;
+
+	return newstr - curstr;
+}
+
+// calculates the raw amount of reinforcements one side of a battle can potentially receive every month, for display to the user
+float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker) {
+	float total = 0;
+	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
+	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
+		if(is_attacker_in_battle(state, army.get_army()) && attacker) {
+			float combined = calculate_army_combined_reinforce(state, army.get_army());
+			for(auto reg : state.world.army_get_army_membership(army.get_army())) {
+				total += regiment_calculate_potential_reinforcement(state, reg.get_regiment(), combined) * state.defines.pop_size_per_regiment;
+			}
+		}
+	}
+	return total;
+	
+}
+
 // Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
 float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
@@ -7793,6 +7825,8 @@ float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id 
 
 	return newstr - curstr;
 }
+
+
 
 // Calculates reinforcement for a particular unit from scratch, unit type is unknown
 float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg_id) {

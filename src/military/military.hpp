@@ -451,6 +451,7 @@ float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
+
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
@@ -484,6 +485,7 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 void recover_org(sys::state& state);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
+float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg);
 float unit_calculate_reinforcement(sys::state& state, dcon::ship_id reg);
 void reinforce_regiments(sys::state& state);

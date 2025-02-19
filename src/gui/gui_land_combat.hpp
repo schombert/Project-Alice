@@ -639,14 +639,13 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 };
 
 
-class attacker_reinforcement_text : public simple_text_element_base {
+class attacker_reinforcement_text : public multiline_text_element_base{
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
-		auto w = state.world.land_battle_get_war_from_land_battle_in_war(b);
-		float total = 0.0f;
-
-		for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
+		//float total = 0.0f;
+		float total = military::calculate_battle_reinforcement(state, b, true);
+		/*for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
 			auto owner = a.get_army().get_controller_from_army_control();
 			bool battle_attacker = false;
 			if(w) {
@@ -655,9 +654,12 @@ public:
 				battle_attacker = !bool(owner) == state.world.land_battle_get_war_attacker_is_attacker(b);
 			}
 			if(battle_attacker == true) {
-				total += military::calculate_army_combined_reinforce(state, a.get_army()) * state.defines.pop_size_per_regiment;
+				float combined = military::calculate_army_combined_reinforce(state, a.get_army());
+				for(auto reg : a.get_army().get_army_membership()) {
+					total += military::pote
+				}
 			}
-		}
+		}*/
 
 		/*float count = 0.0f;
 		float total = 0.0f;
@@ -676,7 +678,24 @@ public:
 				}
 			}
 		}*/
-		set_text(state, "+" + text::format_float(total, 0));
+		auto color = text::text_color::dark_green;
+		if(total <= 0.0f) {
+			color = text::text_color::dark_red;
+		} 
+		
+
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, "+" + text::prettify(int64_t(total)), color);
+		text::close_layout_box(contents, box);
+		//set_text(state, "+" + text::format_float(total, 0));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
 	}
 };
 
