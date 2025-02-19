@@ -640,7 +640,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(p.get_province().get_nation_from_province_ownership() == owner) {
 				for(auto f : p.get_province().get_factory_location()) {
-					if(f.get_factory().get_building_type() == type && f.get_factory().get_level() < uint8_t(255)) {
+					if(f.get_factory().get_building_type() == type) {
 						return true;
 					}
 				}

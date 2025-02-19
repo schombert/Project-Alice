@@ -4176,7 +4176,8 @@ object{
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
-	property {
+
+	property { 
 		name{ artisan_score }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -4190,6 +4191,7 @@ object{
 		name{ artisan_profit }
 		type{ float }
 	}
+
 	property {
 		name{ import }
 		type{ array{commodity_id}{float} }
@@ -4444,12 +4446,7 @@ object {
 		name{ building_type }
 		type{ factory_type_id }
 		tag{ save }
-	}
-	property{
-		name{ level }
-		type{ uint8_t }
-		tag{ save }
-	}
+	}	
 	property{
 		name{ priority_low }
 		type{ bitfield }
@@ -4460,9 +4457,21 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
-	property {
-		name{ actual_production }
+	property{
+		name{ subsidized }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ unprofitable }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ size }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ unqualified_employment }
@@ -4482,39 +4491,24 @@ object {
 	property {
 		name{ triggered_modifiers }
 		type{ float }
-	}
+	}	
 	property {
-		name{ full_output_cost }
+		name{ output }
 		type{ float }
 	}
 	property {
-		name{ full_input_cost }
+		name{ output_per_worker }
 		type{ float }
 	}
 	property {
-		name{ full_labor_cost }
+		name{ input_cost }
 		type{ float }
-	}
-	property {
-		name{ output_cost_per_worker }
-		type{ float }
-		tag{ save }
 	}
 	property {
 		name{ input_cost_per_worker }
 		type{ float }
 		tag{ save }
-	}
-	property{
-		name{ subsidized }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ unprofitable }
-		type{ bitfield }
-		tag{ save }
-	}
+	}	
 }
 
 relationship{

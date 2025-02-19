@@ -208,10 +208,10 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 
 	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	// get state with most factories
-	int32_t max_total = 0;
+	float max_total = 0;
 	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
 		auto sdef = state.world.state_instance_get_definition(sid);
-		int32_t total = 0;
+		float total = 0;
 		if(sel_nation) {
 			total = economy::state_factory_size(state, sid, sel_nation);
 		} else {
@@ -225,7 +225,7 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 			max_total = 1;
 	});
 	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
-		int32_t total = 0;
+		float total = 0;
 		auto sdef = state.world.state_instance_get_definition(sid);
 
 		for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {

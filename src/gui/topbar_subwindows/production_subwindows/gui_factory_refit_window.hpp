@@ -98,7 +98,6 @@ public:
 
 
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 	}
 };
 
@@ -185,7 +184,6 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 
 		text::add_line_with_condition(state, contents, "production_refit_factory_tooltip_3", (rules & issue_rule::build_factory) != 0, 5);
 

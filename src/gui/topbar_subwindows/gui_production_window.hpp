@@ -14,6 +14,7 @@
 #include "widgets/table.hpp"
 #include "gui_factory_refit_window.hpp"
 #include "economy_stats.hpp"
+#include "economy_production.hpp"
 
 namespace ui {
 
@@ -44,7 +45,7 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
 
-		auto max_emp = economy::factory_max_employment(state, fid);
+		auto max_emp = state.world.factory_get_size(fid);
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(
@@ -56,7 +57,6 @@ public:
 			text::add_to_layout_box(state, contents, box, std::string_view{": " });
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
 				state.world.factory_get_unqualified_employment(fid)
-				* max_emp
 				* state.world.market_get_labor_demand_satisfaction(mid, economy::labor::no_education))
 			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
@@ -74,7 +74,6 @@ public:
 			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
 				state.world.factory_get_primary_employment(fid)
-				* max_emp
 				* state.world.market_get_labor_demand_satisfaction(mid, economy::labor::basic_education))
 			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
@@ -87,7 +86,6 @@ public:
 			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 			text::add_to_layout_box(state, contents, box, int64_t(std::ceil(
 				state.world.factory_get_secondary_employment(fid)
-				* max_emp
 				* state.world.market_get_labor_demand_satisfaction(mid, economy::labor::high_education))
 			));
 			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
@@ -349,7 +347,6 @@ public:
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 		}
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "factory_upgrade_shortcuts");
@@ -652,29 +649,25 @@ class normal_factory_background : public opaque_element_base {
 		auto& einputs = type.get_efficiency_inputs();
 
 		//inputs
-
-		float input_total = economy::factory_input_total_cost(state, market, type);
-		float min_input_available = economy::factory_min_input_available(state, market, type);
-		float e_input_total = economy::factory_e_input_total_cost(state, market, type);
-		float min_e_input_available = economy::factory_min_e_input_available(state, market, type);
+		auto inputs_data = economy::get_inputs_data(state, market, type.get_inputs());
+		auto e_inputs_data = economy::get_inputs_data(state, market, type.get_efficiency_inputs());
 
 		//modifiers
 
 		float input_multiplier = economy::factory_input_multiplier(state, fac, n, p, s);
 		float e_input_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
 		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s);
-		float output_multiplier = economy::factory_output_multiplier(state, fac, n, market, p);
+		float output_multiplier = economy::factory_output_multiplier_no_secondary_workers(state, fac, n, p);
 
 		float bonus_profit_thanks_to_max_e_input = fac.get_building_type().get_output_amount()
 			* 0.25f
 			* throughput_multiplier
 			* output_multiplier
-			* min_input_available
 			* economy::price(state, market, fac.get_building_type().get_output());
 
 		// if efficiency inputs are not worth it, then do not buy them
-		if(bonus_profit_thanks_to_max_e_input < e_input_total * e_input_multiplier * input_multiplier)
-			min_e_input_available = 0.f;
+		if(bonus_profit_thanks_to_max_e_input < e_inputs_data.total_cost * e_input_multiplier * input_multiplier)
+			e_inputs_data.min_available = 0.f;
 
 		float base_throughput =
 			(
@@ -685,7 +678,6 @@ class normal_factory_background : public opaque_element_base {
 				state.world.factory_get_primary_employment(fac)
 				* state.world.market_get_labor_demand_satisfaction(market, economy::labor::basic_education)
 			)
-			* state.world.factory_get_level(fac)
 			* economy::factory_throughput_additional_multiplier(
 				state,
 				fac,
@@ -693,9 +685,9 @@ class normal_factory_background : public opaque_element_base {
 				false
 			);
 
-		float effective_production_scale = base_throughput;
+		float effective_production_scale = economy::factory_total_employment_score(state, fid);
 
-		auto amount = (0.75f + 0.25f * min_e_input_available) * min_input_available * effective_production_scale;
+		auto amount = (0.75f + 0.25f * e_inputs_data.min_available) * inputs_data.min_available * effective_production_scale;
 
 		text::add_line(state, contents, state.world.factory_type_get_name(type));
 
@@ -707,13 +699,11 @@ class normal_factory_background : public opaque_element_base {
 				text::fp_percentage{economy::factory_total_employment_score(state, fid)});
 
 		text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
-				text::fp_one_place{state.world.factory_get_actual_production(fid) }, text::variable_type::x, type.get_output().get_name());
+				text::fp_one_place{state.world.factory_get_output(fid) }, text::variable_type::x, type.get_output().get_name());
 
 		text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
 			text::fp_currency{
-				state.world.factory_get_full_output_cost(fid)
-				- state.world.factory_get_full_input_cost(fid)
-				- state.world.factory_get_full_labor_cost(fid)
+				economy::explain_last_factory_profit(state, fid).profit
 			}
 		);
 
@@ -761,7 +751,7 @@ class normal_factory_background : public opaque_element_base {
 				base_amount
 				* input_multiplier
 				* throughput_multiplier
-				* min_input_available
+				* inputs_data.min_available
 				* effective_production_scale;
 
 			float cost =
@@ -807,8 +797,7 @@ class normal_factory_background : public opaque_element_base {
 			float amount =
 				base_amount
 				* input_multiplier * e_input_multiplier
-				* min_e_input_available
-				* min_input_available
+				* e_inputs_data.min_available
 				* effective_production_scale;
 
 			float cost =
@@ -863,10 +852,10 @@ class normal_factory_background : public opaque_element_base {
 
 			float output_amount =
 				base_amount
-				* (0.75f + 0.25f * min_e_input_available)
+				* (0.75f + 0.25f * e_inputs_data.min_available)
 				* throughput_multiplier
 				* output_multiplier
-				* min_input_available
+				* inputs_data.min_available
 				* effective_production_scale;
 
 			float output_cost =
@@ -910,26 +899,18 @@ class normal_factory_background : public opaque_element_base {
 
 		float wage_estimation = 0.f;
 
-		auto per_level_employment = state.world.factory_type_get_base_workforce(type);
-
 		wage_estimation +=
 			wage_unqualified
-			* per_level_employment
-			* float(state.world.factory_get_level(fid))
 			* state.world.factory_get_unqualified_employment(fid)
 			* state.world.market_get_labor_demand_satisfaction(market, economy::labor::no_education);
 
 		wage_estimation +=
 			wage_primary
-			* per_level_employment
-			* float(state.world.factory_get_level(fid))
 			* state.world.factory_get_primary_employment(fid)
 			* state.world.market_get_labor_demand_satisfaction(market, economy::labor::basic_education);
 
 		wage_estimation +=
 			wage_secondary
-			* per_level_employment
-			* float(state.world.factory_get_level(fid))
 			* state.world.factory_get_secondary_employment(fid)
 			* state.world.market_get_labor_demand_satisfaction(market, economy::labor::high_education);
 
@@ -947,7 +928,7 @@ class normal_factory_background : public opaque_element_base {
 
 		output_cost_line(type.get_output(), type.get_output_amount());
 
-		float desired_income = economy::factory_desired_raw_profit(fac, total_expenses);
+		float desired_income = total_expenses;
 
 		named_money_line("factory_stats_desired_income",
 			desired_income

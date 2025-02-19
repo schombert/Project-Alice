@@ -352,8 +352,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 		case 8:
 			break;
 		case 9:
-			economy::update_factory_employment(ws1);
-			economy::update_factory_employment(ws2);
+			economy::update_employment(ws1);
+			economy::update_employment(ws2);
 			break;
 		case 10:
 			nations::update_administrative_efficiency(ws1);

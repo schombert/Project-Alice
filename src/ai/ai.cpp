@@ -557,10 +557,8 @@ void update_factory_types_priority(sys::state& state) {
 			state.world.province_for_each_factory_location_as_province(province, [&](auto location) {
 				auto factory = state.world.factory_location_get_factory(location);
 				auto type = state.world.factory_get_building_type(factory);
-				auto level = state.world.factory_get_level(factory);
 				employment[type.id.index()] +=
 					state.world.factory_get_primary_employment(factory)
-					* level
 					* economy::factory_type_input_cost(
 						state, n, market, type
 					);
@@ -1593,7 +1591,7 @@ void update_ai_econ_construction(sys::state& state) {
 							}
 
 							// else -- try to build -- must have room
-							int32_t num_factories = economy::state_factory_count(state, si, n);
+							auto num_factories = economy::state_factory_count(state, si, n);
 							if(num_factories < int32_t(state.defines.factories_per_state)) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
@@ -1623,9 +1621,8 @@ void update_ai_econ_construction(sys::state& state) {
 
 
 							auto unprofitable = fac.get_factory().get_unprofitable();
-							auto factory_level = fac.get_factory().get_level();
 
-							if(!unprofitable && factory_level < uint8_t(255) && economy::factory_total_employment_score(state, fac.get_factory()) >= 0.9f) {
+							if(!unprofitable && economy::factory_total_employment_score(state, fac.get_factory()) >= 0.9f) {
 								// test if factory is already upgrading
 								auto ug_in_progress = false;
 								for(auto c : state.world.state_instance_get_state_building_construction(si)) {

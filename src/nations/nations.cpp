@@ -16,6 +16,7 @@
 #include "rebels.hpp"
 #include "set"
 #include "economy_government.hpp"
+#include "economy_production.hpp"
 
 namespace nations {
 
@@ -910,19 +911,11 @@ void update_industrial_scores(sys::state& state) {
 		float sum = 0;
 		if(state.world.nation_get_owned_province_count(n) != 0) {
 			for(auto si : state.world.nation_get_state_ownership(n)) {
-				float total_level = 0;
-				float worker_total = 0.f;
-				float total_factory_capacity = 0;
 				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 					for(auto f : state.world.province_get_factory_location(p)) {
-						total_factory_capacity +=
-								float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
-						total_level += float(f.get_factory().get_level());
-						worker_total += economy::factory_total_employment(state, f.get_factory());
+						sum += 4.f * economy::get_factory_level(state, f.get_factory()) * economy::factory_total_employment_score(state, f.get_factory());
 					}
 				});
-				if(total_factory_capacity > 0)
-					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			}
 			sum += nations::get_foreign_investment_as_gp(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
 		}

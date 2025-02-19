@@ -3,6 +3,7 @@
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "economy.hpp"
+#include "economy_production.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
 #include "military.hpp"
@@ -542,17 +543,16 @@ public:
 
 		auto iweight = state.defines.investment_score_factor;
 		for(auto si : state.world.nation_get_state_ownership(n)) {
-			float total_level = 0;
-			float worker_total = 0.f;
-			float total_factory_capacity = 0;
+			float score = 0.f;
+			float workers = 0.f;
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto f : state.world.province_get_factory_location(p)) {
-					total_factory_capacity += economy::factory_max_employment(state, f.get_factory());
-					total_level += float(f.get_factory().get_level());
-					worker_total += economy::factory_total_employment(state, f.get_factory());
+					score += economy::factory_total_employment(state, f.get_factory())
+						/ f.get_factory().get_building_type().get_base_workforce();
+					workers += economy::factory_total_employment(state, f.get_factory());
 				}
 			});
-			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
+			float per_state = 4.0f * score;
 			if(per_state > 0.f) {
 				auto box = text::open_layout_box(contents);
 				text::layout_box name_entry = box;
@@ -564,19 +564,12 @@ public:
 				name_entry.x_size /= 10;
 				text::add_to_layout_box(state, contents, name_entry, text::get_short_state_name(state, si.get_state()).substr(0, 20), text::text_color::yellow);
 				
-				level_entry.x_position += 150;
-				text::add_to_layout_box(state, contents, level_entry, text::int_wholenum{ int32_t(total_level) });
+				workers_entry.x_position += 150;
+				text::add_to_layout_box(state, contents, workers_entry, text::int_wholenum{ int32_t(workers) });
 
-				workers_entry.x_position += 180;
-				text::add_to_layout_box(state, contents, workers_entry, text::int_wholenum{ int32_t(worker_total) });
-
-				max_workers_entry.x_position += 250;
-				text::add_to_layout_box(state, contents, max_workers_entry, text::int_wholenum{ int32_t(total_factory_capacity) });
-
-				score_box.x_position += 350;
+				score_box.x_position += 250;
 				text::add_to_layout_box(state, contents, score_box, text::fp_two_places{ per_state });
 
-				//text::localised_format_box(state, contents, box, std::string_view("alice_indscore_1"), sub);
 				text::add_to_layout_box(state, contents, box, std::string(" "));
 				text::close_layout_box(contents, box);
 			}
@@ -1722,7 +1715,7 @@ class factory_produced_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto factory_id = retrieve<dcon::factory_id>(state, parent);
-		set_text(state, text::format_float(state.world.factory_get_actual_production(factory_id), 2));
+		set_text(state, text::format_float(state.world.factory_get_output(factory_id), 2));
 	}
 };
 class factory_income_text : public simple_text_element_base {
@@ -1730,9 +1723,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto factory_id = retrieve<dcon::factory_id>(state, parent);
 		set_text(state, text::format_float(
-			state.world.factory_get_full_output_cost(factory_id)
-			- state.world.factory_get_full_input_cost(factory_id)
-			- state.world.factory_get_full_labor_cost(factory_id)
+			economy::explain_last_factory_profit(state, factory_id).profit
 		, 2));
 	}
 };
@@ -1749,8 +1740,8 @@ public:
 		base_data.size.x += int16_t(20);
 	}
 	void on_update(sys::state& state) noexcept override {
-		auto factory_id = retrieve<dcon::factory_id>(state, parent);
-		set_text(state, std::to_string(uint32_t(state.world.factory_get_level(factory_id))));
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);		
+		set_text(state, text::format_float(economy::get_factory_level(state, factory_id)));
 	}
 };
 class factory_profit_text : public multiline_text_element_base {
@@ -1758,9 +1749,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
 
-		auto profit = state.world.factory_get_full_output_cost(content)
-			- state.world.factory_get_full_input_cost(content)
-			- state.world.factory_get_full_labor_cost(content);
+		auto profit = economy::explain_last_factory_profit(state, content).profit;
 		bool is_positive = profit >= 0.f;
 		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 		// Create colour
@@ -1777,9 +1766,7 @@ class factory_income_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_id>(state, parent);
-		float profit = state.world.factory_get_full_output_cost(content)
-			- state.world.factory_get_full_input_cost(content)
-			- state.world.factory_get_full_labor_cost(content);
+		float profit = economy::explain_last_factory_profit(state, content).profit;
 
 		if(profit > 0.f) {
 			frame = 0;

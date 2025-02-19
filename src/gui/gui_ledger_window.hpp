@@ -1946,9 +1946,9 @@ public:
 		case ledger_sort_type::output_amount:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::factory_id a, dcon::factory_id b) {
 				if(lsort.reversed) {
-					return state.world.factory_get_actual_production(a) < state.world.factory_get_actual_production(b);
+					return state.world.factory_get_output(a) < state.world.factory_get_output(b);
 				} else {
-					return state.world.factory_get_actual_production(a) > state.world.factory_get_actual_production(b);
+					return state.world.factory_get_output(a) > state.world.factory_get_output(b);
 				}
 			});
 			break;
@@ -1956,23 +1956,15 @@ public:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::factory_id a, dcon::factory_id b) {
 				if(lsort.reversed) {
 					return (
-						state.world.factory_get_full_output_cost(a)
-						- state.world.factory_get_full_input_cost(a)
-						- state.world.factory_get_full_labor_cost(a)
+						economy::explain_last_factory_profit(state, a).profit
 					) < (
-						state.world.factory_get_full_output_cost(b)
-						- state.world.factory_get_full_input_cost(b)
-						- state.world.factory_get_full_labor_cost(b)
+						economy::explain_last_factory_profit(state, b).profit
 					);
 				} else {
 					return (
-						state.world.factory_get_full_output_cost(a)
-						- state.world.factory_get_full_input_cost(a)
-						- state.world.factory_get_full_labor_cost(a)
+						economy::explain_last_factory_profit(state, a).profit
 					) > (
-						state.world.factory_get_full_output_cost(b)
-						- state.world.factory_get_full_input_cost(b)
-						- state.world.factory_get_full_labor_cost(b)
+						economy::explain_last_factory_profit(state, b).profit
 					);
 				}
 			});
@@ -1989,9 +1981,9 @@ public:
 		case ledger_sort_type::factory_level:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::factory_id a, dcon::factory_id b) {
 				if(lsort.reversed) {
-					return state.world.factory_get_level(a) < state.world.factory_get_level(b);
+					return economy::get_factory_level(state, a) < economy::get_factory_level(state, b);
 				} else {
-					return state.world.factory_get_level(a) > state.world.factory_get_level(b);
+					return economy::get_factory_level(state, a) > economy::get_factory_level(state, b);
 				}
 			});
 			break;

@@ -6,6 +6,7 @@
 #include "demographics.hpp"
 #include "province_templates.hpp"
 #include "economy_stats.hpp"
+#include "economy_production.hpp"
 
 using json = nlohmann::json;
 
@@ -270,6 +271,7 @@ json format_factory(sys::state& state, dcon::factory_id fid) {
 	auto location = state.world.factory_get_province_from_factory_location(fid);
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
 	auto sid = state.world.province_get_state_membership(location);
+	auto market = state.world.state_instance_get_market_from_local_market(sid);
 
 	json j = json::object();
 
@@ -283,10 +285,10 @@ json format_factory(sys::state& state, dcon::factory_id fid) {
 	j["inputs"] = format_commodity_set(state, state.world.factory_type_get_inputs(type));
 	j["output"] = format_commodity_link(state, state.world.factory_type_get_output(type));
 
-	j["actual_production"] = state.world.factory_get_actual_production(fid);
-	j["level"] = state.world.factory_get_level(fid);
+	j["actual_production"] = state.world.factory_get_output(fid);
+	j["level"] = economy::get_factory_level(state, fid);
 	j["input_cost_per_worker"] = state.world.factory_get_input_cost_per_worker(fid);
-	j["output_cost_per_worker"] = state.world.factory_get_output_cost_per_worker(fid);
+	j["output_cost_per_worker"] = state.world.factory_get_output_per_worker(fid) * state.world.market_get_price(market, state.world.factory_type_get_output(type));
 
 	 j["unqualified_employment"] = state.world.factory_get_unqualified_employment(fid);
 	 j["primary_employment"] = state.world.factory_get_primary_employment(fid);

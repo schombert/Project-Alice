@@ -169,7 +169,7 @@ public:
 			auto ftid = state.world.factory_get_building_type(fid);
 			switch(content.value_type) {
 			case trade_flow_data::value_type::produced_by: {
-				amount += state.world.factory_get_actual_production(fid);
+				amount += state.world.factory_get_output(fid);
 			} break;
 			case trade_flow_data::value_type::used_by: {
 				auto& inputs = state.world.factory_type_get_inputs(ftid);
@@ -344,7 +344,7 @@ public:
 			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
 				for(const auto fl : pc.get_province().get_factory_location()) {
 					if(fl.get_factory().get_building_type().get_output() == com)
-						amount += fl.get_factory().get_actual_production();
+						amount += fl.get_factory().get_output();
 				}
 			}
 			total += amount;
@@ -465,7 +465,7 @@ public:
 					auto fid = state.world.factory_location_get_factory(flid);
 					auto ftid = state.world.factory_get_building_type(fid);
 					if(state.world.factory_type_get_output(ftid) == commodity_id)
-						amount += state.world.factory_get_actual_production(fid);
+						amount += state.world.factory_get_output(fid);
 				});
 				if(state.world.province_get_rgo(pid) == commodity_id)
 					amount += state.world.province_get_rgo_actual_production_per_good(pid, commodity_id);
@@ -863,11 +863,11 @@ inline table::column<dcon::commodity_id> trade_good_production_factory = {
 		auto bv = 0.f;
 		for(auto f : state.world.in_factory) {
 			if(f.get_building_type().get_output() == a)
-				av += f.get_actual_production();
+				av += f.get_output();
 		}
 		for(auto f : state.world.in_factory) {
 			if(f.get_building_type().get_output() == b)
-				bv += f.get_actual_production();
+				bv += f.get_output();
 		}
 		if(av != bv)
 			return av > bv;
@@ -878,7 +878,7 @@ inline table::column<dcon::commodity_id> trade_good_production_factory = {
 		auto value = 0.f;
 		for(auto f : state.world.in_factory) {
 			if(f.get_building_type().get_output() == id)
-				value += f.get_actual_production();
+				value += f.get_output();
 		}
 		return text::format_float(value);
 	}

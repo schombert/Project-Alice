@@ -3257,7 +3257,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_factory_employment(*this);
+	economy::update_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
 
@@ -4136,7 +4136,7 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 7:
-				economy::update_factory_employment(*this);
+				economy::update_employment(*this);
 				break;
 			case 8:
 				nations::update_administrative_efficiency(*this);

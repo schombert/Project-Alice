@@ -2681,13 +2681,10 @@ inline table::column<dcon::commodity_id> rgo_desired_profit = {
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 		auto pops = economy::rgo_relevant_population(state, p, n);
 		auto min_wage_factor = economy::pop_min_wage_factor(state, n);
-		auto pop_farmer_min_wage = economy::farmer_min_wage(state, m, min_wage_factor);
-		auto pop_laborer_min_wage = economy::laborer_min_wage(state, m, min_wage_factor);
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 		auto v = economy::rgo_desired_worker_norm_profit(
-			state, p, m, n,
-			is_mine ? pop_laborer_min_wage : pop_farmer_min_wage,
-			pops.total);
+			state, p, m, n, pops.total
+		);
 
 		auto value = v * state.defines.alice_rgo_per_size_employment;
 		return text::format_money(value);

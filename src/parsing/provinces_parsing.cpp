@@ -396,8 +396,10 @@ void province_history_file::state_building(pv_state_building const& value, error
 		province_file_context& context) {
 	if(value.id) {
 		auto new_fac = context.outer_context.state.world.create_factory();
+		auto base_size = 10'000.f;
 		context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
-		context.outer_context.state.world.factory_set_level(new_fac, uint8_t(value.level));
+		context.outer_context.state.world.factory_set_size(new_fac, (float)value.level * base_size);
+		context.outer_context.state.world.factory_set_unqualified_employment(new_fac, base_size * 0.1f);
 		context.outer_context.state.world.force_create_factory_location(new_fac, context.id);
 	}
 }

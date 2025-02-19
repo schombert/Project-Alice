@@ -8,7 +8,7 @@ economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dco
 	auto& from_cost = state.world.factory_type_get_construction_costs(from);
 	auto& to_cost = state.world.factory_type_get_construction_costs(to);
 
-	auto level = 1;
+	float level = 1;
 
 	auto d = state.world.state_instance_get_definition(sid);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(sid);
@@ -16,11 +16,12 @@ economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dco
 		if(p.get_province().get_nation_from_province_ownership() == o) {
 			for(auto f : p.get_province().get_factory_location()) {
 				if(f.get_factory().get_building_type() == from) {
-					level = f.get_factory().get_level();
+					level = f.get_factory().get_size() / f.get_factory().get_building_type().get_base_workforce();
 				}
 			}
 		}
 	}
+ 
 
 	// Refit cost = (to_cost) - (from_cost) + (0.1f * to_cost)
 	float refit_mod = 1.0f + state.defines.alice_factory_refit_cost_modifier;
@@ -1088,7 +1089,6 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 				auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time;
 				register_demand(state, market, infantry_def.build_cost.commodity_type[i], daily_amount * pairs_to_build, economy_reason::construction);
 				state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i]) += daily_amount * pairs_to_build * 0.05f;
-				//state.world.market_set_artisan_score(market, infantry_def.build_cost.commodity_type[i], 0.25f);
 			} else {
 				break;
 			}
@@ -1098,7 +1098,6 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 				auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time;
 				register_demand(state, market, artillery_def.build_cost.commodity_type[i], daily_amount * pairs_to_build, economy_reason::construction);
 				state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i]) += daily_amount * pairs_to_build * 0.05f;
-				//state.world.market_set_artisan_score(market, artillery_def.build_cost.commodity_type[i], 0.25f);
 			} else {
 				break;
 			}
