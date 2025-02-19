@@ -398,6 +398,13 @@ public:
 	}
 };
 
+class lc_reinforcement_icon : public image_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		frame = state.world.pop_type_get_sprite(state.culture_definitions.soldiers) - 1;
+	}
+};
+
 template<bool IsAttacker, military::unit_type Type>
 class lc_unit_strength_txt : public multiline_text_element_base {
 public:
@@ -669,7 +676,7 @@ public:
 				}
 			}
 		}*/
-		set_text(state, text::format_float(total, 0));
+		set_text(state, "+" + text::format_float(total, 0));
 	}
 };
 
@@ -748,11 +755,11 @@ public:
 		} else if(name == "unit_type_3_value") {
 			return make_element_by_type<lc_unit_strength_txt<true, military::unit_type::support>>(state, id);
 		} else if(name == "modifiers") {
-			return make_element_by_type<attacker_combat_modifiers>(state, id);
-			
+			return make_element_by_type<attacker_combat_modifiers>(state, id);		
+		} else if(name == "reinforcement_icon") {
+			return make_element_by_type<lc_reinforcement_icon>(state, id);
 		} else if(name == "reinforcement_info_txt") {
 			return make_element_by_type<attacker_reinforcement_text>(state, id);
-
 		} else {
 			return nullptr;
 		}
