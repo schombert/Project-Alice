@@ -336,9 +336,16 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 	}
 }
 void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent, dcon::nation_id thisnation, bool attacker) {
-
-	//top header
-	text::add_line(state, contents, "reinforce_battle_mod_top", indent);
+	auto reserves = state.world.land_battle_get_reserves(b);
+	uint32_t reserve_count = 0;
+	for(uint32_t i = 0; i < reserves.size(); i++) {
+		bool battle_attacker = (reserves[i].flags & military::reserve_regiment::is_attacking) != 0;
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
+			reserve_count++;
+		}
+	}
+	//top header displaying how many brigades are currently in reserve on that side
+	text::add_line(state, contents, "reinforce_battle_mod_top", text::variable_type::x, text::format_wholenum(reserve_count), indent);
 
 	// average army spending in battle
 	float reinf_mod = military::calculate_average_battle_supply_spending(state, b, attacker);
@@ -349,9 +356,7 @@ void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle
 	text::add_line(state, contents, "reinforce_battle_location_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
 
 	// get the national modifiers 
-	reinf_mod =
-		(1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::reinforce_speed)) *
-		(1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::reinforce_rate));
+	reinf_mod = military::calculate_average_battle_national_modifiers(state, b, attacker);
 	text::add_line(state, contents, "reinforce_battle_national_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
 }
 

@@ -1073,11 +1073,11 @@ alice_mil_decay_description;Natural decay ?G-$x$
 alice_con_decay_description;Natural decay ?R-$x$
 x_from_y;$culture$ $x$ from $y$
 x_in_y;$x$ at $y$
-reinforce_battle_mod_top;Affected by the following reinforcement modifiers:
+reinforce_battle_mod_top;?Y$x$?W reserve brigades affected by the following reinforcement modifiers:
 reinforce_battle_only_reserve;Only ?Yreserves?W in a battle can be reinforced.
-reinforce_battle_spending_modifier;Army supply fufillment: ?Yx$x$.?W
-reinforce_battle_location_modifier;Location: ?Yx$x$.?W
-reinforce_battle_national_modifier;National modifiers&techs: ?Yx$x$.?W
+reinforce_battle_spending_modifier;Average army supply fufillment: ?Yx$x$.?W
+reinforce_battle_location_modifier;Average location modifier: ?Yx$x$.?W
+reinforce_battle_national_modifier;Average national modifiers&techs: ?Yx$x$.?W
 reinforce_rate_battle_attacker;The attackers can reinforce up to $x$ soldiers per month.
 reinforce_rate_battle_attacker_none;The attackers are currently getting no reinforcements.
 reinforce_rate_battle_defender;The defenders can reinforce up to $x$ soldiers per month.

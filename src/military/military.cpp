@@ -7859,6 +7859,28 @@ float calculate_average_battle_location_modifier(sys::state& state, dcon::land_b
 	return total / count;
 }
 
+// calculates average national modifiers for all regiments on one side of a battle.
+float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_battle_id b, bool attacker) {
+	assert(b);
+	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
+	float total = 0;
+	int32_t count = 0;
+	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
+		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
+			auto controller = army.get_army().get_controller_from_army_control();
+			float army_reinf = (1.0f + state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::reinforce_speed)) *
+							   (1.0f + state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::reinforce_rate));
+			for(auto reg : army.get_army().get_army_membership()) {
+				total += army_reinf;
+				count++;
+			}
+		}
+	}
+	assert(count != 0);
+	return total / count;
+}
+
 // Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
 float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
