@@ -592,7 +592,10 @@ float trade_supply(sys::state& state,
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
 	auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price(state, m, c) + 1.f);
-	auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.market_get_labor_price(m, labor::no_education) + 0.00001f;
+	auto sid = state.world.market_get_zone_from_local_market(m);
+	auto capital = state.world.state_instance_get_capital(sid);
+	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
+	auto local_wage_rating = state.defines.alice_needs_scaling_factor * wage + 0.00001f;
 	auto price_rating = (price(state, m, c)) / local_wage_rating;
 	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
 	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
@@ -619,7 +622,10 @@ float trade_demand(sys::state& state,
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
 	auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price(state, m, c) + 1.f);
-	auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.market_get_labor_price(m, labor::no_education) + 0.00001f;
+	auto sid = state.world.market_get_zone_from_local_market(m);
+	auto capital = state.world.state_instance_get_capital(sid);
+	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
+	auto local_wage_rating = state.defines.alice_needs_scaling_factor * wage + 0.00001f;
 	auto price_rating = (price(state, m, c)) / local_wage_rating;
 	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
 	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * actual_stockpile_to_supply;
@@ -915,4 +921,102 @@ trade_volume_data_detailed import_volume_detailed(
 
 	return result;
 }
+
+float get_factory_level(sys::state& state, dcon::factory_id f) {
+	auto ftid = state.world.factory_get_building_type(f);
+	return state.world.factory_get_size(f) / state.world.factory_type_get_base_workforce(ftid);
+}
+
+int32_t province_factory_count(sys::state& state, dcon::province_id pid) {
+	int32_t num_factories = 0;
+	num_factories += int32_t(state.world.province_get_factory_location(pid).end() - state.world.province_get_factory_location(pid).begin());
+	for(auto p : state.world.province_get_factory_construction(pid))
+		if(p.get_is_upgrade() == false)
+			++num_factories;
+
+	// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
+	assert(num_factories <= int32_t(state.defines.factories_per_state));
+	return num_factories;
+}
+// Returns sum of all factory levels in a province
+float province_factory_level(sys::state& state, dcon::province_id pid) {
+	float factory_size = 0;
+	for(auto fl : state.world.province_get_factory_location(pid)) {
+		factory_size += get_factory_level(state, fl.get_factory());
+	}
+	return factory_size;
+}
+
+int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+	int32_t num_factories = 0;
+	auto d = state.world.state_instance_get_definition(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(p.get_province().get_nation_from_province_ownership() == n)
+			num_factories += province_factory_count(state, p.get_province());
+	return num_factories;
+}
+// Returns sum of all factory levels in a state
+float state_factory_level(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+	float factory_size = 0;
+	auto d = state.world.state_instance_get_definition(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(p.get_province().get_nation_from_province_ownership() == n)
+			factory_size += province_factory_level(state, p.get_province());
+	return factory_size;
+}
+
+bool has_factory(sys::state const& state, dcon::province_id si) {
+	auto crng = state.world.province_get_factory_construction(si);
+	if(crng.begin() != crng.end())
+		return true;
+	auto rng = state.world.province_get_factory_location(si);
+	if(rng.begin() != rng.end())
+		return true;
+	return false;
+}
+
+bool has_factory(sys::state const& state, dcon::state_instance_id sid) {
+	auto d = state.world.state_instance_get_definition(sid);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+		if(has_factory(state, p.get_province()))
+			return true;
+	return false;
+}
+
+
+bool has_constructed_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+	auto d = state.world.state_instance_get_definition(s);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_state_membership() == s) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == ft)
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+	auto d = state.world.state_instance_get_definition(s);
+
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_state_membership() == s) {
+			for(auto f : p.get_province().get_factory_location()) {
+				if(f.get_factory().get_building_type() == ft)
+					return true;
+			}
+		}
+	}
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_state_membership() == s) {
+			for(auto f : p.get_province().get_factory_construction()) {
+				if(f.get_type() == ft)
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
 }

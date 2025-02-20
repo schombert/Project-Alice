@@ -1758,18 +1758,18 @@ public:
 		case ledger_sort_type::profit:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
-					return province::rgo_income(state, a) < province::rgo_income(state, b);
+					return economy::rgo_income(state, a) < economy::rgo_income(state, b);
 				} else {
-					return province::rgo_income(state, a) > province::rgo_income(state, b);
+					return economy::rgo_income(state, a) > economy::rgo_income(state, b);
 				}
 			});
 			break;
 		case ledger_sort_type::employment:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
-					return province::rgo_employment(state, a) < province::rgo_employment(state, b);
+					return economy::rgo_employment(state, a) < economy::rgo_employment(state, b);
 				} else {
-					return province::rgo_employment(state, a) > province::rgo_employment(state, b);
+					return economy::rgo_employment(state, a) > economy::rgo_employment(state, b);
 				}
 			});
 			break;

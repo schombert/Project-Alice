@@ -321,4 +321,19 @@ float average_capitalists_luxury_cost(
 	dcon::nation_id s
 );
 
+int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
+float state_factory_level(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
+int32_t province_factory_count(sys::state& state, dcon::province_id sid);
+float province_factory_level(sys::state& state, dcon::province_id sid);
+
+float get_factory_level(sys::state& state, dcon::factory_id f);
+
+// checks existence of factory in province (could be under construction)
+bool has_factory(sys::state const&, dcon::province_id);
+// checks existence of factory in state (could be under construction)
+bool has_factory(sys::state const&, dcon::state_instance_id);
+// checks existence of factory in province (only constructed factories count)
+bool has_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
+// checks existence of factory of given type in state (could be under construction)
+bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
 }

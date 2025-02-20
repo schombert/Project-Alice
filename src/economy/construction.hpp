@@ -23,7 +23,7 @@ struct province_construction_spending_entry {
 	float spending;
 };
 struct state_construction_spending_entry {
-	dcon::state_building_construction_id construction;
+	dcon::factory_construction_id construction;
 	float spending;
 };
 struct province_land_construction_spending_entry {

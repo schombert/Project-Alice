@@ -503,40 +503,6 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
-float land_maximum_employment(sys::state& state, dcon::province_id id) {
-	auto owner = state.world.province_get_nation_from_province_ownership(id);
-	return economy::rgo_total_max_employment(state, owner, id) + economy::subsistence_max_pseudoemployment(state, owner, id);
-}
-float land_employment(sys::state& state, dcon::province_id id) {
-	auto owner = state.world.province_get_nation_from_province_ownership(id);
-	return economy::rgo_total_employment(state, owner, id) + state.world.province_get_subsistence_employment(id);
-}
-float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
-	auto owner = state.world.province_get_nation_from_province_ownership(id);
-	return economy::rgo_total_max_employment(state, owner, id);
-}
-float rgo_employment(sys::state& state, dcon::province_id id) {
-	return economy::rgo_total_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
-}
-float rgo_income(sys::state& state, dcon::province_id id) {
-	return state.world.province_get_rgo_full_output_cost(id);
-}
-float rgo_production_quantity(sys::state& state, dcon::province_id id, dcon::commodity_id c) {
-	auto n = state.world.province_get_nation_from_province_ownership(id);
-	return state.world.province_get_rgo_actual_production_per_good(id, c);
-}
-float rgo_size(sys::state& state, dcon::province_id prov_id) {
-	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
-	auto sz = state.world.province_get_rgo_size(prov_id);
-
-	auto n = dcon::fatten(state.world, prov_id).get_nation_from_province_ownership();
-	auto bonus = state.world.province_get_modifier_values(prov_id,
-									 is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size) +
-							 state.world.nation_get_modifier_values(n,
-									 is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size) +
-							 state.world.nation_get_rgo_size(n, state.world.province_get_rgo(prov_id)) + 1.0f;
-	return sz * bonus;
-}
 
 float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id id) {
 	float bsum = 0.f;
@@ -775,22 +741,10 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				state.world.for_each_commodity([&](auto cid){
 					state.world.market_set_price(new_market, cid, state.world.market_get_price(old_market, cid));
 				});
-				for(auto index = 0; index < economy::labor::total; index++) {
-					state.world.market_set_labor_price(new_market, index, state.world.market_get_labor_price(old_market, index));
-				}
-				for(auto index = 0; index < economy::pop_labor::total; index++) {
-					state.world.market_set_pop_labor_distribution(new_market, index, state.world.market_get_pop_labor_distribution(old_market, index));
-				}
 			} else {
 				state.world.for_each_commodity([&](auto cid) {
 					state.world.market_set_price(new_market, cid, economy::median_price(state, cid));
 				});
-				for(auto index = 0; index < economy::labor::total; index++) {
-					state.world.market_set_labor_price(new_market, index, 1.f);
-				}
-				for(auto index = 0; index < economy::pop_labor::total; index++) {
-					state.world.market_set_pop_labor_distribution(new_market, index, 0.f);
-				}
 			}
 
 			auto new_local_market = state.world.force_create_local_market(new_market, new_si);

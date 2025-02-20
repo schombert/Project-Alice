@@ -677,7 +677,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 10.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 300000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 5000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 10.00) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.05) \
 	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.95) \
@@ -728,7 +728,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_per_wg_ratio, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 10.0) \
 
 
 // scales the needs values so that they are needs per this many pops

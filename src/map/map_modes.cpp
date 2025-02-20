@@ -6,6 +6,8 @@
 #include "dcon_generated.hpp"
 #include "province.hpp"
 #include "nations.hpp"
+#include "economy_stats.hpp"
+
 #include <unordered_map>
 
 #include "modes/political.hpp"
@@ -209,36 +211,36 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	// get state with most factories
 	float max_total = 0;
-	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
-		auto sdef = state.world.state_instance_get_definition(sid);
-		float total = 0;
+	state.world.for_each_province([&](dcon::province_id pid) {
+		float total = 0.f;
 		if(sel_nation) {
-			total = economy::state_factory_size(state, sid, sel_nation);
+			if (state.world.province_get_nation_from_province_ownership(pid) == sel_nation)
+				total = economy::province_factory_level(state, pid);
 		} else {
-			for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
-				total = std::max(total, economy::state_factory_size(state, sid, abm.get_province().get_nation_from_province_ownership()));
-			}
+			total = economy::province_factory_level(state, pid);
 		}
+
 		if(total > max_total)
 			max_total = total;
 		if(max_total == 0)
 			max_total = 1;
 	});
-	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+	state.world.for_each_province([&](dcon::province_id pid) {
 		float total = 0;
-		auto sdef = state.world.state_instance_get_definition(sid);
 
-		for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
-			if((sel_nation && abm.get_province().get_province_ownership().get_nation() != sel_nation)
-				|| !(abm.get_province().get_nation_from_province_ownership()))
-				continue;
-			total = economy::state_factory_size(state, sid, abm.get_province().get_nation_from_province_ownership());
-			float value = float(total) / float(max_total);
-			uint32_t color = ogl::color_gradient_viridis(value);
-			auto i = province::to_map_id(abm.get_province());
-			prov_color[i] = color;
-			prov_color[i + texture_size] = color;
+		if(
+			(sel_nation && state.world.province_get_nation_from_province_ownership(pid) != sel_nation)
+			|| !(state.world.province_get_nation_from_province_ownership(pid))
+		) {
+			return;
 		}
+
+		total = economy::province_factory_level(state, pid);
+		float value = float(total) / float(max_total);
+		uint32_t color = ogl::color_gradient_viridis(value);
+		auto i = province::to_map_id(pid);
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
 	});
 	return prov_color;
 }

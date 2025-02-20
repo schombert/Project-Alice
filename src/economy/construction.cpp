@@ -416,16 +416,16 @@ struct factory_construction_data {
 
 factory_construction_data explain_factory_building_construction(
 	sys::state& state,
-	dcon::state_building_construction_id construction
+	dcon::factory_construction_id construction
 ) {
-	auto owner = state.world.state_building_construction_get_nation(construction);
-	auto local_zone = state.world.state_building_construction_get_state(construction);
+	auto owner = state.world.factory_construction_get_nation(construction);
+	auto province = state.world.factory_construction_get_province(construction);
+	auto local_zone = state.world.province_get_state_membership(province);
 	auto market = state.world.state_instance_get_market_from_local_market(local_zone);
-	auto refit_target = state.world.state_building_construction_get_refit_target(construction);
-	auto building_type = state.world.state_building_construction_get_type(construction);
-	auto province = state.world.state_instance_get_capital(local_zone);
-	auto is_pop_project = state.world.state_building_construction_get_is_pop_project(construction);
-	auto is_upgrade = state.world.state_building_construction_get_is_upgrade(construction);
+	auto refit_target = state.world.factory_construction_get_refit_target(construction);
+	auto building_type = state.world.factory_construction_get_type(construction);
+	auto is_pop_project = state.world.factory_construction_get_is_pop_project(construction);
+	auto is_upgrade = state.world.factory_construction_get_is_upgrade(construction);
 	factory_construction_data result = {
 		.can_be_advanced = (owner && state.world.province_get_nation_from_province_control(province) == owner),
 		.is_pop_project = is_pop_project,
@@ -445,7 +445,7 @@ factory_construction_data explain_factory_building_construction(
 //handles both private and public factories
 void advance_factory_construction(
 	sys::state& state,
-	dcon::state_building_construction_id construction
+	dcon::factory_construction_id construction
 ) {
 	auto details = explain_factory_building_construction(state, construction);
 	auto base_cost =
@@ -454,7 +454,7 @@ void advance_factory_construction(
 			state, details.owner, details.state_instance, details.building_type, details.refit_target
 		)
 		: state.world.factory_type_get_construction_costs(details.building_type);
-	auto& current_purchased = state.world.state_building_construction_get_purchased_goods(construction);
+	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 		auto cid = base_cost.commodity_type[i];
@@ -479,7 +479,7 @@ void advance_factory_construction(
 
 void populate_state_construction_demand(
 	sys::state& state,
-	dcon::state_building_construction_id construction,
+	dcon::factory_construction_id construction,
 	float& budget,
 	float budget_limit
 ) {
@@ -491,7 +491,7 @@ void populate_state_construction_demand(
 		? calculate_factory_refit_goods_cost(
 			state, details.owner, details.state_instance, details.building_type, details.refit_target
 		) : state.world.factory_type_get_construction_costs(details.building_type);
-	auto& current_purchased = state.world.state_building_construction_get_purchased_goods(construction);
+	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 		auto cid = base_cost.commodity_type[i];
@@ -552,7 +552,7 @@ void populate_construction_consumption(sys::state& state) {
 			going_constructions.get(owner) += 1;
 		}
 	};
-	for(auto c : state.world.in_state_building_construction) {
+	for(auto c : state.world.in_factory_construction) {
 		auto owner = c.get_nation().id;
 		if(owner && !c.get_is_pop_project()) {
 			going_constructions.get(owner) += 1;
@@ -586,7 +586,7 @@ void populate_construction_consumption(sys::state& state) {
 		float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
 		populate_province_building_construction_demand(state, c, base_budget, budget_limit);
 	}
-	for(auto c : state.world.in_state_building_construction) {
+	for(auto c : state.world.in_factory_construction) {
 		auto owner = c.get_nation().id;
 		float& base_budget = current_budget.get(owner);
 		float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
@@ -633,13 +633,13 @@ int32_t count_ongoing_constructions(sys::state& state, dcon::nation_id n) {
 			count++;
 		}
 	}
-	for(auto c : state.world.in_state_building_construction) {
+	for(auto c : state.world.in_factory_construction) {
 		auto owner = c.get_nation().id;
 		if(owner != n) {
 			continue;
 		}
 		auto spending_scale = state.world.nation_get_spending_level(owner);
-		auto market = state.world.state_instance_get_market_from_local_market(c.get_state());
+		auto market = state.world.state_instance_get_market_from_local_market(c.get_province().get_state_membership());
 		if(owner && !c.get_is_pop_project()) {
 			count++;
 		}
@@ -696,7 +696,7 @@ void populate_explanation_state_construction(
 	float& estimated_spendings,
 	float budget_limit_per_project
 ) {
-	for(auto c : state.world.in_state_building_construction) {
+	for(auto c : state.world.in_factory_construction) {
 		auto details = explain_factory_building_construction(state, c);
 		if(details.owner != n) continue;
 		if(!details.can_be_advanced) continue;
@@ -894,8 +894,10 @@ float estimate_private_construction_spendings(sys::state& state, dcon::nation_id
 		}
 	}
 
-	for(auto c : state.world.nation_get_state_building_construction(nid)) {
-		auto market = state.world.state_instance_get_market_from_local_market(c.get_state());
+	for(auto c : state.world.nation_get_factory_construction(nid)) {
+		auto location = c.get_province();
+		auto sid = location.get_state_membership();
+		auto market = state.world.state_instance_get_market_from_local_market(sid);
 		if(c.get_is_pop_project()) {
 			auto& base_cost = c.get_type().get_construction_costs();
 			auto& current_purchased = c.get_purchased_goods();
@@ -945,7 +947,7 @@ void populate_province_building_construction_private_demand(
 
 void populate_state_construction_private_demand(
 	sys::state& state,
-	dcon::state_building_construction_id construction
+	dcon::factory_construction_id construction
 ) {
 	auto details = explain_factory_building_construction(state, construction);
 	if(!details.can_be_advanced) return;
@@ -954,7 +956,7 @@ void populate_state_construction_private_demand(
 		? calculate_factory_refit_goods_cost(
 			state, details.owner, details.state_instance, details.building_type, details.refit_target
 		) : state.world.factory_type_get_construction_costs(details.building_type);
-	auto& current_purchased = state.world.state_building_construction_get_purchased_goods(construction);
+	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 		auto cid = base_cost.commodity_type[i];
 		if(!cid) break;
@@ -970,7 +972,7 @@ void populate_private_construction_consumption(sys::state& state) {
 	for(auto c : state.world.in_province_building_construction) {
 		populate_province_building_construction_private_demand(state, c);
 	}
-	for(auto c : state.world.in_state_building_construction) {
+	for(auto c : state.world.in_factory_construction) {
 		populate_state_construction_private_demand(state, c);
 	}
 }
@@ -1035,7 +1037,7 @@ void advance_construction(sys::state& state, dcon::nation_id n, float total_spen
 			advance_province_building_construction(state, c);
 		}
 	}
-	for(auto c : state.world.nation_get_state_building_construction(n)) {
+	for(auto c : state.world.nation_get_factory_construction(n)) {
 		advance_factory_construction(state, c);
 	}
 }

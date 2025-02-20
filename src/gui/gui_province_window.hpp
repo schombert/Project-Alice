@@ -1176,7 +1176,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
 		if(content) {
-			open_build_foreign_factory(state, state.world.province_get_state_membership(content));
+			open_build_foreign_factory(state, content);
 		}
 
 	}
@@ -1190,7 +1190,7 @@ public:
 
 		for(auto ft : state.world.in_factory_type) {
 			if(command::can_begin_factory_building_construction(state, state.local_player_nation,
-				state.world.province_get_state_membership(content), ft, false)) {
+				content, ft, false)) {
 
 				disabled = false;
 				return;
@@ -1401,8 +1401,8 @@ class province_rgo_employment_progress_icon : public opaque_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province = retrieve<dcon::province_id>(state, parent);
-		auto max_emp = province::land_maximum_employment(state, province);
-		auto employment_ratio = province::land_employment(state, province) / (max_emp + 1.f);
+		auto max_emp = economy::rgo_max_employment(state, province);
+		auto employment_ratio = economy::rgo_employment(state, province) / (max_emp + 1.f);
 		frame = int32_t(10.f * employment_ratio);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1411,8 +1411,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
-		auto max_emp = province::land_maximum_employment(state, prov_id);
-		auto employment_ratio = province::land_employment(state, prov_id) / (max_emp + 1.f);
+		auto max_emp = economy::rgo_max_employment(state, prov_id);
+		auto employment_ratio = economy::rgo_employment(state, prov_id) / (max_emp + 1.f);
 
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
@@ -1519,7 +1519,13 @@ class province_rgo_employment_percent_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_percentage(state.world.province_get_rgo_employment(province_id), 1));
+		auto max_emp = economy::rgo_max_employment(state, province_id);
+		auto emp = economy::rgo_employment(state, province_id);
+		auto ratio = 0.f;
+		if(max_emp > 0) {
+			ratio = emp / max_emp;
+		}
+		set_text(state, text::format_percentage(ratio, 1));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -2598,8 +2604,8 @@ inline table::column<dcon::commodity_id> rgo_amount = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = state.world.province_get_rgo_actual_production_per_good(p, a);
-		auto bv = state.world.province_get_rgo_actual_production_per_good(p, b);
+		auto av = economy::rgo_output(state, a, p);
+		auto bv = economy::rgo_output(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2610,7 +2616,7 @@ inline table::column<dcon::commodity_id> rgo_amount = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto value = state.world.province_get_rgo_actual_production_per_good(p, id);
+		auto value = economy::rgo_output(state, id, p);
 		return text::format_float(value);
 	}
 };
@@ -2623,8 +2629,8 @@ inline table::column<dcon::commodity_id> rgo_profit = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = state.world.province_get_rgo_profit_per_good(p, a);
-		auto bv = state.world.province_get_rgo_profit_per_good(p, b);
+		auto av = economy::rgo_income(state, a, p);
+		auto bv = economy::rgo_income(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2635,7 +2641,7 @@ inline table::column<dcon::commodity_id> rgo_profit = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto value = state.world.province_get_rgo_profit_per_good(p, id);
+		auto value = economy::rgo_income(state, id, p);
 		return text::format_money(value);
 	}
 };
@@ -2682,9 +2688,7 @@ inline table::column<dcon::commodity_id> rgo_desired_profit = {
 		auto pops = economy::rgo_relevant_population(state, p, n);
 		auto min_wage_factor = economy::pop_min_wage_factor(state, n);
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-		auto v = economy::rgo_desired_worker_norm_profit(
-			state, p, m, n, pops.total
-		);
+		auto v = state.world.province_get_labor_price(p, economy::labor::no_education) * (1.f + economy::aristocrats_greed);
 
 		auto value = v * state.defines.alice_rgo_per_size_employment;
 		return text::format_money(value);
@@ -2700,8 +2704,8 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = state.world.province_get_rgo_target_employment_per_good(p, a);
-		auto bv = state.world.province_get_rgo_target_employment_per_good(p, b);
+		auto av = economy::rgo_employment(state, a, p);
+		auto bv = economy::rgo_employment(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2713,7 +2717,7 @@ inline table::column<dcon::commodity_id> rgo_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto value = state.world.province_get_rgo_target_employment_per_good(p, id) * state.world.market_get_labor_demand_satisfaction(m, economy::labor::no_education);
+		auto value = economy::rgo_employment(state, id, p);
 		return text::format_wholenum(int32_t(value));
 	}
 };
@@ -2727,8 +2731,8 @@ inline table::column<dcon::commodity_id> rgo_max_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = economy::rgo_max_employment(state, n, p, a);
-		auto bv = economy::rgo_max_employment(state, n, p, b);
+		auto av = economy::rgo_max_employment(state, a, p);
+		auto bv = economy::rgo_max_employment(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2740,7 +2744,7 @@ inline table::column<dcon::commodity_id> rgo_max_employment = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto value = economy::rgo_max_employment(state, n, p, id);
+		auto value = economy::rgo_max_employment(state, id, p);
 		return text::format_wholenum(int32_t(value));
 	}
 };
@@ -2754,11 +2758,11 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto ae = economy::rgo_max_employment(state, n, p, a);
-		auto be = economy::rgo_max_employment(state, n, p, b);
+		auto ae = economy::rgo_max_employment(state, a, p);
+		auto be = economy::rgo_max_employment(state, b, p);
 
-		auto av = state.world.province_get_rgo_target_employment_per_good(p, a);
-		auto bv = state.world.province_get_rgo_target_employment_per_good(p, b);
+		auto av = economy::rgo_employment(state, a, p);
+		auto bv = economy::rgo_employment(state, b, p);
 
 		auto ar = ae > 0.f ? av / ae : 0.f;
 		auto br = be > 0.f ? bv / be : 0.f;
@@ -2774,8 +2778,8 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto e = economy::rgo_max_employment(state, n, p, id);
-		auto v = state.world.province_get_rgo_target_employment_per_good(p, id);
+		auto e = economy::rgo_max_employment(state, id, p);
+		auto v = economy::rgo_employment(state, id, p);
 		auto r = e > 0.f ? v / e : 0.f;
 
 		return text::format_percentage(r);

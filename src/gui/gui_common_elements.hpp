@@ -4,6 +4,7 @@
 #include "demographics.hpp"
 #include "economy.hpp"
 #include "economy_production.hpp"
+#include "economy_stats.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
 #include "military.hpp"
@@ -56,7 +57,7 @@ enum class country_list_filter : uint8_t {
 bool country_category_filter_check(sys::state& state, country_list_filter filt, dcon::nation_id a, dcon::nation_id b);
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
 
-void open_build_foreign_factory(sys::state& state, dcon::state_instance_id st);
+void open_build_foreign_factory(sys::state& state, dcon::province_id st);
 void open_foreign_investment(sys::state& state, dcon::nation_id n);
 
 std::string get_status_text(sys::state& state, dcon::nation_id nation_id);
@@ -281,11 +282,19 @@ public:
 	}
 };
 
-class state_factory_count_text : public simple_text_element_base {
+class province_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		int32_t count = economy::state_factory_count(state, content, state.local_player_nation);
+		auto content = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::produce_simple_string(state, state.world.province_get_name(content)));
+	}
+};
+
+class province_factory_count_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		int32_t count = economy::province_factory_count(state, content);
 		auto txt = std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
 		set_text(state, txt);
 	}
@@ -1517,7 +1526,7 @@ class province_goods_produced_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_float(province::rgo_production_quantity(state, province_id, state.world.province_get_rgo(province_id)), 3));
+		set_text(state, text::format_float(economy::rgo_output(state, state.world.province_get_rgo(province_id), province_id), 3));
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -1526,7 +1535,7 @@ public:
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto production = province::rgo_production_quantity(state, p, c);
+			auto production = economy::rgo_output(state, c, p);
 
 			if(production < 0.0001f) {
 				return;
@@ -1550,7 +1559,7 @@ class province_income_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_money(province::rgo_income(state, province_id)));
+		set_text(state, text::format_money(economy::rgo_income(state, province_id)));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1563,7 +1572,7 @@ public:
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto profit = state.world.province_get_rgo_profit_per_good(p, c);
+			auto profit = economy::rgo_income(state, c, p);
 
 			if(profit < 0.0001f) {
 				return;
@@ -1587,7 +1596,7 @@ class province_rgo_workers_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::prettify(int32_t(province::land_employment(state, province_id))));
+		set_text(state, text::prettify(int32_t(economy::rgo_employment(state, province_id))));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1618,9 +1627,8 @@ public:
 		text::close_layout_box(contents, row_1);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto rgo_employment = state.world.province_get_rgo_target_employment_per_good(p, c) * state.world.market_get_labor_demand_satisfaction(m, economy::labor::no_education);
-			auto current_employment = int64_t(rgo_employment);
-			auto max_employment = int64_t(economy::rgo_max_employment(state, n, p, c));
+			auto current_employment = int64_t(economy::rgo_employment(state, c, p));
+			auto max_employment = int64_t(economy::rgo_max_employment(state, c, p));
 			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, m, n, c);
 
 			if(max_employment < 1.f) {
@@ -1684,7 +1692,7 @@ class province_rgo_size_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_float(economy::rgo_total_effective_size(state, state.world.province_get_nation_from_province_ownership(province_id), province_id), 2));
+		set_text(state, text::format_float(economy::rgo_max_employment(state, province_id), 2));
 	}
 };
 

@@ -4,6 +4,7 @@
 #include "commands.hpp"
 #include "unit_tooltip.hpp"
 #include "economy_production.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 
@@ -1058,14 +1059,9 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 
 		std::vector<dcon::factory_fat_id> factories;
 		float totallevels = 0;
-		for(auto m : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
-			auto p = m.get_province();
-			if(p.get_nation_from_province_ownership() == fat.get_nation_from_province_ownership()) {
-				for(auto f : p.get_factory_location()) {
-					factories.push_back(f.get_factory());
-					totallevels += economy::get_factory_level(state, f.get_factory());
-				}
-			}
+		for(auto f : state.world.province_get_factory_location(prov)) {
+			factories.push_back(f.get_factory());
+			totallevels += economy::get_factory_level(state, f.get_factory());
 		}
 		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return economy::get_factory_level(state, a) > economy::get_factory_level(state, b); });
 

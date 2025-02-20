@@ -64,24 +64,18 @@ float base_artisan_profit(
 	dcon::commodity_id c
 );
 
+float priority_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
+float nation_factory_input_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
+float nation_factory_output_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
+
 void update_employment(sys::state& state);
 
 void update_artisan_production(sys::state& state);
 void update_production_consumption(sys::state& state);
 
-float get_factory_level(sys::state& state, dcon::factory_id f);
-
 float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
 float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
 float factory_output_multiplier_no_secondary_workers(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p);
-
-float rgo_desired_worker_norm_profit(
-	sys::state& state,
-	dcon::province_id p,
-	dcon::market_id m,
-	dcon::nation_id n,
-	float total_relevant_population
-);
 
 struct profit_explanation {
 	float inputs;
@@ -92,4 +86,46 @@ struct profit_explanation {
 };
 
 profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_id f);
+
+float factory_type_output_cost(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::market_id m,
+	dcon::factory_type_id factory_type
+);
+float factory_type_input_cost(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::market_id m,
+	dcon::factory_type_id factory_type
+);
+float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::factory_type_id factory_type);
+
+
+float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
+float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
+float estimate_factory_consumption(sys::state& state, dcon::commodity_id c);
+
+float rgo_income(sys::state& state, dcon::province_id id);
+float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+
+float rgo_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+float rgo_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+
+float rgo_max_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float rgo_max_employment(sys::state& state, dcon::province_id p);
+
+float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float rgo_employment(sys::state& state, dcon::province_id p);
+
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::market_id id);
+
+float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+float artisan_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
+float artisan_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
+float artisan_output(sys::state& state, dcon::commodity_id c);
+
 }

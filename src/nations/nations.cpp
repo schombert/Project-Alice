@@ -17,6 +17,7 @@
 #include "set"
 #include "economy_government.hpp"
 #include "economy_production.hpp"
+#include "economy_stats.hpp"
 
 namespace nations {
 

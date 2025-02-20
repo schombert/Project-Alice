@@ -12,13 +12,14 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
 		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto type = state.world.factory_get_building_type(fid);
 
 		// no double upgrade
 		bool is_not_upgrading = true;
-		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+		for(auto p : state.world.province_get_factory_construction(pid)) {
 			if(p.get_type() == type)
 				is_not_upgrading = false;
 		}
@@ -45,12 +46,13 @@ public:
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto type = state.world.factory_get_building_type(fid);
 
 		// no double upgrade
 		bool is_not_upgrading = true;
-		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+		for(auto p : state.world.province_get_factory_construction(pid)) {
 			if(p.get_type() == type)
 				is_not_upgrading = false;
 		}
@@ -72,13 +74,14 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
 		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto type = state.world.factory_get_building_type(fid);
 
 		// no double upgrade
 		bool is_not_upgrading = true;
-		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+		for(auto p : state.world.province_get_factory_construction(pid)) {
 			if(p.get_type() == type)
 				is_not_upgrading = false;
 		}
@@ -108,13 +111,13 @@ public:
 		auto refit_target_id = retrieve<dcon::factory_type_id>(state, parent);
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
-		auto sid = fat.get_factory_location().get_province().get_state_membership();
+		auto pid = fat.get_factory_location().get_province();
 
 		if(refit_target_id) {
 			set_button_text(state, text::produce_simple_string(state, state.world.factory_type_get_name(refit_target_id)));
 		}
 
-		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid,
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid,
 			fat.get_building_type().id, false, refit_target_id);
 
 	}
@@ -123,8 +126,8 @@ public:
 		auto refit_target_id = retrieve<dcon::factory_type_id>(state, parent);
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
-		auto sid = fat.get_factory_location().get_province().get_state_membership();
-		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, false, refit_target_id);
+		auto pid = fat.get_factory_location().get_province();
+		command::begin_factory_building_construction(state, state.local_player_nation, pid, fat.get_building_type().id, false, refit_target_id);
 		// Close the window and reset selected factory
 		send(state, parent, open_factory_refit{ dcon::factory_id{} });
 	}
@@ -137,13 +140,13 @@ public:
 		auto refit_target = retrieve<dcon::factory_type_id>(state, parent);
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
-		auto sid = fat.get_factory_location().get_province().get_state_membership();
+		auto pid = fat.get_factory_location().get_province();
 		auto n = fat.get_factory_location().get_province().get_nation_from_province_ownership();
 		auto type = fat.get_building_type();
 
 		// no double upgrade
 		bool is_not_upgrading = true;
-		for(auto p : state.world.state_instance_get_state_building_construction(sid)) {
+		for(auto p : state.world.province_get_factory_construction(pid)) {
 			if(p.get_type() == type)
 				is_not_upgrading = false;
 		}
@@ -160,7 +163,7 @@ public:
 				float admin_eff = state.world.nation_get_administrative_efficiency(n);
 				float admin_cost_factor = 2.0f - admin_eff;
 				float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
-				auto price = economy::price(state, sid, refit_cost.commodity_type[i]) * refit_cost.commodity_amounts[i] * factory_mod * admin_cost_factor;
+				auto price = economy::price(state, pid.get_state_membership(), refit_cost.commodity_type[i]) * refit_cost.commodity_amounts[i] * factory_mod * admin_cost_factor;
 				total += price;
 
 				text::add_line(state, contents, "factory_refit_cost", text::variable_type::what, state.world.commodity_get_name(refit_cost.commodity_type[i]), text::variable_type::val, text::fp_three_places{ refit_cost.commodity_amounts[i] }, text::variable_type::value, text::format_money(price));
@@ -174,7 +177,7 @@ public:
 		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_1", is_civ);
 
-		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
+		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(pid.get_state_membership()));
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_2", state_is_not_colonial);
 
 		bool is_activated = state.world.nation_get_active_building(n, refit_target) == true || state.world.factory_type_get_is_available_from_start(refit_target);

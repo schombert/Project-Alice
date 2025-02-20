@@ -21,14 +21,16 @@ public:
 class factory_build_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
-		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid, content, false);
 	}
 	void button_action(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
-		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		command::begin_factory_building_construction(state, state.local_player_nation, pid, content, false);
 		if(parent) parent->set_visible(state, false);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -38,17 +40,19 @@ public:
 		text::add_line(state, contents, "shift_to_hold_open");
 	}
 	void button_shift_action(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
-		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		command::begin_factory_building_construction(state, state.local_player_nation, pid, content, false);
 	}
 	void button_shift_right_action(sys::state& state) noexcept override {
+		auto pid = retrieve<dcon::province_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		auto n = retrieve<dcon::nation_id>(state, parent); //n may be another nation, i.e foreign investment
 		for(const auto s : state.world.nation_get_state_ownership_as_nation(n)) {
 			auto sid = s.get_state();
-			if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false)) {
-				command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, pid, content, false)) {
+				command::begin_factory_building_construction(state, state.local_player_nation, pid, content, false);
 			}
 		}
 	}
@@ -143,7 +147,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
-		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		auto pid = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid, content, false);
 		if(retrieve<bool>(state, parent)) {
 			color = sys::pack_color(196, 255, 196);
 		} else {
@@ -259,8 +264,9 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<bool>()) {
 			auto sid = retrieve<dcon::state_instance_id>(state, parent);
+			auto pid = retrieve<dcon::province_id>(state, parent);
 			bool is_hl = std::find(desired_types.begin(), desired_types.end(), content) != desired_types.end();
-			is_hl = is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+			is_hl = is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, pid, content, false);
 			payload.emplace<bool>(is_hl);
 			return message_result::consumed;
 		}
@@ -270,9 +276,9 @@ public:
 
 class factory_build_list : public listbox_element_base<factory_build_item, dcon::factory_type_id> {
 	std::vector<dcon::factory_type_id> desired_types;
-	bool is_highlighted(sys::state& state, dcon::state_instance_id sid, dcon::factory_type_id ftid) {
+	bool is_highlighted(sys::state& state, dcon::province_id pid, dcon::factory_type_id ftid) {
 		bool is_hl = std::find(desired_types.begin(), desired_types.end(), ftid) != desired_types.end();
-		return is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
+		return is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, pid, ftid, false);
 	}
 protected:
 	std::string_view get_row_element_name() override {
@@ -282,6 +288,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto pid = retrieve<dcon::province_id>(state, parent);
 		row_contents.clear();
 		desired_types.clear();
 		auto m = state.world.state_instance_get_market_from_local_market(sid);
@@ -289,17 +296,17 @@ public:
 
 		// First the desired factory types
 		for(const auto ftid : desired_types)
-			if(is_highlighted(state, sid, ftid))
+			if(is_highlighted(state, pid, ftid))
 				row_contents.push_back(ftid);
 		// Then the buildable factories
 		for(const auto ftid : state.world.in_factory_type) {
-			if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false) && std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, pid, ftid, false) && std::find(desired_types.begin(), desired_types.end(), ftid) == desired_types.end()) {
 				row_contents.push_back(ftid);
 			}
 		}
 		// Then the ones that can't be built
 		for(const auto ftid : state.world.in_factory_type) {
-			if(!command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false)) {
+			if(!command::can_begin_factory_building_construction(state, state.local_player_nation, pid, ftid, false)) {
 				row_contents.push_back(ftid);
 			}
 		}
