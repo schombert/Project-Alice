@@ -7669,6 +7669,11 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 	for(auto adj : state.world.province_get_province_adjacency(location)) {
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
+
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index()) {
+			// if its a sea province
+			return false;
+		}
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
 		// enemy battles or units will not allow for reinforcements
 		if(province_has_enemy_unit(state, prov, our_nation)) {
@@ -7739,6 +7744,10 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 	for(auto adj : state.world.province_get_province_adjacency(location)) {
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index()) {
+			// if it is a sea province
+			continue;
+		}
 		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
 		if(province_has_enemy_unit(state, prov, in_nation) ) {
 			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
