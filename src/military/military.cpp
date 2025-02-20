@@ -7788,36 +7788,6 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 }
 
 
-
-// calculates the potential reinforcement of a brigade, even if they are already at max str
-float regiment_calculate_potential_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
-	auto pop = reg.get_pop_from_regiment_source();
-	if((reg.get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg)) ||
-		!pop) {
-		return 0.0f;
-	}
-	auto pop_size = pop.get_size();
-	auto curstr = reg.get_strength();
-	auto newstr = curstr + combined;
-
-	return newstr - curstr;
-}
-
-// calculates the raw amount of reinforcements one side of a battle can potentially receive every month, for display to the user
-float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker) {
-	float total = 0;
-	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
-		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
-		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
-			float combined = calculate_army_combined_reinforce(state, army.get_army());
-			for(auto reg : state.world.army_get_army_membership(army.get_army())) {
-				total += regiment_calculate_potential_reinforcement(state, reg.get_regiment(), combined) * state.defines.pop_size_per_regiment;
-			}
-		}
-	}
-	return total;
-	
-}
 // calculates average effective army spending for all regiments on one side of a battle.
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker) {
 	assert(b);
@@ -7883,29 +7853,55 @@ float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_
 
 // Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
-float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined) {
+// potential_reinf = if true, will not cap max reinforcement to max unit strength, aka it will ignore current unit strength when returning reinforcement rate!
+float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined, bool potential_reinf = false) {
 	auto pop = reg.get_pop_from_regiment_source();
 	if((reg.get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg)) ||
 		!pop) {
 		return 0.0f;
 	}
+	float newstr;
+	float curstr;
 	auto pop_size = pop.get_size();
-	auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
-	auto curstr = reg.get_strength();
-	auto newstr = std::min(curstr + combined, limit_fraction);
+	if(!potential_reinf) {
+		auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
+		curstr = reg.get_strength();
+		newstr = std::min(curstr + combined, limit_fraction);
+	}
+	else {
+		curstr = reg.get_strength();
+		newstr = curstr + combined;
+	}
 
 	return newstr - curstr;
+}
+
+// calculates the raw amount of reinforcements one side of a battle can potentially receive every month, for display to the user
+float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker) {
+	float total = 0;
+	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
+		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
+			float combined = calculate_army_combined_reinforce(state, army.get_army());
+			for(auto reg : state.world.army_get_army_membership(army.get_army())) {
+				total += regiment_calculate_reinforcement(state, reg.get_regiment(), combined, true) * state.defines.pop_size_per_regiment;
+			}
+		}
+	}
+	return total;
+
 }
 
 
 
 // Calculates reinforcement for a particular unit from scratch, unit type is unknown
-float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg_id) {
+// potential_reinf = if true, will not cap max reinforcement to max unit strength, aka it will ignore current unit strength when returning reinforcement rate!
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg_id, bool potential_reinf) {
 	auto reg = dcon::fatten(state.world, reg_id);
 	auto ar = reg.get_army_from_army_membership();
 	auto combined = calculate_army_combined_reinforce(state, ar);
 
-	return regiment_calculate_reinforcement(state, reg, combined);
+	return regiment_calculate_reinforcement(state, reg, combined, potential_reinf);
 }
 
 void reinforce_regiments(sys::state& state) {
