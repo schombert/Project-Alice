@@ -7797,7 +7797,6 @@ float regiment_calculate_potential_reinforcement(sys::state& state, dcon::regime
 // calculates the raw amount of reinforcements one side of a battle can potentially receive every month, for display to the user
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker) {
 	float total = 0;
-	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
 	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
 		if(is_attacker_in_battle(state, army.get_army()) && attacker) {
 			float combined = calculate_army_combined_reinforce(state, army.get_army());

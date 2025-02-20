@@ -335,5 +335,25 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 		acting_modifiers_description_province<dcon::national_modifier_value>(state, layout, p, identation, header, nmid);
 	}
 }
+void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent) {
+
+	//top header
+	text::add_line(state, contents, "reinforce_battle_mod_top", indent);
+
+	// effective army spending
+	float reinf_mod = state.world.nation_get_effective_land_spending(state.local_player_nation);
+	text::add_line(state, contents, "reinforce_battle_spending_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
+
+	// location reinforcement bonus
+	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
+	reinf_mod = military::calculate_location_reinforce_modifier_battle(state, location, state.local_player_nation);
+	text::add_line(state, contents, "reinforce_battle_location_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
+
+	// get the national modifiers 
+	reinf_mod =
+		(1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::reinforce_speed)) *
+		(1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::reinforce_rate));
+	text::add_line(state, contents, "reinforce_battle_national_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
+}
 
 } // namespace ui

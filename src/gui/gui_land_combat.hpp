@@ -3,6 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_province_window.hpp"
 #include "military.hpp"
+#include <gui_modifier_tooltips.hpp>
 
 namespace ui {
 
@@ -643,41 +644,8 @@ class attacker_reinforcement_text : public multiline_text_element_base{
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
-		//float total = 0.0f;
 		float total = military::calculate_battle_reinforcement(state, b, true);
-		/*for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
-			auto owner = a.get_army().get_controller_from_army_control();
-			bool battle_attacker = false;
-			if(w) {
-				battle_attacker = (military::get_role(state, w, owner) == military::war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
-			} else {
-				battle_attacker = !bool(owner) == state.world.land_battle_get_war_attacker_is_attacker(b);
-			}
-			if(battle_attacker == true) {
-				float combined = military::calculate_army_combined_reinforce(state, a.get_army());
-				for(auto reg : a.get_army().get_army_membership()) {
-					total += military::pote
-				}
-			}
-		}*/
 
-		/*float count = 0.0f;
-		float total = 0.0f;
-		for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
-			auto owner = a.get_army().get_controller_from_army_control();
-			bool battle_attacker = false;
-			if(w) {
-				battle_attacker = (military::get_role(state, w, owner) == military::war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
-			} else {
-				battle_attacker = !bool(owner) == state.world.land_battle_get_war_attacker_is_attacker(b);
-			}
-			if(battle_attacker == true) {
-				for(auto r : a.get_army().get_army_membership()) {
-					++count;
-					total += r.get_regiment().get_strength();
-				}
-			}
-		}*/
 		auto color = text::text_color::dark_green;
 		if(total <= 0.0f) {
 			color = text::text_color::dark_red;
@@ -696,6 +664,16 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		float reinf = military::calculate_battle_reinforcement(state, b, true);
+		if(reinf > 0.0f) {
+			text::add_line(state, contents, "reinforce_rate_battle_attacker", text::variable_type::x, int64_t(reinf));
+		}
+		else {
+			text::add_line(state, contents, "reinforce_rate_battle_attacker_none");
+		}
+		text::add_line(state, contents, "reinforce_battle_only_reserve");
+
+		display_battle_reinforcement_modifiers(state, b, contents, 0);
 	}
 };
 

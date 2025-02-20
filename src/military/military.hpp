@@ -483,6 +483,7 @@ void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
 void recover_org(sys::state& state);
+float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
