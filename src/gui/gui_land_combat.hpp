@@ -677,6 +677,46 @@ public:
 	}
 };
 
+
+class defender_reinforcement_text : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		float total = military::calculate_battle_reinforcement(state, b, false);
+
+		auto color = text::text_color::dark_green;
+		if(total <= 0.0f) {
+			color = text::text_color::dark_red;
+		}
+
+
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, "+" + text::prettify(int64_t(total)), color);
+		text::close_layout_box(contents, box);
+		//set_text(state, "+" + text::format_float(total, 0));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		float reinf = military::calculate_battle_reinforcement(state, b, false);
+		if(reinf > 0.0f) {
+			text::add_line(state, contents, "reinforce_rate_battle_defender", text::variable_type::x, int64_t(reinf));
+		} else {
+			text::add_line(state, contents, "reinforce_rate_battle_defender_none");
+		}
+		text::add_line(state, contents, "reinforce_battle_only_reserve");
+
+		display_battle_reinforcement_modifiers(state, b, contents, 0);
+	}
+};
+
+
+
+
 class land_combat_defender_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -712,6 +752,8 @@ public:
 			return make_element_by_type<lc_unit_strength_txt<false, military::unit_type::support>>(state, id);
 		} else if(name == "modifiers") {
 			return make_element_by_type<defender_combat_modifiers>(state, id);
+		} else if(name == "reinforcement_info_txt") {
+			return make_element_by_type<defender_reinforcement_text>(state, id);
 		} else {
 			return nullptr;
 		}

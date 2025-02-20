@@ -7798,7 +7798,8 @@ float regiment_calculate_potential_reinforcement(sys::state& state, dcon::regime
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker) {
 	float total = 0;
 	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
-		if(is_attacker_in_battle(state, army.get_army()) && attacker) {
+		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
 			float combined = calculate_army_combined_reinforce(state, army.get_army());
 			for(auto reg : state.world.army_get_army_membership(army.get_army())) {
 				total += regiment_calculate_potential_reinforcement(state, reg.get_regiment(), combined) * state.defines.pop_size_per_regiment;

@@ -2395,7 +2395,7 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				name = "reinforcement_info_txt"
-				position = { 28 65 }
+				position = { 24 65 }
 				textureFile = ""
 				font = "vic_22_black"
 				borderSize = { 0 0}
@@ -2453,12 +2453,6 @@ guiTypes = {
 				name ="unit_type_3"
 				spriteType = "GFX_unit_strip"
 				position = {  275 105 }
-				Orientation = "UPPER_LEFT"
-			}
-			iconType = {
-				name ="reinforcement_icon"
-				spriteType = "GFX_pops_mini"
-				position = {  12 65 }
 				Orientation = "UPPER_LEFT"
 			}
 			instantTextBoxType = {
@@ -2529,6 +2523,15 @@ guiTypes = {
 				Orientation = "UPPER_LEFT"
 				format = left
 				spacing = 1.0
+			}
+			instantTextBoxType = {
+				name = "reinforcement_info_txt"
+				position = { 24 65 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = { 0 0}
+				maxsize = { 190 32 }
+				fixedsize = yes
 			}
 			iconType = {
 				name ="morale"
