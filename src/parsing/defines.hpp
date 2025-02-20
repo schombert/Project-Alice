@@ -729,6 +729,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_reg_move_to_reserve_org, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_reg_move_to_reserve_str, 0.1) \
 
 
 // scales the needs values so that they are needs per this many pops

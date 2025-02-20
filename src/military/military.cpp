@@ -6221,37 +6221,37 @@ void update_land_battles(sys::state& state) {
 		// puts them back into the reserve
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(def_back[i]) {
-				if(state.world.regiment_get_strength(def_back[i]) <= 0.0f) {
+				if(state.world.regiment_get_strength(def_back[i]) <= state.defines.alice_reg_move_to_reserve_str) {
 					add_regiment_to_reserves(state, b, def_back[i], false);
 					def_back[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(def_back[i]) < 0.1f) {
+				} else if(state.world.regiment_get_org(def_back[i]) < state.defines.alice_reg_move_to_reserve_org) {
 					add_regiment_to_reserves(state, b, def_back[i], false);
 					def_back[i] = dcon::regiment_id{};
 				}
 			}
 			if(def_front[i]) {
-				if(state.world.regiment_get_strength(def_front[i]) <= 0.0f) {
+				if(state.world.regiment_get_strength(def_front[i]) <= state.defines.alice_reg_move_to_reserve_str) {
 					add_regiment_to_reserves(state, b, def_front[i], false);
 					def_front[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(def_front[i]) < 0.1f) {
+				} else if(state.world.regiment_get_org(def_front[i]) < state.defines.alice_reg_move_to_reserve_org) {
 					add_regiment_to_reserves(state, b, def_front[i], false);
 					def_front[i] = dcon::regiment_id{};
 				}
 			}
 			if(att_back[i]) {
-				if(state.world.regiment_get_strength(att_back[i]) <= 0.0f) {
+				if(state.world.regiment_get_strength(att_back[i]) <= state.defines.alice_reg_move_to_reserve_str) {
 					add_regiment_to_reserves(state, b, att_back[i], true);
 					att_back[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(att_back[i]) < 0.1f) {
+				} else if(state.world.regiment_get_org(att_back[i]) < state.defines.alice_reg_move_to_reserve_org) {
 					add_regiment_to_reserves(state, b, att_back[i], true);
 					att_back[i] = dcon::regiment_id{};
 				}
 			}
 			if(att_front[i]) {
-				if(state.world.regiment_get_strength(att_front[i]) <= 0.0f) {
+				if(state.world.regiment_get_strength(att_front[i]) <= state.defines.alice_reg_move_to_reserve_str) {
 					add_regiment_to_reserves(state, b, att_front[i], true);
 					att_front[i] = dcon::regiment_id{};
-				} else if(state.world.regiment_get_org(att_front[i]) < 0.1f) {
+				} else if(state.world.regiment_get_org(att_front[i]) < state.defines.alice_reg_move_to_reserve_org) {
 					add_regiment_to_reserves(state, b, att_front[i], true);
 					att_front[i] = dcon::regiment_id{};
 				}
