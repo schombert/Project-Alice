@@ -795,8 +795,6 @@ public:
 			return make_element_by_type<lc_unit_strength_txt<true, military::unit_type::support>>(state, id);
 		} else if(name == "modifiers") {
 			return make_element_by_type<attacker_combat_modifiers>(state, id);		
-		} else if(name == "reinforcement_icon") {
-			return make_element_by_type<lc_reinforcement_icon>(state, id);
 		} else if(name == "reinforcement_info_txt") {
 			return make_element_by_type<attacker_reinforcement_text>(state, id);
 		} else {
