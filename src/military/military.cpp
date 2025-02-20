@@ -7809,6 +7809,46 @@ float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, 
 	return total;
 	
 }
+// calculates average effective army spending for all regiments on one side of a battle.
+float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker) {
+	assert(b);
+	float total = 0;
+	int32_t count = 0;
+	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
+		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
+			auto controller = army.get_army().get_controller_from_army_control();
+			float army_reinf = (controller ? controller.get_effective_land_spending() : 1.0f);
+			for(auto reg : army.get_army().get_army_membership()) {
+				total += army_reinf;
+				count++;
+			}
+		}
+	}
+	assert(count != 0);
+	return total / count;
+}
+
+// calculates average location modifier for all regiments on one side of a battle.
+float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker) {
+	assert(b);
+	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
+	float total = 0;
+	int32_t count = 0;
+	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
+		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
+			auto controller = army.get_army().get_controller_from_army_control();
+			float army_reinf = calculate_location_reinforce_modifier_battle(state, location, controller);
+			for(auto reg : army.get_army().get_army_membership()) {
+				total += army_reinf;
+				count++;
+			}
+		}
+	}
+	assert(count != 0);
+	return total / count;
+}
 
 // Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce

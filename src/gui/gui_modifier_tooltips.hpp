@@ -13,6 +13,6 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 		dcon::provincial_modifier_value nmid, bool have_header);
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
 		dcon::national_modifier_value nmid, bool have_header);
-void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent);
+void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent, dcon::nation_id thisnation, bool attacker);
 
 } // namespace ui

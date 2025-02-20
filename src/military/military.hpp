@@ -487,6 +487,8 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
+float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
+float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);
 float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg);
 float unit_calculate_reinforcement(sys::state& state, dcon::ship_id reg);
 void reinforce_regiments(sys::state& state);

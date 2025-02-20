@@ -673,7 +673,7 @@ public:
 		}
 		text::add_line(state, contents, "reinforce_battle_only_reserve");
 
-		display_battle_reinforcement_modifiers(state, b, contents, 0);
+		display_battle_reinforcement_modifiers(state, b, contents, 0, state.local_player_nation, true);
 	}
 };
 
@@ -710,7 +710,7 @@ public:
 		}
 		text::add_line(state, contents, "reinforce_battle_only_reserve");
 
-		display_battle_reinforcement_modifiers(state, b, contents, 0);
+		display_battle_reinforcement_modifiers(state, b, contents, 0, state.local_player_nation, false);
 	}
 };
 
