@@ -6,33 +6,6 @@
 
 namespace economy {
 
-namespace labor {
-inline constexpr int32_t no_education = 0; // labourer, farmers and slaves
-inline constexpr int32_t basic_education = 1; // craftsmen
-inline constexpr int32_t high_education = 2; // clerks, clergy and bureaucrats
-inline constexpr int32_t guild_education = 3; // artisans
-inline constexpr int32_t high_education_and_accepted = 4; // clerks, clergy and bureaucrats of accepted culture
-inline constexpr int32_t total = 5;
-}
-
-namespace pop_labor {
-inline constexpr int32_t rgo_worker_no_education = 0;
-inline constexpr int32_t primary_no_education = 1;
-inline constexpr int32_t high_education_accepted_no_education = 2;
-inline constexpr int32_t high_education_not_accepted_no_education = 3;
-
-inline constexpr int32_t primary_basic_education = 4;
-inline constexpr int32_t high_education_accepted_basic_education = 5;
-inline constexpr int32_t high_education_not_accepted_basic_education = 6;
-
-inline constexpr int32_t high_education_accepted_high_education = 7;
-inline constexpr int32_t high_education_not_accepted_high_education = 8;
-
-inline constexpr int32_t high_education_accepted_high_education_accepted = 9;
-
-inline constexpr int32_t total = 10;
-}
-
 enum commodity_production_type {
 	primary,
 	derivative,

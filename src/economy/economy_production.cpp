@@ -49,11 +49,19 @@ auto artisan_throughput_multiplier(
 	sys::state& state,
 	T nations
 ) {
-	return production_throughput_multiplier * ve::max(
-		0.01f,
-		1.0f
-		+ state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::artisan_throughput)
-	);
+	if constexpr(std::is_same_v<T, dcon::nation_id>) {
+		return production_throughput_multiplier * std::max(
+			0.01f,
+			1.0f
+			+ state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::artisan_throughput)
+		);
+	} else {
+		return production_throughput_multiplier * ve::max(
+			0.01f,
+			1.0f
+			+ state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::artisan_throughput)
+		);
+	}
 }
 template<typename T, typename S>
 ve::fp_vector base_artisan_profit(
@@ -340,6 +348,17 @@ ve::fp_vector employment_units_guild(
 		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::guild_education);
 	return guild_actual_size / artisans_per_employment_unit;
 }
+float employment_units_guild(
+	sys::state& state,
+	dcon::province_id labor_market,
+	float target_workers_guild
+) {
+	float guild_actual_size =
+		target_workers_guild
+		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::guild_education);
+	return guild_actual_size / artisans_per_employment_unit;
+}
+
 
 float output_mulitplier_from_workers_with_high_education(
 	sys::state& state,
@@ -409,6 +428,14 @@ struct ve_preconsumption_data_guild {
 	ve::fp_vector direct_inputs_cost_per_production_unit = 0.f;
 };
 
+struct preconsumption_data_guild {
+	inputs_data direct_inputs_data{ };
+
+	float output_price = 0.f;
+	float output_amount_per_production_unit = 0.f;
+	float direct_inputs_cost_per_production_unit = 0.f;
+};
+
 // if inputs are very costly, we demand less of goods
 // if inputs are not that costly, we demand full amount
 template<typename F>
@@ -474,6 +501,31 @@ preconsumption_data prepare_data_for_consumption(
 	return result;
 }
 
+preconsumption_data_guild prepare_data_for_consumption(
+	sys::state& state,
+	dcon::market_id market,
+	economy::commodity_set const& inputs,
+	dcon::commodity_id output,
+	float output_amount,
+	float input_multiplier, float output_multiplier
+) {
+	auto direct_inputs_data = get_inputs_data(state, market, inputs);
+	auto output_price = price(state, market, output);
+	auto output_per_production_unit =
+		output_amount
+		* output_multiplier;
+	auto output_cost_per_production_unit =
+		output_per_production_unit
+		* output_price;
+	preconsumption_data_guild result = {
+		.direct_inputs_data = direct_inputs_data,
+		.output_price = output_price,
+		.output_amount_per_production_unit = output_per_production_unit,
+		.direct_inputs_cost_per_production_unit = direct_inputs_data.total_cost * input_multiplier,
+	};
+	return result;
+}
+
 template<typename M>
 ve_preconsumption_data_guild prepare_data_for_consumption(
 	sys::state& state,
@@ -520,6 +572,15 @@ struct ve_consumption_data_guild {
 	ve::fp_vector input_cost_per_employment_unit;
 	ve::fp_vector output_per_employment_unit;
 };
+struct consumption_data_guild {
+	float direct_inputs_cost;
+	float output;
+
+	float direct_inputs_scale;
+
+	float input_cost_per_employment_unit;
+	float output_per_employment_unit;
+};
 
 consumption_data imitate_consume(
 	sys::state& state,
@@ -557,6 +618,36 @@ consumption_data imitate_consume(
 
 		.direct_inputs_scale = input_scale,
 		.efficiency_inputs_scale = e_input_scale,
+
+		.input_cost_per_employment_unit = additional_data.direct_inputs_cost_per_production_unit / throughput_multiplier,
+		.output_per_employment_unit = additional_data.output_amount_per_production_unit / throughput_multiplier
+	};
+
+	return result;
+}
+
+consumption_data_guild imitate_consume(
+	sys::state& state,
+	economy::commodity_set const& inputs,
+	preconsumption_data_guild& additional_data,
+	float input_multiplier, float throughput_multiplier, float output_multiplier,
+	float employment_units
+) {
+	float production_units = employment_units * throughput_multiplier;
+	float input_scale =
+		input_multiplier
+		* production_units
+		* inputs_demand_reduction(
+			additional_data.direct_inputs_cost_per_production_unit,
+			additional_data.output_amount_per_production_unit * additional_data.output_price,
+			additional_data.direct_inputs_data.min_available
+		);
+
+	consumption_data_guild result = {
+		.direct_inputs_cost = additional_data.direct_inputs_cost_per_production_unit * production_units * additional_data.direct_inputs_data.min_available,
+		.output = additional_data.output_amount_per_production_unit * production_units * additional_data.direct_inputs_data.min_available,
+
+		.direct_inputs_scale = input_scale,
 
 		.input_cost_per_employment_unit = additional_data.direct_inputs_cost_per_production_unit / throughput_multiplier,
 		.output_per_employment_unit = additional_data.output_amount_per_production_unit / throughput_multiplier
@@ -689,7 +780,8 @@ void update_artisan_consumption(
 			target_workers
 			* state.world.province_get_labor_demand_satisfaction(provinces, labor::guild_education)
 			* mobilization_impact;
-		consume_labor_guild(state, provinces, actual_workers);
+		auto employment_units = ve::select(valid_mask, consume_labor_guild(state, provinces, actual_workers), 0.f);
+
 		ve_preconsumption_data_guild prepared_data = prepare_data_for_consumption(
 			state, markets, inputs, cid, output_amount, input_multiplier, output_multiplier
 		);
@@ -697,7 +789,7 @@ void update_artisan_consumption(
 			state, markets,
 			inputs, prepared_data,
 			input_multiplier, throughput_multiplier, output_multiplier,
-			actual_workers / economy::artisans_per_employment_unit, economy_reason::artisan
+			employment_units, economy_reason::artisan
 		);
 		state.world.province_set_artisan_actual_production(
 			provinces,
@@ -858,6 +950,58 @@ struct factory_update_data {
 	preconsumption_data base;
 	consumption_data consumption;
 };
+
+struct guild_update_data {
+	preconsumption_data_guild base;
+	consumption_data_guild consumption;
+};
+
+guild_update_data imitate_artisan_consumption(
+	sys::state& state,
+	dcon::province_id p,
+	dcon::commodity_id cid,
+	float mobilization_impact
+) {
+	auto const csize = state.world.commodity_size();
+	auto total_profit = 0.0f;
+
+	auto nations = state.world.province_get_nation_from_province_ownership(p);
+	auto states = state.world.province_get_state_membership(p);
+	auto markets = state.world.state_instance_get_market_from_local_market(states);
+
+	float input_multiplier = artisan_input_multiplier(state, nations);
+	float throughput_multiplier = artisan_throughput_multiplier(state, nations);
+	float output_multiplier = artisan_output_multiplier(state, nations);
+
+	auto const& inputs = state.world.commodity_get_artisan_inputs(cid);
+	auto output_amount = state.world.commodity_get_artisan_output_amount(cid);
+	float target_workers = state.world.province_get_artisan_score(p, cid);
+
+	float actual_workers =
+		target_workers
+		* state.world.province_get_labor_demand_satisfaction(p, labor::guild_education)
+		* mobilization_impact;
+
+	float employment_units = employment_units_guild(state, p, actual_workers);
+
+	preconsumption_data_guild prepared_data = prepare_data_for_consumption(
+		state, markets, inputs, cid, output_amount, input_multiplier, output_multiplier
+	);
+	consumption_data_guild consumption_data = imitate_consume(
+		state,
+		inputs,
+		prepared_data,
+		input_multiplier,
+		throughput_multiplier,
+		output_multiplier,
+		employment_units
+	);
+
+	return {
+		.base = prepared_data,
+		.consumption = consumption_data
+	};
+}
 
 factory_update_data imitate_single_factory_consumption(
 	sys::state& state,
@@ -1547,6 +1691,53 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c) {
 	return result;
 }
 
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p, dcon::commodity_id output) {
+	auto mob_impact = military::mobilization_impact(state, state.world.province_get_nation_from_province_ownership(p));
+	auto data = imitate_artisan_consumption(state, p, output, mob_impact);
+	auto& direct_inputs = state.world.commodity_get_artisan_inputs(output);
+	auto result = 0.f;
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		if(direct_inputs.commodity_type[i]) {
+			if(direct_inputs.commodity_type[i] == c) {
+				result += data.consumption.direct_inputs_scale * direct_inputs.commodity_amounts[i];
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+	return result;
+}
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+	auto result = 0.f;
+	state.world.for_each_commodity([&](auto output) {
+		result += estimate_artisan_consumption(state, c, p, output);
+	});
+	return result;
+}
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s) {
+	auto result = 0.f;
+	province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) {
+		result += estimate_artisan_consumption(state, c, p);
+	});
+	return result;
+}
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n) {
+	auto result = 0.f;
+	for(auto ownership : state.world.nation_get_province_ownership(n)) {
+		result += estimate_artisan_consumption(state, c, ownership.get_province());
+	}
+	return result;
+}
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c) {
+	auto result = 0.f;
+	state.world.for_each_province([&](auto p) {
+		result += estimate_artisan_consumption(state, c, p);
+	});
+	return result;
+}
+
+
 float rgo_potential_size(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c) {
 	bool is_mine = state.world.commodity_get_is_mine(c);
 	// - We calculate its potential size which is its base size x (technology-bonus-to-specific-rgo-good-size +
@@ -1601,6 +1792,28 @@ float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
 float rgo_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	return state.world.province_get_rgo_output(id, c);
 }
+float rgo_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id) {
+	auto result = 0.f;
+	province::for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
+		result += rgo_output(state, c, p);
+	});
+	return result;
+}
+float rgo_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id) {
+	auto result = 0.f;
+	state.world.nation_for_each_province_ownership(id, [&](auto poid) {
+		result += rgo_output(state, c, state.world.province_ownership_get_province(poid));
+	});
+	return result;
+}
+float rgo_output(sys::state& state, dcon::commodity_id c) {
+	auto result = 0.f;
+	state.world.for_each_province([&](auto pid) {
+		result += rgo_output(state, c, pid);
+	});
+	return result;
+}
+
 float rgo_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	return state.world.commodity_get_rgo_amount(c)
 		* state.world.province_get_rgo_efficiency(id, c)
@@ -1658,6 +1871,84 @@ float artisan_output(sys::state& state, dcon::commodity_id c) {
 		result += artisan_output(state, c, pid);
 	});
 	return result;
+}
+
+float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
+	auto result = 0.f;
+	state.world.province_for_each_factory_location(id, [&](auto flid) {
+		auto fid = state.world.factory_location_get_factory(flid);
+		auto ftid = state.world.factory_get_building_type(fid);
+		if(state.world.factory_type_get_output(ftid) == c) {
+			result += state.world.factory_get_output(fid);
+		}
+	});
+	return result;
+}
+float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id) {
+	auto result = 0.f;
+	province::for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
+		result += factory_output(state, c, p);
+	});
+	return result;
+}
+float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id) {
+	auto result = 0.f;
+	state.world.nation_for_each_province_ownership(id, [&](auto poid) {
+		result += factory_output(state, c, state.world.province_ownership_get_province(poid));
+	});
+	return result;
+}
+float factory_output(sys::state& state, dcon::commodity_id c) {
+	auto result = 0.f;
+	state.world.for_each_province([&](auto pid) {
+		result += factory_output(state, c, pid);
+	});
+	return result;
+}
+
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::province_id id){
+	return {
+		.rgo = rgo_output(state, c, id),
+		.guild = artisan_output(state, c, id),
+		.factories = factory_output(state, c, id)
+	};
+}
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id) {
+	return {
+		.rgo = rgo_output(state, c, id),
+		.guild = artisan_output(state, c, id),
+		.factories = factory_output(state, c, id)
+	};
+}
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id) {
+	return {
+		.rgo = rgo_output(state, c, id),
+		.guild = artisan_output(state, c, id),
+		.factories = factory_output(state, c, id)
+	};
+}
+
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c) {
+	return {
+		.rgo = rgo_output(state, c),
+		.guild = artisan_output(state, c),
+		.factories = factory_output(state, c)
+	};
+}
+
+bool commodity_surplus(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id){
+	auto market = state.world.state_instance_get_market_from_local_market(id);
+	return state.world.market_get_supply_sold_ratio(market, c) < 1.f;
+}
+bool commodity_shortage(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id){
+	auto market = state.world.state_instance_get_market_from_local_market(id);
+	return state.world.market_get_demand_satisfaction(market, c) < 1.f;
+}
+bool labor_surplus(sys::state& state, int32_t c, dcon::province_id id){
+	return state.world.province_get_labor_supply_sold(id, c) < 1.f;
+}
+bool labor_shortage(sys::state& state, int32_t c, dcon::province_id id){
+	return state.world.province_get_labor_demand_satisfaction(id, c) < 1.f;
 }
 
 }

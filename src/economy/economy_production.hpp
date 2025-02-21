@@ -6,26 +6,34 @@
 // - production updates of productive forces
 // as all of these things are related to "productive forces", the file is named as "economy_production"
 
-// short docs:
-
-// required data:
-// - max_employment
-// - employment_target_%labour_type%
-// - expansion costs
-// - output
-// - inputs
-// additional data which reduces amount of calculations
-// - input cost per productive unit
-// - output cost per productive unit
-
-// employment:
-// there are several modes of employment
-// - guilds: only artisans are allowed to work there
-// - private: everyone is allowed to work there
-// - public: depends on the exact type of production building
-// - subsistence: employs otherwise unemployed pops to set the lower bar of needs satisfaction
-
 namespace economy {
+
+namespace labor {
+inline constexpr int32_t no_education = 0; // labourer, farmers and slaves
+inline constexpr int32_t basic_education = 1; // craftsmen
+inline constexpr int32_t high_education = 2; // clerks, clergy and bureaucrats
+inline constexpr int32_t guild_education = 3; // artisans
+inline constexpr int32_t high_education_and_accepted = 4; // clerks, clergy and bureaucrats of accepted culture
+inline constexpr int32_t total = 5;
+}
+
+namespace pop_labor {
+inline constexpr int32_t rgo_worker_no_education = 0;
+inline constexpr int32_t primary_no_education = 1;
+inline constexpr int32_t high_education_accepted_no_education = 2;
+inline constexpr int32_t high_education_not_accepted_no_education = 3;
+
+inline constexpr int32_t primary_basic_education = 4;
+inline constexpr int32_t high_education_accepted_basic_education = 5;
+inline constexpr int32_t high_education_not_accepted_basic_education = 6;
+
+inline constexpr int32_t high_education_accepted_high_education = 7;
+inline constexpr int32_t high_education_not_accepted_high_education = 8;
+
+inline constexpr int32_t high_education_accepted_high_education_accepted = 9;
+
+inline constexpr int32_t total = 10;
+}
 
 inline constexpr float secondary_employment_output_bonus = 3.f;
 inline constexpr float unqualified_throughput_multiplier = 0.70f;
@@ -101,16 +109,36 @@ float factory_type_input_cost(
 );
 float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::factory_type_id factory_type);
 
+// SHORTAGES, SURPLUS
+
+bool commodity_surplus(sys::state& state, dcon::commodity_id c, dcon::state_instance_id);
+bool commodity_shortage(sys::state& state, dcon::commodity_id c, dcon::state_instance_id);
+
+bool labor_surplus(sys::state& state, int32_t c, dcon::province_id);
+bool labor_shortage(sys::state& state, int32_t c, dcon::province_id);
+
+// FACTORIES
 
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c);
 
+float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
+float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
+float factory_output(sys::state& state, dcon::commodity_id c);
+
+// RGO:
+
 float rgo_income(sys::state& state, dcon::province_id id);
 float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 
 float rgo_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+float rgo_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
+float rgo_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
+float rgo_output(sys::state& state, dcon::commodity_id c);
+
 float rgo_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 
 float rgo_max_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p);
@@ -119,13 +147,34 @@ float rgo_max_employment(sys::state& state, dcon::province_id p);
 float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float rgo_employment(sys::state& state, dcon::province_id p);
 
-float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id);
-float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
-float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::market_id id);
+// ARTISANS:
+
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p, dcon::commodity_id output);
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
+float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c);
+
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::market_id id);
+
+// BREAKDOWN
+
+struct breakdown_commodity {
+	float rgo;
+	float guild;
+	float factories;
+};
+
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
+breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c);
 
 }
