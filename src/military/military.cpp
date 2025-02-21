@@ -5830,6 +5830,18 @@ uint16_t unit_type_to_reserve_regiment_type(unit_type utype) {
 	return reserve_regiment::type_infantry;
 }
 
+std::vector<reserve_regiment> get_reserves_by_side(sys::state& state, dcon::land_battle_id b, bool attacker) {
+	std::vector<reserve_regiment> result;
+	auto reserves = state.world.land_battle_get_reserves(b);
+	for(uint32_t i = 0; i < reserves.size(); i++) {
+		bool battle_attacker = (reserves[i].flags & reserve_regiment::is_attacking) != 0;
+		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
+			result.push_back(reserves[i]);
+		}
+	}
+	return result;
+}
+
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking) {
 	auto reserves = state.world.land_battle_get_reserves(bat);
 	auto type = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(reg)].type;
