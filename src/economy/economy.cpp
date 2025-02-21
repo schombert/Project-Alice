@@ -3843,9 +3843,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
-	// artisans production
-	update_artisan_production(state);
-
 	// labor supply
 	{
 		auto const primary_def = state.culture_definitions.primary_factory_worker;
@@ -4036,6 +4033,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	float total_factory_owner_income = 0.f;
 	float total_rgo_owner_income = 0.f;
 #endif
+
+	// artisans production
+	update_artisan_production(state);
 
 	for(auto n : state.world.in_nation) {
 		auto const min_wage_factor = pop_min_wage_factor(state, n);
