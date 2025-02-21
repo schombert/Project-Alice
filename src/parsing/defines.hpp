@@ -728,7 +728,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_per_wg_ratio, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 10.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 100.0) \
 
 
 // scales the needs values so that they are needs per this many pops

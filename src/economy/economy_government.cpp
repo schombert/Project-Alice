@@ -237,10 +237,6 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 		float potential_tax_mid = 0.f;
 		float potential_tax_rich = 0.f;
 
-		float province_potential_tax_poor = 0.f;
-		float province_potential_tax_mid = 0.f;
-		float province_potential_tax_rich = 0.f;
-
 		if(
 			state.world.province_get_nation_from_province_ownership(province)
 			==
@@ -250,23 +246,23 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 				auto& pop_money = pl.get_pop().get_savings();
 				auto strata = culture::pop_strata(pl.get_pop().get_poptype().get_strata());
 				if(strata == culture::pop_strata::poor) {
-					province_potential_tax_poor += pop_money;
+					potential_tax_poor += pop_money;
 				} else if(strata == culture::pop_strata::middle) {
-					province_potential_tax_mid += pop_money;
+					potential_tax_mid += pop_money;
 				} else if(strata == culture::pop_strata::rich) {
-					province_potential_tax_rich += pop_money;
+					potential_tax_rich += pop_money;
 				}
 				assert(std::isfinite(pl.get_pop().get_savings()));
 			}
 		}
 
-		state.world.province_set_tax_base_poor(province, province_potential_tax_poor);
-		state.world.province_set_tax_base_middle(province, province_potential_tax_mid);
-		state.world.province_set_tax_base_rich(province, province_potential_tax_rich);
+		state.world.province_set_tax_base_poor(province, potential_tax_poor);
+		state.world.province_set_tax_base_middle(province, potential_tax_mid);
+		state.world.province_set_tax_base_rich(province, potential_tax_rich);
 
-		total_poor_tax_base += province_potential_tax_poor;
-		total_mid_tax_base += province_potential_tax_mid;
-		total_rich_tax_base += province_potential_tax_rich;
+		total_poor_tax_base += potential_tax_poor;
+		total_mid_tax_base += potential_tax_mid;
+		total_rich_tax_base += potential_tax_rich;
 
 		auto local_tax = potential_tax_poor * float(state.world.nation_get_poor_tax(n)) / 100.f
 			+ potential_tax_mid * float(state.world.nation_get_middle_tax(n)) / 100.0f

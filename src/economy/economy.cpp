@@ -762,12 +762,10 @@ void initialize(sys::state& state) {
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
 				auto fc = fatten(state.world, c);
 				assert(std::isfinite(true_distribution[c.index()]));
-				if(
-					(pop_amount + state.defines.alice_base_rgo_employment_bonus)
-					* true_distribution[c.index()] > state.defines.alice_secondary_rgos_min_employment
-				) {
+				auto proposed_size = (pop_amount * 10.f + state.defines.alice_base_rgo_employment_bonus) * true_distribution[c.index()];
+				if(proposed_size > state.defines.alice_secondary_rgos_min_employment) {
 					state.world.province_set_rgo_size(p, c,
-						state.world.province_get_rgo_size(p, c) + (pop_amount * 3.f + state.defines.alice_base_rgo_employment_bonus) * true_distribution[c.index()]
+						state.world.province_get_rgo_size(p, c) + proposed_size
 					);
 					state.world.province_set_rgo_potential(p, c,
 						state.world.province_get_rgo_potential(p, c) + max_rgo_size * true_distribution[c.index()]
