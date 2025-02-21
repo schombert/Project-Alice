@@ -4298,25 +4298,23 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education_accepted)
 				* high_education_and_accepted_wage;
 
-			float num_capitalist = state.world.state_instance_get_demographics(
-				sid,
-				demographics::to_key(state, state.culture_definitions.capitalists)
-			);
-			float num_aristocrat = state.world.state_instance_get_demographics(
-				sid,
+			float num_aristocrat = state.world.province_get_demographics(
+				pid,
 				demographics::to_key(state, state.culture_definitions.aristocrat)
 			);
 
-			float payment_per_capitalist = 0.f;
 			float payment_per_aristocrat = 0.f;
-			float num_rgo_owners = num_capitalist + num_aristocrat;
-
+			float aristocrats_share = state.world.province_get_landowners_share(pid);
+			float others_share = state.world.province_get_capitalists_share(pid);
+			
 			// FACTORIES
+			// all profits go to market stockpiles and then distributed to capitalists
 			for(auto f : state.world.province_get_factory_location(pid)) {
 				auto fac = f.get_factory();
 				auto profit = explain_last_factory_profit(state, fac);
 				total_factory_profit += profit.profit;
 			}
+			market_profit += total_factory_profit;
 
 			// RGOS and slaves cashback
 			{
@@ -4328,17 +4326,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				}
 			}
 
-			if(total_factory_profit >= 0.f && num_capitalist > 0.f) {
-				payment_per_capitalist += total_factory_profit / num_capitalist;
-			} else {
-				market_profit += total_factory_profit;
-			}
-			if(total_rgo_profit >= 0.f && num_rgo_owners > 0.f) {
-				payment_per_capitalist += total_rgo_profit / num_rgo_owners;
-				payment_per_aristocrat += total_rgo_profit / num_rgo_owners;
+			if(total_rgo_profit >= 0.f && num_aristocrat > 0.f) {
+				payment_per_aristocrat += total_rgo_profit * aristocrats_share / num_aristocrat;
+				market_profit += total_rgo_profit * others_share;
 			} else {
 				market_profit += total_rgo_profit;
 			}
+
+			state.world.market_get_stockpile(market, economy::money) += market_profit;
 
 			for(auto pl : state.world.province_get_pop_location(pid)) {
 				auto pop = pl.get_pop();
@@ -4393,12 +4388,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 						total_wages += income_scale * state.inflation * size * high_education_wage;
 #endif
 					}
-				} else if(state.culture_definitions.capitalists == pop.get_poptype()) {
-					pop.set_savings(savings + income_scale * state.inflation * size * payment_per_capitalist);
-#ifndef NDEBUG
-					total_factory_owner_income += income_scale * state.inflation * size * payment_per_capitalist;
-					assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
-#endif
 				} else if(state.culture_definitions.aristocrat == pop.get_poptype()) {
 					pop.set_savings(savings + income_scale * state.inflation * size * payment_per_aristocrat);
 #ifndef NDEBUG

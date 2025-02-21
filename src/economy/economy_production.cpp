@@ -1032,6 +1032,7 @@ void update_province_rgo_production(
 		state.world.province_set_rgo_efficiency(p, c, efficiency);
 	});
 
+	state.world.province_set_rgo_profit(p, 0.f);
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		if(state.world.commodity_get_rgo_amount(c) < 0.f) {
