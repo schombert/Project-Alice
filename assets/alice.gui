@@ -2399,7 +2399,7 @@ guiTypes = {
 				textureFile = ""
 				font = "vic_22_black"
 				borderSize = { 0 0}
-				maxsize = { 190 32 }
+				maxsize = { 50 32 }
 				fixedsize = yes
 			}
 			iconType = {
@@ -2414,7 +2414,7 @@ guiTypes = {
 				textureFile = ""
 				font = "vic_22_black"
 				borderSize = { 0 0}
-				maxsize = { 190 32 }
+				maxsize = { 50 32 }
 				fixedsize = yes
 			}
 
@@ -2545,7 +2545,7 @@ guiTypes = {
 				textureFile = ""
 				font = "vic_22_black"
 				borderSize = { 0 0}
-				maxsize = { 190 32 }
+				maxsize = { 50 32 }
 				fixedsize = yes
 			}
 			iconType = {
@@ -2560,7 +2560,7 @@ guiTypes = {
 				textureFile = ""
 				font = "vic_22_black"
 				borderSize = { 0 0}
-				maxsize = { 190 32 }
+				maxsize = { 50 32 }
 				fixedsize = yes
 			}
 			iconType = {
