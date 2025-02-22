@@ -1391,14 +1391,17 @@ public:
 			display.top_left_org_value /= float(total_count);
 			display.top_right_org_value /= float(total_opp_count);
 
-			int32_t areg = 0;
-			int32_t breg = 0;
+			float a_str = 0;
+			float d_str = 0;
 
 			for(auto reg : state.world.land_battle_get_reserves(lbattle)) {
-				if((reg.flags & military::reserve_regiment::is_attacking) != 0)
-					++areg;
-				else
-					++breg;
+				auto reg_str = state.world.regiment_get_strength(reg.regiment);
+				if(reg_str > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reg.regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
+					if((reg.flags & military::reserve_regiment::is_attacking) != 0)
+						a_str += reg_str;
+					else
+						d_str += reg_str;
+				}
 			}
 
 			auto& att_back = state.world.land_battle_get_attacker_back_line(lbattle);
@@ -1407,24 +1410,24 @@ public:
 			auto& def_front = state.world.land_battle_get_defender_front_line(lbattle);
 			for(auto r : att_back) {
 				if(r)
-					++areg;
+					a_str += state.world.regiment_get_strength(r);
 			}
 			for(auto r : att_front) {
 				if(r)
-					++areg;
+					a_str += state.world.regiment_get_strength(r);
 			}
 			for(auto r : def_back) {
 				if(r)
-					++breg;
+					d_str += state.world.regiment_get_strength(r);
 			}
 			for(auto r : def_front) {
 				if(r)
-					++breg;
+					d_str += state.world.regiment_get_strength(r);
 			}
 			if(state.world.land_battle_get_war_attacker_is_attacker(lbattle) == player_is_attacker) {
-				display.battle_progress = float(areg) / float(areg + breg);
+				display.battle_progress = a_str / (a_str + d_str);
 			} else {
-				display.battle_progress = float(breg) / float(areg + breg);
+				display.battle_progress = d_str / (a_str + d_str);
 			}
 
 			battle->set_visible(state, true);
@@ -1490,8 +1493,8 @@ public:
 			display.top_left_org_value /= float(total_count);
 			display.top_right_org_value /= float(total_opp_count);
 
-			int32_t attacker_ships = 0;
-			int32_t defender_ships = 0;
+			float attacker_str = 0;
+			float defender_str = 0;
 
 			auto slots = state.world.naval_battle_get_slots(nbattle);
 
@@ -1502,9 +1505,9 @@ public:
 					case military::ship_in_battle::mode_retreating:
 					case military::ship_in_battle::mode_engaged:
 						if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
-							++attacker_ships;
+							attacker_str += state.world.ship_get_strength(slots[j].ship);
 						else
-							++defender_ships;
+							defender_str += state.world.ship_get_strength(slots[j].ship);
 						break;
 					default:
 						break;
@@ -1512,9 +1515,9 @@ public:
 			}
 
 			if(state.world.naval_battle_get_war_attacker_is_attacker(nbattle) == player_is_attacker) {
-				display.battle_progress = float(attacker_ships) / float(attacker_ships + defender_ships);
+				display.battle_progress = attacker_str / (attacker_str + defender_str);
 			} else {
-				display.battle_progress = float(defender_ships) / float(attacker_ships + defender_ships);
+				display.battle_progress = defender_str / (attacker_str + defender_str);
 			}
 
 			battle->set_visible(state, true);
