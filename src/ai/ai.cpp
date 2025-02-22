@@ -4166,13 +4166,18 @@ bool will_upgrade_ships(sys::state& state, dcon::nation_id n) {
 }
 
 void update_ships(sys::state& state) {
+	static std::vector<dcon::ship_id> to_delete;
+	to_delete.clear();
+
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled())
 			continue;
+		// Landlocked nation shouldn't keep fleet
 		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					for(auto shp : v.get_navy().get_navy_membership()) {
+						to_delete.push_back(shp.get_ship().id);
 						state.world.delete_ship(shp.get_ship());
 					}
 				}
@@ -4211,6 +4216,10 @@ void update_ships(sys::state& state) {
 				}
 			}
 		}
+	}
+
+	for(auto s : to_delete) {
+		state.world.delete_ship(s);
 	}
 }
 
