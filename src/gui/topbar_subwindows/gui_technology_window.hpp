@@ -553,7 +553,7 @@ public:
 			auto leadership_cost = state.world.technology_get_leadership_cost(t);
 
 			if(leadership_cost > 0.f) {
-				set_text(state, text::produce_simple_string(state, "TECHNOLOGY_LEADERSHIP_POINTS"));
+				set_text(state, text::produce_simple_string(state, "alice_technology_leadership_points"));
 			}
 			else {
 				set_text(state, text::produce_simple_string(state, "TECHNOLOGY_RESEARCH_POINTS"));
