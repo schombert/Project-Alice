@@ -76,6 +76,8 @@ public:
 	audio_instance decision_sound;
 	audio_instance pause_sound;
 	audio_instance unpause_sound;
+	audio_instance enemycapitulated;
+	audio_instance wecapitulated;
 
 	std::vector<audio_instance> music_list;
 	int32_t last_music = -1;
