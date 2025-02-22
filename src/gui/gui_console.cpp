@@ -1100,12 +1100,10 @@ int32_t* f_provid(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	auto state_global = fif::get_global_var(*e, "state-ptr");
 	sys::state* state = (sys::state*)(state_global->data);
 
-	if(state->cheat_data.show_province_id_tooltip) {
-		state->cheat_data.show_province_id_tooltip = false;
-	} else {
-		state->cheat_data.show_province_id_tooltip = true;
-	}
+	bool toggle_state = s.main_data_back(0) != 0;
+	s.pop_main();
 
+	state->cheat_data.show_province_id_tooltip = toggle_state;
 	return p + 2;
 }
 int32_t* f_fire_event(fif::state_stack& s, int32_t* p, fif::environment* e) {
@@ -1410,7 +1408,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("add-days", nullptr, f_add_days, { fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("save-map", nullptr, f_save_map, { fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("dump-econ", nullptr, f_dump_econ, {  }, {}, * state.fif_environment);
-	fif::add_import("provid", nullptr, f_provid, {  }, {}, * state.fif_environment);
+	fif::add_import("provid", nullptr, f_provid, { fif::fif_bool }, {}, * state.fif_environment);
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
 	fif::add_import("load-file", nullptr, load_file, {}, {}, * state.fif_environment);
