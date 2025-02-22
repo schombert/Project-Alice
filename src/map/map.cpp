@@ -2848,12 +2848,19 @@ void display_data::load_map(sys::state& state) {
 
 	glGenTextures(1, &textures[texture_diag_border_identifier]);
 	if(textures[texture_diag_border_identifier]) {
+		assert(!diagonal_borders.empty());
+
 		glBindTexture(GL_TEXTURE_2D, textures[texture_diag_border_identifier]);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, size_x, size_y);
+		assert(size_x > 0);
+		assert(size_y > 0);
+		// assert(diagonal_borders.size() != size_x * size_y);
+		assert(size_x % 4 == 0); // The texture data might have incorrect row alignment (default is 4 bytes). If the texture width is not a multiple of 4, this can corrupt the upload.
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED_INTEGER, GL_UNSIGNED_BYTE, diagonal_borders.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	ogl::set_gltex_parameters(textures[texture_diag_border_identifier], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	
 
 	textures[texture_terrain] = ogl::make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
 	ogl::set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);

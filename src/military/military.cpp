@@ -3245,6 +3245,11 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 				nations::release_vassal(state, sub);
 			}
 		}
+		else {
+			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+				nations::make_vassal(state, sub.get_subject(), from);
+			}
+		}
 		if(state.world.nation_get_owned_province_count(target) > 0) {
 			nations::make_vassal(state, target, from);
 			take_from_sphere(state, target, from);
@@ -3259,6 +3264,12 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 				nations::release_vassal(state, sub);
 			}
 		}
+		else {
+			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+				nations::make_vassal(state, sub.get_subject(), from);
+			}
+		}
+
 		if(state.world.nation_get_owned_province_count(target) > 0) {
 			nations::make_substate(state, target, from);
 			take_from_sphere(state, target, from);
@@ -3528,13 +3539,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			}
 		}
 		else {
-			for(auto n : state.world.in_nation) {
-				auto rel = state.world.nation_get_overlord_as_subject(n);
-				auto overlord = state.world.overlord_get_ruler(rel);
-
-				if(overlord == target) {
-					state.world.overlord_set_ruler(rel, from);
-				}
+			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
+				nations::make_vassal(state, sub.get_subject(), from);
 			}
 		}
 
