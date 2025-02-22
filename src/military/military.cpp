@@ -252,7 +252,7 @@ dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool
 		auto& def = state.military_definitions.unit_base_definitions[uid];
 
 		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
-		if(!available ||  def.type != military::unit_type::transport || def.primary_culture && !primary_culture) {
+		if(!available ||  def.type != military::unit_type::transport || (def.primary_culture && !primary_culture)) {
 			continue;
 		}
 
@@ -273,7 +273,7 @@ dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, boo
 		auto& def = state.military_definitions.unit_base_definitions[uid];
 
 		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
-		if(!available || def.type != military::unit_type::light_ship || def.primary_culture && !primary_culture) {
+		if(!available || def.type != military::unit_type::light_ship || (def.primary_culture && !primary_culture)) {
 			continue;
 		}
 
@@ -294,7 +294,7 @@ dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool 
 		auto& def = state.military_definitions.unit_base_definitions[uid];
 
 		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
-		if(!available || def.type != military::unit_type::big_ship || def.primary_culture && !primary_culture) {
+		if(!available || def.type != military::unit_type::big_ship || (def.primary_culture && !primary_culture)) {
 			continue;
 		}
 
