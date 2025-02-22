@@ -1325,7 +1325,7 @@ price_origin;Origin price
 price_target;Target price
 trade_distance;Distance
 volume;Volume
-desired_volume;Actual Volume
+actual_volume;Actual Volume
 max_throughput;Max volume
 trade_margin;Profit%
 used_throughput_tooltip;Volume used by all routes in the province: ?Y$val$W

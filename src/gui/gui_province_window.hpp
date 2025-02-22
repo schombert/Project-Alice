@@ -2460,7 +2460,7 @@ inline table::column<dcon::trade_route_id> trade_route_4 = {
 
 inline table::column<dcon::trade_route_id> trade_route_5 = {
 	.sortable = true,
-	.header = "desired_volume",
+	.header = "actual_volume",
 	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
 		auto local_market = retrieve<dcon::market_id>(state, container);
 		int32_t index_a = 0;

@@ -1,4 +1,4 @@
-﻿support_for_blank;支持$text$
+support_for_blank;支持$text$
 uh_support_for_blank;上议院支持$text$
 up_to;达到
 scaled_support;支持率$text$
@@ -1283,7 +1283,7 @@ price_origin;起点价格
 price_target;终点价格
 trade_distance;路线距离
 volume;容量
-desired_volume;每日售出
+actual_volume;每日售出
 max_throughput;运输上限
 trade_margin;税后利润
 unit_upgrade_desc;换到不同兵种。之后强度减少到1%

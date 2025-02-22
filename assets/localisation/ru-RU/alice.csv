@@ -1215,7 +1215,7 @@ price_origin;Цена ист.
 price_target;Цена цели
 trade_distance;Расстояние
 volume;Объем
-desired_volume;Желаем. объем
+actual_volume;Желаем. объем
 max_throughput;Макс. объем
 trade_margin;Прибыль%
 investment_pool;Инвестиционный фонд: ?Y$x$?W
