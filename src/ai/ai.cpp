@@ -1123,13 +1123,14 @@ void update_ai_ruling_party(sys::state& state) {
 	}
 }
 
-void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 
 	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
+	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
@@ -1138,7 +1139,7 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				auto profit = (output - input) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
 				auto roi = profit / cost;
 
 				if(profit / input > 10.f && roi > 0.01f)
@@ -1148,13 +1149,14 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	}
 }
 
-void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 
 	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
+	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
 	// pass zero:
 	// factories with stupid income margins
@@ -1191,7 +1193,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
-				auto profit = (output - input) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
 				auto roi = profit / cost;
 
 				if(!lacking_constr && profit / input > 2.f && roi > 0.01f)
@@ -1233,7 +1235,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profit = (output - input) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
 				auto roi = profit / cost;
 
 				if((!lacking_input && !lacking_constr && (lacking_output || (profit / cost > 0.005f))) || profit / input > 1.00f)
@@ -1274,7 +1276,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profit = (output - input) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
 				auto roi = profit / cost;
 
 				if(!lacking_input && !lacking_constr && profit / input > 0.3f && roi > 0.001f)
@@ -1284,11 +1286,13 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	}
 }
 
-void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto treasury = n.get_stockpiles(economy::money);
+	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
+
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
@@ -1297,17 +1301,18 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
-				if((output - input) / input > 20.f)
+				if((output - input - wage * type.get_base_workforce()) / input > 20.f)
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
 	}
 }
 
-void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
 	auto treasury = n.get_stockpiles(economy::money);
 
@@ -1332,7 +1337,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
-				if((lacking_output || ((output - input) / cost < 365.f)))
+				if((lacking_output || ((output - input - wage * type.get_base_workforce()) / cost < 365.f)))
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1360,7 +1365,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
 
-				if((lacking_output || ((output - input) / input > profitabilitymark)))
+				if((lacking_output || ((output - input - wage * type.get_base_workforce()) / input > profitabilitymark)))
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -1510,7 +1515,7 @@ void update_ai_econ_construction(sys::state& state) {
 							break;
 
 						craved_types.clear();
-						get_state_craved_factory_types(state, n, market, craved_types);
+						get_state_craved_factory_types(state, n, market, p, craved_types);
 
 						// check -- either unemployed factory workers or no factory workers
 						auto pw_num = state.world.province_get_demographics(p,
@@ -1678,7 +1683,7 @@ void update_ai_econ_construction(sys::state& state) {
 							break;
 
 						desired_types.clear();
-						get_state_desired_factory_types(state, n, market, desired_types);
+						get_state_desired_factory_types(state, n, market, pid, desired_types);
 
 						// check -- either unemployed factory workers or no factory workers
 						auto pw_num = state.world.province_get_demographics(pid,

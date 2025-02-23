@@ -41,6 +41,47 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto max_emp = state.world.factory_get_size(fid);
+
+		auto out_per_worker = state.world.factory_get_output_per_worker(fid);
+		auto input_per_worker = state.world.factory_get_input_cost_per_worker(fid);
+		auto location = state.world.factory_get_province_from_factory_location(fid);
+		auto sid = state.world.province_get_state_membership(location);
+		auto mid = state.world.state_instance_get_market_from_local_market(sid);
+		auto ftid = state.world.factory_get_building_type(fid);
+		auto out = state.world.factory_type_get_output(ftid);
+		auto price = state.world.market_get_price(mid, out);
+		auto sold = state.world.market_get_supply_sold_ratio(mid, out);
+		auto wage_1 = state.world.province_get_labor_price(location, economy::labor::no_education);
+		auto wage_2 = state.world.province_get_labor_price(location, economy::labor::basic_education);
+
+		auto profit = out_per_worker * price * sold - input_per_worker;
+
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::format_float(out_per_worker * price, 10));
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::format_float(out_per_worker * price * sold, 10));
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::format_float(input_per_worker, 10));
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::format_float(wage_1, 10));
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::format_float(wage_2, 10));
+			text::close_layout_box(contents, box);
+		}
+
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(

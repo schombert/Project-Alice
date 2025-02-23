@@ -967,10 +967,8 @@ float state_factory_level(sys::state& state, dcon::state_instance_id sid, dcon::
 
 bool has_factory(sys::state const& state, dcon::province_id si) {
 	auto crng = state.world.province_get_factory_construction(si);
-	if(crng.begin() != crng.end())
-		return true;
 	auto rng = state.world.province_get_factory_location(si);
-	if(rng.begin() != rng.end())
+	if((crng.begin() != crng.end()) || (rng.begin() != rng.end()))
 		return true;
 	return false;
 }

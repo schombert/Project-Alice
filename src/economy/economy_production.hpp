@@ -40,6 +40,10 @@ inline constexpr float unqualified_throughput_multiplier = 0.70f;
 
 inline constexpr float artisans_per_employment_unit = 10'000.f;
 
+inline constexpr float construction_units_to_maintenance_units = 0.01f;
+
+float expansion_trigger = 0.8f;
+
 struct ve_inputs_data {
 	ve::fp_vector min_available = 0.f;
 	ve::fp_vector total_cost = 0.f;
@@ -88,6 +92,8 @@ float factory_output_multiplier_no_secondary_workers(sys::state const& state, dc
 struct profit_explanation {
 	float inputs;
 	float wages;
+	float maintenance;
+	float expansion;
 	float output;
 
 	float profit;

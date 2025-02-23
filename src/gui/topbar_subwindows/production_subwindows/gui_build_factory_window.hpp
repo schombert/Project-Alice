@@ -253,9 +253,10 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		desired_types.clear();
+		auto pid = retrieve<dcon::province_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto m = state.world.state_instance_get_market_from_local_market(sid);
-		ai::get_desired_factory_types(state, state.local_player_nation, m, desired_types);
+		ai::get_desired_factory_types(state, state.local_player_nation, m, pid, desired_types);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -292,7 +293,7 @@ public:
 		row_contents.clear();
 		desired_types.clear();
 		auto m = state.world.state_instance_get_market_from_local_market(sid);
-		ai::get_desired_factory_types(state, state.local_player_nation, m, desired_types);
+		ai::get_desired_factory_types(state, state.local_player_nation, m, pid, desired_types);
 
 		// First the desired factory types
 		for(const auto ftid : desired_types)

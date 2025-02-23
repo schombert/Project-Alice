@@ -708,8 +708,8 @@ consumption_data consume(
 		.direct_inputs_scale = input_scale,
 		.efficiency_inputs_scale = e_input_scale,
 
-		.input_cost_per_employment_unit = additional_data.direct_inputs_cost_per_production_unit / throughput_multiplier,
-		.output_per_employment_unit = additional_data.output_amount_per_production_unit / throughput_multiplier
+		.input_cost_per_employment_unit = additional_data.direct_inputs_cost_per_production_unit * throughput_multiplier,
+		.output_per_employment_unit = additional_data.output_amount_per_production_unit * throughput_multiplier
 	};
 
 	return result;
@@ -771,8 +771,12 @@ void update_artisan_consumption(
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		auto const& inputs = state.world.commodity_get_artisan_inputs(cid);
 		auto output_amount = state.world.commodity_get_artisan_output_amount(cid);
+		if(output_amount <= 0.f) {
+			continue;
+		}
+
+		auto const& inputs = state.world.commodity_get_artisan_inputs(cid);
 		state.world.province_set_artisan_actual_production(provinces, cid, 0.0f);
 		auto valid_mask = ve_valid_artisan_good(state, nations, cid);
 		ve::fp_vector target_workers = state.world.province_get_artisan_score(provinces, cid);
@@ -937,10 +941,31 @@ profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_
 	auto last_inputs = state.world.factory_get_input_cost(f);
 
 	auto wages = get_total_wage(state, f);
+	
+	auto current_size = state.world.factory_get_size(f);
+	auto base_size = state.world.factory_type_get_base_workforce(ftid);
+	auto construction_units = current_size / base_size;
+	auto construction_units_per_day = construction_units / state.world.factory_type_get_construction_time(ftid);
+	auto maintenance_scale = construction_units_per_day * construction_units_to_maintenance_units;
+	auto& costs = state.world.factory_type_get_construction_costs(ftid);
+	auto costs_data = get_inputs_data(state, market, costs);
+	auto maintenance_cost = costs_data.total_cost * costs_data.min_available * maintenance_scale;
+
+	auto profit = last_output - wages - last_inputs - maintenance_cost;
+	auto expansion_cost = 0.f;
+	auto total_employment = state.world.factory_get_unqualified_employment(f)
+		+ state.world.factory_get_primary_employment(f)
+		+ state.world.factory_get_secondary_employment(f);
+	if(profit > 0 && total_employment >= current_size * expansion_trigger) {
+		auto expansion_scale = 1.f / state.world.factory_type_get_construction_time(ftid);
+		expansion_cost = std::min(profit * 0.1f, expansion_scale * costs_data.total_cost);
+	}
 
 	return {
 		.inputs = last_inputs,
 		.wages = wages,
+		.maintenance = maintenance_cost,
+		.expansion = expansion_cost,
 		.output = last_output,
 		.profit = last_output - wages - last_inputs
 	};
@@ -1093,6 +1118,8 @@ void update_single_factory_consumption(
 		float(fac_type.get_base_workforce())
 	) * mobilization_impact;
 
+	auto total_employment = fac.get_unqualified_employment() + fac.get_primary_employment() + fac.get_secondary_employment();
+
 	auto data = consume(
 		state, m,
 		direct_inputs, efficiency_inputs,
@@ -1104,9 +1131,29 @@ void update_single_factory_consumption(
 		), max_employment, economy_reason::factory
 	);
 
+	auto current_size = state.world.factory_get_size(f);
+	auto ftid = state.world.factory_get_building_type(f);
+	auto base_size = state.world.factory_type_get_base_workforce(ftid);
+	auto construction_units = current_size / base_size;
+	auto construction_units_per_day = construction_units / state.world.factory_type_get_construction_time(ftid);
+	auto maintenance_scale = construction_units_per_day * construction_units_to_maintenance_units;
+	auto& costs = state.world.factory_type_get_construction_costs(ftid);
+	auto costs_data = get_inputs_data(state, m, costs);
+	register_inputs_demand(state, m, costs, maintenance_scale, economy_reason::construction);
+	auto maintenance_cost = costs_data.total_cost * costs_data.min_available * maintenance_scale;
 	float actual_wages = get_total_wage(state, f);
+	float actual_profit = data.output * base_data.output_price - data.direct_inputs_cost - data.efficiency_inputs_cost - actual_wages - maintenance_cost;
 
-	float actual_profit = data.output * base_data.output_price - data.direct_inputs_cost - data.efficiency_inputs_cost - actual_wages;
+	// if we are at max amount of workers and we are profitable, spend 10% of the profit on actual expansion
+	auto expansion_scale = 1.f / state.world.factory_type_get_construction_time(ftid);
+	if(actual_profit > 0 && total_employment >= current_size * expansion_trigger) {
+		auto base_expansion_cost = expansion_scale * costs_data.total_cost;
+		expansion_scale = expansion_scale * std::min(1.f, actual_profit * 0.1f / base_expansion_cost);
+		register_inputs_demand(state, m, costs, expansion_scale, economy_reason::construction);
+		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
+	} else if(actual_profit < 0) {
+		state.world.factory_set_size(fac, std::max(500.f, current_size - base_size * expansion_scale));
+	}
 
 	fac.set_unprofitable(actual_profit <= 0.0f);
 
@@ -1241,7 +1288,7 @@ ve::fp_vector gradient_employment_i(
 	ve::fp_vector secondary_employment,
 	ve::fp_vector secondary_power
 ) {
-	return (expected_profit_per_perfect_worker * power - wage) * (1.f + secondary_employment * secondary_power);
+	return expected_profit_per_perfect_worker * power * (1.f + secondary_employment * secondary_power) - wage;
 }
 ve::fp_vector gradient_employment_i(
 	ve::fp_vector expected_profit_per_perfect_worker,

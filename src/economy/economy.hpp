@@ -93,6 +93,9 @@ inline constexpr float subsistence_score_life = 30.0f;
 inline constexpr float subsistence_score_everyday = 30.0f;
 inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday;
 
+//local merchants take a cut from most local monetary operations
+inline constexpr float local_market_cut = 0.3f;
+
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
 	float craftsmen_fraction = 0.8f;
@@ -124,7 +127,7 @@ inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
 inline constexpr float price_rigging = 0.015f;
-inline constexpr float production_throughput_multiplier = 4.f;
+inline constexpr float production_throughput_multiplier = 10.f;
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
@@ -226,6 +229,11 @@ struct tariff_data {
 	std::array<bool, 2> applies_tariff;
 	std::array<float, 2> export_tariff;
 	std::array<float, 2> import_tariff;
+
+	float distance;
+	float loss;
+	float base_distance_cost;
+	float workers_satisfaction;
 };
 
 struct trade_and_tariff {
@@ -256,7 +264,7 @@ struct trade_and_tariff {
 };
 
 tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route);
-trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, tariff_data additional_data, dcon::commodity_id cid);
+trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, tariff_data& additional_data, dcon::commodity_id cid);
 trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
 struct trade_breakdown_item {
 	dcon::nation_id trade_partner;
