@@ -189,7 +189,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 
 	state.world.nation_set_administration_employment_target_in_capital(n, effective_demand);
 	state.world.market_get_labor_demand(capital_market, economy::labor::high_education_and_accepted) += effective_demand;
-	admin_budget = admin_budget - effective_demand * labor_price_capital;
+	admin_budget = admin_budget - effective_demand * labor_price_capital * state.world.market_get_labor_demand_satisfaction(capital_market, economy::labor::high_education_and_accepted);
 
 	if(admin_budget > 0.f) {
 		// now we can demand labor in local lands
@@ -209,7 +209,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 			required_labor_capital += local_population / admin_efficiency;
 			float required_labor_local = local_population / admin_efficiency;
 			float labor_price_local = state.world.market_get_labor_price(local_market, economy::labor::high_education);
-			required_budget += required_labor_local * labor_price_local;
+			required_budget += required_labor_local * labor_price_local * state.world.market_get_labor_demand_satisfaction(local_market, economy::labor::high_education);
 		});
 
 		auto scale = 1.f;

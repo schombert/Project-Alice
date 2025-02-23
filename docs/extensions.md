@@ -151,6 +151,14 @@ build_bank_in_capital = {
 - `diplo_points = ...` : This trigger condition is true if the nation in scope has saved diplomatic points greater than or equal to the given number.
 - `suppression_points = ...` : This trigger condition is true if the nation in scope has saved suppression points greater than or equal to the given number.
 
+### New modifiers
+
+[Modifiers](modifiers)
+
+### Technologies
+
+Technologies can have their cost in `leadership_cost`.
+
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:
 ```
@@ -511,7 +519,8 @@ Alice adds a handful of new defines:
 - `alice_puppet_subject_money_transfer`. Percentage [0;100] of substates' budget revenues transferred to the overlord. Default: 40.0
 - `alice_privateinvestment_subject_transfer`: Percentage [0;100] of subjects' and overlord's private investment pool transferred daily when no useful projects are done. Overlord distributes money to subjects and subjects contribute to the overlord. Default: 2.0
 - `alice_allow_revoke_subject_states`: Allows overlord to take subjects' states raising their militancy and giving separatism. Default: 0.0
-
+- `alice_leadership_generation_divisor`: To allow for battles to generate leadership, passive leadership generation is divided by this.
+- `alice_auto_hire_generals`: set to 0.0 to disable the game hiring generals and admirals automatically.
 
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
@@ -735,6 +744,22 @@ rgo_distribution_add = {
     entry = {
         trade_good = coal
         max_employment = 100000
+	}
+}
+```
+
+### Factory potentials
+
+Factory potentials (e.g. resource potentials) is a feature that allows modders to limit number of factories per province (state).
+
+To limit factory creation to provinces having potentials, factory definition must have `uses_potentials = yes`.
+
+In province history files define limits as follows:
+```
+factory_limit = {
+	entry = {
+        trade_good = iron
+        max_level = 16
 	}
 }
 ```

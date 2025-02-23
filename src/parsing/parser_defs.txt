@@ -43,9 +43,11 @@ good
 	cost           value      float            member_fn
 	color          group      color_from_3i    member_fn
 	available_from_start      value    bool    member_fn
+	is_local       value    bool    member_fn
 	tradeable      value      none             discard
 	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn
+	uses_potentials value     bool             member_fn
 
 goods_group
 	#any           extern     make_good             discard
@@ -253,7 +255,8 @@ modifier_base
 	capitalist_savings              value      float            member_fn
 	middle_class_savings              value      float            member_fn
 	farmers_savings              value      float            member_fn
-
+	disallow_naval_trade              value      float            member_fn
+	disallow_land_trade              value      float            member_fn
 
 
 int_vector
@@ -288,6 +291,8 @@ building_definition
 	infrastructure       value    float             member
 	production_type      value    text              member
 	default_enabled      value    bool              member
+	is_coastal           value    bool              member
+	uses_potentials           value    bool              member
 	colonial_points      group    int_vector        member
 	goods_cost           group    commodity_array   member
 
@@ -593,6 +598,13 @@ province_rgo_ext
 province_rgo_ext_2
 	entry             group          province_rgo_ext_2_desc  member_fn
 
+province_factory_limit_desc
+	trade_good        value          text               member_fn
+	max_level    value          int                member_fn
+
+province_factory_limit
+	entry             group          province_factory_limit_desc  member_fn
+
 province_history_file
 	life_rating       value          uint               member_fn
 	colony            value          uint               member_fn
@@ -612,6 +624,7 @@ province_history_file
 	clr_province_flag value          none               discard
 	rgo_distribution  group          province_rgo_ext   member_fn
 	rgo_distribution_add  group      province_rgo_ext_2 member_fn
+	factory_limit     group          province_factory_limit member_fn
 	#any              value          uint               member_fn
 	#any              extern         enter_dated_block  discard
 
@@ -861,7 +874,7 @@ unit_modifier_body
 	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
 	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
 	fire_range            value      float            member  (reconnaissance_or_fire_range)
-	maneuver           value       float          discard
+	maneuver           value       float          member (maneuver)
 	evasion              value        float          member (discipline_or_evasion)
 	discipline              value        float          member (discipline_or_evasion)
 
@@ -883,6 +896,7 @@ technology_contents
 	area                  value      text                   member_fn
 	year                  value      int                    member_fn
 	cost                  value      int                    member_fn
+	leadership_cost                  value      int                    member_fn
 	unit                  value      int                    discard
 	activate_unit         value      text                   member_fn
 	activate_building     value      text                   member_fn

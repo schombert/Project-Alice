@@ -211,6 +211,7 @@ struct data {
 
 	GLuint province_map_framebuffer;
 	GLuint province_map_rendertexture;
+	GLuint province_map_depthbuffer;
 
 	GLuint ui_shader_d_rect_uniform = 0;
 	GLuint ui_shader_subroutines_index_uniform = 0;
@@ -396,6 +397,8 @@ public:
 		page_flip_left_rev,
 		page_flip_right_rev,
 		page_flip_up_rev,
+		page_flip_mid,
+		page_flip_mid_rev
 	};
 private:
 	render_capture start_state;

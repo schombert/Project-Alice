@@ -218,7 +218,7 @@ float factory_e_input_total_cost(sys::state const& state, dcon::market_id m, dco
 // abstract modifiers
 
 float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, int levels);
 float factory_output_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::market_id m, dcon::province_id p);
 
 float factory_desired_raw_profit(dcon::factory_id fac, float spendings);
@@ -362,12 +362,11 @@ float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n);
-float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
+float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n);
+float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
-float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget);
-float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid);
 float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n);
 float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
@@ -377,23 +376,25 @@ float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n);
 float estimate_stockpile_filling_spending(sys::state& state, dcon::nation_id n);
 
 struct full_construction_state {
+	float cost = 0.0f;
 	dcon::nation_id nation;
 	dcon::state_instance_id state;
-	bool is_pop_project;
-	bool is_upgrade;
+	bool is_pop_project = false;
+	bool is_upgrade = false;
 	dcon::factory_type_id type;
 };
 
 struct full_construction_province {
+	float cost = 0.0f;
 	dcon::nation_id nation;
 	dcon::province_id province;
-	bool is_pop_project;
-	province_building_type type;
+	bool is_pop_project = false;
+	province_building_type type = province_building_type::railroad;
 };
 
-std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid);
-std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved);
-std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid);
+std::vector<full_construction_state> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid, float est_private_const_spending);
+std::vector<full_construction_state> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved, float est_private_const_spending);
+std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid, float est_private_const_spending);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment
@@ -423,8 +424,6 @@ struct upgraded_factory {
 	dcon::factory_type_id target_type;
 };
 
-economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to);
-float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to);
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
 int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
@@ -452,6 +451,14 @@ float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
+
+bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c);
+int8_t calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c);
+int32_t calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c);
+
+bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
+bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
+bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target);
 
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);

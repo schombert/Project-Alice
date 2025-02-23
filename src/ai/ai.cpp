@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
+#include "construction.hpp"
 #include "effects.hpp"
 #include "gui_effect_tooltips.hpp"
 #include "math_fns.hpp"
@@ -474,7 +475,7 @@ void update_ai_research(sys::state& state) {
 				base *= 2.0f;
 			}
 
-			auto cost = std::max(1.0f, culture::effective_technology_cost(state, year, n, pt.id));
+			auto cost = std::max(1.0f, culture::effective_technology_rp_cost(state, year, n, pt.id));
 			pt.weight = base / cost;
 		}
 		auto rval = rng::get_random(state, id);
@@ -1127,6 +1128,7 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto sid = m.get_zone_from_local_market();
 
 	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
@@ -1152,6 +1154,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto sid = m.get_zone_from_local_market();
 
 	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
@@ -1288,11 +1291,13 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
+	auto sid = m.get_zone_from_local_market();
 	auto treasury = n.get_stockpiles(economy::money);
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+
 				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
@@ -1308,7 +1313,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
-
+	auto sid = m.get_zone_from_local_market();
 	auto treasury = n.get_stockpiles(economy::money);
 
 	// first pass: try to create factories which will pay back investment fast - in a year at most:
@@ -1580,7 +1585,7 @@ void update_ai_econ_construction(sys::state& state) {
 								continue;
 
 							if(present_in_location) {
-								if((rules & issue_rule::expand_factory) != 0) {
+								if((rules & issue_rule::expand_factory) != 0 && economy::do_resource_potentials_allow_upgrade(state, n, si, type_selection)) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
 									new_up.set_is_upgrade(true);
@@ -1593,7 +1598,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 							// else -- try to build -- must have room
 							int32_t num_factories = economy::state_factory_count(state, si, n);
-							if(num_factories < int32_t(state.defines.factories_per_state)) {
+							if(num_factories < int32_t(state.defines.factories_per_state) && economy::do_resource_potentials_allow_construction(state, n, si, type_selection)) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
 								new_up.set_is_upgrade(false);
@@ -1652,7 +1657,7 @@ void update_ai_econ_construction(sys::state& state) {
 								if(budget - additional_expenses - expected_item_cost <= 0.f)
 									continue;
 
-								if(!ug_in_progress) {
+								if(!ug_in_progress && economy::do_resource_potentials_allow_upgrade(state, n, si, type)) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
 									new_up.set_is_upgrade(true);
@@ -1752,7 +1757,7 @@ void update_ai_econ_construction(sys::state& state) {
 							continue;
 
 						if(present_in_location) {
-							if((rules & issue_rule::expand_factory) != 0) {
+							if((rules & issue_rule::expand_factory) != 0 && economy::do_resource_potentials_allow_upgrade(state, n, si, type_selection)) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
 								new_up.set_is_upgrade(true);
@@ -1765,7 +1770,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 						// else -- try to build -- must have room
 						int32_t num_factories = economy::state_factory_count(state, si, n);
-						if(num_factories < int32_t(state.defines.factories_per_state)) {
+						if(num_factories < int32_t(state.defines.factories_per_state) && economy::do_resource_potentials_allow_construction(state, n, si, type_selection)) {
 							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 							new_up.set_is_pop_project(false);
 							new_up.set_is_upgrade(false);
@@ -4009,7 +4014,7 @@ void update_budget(sys::state& state) {
 		auto rules = n.get_combined_issue_rules();
 		if(n.get_is_civilized() && (rules & issue_rule::build_factory) == 0) {
 			float investment_budget = investments_budget_ratio * base_income;
-			float max_investment_budget = 1.f + economy::estimate_domestic_investment(state, n);
+			float max_investment_budget = 1.f + economy::estimate_max_domestic_investment(state, n);
 			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
 			investment_ratio = std::clamp(investment_ratio, 0.f, 100.f);
 			n.set_domestic_investment_spending(int8_t(investment_ratio));
@@ -4140,42 +4145,48 @@ bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
 		: true;
 }*/
 
+bool will_upgrade_ships(sys::state& state, dcon::nation_id n) {
+	auto fid = dcon::fatten(state.world, n);
+
+	auto total = 0;
+	auto unfull = 0;
+
+	for(auto v : state.world.nation_get_navy_control(n)) {
+		if(!v.get_navy().get_battle_from_navy_battle_participation()) {
+			for(auto shp : v.get_navy().get_navy_membership()) {
+				total++;
+				if(shp.get_ship().get_strength() < 1.f)
+					unfull++;
+
+			}
+		}
+	}
+
+	return unfull <= total * 0.1f;
+}
+
 void update_ships(sys::state& state) {
 	static std::vector<dcon::ship_id> to_delete;
 	to_delete.clear();
+
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled())
 			continue;
+		// Landlocked nation shouldn't keep fleet
 		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					for(auto shp : v.get_navy().get_navy_membership()) {
 						to_delete.push_back(shp.get_ship().id);
+						state.world.delete_ship(shp.get_ship());
 					}
 				}
 			}
 		} else if(n.get_is_at_war() == false) {
-			dcon::unit_type_id best_transport;
-			dcon::unit_type_id best_light;
-			dcon::unit_type_id best_big;
-			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-				dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
-				if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
-					continue;
-				if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::transport) {
-					if(!best_transport || state.military_definitions.unit_base_definitions[best_transport].defence_or_hull < state.military_definitions.unit_base_definitions[j].defence_or_hull) {
-						best_transport = j;
-					}
-				} else if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::light_ship) {
-					if(!best_light || state.military_definitions.unit_base_definitions[best_light].defence_or_hull < state.military_definitions.unit_base_definitions[j].defence_or_hull) {
-						best_light = j;
-					}
-				} else if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::big_ship) {
-					if(!best_big || state.military_definitions.unit_base_definitions[best_big].defence_or_hull < state.military_definitions.unit_base_definitions[j].defence_or_hull) {
-						best_big = j;
-					}
-				}
-			}
+			dcon::unit_type_id best_transport = military::get_best_transport(state, n);
+			dcon::unit_type_id best_light = military::get_best_light_ship(state, n);
+			dcon::unit_type_id best_big = military::get_best_big_ship(state, n);
+			
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					auto trange = v.get_navy().get_army_transport();
@@ -4184,21 +4195,29 @@ void update_ships(sys::state& state) {
 					for(auto shp : v.get_navy().get_navy_membership()) {
 						auto type = shp.get_ship().get_type();
 
+						// Upgrade ships, don't delete them
 						if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::transport && !transporting) {
-							if(best_transport && type != best_transport)
-								to_delete.push_back(shp.get_ship().id);
+							if(best_transport && type != best_transport && will_upgrade_ships(state, n)) {
+								shp.get_ship().set_type(best_transport);
+								shp.get_ship().set_strength(0.01f);
+							}
 						} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::light_ship) {
-							if(best_light && type != best_light)
-								to_delete.push_back(shp.get_ship().id);
+							if(best_light && type != best_light && will_upgrade_ships(state, n)) {
+								shp.get_ship().set_type(best_light);
+								shp.get_ship().set_strength(0.01f);
+							}
 						} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::big_ship) {
-							if(best_big && type != best_big)
-								to_delete.push_back(shp.get_ship().id);
+							if(best_big && type != best_big && will_upgrade_ships(state, n)) {
+								shp.get_ship().set_type(best_big);
+								shp.get_ship().set_strength(0.01f);
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+
 	for(auto s : to_delete) {
 		state.world.delete_ship(s);
 	}
@@ -5824,7 +5843,7 @@ void move_gathered_attackers(sys::state& state) {
 	}
 }
 
-bool will_upgrade_units(sys::state& state, dcon::nation_id n) {
+bool will_upgrade_regiments(sys::state& state, dcon::nation_id n) {
 	auto fid = dcon::fatten(state.world, n);
 
 	auto total = fid.get_active_regiments();
@@ -5835,7 +5854,7 @@ bool will_upgrade_units(sys::state& state, dcon::nation_id n) {
 			if(r.get_regiment().get_strength() < 0.8f) {
 				unfull++;
 
-				if(unfull > total * 0.1) {
+				if(unfull > total * 0.1f) {
 					return false;
 				}
 			}
@@ -5896,7 +5915,7 @@ void update_land_constructions(sys::state& state) {
 				/* AI units upgrade
 				* AI upgrades units only if less than 10% of the army is currently under 80% strength (requiring supplies for reinforcement)
 				*/
-				if(will_upgrade_units(state, n)) {
+				if(will_upgrade_regiments(state, n)) {
 					auto primary_culture = r.get_regiment().get_pop_from_regiment_source().get_culture() == n.get_primary_culture();
 
 					// AI can upgrade into primary-culture-specific units such as guards

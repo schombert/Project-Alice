@@ -161,19 +161,6 @@ void restore_unsaved_values(sys::state& state) {
 }
 
 void recalculate_markets_distance(sys::state& state) {
-	float total_transport_speed = 0.f;
-	float total_amount_of_transports = 0.f;
-
-	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-		dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
-		if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::transport) {
-			total_transport_speed += state.military_definitions.unit_base_definitions[j].maximum_speed;
-			total_amount_of_transports += 1.f;
-		}
-	}
-
-	auto base_speed = total_transport_speed / total_amount_of_transports;
-	
 	state.world.execute_parallel_over_market([&](auto markets) {
 		auto sids = state.world.market_get_zone_from_local_market(markets);
 		auto population = ve::apply([&](auto sid) {
@@ -206,11 +193,19 @@ void recalculate_markets_distance(sys::state& state) {
 		ve::apply([&](auto sid_0, auto sid_1, auto route) {
 			if (state.world.trade_route_get_is_sea_route(route)) {
 				std::vector<dcon::province_id> path{ };
-				auto speed = base_speed;
 				dcon::province_id p_prev{ };
 
 				auto coast_0 = province::state_get_coastal_capital(state, sid_0);
 				auto coast_1 = province::state_get_coastal_capital(state, sid_1);
+				auto owner_0 = state.world.province_get_nation_from_province_ownership(coast_0);
+				auto owner_1 = state.world.province_get_nation_from_province_ownership( coast_1);
+				auto transport_0 = military::get_best_transport(state, owner_0);
+				auto transport_1 = military::get_best_transport(state, owner_1);
+				auto stats_0 = state.world.nation_get_unit_stats(owner_0, transport_0);
+				auto stats_1 = state.world.nation_get_unit_stats(owner_1, transport_1);
+
+				auto speed = std::max(stats_0.maximum_speed, stats_1.maximum_speed);
+
 				path = province::make_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
@@ -238,13 +233,20 @@ void recalculate_markets_distance(sys::state& state) {
 
 			if(state.world.trade_route_get_is_land_route(route)) {
 				std::vector<dcon::province_id> path{ };
-				auto speed = base_speed;
 				dcon::province_id p_prev{ };
 
 				auto market_0_center = state.world.state_instance_get_capital(sid_0);
 				auto market_1_center = state.world.state_instance_get_capital(sid_1);
 				path = province::make_unowned_path(state, market_0_center, market_1_center);
-				speed *= 0.2f;
+
+				auto owner_0 = state.world.province_get_nation_from_province_ownership(market_0_center);
+				auto owner_1 = state.world.province_get_nation_from_province_ownership(market_1_center);
+				auto cav_0 = military::get_best_cavalry(state, owner_0);
+				auto cav_1 = military::get_best_cavalry(state, owner_1);
+				auto stats_0 = state.world.nation_get_unit_stats(owner_0, cav_0);
+				auto stats_1 = state.world.nation_get_unit_stats(owner_1, cav_1);
+
+				auto speed = std::max(stats_0.maximum_speed, stats_1.maximum_speed);
 				p_prev = market_0_center;
 
 				auto ps = path.size();
@@ -1162,9 +1164,16 @@ status get_status(sys::state& state, dcon::nation_id n) {
 
 sys::date get_research_end_date(sys::state& state, dcon::technology_id tech_id, dcon::nation_id n) {
 	sys::date curr = state.current_date;
-	auto daily = nations::daily_research_points(state, n);
-	auto total = int32_t((culture::effective_technology_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / daily);
-	return curr + total;
+	if(state.world.technology_get_leadership_cost(tech_id)) {
+		auto monthly = military::calculate_monthly_leadership_points(state, n);
+		auto total = int32_t((culture::effective_technology_lp_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / (monthly / 30.f));
+		return curr + total;
+	}
+	else {
+		auto daily = nations::daily_research_points(state, n);
+		auto total = int32_t((culture::effective_technology_rp_cost(state, curr.to_ymd(state.start_date).year, n, tech_id) - state.world.nation_get_research_points(n)) / daily);
+		return curr + total;
+	}
 }
 
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {

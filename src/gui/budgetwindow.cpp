@@ -1888,7 +1888,44 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	values.clear();
 	add_section_header(budget_categories::construction);
 	if(budget_categories::expanded[budget_categories::construction]) {
-		// TODO
+		auto explanation = economy::explain_construction_spending_now(state, state.local_player_nation);
+		for(auto& data : explanation.factories) {
+			auto building_type = state.world.state_building_construction_get_type(data.construction);
+			auto location = state.world.state_building_construction_get_state(data.construction);
+			add_budget_row(
+				text::produce_simple_string(state, state.world.factory_type_get_name(building_type))
+				+ "(" + text::get_dynamic_state_name(state, location) + ")",
+				data.spending
+			);
+		}
+		for(auto& data : explanation.province_buildings) {
+			auto building_type = state.world.province_building_construction_get_type(data.construction);
+			auto location = state.world.province_building_construction_get_province(data.construction);
+			add_budget_row(
+				text::produce_simple_string(state, state.world.province_get_name(location)) ,
+				data.spending
+			);
+		}
+		for(auto& data : explanation.land_units) {
+			auto unit_type = state.world.province_land_construction_get_type(data.construction);
+			auto location = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(data.construction));
+			auto unit_name = state.military_definitions.unit_base_definitions[unit_type].name;
+			add_budget_row(
+				text::produce_simple_string(state, unit_name)
+				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
+				data.spending
+			);
+		}
+		for(auto& data : explanation.naval_units) {
+			auto unit_type = state.world.province_naval_construction_get_type(data.construction);
+			auto location = state.world.province_naval_construction_get_province(data.construction);
+			auto unit_name = state.military_definitions.unit_base_definitions[unit_type].name;
+			add_budget_row(
+				text::produce_simple_string(state, unit_name)
+				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
+				data.spending
+			);
+		}
 	} else {
 		add_neutral_spacer();
 	}
@@ -2553,7 +2590,7 @@ void budgetwindow_main_expenses_amount_t::on_update(sys::state& state) noexcept 
 	total += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military) * float(state.world.nation_get_military_spending(state.local_player_nation)) * float(state.world.nation_get_military_spending(state.local_player_nation)) / 10000.0f;
 	total += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education) * float(state.world.nation_get_education_spending(state.local_player_nation)) * float(state.world.nation_get_education_spending(state.local_player_nation)) / 10000.0f;
 	total += economy::estimate_spendings_administration(state, state.local_player_nation, float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f);
-	total += economy::estimate_domestic_investment(state, state.local_player_nation) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 10000.0f;
+	total += economy::estimate_max_domestic_investment(state, state.local_player_nation) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 10000.0f;
 	total += economy::estimate_overseas_penalty_spending(state, state.local_player_nation) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
 	total += economy::estimate_subsidy_spending(state, state.local_player_nation);
 	total += economy::estimate_construction_spending(state, state.local_player_nation);
@@ -5096,7 +5133,7 @@ void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) no
 	case budget_categories::military: set_text(state, text::prettify_currency(economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military) * float(state.world.nation_get_military_spending(state.local_player_nation)) * float(state.world.nation_get_military_spending(state.local_player_nation)) / 10000.0f)); break;
 	case budget_categories::education: set_text(state, text::prettify_currency(economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education) * float(state.world.nation_get_education_spending(state.local_player_nation)) * float(state.world.nation_get_education_spending(state.local_player_nation)) / 10000.0f)); break;
 	case budget_categories::admin: set_text(state, text::prettify_currency(economy::estimate_spendings_administration(state, state.local_player_nation, float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f))); break;
-	case budget_categories::domestic_investment: set_text(state, text::prettify_currency(economy::estimate_domestic_investment(state, state.local_player_nation) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 10000.0f)); break;
+	case budget_categories::domestic_investment: set_text(state, text::prettify_currency(economy::estimate_max_domestic_investment(state, state.local_player_nation) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 10000.0f)); break;
 	case budget_categories::overseas_spending: set_text(state, text::prettify_currency(economy::estimate_overseas_penalty_spending(state, state.local_player_nation) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f)); break;
 	case budget_categories::subsidies: set_text(state, text::prettify_currency(economy::estimate_subsidy_spending(state, state.local_player_nation))); break;
 	case budget_categories::construction: set_text(state, text::prettify_currency(economy::estimate_construction_spending(state, state.local_player_nation))); break;

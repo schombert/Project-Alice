@@ -2,6 +2,7 @@
 #include "gui_element_base.hpp"
 #include "system_state.hpp"
 #include "economy_government.hpp"
+#include "construction.hpp"
 #include "graphics/color.hpp"
 #include "province_templates.hpp"
 #include "rebels.hpp"
@@ -91,7 +92,8 @@ enum class animation_type : uint8_t {
 	none,
 	page_left,
 	page_right,
-	page_up
+	page_up,
+	page_middle,
 };
 
 struct page_info {
@@ -160,6 +162,7 @@ struct layout_iterator;
 class layout_window_element : public ui::non_owning_container_base {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
+	void clear_pages_internal(layout_level& lvl);
 public:
 	layout_level layout;
 	
@@ -171,10 +174,13 @@ public:
 
 	void remake_layout(sys::state& state, bool remake_lists) {
 		children.clear();
+		if(remake_lists)
+			clear_pages_internal(layout);
 		remake_layout_internal(layout, state, 0, 0, base_data.size.x, base_data.size.y, remake_lists);
 		std::reverse(children.begin(), children.end());
 	}
 	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	void impl_on_update(sys::state& state) noexcept override;
 
 	friend struct layout_iterator;
 };
@@ -221,4 +227,27 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
+
+inline int8_t cmp3(std::string_view a, std::string_view b) {
+	return int8_t(std::clamp(a.compare(b), -1, 1));
+}
+template<typename T>
+int8_t cmp3(T const& a, T const& b) {
+	if(a == b) return int8_t(0);
+	return (a < b) ? int8_t(-1) : int8_t(1);
+}
+
+void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_emigration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+
 }

@@ -1252,7 +1252,7 @@ void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int3
 		maximum_speed = std::min(maximum_speed, state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed);
 		if(is_land) {
 			support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support ;
-			maneuver += std::min(maneuver, state.military_definitions.unit_base_definitions[utid].maneuver);
+			maneuver += state.world.nation_get_unit_stats(state.local_player_nation, utid).maneuver;
 		} else {
 			supply_consumption_score += state.military_definitions.unit_base_definitions[utid].supply_consumption_score;
 		}

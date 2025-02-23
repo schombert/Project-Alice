@@ -157,7 +157,7 @@ inline void init(sys::state& state) noexcept {
 				j["target_country_name"] = text::produce_simple_string(state, text::get_name(state, target_country));
 
 				j["volume"] = text::format_float(factual_volume);
-				j["desired_volume"] = text::format_float(absolute_volume);
+				j["actual_volume"] = text::format_float(absolute_volume);
 
 				j["is_sea"] = is_sea;
 				jlist.push_back(j);

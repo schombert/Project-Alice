@@ -295,9 +295,9 @@ some_fake_ANY_61;本周在$ANYPROVINCE$发现了一处贮藏着古代钱币的�
 some_fake_ANY_title_62;没用的公制
 some_fake_ANY_62;一个英国政治家提出英制才是未来的发展方向，并声称：“这个没用的法国公制永远都不可能赶上它！”
 GOODS_PRICE_UP_TITLE_LARGE;价格上涨！
-GOODS_PRICE_UP_LARGE;在过去的$VALUE_INT_0_0$个月里，$STRING_0_1$的价格稳步上涨，全球的资本家和手工业者们争着生产更多$STRING_0_1$以满足日益增长的市场需求。
+GOODS_PRICE_UP_LARGE;在过去的$VALUE_INT_0_0$个月里，$STRING_0_1$的价格稳步上涨，全球的资本家和工匠们争着生产更多$STRING_0_1$以满足日益增长的市场需求。
 GOODS_PRICE_UP_TITLE_MEDIUM;价格上涨！
-GOODS_PRICE_UP_MEDIUM;在过去的$VALUE_INT_0_0$个月里，$STRING_0_1$的价格稳步上涨，全球的资本家和手工业者们争着生产更多$STRING_0_1$以满足日益增长的市场需求。
+GOODS_PRICE_UP_MEDIUM;在过去的$VALUE_INT_0_0$个月里，$STRING_0_1$的价格稳步上涨，全球的资本家和工匠们争着生产更多$STRING_0_1$以满足日益增长的市场需求。
 GOODS_PRICE_UP_TITLE_SMALL;价格上涨！
 GOODS_PRICE_UP_SMALL;在过去的$VALUE_INT_0_0$个月里，$STRING_0_1$的价格稳步上涨！
 GOODS_PRICE_DOWN_TITLE_LARGE;价格暴跌！

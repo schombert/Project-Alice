@@ -268,10 +268,16 @@ void restore_unsaved_values(sys::state& state); // must run after determining co
 bool is_infantry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 bool is_artillery_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_transport_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_light_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 
 dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
 dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture = false);
 dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false);
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
@@ -367,6 +373,7 @@ ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<
 uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
+float calculate_monthly_leadership_points(sys::state& state, dcon::nation_id nation);
 void monthly_leaders_update(sys::state& state);
 void daily_leaders_update(sys::state& state);
 
