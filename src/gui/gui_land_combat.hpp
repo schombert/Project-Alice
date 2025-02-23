@@ -718,7 +718,7 @@ class lc_attacker_reserve_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
-		uint32_t reserve_regs = uint32_t(military::get_reserves_by_side(state, b, true).size());
+		uint32_t reserve_regs = military::get_reserves_count_by_side(state, b, true);
 
 
 		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
@@ -732,7 +732,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
-		uint32_t reserve_regs = uint32_t(military::get_reserves_by_side(state, b, true).size());
+		uint32_t reserve_regs = military::get_reserves_count_by_side(state, b, true);
 		text::add_line(state, contents, "alice_reserve_reg_count", text::variable_type::x, "Attackers", text::variable_type::y, text::format_wholenum(reserve_regs));
 	}
 };
@@ -741,7 +741,7 @@ class lc_defender_reserve_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
-		uint32_t reserve_regs = uint32_t(military::get_reserves_by_side(state, b, false).size());
+		uint32_t reserve_regs = military::get_reserves_count_by_side(state, b, false);
 
 
 		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, true });
@@ -755,7 +755,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
-		uint32_t reserve_regs = uint32_t(military::get_reserves_by_side(state, b, false).size());
+		uint32_t reserve_regs = military::get_reserves_count_by_side(state, b, false);
 		text::add_line(state, contents, "alice_reserve_reg_count", text::variable_type::x, "Defenders", text::variable_type::y, text::format_wholenum(reserve_regs));
 	}
 };

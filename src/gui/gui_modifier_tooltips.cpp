@@ -336,7 +336,7 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 	}
 }
 void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent, bool attacker) {
-	uint32_t reserve_count = uint32_t(military::get_reserves_by_side(state, b, attacker).size());
+	uint32_t reserve_count = military::get_reserves_count_by_side(state, b, attacker);
 	//top header displaying how many brigades are currently in reserve on that side
 	text::add_line(state, contents, "alice_reinforce_battle_mod_top", text::variable_type::x, text::format_wholenum(reserve_count), indent);
 

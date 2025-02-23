@@ -475,7 +475,7 @@ void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
 uint16_t unit_type_to_reserve_regiment_type(unit_type utype);
-std::vector<reserve_regiment> get_reserves_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
+uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
