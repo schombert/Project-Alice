@@ -527,6 +527,15 @@ Alice adds a handful of new defines:
 - `alice_crisis_necessary_base_fast_win_ratio = 3.5f`: Strength Ratio at which AI submits to demands before 80 temperature
 - `alice_crisis_per_wg_ratio = 0.1f`: Added necessary ratio per every WG
 
+**Military:**
+
+These relate to the added ability for reserve regiments to reinforce while in battle.
+
+- `alice_reg_move_to_reserve_org = 0.1f`: if a regiment's org goes below this decimal in battle, it wil be taken out from the front, and moved to reserves. Default: 1.0
+- `alice_reg_move_to_reserve_str = 0.0f`: if a regiment's strength is equal to or less than this decimal in battle, it wil be taken out from the front, and moved to reserves. Default 0.0
+- `alice_reg_deploy_from_reserve_org = 0.1f`: if a reserve regiments org is equal to or higher than this decimal, it can be deployed to the front, if alice_reg_deploy_from_reserve_str is also fufilled. Default 0.1
+- `alice_reg_deploy_from_reserve_str = 0.0f`: if a reserve regiments strength is greater than this decimal, it can be deployed to the front, if alice_reg_deploy_from_reserve_org is also fufilled. Default 0.0
+
 
 ### Support for reforms based on party issues
 

@@ -2393,6 +2393,30 @@ guiTypes = {
 				format = left
 				spacing = 1.0
 			}
+			instantTextBoxType = {
+				name = "reinforcement_info_txt"
+				position = { 16 65 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = { 0 0}
+				maxsize = { 50 32 }
+				fixedsize = yes
+			}
+			iconType = {
+				name ="reserve_icon"
+				spriteType = "GFX_topbar_manpower"
+				position = {  10 90 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "reserve_reg_info"
+				position = { 42 95 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = { 0 0}
+				maxsize = { 50 32 }
+				fixedsize = yes
+			}
 
 			iconType = {
 				name ="morale"
@@ -2514,6 +2538,30 @@ guiTypes = {
 				Orientation = "UPPER_LEFT"
 				format = left
 				spacing = 1.0
+			}
+			instantTextBoxType = {
+				name = "reinforcement_info_txt"
+				position = { 16 65 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = { 0 0}
+				maxsize = { 50 32 }
+				fixedsize = yes
+			}
+			iconType = {
+				name ="reserve_icon"
+				spriteType = "GFX_topbar_manpower"
+				position = {  10 90 }
+				Orientation = "UPPER_LEFT"
+			}
+			instantTextBoxType = {
+				name = "reserve_reg_info"
+				position = { 42 95 }
+				textureFile = ""
+				font = "vic_22_black"
+				borderSize = { 0 0}
+				maxsize = { 50 32 }
+				fixedsize = yes
 			}
 			iconType = {
 				name ="morale"

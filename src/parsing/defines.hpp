@@ -730,6 +730,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_reg_move_to_reserve_org, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_reg_move_to_reserve_str, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_reg_deploy_from_reserve_org, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_reg_deploy_from_reserve_str, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_leadership_generation_divisor, 2.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_won_score_to_leadership, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_lost_score_to_leadership, 20.0) \

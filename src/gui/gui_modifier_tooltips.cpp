@@ -338,5 +338,22 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 		acting_modifiers_description_province<dcon::national_modifier_value>(state, layout, p, identation, header, nmid);
 	}
 }
+void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent, bool attacker) {
+	uint32_t reserve_count = military::get_reserves_count_by_side(state, b, attacker);
+	//top header displaying how many brigades are currently in reserve on that side
+	text::add_line(state, contents, "alice_reinforce_battle_mod_top", text::variable_type::x, text::format_wholenum(reserve_count), indent);
+
+	// average army spending in battle
+	float reinf_mod = military::calculate_average_battle_supply_spending(state, b, attacker);
+	text::add_line(state, contents, "alice_reinforce_battle_spending_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
+
+	// location reinforcement bonus
+	reinf_mod = military::calculate_average_battle_location_modifier(state, b, attacker);
+	text::add_line(state, contents, "alice_reinforce_battle_location_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
+
+	// get the national modifiers 
+	reinf_mod = military::calculate_average_battle_national_modifiers(state, b, attacker);
+	text::add_line(state, contents, "alice_reinforce_battle_national_modifier", text::variable_type::x, text::format_float(reinf_mod, 2), indent + 20);
+}
 
 } // namespace ui
