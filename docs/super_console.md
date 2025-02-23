@@ -23,6 +23,7 @@ And here is a list of some more specialized console functions that you can use
 - `clear` : removes old text form the console window
 - `spectate` : switches the game to spectator mode (use `change-tag` to resume playing)
 - `true fps` : turns the visible FPS counter on. A value of `false` will instead turn it off
+- `provid`: Turns on and off display of content province ids in tooltips
 - `false set-auto-choice` : turns off all existing auto event choices
 - `TAG change-tag` : changes who you are playing as to TAG
 - `TAG true set-westernized` : changes the civilized/uncivilized status of TAG

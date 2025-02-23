@@ -64,7 +64,7 @@ namespace sys {
 #define MOD_NAT_LIST                                                                                                             \
 	MOD_LIST_ELEMENT(0, war_exhaustion, false, modifier_display_type::fp_two_places, "war_exhaustion")                             \
 	MOD_LIST_ELEMENT(1, max_war_exhaustion, true, modifier_display_type::integer, "max_war_exhaustion")                            \
-	MOD_LIST_ELEMENT(2, leadership, true, modifier_display_type::integer, "leadership")                                            \
+	MOD_LIST_ELEMENT(2, leadership, true, modifier_display_type::fp_two_places, "leadership")                                            \
 	MOD_LIST_ELEMENT(3, leadership_modifier, true, modifier_display_type::percent, "modifier_global_leadership_modifier")          \
 	MOD_LIST_ELEMENT(4, supply_consumption, false, modifier_display_type::percent, "modifier_supply_consumption")                  \
 	MOD_LIST_ELEMENT(5, org_regain, true, modifier_display_type::percent, "modifier_org_regain")                                   \
@@ -181,7 +181,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(108, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech")                              \
 	MOD_LIST_ELEMENT(109, supply_range, true, modifier_display_type::percent, "supply_range_tech")                                 \
 	MOD_LIST_ELEMENT(110, regular_experience_level, true, modifier_display_type::integer, "regular_exp_tech")                      \
-	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
+	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, false, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
 	MOD_LIST_ELEMENT(112, naval_attrition, false, modifier_display_type::percent, "naval_attrition_tech")                           \
 	MOD_LIST_ELEMENT(113, land_attrition, false, modifier_display_type::percent, "land_attrition_tech")                             \
 	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
@@ -204,8 +204,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(131, capitalist_savings, true, modifier_display_type::percent, "capitalist_savings") \
 	MOD_LIST_ELEMENT(132, middle_class_savings, true, modifier_display_type::percent, "middle_class_savings") \
 	MOD_LIST_ELEMENT(133, farmers_savings, true, modifier_display_type::percent, "farmers_savings") \
+	MOD_LIST_ELEMENT(134, disallow_naval_trade, false, modifier_display_type::yesno, "disallow_naval_trade") \
+	MOD_LIST_ELEMENT(135, disallow_land_trade, false, modifier_display_type::yesno, "disallow_land_trade") \
 
-#define MOD_NAT_LIST_COUNT 134
+#define MOD_NAT_LIST_COUNT 136
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \
@@ -268,6 +270,7 @@ struct unit_variable_stats {
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
 	float discipline_or_evasion = 0.0f;
+	float maneuver = 0.0f;
 
 	void operator+=(unit_variable_stats const& other) {
 		build_time += other.build_time;
@@ -277,6 +280,7 @@ struct unit_variable_stats {
 		attack_or_gun_power += other.attack_or_gun_power;
 		supply_consumption += other.supply_consumption;
 		support += other.support;
+		maneuver += other.maneuver;
 		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
 		discipline_or_evasion += other.discipline_or_evasion;
@@ -289,6 +293,7 @@ struct unit_variable_stats {
 		attack_or_gun_power -= other.attack_or_gun_power;
 		supply_consumption -= other.supply_consumption;
 		support -= other.support;
+		maneuver -= other.maneuver;
 		siege_or_torpedo_attack -= other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range -= other.reconnaissance_or_fire_range;
 		discipline_or_evasion -= other.discipline_or_evasion;
@@ -302,6 +307,7 @@ static_assert(sizeof(unit_variable_stats) ==
 	+ sizeof(unit_variable_stats::attack_or_gun_power)
 	+ sizeof(unit_variable_stats::supply_consumption)
 	+ sizeof(unit_variable_stats::support)
+	+ sizeof(unit_variable_stats::maneuver)
 	+ sizeof(unit_variable_stats::siege_or_torpedo_attack)
 	+ sizeof(unit_variable_stats::reconnaissance_or_fire_range)
 	+ sizeof(unit_variable_stats::discipline_or_evasion));

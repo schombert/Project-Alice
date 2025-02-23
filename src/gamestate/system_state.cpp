@@ -2372,7 +2372,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				}
 
 				err.file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
-				auto province_id = parsers::parse_int(std::string_view(value_start, value_end), 0, err);
+				auto province_id = parsers::parse_uint(std::string_view(value_start, value_end), 0, err);
 				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
 					if(opened_file) {
@@ -2381,6 +2381,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						auto content = view_contents(*opened_file);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
 						parsers::parse_province_history_file(gen, err, pf_context);
+						context.state.world.province_set_provid(pid, province_id);
 					}
 				}
 			}
@@ -4115,7 +4116,7 @@ void state::single_game_tick() {
 				for(auto n : this->cheat_data.instant_research_nations) {
 					auto tech = this->world.nation_get_current_research(n);
 					if(tech.is_valid()) {
-						float points = culture::effective_technology_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
+						float points = culture::effective_technology_rp_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
 						this->world.nation_set_research_points(n, points);
 					}
 				}

@@ -3939,10 +3939,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
 		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
+		auto same_nation = controller_capital_A == controller_capital_B;
+
+		// Ban international sea routes or international land routes based on the corresponding modifiers
+		auto A_bans_sea_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
+		auto B_bans_sea_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
+		auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
+		auto A_bans_land_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_land_trade) > 0.f;
+		auto B_bans_land_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_land_trade) > 0.f;
+		auto land_trade_banned = A_bans_land_trade || B_bans_land_trade;
+		auto trade_banned = (is_sea_route && sea_trade_banned && !same_nation) || (is_land_route && land_trade_banned && !same_nation);
 
 		is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
-
-		auto same_nation = controller_capital_A == controller_capital_B;
 
 		// sphere joins embargo
 		// subject joins embargo
@@ -4023,7 +4031,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 
 		for(auto c : state.world.in_commodity) {
-			if(state.world.commodity_get_money_rgo(c)) {
+			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
 				continue;
 			}
 
@@ -4058,7 +4066,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			change = ve::select(
 				at_war
 				|| A_joins_sphere_wide_embargo
-				|| B_joins_sphere_wide_embargo,
+				|| B_joins_sphere_wide_embargo
+				|| trade_banned,
 				-current_volume,
 				change
 			);
@@ -4486,6 +4495,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					go_bankrupt(state, n);
 					spending_scale = 0.f;
 				}
+				// Interest payments
 				if(ip > 0) {
 					sp -= ip;
 					state.world.nation_get_national_bank(n) += ip;
@@ -4518,15 +4528,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_stockpiles(n, economy::money) -= std::min(budget, total * spending_scale);
 			state.world.nation_set_spending_level(n, spending_scale);
 
-			auto s = state.world.nation_get_stockpiles(n, economy::money);
-			auto l = state.world.nation_get_local_loan(n);
-			if(s < 0 && l < max_loan(state, n) &&
-				std::abs(s) <= max_loan(state, n) - l) {
+			auto& s = state.world.nation_get_stockpiles(n, economy::money);
+			auto& l = state.world.nation_get_local_loan(n);
+
+			// Take loan
+			if(s < 0 && l < max_loan(state, n) && std::abs(s) <= max_loan(state, n) - l) {
 				state.world.nation_get_local_loan(n) += std::abs(s);
 				state.world.nation_set_stockpiles(n, economy::money, 0);
 			} else if(s < 0) {
 				// Nation somehow got into negative bigger than its loans allow
 				go_bankrupt(state, n);
+			// Repay loan
 			} else if(s > 0 && l > 0) {
 				auto change = std::min(s, l);
 				state.world.nation_get_local_loan(n) -= change;
@@ -6897,7 +6909,7 @@ float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
 
 
 
-float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
+float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n) {
 	auto total = 0.f;
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
@@ -6925,6 +6937,10 @@ float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
 			);
 	});
 	return total;
+}
+
+float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n) {
+	return estimate_max_domestic_investment(state, n) * float(state.world.nation_get_domestic_investment_spending(n)) / 10000.0f;
 }
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n) {

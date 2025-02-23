@@ -9,6 +9,8 @@ void make_good(std::string_view name, token_generator& gen, error_handler& err, 
 	context.outer_context.state.world.commodity_set_name(new_id, name_id);
 	context.outer_context.state.world.commodity_set_commodity_group(new_id, uint8_t(context.group));
 	context.outer_context.state.world.commodity_set_is_available_from_start(new_id, true);
+	context.outer_context.state.world.commodity_set_is_local(new_id, false);
+
 
 	context.outer_context.map_of_commodity_names.insert_or_assign(std::string(name), new_id);
 	good_context new_context{new_id, context.outer_context};

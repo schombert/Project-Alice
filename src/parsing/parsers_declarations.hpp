@@ -551,6 +551,7 @@ struct good {
 	void color(color_from_3i v, error_handler& err, int32_t line, good_context& context);
 	void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
 	void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context);
+	void is_local(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 
@@ -873,6 +874,10 @@ public:
 	MOD_NAT_FUNCTION(capitalist_savings)
 	MOD_NAT_FUNCTION(middle_class_savings)
 	MOD_NAT_FUNCTION(farmers_savings)
+
+	MOD_NAT_FUNCTION(disallow_naval_trade)
+	MOD_NAT_FUNCTION(disallow_land_trade)
+
 	template<typename T>
 	void finish(T& context) { }
 
@@ -2041,6 +2046,7 @@ struct technology_contents : public modifier_base {
 	void ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context);
 	void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+	void leadership_cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void area(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);

@@ -338,6 +338,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ is_local }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ money_rgo }
 		type{ bitfield }
 		tag{ scenario }
@@ -1349,6 +1354,12 @@ object {
 	size{ 17000 }
 	tag{ scenario }
 	tag{ save }
+
+	property{
+		name{ provid }
+		type{ uint32_t }
+		tag{ scenario }
+	}
 
 	property{
 		name{ name }
@@ -3138,6 +3149,11 @@ object {
 	}
 	property{
 		name{cost}
+		type{int32_t}
+		tag{ scenario }
+	}
+	property{
+		name{leadership_cost}
 		type{int32_t}
 		tag{ scenario }
 	}

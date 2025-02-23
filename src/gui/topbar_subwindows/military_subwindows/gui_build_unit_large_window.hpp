@@ -135,7 +135,7 @@ public:
 			if(state.military_definitions.unit_base_definitions[utid].support > 0) {
 				text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support, 0));
 			}
-			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
+			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maneuver, 0));
 			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
 			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
 		}

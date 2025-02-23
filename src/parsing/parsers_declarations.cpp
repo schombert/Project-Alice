@@ -102,6 +102,10 @@ void good::available_from_start(association_type, bool b, error_handler& err, in
 	context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
 }
 
+void good::is_local(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
+	context.outer_context.state.world.commodity_set_is_local(context.id, b);
+}
+
 void good::overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
 	context.outer_context.state.world.commodity_set_overseas_penalty(context.id, b);
 }
@@ -1598,6 +1602,10 @@ void technology_contents::year(association_type, int32_t value, error_handler& e
 
 void technology_contents::cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
 	context.outer_context.state.world.technology_set_cost(context.id, value);
+}
+
+void technology_contents::leadership_cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+	context.outer_context.state.world.technology_set_leadership_cost(context.id, value);
 }
 
 void technology_contents::area(association_type, std::string_view value, error_handler& err, int32_t line,

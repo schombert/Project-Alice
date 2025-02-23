@@ -667,6 +667,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_overestimate, 1.150000)                                                               \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_attack_target_radius, -0.996000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
+	LUA_DEFINES_LIST_ELEMENT(alice_auto_hire_generals, 1.00000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 4.000000) \
@@ -729,7 +730,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_crisis_unciv_stubbornness, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_state_transfer_limits, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_secondary_rgos_min_employment, 0.0) \
-
+	LUA_DEFINES_LIST_ELEMENT(alice_leadership_generation_divisor, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_battle_won_score_to_leadership, 10.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_battle_lost_score_to_leadership, 20.0) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

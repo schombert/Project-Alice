@@ -2428,12 +2428,39 @@ inline table::column<dcon::trade_route_id> trade_route_4 = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::trade_route_id item) {
 		return text::format_float(dcon::fatten(state.world, item).get_distance());
-	}
+	},
+	.update_tooltip = [](
+		sys::state& state,
+		element_base* container,
+		text::columnar_layout& contents,
+		const dcon::trade_route_id& a,
+		std::string fallback
+	) {
+		auto c = retrieve<dcon::commodity_id>(state, container);
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		auto trade_and_tariff = economy::explain_trade_route_commodity(state, a, c);
+
+		auto volume = std::abs(state.world.trade_route_get_volume(a, c));
+
+		text::add_line(state, contents, "tariff_rate_origin", text::variable_type::val, text::fp_percentage_one_place{ trade_and_tariff.tariff_rate_origin });
+		text::add_line(state, contents, "tariff_rate_target", text::variable_type::val, text::fp_percentage_one_place{ trade_and_tariff.tariff_rate_target });
+		text::add_line(state, contents, "tariff_paid_origin", text::variable_type::val, text::fp_currency{ trade_and_tariff.tariff_origin });
+		text::add_line(state, contents, "tariff_paid_target", text::variable_type::val, text::fp_currency{ trade_and_tariff.tariff_target });
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "transport_cost_per_unit", text::variable_type::val, text::fp_currency{ trade_and_tariff.transport_cost });
+		text::add_line(state, contents, "transport_cost_total", text::variable_type::val, text::fp_currency{ trade_and_tariff.transport_cost * volume });
+		text::add_line(state, contents, "transportaion_loss", text::variable_type::val, text::fp_percentage_one_place{ 1.f - trade_and_tariff.transportaion_loss });
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "payment_per_unit", text::variable_type::val, text::fp_currency{ trade_and_tariff.payment_per_unit });
+		text::add_line(state, contents, "payment_received_per_unit", text::variable_type::val, text::fp_currency{ trade_and_tariff.price_origin });
+		text::add_line(state, contents, "merchants_received_per_unit", text::variable_type::val, text::fp_currency{ trade_and_tariff.payment_received_per_unit });
+	},
+	.has_tooltip = true,
 };
 
 inline table::column<dcon::trade_route_id> trade_route_5 = {
 	.sortable = true,
-	.header = "desired_volume",
+	.header = "actual_volume",
 	.compare = [](sys::state& state, element_base* container, dcon::trade_route_id a, dcon::trade_route_id b) {
 		auto local_market = retrieve<dcon::market_id>(state, container);
 		int32_t index_a = 0;
@@ -2505,11 +2532,8 @@ inline table::column<dcon::trade_route_id> trade_route_6 = {
 		});
 		float max = state.world.market_get_max_throughput(local_market);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::fp_two_places{ total });
-		text::add_to_layout_box(state, contents, box, std::string("/"));
-		text::add_to_layout_box(state, contents, box, text::fp_two_places{ max });
-		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "used_throughput_tooltip", text::variable_type::val, text::fp_two_places{ total });
+		text::add_line(state, contents, "max_throughput_tooltip", text::variable_type::val, text::fp_two_places{ max });
 	},
 	.has_tooltip = true,
 };

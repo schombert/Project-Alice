@@ -221,6 +221,7 @@ month;month
 a_port;a port
 national_rank;national rank
 att_technology;technology
+alice_technology_leadership_points;Leadership points:
 strata;strata
 rich;rich
 poor;poor
@@ -1176,7 +1177,7 @@ alice_mw_create_lpb;?YLeadership points?W will automatically be used to create g
 alice_mw_create_lp;We need ?R$x$?W ?Yleadership points?W to add
 alice_mw_controls_1;?YRight-click?W create ?Gall?W possible as generals
 alice_mw_controls_2;?YRight-click?W create ?Gall?W possible as admirals
-alice_daily_leadership_tt;$poptype$ provides ?G$value$?W leadership points (?Y$fraction$?W of the population, ?Y$optimal$?W is optimal). Extra leadership points will automatically be spent on creating new generals.
+alice_daily_leadership_tt;$poptype$ provide ?G$value$?W leadership points (?Y$fraction$?W of the population, ?Y$optimal$?W is optimal). Extra leadership points will automatically be spent on creating new generals.
 unit_current_supply;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe amount we could get of our current supply consumption was:
 unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l demand satisfaction)
 unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l demand satisfaction)
@@ -1210,7 +1211,8 @@ alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
 alice_tt_wg_infamy_limit;?RThis wargoal will exceed the infamy limit?W
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
-province_id;Province Id
+province_id;Alice Province Id
+provid;Content Province Id
 nation_tag;Nation tag
 alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
 alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)
@@ -1323,12 +1325,25 @@ price_origin;Origin price
 price_target;Target price
 trade_distance;Distance
 volume;Volume
-desired_volume; Desired Volume
+actual_volume;Actual Volume
 max_throughput;Max volume
 trade_margin;Profit%
+used_throughput_tooltip;Volume used by all routes in the province: ?Y$val$W
+max_throughput_tooltip;Max volume for routes in the province: ?Y$val$W
+tariff_rate_origin;Seller effective tariff rate: ?Y$val$
+tariff_rate_target;Buyer effective tariff rate: ?Y$val$
+tariff_paid_origin;Tariffs paid at Seller: ?Y$val$
+tariff_paid_target;Tariffs paid at Buyer: ?Y$val$
+transport_cost_total;Total transportation costs: ?Y$val$
+transport_cost_per_unit;Transportation costs per unit: ?Y$val$
+transportaion_loss;Goods lost in transportation: ?Y$val$
+payment_per_unit;Buyer paid per unit: ?Y$val$
+payment_received_per_unit;Seller got per unit: ?Y$val$
+merchants_received_per_unit;Seller merchants profit per unit: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
-investment_pool_income_1;Reinvestment: ?G$x$?W
+investment_pool_income_1;Population reinvestment: ?G$x$?W
 investment_pool_income_2;Transfer from subject $country$: ?G$x$W
+investment_pool_income_3;Government domestic investment: ?G$x$W
 investment_pool_spending_1;"Incentives" spending: ?R$x$?W
 investment_pool_spending_2;Construction spending: ?R$x$?W
 investment_pool_spending_3;Transfer to subjects: ?R$x$?W
@@ -1396,6 +1411,8 @@ aristocrat_savings;Aristocrats saving rate
 capitalist_savings;Capitalists saving rate
 middle_class_savings;Middle class saving rate
 farmers_savings;Farmers saving rate
+disallow_naval_trade;Ban naval trade
+disallow_land_trade;Ban land trade
 alice_filter_all;All
 alice_filter_none;None
 alice_filter_noncolonial;Non Colonial

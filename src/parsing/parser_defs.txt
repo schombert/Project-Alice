@@ -43,6 +43,7 @@ good
 	cost           value      float            member_fn
 	color          group      color_from_3i    member_fn
 	available_from_start      value    bool    member_fn
+	is_local       value    bool    member_fn
 	tradeable      value      none             discard
 	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn
@@ -254,7 +255,8 @@ modifier_base
 	capitalist_savings              value      float            member_fn
 	middle_class_savings              value      float            member_fn
 	farmers_savings              value      float            member_fn
-
+	disallow_naval_trade              value      float            member_fn
+	disallow_land_trade              value      float            member_fn
 
 
 int_vector
@@ -872,7 +874,7 @@ unit_modifier_body
 	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
 	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
 	fire_range            value      float            member  (reconnaissance_or_fire_range)
-	maneuver           value       float          discard
+	maneuver           value       float          member (maneuver)
 	evasion              value        float          member (discipline_or_evasion)
 	discipline              value        float          member (discipline_or_evasion)
 
@@ -894,6 +896,7 @@ technology_contents
 	area                  value      text                   member_fn
 	year                  value      int                    member_fn
 	cost                  value      int                    member_fn
+	leadership_cost                  value      int                    member_fn
 	unit                  value      int                    discard
 	activate_unit         value      text                   member_fn
 	activate_building     value      text                   member_fn

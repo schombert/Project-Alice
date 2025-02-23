@@ -58,8 +58,11 @@ bool is_artillery_better(sys::state& state, dcon::nation_id n, dcon::unit_type_i
 	if(!best) {
 		return true;
 	}
-	auto& curbestdef = state.military_definitions.unit_base_definitions[best];
-	auto& def = state.military_definitions.unit_base_definitions[given];
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
 
 	if(def.support > curbestdef.support) {
 		return true;
@@ -93,11 +96,70 @@ bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id 
 	return false;
 }
 
+bool is_transport_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.maximum_speed > curbestdef.maximum_speed) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.defence_or_hull == curbestdef.defence_or_hull && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	}
+	return false;
+}
+
+bool is_light_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.maximum_speed > curbestdef.maximum_speed) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	} else if(def.maximum_speed == curbestdef.maximum_speed && def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	}
+	return false;
+}
+
+bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given) {
+	if(!best) {
+		return true;
+	}
+	auto curbeststats = state.world.nation_get_unit_stats(n, best);
+	auto& curbestdef = (curbeststats.discipline_or_evasion > 0.0f) ? curbeststats : state.military_definitions.unit_base_definitions[best];
+
+	auto stats = state.world.nation_get_unit_stats(n, given);
+	auto& def = (stats.discipline_or_evasion > 0.0f) ? stats : state.military_definitions.unit_base_definitions[given];
+
+	if(def.attack_or_gun_power > curbestdef.attack_or_gun_power) {
+		return true;
+	} else if(def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.defence_or_hull > curbestdef.defence_or_hull) {
+		return true;
+	} else if(def.attack_or_gun_power == curbestdef.attack_or_gun_power && def.defence_or_hull == curbestdef.defence_or_hull && def.siege_or_torpedo_attack > curbestdef.siege_or_torpedo_attack) {
+		return true;
+	}
+	return false;
+}
+
 dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture) {
 	dcon::unit_type_id curbest;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
-	auto nationname = text::produce_simple_string(state, state.world.national_identity_get_name(ndef));
 
 	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
@@ -121,9 +183,6 @@ dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool 
 			curbest = uid;
 		}
 	}
-#ifndef NDEBUG
-	// state.console_log(nationname + " infantry type: " + std::to_string(curbest.index()));
-#endif
 	return curbest;
 }
 
@@ -177,6 +236,69 @@ dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool p
 		}
 
 		if(is_cavalry_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+		if(!available ||  def.type != military::unit_type::transport || (def.primary_culture && !primary_culture)) {
+			continue;
+		}
+
+		if(is_transport_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+		if(!available || def.type != military::unit_type::light_ship || (def.primary_culture && !primary_culture)) {
+			continue;
+		}
+
+		if(is_light_ship_better(state, n, curbest, uid)) {
+			curbest = uid;
+		}
+	}
+	return curbest;
+}
+
+dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture) {
+	dcon::unit_type_id curbest;
+
+	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
+
+	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		auto& def = state.military_definitions.unit_base_definitions[uid];
+
+		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
+		if(!available || def.type != military::unit_type::big_ship || (def.primary_culture && !primary_culture)) {
+			continue;
+		}
+
+		if(is_big_ship_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
 	}
@@ -682,18 +804,38 @@ bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 }
 
 void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
-	std::vector<dcon::war_id> wars;
+	// Since removing primary participant effectively stops the war without peace treaty or truces, we shouldn't do it.
+	// If A is war leader, remove B. If B is war leader, remove A
+
+	std::vector<dcon::war_id> removeA;
+	std::vector<dcon::war_id> removeB;
+
+	// For every war of A, if B is participant on the same side and not primary, remove B
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b && o.get_is_attacker() == wa.get_is_attacker()) {
-				wars.push_back(wa.get_war());
+			auto is_primary = (o.get_is_attacker()) ? o.get_war().get_primary_attacker() == o.get_nation() : o.get_war().get_primary_defender() == o.get_nation();
+			if(o.get_nation() == b && o.get_is_attacker() == wa.get_is_attacker()&& !is_primary) {
+				removeB.push_back(wa.get_war());
 			}
 		}
 	}
-	for(const auto w : wars) {
-		//military::remove_from_war(state, w, a, false);
+	// For every war of B, if A is participant on the same side and not primary, remove A
+	for(auto wa : state.world.nation_get_war_participant(b)) {
+		for(auto o : wa.get_war().get_war_participant()) {
+			auto is_primary = (o.get_is_attacker()) ? o.get_war().get_primary_attacker() == o.get_nation() : o.get_war().get_primary_defender() == o.get_nation();
+			if(o.get_nation() == a && o.get_is_attacker() == wa.get_is_attacker() && !is_primary) {
+				removeA.push_back(wa.get_war());
+			}
+		}
+	}
+
+	for(const auto w : removeA) {
+		military::remove_from_war(state, w, a, false);
+	}
+	for(const auto w : removeB) {
 		military::remove_from_war(state, w, b, false);
 	}
+	
 }
 
 struct participation {
@@ -1483,6 +1625,38 @@ float cb_infamy_country_modifier(sys::state& state, dcon::nation_id target) {
 	return std::clamp(math::sqrt(country_population / (total_population / total_countries)), 0.5f, 2.0f);
 }
 
+/* New logic for conquest infamy: take `demand state` infamy and multiply it by the proportion of the target nation population to the states average
+Basically conquest costs the same as conquering every state of the country */
+float cb_infamy_conquest_modifier(sys::state& state, dcon::nation_id target) {
+	if(target == dcon::nation_id{}) {
+		assert(false && "This shouldn't happen");
+		return 10.0f; // Default cap for infamy price
+	}
+
+	float country_population = state.world.nation_get_demographics(target, demographics::total);
+
+	float total_population = 0.f;
+	auto total_states = 0;
+
+	auto target_civilized = state.world.nation_get_is_civilized(target);
+
+	for(auto s : state.world.in_state_instance) {
+		/* Use correct reference group for average country population calculation.
+		Civs are compared vs civs and uncivs vs uncivs as they have just too big a difference in averages.*/
+		auto n = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto is_civilized = state.world.nation_get_is_civilized(n);
+
+		if(target_civilized != is_civilized) {
+			continue;
+		}
+		auto s_pop = state.world.state_instance_get_demographics(s, demographics::total);
+		total_population += s_pop;
+		total_states += (s_pop > 0) ? 1 : 0;
+	}
+
+	return std::clamp(math::sqrt(country_population / (total_population / total_states)), 0.5f, 10.0f);
+}
+
 float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::state_definition_id cb_state) {
 	if(cb_state == dcon::state_definition_id{}) {
 		// assert(false && "This shouldn't happen");
@@ -1509,7 +1683,7 @@ float cb_infamy_state_modifier(sys::state& state, dcon::nation_id target, dcon::
 		total_population += s_pop;
 		total_states += (s_pop > 0) ? 1 : 0;
 
-		if(s.get_definition() == cb_state) {
+		if(s.get_definition() == cb_state && s.get_nation_from_state_ownership() == target) {
 			state_population = s_pop;
 		}
 	}
@@ -1531,7 +1705,7 @@ float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, d
 		total += state.defines.infamy_gunboat * cb_infamy_country_modifier(state, target);
 	}
 	if((bits & cb_flag::po_annex) != 0) {
-		total += state.defines.infamy_annex * cb_infamy_country_modifier(state, target);
+		total += state.defines.infamy_demand_state * cb_infamy_conquest_modifier(state, target);
 	}
 	if((bits & cb_flag::po_make_puppet) != 0) {
 		total += state.defines.infamy_make_puppet * cb_infamy_country_modifier(state, target);
@@ -2238,6 +2412,23 @@ int32_t count_navies(sys::state& state, dcon::nation_id n) {
 	return int32_t(x.end() - x.begin());
 }
 
+float calculate_monthly_leadership_points(sys::state& state, dcon::nation_id n) {
+	if(state.world.nation_get_owned_province_count(n) == 0) {
+		return 0.f;
+	}
+	// % of officers in the population
+	auto optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers);
+	auto ofrac = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.officers)) / state.world.nation_get_demographics(n, demographics::total);
+	// How much leadership these officers generate PRE national modifiers
+	// officer_leadership_points is `leadership = 3` from poptypes/officers.txt
+	auto omod = std::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points) / state.defines.alice_leadership_generation_divisor;
+	// Calculate national modifiers
+	auto nmod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::leadership_modifier) + 1.0f) *
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::leadership);
+
+	return state.world.nation_get_leadership_points(n) + omod + nmod;
+}
+
 void monthly_leaders_update(sys::state& state) {
 	/*
 	- A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount +
@@ -2246,9 +2437,13 @@ void monthly_leaders_update(sys::state& state) {
 
 	state.world.execute_serial_over_nation(
 			[&, optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers)](auto ids) {
+				// % of officers in the population
 				auto ofrac = state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.officers)) /
 										 ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f);
-				auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points);
+				// How much leadership these officers generate PRE national modifiers
+				// officer_leadership_points is `leadership = 3` from poptypes/officers.txt
+				auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points) / state.defines.alice_leadership_generation_divisor;
+				// Calculate national modifiers
 				auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) *
 										state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
 
@@ -2256,7 +2451,7 @@ void monthly_leaders_update(sys::state& state) {
 			});
 
 	for(auto n : state.world.in_nation) {
-		if(n.get_leadership_points() > state.defines.leader_recruit_cost * 3.0f) {
+		if(n.get_leadership_points() > state.defines.leader_recruit_cost * 3.0f && state.defines.alice_auto_hire_generals > 0.f) {
 			// automatically make new leader
 			auto new_l = [&]() {
 				auto existing_leaders = count_leaders(state, n);
@@ -2754,21 +2949,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 		new_wg.set_type(type);
 		new_wg.set_war_from_wargoals_attached(wfor);
 	}
-
-	// Adding new wargoal reduce ticking warscore on previous ones to their max limits
-	for(auto wg : state.world.in_wargoal) {
-		auto war = wg.get_war_from_wargoals_attached();
-		if(!war)
-			continue;
-		if(war != wfor)
-			continue;
-		auto attacker_goal = military::is_attacker(state, war, wg.get_added_by());
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
-
-		if(for_attacker == attacker_goal) {
-			wg.get_ticking_war_score() = std::clamp(wg.get_ticking_war_score(), float(-max_score), float(max_score));
-		}
-	}
+	
 
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
 		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target),
@@ -4051,7 +4232,7 @@ void update_ticking_war_score(sys::state& state) {
 				}
 			}
 		}
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag()) * 2.f;
 
 		wg.get_ticking_war_score() =
 			std::clamp(wg.get_ticking_war_score(), -float(max_score), float(max_score));
@@ -5090,6 +5271,12 @@ void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
 	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
 	state.world.leader_set_prestige(l, v);
 }
+
+// Won and lost battles give leadership points to highlight the growing experience of the military high command
+void adjust_leadership_from_battle(sys::state& state, dcon::nation_id n, float value) {
+	state.world.nation_get_leadership_points(n) += value;
+}
+
 void adjust_regiment_experience(sys::state& state, dcon::nation_id n, dcon::regiment_id l, float value) {
 	auto v = state.world.regiment_get_experience(l);
 
@@ -5187,9 +5374,15 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				nations::adjust_prestige(state, a_nation, score / 50.0f);
 				nations::adjust_prestige(state, d_nation, score / -50.0f);
 
-				adjust_leader_prestige(state, a_leader, score / 50.f / 100.f);
-				adjust_leader_prestige(state, b_leader, -score / 50.f / 100.f);
+				adjust_leader_prestige(state, a_leader, score / 100.f);
+				adjust_leader_prestige(state, b_leader, -score / 100.f);
 			}
+
+			// Both victories and losses give leadership points to showcase growing experience of the high command
+			if(a_nation)
+				adjust_leadership_from_battle(state, a_nation, score / state.defines.alice_battle_won_score_to_leadership);
+			if(d_nation)
+				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_lost_score_to_leadership);
 
 			// Report
 			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
@@ -5253,6 +5446,12 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				adjust_leader_prestige(state, a_leader, -score / 50.f / 100.f);
 				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 			}
+
+			// Both victories and losses give leadership points to showcase growing experience of the high command
+			if(a_nation)
+				adjust_leadership_from_battle(state, a_nation, score / state.defines.alice_battle_lost_score_to_leadership);
+			if(d_nation)
+				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_won_score_to_leadership);
 
 			// Report
 			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
@@ -6034,7 +6233,7 @@ void update_land_battles(sys::state& state) {
 				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
 
 				auto att_front_target = def_front[i];
-				if(auto mv = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].maneuver; !att_front_target && mv > 0.0f) {
+				if(auto mv = att_stats.maneuver; !att_front_target && mv > 0.0f) {
 					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
 						if(def_front[i - cnt * 2]) {
 							att_front_target = def_front[i - cnt * 2];
@@ -6099,7 +6298,7 @@ void update_land_battles(sys::state& state) {
 
 				auto def_front_target = att_front[i];
 
-				if(auto mv = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].maneuver; !def_front_target && mv > 0.0f) {
+				if(auto mv = def_stats.maneuver; !def_front_target && mv > 0.0f) {
 					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
 						if(att_front[i - cnt * 2]) {
 							def_front_target = att_front[i - cnt * 2];
