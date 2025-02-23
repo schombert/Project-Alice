@@ -6333,7 +6333,7 @@ void update_land_battles(sys::state& state) {
 		// sorts the reserves by some criteria so the most fit brigades for deployment are pushed to the front of the queue
 		sort_reserves_by_deployment_order(state, reserves);
 
-		// won't use troops from the reserve which are > 10% org, or zero strength
+		// won't use troops from the reserve which > alice_reg_deploy_from_reserve_org, or >= alice_reg_deploy_from_reserve_str
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
