@@ -7629,14 +7629,6 @@ float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
 float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
 	return state.world.ship_get_strength(ship_id);
 }
-dcon::land_battle_id get_province_battle(sys::state& state, dcon::province_id prov) {
-	for(auto b : state.world.province_get_land_battle_location(prov)) {
-		if(b.get_battle() && b.get_location().id == prov) {
-			return b.get_battle();
-		}
-	}
-	return dcon::land_battle_id{};
-}
 
 bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 	for(auto army : state.world.province_get_army_location(location)) {
