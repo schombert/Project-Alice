@@ -347,7 +347,7 @@ overseas;海外
 overseas_pop;位于海外省
 controlled_by_rebel;受叛军控制
 controlled_by;受控于
-state_capital;州府
+state_capital;地区首府
 loc_state_capital;位于首都
 a_truce_with;休战于
 att_population;人口
@@ -1283,7 +1283,7 @@ price_origin;起点价格
 price_target;终点价格
 trade_distance;路线距离
 volume;容量
-actual_volume;每日售出
+actual_volume;当前售出
 max_throughput;运输上限
 trade_margin;税后利润
 unit_upgrade_desc;换到不同兵种。之后强度减少到1%
@@ -1452,3 +1452,14 @@ pop_emigration_attraction_3;目标因素：$x$
 pop_migration_attraction_1;迁移因素：
 pop_migration_attraction_2;地区修正：$x$
 pop_migration_attraction_3;目标因素：$x$
+alice_technology_leadership_points;领导力：
+alice_reserve_reg_count;$x$ 当前有 ?Y$y$?W 预备队在战斗中
+alice_reinforce_battle_mod_top;?Y$x$?W 预备队增援修正：
+alice_reinforce_battle_only_reserve;只有 ?Yreserves?W 可增援
+alice_reinforce_battle_spending_modifier;平均补给率：?Yx$x$.?W
+alice_reinforce_battle_location_modifier;战斗地点平均修正：?Yx$x$.?W
+alice_reinforce_battle_national_modifier;国家和科技平均修正：?Yx$x$.?W
+alice_reinforce_rate_battle_attacker;进攻方每月可增援 $x$ 名士兵。
+alice_reinforce_rate_battle_attacker_none;进攻方无可用增援。
+alice_reinforce_rate_battle_defender;防御方每月可增援 $x$ 名士兵。
+alice_reinforce_rate_battle_defender_none;防御方无可用增援。
