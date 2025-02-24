@@ -6779,7 +6779,9 @@ void update_naval_battles(sys::state& state) {
 
 				auto& targ_ship_exp = state.world.ship_get_experience(tship);
 
-				float org_damage = org_dam_mul * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
+				auto max_org = state.world.nation_get_unit_stats(ship_target_owner, ttype)).default_organisation;
+
+				float org_damage = (org_dam_mul / max_org * 30) * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
 													 (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult /
 													 ((ship_target_stats.defence_or_hull + 1.0f) * (is_attacker ? defender_org_bonus : attacker_org_bonus) *
 															 (1.0f + state.world.nation_get_modifier_values(ship_target_owner,
@@ -7817,12 +7819,15 @@ void recover_org(sys::state& state) {
 		: 1.75f;
 		float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
 		auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
-		auto modified_regen = regen_mod * spending_level / 150.0f;
+		auto navy_regen = regen_mod * spending_level / 150.0f;
 		for(auto reg : ar.get_navy_membership()) {
 			auto c_org = reg.get_ship().get_org();
+			auto unit_type = state.world.ship_get_type(reg.get_ship());
+			auto actual_max_org = state.world.nation_get_unit_stats(in_nation, unit_type).default_organisation;
+			auto ship_regen = navy_regen / actual_max_org * 30;
 			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
 			auto max_org = std::max(c_org, 0.25f + 0.75f * spending_level);
-			reg.get_ship().set_org(std::min(c_org + modified_regen, max_org));
+			reg.get_ship().set_org(std::min(c_org + ship_regen, max_org));
 		}
 	}
 }
