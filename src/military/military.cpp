@@ -6550,11 +6550,39 @@ void update_land_battles(sys::state& state) {
 					}
 				}
 			}
+			// if the attacker backline support brigade is not full, see if a higher str replacement can be found
+			else if(state.world.regiment_get_strength(att_back[i]) < 1.0f) {
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > state.world.regiment_get_strength(att_back[i]) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str &&
+					state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
+						att_back[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
+						break;
+					}
+				}
+			}
 
 			if(!def_back[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
 					if(reserves[j].flags == (reserve_regiment::type_support) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
+						def_back[i] = reserves[j].regiment;
+						std::swap(reserves[j], reserves[reserves.size() - 1]);
+						reserves.pop_back();
+						break;
+					}
+				}
+			}
+			// if the defender backline support brigade is not full, see if a higher str replacement can be found
+			else if(state.world.regiment_get_strength(def_back[i]) < 1.0f) {
+				for(uint32_t j = reserves.size(); j-- > 0;) {
+					if(reserves[j].flags == (reserve_regiment::type_support) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > state.world.regiment_get_strength(def_back[i]) &&
+					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str &&
+					state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 						def_back[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
 						reserves.pop_back();
