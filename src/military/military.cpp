@@ -6196,6 +6196,9 @@ void update_land_battles(sys::state& state) {
 		float attacker_casualties = 0;
 		float defender_casualties = 0;
 
+		// the equation (org_dam_mul / max_org * 30) in the org dmg calculation will cause the org damage to be relative to the defending ship's max org (default_organisation).
+		// the 30 in the equation is to normalize it, as all units starts with a default_organization of 30, it makes sure the org damage is the same as before if +org no tech
+
 		for(int32_t i = 0; i < combat_width; ++i) {
 			// Attackers backline shooting defenders frontline
 			if(att_back[i] && def_front[i]) {
@@ -6211,7 +6214,7 @@ void update_land_battles(sys::state& state) {
 
 				auto& def_exp = state.world.regiment_get_experience(def_front[i]);
 
-				auto def_max_org = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i])).default_organisation;
+				auto def_max_org = def_stats.default_organisation;
 
 				auto str_damage = att_str * str_dam_mul *
 						(att_stats.attack_or_gun_power * 0.1f + 1.0f) * att_stats.support * attacker_mod /
@@ -6264,7 +6267,7 @@ void update_land_battles(sys::state& state) {
 
 				auto def_str = state.world.regiment_get_strength(def_back[i]);
 
-				auto atk_max_org = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i])).default_organisation;
+				auto atk_max_org = att_stats.default_organisation;
 
 				auto str_damage = def_str * str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics)) * (1.f + atk_exp));
 				auto org_damage = def_str * (org_dam_mul / atk_max_org * 30 )* (def_stats.attack_or_gun_power * 0.1f + 1.0f) * def_stats.support * defender_mod / (attacker_org_bonus * def_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::land_organisation)) * (1.f + atk_exp));
@@ -6323,7 +6326,7 @@ void update_land_battles(sys::state& state) {
 
 					auto att_str = state.world.regiment_get_strength(att_front[i]);
 
-					auto def_max_org = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i])).default_organisation;
+					auto def_max_org = def_stats.default_organisation;
 
 					auto str_damage = att_str * str_dam_mul *
 							(att_stats.attack_or_gun_power * 0.1f + 1.0f) * attacker_mod /
@@ -6390,7 +6393,7 @@ void update_land_battles(sys::state& state) {
 
 					auto def_str = state.world.regiment_get_strength(def_front[i]);
 
-					auto atk_max_org = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i])).default_organisation;
+					auto atk_max_org = att_stats.default_organisation;
 
 					auto str_damage = def_str * str_dam_mul * (def_stats.attack_or_gun_power * 0.1f + 1.0f) * defender_mod / ((state.defines.base_military_tactics + state.world.nation_get_modifier_values(tech_att_nation, sys::national_mod_offsets::military_tactics))
 						* (1+ atk_exp));
@@ -6779,7 +6782,10 @@ void update_naval_battles(sys::state& state) {
 
 				auto& targ_ship_exp = state.world.ship_get_experience(tship);
 
-				auto max_org = state.world.nation_get_unit_stats(ship_target_owner, ttype)).default_organisation;
+				// the equation (org_dam_mul / max_org * 30) will cause the org damage to be relative to the defending ship's max org (default_organisation).
+				// the 30 in the equation is to normalize it, as all units starts with a default_organization of 30, it makes sure the org damage is the same as before if no +org tech
+
+				auto max_org = ship_target_stats.default_organisation;
 
 				float org_damage = (org_dam_mul / max_org * 30) * (ship_stats.attack_or_gun_power + (target_is_big ? ship_stats.siege_or_torpedo_attack : 0.0f)) *
 													 (is_attacker ? attacker_mod : defender_mod) * state.defines.naval_combat_damage_org_mult /
@@ -7791,6 +7797,8 @@ void recover_org(sys::state& state) {
 			if(reg.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation() && !is_regiment_in_reserve(state, reg.get_regiment())) {
 				continue;
 			}
+			// the equation reg_regen = army_regen / actual_max_org * 30 will cause the org regen to be relative to the regimen's maximum org (default_organisation).
+			// the 30 in the equation is to normalize it, as all units starts with a default_organization of 30, it makes sure the org regen is the same as before if no +org tech
 			auto unit_type = state.world.regiment_get_type(reg.get_regiment());
 			auto actual_max_org = state.world.nation_get_unit_stats(tech_nation, unit_type).default_organisation;
 			auto reg_regen = army_regen / actual_max_org * 30;
