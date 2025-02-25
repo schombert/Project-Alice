@@ -625,14 +625,67 @@ void initialize(sys::state& state) {
 	state.world.execute_serial_over_market([&](auto mid) {
 		state.world.market_set_income_scale(mid, 1.f);
 	});
+	auto csize = state.world.commodity_size();
+
+	std::vector<float> rgo_efficiency_inputs_amount;
+	rgo_efficiency_inputs_amount.resize(csize + 1);
+	std::vector<int> rgo_efficiency_inputs_count;
+	rgo_efficiency_inputs_count.resize(csize + 1);
+
+	state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+		auto& e_inputs = state.world.factory_type_get_efficiency_inputs(ftid);
+		for(uint32_t i = 0; i < e_inputs.set_size; i++) {
+			rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].value] +=
+				e_inputs.commodity_amounts[i] / state.world.factory_type_get_base_workforce(ftid);
+			rgo_efficiency_inputs_count[e_inputs.commodity_type[i].value] += 1;
+		}
+	});
+
+	// find the two most common efficiency inputs (usually, cement and machine parts)
+	// TODO: add modding support to overwrite this generation
+
+	int most_common_value = -1;
+	int second_most_common_value = -1;
+	int most_common_count = -1;
+	int second_most_common_count = -1;
+
+	for(size_t i = 0; i < rgo_efficiency_inputs_amount.size(); i++) {
+		if(rgo_efficiency_inputs_count[i] >= most_common_count) {
+			second_most_common_value = most_common_value;
+			second_most_common_count = most_common_count;
+
+			most_common_value = int(i);
+			most_common_count = rgo_efficiency_inputs_count[i];
+		}
+	}
+
+	// generate commodity set:
+	economy::commodity_set base_rgo_e_inputs { };
+
+	if(most_common_count > 0) {
+		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ uint8_t(most_common_value - 1) };
+		base_rgo_e_inputs.commodity_amounts[0] =
+			rgo_efficiency_inputs_amount[most_common_value]
+			/ (float)most_common_count;
+	}
+	if(second_most_common_count > 0) {
+		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ uint8_t(second_most_common_value - 1) };
+		base_rgo_e_inputs.commodity_amounts[1] =
+			rgo_efficiency_inputs_amount[second_most_common_value]
+			/ (float)second_most_common_count;
+	}
+
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		state.world.commodity_set_rgo_efficiency_inputs(cid, base_rgo_e_inputs);
+	});
 
 	state.world.for_each_factory([&](dcon::factory_id f) {
 		auto ff = fatten(state.world, f);
-		ff.set_primary_employment(1.0f);
+		ff.set_unqualified_employment(ff.get_size() * 0.2f);
+		ff.set_primary_employment(ff.get_size() * 0.2f);
 	});
 
 	// learn some weights for rgo from initial territories:
-	auto csize = state.world.commodity_size();
 	std::vector<std::vector<float>> per_climate_distribution_buffer(state.world.modifier_size() + 1, std::vector<float>(csize + 1, 0.f));
 	std::vector<std::vector<float>> per_terrain_distribution_buffer(state.world.modifier_size() + 1, std::vector<float>(csize + 1, 0.f));
 	std::vector<std::vector<float>> per_continent_distribution_buffer(state.world.modifier_size() + 1, std::vector<float>(csize + 1, 0.f));

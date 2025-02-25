@@ -363,6 +363,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ rgo_efficiency_inputs }
+		type{ economy::commodity_set }
+		tag{ scenario }
+	}
+	property{
 		name{ artisan_inputs }
 		type{ economy::commodity_set }
 		tag{ scenario }
