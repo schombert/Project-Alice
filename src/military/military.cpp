@@ -6308,10 +6308,16 @@ void update_land_battles(sys::state& state) {
 
 				auto att_front_target = def_front[i];
 				if(auto mv = att_stats.maneuver; !att_front_target && mv > 0.0f) {
-					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
-						if(def_front[i - cnt * 2]) {
-							att_front_target = def_front[i - cnt * 2];
-							break;
+					// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
+					if(i == 1 && mv >= 1.0f && def_front[0]) {
+						att_front_target = def_front[0];
+					}
+					else {
+						for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
+							if(def_front[i - cnt * 2]) {
+								att_front_target = def_front[i - cnt * 2];
+								break;
+							}
 						}
 					}
 				}
@@ -6375,10 +6381,16 @@ void update_land_battles(sys::state& state) {
 				auto def_front_target = att_front[i];
 
 				if(auto mv = def_stats.maneuver; !def_front_target && mv > 0.0f) {
-					for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
-						if(att_front[i - cnt * 2]) {
-							def_front_target = att_front[i - cnt * 2];
-							break;
+					// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
+					if(i == 1 && mv >= 1.0f && att_front[0]) {
+						def_front_target = att_front[0];
+					}
+					else {
+						for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
+							if(att_front[i - cnt * 2]) {
+								def_front_target = att_front[i - cnt * 2];
+								break;
+							}
 						}
 					}
 				}
