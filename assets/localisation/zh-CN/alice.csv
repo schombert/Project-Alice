@@ -1302,8 +1302,9 @@ alice_take_province_5;是 玩家国的
 alice_take_province_6;它不在战时
 alice_take_province_7;它受控
 investment_pool;投资池：?Y$x$?W
-investment_pool_income_1;再投资：?G$x$?W
+investment_pool_income_1;人口再投资：?G$x$?W
 investment_pool_income_2;来自$country$：?G$x$W
+investment_pool_income_3;政府国内投资：?G$x$W
 investment_pool_spending_1;每日损失（0.1%）：?R$x$?W
 investment_pool_spending_2;建设支出：?R$x$?W
 investment_pool_spending_3;转移到：?R$x$?W
@@ -1463,3 +1464,18 @@ alice_reinforce_rate_battle_attacker;进攻方每月可增援 $x$ 名士兵。
 alice_reinforce_rate_battle_attacker_none;进攻方无可用增援。
 alice_reinforce_rate_battle_defender;防御方每月可增援 $x$ 名士兵。
 alice_reinforce_rate_battle_defender_none;防御方无可用增援。
+provid;内容 省份 ID
+used_throughput_tooltip;省份内所有路线用量 ?Y$val$W
+max_throughput_tooltip;省份内路线最大量 ?Y$val$W
+tariff_rate_origin;卖方有效关税率 ?Y$val$
+tariff_rate_target;买方有效关税率 ?Y$val$
+tariff_paid_origin;在卖方支付的关税 ?Y$val$
+tariff_paid_target;在买方支付的关税 ?Y$val$
+transport_cost_total;总运费 ?Y$val$
+transport_cost_per_unit;每单位运费 ?Y$val$
+transportaion_loss;运输中损失 ?Y$val$
+payment_per_unit;每单位买方支付 ?Y$val$
+payment_received_per_unit;每单位卖方收到 ?Y$val$
+merchants_received_per_unit;每单位卖方利润 ?Y$val$
+disallow_naval_trade;海上禁运
+disallow_land_trade;陆上禁运
