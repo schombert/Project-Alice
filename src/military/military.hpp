@@ -102,7 +102,6 @@ struct unit_definition : public sys::unit_variable_stats {
 	economy::commodity_set build_cost;
 	economy::commodity_set supply_cost;
 
-	float maneuver = 0.0f;
 	int32_t colonial_points = 0;
 	int32_t min_port_level = 0;
 	int32_t supply_consumption_score = 0;
@@ -128,7 +127,6 @@ static_assert(sizeof(unit_definition) ==
 	+ sizeof(unit_definition::build_cost)
 	+ sizeof(unit_definition::supply_cost)
 	+ sizeof(unit_definition::colonial_points)
-	+ sizeof(unit_definition::maneuver)
 	+ sizeof(unit_definition::min_port_level)
 	+ sizeof(unit_definition::supply_consumption_score)
 	+ sizeof(unit_definition::icon)
