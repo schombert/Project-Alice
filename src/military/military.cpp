@@ -6296,7 +6296,7 @@ void update_land_battles(sys::state& state) {
 			// Defence backline shooting attackers frontline
 			if(def_back[i]) {
 
-				assert(state.world.regiment_is_valid(def_back[i]) && state.world.regiment_is_valid(att_front[i]));
+				assert(state.world.regiment_is_valid(def_back[i]));
 				auto tech_def_nation = tech_nation_for_regiment(state, def_back[i]);
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_back[i]));
 
@@ -7221,19 +7221,11 @@ void update_movement(sys::state& state) {
 					} else {
 						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
 						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
-							auto port = state.world.province_get_port_to(from);
-							bool hostile_in_port = false;
-							auto controller = a.get_controller_from_army_control();
-							for(auto v : state.world.province_get_navy_location(port)) {
-								if(military::are_at_war(state, controller, v.get_navy().get_controller_from_navy_control())) {
-									hostile_in_port = true;
-									break;
-								}
-							}
-							if(!hostile_in_port) {
-								army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
-							} else {
+							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
 								path.clear();
+							}
+							else {
+								army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							}
 						} else {
 							army_arrives_in_province(state, a, dest,
@@ -7997,8 +7989,8 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
 
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index()) {
-			// if its a sea province
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, our_nation, location, prov)) {
+			// if its a sea province, or a blockaded sea strait
 			return false;
 		}
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
@@ -8071,8 +8063,8 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 	for(auto adj : state.world.province_get_province_adjacency(location)) {
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index()) {
-			// if it is a sea province
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, in_nation, location, prov)) {
+			// if it is a sea province, or a blockaded sea strait, ignore it
 			continue;
 		}
 		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
@@ -8131,7 +8123,9 @@ float calculate_average_battle_supply_spending(sys::state& state, dcon::land_bat
 			}
 		}
 	}
-	assert(count != 0);
+	// fix for crash if the user hovers over the battle right as it ends, count might be 0 and would result in div by zero error
+	if(count == 0)
+		count = 1;
 	return total / count;
 }
 
