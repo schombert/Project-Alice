@@ -338,6 +338,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ is_local }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ money_rgo }
 		type{ bitfield }
 		tag{ scenario }
@@ -402,6 +407,11 @@ object {
 	property{
 		name{ is_luxury_need }
 		type{ bitfield }
+	}
+	property{
+		name{ uses_potentials }
+		type{ bitfield }
+		tag{ scenario }
 	}
 }
 
@@ -1351,6 +1361,12 @@ object {
 	tag{ save }
 
 	property{
+		name{ provid }
+		type{ uint32_t }
+		tag{ scenario }
+	}
+
+	property{
 		name{ name }
 		type{ text_key }
 		tag{ save }
@@ -1525,6 +1541,12 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ rgo_max_size }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	
+	property{
 		name{ rgo_potential }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -1549,12 +1571,23 @@ object {
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+
+	property{
+		name{ factory_limit_was_set_during_scenario_creation }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ factory_max_size }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+
 	property{
 		name{ rgo_profit }
 		type{ float }
 		tag{ save }
 	}
-
 	property { 
 		name{ artisan_score }
 		type{ array{commodity_id}{float} }
@@ -3184,6 +3217,11 @@ object {
 	}
 	property{
 		name{cost}
+		type{int32_t}
+		tag{ scenario }
+	}
+	property{
+		name{leadership_cost}
 		type{int32_t}
 		tag{ scenario }
 	}

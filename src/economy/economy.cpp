@@ -722,7 +722,7 @@ void initialize(sys::state& state) {
 		}
 	}
 
-	if(state.defines.alice_rgo_generate_distribution) {
+	if(state.defines.alice_rgo_generate_distribution > 0.0f) {
 		province::for_each_land_province(state, [&](dcon::province_id p) {
 			auto fp = fatten(state.world, p);
 			//max size of exploitable land:
@@ -2388,15 +2388,17 @@ void run_private_investment(sys::state& state) {
 			auto craved_constructions = estimate_private_investment_construct(state, n, true, est_private_const_spending);
 			
 			for(auto const& r : craved_constructions) {
-				auto new_up = fatten(
-				state.world,
-				state.world.force_create_factory_construction(r.province, r.nation)
-				);
+				if(economy::do_resource_potentials_allow_construction(state, r.nation, r.province, r.type)) {
+					auto new_up = fatten(
+					state.world,
+					state.world.force_create_factory_construction(r.province, r.nation)
+					);
 
-				new_up.set_is_pop_project(r.is_pop_project);
-				new_up.set_is_upgrade(r.is_upgrade);
-				new_up.set_type(r.type);
-				est_private_const_spending += r.cost;
+					new_up.set_is_pop_project(r.is_pop_project);
+					new_up.set_is_upgrade(r.is_upgrade);
+					new_up.set_type(r.type);
+					est_private_const_spending += r.cost;
+				}
 			}
 
 			/*
@@ -2418,15 +2420,17 @@ void run_private_investment(sys::state& state) {
 			auto constructions = estimate_private_investment_construct(state, n, false, est_private_const_spending);
 
 			for(auto const& r : constructions) {
-				auto new_up = fatten(
-				state.world,
-				state.world.force_create_factory_construction(r.province, r.nation)
-				);
+				if(economy::do_resource_potentials_allow_construction(state, r.nation, r.province, r.type)) {
+					auto new_up = fatten(
+					state.world,
+					state.world.force_create_factory_construction(r.province, r.nation)
+					);
 
-				new_up.set_is_pop_project(r.is_pop_project);
-				new_up.set_is_upgrade(r.is_upgrade);
-				new_up.set_type(r.type);
-				est_private_const_spending += r.cost;
+					new_up.set_is_pop_project(r.is_pop_project);
+					new_up.set_is_upgrade(r.is_upgrade);
+					new_up.set_type(r.type);
+					est_private_const_spending += r.cost;
+				}
 			}
 
 			auto province_constr = estimate_private_investment_province(state, n, est_private_const_spending);
@@ -2692,10 +2696,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
 		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
+		auto same_nation = controller_capital_A == controller_capital_B;
+
+		// Ban international sea routes or international land routes based on the corresponding modifiers
+		auto A_bans_sea_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
+		auto B_bans_sea_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
+		auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
+		auto A_bans_land_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_land_trade) > 0.f;
+		auto B_bans_land_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_land_trade) > 0.f;
+		auto land_trade_banned = A_bans_land_trade || B_bans_land_trade;
+		auto trade_banned = (is_sea_route && sea_trade_banned && !same_nation) || (is_land_route && land_trade_banned && !same_nation);
 
 		is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
-
-		auto same_nation = controller_capital_A == controller_capital_B;
 
 		// sphere joins embargo
 		// subject joins embargo
@@ -2776,7 +2788,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 
 		for(auto c : state.world.in_commodity) {
-			if(state.world.commodity_get_money_rgo(c)) {
+			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
 				continue;
 			}
 
@@ -2811,7 +2823,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			change = ve::select(
 				at_war
 				|| A_joins_sphere_wide_embargo
-				|| B_joins_sphere_wide_embargo,
+				|| B_joins_sphere_wide_embargo
+				|| trade_banned,
 				-current_volume,
 				change
 			);
@@ -3199,6 +3212,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					go_bankrupt(state, n);
 					spending_scale = 0.f;
 				}
+				// Interest payments
 				if(ip > 0) {
 					sp -= ip;
 					state.world.nation_get_national_bank(n) += ip;
@@ -3231,15 +3245,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_get_stockpiles(n, economy::money) -= std::min(budget, total * spending_scale);
 			state.world.nation_set_spending_level(n, spending_scale);
 
-			auto s = state.world.nation_get_stockpiles(n, economy::money);
-			auto l = state.world.nation_get_local_loan(n);
-			if(s < 0 && l < max_loan(state, n) &&
-				std::abs(s) <= max_loan(state, n) - l) {
+			auto& s = state.world.nation_get_stockpiles(n, economy::money);
+			auto& l = state.world.nation_get_local_loan(n);
+
+			// Take loan
+			if(s < 0 && l < max_loan(state, n) && std::abs(s) <= max_loan(state, n) - l) {
 				state.world.nation_get_local_loan(n) += std::abs(s);
 				state.world.nation_set_stockpiles(n, economy::money, 0);
 			} else if(s < 0) {
 				// Nation somehow got into negative bigger than its loans allow
 				go_bankrupt(state, n);
+			// Repay loan
 			} else if(s > 0 && l > 0) {
 				auto change = std::min(s, l);
 				state.world.nation_get_local_loan(n) -= change;
@@ -5643,7 +5659,7 @@ float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
 
 
 
-float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
+float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n) {
 	auto total = 0.f;
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
@@ -5671,6 +5687,10 @@ float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
 			);
 	});
 	return total;
+}
+
+float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n) {
+	return estimate_max_domestic_investment(state, n) * float(state.world.nation_get_domestic_investment_spending(n)) / 10000.0f;
 }
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n) {
@@ -6452,6 +6472,115 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_private_investment(n) * 0.001f;
+}
+
+// Does this commodity has any factory using potentials mechanic
+// Since in vanilla there are no such factories, it will return false.
+bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c) {
+	for(auto type : state.world.in_factory_type) {
+		auto output = type.get_output();
+		if(output == c && output.get_uses_potentials()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+float calculate_province_factory_limit(sys::state& state, dcon::province_id pid, dcon::commodity_id c) {
+	return state.world.province_get_factory_max_size(pid, c);
+}
+
+float calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c) {
+	float result = 0.f;
+	province::for_each_province_in_state_instance(state, sid, [&](dcon::province_id pid) {
+		result += calculate_province_factory_limit(state, pid, c);
+	});
+	return result;
+}
+
+float calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c) {
+	float res = 0;
+	for(auto p : state.world.in_province) {
+		if(p.get_nation_from_province_ownership() != nid) {
+			continue;
+		}
+
+		if(p.get_factory_limit_was_set_during_scenario_creation()) {
+			res += calculate_province_factory_limit(state, p, c);
+		}
+	}
+
+	return res;
+}
+
+bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
+	/* If mod uses Factory Province limits */
+	auto output = state.world.factory_type_get_output(type);
+	auto limit = economy::calculate_province_factory_limit(state, location, output);
+
+	if(!output.get_uses_potentials()) {
+		return true;
+	}
+		
+	// Is there a potential for this commodity limit?
+	if(limit <= 0) {
+		return false;
+	}
+
+	return true;
+}
+
+bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
+	/* If mod uses Factory Province limits */
+	auto output = state.world.factory_type_get_output(type);
+	auto limit = economy::calculate_province_factory_limit(state, location, output);
+
+	if(!output.get_uses_potentials()) {
+		return true;
+	}
+
+	// Will upgrade put us over the limit?
+	auto existing_levels = 0.f;
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == type) {
+			existing_levels += f.get_factory().get_size();
+		}
+		if(existing_levels + state.world.factory_type_get_base_workforce(type) > limit) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target) {
+	/* If mod uses Factory Province limits */
+	auto output = state.world.factory_type_get_output(from);
+	auto limit = economy::calculate_province_factory_limit(state, location, output);
+
+	if(!output.get_uses_potentials()) {
+		return true;
+	}
+
+	auto refit_levels = 0.f;
+	// How many levels changed factory has
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == from) {
+			refit_levels = f.get_factory().get_size();
+		}
+	}
+	// Will that put us over the limit?
+	auto existing_levels = 0.f;
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == from) {
+			existing_levels += f.get_factory().get_size();
+		}
+		if(existing_levels + refit_levels > limit) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 } // namespace economy

@@ -268,10 +268,16 @@ void restore_unsaved_values(sys::state& state); // must run after determining co
 bool is_infantry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 bool is_artillery_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 bool is_cavalry_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_transport_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_light_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
+bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 
 dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
 dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture = false);
 dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false);
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
@@ -367,6 +373,7 @@ ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<
 uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
+float calculate_monthly_leadership_points(sys::state& state, dcon::nation_id nation);
 void monthly_leaders_update(sys::state& state);
 void daily_leaders_update(sys::state& state);
 
@@ -451,6 +458,7 @@ float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
+
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
@@ -473,14 +481,24 @@ void update_siege_progress(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
+uint16_t unit_type_to_reserve_regiment_type(unit_type utype);
+uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
+void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
+bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
+void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
 void recover_org(sys::state& state);
+float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
-float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg);
+float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
+float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
+float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);
+float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_battle_id b, bool attacker);
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg, bool potential_reinf = false);
 float unit_calculate_reinforcement(sys::state& state, dcon::ship_id reg);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);

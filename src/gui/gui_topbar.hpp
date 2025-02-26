@@ -431,7 +431,18 @@ public:
 				text::add_line(state, contents, "farmers_investment_ratio", text::variable_type::x, text::fp_percentage{ farmers_investment_ratio }, 15);
 			}
 		}
-		text::add_line_break_to_layout(state, contents);
+		{
+			auto domestic_investment = economy::estimate_current_domestic_investment(state, state.local_player_nation);
+
+			if(domestic_investment > 0.f) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ domestic_investment });
+				text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "investment_pool_income_3", sub);
+				text::close_layout_box(contents, box);
+			}
+		}
 		{
 			for(auto n : state.world.in_nation) {
 				auto rel = state.world.nation_get_overlord_as_subject(n);
@@ -450,13 +461,14 @@ public:
 						text::substitution_map sub{};
 						text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
 						text::add_to_substitution_map(sub, text::variable_type::country, n);
-						auto box = text::open_layout_box(contents, 15);
+						auto box = text::open_layout_box(contents, 0);
 						text::localised_format_box(state, contents, box, "investment_pool_income_2", sub);
 						text::close_layout_box(contents, box);
 					}
 				}
 			}
 		}
+		
 		text::add_line_break_to_layout(state, contents);
 		{
 			text::substitution_map sub{};
@@ -482,12 +494,10 @@ public:
 			auto province_constr = economy::estimate_private_investment_province(state, state.local_player_nation, est_private_const_spending);
 
 			if(private_constr < 1.f && upgrades.size() == 0 && constructions.size() == 0 && province_constr.size() == 0) {
-				auto rel = state.world.nation_get_overlord_as_subject(state.local_player_nation);
-				auto overlord = state.world.overlord_get_ruler(rel);
-
+				auto subjects = nations::nation_get_subjects(state, state.local_player_nation);
 				auto amt = state.world.nation_get_private_investment(state.local_player_nation) * state.defines.alice_privateinvestment_subject_transfer / 100.f;
 
-				if(!overlord) {
+				if(subjects.size() > 0) {
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ amt });
 					auto box = text::open_layout_box(contents, 15);
@@ -792,17 +802,7 @@ public:
 class topbar_nation_leadership_points_text : public nation_leadership_points_text {
 private:
 	float getResearchPointsFromPop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		/*
-		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
-		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
-		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
-		*/
-		// auto sum =  (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state,
-		// fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum() ));
-		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) /
-			state.world.nation_get_demographics(n, demographics::total)) /
-			state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
-		return sum;
+		return military::calculate_monthly_leadership_points(state, n);
 	}
 
 public:

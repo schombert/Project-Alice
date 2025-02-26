@@ -86,8 +86,9 @@ void update_artisan_production(sys::state& state);
 void update_production_consumption(sys::state& state);
 
 float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float size);
 float factory_output_multiplier_no_secondary_workers(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p);
+float factory_throughput_additional_multiplier(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied);
 
 struct profit_explanation {
 	float inputs;
@@ -136,6 +137,21 @@ float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id
 float factory_output(sys::state& state, dcon::commodity_id c);
 
 // RGO:
+struct rgo_workers_breakdown {
+	float paid_workers;
+	float slaves;
+	float total;
+};
+
+rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_expected_worker_norm_profit(
+	sys::state& state,
+	dcon::province_id p,
+	dcon::market_id m,
+	dcon::nation_id n,
+	dcon::commodity_id c
+);
+
 
 float rgo_income(sys::state& state, dcon::province_id id);
 float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id);

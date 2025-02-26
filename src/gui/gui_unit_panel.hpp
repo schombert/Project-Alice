@@ -1877,7 +1877,7 @@ class unit_type_listbox_entry_label : public button_element_base {
 			if(ut.support > 0) {
 				text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).support, 0));
 			}
-			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(ut.maneuver, 0));
+			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maneuver, 0));
 			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maximum_speed, 2));
 			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).supply_consumption * 100, 0));
 			text::add_line(state, contents, "unit_supply_load", text::variable_type::x, ut.supply_consumption_score);

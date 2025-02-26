@@ -38,6 +38,15 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "shift_to_hold_open");
+
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto type = retrieve<dcon::factory_type_id>(state, parent);
+		/* If mod uses Factory Province limits */
+		auto output = state.world.factory_type_get_output(type);
+		if(state.world.commodity_get_uses_potentials(output)) {
+			auto limit = economy::calculate_state_factory_limit(state, sid, output);
+			text::add_line_with_condition(state, contents, "factory_build_condition_11", limit >= 1);
+		}
 	}
 	void button_shift_action(sys::state& state) noexcept override {
 		auto pid = retrieve<dcon::province_id>(state, parent);
@@ -220,6 +229,14 @@ public:
 			ui::trigger_description(state, contents, b3, trigger::to_generic(sid), trigger::to_generic(n), 0);
 		}
 		text::add_line(state, contents, "alice_factory_total_bonus", text::variable_type::x, text::fp_four_places{ sum });
+
+		/* If mod uses Factory Province limits */
+		auto output = state.world.factory_type_get_output(content);
+		if(state.world.commodity_get_uses_potentials(output)) {
+			auto limit = economy::calculate_state_factory_limit(state, sid, output);
+
+			text::add_line_with_condition(state, contents, "factory_build_condition_11", 1 <= limit);
+		}
 	}
 };
 

@@ -885,7 +885,7 @@ float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dc
 		));
 }
 
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s) {
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float size) {
 	auto output = state.world.factory_type_get_output(fac_type);
 	auto national_t = state.world.nation_get_factory_goods_throughput(n, output);
 	auto provincial_fac_t = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_throughput);
@@ -894,7 +894,8 @@ float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_
 	auto result = 1.f
 		* std::max(0.f, 1.f + national_t)
 		* std::max(0.f, 1.f + provincial_fac_t)
-		* std::max(0.f, 1.f + nationnal_fac_t);
+		* std::max(0.f, 1.f + nationnal_fac_t)
+		* (1.f + size / state.world.factory_type_get_base_workforce(fac_type) / 100.f);
 
 	return production_throughput_multiplier * result;
 }
@@ -1042,7 +1043,7 @@ factory_update_data imitate_single_factory_consumption(
 	//modifiers
 	float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
 	auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s);
+	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s, fac.get_size());
 	float output_multiplier = factory_output_multiplier_no_secondary_workers(state, fac, n, p);
 
 	auto& direct_inputs = fac_type.get_inputs();
@@ -1097,7 +1098,7 @@ void update_single_factory_consumption(
 	//modifiers
 	float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
 	auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s);
+	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s, fac.get_size());
 	float output_multiplier = factory_output_multiplier_no_secondary_workers(state, fac, n, p);
 
 	auto& direct_inputs = fac_type.get_inputs();

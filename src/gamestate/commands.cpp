@@ -626,6 +626,21 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 	}
 
+	/* If mod uses Factory Province limits */
+	if(is_upgrade) {
+		if(!economy::do_resource_potentials_allow_upgrade(state, source, location, type)) {
+			return false;
+		}
+	} else if(refit_target) {
+		if(!economy::do_resource_potentials_allow_refit(state, source, location, type, refit_target)) {
+			return false;
+		}
+	} else {
+		if(!economy::do_resource_potentials_allow_construction(state, source, location, type)) {
+			return false;
+		}
+	}
+
 	if(is_upgrade) {
 		// no double upgrade
 		for(auto p : state.world.province_get_factory_construction(location)) {
@@ -2748,7 +2763,7 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	//	return false;
 
 	// Asker and target must be in a subject relation
-	if(state.defines.alice_state_transfer_limits) {
+	if(state.defines.alice_state_transfer_limits > 0.0f) {
 		auto ol2 = state.world.nation_get_overlord_as_subject(target);
 		if(state.world.overlord_get_ruler(ol) != target && state.world.overlord_get_ruler(ol2) != asker)
 			return false;
@@ -3471,13 +3486,19 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 
 		if(containseverywargoal) {
 			military::implement_peace_offer(state, pending_offer);
+
+			if(target == state.local_player_nation) {
+				sound::play_interface_sound(state, sound::get_enemycapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			}
 		}
 	}
-
 	// A peace offer must be accepted when war score reaches 100.
-	if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
-
+	else if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
 		military::implement_peace_offer(state, pending_offer);
+
+		if(target == state.local_player_nation) {
+			sound::play_interface_sound(state, sound::get_wecapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
 	}
 	else {
 		diplomatic_message::message m;
@@ -5975,6 +5996,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::grant_province:
 		return false;
+	case command_type::network_populate:
+		return false;
 	}
 	return false;
 }
@@ -6367,6 +6390,8 @@ void execute_command(sys::state& state, payload& c) {
 		execute_console_command(state);
 		break;
 	case command_type::grant_province:
+		break;
+	case command_type::network_populate:
 		break;
 	}
 }

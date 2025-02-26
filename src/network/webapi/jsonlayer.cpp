@@ -240,6 +240,7 @@ json format_province(sys::state& state, dcon::province_id prov) {
 
 	j["id"] = prov.index();
 	j["name"] = province_name;
+	j["provid"] = state.world.province_get_provid(prov);
 
 	j["owner"] = format_nation_link(state, owner);
 	j["state"] = format_state_link(state, sid);
@@ -249,6 +250,22 @@ json format_province(sys::state& state, dcon::province_id prov) {
 	j["population"]["aristocrat"] = num_aristocrat;
 
 	j["rgo"] = text::produce_simple_string(state, state.world.commodity_get_name(rgo));
+
+	json jlist = json::array();
+	for(const auto adj : state.world.province_get_province_adjacency(prov)) {
+		auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == prov ? 1 : 0);
+		auto jobj = format_province_link(state, other);
+		jobj["is_coastal"] = (adj.get_type() & province::border::coastal_bit) != 0;
+		jobj["is_passable"] = (adj.get_type() & province::border::impassible_bit) == 0;
+		jobj["is_strait"] = (adj.get_type() & province::border::non_adjacent_bit) != 0;
+		jobj["cross_river"] = (adj.get_type() & province::border::river_crossing_bit) != 0;
+		jobj["change_state"] = (adj.get_type() & province::border::state_bit) != 0;
+		jobj["change_nation"] = (adj.get_type() & province::border::national_bit) != 0;
+
+		jlist.push_back(jobj);
+	}
+
+	j["neighbours"] = jlist;
 
 	return j;
 }

@@ -42,7 +42,7 @@ std::string SHA512::hash(const std::string input) {
 	uint64** buffer; // message block buffers (each 1024-bit = 16 64-bit words)
 	uint64* h = new uint64[HASH_LEN]; // buffer holding the message digest (512-bit = 8 64-bit words)
 
-	buffer = preprocess((unsigned char*)input.c_str(), nBuffer);
+	buffer = preprocess((unsigned const char*)input.c_str(), nBuffer);
 	process(buffer, nBuffer, h);
 
 	freeBuffer(buffer, nBuffer);

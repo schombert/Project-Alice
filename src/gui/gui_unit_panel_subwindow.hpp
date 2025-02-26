@@ -189,8 +189,8 @@ public:
 				text::variable_type::current, int64_t(reg_range.end() - reg_range.begin())
 			);
 
-			auto a = state.world.regiment_get_army_from_army_membership(reg_id);
-			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce(state, a);
+			//auto a = state.world.regiment_get_army_from_army_membership(reg_id);
+			auto reinf = state.defines.pop_size_per_regiment * military::unit_calculate_reinforcement(state, reg_id, true);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {

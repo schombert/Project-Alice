@@ -87,6 +87,9 @@ audio_instance& get_decision_sound(sys::state& state);
 audio_instance& get_pause_sound(sys::state& state);
 audio_instance& get_unpause_sound(sys::state& state);
 
+audio_instance& get_enemycapitulated_sound(sys::state& state);
+audio_instance& get_wecapitulated_sound(sys::state& state);
+
 audio_instance& get_random_land_battle_sound(sys::state& state);
 audio_instance& get_random_naval_battle_sound(sys::state& state);
 audio_instance& get_random_province_select_sound(sys::state& state);

@@ -331,6 +331,10 @@ void province_history_file::rgo_distribution_add(province_rgo_ext_2 const& value
 	return;
 }
 
+void province_history_file::factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context) {
+	return;
+}
+
 void province_history_file::owner(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
@@ -470,6 +474,32 @@ void province_rgo_ext_2::entry(province_rgo_ext_2_desc const& value, error_handl
 		auto p = context.id;
 		context.outer_context.state.world.province_set_rgo_size(p, value.trade_good_id, value.max_employment_value);
 		context.outer_context.state.world.province_set_rgo_potential(p, value.trade_good_id, value.max_employment_value);
+	}
+}
+
+void province_factory_limit_desc::max_level(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	max_level_value = int8_t(value);
+}
+
+void province_factory_limit_desc::trade_good(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+	if(auto it = context.outer_context.map_of_commodity_names.find(std::string(text));
+			it != context.outer_context.map_of_commodity_names.end()) {
+		trade_good_id = it->second;
+	} else {
+		err.accumulated_errors +=
+			std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void province_factory_limit_desc::finish(province_file_context& context) {
+
+};
+
+void province_factory_limit::entry(province_factory_limit_desc const& value, error_handler& err, int32_t line, province_file_context& context) {
+	if(value.trade_good_id) {
+		auto p = context.id;
+		context.outer_context.state.world.province_set_factory_max_size(p, value.trade_good_id, value.max_level_value / 10'000.f);
+		context.outer_context.state.world.province_set_factory_limit_was_set_during_scenario_creation(p, true);
 	}
 }
 

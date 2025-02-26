@@ -29,7 +29,7 @@ enum class alignment_horizontal : uint8_t {
 
 enum class commodity_info_mode : uint8_t {
 	price, supply, demand, balance, trade_in, trade_out, trade_balance,
-	production, consumption, stockpiles,
+	production, consumption, stockpiles, potentials,
 	total
 };
 
@@ -55,6 +55,8 @@ std::string inline localize_commodity_info_mode(commodity_info_mode mode) {
 		return "trade_out";
 	case commodity_info_mode::trade_balance:
 		return "trade_balance";
+	case commodity_info_mode::potentials:
+		return "potentials";
 	case commodity_info_mode::total:
 		return "INVALID";
 	default:

@@ -551,7 +551,9 @@ struct good {
 	void color(color_from_3i v, error_handler& err, int32_t line, good_context& context);
 	void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
 	void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context);
+	void is_local(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context);
+	void uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 
 	void finish(good_context& context);
 };
@@ -872,6 +874,10 @@ public:
 	MOD_NAT_FUNCTION(capitalist_savings)
 	MOD_NAT_FUNCTION(middle_class_savings)
 	MOD_NAT_FUNCTION(farmers_savings)
+
+	MOD_NAT_FUNCTION(disallow_naval_trade)
+	MOD_NAT_FUNCTION(disallow_land_trade)
+
 	template<typename T>
 	void finish(T& context) { }
 
@@ -1062,6 +1068,8 @@ struct building_definition : public modifier_base {
 	int_vector colonial_points;
 	commodity_array goods_cost;
 	bool default_enabled = false;
+	bool is_coastal = false;
+	bool uses_potentials = false;
 	std::string_view production_type;
 	float infrastructure = 0.0f;
 	int32_t colonial_range = 0;
@@ -1562,6 +1570,19 @@ struct province_rgo_ext_2 {
 	void finish(province_file_context&) { }
 };
 
+struct province_factory_limit_desc {
+	dcon::commodity_id trade_good_id;
+	int8_t max_level_value;
+	void max_level(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+	void trade_good(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&);
+};
+
+struct province_factory_limit {
+	void entry(province_factory_limit_desc const& value, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) { }
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1576,6 +1597,7 @@ struct province_history_file {
 	void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution_add(province_rgo_ext_2 const& value, error_handler& err, int32_t line, province_file_context& context);
+	void factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context);
 	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };
@@ -2024,6 +2046,7 @@ struct technology_contents : public modifier_base {
 	void ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context);
 	void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+	void leadership_cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void area(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);

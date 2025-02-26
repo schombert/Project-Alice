@@ -106,6 +106,7 @@ struct crime_info {
 enum class tech_category : uint8_t { army, navy, commerce, culture, industry, military_theory, population, diplomacy, flavor, unknown };
 
 std::string get_tech_category_name(tech_category t);
+std::vector<culture::tech_category> get_active_tech_categories(sys::state& state);
 
 struct folder_info {
 	dcon::text_key name;
@@ -200,7 +201,8 @@ void create_initial_ideology_and_issues_distribution(sys::state& state);
 void set_default_issue_and_reform_options(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
-float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id);
+float effective_technology_lp_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id);
+float effective_technology_rp_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id);
 void update_research(sys::state& state, uint32_t current_year);
 void discover_inventions(sys::state& state);
 void fix_slaves_in_province(sys::state& state, dcon::nation_id owner, dcon::province_id p);

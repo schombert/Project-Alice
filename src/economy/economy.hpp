@@ -171,7 +171,6 @@ bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon:
 //factories
 
 // abstract modifiers
-float factory_throughput_additional_multiplier(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied);
 float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
@@ -195,23 +194,6 @@ void regenerate_unsaved_values(sys::state& state);
 float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
 float farmer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
 float laborer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
-
-struct rgo_workers_breakdown {
-	float paid_workers;
-	float slaves;
-	float total;
-};
-
-rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
-
-
-float rgo_expected_worker_norm_profit(
-	sys::state& state,
-	dcon::province_id p,
-	dcon::market_id m,
-	dcon::nation_id n,
-	dcon::commodity_id c
-);
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage);
 void resolve_constructions(sys::state& state);
@@ -283,7 +265,8 @@ float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n);
-float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
+float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n);
+float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
@@ -367,6 +350,15 @@ float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
 float estimate_investment_pool_daily_loss(sys::state& state, dcon::nation_id n);
+
+bool get_commodity_uses_potentials(sys::state& state, dcon::commodity_id c);
+float calculate_province_factory_limit(sys::state& state, dcon::province_id pid, dcon::commodity_id c);
+float calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c);
+float calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c);
+
+bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type);
+bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type);
+bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target);
 
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);

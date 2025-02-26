@@ -379,6 +379,14 @@ public:
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 		}
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
+		auto output = state.world.factory_type_get_output(type);
+		if(state.world.commodity_get_uses_potentials(output)) {
+			auto limit = economy::calculate_province_factory_limit(state, fat.get_factory_location().get_province(), output);
+			
+			// Will upgrade put us over the limit?
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_11", fat.get_size() + fat.get_building_type().get_base_workforce() <= limit);
+		}
+
 		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "factory_upgrade_shortcuts");
@@ -688,7 +696,7 @@ class normal_factory_background : public opaque_element_base {
 
 		float input_multiplier = economy::factory_input_multiplier(state, fac, n, p, s);
 		float e_input_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s);
+		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s, fac.get_size());
 		float output_multiplier = economy::factory_output_multiplier_no_secondary_workers(state, fac, n, p);
 
 		float bonus_profit_thanks_to_max_e_input = fac.get_building_type().get_output_amount()
@@ -742,7 +750,6 @@ class normal_factory_background : public opaque_element_base {
 		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "factory_stats_5");
-
 
 		float total_expenses = 0.f;
 
@@ -967,6 +974,8 @@ class normal_factory_background : public opaque_element_base {
 		named_money_line("factory_stats_desired_income",
 			desired_income
 		);
+
+		text::add_line(state, contents, "factory_stats_7", text::variable_type::val, text::fp_percentage{ fac.get_size() / fac.get_building_type().get_base_workforce() / 100.f });
 	}
 };
 
