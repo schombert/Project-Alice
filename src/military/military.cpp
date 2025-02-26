@@ -695,6 +695,18 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 bool province_is_blockaded(sys::state const& state, dcon::province_id ids) {
 	return state.world.province_get_is_blockaded(ids);
 }
+// returns true if the specified province is blockaded by an enemy navy (does not nessecarily mean the province in question will receive blockade penalties, just that there is an enemy navy
+bool province_is_blockaded_by_enemy(sys::state& state, dcon::province_id prov, dcon::nation_id thisnation) {
+	assert(state.world.province_get_is_coast(prov)); // should not be called on land provinces ever
+	auto sea_prov = state.world.province_get_port_to(prov);
+	for(auto navy : state.world.province_get_navy_location(sea_prov)) {
+		if(military::are_at_war(state, thisnation, navy.get_navy().get_controller_from_navy_control())) {
+			return true;
+		}
+	}
+	return false;
+	
+}
 
 bool compute_blockade_status(sys::state& state, dcon::province_id p) {
 	auto controller = state.world.province_get_nation_from_province_control(p);
@@ -8032,8 +8044,8 @@ float calculate_location_reinforce_modifier_no_battle(sys::state& state, dcon::p
 
 			location_modifier = 0.5f;
 		}
-		// if its coastal, give 25%
-		else if(state.world.province_get_is_coast(location)) {
+		// if its coastal and not blockaded by the enemy, give 25%
+		else if(state.world.province_get_is_coast(location) && !province_is_blockaded_by_enemy(state, location, in_nation)) {
 			location_modifier = 0.25f;
 		}
 		// if its neither, give 10%
@@ -8146,7 +8158,9 @@ float calculate_average_battle_location_modifier(sys::state& state, dcon::land_b
 			}
 		}
 	}
-	assert(count != 0);
+	// fix for crash if the user hovers over the battle right as it ends, count might be 0 and would result in div by zero error
+	if(count == 0)
+		count = 1;
 	return total / count;
 }
 
@@ -8168,7 +8182,9 @@ float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_
 			}
 		}
 	}
-	assert(count != 0);
+	// fix for crash if the user hovers over the battle right as it ends, count might be 0 and would result in div by zero error
+	if(count == 0)
+		count = 1;
 	return total / count;
 }
 
