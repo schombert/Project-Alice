@@ -6081,9 +6081,11 @@ bool is_regiment_in_reserve(sys::state& state,dcon::regiment_id reg) {
 float unit_get_effective_default_org(sys::state& state, dcon::regiment_id reg) {
 	auto army = state.world.regiment_get_army_from_army_membership(reg);
 	auto type = state.world.regiment_get_type(reg);
-	auto base_org = state.world.nation_get_unit_stats(state.world.army_get_controller_from_army_control(army), type).default_organisation;
+	auto base_org = state.world.nation_get_unit_stats(tech_nation_for_regiment(state, reg), type).default_organisation;
 	auto leader = state.world.army_get_general_from_army_leadership(army);
-	return base_org * ((1.0f + state.world.leader_get_background(leader).get_organisation() + state.world.leader_get_personality(leader).get_organisation()) *
+	auto leader_bg = get_leader_background_wrapper(state, leader);
+	auto leader_per = get_leader_personality_wrapper(state, leader);
+	return base_org * ((1.0f + state.world.leader_trait_get_organisation(leader_bg) + state.world.leader_trait_get_organisation(leader_per)) *
 		   (1.0f + state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_max_org_factor));
 }
 
@@ -6093,7 +6095,9 @@ float unit_get_effective_default_org(sys::state& state, dcon::ship_id ship) {
 	auto type = state.world.ship_get_type(ship);
 	auto base_org = state.world.nation_get_unit_stats(state.world.navy_get_controller_from_navy_control(navy), type).default_organisation;
 	auto leader = state.world.navy_get_admiral_from_navy_leadership(navy);
-	return base_org * ((1.0f + state.world.leader_get_background(leader).get_organisation() + state.world.leader_get_personality(leader).get_organisation()) *
+	auto leader_bg = get_leader_background_wrapper(state, leader);
+	auto leader_per = get_leader_personality_wrapper(state, leader);
+	return base_org * ((1.0f + state.world.leader_trait_get_organisation(leader_bg) + state.world.leader_trait_get_organisation(leader_per)) *
 		   (1.0f + state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_max_org_factor));
 }
 
