@@ -4,17 +4,9 @@
 
 ## Factions
 
-On province screen display the most powerful local party similarly to EU4 estate.
-
-When local admin efficiency is <100% nation fails to collect some taxes.
-
-10% of these taxes are paid to party coffers (bribes to local parteigenosse).
-
-With this money, parties
-
-1) Industry in province Y supports ideology Z
-2) Investors X in province Y pay some 10% of uncollected taxes into party Z coffers
-3) Party Z spends that money to ask for concessions to help industry X in province Y
+1) Industry X supports ideology Y and has loyalty equillibrium
+2) The State can introduce extra taxes on Industry X that will turn them to opposition
+3) The State can reduce taxes on Industry X that will make them pro-Government
 
 Potential types of concessions:
 1. Party pays into treasury for a decrease of local taxes
