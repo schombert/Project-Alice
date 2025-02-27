@@ -8,6 +8,8 @@ namespace economy {
 std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::province_id p) {
 	std::vector<province_tile> tiles = std::vector<province_tile>(64);
 
+	auto owner = state.world.province_get_nation_from_province_ownership(p);
+
 	int curind = 0;
 
 	// Main province RGOs
@@ -18,7 +20,10 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 
 	// Secondary RGOs
 	for(auto c : state.world.in_commodity) {
-		if(state.world.province_get_rgo_max_size_per_good(p, c) > 1000) {
+		if(c == state.world.province_get_rgo(p)) {
+			continue;
+		}
+		if(economy::rgo_max_employment(state, owner, p, c) > 500.f) {
 			tiles[curind].rgo_commodity = c;
 			tiles[curind].empty = false;
 			tiles[curind].province = p;
