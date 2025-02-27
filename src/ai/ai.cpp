@@ -1228,9 +1228,11 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				auto& constr_cost = type.get_construction_costs();
 				auto lacking_constr = false;
 
+				// If there is absolute deficit of construction goods, don't build for now
+				// However, we're interested in this market signal only if there are any transactions happening
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
@@ -1269,9 +1271,11 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				auto& constr_cost = type.get_construction_costs();
 				auto lacking_constr = false;
 
+				// If there is absolute deficit of construction goods, don't build for now
+				// However, we're interested in this market signal only if there are any transactions happening
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
