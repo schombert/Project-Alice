@@ -1117,8 +1117,7 @@ void update_single_factory_consumption(
 		state, fac.get_province_from_factory_location(),
 		fac.get_unqualified_employment(), fac.get_primary_employment(), fac.get_secondary_employment(),
 		float(fac_type.get_base_workforce())
-	) * mobilization_impact;
-
+	) * std::max(0.f, mobilization_impact);
 	auto total_employment = fac.get_unqualified_employment() + fac.get_primary_employment() + fac.get_secondary_employment();
 
 	auto data = consume(
@@ -1154,6 +1153,11 @@ void update_single_factory_consumption(
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
 	} else if(actual_profit < 0) {
 		state.world.factory_set_size(fac, std::max(500.f, current_size - base_size * expansion_scale));
+	}
+
+	if(state.world.commodity_get_uses_potentials(fac_type.get_output())) {
+		auto new_size = state.world.factory_get_size(fac);
+		state.world.factory_set_size(fac, std::min(new_size, state.world.province_get_factory_max_size(p, fac_type.get_output())));
 	}
 
 	fac.set_unprofitable(actual_profit <= 0.0f);
@@ -1197,8 +1201,10 @@ void update_single_factory_production(
 
 
 // currently rgos consume only labor and efficiency goods
-void update_rgo_consumption(sys::state& state,
-	dcon::province_id p
+void update_rgo_consumption(
+	sys::state& state,
+	dcon::province_id p,
+	float mobilization_impact
 ) {
 	auto n = state.world.province_get_nation_from_province_ownership(p);
 	auto sid = state.world.province_get_state_membership(p);
@@ -1217,7 +1223,8 @@ void update_rgo_consumption(sys::state& state,
 		auto free_efficiency = max_efficiency * 0.1f;
 		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
 		auto workers = state.world.province_get_rgo_target_employment(p, c)
-			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education);
+			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+			* mobilization_impact;
 		auto per_worker = state.world.commodity_get_rgo_amount(c)
 			* state.world.province_get_rgo_efficiency(p, c)
 			/ state.defines.alice_rgo_per_size_employment;
@@ -1267,6 +1274,8 @@ void update_rgo_consumption(sys::state& state,
 		auto spent_on_efficiency = demand_scale * workers * e_inputs_data.total_cost * e_inputs_data.min_available;
 
 		state.world.province_get_rgo_profit(p) -= wages + spent_on_efficiency;
+		state.world.province_set_rgo_output(p, c, amount);
+		state.world.province_set_rgo_output_per_worker(p, c, per_worker);
 	});
 }
 
@@ -1280,15 +1289,8 @@ void update_province_rgo_production(
 		if(state.world.commodity_get_rgo_amount(c) < 0.f) {
 			return;
 		}
-		auto workers = state.world.province_get_rgo_target_employment(p, c)
-			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education);
-		auto per_worker = state.world.commodity_get_rgo_amount(c)
-			* state.world.province_get_rgo_efficiency(p, c)
-			/ state.defines.alice_rgo_per_size_employment;
-		auto amount = workers * per_worker;
-		state.world.province_set_rgo_output(p, c, amount);
-		state.world.province_set_rgo_output_per_worker(p, c, per_worker);
-		register_domestic_supply(state, m, c, amount, economy_reason::rgo);		
+		auto amount = state.world.province_get_rgo_output(p, c);
+		register_domestic_supply(state, m, c, amount, economy_reason::rgo);
 		if(state.world.commodity_get_money_rgo(c)) {
 			assert(
 				std::isfinite(
@@ -1505,20 +1507,20 @@ void update_employment(sys::state& state) {
 
 		auto unqualified_next = unqualified
 			+ ve::min(0.01f * state.world.factory_get_size(facids),
-				ve::max(-0.05f * state.world.factory_get_size(facids),
-					10'000.f * gradient.primary[0]
+				ve::max(-0.04f * state.world.factory_get_size(facids),
+					100.f * gradient.primary[0]
 				)
 			);
 		auto primary_next = primary
 			+ ve::min(0.01f * state.world.factory_get_size(facids),
-				ve::max(-0.05f * state.world.factory_get_size(facids),
-					10'000.f * gradient.primary[1]
+				ve::max(-0.04f * state.world.factory_get_size(facids),
+					100.f * gradient.primary[1]
 				)
 			);
 		auto secondary_next = secondary
 			+ ve::min(0.01f * state.world.factory_get_size(facids),
-				ve::max(-0.05f * state.world.factory_get_size(facids),
-					10'000.f * gradient.secondary
+				ve::max(-0.04f * state.world.factory_get_size(facids),
+					100.f * gradient.secondary
 				)
 			);
 
@@ -1666,7 +1668,7 @@ void update_production_consumption(sys::state& state) {
 								state.world.province_get_nation_from_province_control(p) != n // is occupied
 							);
 						}
-						update_rgo_consumption(state, p);
+						update_rgo_consumption(state, p, mob_impact);
 					});
 				}, states, markets, nations, mobilization_impact
 		);

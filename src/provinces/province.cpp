@@ -1681,6 +1681,21 @@ void remove_core(sys::state& state, dcon::province_id prov, dcon::national_ident
 void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 	auto old_rgo = state.world.province_get_rgo(prov);
 	state.world.province_set_rgo(prov, c);
+	auto next_size = state.world.province_get_rgo_base_size(prov) * 0.4f;
+	float pop_amount = 0.0f;
+	for(auto pt : state.world.in_pop_type) {
+		if(pt == state.culture_definitions.slaves) {
+			pop_amount += state.world.province_get_demographics(prov, demographics::to_key(state, state.culture_definitions.slaves));
+		} else if(pt.get_is_paid_rgo_worker()) {
+			pop_amount += state.world.province_get_demographics(prov, demographics::to_key(state, pt));
+		}
+	}
+	if(pop_amount * 5.f < next_size) {
+		next_size = pop_amount * 5.f;
+	}
+	state.world.province_get_rgo_size(prov, c) += next_size;
+	state.world.province_get_rgo_max_size(prov, c) += next_size;
+	state.world.province_set_rgo_efficiency(prov, 1.f);
 	if(state.world.commodity_get_is_mine(old_rgo) != state.world.commodity_get_is_mine(c)) {
 		if(state.world.commodity_get_is_mine(c)) {
 			for(auto pop : state.world.province_get_pop_location(prov)) {
