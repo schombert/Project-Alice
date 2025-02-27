@@ -750,15 +750,15 @@ inline table::column<dcon::commodity_id> trade_good_player_production_artisan = 
 	.sortable = true,
 	.header = "artisan_production",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		auto av = economy::artisan_output(state, a);
-		auto bv = economy::artisan_output(state, b);
+		auto av = economy::artisan_output(state, a, state.local_player_nation);
+		auto bv = economy::artisan_output(state, b, state.local_player_nation);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
-		auto value = economy::artisan_output(state, id);
+		auto value = economy::artisan_output(state, id, state.local_player_nation);
 		return text::format_float(value);
 	}
 };

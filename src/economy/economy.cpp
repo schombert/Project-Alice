@@ -2818,8 +2818,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto max_change = 10.f + absolute_volume * 0.1f;
 			auto change = ve::select(current_profit_A_to_B > 0.f, current_profit_A_to_B / price_B_import, 0.f);
 			change = ve::select(current_profit_B_to_A > 0.f, -current_profit_B_to_A / price_A_import, change);
-			change = ve::min(ve::max(10.f * change, -max_change), max_change);
-			change = ve::select(none_is_profiable, -current_volume, change);
+			change = ve::min(ve::max(5.f * change, -max_change), max_change);
+			change = ve::select(none_is_profiable, -current_volume * 0.1f, change);
 			change = ve::select(
 				at_war
 				|| A_joins_sphere_wide_embargo

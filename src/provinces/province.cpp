@@ -1695,7 +1695,7 @@ void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 	}
 	state.world.province_get_rgo_size(prov, c) += next_size;
 	state.world.province_get_rgo_max_size(prov, c) += next_size;
-	state.world.province_set_rgo_efficiency(prov, 1.f);
+	state.world.province_set_rgo_efficiency(prov, c, 1.f);
 	if(state.world.commodity_get_is_mine(old_rgo) != state.world.commodity_get_is_mine(c)) {
 		if(state.world.commodity_get_is_mine(c)) {
 			for(auto pop : state.world.province_get_pop_location(prov)) {

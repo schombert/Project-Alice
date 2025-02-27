@@ -143,7 +143,7 @@ float max_rgo_efficiency(sys::state& state, dcon::nation_id n, dcon::province_id
 	float result = base_amount
 		* main_rgo
 		* std::max(0.5f, throughput)
-		* state.defines.alice_rgo_boost
+		* state.defines.alice_rgo_boost * 10.f // compensation for efficiency being not free now
 		* std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
 			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output) +
 			state.world.nation_get_rgo_goods_output(n, c)));
@@ -1221,39 +1221,38 @@ void update_rgo_consumption(
 
 		auto max_efficiency = max_rgo_efficiency(state, n, p, c);
 		auto free_efficiency = max_efficiency * 0.1f;
-		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
-		auto workers = state.world.province_get_rgo_target_employment(p, c)
-			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
-			* mobilization_impact;
-		auto per_worker = state.world.commodity_get_rgo_amount(c)
-			* state.world.province_get_rgo_efficiency(p, c)
-			/ state.defines.alice_rgo_per_size_employment;
-		auto amount = workers * per_worker;
+		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);		
 		auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
-
 		auto e_inputs_data = get_inputs_data(state, m, e_inputs);
-
 		// we try to update our efficiency according to current profit derivative
 		// if higher efficiency brings profit, we increase it
-
 		// 10% of max efficiency is free
 		auto cost_derivative = 0.f;
 		if(current_efficiency > free_efficiency) {
 			cost_derivative = e_inputs_data.total_cost;
 		}
-		auto profit_derivative = per_worker * state.world.market_get_price(m, c) * state.world.market_get_supply_sold_ratio(m, c);
-		auto efficiency_growth = 0.1f * (profit_derivative - cost_derivative);
-
-		// for now we assume that we can maintain efficiency even when there is not enough goods on the market
-		// so we decrease it only if decreasing efficiency is profitable
-		// but to increase efficiency, there should be enough of them on the local market
-		if(efficiency_growth > 0.f) {
+		auto profit_derivative =
+			state.world.commodity_get_rgo_amount(c)
+			/ state.defines.alice_rgo_per_size_employment
+			* state.world.market_get_price(m, c)
+			* state.world.market_get_supply_sold_ratio(m, c);
+		auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
+		// we assume that we can maintain efficiency even when there is not enough goods on the market:
+		// efficiency goods are "preserved" (but still demanded to "update")
+		// it's very risky to decrease efficiency depending on available efficiency goods directly
+		// because it might lead to instability cycles
+		// there is some natural decay of efficiency
+		// we decrease efficiency outside of decay only if decreasing efficiency is profitable
+		// but to increase efficiency, there should be enough of goods on the local market unless it's a free efficiency
+		if(efficiency_growth > 0.f && current_efficiency > free_efficiency) {
 			efficiency_growth = efficiency_growth * e_inputs_data.min_available;
 		}
-
-		auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency + efficiency_growth));
+		auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
 		state.world.province_set_rgo_efficiency(p, c, new_efficiency);
 
+		auto workers = state.world.province_get_rgo_target_employment(p, c)
+			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+			* mobilization_impact;
 		auto demand_scale = workers * std::max(new_efficiency - free_efficiency, 0.f);
 
 		register_inputs_demand(state, m, e_inputs, demand_scale, economy_reason::rgo);
@@ -1261,17 +1260,20 @@ void update_rgo_consumption(
 		auto target = state.world.province_get_rgo_target_employment(p, c);
 		state.world.province_get_labor_demand(p, labor::no_education) += target;
 
+		auto per_worker = state.world.commodity_get_rgo_amount(c)
+			* state.world.province_get_rgo_efficiency(p, c)
+			/ state.defines.alice_rgo_per_size_employment;
+		auto amount = workers * per_worker;
+
 		float profit = amount * state.world.market_get_price(m, c) * state.world.market_get_supply_sold_ratio(m, c);
 		if(state.world.commodity_get_money_rgo(c)) {
 			profit = amount * state.world.market_get_price(m, c);
 		}
 		assert(profit >= 0);
 		state.world.province_get_rgo_profit(p) += profit;
-		auto wages =
-			state.world.province_get_rgo_target_employment(p, c)
-			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+		auto wages = workers
 			* state.world.province_get_labor_price(p, labor::no_education);
-		auto spent_on_efficiency = demand_scale * workers * e_inputs_data.total_cost * e_inputs_data.min_available;
+		auto spent_on_efficiency = demand_scale * e_inputs_data.total_cost * e_inputs_data.min_available;
 
 		state.world.province_get_rgo_profit(p) -= wages + spent_on_efficiency;
 		state.world.province_set_rgo_output(p, c, amount);
@@ -1425,8 +1427,10 @@ void update_employment(sys::state& state) {
 					: price_speed_mod * (demand / supply - supply / demand);
 				auto predicted_price = current_price + ve::min(ve::max(price_speed_change, -0.025f), 0.025f) * current_price * 0.5f;
 
+				auto sold_ratio = state.world.market_get_supply_sold_ratio(m, c);
+
 				auto gradient = gradient_employment_i(
-					output_per_worker * predicted_price * state.world.market_get_supply_sold_ratio(m, c),
+					output_per_worker * predicted_price * sold_ratio,
 					1.f,
 					(
 						state.world.province_get_labor_price(pids, labor::no_education)
@@ -1434,7 +1438,7 @@ void update_employment(sys::state& state) {
 					) * (1.f + aristocrats_greed)
 				);
 
-				auto new_employment = ve::max(current_employment_target + 10'000.f * gradient, 0.0f);
+				auto new_employment = ve::max((current_employment_target + 10'000.f * gradient), 0.0f);
 				new_employment = ve::min(new_employment, current_size);
 				state.world.province_set_rgo_target_employment(pids, c, new_employment);
 				state.world.province_set_rgo_output(pids, c, output_per_worker * current_employment);
@@ -1573,7 +1577,8 @@ void update_employment(sys::state& state) {
 				auto supply = state.world.market_get_supply(markets, cid) + price_rigging;
 				auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
 				auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
-				auto predicted_price = price_today + price_speed_change * 0.5f;
+				auto predicted_price = price_today + price_speed_change * 10.f;
+				auto sold = state.world.market_get_supply_sold_ratio(markets, cid);
 
 				auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price);
 				auto base_profit_per_worker = base_profit / artisans_per_employment_unit;
@@ -1590,7 +1595,8 @@ void update_employment(sys::state& state) {
 					1.f,
 					min_wage + actual_wage
 				);
-				auto new_employment = ve::select(mask, ve::max(current_employment_target + 10'000.f * gradient, 0.0f), 0.f);
+				auto decay = ve::select(base_profit < 0.f, 0.99f, 1.f);
+				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * gradient / state.world.commodity_get_artisan_output_amount(cid), 0.0f), 0.f);
 				state.world.province_set_artisan_score(ids, cid, new_employment);
 				ve::apply(
 					[](float x) {
