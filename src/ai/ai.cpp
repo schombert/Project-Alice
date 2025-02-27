@@ -3592,15 +3592,23 @@ void make_peace_offers(sys::state& state) {
 }
 
 bool will_accept_peace_offer_value(sys::state& state,
-	dcon::nation_id n, dcon::nation_id from,
-	dcon::nation_id prime_attacker, dcon::nation_id prime_defender,
-	float primary_warscore, float scoreagainst_me,
-	bool offer_from_attacker, bool concession,
-	int32_t overall_po_value, int32_t my_po_target,
-	int32_t target_personal_po_value, int32_t potential_peace_score_against,
-	int32_t my_side_against_target, int32_t my_side_peace_cost,
-	int32_t war_duration, bool contains_sq) {
-	bool is_attacking = !offer_from_attacker;
+dcon::nation_id n, // target of the peacedeal (primary or secondary participant),
+dcon::nation_id from, // who sends the deal (primary or secondary participant)
+dcon::nation_id prime_attacker, // primary attacker of the war
+dcon::nation_id prime_defender, // primary defender of the war
+float primary_warscore, // Warscore of the war calculated with military::primary_warscore(state, w)
+float scoreagainst_me, // Directed warscore towards peacedeal target calculated with military::directed_warscore(state, w, state.local_player_nation, target)
+bool offer_from_attacker, // military::is_attacker(state, w, state.local_player_nation)
+bool concession, // If is_concession = true then it is "offer_peace", else it is "demand_peace" offer.
+int32_t overall_po_value, // Cost of the peacedeal (sum of warscore costs of added wargoals)
+int32_t my_po_target, // Warscore cost of wargoals target has in the war (stakes)
+int32_t target_personal_po_value, // Warscore cost target has to concede
+int32_t potential_peace_score_against, // Warscore costs of all WGs against target
+int32_t my_side_against_target, // Warscore costs of all WGs against peacedeal initiator
+int32_t my_side_peace_cost, // Warscore costs of all WGs side of the target has in the war
+int32_t war_duration, // Duration of the war in days
+bool contains_sq // does the peace deal contain status quo
+) {
 
 	auto overall_score = primary_warscore;
 	if(concession && overall_score <= -50.0f) {
@@ -3613,8 +3621,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 	if(overall_po_value < -100)
 		return false;
 
+	// Warscore cost of WGs added against the target that are not enforced with the peace deal
 	auto personal_score_saved = target_personal_po_value - potential_peace_score_against;
 
+	// Peace deal ending the war
 	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
 		if(overall_score <= -50 && overall_score <= overall_po_value * 2)
 			return true;
@@ -3632,8 +3642,9 @@ bool will_accept_peace_offer_value(sys::state& state,
 			if((overall_score - willingness_factor) <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
 				return true;
 		}
-
-	} else if((prime_attacker == n || prime_defender == n) && concession) {
+	}
+	// Concession of secondary to primary
+	else if((prime_attacker == n || prime_defender == n) && concession) {
 		if(scoreagainst_me > 50)
 			return true;
 
@@ -3644,12 +3655,17 @@ bool will_accept_peace_offer_value(sys::state& state,
 			if(my_side_against_target <= overall_po_value)
 				return true;
 		}
-
-	} else {
+	}
+	// Peace deal to secondary participants
+	else {
+		// Don't accept status quo
 		if(contains_sq)
 			return false;
 
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
+			return true;
+
+		if(scoreagainst_me >= 100 and overall_po_value <= 100)
 			return true;
 
 		if(overall_score < 0.0f) { // we are losing

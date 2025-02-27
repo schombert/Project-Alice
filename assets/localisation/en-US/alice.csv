@@ -1295,7 +1295,7 @@ supply;Supply
 demand;Demand
 balance;Balance
 market_stockpiles;In stock
-national_stockpile;Stockpile
+national_stockpile;Government Stockpile
 government_need;Government procurement
 factory_need;Factory inputs
 pop_need;Population needs
