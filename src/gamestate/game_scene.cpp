@@ -124,7 +124,7 @@ void selected_units_control(
 	float volume = get_effects_volume(state);
 
 	for(auto a : state.selected_armies) {
-		if(command::can_move_army(state, nation, a, target).empty()) {
+		if(command::can_move_army(state, nation, a, target, reset_orders).empty()) {
 			fail = true;
 		} else {
 			command::move_army(state, nation, a, target, reset_orders);

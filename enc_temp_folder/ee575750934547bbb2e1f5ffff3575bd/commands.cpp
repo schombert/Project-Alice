@@ -3613,11 +3613,9 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest, bool reset) {
 	if(last_province == dest) {
-		// if reset is true, it means the last_province is the same as the current province of the army, so create an army path which just keeps the army there
 		if(reset) {
 			return std::vector<dcon::province_id>{last_province};
 		}
-		// if reset is false it means we are trying to path from the latest province the army is trying to move to (shift-click movement), so return an empty path since we are already trying to move there
 		else {
 			return std::vector<dcon::province_id>{};
 		}

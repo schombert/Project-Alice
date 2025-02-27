@@ -5401,7 +5401,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 			if(location == target) {
 				regiment.set_status(army_group_regiment_status::standby);
 			} else {
-				auto path = command::can_move_army(*this, local_player_nation, army, target);
+				auto path = command::can_move_army(*this, local_player_nation, army, target, false);
 				if(!path.empty()) {
 					command::move_army(*this, local_player_nation, army, target, false);
 					regiment.set_await_command_execution_flag(true);
@@ -5451,7 +5451,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 					auto fleet_location = world.navy_get_location_from_navy_location(fleet);
 					if(fleet_location == port_to) {
 						// try to fit the regiment there
-						auto path_army = command::can_move_army(*this, local_player_nation, army, fleet_location);
+						auto path_army = command::can_move_army(*this, local_player_nation, army, fleet_location, false);
 						if(path_army.size() > 0) {
 							command::move_army(*this, local_player_nation, army, fleet_location, false);
 							regiment.set_status(army_group_regiment_status::embark);
@@ -5475,7 +5475,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 				//if we are at port, then we can try to disembark
 				if(fleet_location == port_to) {
 					// try to disembark the regiment here
-					auto path_army = command::can_move_army(*this, local_player_nation, army, ferry_target);
+					auto path_army = command::can_move_army(*this, local_player_nation, army, ferry_target, false);
 					if(path_army.size() > 0) {
 						command::move_army(*this, local_player_nation, army, ferry_target, false);
 						regiment.set_await_command_execution_flag(true);

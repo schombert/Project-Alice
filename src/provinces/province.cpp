@@ -1929,7 +1929,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			if((bits & province::border::impassible_bit) == 0 && !is_strait_blocked(state, nation_as, nearest.province, other_prov) && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
 					assert_path_result(path_result);
