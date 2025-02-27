@@ -3517,53 +3517,39 @@ float get_estimated_internal_migration(sys::state& state, dcon::pop_id ids) {
 
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
-
 	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
-		pbuf.amounts.set(ids, 0.0f);
-
 		/*
 		If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 may move to the
 		colonies. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may
 		migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x
 		define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
 		*/
-
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto pop_sizes = state.world.pop_get_size(ids);
-		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f) *
-			 pop_sizes *
-			ve::max((state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f), 0.0f) *
-			ve::max((state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::colonial_migration) + 1.0f), 0.0f) *
-			state.defines.immigration_scale;
-
-		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
-					if(amount <= 0.0f)
-						return; // early exit
-					if(!owner)
-						return; // early exit
-					if(state.world.nation_get_is_colonial_nation(owner) == false)
-						return; // early exit
-					auto pt = state.world.pop_get_poptype(p);
-					if(state.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
-						return; // early exit
-					if(state.world.province_get_is_colonial(location))
-						return; // early exit
-					if(pt == state.culture_definitions.slaves || pt == state.culture_definitions.primary_factory_worker ||
-							pt == state.culture_definitions.secondary_factory_worker)
-						return; // early exit
-
-					//if(pop_size < small_pop_size) {
-					//	pbuf.amounts.set(p, pop_size);
-					//} else {
-					pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
-					//}
-
-					auto dest = impl::get_colonial_province_target_in_nation(state, owner, p);
-					pbuf.destinations.set(p, dest);
-				},
-				ids, loc, owners, amounts, pop_sizes);
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f)
+			* pop_sizes
+			* ve::max((state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f), 0.0f)
+			* ve::max((state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::colonial_migration) + 1.0f), 0.0f)
+			* state.defines.immigration_scale;
+		auto pt = state.world.pop_get_poptype(ids);
+		auto filter_a =
+			(amounts > 0.0f)
+			&& owners != dcon::nation_id{}
+			&& state.world.nation_get_is_colonial_nation(owners)
+			&& state.world.pop_type_get_strata(pt) != uint8_t(culture::pop_strata::rich)
+			&& !state.world.province_get_is_colonial(loc)
+			&& pt != state.culture_definitions.slaves
+			&& pt != state.culture_definitions.primary_factory_worker
+			&& pt != state.culture_definitions.secondary_factory_worker;
+		auto dest = ve::apply([&](dcon::pop_id p, dcon::nation_id owner, bool passed_filter) {
+			if(passed_filter) {
+				return impl::get_colonial_province_target_in_nation(state, owner, p);
+			}
+			return dcon::province_id{};
+		}, ids, owners, filter_a);
+		pbuf.amounts.set(ids, ve::select(dest != dcon::province_id{}, ve::min(pop_sizes, ve::ceil(amounts)), 0.f));
+		pbuf.destinations.set(ids, dest);
 	});
 }
 
