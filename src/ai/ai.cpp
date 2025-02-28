@@ -1120,7 +1120,7 @@ void update_ai_ruling_party(sys::state& state) {
 				}
 			}
 
-			assert(target != state.world.nation_get_ruling_party(n));
+			assert(target != state.world.nation_get_ruling_party(n)); // Fires if some nation has no available parties
 			if(target) {
 				politics::appoint_ruling_party(state, n, target);
 			}

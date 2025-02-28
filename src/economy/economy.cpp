@@ -5900,6 +5900,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	/*
 	adjust prices based on global production & consumption
 	*/
+	// Gold has fixed price
 	state.world.execute_serial_over_market([&](auto ids) {
 		auto costs = state.world.market_get_everyday_needs_costs(ids, state.culture_definitions.laborers);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -5972,7 +5973,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			ve::fp_vector supply =
 				state.world.market_get_supply(ids, cid)
-				+ price_rigging * 10.f; // while it's logical to have insane prices on high tech goods to encourage their production, it's more healthy for simulation to have them moderately low
+				+ price_rigging;
+			if(state.defines.alice_disable_price_control == 0.f) {
+				supply = supply + price_rigging * 9.f; // while it's logical to have insane prices on high tech goods to encourage their production, it's more healthy for simulation to have them moderately low
+			}
 			ve::fp_vector demand =
 				state.world.market_get_demand(ids, cid)
 				+ price_rigging;
