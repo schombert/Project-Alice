@@ -241,8 +241,8 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto owner_0 = state.world.province_get_nation_from_province_ownership(market_0_center);
 				auto owner_1 = state.world.province_get_nation_from_province_ownership(market_1_center);
-				auto cav_0 = military::get_best_cavalry(state, owner_0);
-				auto cav_1 = military::get_best_cavalry(state, owner_1);
+				auto cav_0 = military::get_best_cavalry(state, owner_0, false, false);
+				auto cav_1 = military::get_best_cavalry(state, owner_1, false, false);
 				auto stats_0 = state.world.nation_get_unit_stats(owner_0, cav_0);
 				auto stats_1 = state.world.nation_get_unit_stats(owner_1, cav_1);
 

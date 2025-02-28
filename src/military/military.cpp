@@ -156,7 +156,27 @@ bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id
 	return false;
 }
 
-dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture) {
+// Evaluate if the nation can reasonably build this unit type
+bool will_have_shortages_building_unit(sys::state& state, dcon::nation_id n, dcon::unit_type_id type) {
+	auto& def = state.military_definitions.unit_base_definitions[type];
+
+	bool lacking_input = false;
+
+	auto m = state.world.nation_get_capital(n).get_state_membership().get_market_from_local_market();
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(def.build_cost.commodity_type[i]) {
+			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.1f)
+				lacking_input = true;
+		} else {
+			break;
+		}
+	}
+
+	return lacking_input;
+}
+
+dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
 	dcon::unit_type_id curbest;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
@@ -179,6 +199,10 @@ dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool 
 			continue;
 		}
 
+		if(evaluate_shortages && will_have_shortages_building_unit(state, n, uid)) {
+			continue;
+		}
+
 		if(is_infantry_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
@@ -186,7 +210,7 @@ dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool 
 	return curbest;
 }
 
-dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture) {
+dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
 	dcon::unit_type_id curbest;
 
 	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
@@ -207,6 +231,10 @@ dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool
 			continue;
 		}
 
+		if(evaluate_shortages && will_have_shortages_building_unit(state, n, uid)) {
+			continue;
+		}
+
 		if(is_artillery_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
@@ -214,7 +242,7 @@ dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool
 	return curbest;
 }
 
-dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture) {
+dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
 	dcon::unit_type_id curbest;
 	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
@@ -235,6 +263,10 @@ dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool p
 			continue;
 		}
 
+		if(evaluate_shortages && will_have_shortages_building_unit(state, n, uid)) {
+			continue;
+		}
+
 		if(is_cavalry_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
@@ -242,7 +274,7 @@ dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool p
 	return curbest;
 }
 
-dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture) {
+dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
 	dcon::unit_type_id curbest;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
@@ -256,6 +288,10 @@ dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool
 			continue;
 		}
 
+		if(evaluate_shortages && will_have_shortages_building_unit(state, n, uid)) {
+			continue;
+		}
+
 		if(is_transport_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
@@ -263,7 +299,7 @@ dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool
 	return curbest;
 }
 
-dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture) {
+dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
 	dcon::unit_type_id curbest;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
@@ -277,6 +313,10 @@ dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, boo
 			continue;
 		}
 
+		if(evaluate_shortages && will_have_shortages_building_unit(state, n, uid)) {
+			continue;
+		}
+
 		if(is_light_ship_better(state, n, curbest, uid)) {
 			curbest = uid;
 		}
@@ -284,7 +324,7 @@ dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, boo
 	return curbest;
 }
 
-dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture) {
+dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
 	dcon::unit_type_id curbest;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
@@ -295,6 +335,10 @@ dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool 
 
 		auto available = state.world.nation_get_active_unit(n, uid) || def.active;
 		if(!available || def.type != military::unit_type::big_ship || (def.primary_culture && !primary_culture)) {
+			continue;
+		}
+
+		if(evaluate_shortages && will_have_shortages_building_unit(state, n, uid)) {
 			continue;
 		}
 

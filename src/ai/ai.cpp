@@ -1454,7 +1454,7 @@ int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
 	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
 #endif
 
-	return int16_t(std::clamp(total * double(factor), 0.1 * fid.get_recruitable_regiments(), 1.0 * fid.get_recruitable_regiments()));
+	return int16_t(std::clamp(ceil(total * double(factor)), ceil(0.1 * fid.get_recruitable_regiments()), 1.0 * fid.get_recruitable_regiments()));
 }
 
 void update_ai_econ_construction(sys::state& state) {
@@ -5917,7 +5917,7 @@ void update_land_constructions(sys::state& state) {
 		int32_t num_frontline = 0;
 		int32_t num_support = 0;
 
-		// Nation-wide best unit types
+		// Nation-wide best unit types. Function takes into account whether nation N can build them (there will be no severe shortages).
 		auto inf_type = military::get_best_infantry(state, n);
 		auto art_type = military::get_best_artillery(state, n);
 		military::unit_definition art_def;
@@ -5930,10 +5930,14 @@ void update_land_constructions(sys::state& state) {
 			for(auto r : ar.get_army().get_army_membership()) {
 				auto type = r.get_regiment().get_type();
 				auto etype = state.military_definitions.unit_base_definitions[type].type;
-				if(etype == military::unit_type::support || etype == military::unit_type::special) {
-					++num_support;
-				} else {
-					++num_frontline;
+
+				// Don't count severely undermanned regiments in own strength evaluation
+				if(r.get_regiment().get_strength() >= 0.1f) {
+					if(etype == military::unit_type::support || etype == military::unit_type::special) {
+						++num_support;
+					} else {
+						++num_frontline;
+					}
 				}
 
 				/* AI units upgrade
