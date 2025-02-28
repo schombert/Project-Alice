@@ -492,6 +492,7 @@ void recover_org(sys::state& state);
 float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
+bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);

@@ -133,6 +133,18 @@ struct modifier_hash {
 	}
 };
 
+struct province_adjacency_hash {
+	using is_avalanching = void;
+
+	province_adjacency_hash() {
+	}
+
+	auto operator()(dcon::province_adjacency_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
 } // namespace sys
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

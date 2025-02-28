@@ -7978,6 +7978,18 @@ bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon
 	}
 	return false;
 }
+bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+	for(auto navy : state.world.province_get_navy_location(location)) {
+		if(!navy.get_navy()) {
+			// no fleet present
+			return false;
+		} else if(are_at_war(state, our_nation, navy.get_navy().get_controller_from_navy_control())) {
+			// someone who we are at war with has a fleet in the province
+			return true;
+		}
+	}
+	return false;
+}
 // returns true if there is a battle at the location, where one of the participants is an enemy to our_nation
 //bool enemy_battle(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 //	auto battle = get_province_battle(state, location);

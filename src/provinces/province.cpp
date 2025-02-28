@@ -1074,28 +1074,18 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	}
 }
 // returns true if a strait between the two provinces are blocked by an enemy navy from the perspective of thisnation
-// Current impl is to check if any sea province which borders both to and from is blockaded by an enemy ship. Will probably want to import the missing adj province data eventually and use that instead
+// Reads sea adjacency data from the v2 adjacencies file to determine if it is blocked
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to) {
-	auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(to, from));
-	if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
-		for(auto adj : state.world.province_get_province_adjacency(from)) {
-			auto indx = adj.get_connected_provinces(0).id != from ? 0 : 1;
-			auto prov = adj.get_connected_provinces(indx);
-			if(prov.id.index() < state.province_definitions.first_sea_province.index())
-				continue;
-			for(auto adjtwo : state.world.province_get_province_adjacency(to)) {
-				auto indxtwo = adjtwo.get_connected_provinces(0).id != to ? 0 : 1;
-				auto provtwo = adjtwo.get_connected_provinces(indxtwo);
-				if(provtwo == prov) {
-					for(auto v : state.world.province_get_navy_location(prov)) {
-						if(military::are_at_war(state, thisnation, v.get_navy().get_controller_from_navy_control())) {
-							return true;
-						}
-					}
-				}
-			}
+	auto adjacency = state.world.get_province_adjacency_by_province_pair(to, from);
+	return is_strait_blocked(state, thisnation, adjacency);
+}
+
+bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
+	auto path_bits = state.world.province_adjacency_get_type(adjacency);
+	if((path_bits & province::border::non_adjacent_bit) != 0 && state.province_definitions.sea_adjacencies.contains(adjacency)) { // strait crossing
+		if(military::province_has_enemy_fleet(state, state.province_definitions.sea_adjacencies[adjacency], thisnation)) {
+			return true;
 		}
-		
 	}
 	return false;
 }
