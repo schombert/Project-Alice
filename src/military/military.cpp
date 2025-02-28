@@ -780,6 +780,15 @@ uint32_t state_railroad_level(sys::state const& state, dcon::state_instance_id s
 	}
 	return level;
 }
+// wrapper for are_at_war which also returns true if one of the tags is rebel, and the other is not
+bool are_enemies(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	if((!a && a) || (b && !a)) {
+		return true;
+	}
+	else {
+		return are_at_war(state, a, b);
+	}
+}
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	if(!state.world.nation_get_is_at_war(a) || !state.world.nation_get_is_at_war(b))
@@ -7967,12 +7976,7 @@ bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon
 			// no armies present
 			return false;
 		}
-		else if(!army.get_army().get_controller_from_army_control()) {
-			// rebels are here, and they are always enemies
-			return true;
-		}
-		else if(are_at_war(state, our_nation, army.get_army().get_controller_from_army_control())) {
-			// someone who we are at war with has a unit in the province
+		if(are_enemies(state, our_nation, army.get_army().get_controller_from_army_control())) {
 			return true;
 		}
 	}
@@ -8012,7 +8016,6 @@ bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dco
 // "allied" means either: controlled by yourself, or controlled by an nation who is fighting the controller of "location"
 bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 	auto location_controller = state.world.province_get_nation_from_province_control(location);
-	assert(are_at_war(state, our_nation, location_controller)); // this func should not be called if we arent at war with the location owner either
 	for(auto adj : state.world.province_get_province_adjacency(location)) {
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
@@ -8026,8 +8029,8 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		if(province_has_enemy_unit(state, prov, our_nation)) {
 			return false;
 		}	
-		// checks if the province controlled by us, or is controlled by someone who is at war with the owner of location and it is not rebels
-		else if(prov_controller == our_nation || (!prov_controller && are_at_war(state, location_controller, prov_controller))) {
+		// checks if the province controlled by us, or is controlled by someone who is at enemies with the owner of location
+		else if(prov_controller == our_nation || (are_enemies(state, location_controller, prov_controller))) {
 			return true;
 		}
 	}
@@ -8040,43 +8043,62 @@ float calculate_location_reinforce_modifier_no_battle(sys::state& state, dcon::p
 	float location_modifier = 1.0f;
 	auto location_controller = state.world.province_get_nation_from_province_control(location);
 	auto location_owner = state.world.province_get_nation_from_province_ownership(location);
-	// in your owned territory, occupied or not
-	if(location_owner == in_nation) {
-		location_modifier = 2.0f;
-	}
-	// uncolonized (unowned) territory
-	else if(!location_owner) {
-		// if its a coastal uncolonized prov
-		if(state.world.province_get_is_coast(location)) {
-			location_modifier = 0.1f;
-		} else {
+	// if we arent rebels
+	if(bool(in_nation)) {
+		// in your owned territory, occupied or not
+		if(location_owner == in_nation) {
+			location_modifier = 2.0f;
+		}
+		// uncolonized (unowned) territory
+		else if(!location_owner) {
+			// if its a coastal uncolonized prov
+			if(state.world.province_get_is_coast(location)) {
+				location_modifier = 0.1f;
+			} else {
+				location_modifier = 0.0f;
+			}
+		}
+		//if you are at war with the location controller, or the controller is rebels
+		else if(are_enemies(state, in_nation, location_controller)) {
+			// if we are eligible to get the 50% bonus by being adj to an allied province
+			if(get_allied_prov_adjacency_reinforcement_bonus(state, location, in_nation)) {
+
+				location_modifier = 0.5f;
+			}
+			// if its coastal and not blockaded by the enemy, give 25%
+			else if(state.world.province_get_is_coast(location) && !province_is_blockaded_by_enemy(state, location, in_nation)) {
+				location_modifier = 0.25f;
+			}
+			// if its neither, give 10%
+			else {
+				location_modifier = 0.1f;
+			}
+
+		}
+		// if the units has access to the province, if they dont, they are blackflagged and shall get no reinforcements
+		else if(!province::has_access_to_province(state, in_nation, location)) {
 			location_modifier = 0.0f;
 		}
-	}
-	//if you are at war with the location controller, so enemy territory
-	else if(are_at_war(state, in_nation, location_controller)) {
-		// if we are eligible to get the 50% bonus by being adj to an allied province
-		if(get_allied_prov_adjacency_reinforcement_bonus(state, location, in_nation)) {
-
-			location_modifier = 0.5f;
-		}
-		// if its coastal and not blockaded by the enemy, give 25%
-		else if(state.world.province_get_is_coast(location) && !province_is_blockaded_by_enemy(state, location, in_nation)) {
-			location_modifier = 0.25f;
-		}
-		// if its neither, give 10%
+		// territory whom we do not own, but are not at war with, while having access to it, 100% bonus
 		else {
-			location_modifier = 0.1f;
+			location_modifier = 1.0f;
 		}
-
 	}
-	// if the units has access to the province, if they dont, they are blackflagged and shall get no reinforcements
-	else if(!province::has_access_to_province(state, in_nation, location)) {
-		location_modifier = 0.0f;
-	}
-	// territory whom we do not own, but are not at war with, while having access to it, 100% bonus
+	//if we are rebels
 	else {
-		location_modifier = 1.0f;
+		if(!location_controller) {
+			location_modifier = 1.0f;
+		}
+		else {
+			if(get_allied_prov_adjacency_reinforcement_bonus(state, location, in_nation)) {
+
+				location_modifier = 0.5f;
+			}
+			else {
+				// rebels get no reinforcements if they dont control any provinces
+				location_modifier = 0.0f;
+			}
+		}
 	}
 	return location_modifier;
 
