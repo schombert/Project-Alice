@@ -102,7 +102,6 @@ struct unit_definition : public sys::unit_variable_stats {
 	economy::commodity_set build_cost;
 	economy::commodity_set supply_cost;
 
-	float maneuver = 0.0f;
 	int32_t colonial_points = 0;
 	int32_t min_port_level = 0;
 	int32_t supply_consumption_score = 0;
@@ -128,7 +127,6 @@ static_assert(sizeof(unit_definition) ==
 	+ sizeof(unit_definition::build_cost)
 	+ sizeof(unit_definition::supply_cost)
 	+ sizeof(unit_definition::colonial_points)
-	+ sizeof(unit_definition::maneuver)
 	+ sizeof(unit_definition::min_port_level)
 	+ sizeof(unit_definition::supply_consumption_score)
 	+ sizeof(unit_definition::icon)
@@ -494,6 +492,7 @@ void recover_org(sys::state& state);
 float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
+bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);

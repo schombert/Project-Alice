@@ -3589,7 +3589,7 @@ bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	return state.network_mode != sys::network_mode_type::single_player;
 }
 
-std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return std::vector<dcon::province_id>{};
 	if(state.world.army_get_is_retreating(a))
@@ -3599,18 +3599,29 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
 	auto last_province = state.world.army_get_location_from_army_location(a);
-	auto movement = state.world.army_get_path(a);
-	if(movement.size() > 0) {
-		last_province = movement.at(0);
+	if(!reset) {
+		auto movement = state.world.army_get_path(a);
+		if(movement.size() > 0) {
+			last_province = movement.at(0);
+		}
 	}
+	
 
-	return calculate_army_path(state, source, a, last_province, dest);
+	return calculate_army_path(state, source, a, last_province, dest, reset);
 }
 
 
-std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest) {
-	if(last_province == dest)
-		return std::vector<dcon::province_id>{};
+std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest, bool reset) {
+	if(last_province == dest) {
+		// if reset is true, it means the last_province is the same as the current province of the army, so create an army path which just keeps the army there
+		if(reset) {
+			return std::vector<dcon::province_id>{last_province};
+		}
+		// if reset is false it means we are trying to path from the latest province the army is trying to move to (shift-click movement), so return an empty path since we are already trying to move there
+		else {
+			return std::vector<dcon::province_id>{};
+		}
+	}
 
 	if(!can_partial_retreat_from(state, state.world.army_get_battle_from_army_battle_participation(a)))
 		return std::vector<dcon::province_id>{};
@@ -3746,7 +3757,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		existing_path.clear();
 	}
 
-	auto path = can_move_army(state, source, a, dest);
+	auto path = can_move_army(state, source, a, dest, reset);
 
 	if(path.size() > 0) {
 		auto append_size = uint32_t(path.size());
@@ -5831,7 +5842,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_send_peace_offer(state, c.source);
 
 	case command_type::move_army:
-		return can_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest).size() != 0;
+		return can_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset).size() != 0;
 
 	case command_type::move_navy:
 		return can_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest).size() != 0;
