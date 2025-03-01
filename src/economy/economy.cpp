@@ -2790,7 +2790,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			|| A_joins_sphere_wide_embargo
 			|| B_joins_sphere_wide_embargo
 			|| trade_banned
-			|| !ve::apply([&](auto r) { return state.world.trade_route_is_valid(r); }, trade_route);
+			|| !ve::apply([&](auto r) { return state.world.trade_route_is_valid(r); }, trade_route)
+			|| (!is_sea_route && !is_land_route);
 
 		for(auto c : state.world.in_commodity) {
 			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
