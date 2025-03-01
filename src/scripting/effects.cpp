@@ -5331,6 +5331,19 @@ uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
 	return 0;
 }
 
+uint32_t ef_change_factory_limit(EFFECT_PARAMTERS) {
+	auto com = trigger::payload(tval[1]).com_id;
+	auto change = trigger::payload(tval[2]).value;
+
+	if(com) {
+		auto p = trigger::to_prov(primary_slot);
+		ws.world.province_get_factory_max_level_per_good(p, com) += (uint8_t) change;
+		return 0;
+	}
+	return 0;
+}
+
+
 inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) ef_##name,

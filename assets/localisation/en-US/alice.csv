@@ -275,6 +275,7 @@ union_for_nation;the cultural union for the nation
 the_rebel_ind_nation;the rebel independence nation
 build_factory;Build factory
 upgrade_factory;Upgrade factory
+build_province_building;Build province building
 capitalists_can_build;capitalists are allowed to build factories
 capitalists_cannot_build;capitalists are not allowed to build factories
 at_war;at war
@@ -1318,6 +1319,7 @@ change_pname_to;Change $x$ party name to $text$
 change_rpname_to;Change ruling party name to $text$
 change_pposition_to;Change $x$ party position to $text$
 change_rpposition_to;Change ruling party position to $text$
+change_factory_limit_by;Change $good$ factory potential by $value$
 pname_is;$x$ party name
 rpname_is;ruling party name
 pposition_is;$x$ party position
