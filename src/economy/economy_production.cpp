@@ -1622,7 +1622,7 @@ void update_employment(sys::state& state) {
 					1.f,
 					min_wage + actual_wage
 				);
-				ve::fp_vector decay = ve::select(base_profit < 0.f, 0.9f, 1.f);
+				ve::fp_vector decay = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
 				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * gradient / state.world.commodity_get_artisan_output_amount(cid), 0.0f), 0.f);
 				state.world.province_set_artisan_score(ids, cid, ve::min(local_population, new_employment));
 				ve::apply(
