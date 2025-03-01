@@ -385,10 +385,18 @@ float consume_labor(
 	float target_workers_high_education,
 	float employment_unit_size
 ) {
+	assert(std::isfinite(target_workers_no_education));
+	assert(std::isfinite(target_workers_basic_education));
+	assert(std::isfinite(target_workers_high_education));
+
 	// register demand for labor
 	state.world.province_get_labor_demand(labor_market, labor::no_education) += target_workers_no_education;
 	state.world.province_get_labor_demand(labor_market, labor::basic_education) += target_workers_basic_education;
 	state.world.province_get_labor_demand(labor_market, labor::high_education) += target_workers_high_education;
+
+	assert(std::isfinite(state.world.province_get_labor_demand(labor_market, labor::no_education)));
+	assert(std::isfinite(state.world.province_get_labor_demand(labor_market, labor::basic_education)));
+	assert(std::isfinite(state.world.province_get_labor_demand(labor_market, labor::high_education)));
 
 	return employment_units(
 		state, labor_market,
@@ -402,11 +410,21 @@ ve::fp_vector consume_labor_guild(
 	M market,
 	ve::fp_vector target_guild_size
 ) {
+
+#ifndef NDEBUG
+	ve::apply([&](float value) {assert(std::isfinite(value)); }, target_guild_size);
+#endif // !NDEBUG
+
 	state.world.province_set_labor_demand(
 		market,
 		labor::guild_education,
 		state.world.province_get_labor_demand(market, labor::guild_education) + target_guild_size
 	);
+
+#ifndef NDEBUG
+	ve::apply([&](float value) {assert(std::isfinite(value)); }, state.world.province_get_labor_demand(market, labor::guild_education));
+#endif // !NDEBUG
+
 	return employment_units_guild(state, market, target_guild_size);
 }
 
@@ -1258,7 +1276,9 @@ void update_rgo_consumption(
 		register_inputs_demand(state, m, e_inputs, demand_scale, economy_reason::rgo);
 		
 		auto target = state.world.province_get_rgo_target_employment(p, c);
-		state.world.province_get_labor_demand(p, labor::no_education) += target;
+		state.world.province_get_labor_demand(p, labor::no_education) += std::min(target, 100.f + workers * 1.1f);
+		assert(std::isfinite(target));
+		assert(std::isfinite(state.world.province_get_labor_demand(p, labor::no_education)));
 
 		auto per_worker = state.world.commodity_get_rgo_amount(c)
 			* state.world.province_get_rgo_efficiency(p, c)
@@ -1406,8 +1426,7 @@ void update_employment(sys::state& state) {
 				auto m = state.world.state_instance_get_market_from_local_market(state_instance);
 				auto n = state.world.province_get_nation_from_province_ownership(pids);
 
-				auto desired_profit_per_worker = state.world.province_get_labor_price(pids, labor::no_education)
-					* (1.f + aristocrats_greed);
+				auto wage_per_worker = state.world.province_get_labor_price(pids, labor::no_education);
 
 				auto current_size = state.world.province_get_rgo_size(pids, c);
 				auto efficiency = state.world.province_get_rgo_efficiency(pids, c);
@@ -1427,10 +1446,8 @@ void update_employment(sys::state& state) {
 					: price_speed_mod * (demand / supply - supply / demand);
 				auto predicted_price = current_price + ve::min(ve::max(price_speed_change, -0.025f), 0.025f) * current_price * 0.5f;
 
-				auto sold_ratio = state.world.market_get_supply_sold_ratio(m, c);
-
 				auto gradient = gradient_employment_i(
-					output_per_worker * predicted_price * sold_ratio,
+					output_per_worker * predicted_price,
 					1.f,
 					(
 						state.world.province_get_labor_price(pids, labor::no_education)
@@ -1438,7 +1455,11 @@ void update_employment(sys::state& state) {
 					) * (1.f + aristocrats_greed)
 				);
 
-				auto new_employment = ve::max((current_employment_target + 10'000.f * gradient), 0.0f);
+				auto new_employment = ve::max((current_employment_target + 100.f * gradient), 0.0f);
+
+				// we don't want wages to rise way too high relatively to profits
+				// as we do not have actual budgets, we  consider that our workers budget is as follows
+				new_employment = ve::min(rgo_profit_to_wage_bound * output_per_worker * predicted_price * current_size / wage_per_worker, new_employment);
 				new_employment = ve::min(new_employment, current_size);
 				state.world.province_set_rgo_target_employment(pids, c, new_employment);
 				state.world.province_set_rgo_output(pids, c, output_per_worker * current_employment);
@@ -1473,7 +1494,7 @@ void update_employment(sys::state& state) {
 		auto unqualified = state.world.factory_get_unqualified_employment(facids);
 		auto primary = state.world.factory_get_primary_employment(facids);
 		auto secondary = state.world.factory_get_secondary_employment(facids);
-		auto profit_push = output_per_worker * price_output * actually_sold;
+		auto profit_push = output_per_worker * price_output;
 		auto spendings_push = state.world.factory_get_input_cost_per_worker(facids);
 		auto wage_no_education = state.world.province_get_labor_price(pid, labor::no_education);
 		auto wage_basic_education = state.world.province_get_labor_price(pid, labor::basic_education);
@@ -1497,11 +1518,13 @@ void update_employment(sys::state& state) {
 				price_speed_mod * (demand / supply - supply / demand)
 			);
 
-		auto price_prediction = actually_sold * (price_output + 0.5f * price_speed_gradient_time);
+		auto price_prediction = (price_output + 0.5f * price_speed_gradient_time);
 		auto size = state.world.factory_get_size(facids);
 
+		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids);
+
 		auto gradient = get_profit_gradient(
-			output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids),
+			profit_per_worker,
 			secondary,
 			secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
 			1.f / size * economy::secondary_employment_output_bonus,
@@ -1512,28 +1535,30 @@ void update_employment(sys::state& state) {
 		auto unqualified_next = unqualified
 			+ ve::min(0.01f * state.world.factory_get_size(facids),
 				ve::max(-0.04f * state.world.factory_get_size(facids),
-					100.f * gradient.primary[0]
+					1'000.f * gradient.primary[0]
 				)
 			);
 		auto primary_next = primary
 			+ ve::min(0.01f * state.world.factory_get_size(facids),
 				ve::max(-0.04f * state.world.factory_get_size(facids),
-					100.f * gradient.primary[1]
+					1'000.f * gradient.primary[1]
 				)
 			);
 		auto secondary_next = secondary
 			+ ve::min(0.01f * state.world.factory_get_size(facids),
 				ve::max(-0.04f * state.world.factory_get_size(facids),
-					100.f * gradient.secondary
+					1'000.f * gradient.secondary
 				)
 			);
 
 		// do not hire too expensive workers:
-		// ideally decided by factory budget but it is what it is: we assume that factory budget is 100 pounds per size unit
+		// ideally decided by factory budget but it is what it is
 
-		unqualified_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(100.f * state.world.factory_get_size(facids) / wage_no_education, unqualified_next)));
-		primary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(100.f * state.world.factory_get_size(facids) / wage_basic_education, primary_next)));
-		secondary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(100.f * state.world.factory_get_size(facids) / wage_high_education, secondary_next)));
+		auto budget = factory_profit_to_wage_bound * state.world.factory_get_size(facids) * profit_per_worker;
+
+		unqualified_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_no_education, unqualified_next)));
+		primary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_basic_education, primary_next)));
+		secondary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_high_education, secondary_next)));
 
 		auto total = unqualified_next + primary_next + secondary_next;
 		auto scaler = ve::select(total > state.world.factory_get_size(facids), state.world.factory_get_size(facids) / total, 1.f);
@@ -1557,7 +1582,7 @@ void update_employment(sys::state& state) {
 
 	auto const csize = state.world.commodity_size();
 
-	// artisans do not have max production size, so they don't need any kind of normalisation actually
+	// artisans do not have natural max production size, so we use total population as a limit
 	// they also don't have secondary workers
 
 	state.world.execute_parallel_over_commodity([&](auto cids) { 
@@ -1569,6 +1594,9 @@ void update_employment(sys::state& state) {
 				auto nations = state.world.province_get_nation_from_province_ownership(ids);
 				auto markets = state.world.state_instance_get_market_from_local_market(local_states);
 
+				//safeguard against runaway artisans target employment
+				auto local_population = state.world.province_get_demographics(ids, demographics::total);
+
 				auto min_wage = ve_artisan_min_wage(state, markets) / state.defines.alice_needs_scaling_factor;
 				auto actual_wage = state.world.province_get_labor_price(ids, labor::guild_education);				
 				auto mask = ve_valid_artisan_good(state, nations, cid);
@@ -1578,7 +1606,6 @@ void update_employment(sys::state& state) {
 				auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
 				auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
 				auto predicted_price = price_today + price_speed_change * 10.f;
-				auto sold = state.world.market_get_supply_sold_ratio(markets, cid);
 
 				auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price);
 				auto base_profit_per_worker = base_profit / artisans_per_employment_unit;
@@ -1595,9 +1622,9 @@ void update_employment(sys::state& state) {
 					1.f,
 					min_wage + actual_wage
 				);
-				auto decay = ve::select(base_profit < 0.f, 0.99f, 1.f);
+				auto decay = ve::select(base_profit < 0.f, 0.9f, 1.f);
 				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * gradient / state.world.commodity_get_artisan_output_amount(cid), 0.0f), 0.f);
-				state.world.province_set_artisan_score(ids, cid, new_employment);
+				state.world.province_set_artisan_score(ids, cid, ve::min(local_population, new_employment));
 				ve::apply(
 					[](float x) {
 							assert(std::isfinite(x));

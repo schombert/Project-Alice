@@ -679,7 +679,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 7.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 5000.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 1.50) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 7.50) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.05) \
 	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.95) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \

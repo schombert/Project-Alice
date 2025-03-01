@@ -585,13 +585,59 @@ float average_capitalists_luxury_cost(
 	return total / count;
 }
 
+float inline market_speculation_budget(
+	sys::state const& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	auto sid = state.world.market_get_zone_from_local_market(m);
+	auto capital = state.world.state_instance_get_capital(sid);
+	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
+	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
+	auto local_speculation_budget = wage * population;
+	return local_speculation_budget;
+}
+template<typename M>
+ve::fp_vector market_speculation_budget(
+	sys::state const& state,
+	M m,
+	dcon::commodity_id c
+) {
+	auto sid = state.world.market_get_zone_from_local_market(m);
+	auto capital = state.world.state_instance_get_capital(sid);
+	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
+	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
+	auto local_speculation_budget = wage * population / 10.f;
+	return local_speculation_budget;
+}
+ve::fp_vector ve_market_speculation_budget(
+	sys::state const& state,
+	ve::contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return market_speculation_budget<ve::contiguous_tags<dcon::market_id>>(state, m, c);
+}
+ve::fp_vector ve_market_speculation_budget(
+	sys::state const& state,
+	ve::partial_contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return market_speculation_budget<ve::partial_contiguous_tags<dcon::market_id>>(state, m, c);
+}
+ve::fp_vector ve_market_speculation_budget(
+	sys::state const& state,
+	ve::tagged_vector<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return market_speculation_budget<ve::tagged_vector<dcon::market_id>>(state, m, c);
+}
 
 float trade_supply(sys::state& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price(state, m, c) + 1.f);
+	auto stockpile_target_merchants = market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
@@ -621,7 +667,7 @@ float trade_demand(sys::state& state,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = stockpile_expected_spending_per_commodity / (price(state, m, c) + 1.f);
+	auto stockpile_target_merchants = market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
@@ -976,8 +1022,10 @@ bool has_factory(sys::state const& state, dcon::province_id si) {
 bool has_factory(sys::state const& state, dcon::state_instance_id sid) {
 	auto d = state.world.state_instance_get_definition(sid);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
-		if(has_factory(state, p.get_province()))
-			return true;
+		if(p.get_province().get_state_membership() == sid) {
+			if(has_factory(state, p.get_province()))
+				return true;
+		}
 	return false;
 }
 

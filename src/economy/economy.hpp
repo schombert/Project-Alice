@@ -132,7 +132,9 @@ inline constexpr float production_throughput_multiplier = 10.f;
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
 inline constexpr float stockpile_spoilage = 0.05f;
-inline constexpr float stockpile_expected_spending_per_commodity = 1000.f;
+inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
+inline constexpr float market_savings_target = 1'000'000.f;
+inline constexpr float trade_transaction_soft_limit = 10'000.f;
 
 // trade related
 inline constexpr float merchant_cut_foreign = 0.05f;
@@ -144,10 +146,6 @@ inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_goo
 // while making life worse on average
 // profit cuts change distribution of incomes
 inline constexpr float rgo_owners_cut = 0.2f;
-inline constexpr float factory_owners_cut = 0.5f;
-inline constexpr float factory_sworkers_cut = 0.4f;
-inline constexpr float factory_pworkers_cut = 0.1f;
-inline constexpr float factory_workers_cut = factory_sworkers_cut + factory_pworkers_cut;
 inline constexpr float aristocrats_greed = 0.5f;
 inline constexpr float artisans_greed = 0.001f;
 inline constexpr float labor_greed_life = 2.0f;
