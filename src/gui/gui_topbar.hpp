@@ -1220,9 +1220,9 @@ public:
 			} else if(economy::nation_is_constructing_factories(state, nation_id)) {
 				text::localised_format_box(state, contents, box, "countryalert_isbuildingfactories", text::substitution_map{});
 				auto nation_fat_id = dcon::fatten(state.world, nation_id);
-				nation_fat_id.for_each_state_building_construction([&](dcon::state_building_construction_id building_slim_id) {
+				nation_fat_id.for_each_factory_construction([&](dcon::factory_construction_id building_slim_id) {
 					auto building_fat_id = dcon::fatten(state.world, building_slim_id);
-					auto stateName = building_fat_id.get_state().get_definition().get_name();
+					auto stateName = building_fat_id.get_province().get_name();
 					auto factoryType = building_fat_id.get_type().get_name();
 
 					text::add_line_break_to_layout_box(state, contents, box);

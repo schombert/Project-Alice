@@ -3416,7 +3416,7 @@ uint32_t ef_militancy_state(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_rgo_size(EFFECT_PARAMTERS) {
-	auto& s = ws.world.province_get_rgo_size(trigger::to_prov(primary_slot));
+	auto& s = ws.world.province_get_rgo_base_size(trigger::to_prov(primary_slot));
 	s = std::max(s + float(trigger::payload(tval[1]).signed_value), 0.0f);
 	return 0;
 }

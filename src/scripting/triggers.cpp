@@ -5482,19 +5482,19 @@ TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_no_limit) {
 TRIGGER_FUNCTION(tf_work_available_nation) {
 	auto type = payload(tval[1]).popt_id;
 	auto result = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type)) >=
-								ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
+								ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type)) * 0.8f;
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_work_available_state) {
 	auto type = payload(tval[1]).popt_id;
 	auto result = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type)) >=
-								ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
+								ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type)) * 0.8f;
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_work_available_province) {
 	auto type = payload(tval[1]).popt_id;
 	auto result = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type)) >=
-								ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
+								ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type)) * 0.8f;
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_nation) {

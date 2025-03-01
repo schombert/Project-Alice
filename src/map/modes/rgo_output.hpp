@@ -12,13 +12,13 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 		state.world.for_each_province([&](dcon::province_id prov_id) {
 			auto n = state.world.province_get_nation_from_province_ownership(prov_id);
 
-			max_rgo_size = std::max(max_rgo_size, state.world.province_get_rgo_actual_production_per_good(prov_id, searched_rgo));
+			max_rgo_size = std::max(max_rgo_size, state.world.province_get_rgo_output(prov_id, searched_rgo));
 		});
 		state.world.for_each_province([&](dcon::province_id prov_id) {
 			auto i = province::to_map_id(prov_id);
 			auto n = state.world.province_get_nation_from_province_ownership(prov_id);
 
-			uint32_t color = ogl::color_gradient(state.world.province_get_rgo_actual_production_per_good(prov_id, searched_rgo) / max_rgo_size,
+			uint32_t color = ogl::color_gradient(state.world.province_get_rgo_output(prov_id, searched_rgo) / max_rgo_size,
 				sys::pack_color(46, 247, 15), // red
 				sys::pack_color(247, 15, 15) // green
 			);

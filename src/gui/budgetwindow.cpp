@@ -1582,11 +1582,11 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 	add_section_header(budget_categories::poor_tax);
 	if(budget_categories::expanded[budget_categories::poor_tax]) {
 		add_top_spacer();
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			auto s = so.get_state();
-			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
+		for(auto so : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			auto province = so.get_province();
+			auto info = economy::explain_tax_income_local(state, state.local_player_nation, province);
 			add_budget_row(
-				text::get_short_state_name(state, s),
+				text::produce_simple_string(state, province.get_name()),
 				info.poor
 			);
 		}
@@ -1597,11 +1597,11 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 	add_section_header(budget_categories::middle_tax);
 	if(budget_categories::expanded[budget_categories::middle_tax]) {
 		add_top_spacer();
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			auto s = so.get_state();
-			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
+		for(auto so : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			auto province = so.get_province();
+			auto info = economy::explain_tax_income_local(state, state.local_player_nation, province);
 			add_budget_row(
-				text::get_short_state_name(state, s),
+				text::produce_simple_string(state, province.get_name()),
 				info.mid
 			);
 		}
@@ -1612,11 +1612,11 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 	add_section_header(budget_categories::rich_tax);
 	if(budget_categories::expanded[budget_categories::rich_tax]) {
 		add_top_spacer();
-		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			auto s = so.get_state();
-			auto info = economy::explain_tax_income_local(state, state.local_player_nation, s);
+		for(auto so : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			auto province = so.get_province();
+			auto info = economy::explain_tax_income_local(state, state.local_player_nation, province);
 			add_budget_row(
-				text::get_short_state_name(state, s),
+				text::produce_simple_string(state, province.get_name()),
 				info.rich
 			);
 		}
@@ -1698,7 +1698,7 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 			float amount = 0.0f;
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
 				if(state.world.commodity_get_money_rgo(c)) {
-					amount += province::rgo_production_quantity(state, prov.id, c) * state.world.commodity_get_cost(c);
+					amount += economy::rgo_output(state, c, prov.id) * state.world.commodity_get_cost(c);
 				}
 			});
 
@@ -1890,11 +1890,11 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	if(budget_categories::expanded[budget_categories::construction]) {
 		auto explanation = economy::explain_construction_spending_now(state, state.local_player_nation);
 		for(auto& data : explanation.factories) {
-			auto building_type = state.world.state_building_construction_get_type(data.construction);
-			auto location = state.world.state_building_construction_get_state(data.construction);
+			auto building_type = state.world.factory_construction_get_type(data.construction);
+			auto location = state.world.factory_construction_get_province(data.construction);
 			add_budget_row(
 				text::produce_simple_string(state, state.world.factory_type_get_name(building_type))
-				+ "(" + text::get_dynamic_state_name(state, location) + ")",
+				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
 				data.spending
 			);
 		}
@@ -1994,13 +1994,12 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		);
 
 		auto in = culture::income_type::administration;
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
+		state.world.nation_for_each_province_ownership(state.local_player_nation, [&](auto poid) {
+			auto local_province = state.world.province_ownership_get_province(poid);
 			add_budget_row(
-					text::get_dynamic_state_name(state, local_state),
-					economy::estimate_spendings_administration_state(
-						state, state.local_player_nation, local_state, fraction
+					text::produce_simple_string(state, state.world.province_get_name(local_province)),
+					economy::estimate_spendings_administration_local(
+						state, state.local_player_nation, local_province, fraction
 					)
 			);
 		});

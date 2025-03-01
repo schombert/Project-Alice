@@ -400,8 +400,10 @@ void province_history_file::state_building(pv_state_building const& value, error
 		province_file_context& context) {
 	if(value.id) {
 		auto new_fac = context.outer_context.state.world.create_factory();
+		auto base_size = 10'000.f;
 		context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
-		context.outer_context.state.world.factory_set_level(new_fac, uint8_t(value.level));
+		context.outer_context.state.world.factory_set_size(new_fac, (float)value.level * base_size);
+		context.outer_context.state.world.factory_set_unqualified_employment(new_fac, base_size * 0.1f);
 		context.outer_context.state.world.force_create_factory_location(new_fac, context.id);
 	}
 }
@@ -443,7 +445,8 @@ void province_rgo_ext_desc::finish(province_file_context& context) {
 void province_rgo_ext::entry(province_rgo_ext_desc const& value, error_handler& err, int32_t line, province_file_context& context) {
 	if(value.trade_good_id) {
 		auto p = context.id;
-		context.outer_context.state.world.province_set_rgo_max_size_per_good(p, value.trade_good_id, value.max_employment_value / context.outer_context.state.defines.alice_rgo_per_size_employment);
+		context.outer_context.state.world.province_set_rgo_size(p, value.trade_good_id, value.max_employment_value);
+		context.outer_context.state.world.province_set_rgo_potential(p, value.trade_good_id, value.max_employment_value);
 		context.outer_context.state.world.province_set_rgo_was_set_during_scenario_creation(p, true);
 	}
 }
@@ -469,7 +472,8 @@ void province_rgo_ext_2_desc::finish(province_file_context& context) {
 void province_rgo_ext_2::entry(province_rgo_ext_2_desc const& value, error_handler& err, int32_t line, province_file_context& context) {
 	if(value.trade_good_id) {
 		auto p = context.id;
-		context.outer_context.state.world.province_set_rgo_max_size_per_good(p, value.trade_good_id, value.max_employment_value / context.outer_context.state.defines.alice_rgo_per_size_employment);
+		context.outer_context.state.world.province_set_rgo_size(p, value.trade_good_id, value.max_employment_value);
+		context.outer_context.state.world.province_set_rgo_potential(p, value.trade_good_id, value.max_employment_value);
 	}
 }
 
@@ -494,7 +498,7 @@ void province_factory_limit_desc::finish(province_file_context& context) {
 void province_factory_limit::entry(province_factory_limit_desc const& value, error_handler& err, int32_t line, province_file_context& context) {
 	if(value.trade_good_id) {
 		auto p = context.id;
-		context.outer_context.state.world.province_set_factory_max_level_per_good(p, value.trade_good_id, value.max_level_value);
+		context.outer_context.state.world.province_set_factory_max_size(p, value.trade_good_id, value.max_level_value / 10'000.f);
 		context.outer_context.state.world.province_set_factory_limit_was_set_during_scenario_creation(p, true);
 	}
 }

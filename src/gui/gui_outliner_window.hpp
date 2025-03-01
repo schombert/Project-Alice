@@ -39,7 +39,7 @@ struct outliner_rally_point {
 };
 
 using outliner_data = std::variant< outliner_filter, dcon::army_id, dcon::navy_id, dcon::gp_relationship_id,
-	dcon::state_building_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id,
+	dcon::factory_construction_id, dcon::province_building_construction_id, dcon::province_land_construction_id,
 	dcon::province_naval_construction_id, dcon::state_instance_id, outliner_rebel_occupation, outliner_hostile_siege, outliner_my_siege,
 	dcon::land_battle_id, dcon::naval_battle_id, outliner_rally_point>;
 
@@ -113,9 +113,9 @@ public:
 			auto nid = state.world.gp_relationship_get_influence_target(grid);
 
 			state.open_diplomacy(nid);
-		} else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
-			auto st_con = fatten(state.world, std::get<dcon::state_building_construction_id>(content));
-			auto p = st_con.get_state().get_capital().id;
+		} else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
+			auto st_con = fatten(state.world, std::get<dcon::factory_construction_id>(content));
+			auto p = st_con.get_province();
 
 			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, p);
 			state.map_state.center_map_on_province(state, p);
@@ -419,9 +419,9 @@ public:
 			color = text::text_color::white;
 			set_text(state, full_str);
 		}
-		else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
-			auto st_con = fatten(state.world, std::get<dcon::state_building_construction_id>(content));
-			auto ftid = state.world.state_building_construction_get_type(st_con);
+		else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
+			auto st_con = fatten(state.world, std::get<dcon::factory_construction_id>(content));
+			auto ftid = state.world.factory_construction_get_type(st_con);
 
 			float total = 0.0f;
 			float purchased = 0.0f;
@@ -719,8 +719,8 @@ public:
 		if(get_filter(state, outliner_filter::factories)) {
 			row_contents.push_back(outliner_filter::factories);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_state_building_construction(state.local_player_nation,
-					[&](dcon::state_building_construction_id sbcid) { row_contents.push_back(sbcid); });
+			state.world.nation_for_each_factory_construction(state.local_player_nation,
+					[&](dcon::factory_construction_id sbcid) { row_contents.push_back(sbcid); });
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}

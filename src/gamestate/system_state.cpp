@@ -2335,8 +2335,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
-	world.province_resize_rgo_max_size_per_good(world.commodity_size());
-	world.province_resize_factory_max_level_per_good(world.commodity_size());
+	world.province_resize_rgo_size(world.commodity_size());
+	world.province_resize_rgo_potential(world.commodity_size());
+	world.province_resize_rgo_efficiency(world.commodity_size());
+	world.province_resize_rgo_target_employment(world.commodity_size());
+	world.province_resize_rgo_output(world.commodity_size());
+	world.province_resize_rgo_output_per_worker(world.commodity_size());
+	world.province_resize_rgo_max_size(world.commodity_size());
+	world.province_resize_factory_max_size(world.commodity_size());
 
 	// load province history files
 	auto history = open_directory(root, NATIVE("history"));
@@ -2863,9 +2869,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
-	world.province_resize_rgo_profit_per_good(world.commodity_size());
-	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
-	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.trade_route_resize_volume(world.commodity_size());
 	world.nation_resize_factory_type_experience(world.factory_type_size());
@@ -2902,12 +2905,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
 
-	world.market_resize_labor_price(economy::labor::total);
-	world.market_resize_labor_supply(economy::labor::total);
-	world.market_resize_labor_demand(economy::labor::total);
-	world.market_resize_labor_demand_satisfaction(economy::labor::total);
-	world.market_resize_labor_supply_sold(economy::labor::total);
-	world.market_resize_pop_labor_distribution(economy::pop_labor::total);
+	world.province_resize_labor_price(economy::labor::total);
+	world.province_resize_labor_supply(economy::labor::total);
+	world.province_resize_labor_demand(economy::labor::total);
+	world.province_resize_labor_demand_satisfaction(economy::labor::total);
+	world.province_resize_labor_supply_sold(economy::labor::total);
+	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
@@ -3259,7 +3262,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_factory_employment(*this);
+	economy::update_employment(*this);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
 
@@ -4138,7 +4141,7 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 7:
-				economy::update_factory_employment(*this);
+				economy::update_employment(*this);
 				break;
 			case 8:
 				nations::update_administrative_efficiency(*this);
