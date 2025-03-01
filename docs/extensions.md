@@ -521,6 +521,7 @@ Alice adds a handful of new defines:
 - `alice_allow_revoke_subject_states`: Allows overlord to take subjects' states raising their militancy and giving separatism. Default: 0.0
 - `alice_leadership_generation_divisor`: To allow for battles to generate leadership, passive leadership generation is divided by this.
 - `alice_auto_hire_generals`: set to 0.0 to disable the game hiring generals and admirals automatically.
+- `alice_disallow_factories_in_colonies`: if set to 0, allows to build factories that have `can_be_built_in_colonies = yes` flag in colonies
 
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature

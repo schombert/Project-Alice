@@ -515,15 +515,25 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 	/*
 	The factory building must be unlocked by the nation.
-	Factories cannot be built in a colonial state.
 	*/
-
 	if(state.world.nation_get_active_building(source, type) == false && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
-	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
-		return false;
 
-	/* There can't be duplicate factories... */
+
+	// Disallow building in colonies unless define flag is set
+	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)) && state.defines.alice_disallow_factories_in_colonies != 0.f)
+		return false;
+	else if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)) and state.defines.alice_disallow_factories_in_colonies == 0.f) {
+		// If building in colonies is allowed, factory type should have a flag allowing it to be built in colonies too
+		if(refit_target && !state.world.factory_type_get_can_be_built_in_colonies(refit_target)) {
+			return false;
+		}
+		else if(!state.world.factory_type_get_can_be_built_in_colonies(type)) {
+			return false;
+		}
+	}
+
+	/* There can't be duplicate factories */
 	if(!is_upgrade && !refit_target) {
 		// Check factories being built
 		bool has_dup = false;

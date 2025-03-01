@@ -1408,7 +1408,11 @@ public:
 		text::add_line(state, contents, "production_build_new_factory_tooltip");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "factory_condition_1", is_civilized);
-		text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+
+		if(state.defines.alice_disallow_factories_in_colonies != 0.0f) {
+			text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+		}
+		
 
 		if(n == state.local_player_nation) {
 			auto rules = state.world.nation_get_combined_issue_rules(n);
@@ -1477,7 +1481,10 @@ public:
 		text::add_line(state, contents, "production_build_new_factory_tooltip");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "factory_condition_1", is_civilized);
-		text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+
+		if(state.defines.alice_disallow_factories_in_colonies != 0.0f) {
+			text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+		}
 
 		if(n == state.local_player_nation) {
 			auto rules = state.world.nation_get_combined_issue_rules(n);

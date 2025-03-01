@@ -23,7 +23,7 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		if(c == state.world.province_get_rgo(p)) {
 			continue;
 		}
-		if(economy::rgo_max_employment(state, owner, p, c) > 500.f) {
+		if(economy::rgo_max_employment(state, owner, p, c) > 100.f) {
 			tiles[curind].rgo_commodity = c;
 			tiles[curind].empty = false;
 			tiles[curind].province = p;

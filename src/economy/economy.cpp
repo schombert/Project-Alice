@@ -3392,7 +3392,7 @@ std::vector<full_construction_state> estimate_private_investment_construct(sys::
 	states_in_order.clear();
 
 	for(auto si : n.get_state_ownership()) {
-		if(si.get_state().get_capital().get_is_colonial() == false) {
+		if (si.get_state().get_capital().get_is_colonial() == false || state.defines.alice_disallow_factories_in_colonies == 0.f) {
 			states_in_order.push_back(si.get_state().id);
 		}
 	}
@@ -7861,7 +7861,7 @@ bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_i
 	}
 		
 	// Is there a potential for this commodity limit?
-	if(limit <= 1) {
+	if(limit <= 0) {
 		return false;
 	}
 

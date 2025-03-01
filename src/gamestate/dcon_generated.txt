@@ -534,6 +534,11 @@ object {
 		type{ float }
 		tag{ scenario }
 	}
+	property{
+		name{ can_be_built_in_colonies }
+		type{ bitfield }
+		tag{ scenario }
+	}
 }
 
 

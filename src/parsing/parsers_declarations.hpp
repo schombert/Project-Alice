@@ -1068,6 +1068,7 @@ struct building_definition : public modifier_base {
 	int_vector colonial_points;
 	commodity_array goods_cost;
 	bool default_enabled = false;
+	bool can_be_built_in_colonies = false;
 	bool is_coastal = false;
 	bool uses_potentials = false;
 	std::string_view production_type;
