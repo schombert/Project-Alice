@@ -106,7 +106,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 			// Army arrival time tooltip
 			auto army = dcon::fatten(state.world, a);
-			auto path = command::calculate_army_path(state, state.local_player_nation, a, army.get_location_from_army_location(), prov, true);
+			auto path = command::calculate_army_path(state, state.local_player_nation, a, army.get_location_from_army_location(), prov);
 			auto curprov = army.get_army_location().get_location().id;
 
 			if (path.size() == 0) { /* No available route */ }
