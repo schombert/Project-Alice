@@ -946,8 +946,8 @@ unit_standing_text;$m$ $n$/$x$/$y$（攻击 $attunit$ 防御 $defunit$ 维护费
 disarmed_pop;一个被裁军的成员国
 cancel_fac_construction;取消工厂建设
 cancel_fac_upgrade;取消工厂升级
-kierkegaard_1;同不
-kierkegaard_2;或
+kierkegaard_1;要么
+kierkegaard_2;或者
 open_and_sub;资助并重开工厂
 o_set_national_flag;对拥有者设置国家变量$text$
 o_add_modifier_until;省份拥有者获得$text$直到$date$
@@ -1465,8 +1465,8 @@ alice_reinforce_rate_battle_attacker_none;进攻方无可用增援。
 alice_reinforce_rate_battle_defender;防御方每月可增援 $x$ 名士兵。
 alice_reinforce_rate_battle_defender_none;防御方无可用增援。
 provid;内容 省份 ID
-used_throughput_tooltip;省份内所有路线用量 ?Y$val$W
-max_throughput_tooltip;省份内路线最大量 ?Y$val$W
+used_throughput_tooltip;省内路线总用量 ?Y$val$
+max_throughput_tooltip;省内路线最大量 ?Y$val$
 tariff_rate_origin;卖方有效关税率 ?Y$val$
 tariff_rate_target;买方有效关税率 ?Y$val$
 tariff_paid_origin;在卖方支付的关税 ?Y$val$
