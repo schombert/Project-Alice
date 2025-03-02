@@ -8020,8 +8020,9 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
 
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, our_nation, location, prov)) {
-			// if its a sea province, or a blockaded sea strait
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, our_nation, location, prov) ||
+			!state.world.province_get_nation_from_province_ownership(prov)) {
+			// if its a sea province, a blockaded sea strait or uncolonized
 			return false;
 		}
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
@@ -8086,7 +8087,11 @@ float calculate_location_reinforce_modifier_no_battle(sys::state& state, dcon::p
 	}
 	//if we are rebels
 	else {
-		if(!location_controller) {
+		// if it is uncolonized
+		if(!location_owner) {
+			location_modifier = 0.0f;
+		}
+		else if(!location_controller) {
 			location_modifier = 1.0f;
 		}
 		else {
