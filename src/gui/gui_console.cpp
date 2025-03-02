@@ -490,6 +490,7 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	write_single_component(state, NATIVE("province_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 		ptr_in = sys::serialize(ptr_in, state.province_definitions.canals);
 		ptr_in = sys::serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		ptr_in = sys::serialize(ptr_in, state.province_definitions.sea_adjacencies);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.europe);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.asia);
