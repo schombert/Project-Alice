@@ -2,6 +2,7 @@
 
 #include "economy_viewer.hpp"
 #include "economy_stats.hpp"
+#include "economy_production.hpp"
 #include "color.hpp"
 
 
