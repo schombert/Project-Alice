@@ -177,7 +177,7 @@ bool will_have_shortages_building_unit(sys::state& state, dcon::nation_id n, dco
 }
 
 dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture, bool evaluate_shortages) {
-	dcon::unit_type_id curbest;
+	dcon::unit_type_id curbest = state.military_definitions.irregular;
 
 	auto ndef = state.world.nation_get_identity_from_identity_holder(n);
 
