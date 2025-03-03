@@ -736,6 +736,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_lost_score_to_leadership, 20.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_disable_price_control, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_disallow_factories_in_colonies, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_naval_base_to_colonial_distance_factor, 0.04) \
+
 
 
 // scales the needs values so that they are needs per this many pops
