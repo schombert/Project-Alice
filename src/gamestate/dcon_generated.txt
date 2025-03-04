@@ -368,6 +368,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ rgo_efficiency_inputs }
+		type{ economy::commodity_set }
+		tag{ scenario }
+	}
+	property{
 		name{ artisan_inputs }
 		type{ economy::commodity_set }
 		tag{ scenario }
@@ -1522,50 +1527,85 @@ object {
 		type{ bitfield }
 	}
 	property {
-		name{ rgo_full_output_cost }
-		type{ float }
-	}
-	property {
-		name{ rgo_full_labor_cost }
-		type{ float }
-	}
-	property{
-		name{ rgo_employment }
-		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ rgo_size }
+		name{ rgo_base_size }
 		type{ float }
 		tag{ scenario }
-	}
-	property{
-		name{ subsistence_score }
-		type{ float }
-	}
+	}	
 	property{
 		name{ rgo_was_set_during_scenario_creation }
 		type{ bitfield }
 	}
 	property{
-		name{ rgo_max_size_per_good }
+		name{ rgo_size }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+	property{
+		name{ rgo_max_size }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	
+	property{
+		name{ rgo_potential }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_efficiency }
+		type{ array{commodity_id}{float} }
+		tag{ scenario }
+	}
+	property{
+		name{ rgo_target_employment }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_output }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_output_per_worker }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+
 	property{
 		name{ factory_limit_was_set_during_scenario_creation }
 		type{ bitfield }
 		tag{ scenario }
 	}
 	property{
-		name{ factory_max_level_per_good }
-		type{ array{commodity_id}{uint8_t} }
-		tag{ scenario }
-	}
-	property{
-		name{ rgo_target_employment_per_good }
+		name{ factory_max_size }
 		type{ array{commodity_id}{float} }
 		tag{ save }
+	}
+
+	property{
+		name{ rgo_profit }
+		type{ float }
+		tag{ save }
+	}
+	property { 
+		name{ artisan_score }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ artisan_actual_production }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ artisan_profit }
+		type{ float }
+	}
+
+	property{
+		name{ subsistence_score }
+		type{ float }
 	}
 	property{
 		name{ landowners_share }
@@ -1581,16 +1621,7 @@ object {
 		name{ subsistence_employment }
 		type{ float }
 		tag{ save }
-	}
-	property{
-		name{ rgo_profit_per_good }
-		type{ array{commodity_id}{float} }
-		tag{ save }
 	}	
-	property{
-		name{ rgo_actual_production_per_good }
-		type{ array{commodity_id}{float} }
-	}
 
 	property{
 		name{ tax_base_poor }
@@ -1633,6 +1664,43 @@ object {
 		name{ former_rebel_controller }
 		type{ dcon::rebel_faction_id }
 	}
+
+
+	property {
+		name{ labor_price }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ labor_supply }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ labor_demand }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ labor_demand_satisfaction }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ labor_supply_sold }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ administration_employment_target }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ pop_labor_distribution }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	} 
 }
 
 relationship{
@@ -4106,43 +4174,7 @@ object{
 		tag{ save }
 	}
 
-	property {
-		name{ labor_price }
-		type{ array{int32_t}{float} }
-		tag{ save }
-	}
-	property {
-		name{ labor_supply }
-		type{ array{int32_t}{float} }
-		tag{ save }
-	}
-	property {
-		name{ labor_demand }
-		type{ array{int32_t}{float} }
-		tag{ save }
-	}
-	property {
-		name{ labor_demand_satisfaction }
-		type{ array{int32_t}{float} }
-		tag{ save }
-	}
-	property {
-		name{ labor_supply_sold }
-		type{ array{int32_t}{float} }
-		tag{ save }
-	}
-
-	property {
-		name{ administration_employment_target }
-		type{ float }
-		tag{ save }
-	}
-
-	property {
-		name{ pop_labor_distribution }
-		type{ array{int32_t}{float} }
-		tag{ save }
-	}
+	
 
 	property{
 		name{ life_needs_costs }
@@ -4206,21 +4238,8 @@ object{
 		name{ luxury_needs_weights }
 		type{ array{commodity_id}{float} }
 		tag{ save }
-	}
-	property {
-		name{ artisan_score }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
-	property {
-		name{ artisan_actual_production }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
-	property {
-		name{ artisan_profit }
-		type{ float }
-	}
+	}	
+
 	property {
 		name{ import }
 		type{ array{commodity_id}{float} }
@@ -4468,19 +4487,14 @@ relationship{
 object {
 	name { factory }
 	storage_type{ erasable }
-	size{ 10000 }
+	size{ 20000 }
 	tag{ save }
 
 	property{
 		name{ building_type }
 		type{ factory_type_id }
 		tag{ save }
-	}
-	property{
-		name{ level }
-		type{ uint8_t }
-		tag{ save }
-	}
+	}	
 	property{
 		name{ priority_low }
 		type{ bitfield }
@@ -4491,9 +4505,21 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
-	property {
-		name{ actual_production }
+	property{
+		name{ subsidized }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ unprofitable }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ size }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ unqualified_employment }
@@ -4513,39 +4539,24 @@ object {
 	property {
 		name{ triggered_modifiers }
 		type{ float }
-	}
+	}	
 	property {
-		name{ full_output_cost }
+		name{ output }
 		type{ float }
 	}
 	property {
-		name{ full_input_cost }
+		name{ output_per_worker }
 		type{ float }
 	}
 	property {
-		name{ full_labor_cost }
+		name{ input_cost }
 		type{ float }
-	}
-	property {
-		name{ output_cost_per_worker }
-		type{ float }
-		tag{ save }
 	}
 	property {
 		name{ input_cost_per_worker }
 		type{ float }
 		tag{ save }
-	}
-	property{
-		name{ subsidized }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ unprofitable }
-		type{ bitfield }
-		tag{ save }
-	}
+	}	
 }
 
 relationship{
@@ -4725,14 +4736,15 @@ relationship{
 }
 
 relationship{
-	name{ state_building_construction }
+	name{ factory_construction }
 	storage_type{ erasable }
 	size{ 16000 }
 	tag{ save }
 
+
 	link{
-		object{state_instance}
-		name{state}
+		object{province}
+		name{province}
 		type{many}
 		index_storage{array}
 	}
@@ -4742,6 +4754,7 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
+
 
 	property{
 		name{ purchased_goods }

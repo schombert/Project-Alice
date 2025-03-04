@@ -8,7 +8,7 @@
 
 namespace ui {
 
-typedef std::variant< dcon::province_building_construction_id, dcon::state_building_construction_id> production_project_data;
+typedef std::variant< dcon::province_building_construction_id, dcon::factory_construction_id> production_project_data;
 
 struct production_project_input_data {
 	dcon::commodity_id cid{};
@@ -91,9 +91,9 @@ class production_project_info : public listbox_row_element_base<production_proje
 		if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
 			return fat_id.get_province().get_state_membership().id;
-		} else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
-			auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
-			return fat_id.get_state();
+		} else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
+			auto fat_id = dcon::fatten(state.world, std::get<dcon::factory_construction_id>(content));
+			return fat_id.get_province().get_state_membership().id;
 		}
 		return dcon::state_instance_id{};
 	}
@@ -158,10 +158,10 @@ public:
 			needed_commodities = state.economy_definitions.building_definitions[int32_t(type)].cost;
 
 			satisfied_commodities = fat_id.get_purchased_goods();
-		} else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
+		} else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
 			factory_icon->set_visible(state, true);
 			building_icon->set_visible(state, false);
-			auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
+			auto fat_id = dcon::fatten(state.world, std::get<dcon::factory_construction_id>(content));
 			factory_icon->frame = uint16_t(fat_id.get_type().get_output().get_icon());
 			name_text->set_text(state, text::produce_simple_string(state, fat_id.get_type().get_name()));
 			needed_commodities = fat_id.get_type().get_construction_costs();
@@ -219,8 +219,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation,
-				[&](dcon::state_building_construction_id id) {
+		state.world.nation_for_each_factory_construction_as_nation(state.local_player_nation,
+				[&](dcon::factory_construction_id id) {
 					auto fat_id = dcon::fatten(state.world, id);
 					if(fat_id.get_is_pop_project())
 						row_contents.push_back(production_project_data(id));
