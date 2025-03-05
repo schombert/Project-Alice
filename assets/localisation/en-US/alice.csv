@@ -1229,6 +1229,10 @@ alice_tt_wg_infamy_limit;?RThis wargoal will exceed the infamy limit?W
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
 province_id;Alice Province ID
 provid;Content Province ID
+state;State Instance
+state_id;State Instance ID
+state_definition;State Definition
+state_definition_id;State Definition ID
 nation_tag;Nation tag
 nation_id;Alice Nation ID
 alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)

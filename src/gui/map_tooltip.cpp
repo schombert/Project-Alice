@@ -48,15 +48,37 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 	if(state.cheat_data.show_province_id_tooltip) {
 		auto provid = state.world.province_get_provid(prov);
+		auto sid = fat.get_state_membership();
+		auto sdid = fat.get_state_from_abstract_state_membership();
 		text::localised_format_box(state, contents, box, "province_id", text::substitution_map{});
 		text::add_to_layout_box(state, contents, box, std::string_view(":"));
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, prov.index());
 		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, "state_id", text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, sid.id.index());
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, "state_definition_id", text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, sdid.id.index());
+		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, "provid", text::substitution_map{});
 		text::add_to_layout_box(state, contents, box, std::string_view(":"));
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, provid);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, "state", text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, sid.id);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, "state_definition", text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, sdid.id);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, "nation_tag", text::substitution_map{});
 		text::add_to_layout_box(state, contents, box, std::string_view(":"));
@@ -853,7 +875,16 @@ void crisis_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		text::localised_single_sub_box(state, contents, box, std::string_view("flashpoint_tension"), text::variable_type::value, std::to_string(int32_t(fat.get_state_membership().get_flashpoint_tension())));
+		{
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ fat.get_state_membership().get_flashpoint_tension() });
+			text::localised_format_box(state, contents, box, std::string_view("flashpoint_tension"), sub);
+		}
+		{
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_percentage_one_place{ fat.get_state_from_abstract_state_membership().get_colonization_temperature() / 100.f });
+			text::localised_format_box(state, contents, box, std::string_view("province_colonisation_temperature"), sub);
+		}
 		text::close_layout_box(contents, box);
 	}
 }
