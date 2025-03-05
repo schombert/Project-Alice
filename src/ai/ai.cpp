@@ -128,9 +128,42 @@ void update_ai_general_status(sys::state& state) {
 	}
 }
 
+bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
+
+	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	if(!real_target)
+		real_target = target;
+
+	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
+		return false;
+
+	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
+		return false;
+
+	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
+		if(!a.get_are_allied())
+			continue;
+		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
+		if(self_sup <= other.get_used_naval_supply_points())
+			return false;
+	}
+
+	return true;
+}
+
 static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
+
+		auto our_strength = estimate_strength(state, n);
+		auto other_strength = estimate_strength(state, other);
+
+		// We really shouldn't ally very weak neighbours
+		// Surrounding ourselves with useless alliances stops expansion
+		if(other_strength <= our_strength * 0.2f) {
+			continue;
+		}
 
 		bool b = other.get_is_player_controlled()
 			? state.world.unilateral_relationship_get_interested_in_alliance(state.world.get_unilateral_relationship_by_unilateral_pair(n, other))
@@ -146,7 +179,7 @@ static void internal_get_alliance_targets(sys::state& state, dcon::nation_id n, 
 	if(!alliance_targets.empty())
 		return;
 
-	// Adjacency with rival (useful for e.x, Chile allying Paraguay to fight bolivia)
+	// Adjacency with rival (useful for e.x, Chile allying Paraguay to fight Bolivia)
 	if(auto rival = state.world.nation_get_ai_rival(n); bool(rival)) {
 		internal_get_alliance_targets_by_adjacency(state, n, rival, alliance_targets);
 		if(!alliance_targets.empty())
@@ -1835,9 +1868,6 @@ void update_ai_econ_construction(sys::state& state) {
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
-		if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
-
 		static std::vector<dcon::province_id> project_provs;
 		project_provs.clear();
 
@@ -1976,9 +2006,6 @@ void update_ai_econ_construction(sys::state& state) {
 				}
 			}
 		}
-
-		if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
 
 		// try forts
 		if(budget - additional_expenses > 0.f) {
@@ -3003,31 +3030,73 @@ void sort_possible_justification_cbs(std::vector<possible_cb>& result, sys::stat
 			return state.world.nation_get_ai_rival(n) == a.target;
 		}
 
+		auto value_a = 0.f;
+		auto value_b = 0.f;
+		float risk_a = estimate_defensive_strength(state, a.target);
+		float risk_b = estimate_defensive_strength(state, b.target);
+
 		auto a_annexes = (state.world.cb_type_get_type_bits(a.cb) & military::cb_flag::po_annex) != 0;
 		auto b_annexes = (state.world.cb_type_get_type_bits(b.cb) & military::cb_flag::po_annex) != 0;
-		if(a_annexes != b_annexes)
-			return a_annexes;
+
+		if(a_annexes) {
+			value_a = state.world.nation_get_demographics(a.target, demographics::total);
+		}
+		if(b_annexes) {
+			value_b = state.world.nation_get_demographics(b.target, demographics::total);
+		}
 
 		auto a_land = (state.world.cb_type_get_type_bits(a.cb) & military::cb_flag::po_demand_state) != 0;
 		auto b_land = (state.world.cb_type_get_type_bits(b.cb) & military::cb_flag::po_demand_state) != 0;
 
-		if(a_land < b_land)
-			return a_land;
+		if(a_land) {
+			for(auto so : state.world.nation_get_state_ownership(a.target)) {
+				if(so.get_state().get_definition() == a.state_def) {
+					value_a = state.world.state_instance_get_demographics(so.get_state(), demographics::total);
+				}
+			}
+		}
+		if(b_land) {
+			for(auto so : state.world.nation_get_state_ownership(b.target)) {
+				if(so.get_state().get_definition() == b.state_def) {
+					value_b = state.world.state_instance_get_demographics(so.get_state(), demographics::total);
+				}
+			}
+		}
 
-		auto rel_a = state.world.get_diplomatic_relation_by_diplomatic_pair(n, a.target);
-		auto rel_b = state.world.get_diplomatic_relation_by_diplomatic_pair(n, b.target);
-		if(state.world.diplomatic_relation_get_value(rel_a) != state.world.diplomatic_relation_get_value(rel_b))
-			return state.world.diplomatic_relation_get_value(rel_a) < state.world.diplomatic_relation_get_value(rel_b);
+		risk_a *= military::cb_infamy(state, a.cb, a.target, a.state_def);
+		risk_b *= military::cb_infamy(state, b.cb, b.target, b.state_def);
 
-		if(a.cb != b.cb)
-			return a.cb.index() < b.cb.index();
-		if(a.target != b.target)
-			return a.target.index() < b.target.index();
-		if(a.secondary_nation != b.secondary_nation)
-			return a.secondary_nation.index() < b.secondary_nation.index();
-		if(a.associated_tag != b.associated_tag)
-			return a.associated_tag.index() < b.associated_tag.index();
-		return a.state_def.index() < b.state_def.index();
+		// Distance evaluation
+		//If it neighbors one of our spheres and we can pathfind to each other's capitals, we don't need naval supremacy to reach this nation
+		for(auto adj : state.world.nation_get_nation_adjacency(a.target)) {
+			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
+			auto neighbor = other;
+			if(neighbor.get_in_sphere_of() == n) {
+				auto path = province::make_safe_land_path(state, state.world.nation_get_capital(n), state.world.nation_get_capital(neighbor), n);
+				if(path.empty()) {
+					continue;
+				}
+				value_a *= 1.5f;
+			}
+		}
+		if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, a.target) || naval_supremacy(state, n, a.target))
+			value_a *= 1.5;
+
+		for(auto adj : state.world.nation_get_nation_adjacency(b.target)) {
+			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
+			auto neighbor = other;
+			if(neighbor.get_in_sphere_of() == n) {
+				auto path = province::make_safe_land_path(state, state.world.nation_get_capital(n), state.world.nation_get_capital(neighbor), n);
+				if(path.empty()) {
+					continue;
+				}
+				value_b *= 1.5f;
+			}
+		}
+		if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, b.target) || naval_supremacy(state, n, b.target))
+			value_b *= 1.5;
+
+		return value_a * risk_b > value_b * risk_a;
 	});
 }
 
@@ -3121,9 +3190,13 @@ void update_cb_fabrication(sys::state& state) {
 			if(n.get_is_at_war())
 				continue;
 			// Uncivilized nations are more aggressive to westernize faster
-			float infamy_limit = state.world.nation_get_is_civilized(n) ? state.defines.badboy_limit / 2.f : state.defines.badboy_limit;
+			float infamy_limit = state.world.nation_get_is_civilized(n) ? state.defines.badboy_limit / 1.5f : state.defines.badboy_limit;
+			if(state.world.nation_get_is_great_power(n)) {
+				infamy_limit *= 1.1f;
+			}
 			if(n.get_infamy() > infamy_limit)
 				continue;
+
 			if(n.get_constructing_cb_type())
 				continue;
 			auto ol = n.get_overlord_as_subject().get_ruler().id;
@@ -3852,30 +3925,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	return false;
 }
 
-bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
-	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
-
-	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-	if(!real_target)
-		real_target = target;
-
-	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
-		return false;
-
-	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
-		return false;
-
-	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
-		if(!a.get_are_allied())
-			continue;
-		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
-		if(self_sup <= other.get_used_naval_supply_points())
-			return false;
-	}
-
-	return true;
-}
-
 void make_war_decs(sys::state& state) {
 	auto targets = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
@@ -3913,7 +3962,7 @@ void make_war_decs(sys::state& state) {
 				for(auto adj : state.world.nation_get_nation_adjacency(target)) {
 					auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 					auto neighbor = other;
-					if(neighbor.get_in_sphere_of() == n){
+					if(neighbor.get_in_sphere_of() == n) {
 						auto path = province::make_safe_land_path(state, state.world.nation_get_capital(n), state.world.nation_get_capital(neighbor), n);
 						if(path.empty()) {
 							continue;
