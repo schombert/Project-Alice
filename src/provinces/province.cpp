@@ -1609,7 +1609,19 @@ void update_colonization(sys::state& state) {
 
 			float adjust = state.defines.colonization_influence_temperature_per_day +
 										 float(max_points) * state.defines.colonization_influence_temperature_per_level +
-										 (state.current_crisis_state == sys::crisis_state::inactive ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+										 (state.current_crisis_state == sys::crisis_state::inactive ? 0.0f : state.defines.tension_while_crisis) + at_war_adjust;
+
+			bool anyone_has_army = false;
+			for(auto c : colonizers) {
+				if(c.get_colonizer().get_is_great_power())
+					adjust *= 1.5f;
+
+				if(c.get_colonizer().get_active_regiments())
+					anyone_has_army = true;
+			}
+
+			if(!anyone_has_army)
+				adjust *= 0.f;
 
 			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
 		} else if(num_colonizers == 1 &&
