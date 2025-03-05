@@ -2867,6 +2867,15 @@ void update_crisis(sys::state& state) {
 								state.military_definitions.crisis_colony // cb
 						});
 
+						crisis_add_wargoal(state.crisis_defender_wargoals, sys::full_wg{
+							defending_colonizer, // added_by;
+								attacking_colonizer, // target_nation;
+								dcon::nation_id{}, //  secondary_nation;
+								dcon::national_identity_id{}, // wg_tag;
+								sd, // state;
+								state.military_definitions.crisis_colony // cb
+						});
+
 						state.crisis_attacker = attacking_colonizer;
 						if(attacking_colonizer.get_is_great_power()) {
 							state.primary_crisis_attacker = attacking_colonizer;
