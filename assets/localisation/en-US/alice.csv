@@ -1235,6 +1235,7 @@ state_definition;State Definition
 state_definition_id;State Definition ID
 nation_tag;Nation tag
 nation_id;Alice Nation ID
+province_colonisation_temperature;State colonization temperature: ?R$val$?W
 alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
 alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)
 alice_rgo_trade_prod_3;RGO Minting Production: $x$ ($y$)

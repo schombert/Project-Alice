@@ -2232,8 +2232,22 @@ public:
 class province_colonisation_temperature : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		progress = dcon::fatten(state.world, content).get_definition().get_colonization_temperature();
+		// auto content = retrieve<dcon::state_instance_id>(state, parent);
+		// Uncolonized state doesn't have state instance assigned
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		// Colonization temperature has [0;100] range and progress [0;1].
+		progress = dcon::fatten(state.world, prov_id).get_state_from_abstract_state_membership().get_colonization_temperature() / 100.f;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		// auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto prov_id = retrieve<dcon::province_id>(state, parent);
+		auto temp = dcon::fatten(state.world, prov_id).get_state_from_abstract_state_membership().get_colonization_temperature();
+		text::add_line(state, contents, "province_colonisation_temperature", text::variable_type::val, text::fp_percentage_one_place{ temp / 100.f });
 	}
 };
 
