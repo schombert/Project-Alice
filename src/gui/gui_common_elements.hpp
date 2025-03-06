@@ -4,6 +4,7 @@
 #include "demographics.hpp"
 #include "economy.hpp"
 #include "economy_production.hpp"
+#include "economy_government.hpp"
 #include "economy_stats.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
@@ -303,9 +304,8 @@ public:
 class state_admin_efficiency_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		auto owner = state.world.state_instance_get_nation_from_state_ownership(content);
-		// 
+		auto content = retrieve<dcon::province_id>(state, parent);
+		auto owner = state.world.province_get_nation_from_province_ownership(content);
 		set_text(state, text::format_percentage(economy::local_admin_ratio(state, owner, content), 1));
 	}
 
@@ -314,17 +314,16 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		auto owner = state.world.state_instance_get_nation_from_state_ownership(content);
+		auto content = retrieve<dcon::province_id>(state, parent);
+		auto owner = state.world.province_get_nation_from_province_ownership(content);
+		auto sid = state.world.province_get_state_membership(content);
 
 		// Vanilla numbers
 		// Show only in colonial states
-		for(auto p : state.world.in_province) {
-			if(p.get_state_membership() == content&& p.get_is_colonial()) {
-				text::add_line(state, contents, "admin_integrating_explain_1", text::variable_type::val, text::fp_percentage{ province::state_admin_efficiency(state, content) });
-				break;
-			}
+		if(state.world.province_get_is_colonial(content)) {
+			text::add_line(state, contents, "admin_integrating_explain_1", text::variable_type::val, text::fp_percentage{ province::state_admin_efficiency(state, sid) });
 		}
+
 		// New administration
 		text::add_line(state, contents, "admin_explain_11", text::variable_type::val, text::fp_one_place{ economy::population_per_admin(state, owner) });
 
@@ -343,23 +342,19 @@ public:
 		float bsum = 0.0f;
 		float rebelb = 0.0f;
 
-		for(auto p : state.world.in_province) {
-			if(p.get_state_membership() == content) {
-				if(!state.world.province_get_is_owner_core(p)) {
-					non_core_effect += state.defines.noncore_tax_penalty;
+		if(!state.world.province_get_is_owner_core(content)) {
+			non_core_effect += state.defines.noncore_tax_penalty;
+		}
+		if(state.world.province_get_nationalism(content) > 0.f) {
+			separatism_effect += state.defines.separatism_tax_penalty;
+		}
+		for(auto po : state.world.province_get_pop_location(content)) {
+			if(po.get_pop().get_is_primary_or_accepted_culture() &&
+					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+				if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
+					rebelb += po.get_pop().get_size();
 				}
-				if(state.world.province_get_nationalism(p) > 0.f) {
-					separatism_effect += state.defines.separatism_tax_penalty;
-				}
-				for(auto po : state.world.province_get_pop_location(p)) {
-					if(po.get_pop().get_is_primary_or_accepted_culture() &&
-							po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
-						if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
-							rebelb += po.get_pop().get_size();
-						}
-						bsum += po.get_pop().get_size();
-					}
-				}
+				bsum += po.get_pop().get_size();
 			}
 		}
 
@@ -371,7 +366,7 @@ public:
 		text::add_line(state, contents, "admin_explain_9", text::variable_type::val, text::fp_currency{ economy::tax_collection_capacity(state, owner, content) });
 
 		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
-		text::add_line(state, contents, "admin_explain_10", text::variable_type::val, text::fp_currency{ economy::estimate_spendings_administration_state(state, owner, content, fraction) });
+		text::add_line(state, contents, "admin_explain_10", text::variable_type::val, text::fp_currency{ economy::estimate_spendings_administration_local(state, owner, content, fraction) });
 	}
 };
 

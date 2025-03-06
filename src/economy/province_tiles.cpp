@@ -2,6 +2,7 @@
 #include "container_types.hpp"
 #include "dcon_generated.hpp"
 #include "commands.hpp"
+#include "economy_production.hpp"
 
 namespace economy {
 
@@ -23,7 +24,7 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		if(c == state.world.province_get_rgo(p)) {
 			continue;
 		}
-		if(economy::rgo_max_employment(state, owner, p, c) > 100.f) {
+		if(economy::rgo_max_employment(state, c, p) > 100.f) {
 			tiles[curind].rgo_commodity = c;
 			tiles[curind].empty = false;
 			tiles[curind].province = p;
@@ -41,7 +42,7 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	}
 
 	for(auto c : state.world.in_commodity) {
-		if(state.world.province_get_factory_max_level_per_good(p, c) > 0) {
+		if(state.world.province_get_factory_max_size(p, c) > 0) {
 			bool foundcorrespondingfactory = false;
 			// If there is already a factory developing this resource - don't show it with a separate tile.
 			for(int i = 0; i < curind; i++) {

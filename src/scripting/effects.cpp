@@ -5337,7 +5337,7 @@ uint32_t ef_change_factory_limit(EFFECT_PARAMTERS) {
 
 	if(com) {
 		auto p = trigger::to_prov(primary_slot);
-		ws.world.province_get_factory_max_level_per_good(p, com) += (uint8_t) change;
+		ws.world.province_get_factory_max_size(p, com) += (int) change;
 		return 0;
 	}
 	return 0;

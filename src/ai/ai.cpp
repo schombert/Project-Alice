@@ -1393,12 +1393,11 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-
 				// Check rules for factories in colonies
+				auto sid = m.get_local_market().get_zone();
 				if(sid.get_capital().get_is_colonial() && (state.defines.alice_disallow_factories_in_colonies != 0.f || !type.get_can_be_built_in_colonies())) {
 					continue;
 				}
-
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1426,8 +1425,8 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-
 				// Check rules for factories in colonies
+				auto sid = m.get_local_market().get_zone();
 				if(sid.get_capital().get_is_colonial() && (state.defines.alice_disallow_factories_in_colonies != 0.f || !type.get_can_be_built_in_colonies())) {
 					continue;
 				}

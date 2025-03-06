@@ -107,23 +107,22 @@ float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id 
 	float side_effects = 0.0f;
 	float bsum = 0.0f;
 	float rsum = 0.0f;
-	province::for_each_province_in_state_instance(state, sid, [&](dcon::province_id p) {
-		if(!state.world.province_get_is_owner_core(p)) {
-			side_effects += state.defines.noncore_tax_penalty;
-		}
-		if(state.world.province_get_nationalism(p) > 0.f) {
-			side_effects += state.defines.separatism_tax_penalty;
-		}
-		for(auto po : state.world.province_get_pop_location(p)) {
-			if(po.get_pop().get_is_primary_or_accepted_culture() &&
-					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
-				bsum += po.get_pop().get_size();
-				if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
-					rsum += po.get_pop().get_size();
-				}
+
+	if(!state.world.province_get_is_owner_core(pid)) {
+		side_effects += state.defines.noncore_tax_penalty;
+	}
+	if(state.world.province_get_nationalism(pid) > 0.f) {
+		side_effects += state.defines.separatism_tax_penalty;
+	}
+	for(auto po : state.world.province_get_pop_location(pid)) {
+		if(po.get_pop().get_is_primary_or_accepted_culture() &&
+				po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+			bsum += po.get_pop().get_size();
+			if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
+				rsum += po.get_pop().get_size();
 			}
 		}
-	});
+	}
 
 	float issue_sum = 0.0f;
 	for(auto i : state.culture_definitions.social_issues) {
