@@ -1082,8 +1082,9 @@ bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::prov
 
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
-	if((path_bits & province::border::non_adjacent_bit) != 0 && state.province_definitions.sea_adjacencies.contains(adjacency)) { // strait crossing
-		if(military::province_has_enemy_fleet(state, state.province_definitions.sea_adjacencies[adjacency], thisnation)) {
+ 	auto strait_prov = state.world.province_adjacency_get_sea_adj_prov(adjacency);
+	if((path_bits & province::border::non_adjacent_bit) != 0 && strait_prov) { // strait crossing
+		if(military::province_has_enemy_fleet(state, strait_prov, thisnation)) {
 			return true;
 		}
 	}

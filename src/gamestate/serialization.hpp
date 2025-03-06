@@ -133,31 +133,6 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in,
 }
 
 
-
-inline size_t serialize_size(
-		ankerl::unordered_dense::map<dcon::province_adjacency_id, dcon::province_id, sys::province_adjacency_hash> const& vec) {
-	return serialize_size(vec.values());
-}
-
-inline uint8_t* serialize(uint8_t* ptr_in,
-		ankerl::unordered_dense::map<dcon::province_adjacency_id, dcon::province_id, sys::province_adjacency_hash> const& vec) {
-	return serialize(ptr_in, vec.values());
-}
-inline uint8_t const* deserialize(uint8_t const* ptr_in,
-		ankerl::unordered_dense::map<dcon::province_adjacency_id, dcon::province_id, sys::province_adjacency_hash>& vec) {
-	uint32_t length = 0;
-	memcpy(&length, ptr_in, sizeof(uint32_t));
-
-	std::remove_cvref_t<decltype(vec.values())> new_vec;
-	new_vec.resize(length);
-	memcpy(new_vec.data(), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
-	vec.replace(std::move(new_vec));
-
-	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
-}
-
-
-
 inline size_t serialize_size(ankerl::unordered_dense::map<uint16_t, dcon::text_key> const& vec) {
 	return serialize_size(vec.values());
 }

@@ -94,7 +94,7 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						auto blockade_prov_value = parsers::parse_int(blockade_prov_text, 0, err);
 						if(blockade_prov_value > 0) {
 							auto blockadeable_prov = context.original_id_to_prov_id_map[blockade_prov_value];
-							context.state.province_definitions.sea_adjacencies.insert_or_assign(new_rel, dcon::province_id{ blockadeable_prov });
+							context.state.world.province_adjacency_set_sea_adj_prov( new_rel, dcon::province_id{ blockadeable_prov });
 						}
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "impassable")) {
 						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);

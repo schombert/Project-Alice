@@ -1661,6 +1661,12 @@ relationship{
 	}
 
 	property{
+		name{ sea_adj_prov }
+		type{ dcon::province_id }
+		tag{ save }
+	}
+
+	property{
 		name{ type }
 		type{ uint8_t }
 		tag{ save }
