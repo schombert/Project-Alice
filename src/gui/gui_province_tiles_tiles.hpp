@@ -92,43 +92,7 @@ public:
 		if(!fid)
 			return;
 
-		auto type = state.world.factory_get_building_type(target.factory);
-		dcon::nation_id n = state.world.province_get_nation_from_province_ownership(target.province);
-		auto p = target.province;
-		auto p_fat = fatten(state.world, target.province);
-		auto sdef = state.world.abstract_state_membership_get_state(state.world.province_get_abstract_state_membership(p_fat));
-		dcon::state_instance_id s{};
-		state.world.for_each_state_instance([&](dcon::state_instance_id id) {
-			if(state.world.state_instance_get_definition(id) == sdef)
-				s = id;
-		});
-		auto market = state.world.state_instance_get_market_from_local_market(s);
-
-		// nation data
-
-		float mobilization_impact = state.world.nation_get_is_mobilized(n) ? military::mobilization_impact(state, n) : 1.0f;
-		auto cap_prov = state.world.nation_get_capital(n);
-		auto cap_continent = state.world.province_get_continent(cap_prov);
-		auto cap_region = state.world.province_get_connected_region_id(cap_prov);
-
-		auto fac = fatten(state.world, fid);
-
-		auto& inputs = type.get_inputs();
-		auto& einputs = type.get_efficiency_inputs();
-		auto output = type.get_output();
-
-		text::add_line(state, contents, state.world.factory_type_get_name(type));
-		text::add_line(state, contents, "factory_level", text::variable_type::val, (int)state.world.factory_get_size(fac));
-
-		if(state.world.commodity_get_uses_potentials(output)) {
-			auto limit = p_fat.get_factory_max_size(output);
-			text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(output),
-				text::variable_type::val, (int)limit);
-		}
-
-
-		text::add_line_break_to_layout(state, contents);
-
+		factory_stats_tooltip(state, contents, fid);
 	}
 };
 
@@ -155,10 +119,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
 		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
 		text::add_line(state, contents, commodity_name);
+		text::add_line_break_to_layout(state, contents);
 
-		auto owner = state.world.province_get_nation_from_province_ownership(target.province);
-
-		
+		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.rgo_commodity);
 	}
 };
 
