@@ -2445,15 +2445,19 @@ class go_to_base_game_button : public button_element_base {
 inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov_id, dcon::commodity_id c) {
 	auto rgo_good = dcon::fatten(state.world, c);
 	auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+	auto sid = state.world.province_get_state_membership(prov_id);
+	auto market = state.world.state_instance_get_market_from_local_market(sid);
+	auto mobilization_impact = (state.world.nation_get_is_mobilized(nat_id) ? military::mobilization_impact(state, nat_id) : 1.f);
 
 	text::add_line(state, contents, "provinceview_goodsincome", text::variable_type::goods, rgo_good.get_name(), text::variable_type::value,
-					text::fp_three_places{ economy::rgo_income(state, prov_id) });
+					text::fp_currency{ economy::rgo_income(state, prov_id) });
 
+	text::add_line(state, contents, "PROVINCEVIEW_EMPLOYMENT", text::variable_type::value, text::fp_two_places{ economy::rgo_employment(state, rgo_good, prov_id) });
+	text::add_line(state, contents, "provinceview_max_employment", text::variable_type::value, text::fp_two_places{ economy::rgo_max_employment(state, rgo_good, prov_id) });
 	{
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub_map;
 		auto const production = economy::rgo_output(state, rgo_good, prov_id);
-
 		text::add_to_substitution_map(sub_map, text::variable_type::curr, text::fp_two_places{ production });
 		text::localised_format_box(state, contents, box, std::string_view("production_output_goods_tooltip2"), sub_map);
 		text::localised_format_box(state, contents, box, std::string_view("production_output_explanation"));
@@ -2462,12 +2466,7 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 
 	text::add_line_break_to_layout(state, contents);
 
-	{
-		auto const base_size =
-			state.world.province_get_rgo_size(prov_id, rgo_good)
-			* state.world.commodity_get_rgo_amount(rgo_good);
-		text::add_line(state, contents, std::string_view("production_base_output_goods_tooltip"), text::variable_type::base, text::fp_two_places{ base_size });
-	}
+	text::add_line(state, contents, std::string_view("production_base_output_goods_tooltip"), text::variable_type::base, text::fp_two_places{ economy::rgo_potential_output(state, rgo_good, prov_id) });
 
 	{
 		auto box = text::open_layout_box(contents, 0);
@@ -2486,11 +2485,24 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 
 	{
 		auto box = text::open_layout_box(contents, 0);
-		auto const throughput = economy::rgo_employment(state, rgo_good, prov_id);
+		auto const throughput = 1.0f + state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::local_rgo_throughput) +
+			state.world.nation_get_modifier_values(nat_id, sys::national_mod_offsets::rgo_throughput);
 		text::localised_format_box(state, contents, box, std::string_view("production_throughput_efficiency_tooltip"));
 		text::add_to_layout_box(state, contents, box, text::fp_percentage{ throughput }, throughput >= 0.0f ? text::text_color::green : text::text_color::red);
 
 		text::close_layout_box(contents, box);
+	}
+
+	text::add_line(state, contents, std::string_view("province_rgo_efficiency_inputs"));
+
+	auto inputs = economy::rgo_inputs_actual(state, nat_id, market, prov_id, c, mobilization_impact);
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(inputs.commodity_type[i]) {
+			auto input_c = dcon::fatten(state.world, inputs.commodity_type[i]);
+			text::add_line(state, contents, "province_rgo_efficiency_input", text::variable_type::goods, input_c.get_name(), text::variable_type::value, text::fp_two_places{ inputs.commodity_amounts[i] });
+		} else {
+			break;
+		}
 	}
 };
 

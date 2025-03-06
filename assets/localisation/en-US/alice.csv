@@ -1343,6 +1343,9 @@ pposition_is;$x$ party position
 rpposition_is;ruling party position
 topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
 provinceview_goodsprofit;With Profit of: ?Y$value$
+provinceview_max_employment;Potential max employment: ?Y$value$
+province_rgo_efficiency_inputs;Efficiency inputs:
+province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
 rgo_output;Output
 rgo_profit;Total
 rgo_expected_profit;Actual
