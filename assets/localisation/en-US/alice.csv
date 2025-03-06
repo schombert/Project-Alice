@@ -1094,6 +1094,16 @@ alice_mil_decay_description;Natural decay ?G-$x$
 alice_con_decay_description;Natural decay ?R-$x$
 x_from_y;?Y$culture$?W $x$ from ?Y$y$?W
 x_in_y;$x$ at $y$
+alice_reserve_reg_count;$x$ currently have ?Y$y$?W reserve brigades in the battle.
+alice_reinforce_battle_mod_top;?Y$x$?W reserve brigades affected by the following reinforcement modifiers:
+alice_reinforce_battle_only_reserve;Only ?Yreserves?W in a battle can be reinforced.
+alice_reinforce_battle_spending_modifier;Average army supply fufillment: ?Yx$x$.?W
+alice_reinforce_battle_location_modifier;Average location modifier: ?Yx$x$.?W
+alice_reinforce_battle_national_modifier;Average national modifiers&techs: ?Yx$x$.?W
+alice_reinforce_rate_battle_attacker;The attackers can reinforce up to $x$ soldiers per month.
+alice_reinforce_rate_battle_attacker_none;The attackers are currently getting no reinforcements.
+alice_reinforce_rate_battle_defender;The defenders can reinforce up to $x$ soldiers per month.
+alice_reinforce_rate_battle_defender_none;The defenders are currently getting no reinforcements.
 reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 reinforce_rate_none;This regiment can't currently be reinforced.
 alice_domestic_investment_button;Investing in individual projects is ?Rdeprecated?W, use the ?Ydomestic investment?W slider on the budget screen instead

@@ -11,20 +11,20 @@ namespace economy {
 float population_per_admin(sys::state& state, dcon::nation_id n);
 
 // amount of taxes you can collect in a given region
-float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid);
+float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::province_id);
 // amount of taxes you can collect in a given region summed up for each region
 float total_tax_collection_capacity(sys::state& state, dcon::nation_id n);
 // ratio of current employed imperial admin to imperial admin required by your nation
 float global_admin_ratio(sys::state& state, dcon::nation_id n);
 // ratio of current employed local admin to local admin required by given state instance
-float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid);
+float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id);
 
 // these functions estimate spendings for given budget priority
 
 // estimate "imperial administration" spendings which are based on total population of the realm
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority);
 // estimate "local administration" spendings
-float estimate_spendings_administration_state(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, float budget_priority);
+float estimate_spendings_administration_local(sys::state&, dcon::nation_id, dcon::province_id, float budget_priority);
 // estimate total spendings for your administration
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority);
 // total current spendings
@@ -48,5 +48,5 @@ struct tax_information {
 
 // sums up all tax income all over the nation
 tax_information explain_tax_income(sys::state& state, dcon::nation_id n);
-tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid);
+tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id sid);
 }

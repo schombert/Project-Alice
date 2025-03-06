@@ -169,7 +169,7 @@ public:
 			auto ftid = state.world.factory_get_building_type(fid);
 			switch(content.value_type) {
 			case trade_flow_data::value_type::produced_by: {
-				amount += state.world.factory_get_actual_production(fid);
+				amount += state.world.factory_get_output(fid);
 			} break;
 			case trade_flow_data::value_type::used_by: {
 				auto& inputs = state.world.factory_type_get_inputs(ftid);
@@ -191,7 +191,7 @@ public:
 			auto pid = content.data.province_id;
 			switch(content.value_type) {
 			case trade_flow_data::value_type::produced_by: {
-				amount += state.world.province_get_rgo_actual_production_per_good(pid, content.trade_good);
+				amount += state.world.province_get_rgo_output(pid, content.trade_good);
 			} break;
 			case trade_flow_data::value_type::used_by:
 			case trade_flow_data::value_type::may_be_used_by:
@@ -238,7 +238,7 @@ protected:
 					}
 				});
 				if(vt == trade_flow_data::value_type::produced_by)
-					if(state.world.province_get_rgo_actual_production_per_good(pid, commodity_id) > 0.f) {
+					if(state.world.province_get_rgo_size(pid, commodity_id) > 0.f) {
 						trade_flow_data td{};
 						td.type = trade_flow_data::type::province;
 						td.value_type = vt;
@@ -344,7 +344,7 @@ public:
 			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
 				for(const auto fl : pc.get_province().get_factory_location()) {
 					if(fl.get_factory().get_building_type().get_output() == com)
-						amount += fl.get_factory().get_actual_production();
+						amount += fl.get_factory().get_output();
 				}
 			}
 			total += amount;
@@ -358,18 +358,13 @@ public:
 		{
 			float amount = 0.f;
 			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
-				amount += pc.get_province().get_rgo_actual_production_per_good(com);
+				amount += pc.get_province().get_rgo_output(com);
 			}
 			total += amount;
 			distribution.emplace_back(state.culture_definitions.aristocrat, amount);
 		}
 		{
-			auto amount = 0.f;
-			state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-				auto sid = state.world.state_ownership_get_state(soid);
-				auto market = state.world.state_instance_get_market_from_local_market(sid);
-				amount += state.world.market_get_artisan_actual_production(market, com);
-			});
+			auto amount = economy::artisan_output(state, com, state.local_player_nation);
 			total += amount;
 			distribution.emplace_back(state.culture_definitions.artisans, amount);
 		}
@@ -465,10 +460,10 @@ public:
 					auto fid = state.world.factory_location_get_factory(flid);
 					auto ftid = state.world.factory_get_building_type(fid);
 					if(state.world.factory_type_get_output(ftid) == commodity_id)
-						amount += state.world.factory_get_actual_production(fid);
+						amount += state.world.factory_get_output(fid);
 				});
 				if(state.world.province_get_rgo(pid) == commodity_id)
-					amount += state.world.province_get_rgo_actual_production_per_good(pid, commodity_id);
+					amount += state.world.province_get_rgo_output(pid, commodity_id);
 			});
 		}
 
@@ -479,7 +474,7 @@ class trade_flow_total_used_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto commodity_id = retrieve<dcon::commodity_id>(state, parent);
-		set_text(state, text::format_float(economy::nation_factory_consumption(state, state.local_player_nation, commodity_id), 2));
+		set_text(state, text::format_float(economy::estimate_factory_consumption(state, commodity_id, state.local_player_nation), 2));
 	}
 };
 
@@ -737,15 +732,15 @@ inline table::column<dcon::commodity_id> trade_good_player_factory_needs = {
 	.sortable = true,
 	.header = "factory_need",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		auto av = economy::nation_factory_consumption(state, state.local_player_nation, a);
-		auto bv = economy::nation_factory_consumption(state, state.local_player_nation, b);
+		auto av = economy::estimate_factory_consumption(state, a, state.local_player_nation);
+		auto bv = economy::estimate_factory_consumption(state, b, state.local_player_nation);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
-		auto value = economy::nation_factory_consumption(state, state.local_player_nation, id);
+		auto value = economy::estimate_factory_consumption(state, id, state.local_player_nation);
 		return text::format_float(value);
 	}
 };
@@ -755,27 +750,15 @@ inline table::column<dcon::commodity_id> trade_good_player_production_artisan = 
 	.sortable = true,
 	.header = "artisan_production",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		auto av = 0.f;
-		auto bv = 0.f;
-		for(auto n : state.world.in_market) {
-			if(n.get_zone_from_local_market().get_nation_from_state_ownership() == state.local_player_nation)
-				av += n.get_artisan_actual_production(a);
-		}
-		for(auto n : state.world.in_market) {
-			if(n.get_zone_from_local_market().get_nation_from_state_ownership() == state.local_player_nation)
-				bv += n.get_artisan_actual_production(b);
-		}
+		auto av = economy::artisan_output(state, a, state.local_player_nation);
+		auto bv = economy::artisan_output(state, b, state.local_player_nation);
 		if(av != bv)
 			return av > bv;
 		else
 			return a.index() < b.index();
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
-		auto value = 0.f;
-		for(auto n : state.world.in_market) {
-			if(n.get_zone_from_local_market().get_nation_from_state_ownership() == state.local_player_nation)
-				value += n.get_artisan_actual_production(id);
-		}
+		auto value = economy::artisan_output(state, id, state.local_player_nation);
 		return text::format_float(value);
 	}
 };
@@ -805,12 +788,12 @@ inline table::column<dcon::commodity_id> trade_good_production_rgo = {
 		auto bv = 0.f;
 		for(auto p : state.world.in_province) {
 			if(p.get_nation_from_province_ownership()) {
-				av += p.get_rgo_actual_production_per_good(a);
+				av += p.get_rgo_output(a);
 			}
 		}
 		for(auto p : state.world.in_province) {
 			if(p.get_nation_from_province_ownership()) {
-				bv += p.get_rgo_actual_production_per_good(b);
+				bv += p.get_rgo_output(b);
 			}
 		}
 		if(av != bv)
@@ -822,7 +805,7 @@ inline table::column<dcon::commodity_id> trade_good_production_rgo = {
 		auto value = 0.f;
 		for(auto p : state.world.in_province) {
 			if(p.get_nation_from_province_ownership()) {
-				value += p.get_rgo_actual_production_per_good(id);
+				value += p.get_rgo_output(id);
 			}
 		}
 		return text::format_float(value);
@@ -835,10 +818,10 @@ inline table::column<dcon::commodity_id> trade_good_production_artisan = {
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto av = 0.f;
 		auto bv = 0.f;
-		for(auto n : state.world.in_market) {
+		for(auto n : state.world.in_province) {
 			av += n.get_artisan_actual_production(a);
 		}
-		for(auto n : state.world.in_market) {
+		for(auto n : state.world.in_province) {
 			bv += n.get_artisan_actual_production(b);
 		}
 		if(av != bv)
@@ -848,7 +831,7 @@ inline table::column<dcon::commodity_id> trade_good_production_artisan = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto value = 0.f;
-		for(auto n : state.world.in_market) {
+		for(auto n : state.world.in_province) {
 			value += n.get_artisan_actual_production(id);
 		}
 		return text::format_float(value);
@@ -863,11 +846,11 @@ inline table::column<dcon::commodity_id> trade_good_production_factory = {
 		auto bv = 0.f;
 		for(auto f : state.world.in_factory) {
 			if(f.get_building_type().get_output() == a)
-				av += f.get_actual_production();
+				av += f.get_output();
 		}
 		for(auto f : state.world.in_factory) {
 			if(f.get_building_type().get_output() == b)
-				bv += f.get_actual_production();
+				bv += f.get_output();
 		}
 		if(av != bv)
 			return av > bv;
@@ -878,7 +861,7 @@ inline table::column<dcon::commodity_id> trade_good_production_factory = {
 		auto value = 0.f;
 		for(auto f : state.world.in_factory) {
 			if(f.get_building_type().get_output() == id)
-				value += f.get_actual_production();
+				value += f.get_output();
 		}
 		return text::format_float(value);
 	}
@@ -1202,8 +1185,8 @@ inline table::column<dcon::market_id> market_artisan_score = {
 	.header = "w_artisan_distribution",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto av = state.world.market_get_artisan_score(a, good);
-		auto bv = state.world.market_get_artisan_score(b, good);
+		auto av = economy::artisan_employment_target(state, good, a);
+		auto bv = economy::artisan_employment_target(state, good, b);
 		if(av != bv)
 			return av > bv;
 		else
@@ -1211,7 +1194,7 @@ inline table::column<dcon::market_id> market_artisan_score = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto value = state.world.market_get_artisan_score(id, good);
+		auto value = economy::artisan_employment_target(state, good, id);
 		return text::format_float(value, 3);
 	}
 };

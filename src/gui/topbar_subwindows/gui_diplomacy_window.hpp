@@ -391,13 +391,13 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 
-		auto res = 0;
+		float res = 0.f;
 		for(auto p : fat_id.get_province_ownership_as_nation()) {
 			for(auto floc : p.get_province().get_factory_location_as_province()) {
-				res += floc.get_factory().get_level();
+				res += economy::get_factory_level(state, floc.get_factory());
 			}
 		}
-		return text::format_wholenum(res);
+		return text::format_float(res, 2);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -408,11 +408,11 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, n);
 
-		auto consumer = 0;
-		auto heavy = 0;
-		auto mils = 0;
-		auto processing = 0;
-		auto indandconsumer = 0;
+		auto consumer = 0.f;
+		auto heavy = 0.f;
+		auto mils = 0.f;
+		auto processing = 0.f;
+		auto indandconsumer = 0.f;
 		for(auto p : fat_id.get_province_ownership_as_nation()) {
 			for(auto floc : p.get_province().get_factory_location_as_province()) {
 				bool is_closed = economy::factory_total_desired_employment_score(state, floc.get_factory()) < economy::factory_closed_threshold;
@@ -422,29 +422,29 @@ public:
 
 				auto output = floc.get_factory().get_building_type().get_output().get_commodity_group();
 				if(output == (uint8_t)sys::commodity_group::military_goods) {
-					mils += floc.get_factory().get_level();
+					mils += economy::get_factory_level(state, floc.get_factory());
 				}
 				else if(output == (uint8_t) sys::commodity_group::consumer_goods) {
-					consumer += floc.get_factory().get_level();
+					consumer += economy::get_factory_level(state, floc.get_factory());
 				}
 				else if(output == (uint8_t) sys::commodity_group::industrial_goods) {
-					heavy += floc.get_factory().get_level();
+					heavy += economy::get_factory_level(state, floc.get_factory());
 				}
 				else if(output == (uint8_t)sys::commodity_group::raw_material_goods) {
-					processing += floc.get_factory().get_level();
+					processing += economy::get_factory_level(state, floc.get_factory());
 				}
 				else if(output == (uint8_t)sys::commodity_group::industrial_and_consumer_goods) {
-					indandconsumer += floc.get_factory().get_level();
+					indandconsumer += economy::get_factory_level(state, floc.get_factory());
 				}
 			}
 		}
 
-		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, consumer);
-		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, heavy);
-		text::add_line(state, contents, "factory_military_count", text::variable_type::val, mils);
-		text::add_line(state, contents, "factory_processing_count", text::variable_type::val, processing);
+		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, (int)consumer);
+		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, (int)heavy);
+		text::add_line(state, contents, "factory_military_count", text::variable_type::val, (int)mils);
+		text::add_line(state, contents, "factory_processing_count", text::variable_type::val, (int)processing);
 		if(indandconsumer > 0) {
-			text::add_line(state, contents, "factory_industrial_and_consumer_count", text::variable_type::val, mils);
+			text::add_line(state, contents, "factory_industrial_and_consumer_count", text::variable_type::val, (int)mils);
 		}
 	}
 };

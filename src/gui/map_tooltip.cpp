@@ -3,6 +3,8 @@
 #include "rebels.hpp"
 #include "commands.hpp"
 #include "unit_tooltip.hpp"
+#include "economy_production.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 
@@ -1098,24 +1100,19 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_factory_count"), text::variable_type::state, text::get_province_state_name(state, prov));
 
 		std::vector<dcon::factory_fat_id> factories;
-		int32_t totallevels = 0;
-		for(auto m : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
-			auto p = m.get_province();
-			if(p.get_nation_from_province_ownership() == fat.get_nation_from_province_ownership()) {
-				for(auto f : p.get_factory_location()) {
-					factories.push_back(f.get_factory());
-					totallevels += f.get_factory().get_level();
-				}
-			}
+		float totallevels = 0;
+		for(auto f : state.world.province_get_factory_location(prov)) {
+			factories.push_back(f.get_factory());
+			totallevels += economy::get_factory_level(state, f.get_factory());
 		}
-		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return a.get_level() > b.get_level(); });
+		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return economy::get_factory_level(state, a) > economy::get_factory_level(state, b); });
 
 		text::add_to_layout_box(state, contents, box, text::prettify(int64_t(factories.size())), text::text_color::yellow);
 
 		text::add_line_break_to_layout_box(state, contents, box);
 
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_factory_size"));
-		text::add_to_layout_box(state, contents, box, totallevels, text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, text::format_float(totallevels, 2), text::text_color::yellow);
 
 		for(size_t i = 0; i < factories.size(); i++) {
 			text::add_line_break_to_layout_box(state, contents, box);
@@ -1123,7 +1120,7 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 			text::add_to_layout_box(state, contents, box, factories[i].get_building_type().get_name(), text::text_color::yellow);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, factories[i].get_level(),text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::format_float(economy::get_factory_level(state, factories[i]), 2), text::text_color::white);
 			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
 		}
 
