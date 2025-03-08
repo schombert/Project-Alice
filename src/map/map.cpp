@@ -486,7 +486,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
-	
+	if(!screen_size.x || !screen_size.y) {
+		return;
+	}
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -543,7 +545,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
 	
 	if(ogl::msaa_enabled(state)) {
 		glBindFramebuffer(GL_FRAMEBUFFER, state.open_gl.msaa_framebuffer);

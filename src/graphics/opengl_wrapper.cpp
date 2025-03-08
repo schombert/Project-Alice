@@ -196,13 +196,9 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 
 	// framebuffer
 	glGenFramebuffers(1, &state.open_gl.province_map_framebuffer);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.province_map_framebuffer);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state.open_gl.province_map_rendertexture, 0);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, state.open_gl.province_map_depthbuffer);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 
 	// drawbuffers
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
@@ -220,11 +216,11 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 void deinitialize_framebuffer_for_province_indices(sys::state& state) {
 	if(state.open_gl.province_map_rendertexture)
 		glDeleteTextures(1, &state.open_gl.province_map_rendertexture);
-	if(state.open_gl.province_map_rendertexture)
-		glDeleteRenderbuffers(1, &state.open_gl.province_map_rendertexture);
+	if(state.open_gl.province_map_depthbuffer)
+		glDeleteRenderbuffers(1, &state.open_gl.province_map_depthbuffer);
 	if(state.open_gl.province_map_framebuffer)
 		glDeleteFramebuffers(1, &state.open_gl.province_map_framebuffer);
-	
+	//state.console_log(ogl::opengl_get_error_name(glGetError()));	
 }
 
 void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
@@ -317,7 +313,7 @@ void deinitialize_msaa(sys::state& state) {
 	if(state.open_gl.msaa_texture)
 		glDeleteTextures(1, &state.open_gl.msaa_texture);
 	if(state.open_gl.msaa_interbuffer)
-		glDeleteFramebuffers(1, &state.open_gl.msaa_framebuffer);
+		glDeleteFramebuffers(1, &state.open_gl.msaa_interbuffer);
 	if(state.open_gl.msaa_rbo)
 		glDeleteRenderbuffers(1, &state.open_gl.msaa_rbo);
 	if(state.open_gl.msaa_texcolorbuffer)
