@@ -181,6 +181,8 @@ std::string_view framebuffer_error(GLenum e) {
 }
 
 void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size_x, int32_t size_y) {
+	if(!size_x || !size_y)
+		return;
 	// prepare textures for rendering
 	glGenTextures(1, &state.open_gl.province_map_rendertexture);
 	glBindTexture(GL_TEXTURE_2D, state.open_gl.province_map_rendertexture);
