@@ -10099,7 +10099,7 @@ void demographicswindow_pop_row_rebel_flag_t::update_tooltip(sys::state& state, 
 }
 void demographicswindow_pop_row_rebel_flag_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(std::holds_alternative<dcon::nation_id>(flag)) {
-		culture::flag_type flag_type = culture::flag_type{};
+		dcon::government_flag_id flag_type {};
 		auto h_temp = state.world.nation_get_identity_from_identity_holder(std::get<dcon::nation_id>(flag));
 		if(bool(std::get<dcon::nation_id>(flag)) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) != 0) {
 			flag_type = culture::get_current_flag_type(state, std::get<dcon::nation_id>(flag));
@@ -10109,7 +10109,7 @@ void demographicswindow_pop_row_rebel_flag_t::render(sys::state & state, int32_t
 		auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
 		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
 	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
-		culture::flag_type flag_type = culture::flag_type{};
+		dcon::government_flag_id flag_type = {};
 		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
 		if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
 			flag_type = culture::get_current_flag_type(state, n_temp);
@@ -10121,7 +10121,7 @@ void demographicswindow_pop_row_rebel_flag_t::render(sys::state & state, int32_t
 	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
 		dcon::rebel_faction_id rf_temp = std::get<dcon::rebel_faction_id>(flag);
 		if(state.world.rebel_faction_get_type(rf_temp).get_independence() != uint8_t(culture::rebel_independence::none) && state.world.rebel_faction_get_defection_target(rf_temp)) {
-			culture::flag_type flag_type = culture::flag_type{};
+			dcon::government_flag_id flag_type {};
 			auto h_temp = state.world.rebel_faction_get_defection_target(rf_temp);
 			auto n_temp = state.world.national_identity_get_nation_from_identity_holder(h_temp);
 			if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
