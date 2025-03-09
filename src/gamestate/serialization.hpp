@@ -132,6 +132,7 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in,
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
+
 inline size_t serialize_size(ankerl::unordered_dense::map<uint16_t, dcon::text_key> const& vec) {
 	return serialize_size(vec.values());
 }

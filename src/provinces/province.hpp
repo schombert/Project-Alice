@@ -22,7 +22,6 @@ struct global_provincial_state {
 	std::vector<dcon::province_id> canal_provinces;
 	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
 	std::vector<bool> connected_region_is_coastal;
-
 	dcon::province_id first_sea_province;
 	dcon::modifier_id europe;
 	dcon::modifier_id asia;
@@ -70,6 +69,8 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float revolt_risk(sys::state& state, dcon::province_id id);
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
+bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to);
+bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency);
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);

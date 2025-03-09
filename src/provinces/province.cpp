@@ -1026,6 +1026,23 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				event::slot_type::state, new_owner, -1, event::slot_type::none);
 	}
 }
+// returns true if a strait between the two provinces are blocked by an enemy navy from the perspective of thisnation
+// Reads sea adjacency data from the v2 adjacencies file to determine if it is blocked
+bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to) {
+	auto adjacency = state.world.get_province_adjacency_by_province_pair(to, from);
+	return is_strait_blocked(state, thisnation, adjacency);
+}
+
+bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
+	auto path_bits = state.world.province_adjacency_get_type(adjacency);
+ 	auto strait_prov = state.world.province_adjacency_get_sea_adj_prov(adjacency);
+	if((path_bits & province::border::non_adjacent_bit) != 0 && strait_prov) { // strait crossing
+		if(military::province_has_enemy_fleet(state, strait_prov, thisnation)) {
+			return true;
+		}
+	}
+	return false;
+}
 
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
 	bool was_colonial = state.world.province_get_is_colonial(id);
@@ -1871,7 +1888,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			if((bits & province::border::impassible_bit) == 0 && !is_strait_blocked(state, nation_as, nearest.province, other_prov) && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
 					assert_path_result(path_result);
