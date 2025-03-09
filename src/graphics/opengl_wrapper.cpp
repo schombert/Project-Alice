@@ -338,28 +338,12 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
-	state.flag_type_map.resize(size_t(culture::flag_type::count), 0);
-	// Create the remapping for flags
-	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
-		auto fat_id = dcon::fatten(state.world, ident_id);
-		auto nat_id = fat_id.get_nation_from_identity_holder().id;
-		for(auto gov_id : state.world.in_government_type) {
-			state.flag_types.push_back(culture::flag_type(gov_id.get_flag()));
-		}
-	});
-	// Eliminate duplicates
-	std::sort(state.flag_types.begin(), state.flag_types.end());
-	state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
-
-	// Automatically assign texture offsets to the flag_types
-	auto id = 0;
-	for(auto type : state.flag_types)
-		state.flag_type_map[uint32_t(type)] = uint8_t(id++);
-	assert(state.flag_type_map[0] == 0); // default_flag
-
 	// Allocate textures for the flags
 	state.open_gl.asset_textures.resize(
-			state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
+		state.ui_defs.textures.size()
+		+ (state.world.national_identity_size() + 1)
+		* state.world.government_flag_size()
+	);
 
 	state.map_state.load_map(state);
 
@@ -940,7 +924,7 @@ GLuint get_flag_texture_handle_from_tag(sys::state& state, const char tag[3]) {
 	}
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
-	culture::flag_type flag_type = culture::flag_type{};
+	dcon::government_flag_id flag_type{};
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		flag_type = culture::get_current_flag_type(state, nation.id);
 	} else {
@@ -1006,7 +990,7 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 
 	auto fat_id = dcon::fatten(state.world, ico.tag);
 	auto nation = fat_id.get_nation_from_identity_holder();
-	culture::flag_type flag_type = culture::flag_type{};
+	dcon::government_flag_id flag_type{ };
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		flag_type = culture::get_current_flag_type(state, nation.id);
 	} else {

@@ -269,13 +269,13 @@ public:
 		if(!bool(tag))
 			tag = state.national_definitions.rebel_id;
 
-		culture::flag_type ft = culture::flag_type::default_flag;
+		dcon::government_flag_id ft{};
 		if(gov) {
 			auto id = state.world.national_identity_get_government_flag_type(tag, gov);
-			if(id != 0)
-				ft = culture::flag_type(id - 1);
+			if(id)
+				ft = id;
 			else
-				ft = culture::flag_type(state.world.government_type_get_flag(gov));
+				ft = state.world.government_type_get_flag(gov);
 		}
 		flag_texture_handle = ogl::get_flag_handle(state, tag, ft);
 	}

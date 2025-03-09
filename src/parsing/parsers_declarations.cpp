@@ -150,88 +150,26 @@ void government_type::duration(association_type, int32_t value, error_handler& e
 	context.outer_context.state.world.government_type_set_duration(context.id, int8_t(value));
 }
 
-void government_type::flagtype(association_type, std::string_view value, error_handler& err, int32_t line,
-		government_type_context& context) {
-	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::communist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::fascist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::monarchy));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::republic));
-	// Non-vanilla flags
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocracy));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "special"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::special));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "spare"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::spare));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "populist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::populist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "realm"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::realm));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "other"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::other));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::monarchy2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy3"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::monarchy3));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::republic2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic3"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::republic3));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::communist2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist3"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::communist3));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::fascist2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist3"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::fascist3));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocracy2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy3"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocracy3));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_1"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::cosmetic_1));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::cosmetic_2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "colonial"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::colonial));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "nationalist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::nationalist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "sectarian"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::sectarian));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "socialist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::socialist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "dominion"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::dominion));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "agrarism"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::agrarism));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "national_syndicalist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::national_syndicalist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocratic"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocratic));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot1"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot1));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot2"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot2));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot3"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot3));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot4"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot4));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "anarcho_liberal"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::anarcho_liberal));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "green"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::green));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "traditionalist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::traditionalist));
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "ultranationalist"))
-		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::ultranationalist));
-	else {
-		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+void government_type::flagtype(association_type, std::string_view value, error_handler& err, int32_t line, government_type_context& context) {
+
+	auto key = context.outer_context.state.lookup_key(value);
+	if(!key) {
+		key = context.outer_context.state.add_key_utf8(value);
 	}
+
+	dcon::government_flag_id found_flag{ };
+	context.outer_context.state.world.for_each_government_flag([&](auto id) {
+		if(context.outer_context.state.world.government_flag_get_filename(id) == key) {
+			found_flag = id;
+		}
+	});
+
+	if(!found_flag) {
+		found_flag = context.outer_context.state.world.create_government_flag();
+		context.outer_context.state.world.government_flag_set_filename(found_flag, key);
+	}
+
+	context.outer_context.state.world.government_type_set_flag(context.id, found_flag);
 }
 
 void government_type::any_value(std::string_view text, association_type, bool value, error_handler& err, int32_t line,
@@ -2636,7 +2574,7 @@ void vassal_description::end_date(association_type, sys::year_month_day ymd, err
 
 void govt_flag_block::flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	if(auto it = context.outer_context.map_of_governments.find(std::string(value)); it != context.outer_context.map_of_governments.end()) {
-		flag_ = ::culture::flag_type(context.outer_context.state.world.government_type_get_flag(it->second));
+		flag_ = context.outer_context.state.world.government_type_get_flag(it->second);
 	} else {
 		err.accumulated_errors += "invalid government type " + std::string(value) + " encountered  (" + err.file_name + " line " +
 															std::to_string(line) + ")\n";
@@ -2927,8 +2865,7 @@ void country_history_file::nonstate_consciousness(association_type, float value,
 
 void country_history_file::govt_flag(govt_flag_block const& value, error_handler& err, int32_t line,
 		country_history_context& context) {
-	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_,
-			uint8_t(value.flag_) + uint8_t(1));
+	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, value.flag_);
 }
 
 void country_history_file::ruling_party(association_type, std::string_view value, error_handler& err, int32_t line,

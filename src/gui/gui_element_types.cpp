@@ -1773,7 +1773,7 @@ void flag_button2::on_update(sys::state& state) noexcept {
 	}
 
 	auto reb_tag = state.national_definitions.rebel_id;
-	flag_texture_handle = ogl::get_flag_handle(state, reb_tag, culture::flag_type::default_flag);
+	flag_texture_handle = ogl::get_flag_handle(state, reb_tag, { });
 }
 
 void flag_button2::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -1835,7 +1835,7 @@ void flag_button::set_current_nation(sys::state& state, dcon::national_identity_
 
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
-	culture::flag_type flag_type = culture::flag_type{};
+	dcon::government_flag_id flag_type{};
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		flag_type = culture::get_current_flag_type(state, nation.id);
 	} else {

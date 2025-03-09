@@ -789,31 +789,27 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 	}
 }
 
-uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
-	return state.flag_type_map[static_cast<size_t>(type)];
-}
-
-flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
+dcon::government_flag_id get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
 	if(state.world.nation_get_owned_province_count(target_nation) == 0)
-		return flag_type::default_flag;
+		return dcon::government_flag_id{};
 
 	auto gov_type = state.world.nation_get_government_type(target_nation);
 	if(!gov_type)
-		return flag_type::default_flag;
+		return dcon::government_flag_id{};
 
 	auto id = state.world.national_identity_get_government_flag_type(state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
-	if(id != 0)
-		return flag_type(id - 1);
+	if(id)
+		return id;
 
-	return flag_type(state.world.government_type_get_flag(gov_type));
+	return state.world.government_type_get_flag(gov_type);
 }
 
-flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {
+dcon::government_flag_id get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(identity);
 	if(holder) {
 		return get_current_flag_type(state, holder);
 	} else {
-		return flag_type::default_flag;
+		return dcon::government_flag_id{};
 	}
 }
 void fix_slaves_in_province(sys::state& state, dcon::nation_id owner, dcon::province_id p) {

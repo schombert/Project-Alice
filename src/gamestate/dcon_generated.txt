@@ -29,6 +29,17 @@ make_index{demographics_key}{uint16_t}
 make_index{provincial_modifier_value}{uint8_t}
 make_index{national_modifier_value}{uint8_t}
 
+object {
+	name{ government_flag }
+	storage_type{ contiguous }
+	size{ 100 }
+	tag{ scenario }
+	property{
+		name{ filename }
+		type{ text_key }
+		tag{ scenario }
+	}
+}
 
 object{
 	name{ national_identity }
@@ -80,7 +91,7 @@ object{
 	}
 	property{
 		name{ government_flag_type }
-		type{ array{government_type_id}{uint8_t} }
+		type{ array{government_type_id}{government_flag_id} }
 		tag{ scenario }
 	}
 	property{
@@ -1348,7 +1359,7 @@ object {
 	}
 	property{
 		name{ flag }
-		type{ uint8_t }
+		type{ government_flag_id }
 		tag{ scenario }
 	}
 }
