@@ -273,6 +273,9 @@ a_cultural_union;a cultural union
 union_for_pop;the cultural union for the pop
 union_for_nation;the cultural union for the nation
 the_rebel_ind_nation;the rebel independence nation
+build_factory;Build factory
+upgrade_factory;Upgrade factory
+build_province_building;Build province building
 capitalists_can_build;capitalists are allowed to build factories
 capitalists_cannot_build;capitalists are not allowed to build factories
 at_war;at war
@@ -486,10 +489,20 @@ value_mod_sum_factor;Value $val$ is $x$ times the sum of:
 admin_explain_1;Administrative efficiency modifier of $val$
 admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$
 admin_explain_3;To the required percentage: $val$ (base $x$ + $y$ from reforms)
+admin_explain_4;Multiplier from issues: ?Y$val$?W
+admin_explain_5;Debuff from non-core provinces: ?R$val$?W
+admin_explain_6;Debuff from nationalism in provinces: ?R$val$?W
+admin_explain_7;?Y$x$?W out of ?Y$y$?W bureaucrats are members of rebels factions and refuse to collect taxes
+admin_integrating_explain_1;State has ?Y$val$?W of the required number of bureaucrats of accepted/primary culture to incorporate
+admin_explain_8;State has ?Y$val$?W local administrative efficiency
+admin_explain_9;Local tax collection capacity: ?Y$val$?W
+admin_explain_10;Local bureaucrats expenses: ?Y$val$?W
+admin_explain_11;Nation population per admin: ?Y$val$?W
 factory_condition_1;The nation is civilized
 factory_condition_2;This is not a colonial state
 factory_condition_3;The ruling party allows building factories
 factory_condition_4;There are fewer than $val$ factories in the state
+factory_condition_8;Factory type is allowed in colonial states
 cant_subsidize_explanation;The ruling party does not allow us to subsidize factories
 percent_of_pop_strata;$val$ of the population of their strata
 cant_prioritize_explanation;The ruling party does not allow us to change factory priority
@@ -505,8 +518,11 @@ factory_upgrade_condition_9;The factory is not already being upgraded
 factory_upgrade_condition_10;The factory is not at max level
 factory_build_condition_11;State has available resource potentials
 factory_upgrade_condition_11;State has available resource potentials
+resource_potential;Resource potential
+available_potential;Local resources allow ?Y$val$?W levels of buildings producing $what$
 factory_delete_header;Delete factory
 factory_delete_not_allowed;The ruling party does not allow us to delete factories
+factory_level;Factory level ?Y$val$
 factory_stats_1;This factory is currently operating at $val$ capacity
 factory_stats_2;This factory is targeting $val$ capacity
 factory_stats_3;It produced $val$ units of $x$ in the previous day
@@ -1076,7 +1092,7 @@ alice_ca_cant_influence;We currently are unable to increase or decrease the opin
 alice_gp_status_regain_expiration;If we don't become rank ?Y$x$?W or higher, we will lose ?Ygreat power?W status by ?Y$date$?W!
 alice_mil_decay_description;Natural decay ?G-$x$
 alice_con_decay_description;Natural decay ?R-$x$
-x_from_y;$culture$ $x$ from $y$
+x_from_y;?Y$culture$?W $x$ from ?Y$y$?W
 x_in_y;$x$ at $y$
 alice_reserve_reg_count;$x$ currently have ?Y$y$?W reserve brigades in the battle.
 alice_reinforce_battle_mod_top;?Y$x$?W reserve brigades affected by the following reinforcement modifiers:
@@ -1221,9 +1237,15 @@ alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
 alice_tt_wg_infamy_limit;?RThis wargoal will exceed the infamy limit?W
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
-province_id;Alice Province Id
-provid;Content Province Id
+province_id;Alice Province ID
+provid;Content Province ID
+state;State Instance
+state_id;State Instance ID
+state_definition;State Definition
+state_definition_id;State Definition ID
 nation_tag;Nation tag
+nation_id;Alice Nation ID
+province_colonisation_temperature;State colonization temperature: ?R$val$?W
 alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
 alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)
 alice_rgo_trade_prod_3;RGO Minting Production: $x$ ($y$)
@@ -1291,7 +1313,7 @@ supply;Supply
 demand;Demand
 balance;Balance
 market_stockpiles;In stock
-national_stockpile;Stockpile
+national_stockpile;Government Stockpile
 government_need;Government procurement
 factory_need;Factory inputs
 pop_need;Population needs
@@ -1314,11 +1336,16 @@ change_pname_to;Change $x$ party name to $text$
 change_rpname_to;Change ruling party name to $text$
 change_pposition_to;Change $x$ party position to $text$
 change_rpposition_to;Change ruling party position to $text$
+change_factory_limit_by;Change $good$ factory potential by $value$
 pname_is;$x$ party name
 rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
 topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
+provinceview_goodsprofit;With Profit of: ?Y$value$
+provinceview_max_employment;Potential max employment: ?Y$value$
+province_rgo_efficiency_inputs;Efficiency inputs:
+province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
 rgo_output;Output
 rgo_profit;Total
 rgo_expected_profit;Actual
