@@ -51,7 +51,7 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override {
 		return 0;
 	}
 
@@ -73,11 +73,11 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override  {
 		return 5;
 	}
 
-	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) noexcept override  {
 		auto type = state.world.factory_get_building_type(target.factory);
 		return state.world.factory_type_get_output(type);
 	}
@@ -106,11 +106,11 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override  {
 		return (state.world.commodity_get_is_mine(target.rgo_commodity) ? 3 : 2);
 	}
 
-	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) noexcept override  {
 		return target.rgo_commodity;
 	}
 
@@ -200,7 +200,7 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override {
 		if(target.province_building == economy::province_building_type::railroad) {
 			return 8;
 		} else if(target.province_building == economy::province_building_type::naval_base) {
@@ -230,11 +230,11 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override  {
 		return 13;
 	}
 
-	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) {
+	dcon::commodity_id get_commodity_frame(sys::state& state, economy::province_tile target) noexcept override  {
 		return target.potential_commodity;
 	}
 
@@ -259,7 +259,7 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, economy::province_tile target) {
+	int get_frame(sys::state& state, economy::province_tile target) noexcept override {
 		return 1;
 	}
 
