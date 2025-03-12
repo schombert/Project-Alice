@@ -2493,11 +2493,12 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 		text::close_layout_box(contents, box);
 	}
 
-	text::add_line(state, contents, std::string_view("province_rgo_efficiency_inputs"));
-
 	auto inputs = economy::rgo_inputs_actual(state, nat_id, market, prov_id, c, mobilization_impact);
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(inputs.commodity_type[i]) {
+			if(i == 0) {
+				text::add_line(state, contents, "province_rgo_efficiency_inputs");
+			}
 			auto input_c = dcon::fatten(state.world, inputs.commodity_type[i]);
 			text::add_line(state, contents, "province_rgo_efficiency_input", text::variable_type::goods, input_c.get_name(), text::variable_type::value, text::fp_two_places{ inputs.commodity_amounts[i] });
 		} else {

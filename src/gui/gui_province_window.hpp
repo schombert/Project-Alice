@@ -2834,14 +2834,14 @@ enum province_subtab_toggle_signal {
 class economy_data_toggle : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send<province_subtab_toggle_signal>(state, parent, { province_subtab_toggle_signal::economy });
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::economy);
 	}
 };
 
 class province_tiles_toggle : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send<province_subtab_toggle_signal>(state, parent, { province_subtab_toggle_signal::tiles });
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::tiles);
 	}
 };
 
