@@ -318,20 +318,20 @@ public:
 		auto owner = state.world.province_get_nation_from_province_ownership(content);
 		auto sid = state.world.province_get_state_membership(content);
 
-		// Vanilla numbers
-		// Show only in colonial states
+		text::add_line(state, contents, "admin_explain_8", text::variable_type::val, text::fp_percentage{ economy::local_admin_ratio(state, owner, content) });
+
+		// Vanilla numbers. Show only in colonial states
 		if(state.world.province_get_is_colonial(content)) {
 			text::add_line(state, contents, "admin_integrating_explain_1", text::variable_type::val, text::fp_percentage{ province::state_admin_efficiency(state, sid) });
 		}
 
-		// New administration
+		// Population per admin
 		text::add_line(state, contents, "admin_explain_11", text::variable_type::val, text::fp_one_place{ economy::population_per_admin(state, owner) });
 
 		auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
 		text::add_line(state, contents, "admin_explain_1", text::variable_type::val, text::fp_percentage{ 1.0f + admin_mod }, 15);
 		ui::active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::administrative_efficiency_modifier, false);
 
-		text::add_line(state, contents, "admin_explain_8", text::variable_type::val, text::fp_percentage{ economy::local_admin_ratio(state, owner, content) });
 		float issue_sum = 0.0f;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
@@ -365,6 +365,31 @@ public:
 
 		text::add_line(state, contents, "admin_explain_9", text::variable_type::val, text::fp_currency{ economy::tax_collection_capacity(state, owner, content) });
 
+		auto localtax = economy::explain_tax_income_local(state, state.local_player_nation, content);
+		// Collected taxes
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ localtax.poor });
+			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ localtax.mid });
+			text::add_to_substitution_map(sub, text::variable_type::m, text::fp_currency{ localtax.rich });
+			text::add_to_substitution_map(sub, text::variable_type::total, text::fp_currency{ localtax.poor + localtax.mid + localtax.rich });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "admin_explain_12", sub);
+			text::close_layout_box(contents, box);
+		};
+		// Potential taxes
+		{
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_currency{ localtax.poor_potential });
+			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ localtax.mid_potential });
+			text::add_to_substitution_map(sub, text::variable_type::m, text::fp_currency{ localtax.rich_potential });
+			text::add_to_substitution_map(sub, text::variable_type::total, text::fp_currency{ localtax.poor_potential + localtax.mid_potential + localtax.rich_potential });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "admin_explain_13", sub);
+			text::close_layout_box(contents, box);
+		};
+
+		// Spendings on salaries
 		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
 		text::add_line(state, contents, "admin_explain_10", text::variable_type::val, text::fp_currency{ economy::estimate_spendings_administration_local(state, owner, content, fraction) });
 	}

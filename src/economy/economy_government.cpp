@@ -131,6 +131,11 @@ float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id 
 	auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
 	current_labor_local *= ((bsum - rsum) / bsum); // Rebellious bureaucrats damage local tax collection
 	current_labor_local /= 0.01f / from_issues;
+
+	if(std::isnan(current_labor_local)) {
+		return 0.f;
+	}
+
 	return std::clamp(current_labor_local / required_labor_local + side_effects, 0.f, 1.f);
 }
 
