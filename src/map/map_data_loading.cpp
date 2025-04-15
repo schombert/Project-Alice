@@ -499,28 +499,30 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 }
 
 void display_data::load_provinces_mid_point(parsers::scenario_building_context& context) {
-	std::vector<glm::ivec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::vec2(0));
-	std::vector<int> tiles_number(context.state.world.province_size() + 1, 0);
+	std::vector<glm::i64vec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::i64vec2(0));
+	std::vector<int64_t> tiles_number(context.state.world.province_size() + 1, 0);
 	for(int i = size_x * size_y - 1; i-- > 0;) {
 		auto prov_id = province_id_map[i];
 		int x = i % size_x;
 		int y = i / size_x;
-		accumulated_tile_positions[prov_id] += glm::vec2(x, y);
+		accumulated_tile_positions[prov_id] += glm::i64vec2(x, y);
 		tiles_number[prov_id]++;
 	}
 	// schombert: needs to start from +1 here or you don't catch the last province
 	for(int i = context.state.world.province_size() + 1; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 
-		glm::vec2 tile_pos;
+		glm::dvec2 tile_pos;
 
 		// OK, so some mods do in fact define provinces that aren't on the map.
 		//assert(tiles_number[i] > 0); // yeah but a province without tiles is no bueno
 
 		if(tiles_number[i] == 0) {
-			tile_pos = glm::vec2(0, 0);
+			tile_pos = glm::dvec2(0, 0);
 		} else {
 			tile_pos = accumulated_tile_positions[i] / tiles_number[i];
 		}
+		assert(tile_pos.x >= 0);
+		assert(tile_pos.y >= 0);
 		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), tile_pos);
 	}
 }
