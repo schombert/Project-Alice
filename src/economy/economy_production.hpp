@@ -136,6 +136,8 @@ float rgo_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_i
 float rgo_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float rgo_output(sys::state& state, dcon::commodity_id c);
 
+commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id id, dcon::commodity_id c, float mobilization_impact);
+
 float rgo_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 
 float rgo_max_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p);

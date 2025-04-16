@@ -2189,7 +2189,7 @@ std::vector<full_construction_factory> estimate_private_investment_construct(sys
 	static std::vector<dcon::province_id> provinces_in_order;
 	provinces_in_order.clear();
 	for(auto si : n.get_province_ownership()) {
-		if(si.get_province().get_state_membership().get_capital().get_is_colonial() == false) {
+		if(si.get_province().get_state_membership().get_capital().get_is_colonial() == false || state.defines.alice_disallow_factories_in_colonies == 0.f) {
 			provinces_in_order.push_back(si.get_province().id);
 		}
 	}
@@ -3567,7 +3567,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					state.world.nation_set_stockpiles(
 						nations_i, economy::money, treasury + bought_from_nation_cost);
 				}
-			}, capital_mask, total_demand, national_stockpile, supply_sold_ratio, nations, ids);
+			}, capital_mask && draw_from_stockpile, total_demand, national_stockpile, supply_sold_ratio, nations, ids);
 		}
 	});
 
@@ -4604,12 +4604,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		collect taxes
 		*/
 
-		if(false) {
-			// we do not want to accumulate tons of money during presim
-			state.world.for_each_nation([&](dcon::nation_id n) {
-				state.world.nation_set_stockpiles(n, money, 0.f);
-			});
-		}
+		//if(false) {
+		//	// we do not want to accumulate tons of money during presim
+		//	state.world.for_each_nation([&](dcon::nation_id n) {
+		//		state.world.nation_set_stockpiles(n, money, 0.f);
+		//	});
+		// }
 
 		collect_taxes(state, n);
 
@@ -4660,6 +4660,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	/*
 	adjust prices based on global production & consumption
 	*/
+	// Gold has fixed price
 	state.world.execute_serial_over_market([&](auto ids) {
 		auto costs = state.world.market_get_everyday_needs_costs(ids, state.culture_definitions.laborers);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -4734,7 +4735,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			ve::fp_vector supply =
 				state.world.market_get_supply(ids, cid)
-				+ price_rigging * 10.f; // while it's logical to have insane prices on high tech goods to encourage their production, it's more healthy for simulation to have them moderately low
+				+ price_rigging;
+			if(state.defines.alice_disable_price_control == 0.f) {
+				supply = supply + price_rigging * 9.f; // while it's logical to have insane prices on high tech goods to encourage their production, it's more healthy for simulation to have them moderately low
+			}
 			ve::fp_vector demand =
 				state.world.market_get_demand(ids, cid)
 				+ price_rigging;
