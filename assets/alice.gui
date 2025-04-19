@@ -4570,7 +4570,7 @@ guiTypes = {
 	guiButtonType = {
 		name = "alice_move_capital"
 		extends = "province_view_header"
-		position = { x= 180 y = 3 }
+		position = { x= 368 y = 43 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
 	guiButtonType = {
