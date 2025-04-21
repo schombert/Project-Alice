@@ -56,6 +56,8 @@ float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::provin
 		+ state.world.province_get_labor_price(pid, economy::labor::basic_education)
 		+ state.world.province_get_labor_price(pid, economy::labor::no_education);
 
+	
+
 	auto effort =
 		float(state.world.nation_get_poor_tax(n))
 		+ float(state.world.nation_get_middle_tax(n))
@@ -102,7 +104,39 @@ float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id 
 		state.world.province_get_administration_employment_target(pid)
 		* state.world.province_get_labor_demand_satisfaction(pid, economy::labor::high_education);
 
-	return current_labor_local / required_labor_local;
+	float side_effects = 0.0f;
+	float bsum = 0.0f;
+	float rsum = 0.0f;
+
+	if(!state.world.province_get_is_owner_core(pid)) {
+		side_effects += state.defines.noncore_tax_penalty;
+	}
+	if(state.world.province_get_nationalism(pid) > 0.f) {
+		side_effects += state.defines.separatism_tax_penalty;
+	}
+	for(auto po : state.world.province_get_pop_location(pid)) {
+		if(po.get_pop().get_is_primary_or_accepted_culture() &&
+				po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+			bsum += po.get_pop().get_size();
+			if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
+				rsum += po.get_pop().get_size();
+			}
+		}
+	}
+
+	float issue_sum = 0.0f;
+	for(auto i : state.culture_definitions.social_issues) {
+		issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
+	}
+	auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
+	current_labor_local *= ((bsum - rsum) / bsum); // Rebellious bureaucrats damage local tax collection
+	current_labor_local /= 0.01f / from_issues;
+
+	if(std::isnan(current_labor_local)) {
+		return 0.f;
+	}
+
+	return std::clamp(current_labor_local / required_labor_local + side_effects, 0.f, 1.f);
 }
 
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority) {

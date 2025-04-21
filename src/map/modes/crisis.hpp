@@ -10,7 +10,9 @@ std::vector<uint32_t> crisis_map_from(sys::state& state) {
 		auto i = province::to_map_id(prov_id);
 
 		if(nation) {
-			auto color = ogl::color_gradient_magma(fat_id.get_state_membership().get_flashpoint_tension() / 100.0f);
+			// Show both flashpoint tension and colonial tension
+			auto val = fat_id.get_state_membership().get_flashpoint_tension() + fat_id.get_state_membership().get_definition().get_colonization_temperature();
+			auto color = ogl::color_gradient_magma(val / 100.0f);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		}

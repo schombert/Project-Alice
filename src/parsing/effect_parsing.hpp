@@ -489,6 +489,19 @@ struct ef_change_party_position {
 	void position(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context);
 	void finish(effect_building_context&) { }
 };
+struct ef_change_factory_limit {
+	dcon::commodity_id trade_good_;
+	int16_t value;
+	void trade_good(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		if(auto it = context.outer_context.map_of_commodity_names.find(std::string(v)); it != context.outer_context.map_of_commodity_names.end()) {
+			trade_good_ = it->second;
+		} else {
+			err.accumulated_errors += "Invalid commodity id " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	}
+	void position(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context);
+	void finish(effect_building_context&) { }
+};
 struct ef_build_railway_in_capital {
 	bool limit_to_world_greatest_level = false;
 	bool in_whole_capital_state = false;
@@ -3710,6 +3723,20 @@ struct effect_body {
 		context.compiled_effect.push_back(effect::change_party_position);
 		context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
 		context.compiled_effect.push_back(trigger::payload(value.opt_).value);
+	}
+	void change_factory_limit(ef_change_factory_limit const& value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::province) {
+			err.accumulated_errors += "change_factory_limit effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		} else if(!value.trade_good_) {
+			err.accumulated_errors += "change_factory_limit effect used without a valid position " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
+		}
+		context.compiled_effect.push_back(effect::change_factory_limit);
+		context.compiled_effect.push_back(trigger::payload(value.trade_good_).value);
+		context.compiled_effect.push_back(trigger::payload(value.value).value);
 	}
 	void build_railway_in_capital(ef_build_railway_in_capital const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
