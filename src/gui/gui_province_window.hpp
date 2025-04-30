@@ -2670,17 +2670,17 @@ inline table::column<dcon::commodity_id> rgo_profit = {
 	}
 };
 
-inline table::column<dcon::commodity_id> rgo_expected_profit = {
+inline table::column<dcon::commodity_id> rgo_wages = {
 	.sortable = true,
-	.header = "rgo_expected_profit",
+	.header = "rgo_wage",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = economy::rgo_expected_worker_norm_profit(state, p, m, n, a);
-		auto bv = economy::rgo_expected_worker_norm_profit(state, p, m, n, b);
+		auto av = economy::rgo_wage(state, a, p);
+		auto bv = economy::rgo_wage(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2688,34 +2688,29 @@ inline table::column<dcon::commodity_id> rgo_expected_profit = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto p = retrieve<dcon::province_id>(state, container);
-		auto n = state.world.province_get_nation_from_province_ownership(p);
-		auto si = retrieve<dcon::state_instance_id>(state, container);
-		auto m = state.world.state_instance_get_market_from_local_market(si);
-
-		auto value = economy::rgo_expected_worker_norm_profit(state, p, m, n, id)
-			* state.defines.alice_rgo_per_size_employment;
-		return text::format_money(value);
+		return text::format_money(-economy::rgo_wage(state, id, p));
 	}
 };
 
-inline table::column<dcon::commodity_id> rgo_desired_profit = {
+inline table::column<dcon::commodity_id> rgo_inputs = {
 	.sortable = true,
-	.header = "rgo_desired_profit",
+	.header = "rgo_inputs",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		return a.index() < b.index();
-	},
-	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
-		auto pops = economy::rgo_relevant_population(state, p, n);
-		auto min_wage_factor = economy::pop_min_wage_factor(state, n);
-		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-		auto v = state.world.province_get_labor_price(p, economy::labor::no_education) * (1.f + economy::aristocrats_greed);
 
-		auto value = v * state.defines.alice_rgo_per_size_employment;
-		return text::format_money(value);
+		auto av = economy::rgo_efficiency_spendings(state, a, p);
+		auto bv = economy::rgo_efficiency_spendings(state, b, p);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
+		auto p = retrieve<dcon::province_id>(state, container);
+		return text::format_money(-economy::rgo_efficiency_spendings(state, id, p));
 	}
 };
 
@@ -2833,8 +2828,8 @@ public:
 			return make_element_by_type<economy_data_toggle>(state, id);
 		}else if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
-				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_expected_profit,
-				rgo_desired_profit, rgo_employment, rgo_max_employment, rgo_saturation
+				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_wages,
+				rgo_inputs, rgo_employment, rgo_max_employment, rgo_saturation
 			};
 			auto ptr = make_element_by_type<table::display<dcon::commodity_id>>(
 				state,

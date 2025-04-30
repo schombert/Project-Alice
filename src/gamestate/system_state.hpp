@@ -596,7 +596,7 @@ struct alignas(64) state {
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
-	float inflation = 1.0f;
+	float inflation = 0.999f; // to compensate for some of money generation which will happen anyway
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::regiment_id> selected_regiments; // selected regiments inside the army

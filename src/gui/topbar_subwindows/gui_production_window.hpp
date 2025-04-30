@@ -741,11 +741,40 @@ class normal_factory_background : public opaque_element_base {
 		text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
 				text::fp_one_place{state.world.factory_get_output(fid) }, text::variable_type::x, type.get_output().get_name());
 
+		auto profit_explantion = economy::explain_last_factory_profit(state, fid);
+
 		text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
 			text::fp_currency{
-				economy::explain_last_factory_profit(state, fid).profit
+				profit_explantion.profit
 			}
 		);
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.inputs }, text::text_color::red);
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.maintenance }, text::text_color::red);
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.expansion }, text::text_color::red);
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.wages }, text::text_color::red);
+			text::close_layout_box(contents, box);
+		}
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, text::fp_currency{ profit_explantion.output }, text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
+
 
 		text::add_line_break_to_layout(state, contents);
 

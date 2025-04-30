@@ -24,9 +24,9 @@ namespace economy {
 // employed people in administration influence the maximum amount of taxes the nation can collect
 
 // to avoid death traps
-inline constexpr float base_tax_collection_capacity = 5000.f;
+inline constexpr float base_tax_collection_capacity = 10000.f;
 
-inline constexpr float base_population_per_admin = 50.f;
+inline constexpr float base_population_per_admin = 40.f;
 
 float population_per_admin(sys::state& state, dcon::nation_id n) {
 	return base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n));

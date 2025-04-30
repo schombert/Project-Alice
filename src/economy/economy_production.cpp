@@ -8,6 +8,9 @@
 #include "province_templates.hpp"
 
 namespace economy {
+
+constexpr float base_expansion_scale = 10.f;
+
 template<typename T>
 auto artisan_input_multiplier(
 	sys::state& state,
@@ -143,7 +146,7 @@ float max_rgo_efficiency(sys::state& state, dcon::nation_id n, dcon::province_id
 	float result = base_amount
 		* main_rgo
 		* std::max(0.5f, throughput)
-		* state.defines.alice_rgo_boost * 10.f // compensation for efficiency being not free now
+		* state.defines.alice_rgo_boost // sizable compensation for efficiency being not free
 		* std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
 			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output) +
 			state.world.nation_get_rgo_goods_output(n, c)));
@@ -168,21 +171,6 @@ rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_
 	return result;
 }
 
-float rgo_expected_worker_norm_profit(
-	sys::state& state,
-	dcon::province_id p,
-	dcon::market_id m,
-	dcon::nation_id n,
-	dcon::commodity_id c
-) {
-	auto efficiency = state.world.province_get_rgo_efficiency(p, c);
-	auto current_price = price(state, m, c);
-
-	return
-		efficiency
-		* current_price
-		/ state.defines.alice_rgo_per_size_employment;
-}
 
 float base_artisan_profit(
 	sys::state& state,
@@ -976,7 +964,7 @@ profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_
 		+ state.world.factory_get_primary_employment(f)
 		+ state.world.factory_get_secondary_employment(f);
 	if(profit > 0 && total_employment >= current_size * expansion_trigger) {
-		auto expansion_scale = 1.f / state.world.factory_type_get_construction_time(ftid);
+		auto expansion_scale = base_expansion_scale / state.world.factory_type_get_construction_time(ftid);
 		expansion_cost = std::min(profit * 0.1f, expansion_scale * costs_data.total_cost);
 	}
 
@@ -986,7 +974,7 @@ profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_
 		.maintenance = maintenance_cost,
 		.expansion = expansion_cost,
 		.output = last_output,
-		.profit = last_output - wages - last_inputs
+		.profit = last_output - wages - last_inputs - expansion_cost
 	};
 }
 
@@ -1163,7 +1151,7 @@ void update_single_factory_consumption(
 	float actual_profit = data.output * base_data.output_price - data.direct_inputs_cost - data.efficiency_inputs_cost - actual_wages - maintenance_cost;
 
 	// if we are at max amount of workers and we are profitable, spend 10% of the profit on actual expansion
-	auto expansion_scale = 1.f / state.world.factory_type_get_construction_time(ftid);
+	auto expansion_scale = base_expansion_scale / state.world.factory_type_get_construction_time(ftid);
 	if(actual_profit > 0 && total_employment >= current_size * expansion_trigger) {
 		auto base_expansion_cost = expansion_scale * costs_data.total_cost;
 		expansion_scale = expansion_scale * std::min(1.f, actual_profit * 0.1f / base_expansion_cost);
@@ -1265,7 +1253,7 @@ void update_rgo_consumption(
 		if(efficiency_growth > 0.f && current_efficiency > free_efficiency) {
 			efficiency_growth = efficiency_growth * e_inputs_data.min_available;
 		}
-		auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
+		auto new_efficiency = std::min(max_efficiency, std::max(free_efficiency, current_efficiency * 0.9999f + efficiency_growth));
 		state.world.province_set_rgo_efficiency(p, c, new_efficiency);
 
 		auto workers = state.world.province_get_rgo_target_employment(p, c)
@@ -1451,7 +1439,8 @@ void update_employment(sys::state& state) {
 					1.f,
 					(
 						state.world.province_get_labor_price(pids, labor::no_education)
-						+ e_inputs_data.total_cost * efficiency * 0.9f // good enough approximation because i don't want to recalculate free efficiency again
+						// assume that efficiency is free for now
+						//+ e_inputs_data.total_cost * efficiency * 0.9f // good enough approximation because i don't want to recalculate free efficiency again
 					) * (1.f + aristocrats_greed)
 				);
 
@@ -1556,9 +1545,43 @@ void update_employment(sys::state& state) {
 
 		auto budget = factory_profit_to_wage_bound * state.world.factory_get_size(facids) * profit_per_worker;
 
-		unqualified_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_no_education, unqualified_next)));
-		primary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_basic_education, primary_next)));
-		secondary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_high_education, secondary_next)));
+		unqualified_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_no_education - 1.f, unqualified_next)));
+		primary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_basic_education - 1.f, primary_next)));
+		secondary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_high_education - 1.f, secondary_next)));
+
+		// no available workers at all?
+		// reduce and set to zero if it's low enough
+		// TODO: more complicated logic would be nice
+		// when we implement migration dependent on wages because high wage would attract people
+		// and hiring people when they are not there yet would be intended behaviour
+
+		unqualified_next = ve::select(
+			state.world.province_get_labor_supply(pid, economy::labor::no_education) == 0.f,
+			ve::select(
+				unqualified_next < 5.f,
+				0.f,
+				unqualified_next * 0.1f
+			),
+			unqualified_next
+		);
+		primary_next = ve::select(
+			state.world.province_get_labor_supply(pid, economy::labor::basic_education) == 0.f,
+			ve::select(
+				primary_next < 5.f,
+				0.f,
+				primary_next * 0.1f
+			),
+			primary_next
+		);
+		secondary_next = ve::select(
+			state.world.province_get_labor_supply(pid, economy::labor::high_education) == 0.f,
+			ve::select(
+				secondary_next < 5.f,
+				0.f,
+				secondary_next * 0.1f
+			),
+			secondary_next
+		);
 
 		auto total = unqualified_next + primary_next + secondary_next;
 		auto scaler = ve::select(total > state.world.factory_get_size(facids), state.world.factory_get_size(facids) / total, 1.f);
@@ -1883,6 +1906,25 @@ float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id 
 	return state.world.province_get_rgo_target_employment(p, c)
 		* state.world.province_get_labor_demand_satisfaction(p, labor::no_education);
 }
+
+float rgo_wage(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+	return rgo_employment(state, c, p) * state.world.province_get_labor_price(p, labor::no_education);
+}
+
+float rgo_efficiency_spendings(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+	auto n = state.world.province_get_nation_from_province_ownership(p);
+	auto s = state.world.province_get_state_membership(p);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+	auto max_efficiency = max_rgo_efficiency(state, n, p, c);
+	auto free_efficiency = max_efficiency * 0.1f;
+	auto efficiency = state.world.province_get_rgo_efficiency(p, c);
+	auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
+	auto e_inputs_data = get_inputs_data(state, m, e_inputs);
+	auto workers = rgo_employment(state, c, p);
+	auto demand_scale = workers * std::max(efficiency - free_efficiency, 0.f);
+	return demand_scale * e_inputs_data.total_cost * e_inputs_data.min_available;
+}
+
 float rgo_employment(sys::state& state, dcon::province_id p) {
 	float total = 0.f;
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -1955,7 +1997,7 @@ float rgo_income(sys::state& state, dcon::province_id id) {
 float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	auto sid = state.world.province_get_state_membership(id);
 	auto mid = state.world.state_instance_get_market_from_local_market(sid);
-	return rgo_potential_output(state, c, id)
+	return rgo_output(state, c, id)
 		* price(state, mid, c)
 		* state.world.market_get_supply_sold_ratio(mid, c);
 }

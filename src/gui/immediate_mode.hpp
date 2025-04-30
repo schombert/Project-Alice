@@ -79,7 +79,7 @@ void move_to(rect& rectangle, float x, float y);
 rect subrect(rect& rectangle, float w, float h, alignment_horizontal align_hor, alignment_vertical align_vert);
 
 enum iui_tab {
-	none, factory_types, markets, commodities_markets, commodities_nations
+	none, factory_types, markets, commodities_markets, wages
 };
 
 struct iui_state {
@@ -98,6 +98,7 @@ struct iui_state {
 
 	commodity_info_mode selected_commodity_info;
 
+	std::vector<float> per_province_data;
 	std::vector<float> per_market_data;
 	std::vector<float> per_nation_data;
 	std::vector<float> bins;
