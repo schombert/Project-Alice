@@ -683,7 +683,7 @@ void initialize(sys::state& state) {
 
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		auto & data = state.world.commodity_get_rgo_efficiency_inputs(cid);
-		for(int i = 0; i < base_rgo_e_inputs.set_size; i++) {
+		for(uint32_t i = 0; i < base_rgo_e_inputs.set_size; i++) {
 			data.commodity_amounts[i] = base_rgo_e_inputs.commodity_amounts[i];
 			data.commodity_type[i] = base_rgo_e_inputs.commodity_type[i];
 		}
