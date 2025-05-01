@@ -1638,7 +1638,6 @@ public:
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto current_employment = int64_t(economy::rgo_employment(state, c, p));
 			auto max_employment = int64_t(economy::rgo_max_employment(state, c, p));
-			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, m, n, c);
 
 			if(max_employment < 1.f) {
 				return;
@@ -1650,15 +1649,12 @@ public:
 			employment_box.x_position += 120.f;
 			auto max_employment_box = base_box;
 			max_employment_box.x_position += 180.f;
-			auto expected_profit_box = base_box;
-			expected_profit_box.x_position += 250.f;
 
 			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
 
 			
 			text::add_to_layout_box(state, contents, employment_box, current_employment);
 			text::add_to_layout_box(state, contents, max_employment_box, max_employment);
-			text::add_to_layout_box(state, contents, expected_profit_box, text::format_money(expected_profit));
 
 			text::add_to_layout_box(state, contents, base_box, std::string(" "));
 			text::close_layout_box(contents, base_box);

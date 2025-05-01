@@ -88,13 +88,13 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 }
 
 // base subsistence
-inline constexpr float subsistence_factor = 15.0f;
+inline constexpr float subsistence_factor = 5.0f;
 inline constexpr float subsistence_score_life = 30.0f;
-inline constexpr float subsistence_score_everyday = 30.0f;
-inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday;
+//inline constexpr float subsistence_score_everyday = 30.0f;
+inline constexpr float subsistence_score_total = subsistence_score_life;// +subsistence_score_everyday;
 
 //local merchants take a cut from most local monetary operations
-inline constexpr float local_market_cut = 0.3f;
+inline constexpr float local_market_cut_baseline = 0.15f;
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
@@ -126,8 +126,8 @@ inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
-inline constexpr float price_rigging = 0.015f;
-inline constexpr float production_throughput_multiplier = 10.f;
+inline constexpr float price_rigging = 0.02f;
+inline constexpr float production_throughput_multiplier = 2.5f; // for the sake of machine tools
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
@@ -145,11 +145,10 @@ inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_goo
 // greed drives incomes of corresponding pops up
 // while making life worse on average
 // profit cuts change distribution of incomes
-inline constexpr float rgo_owners_cut = 0.2f;
-inline constexpr float aristocrats_greed = 0.5f;
+inline constexpr float aristocrats_greed = 0.1f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float labor_greed_life = 2.0f;
-inline constexpr float labor_greed_everyday = 0.f;
+inline constexpr float labor_greed_life = 1.05f;
+inline constexpr float labor_greed_everyday = 0.001f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 
 void presimulate(sys::state& state);
@@ -294,7 +293,7 @@ struct full_construction_province {
 };
 
 std::vector<full_construction_factory> estimate_private_investment_upgrade(sys::state& state, dcon::nation_id nid, float est_private_const_spending);
-std::vector<full_construction_factory> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved, float est_private_const_spending);
+std::vector<full_construction_factory> estimate_private_investment_construct(sys::state& state, dcon::nation_id nid, bool craved, float est_private_const_spending, bool& potential_target_exists);
 std::vector<full_construction_province> estimate_private_investment_province(sys::state& state, dcon::nation_id nid, float est_private_const_spending);
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
