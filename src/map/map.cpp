@@ -284,6 +284,22 @@ void create_drag_box_vbo(GLuint vbo) {
 	glVertexAttribBinding(0, 0);
 }
 
+void create_square_vbo(GLuint vbo) {
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindVertexBuffer(0, vbo, 0, sizeof(map_vertex));
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position_));
+	glEnableVertexAttribArray(0);
+	glVertexAttribBinding(0, 0);
+
+	map_vertex data[4] = {
+		{ -1.f, -1.f },
+		{  1.f, -1.f },
+		{ -1.f,  1.f },
+		{  1.f, 1.f  }
+	};
+	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * 4, data, GL_STATIC_DRAW);
+}
+
 void display_data::create_border_ogl_objects() {
 	// TODO: remove unused function
 }
@@ -364,6 +380,8 @@ void display_data::create_meshes() {
 	create_text_line_vbo(vbo_array[vo_province_text_line]);
 	glBindVertexArray(vao_array[vo_drag_box]);
 	create_drag_box_vbo(vbo_array[vo_drag_box]);
+	glBindVertexArray(vao_array[vo_square]);
+	create_square_vbo(vbo_array[vo_square]);
 	glBindVertexArray(0);
 }
 
@@ -412,6 +430,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/screen_v.glsl"));
 	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/white_color_f.glsl"));
 
+	// On-map sprite shader
+	auto sprite_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_v.glsl"));
+	auto sprite_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_f.glsl"));
+
 	// Line shaders
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_f.glsl"));
@@ -443,6 +465,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_text_line] = create_program(*text_line_vshader, *text_line_fshader);
 	shaders[shader_drag_box] = create_program(*screen_vshader, *white_color_fshader);
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
+	shaders[shader_map_sprite] = create_program(*sprite_vshader, *sprite_fshader);
 
 	for(uint32_t i = 0; i < shader_count; i++) {
 		if(shaders[i] == 0)
@@ -482,6 +505,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_target_facing] = glGetUniformLocation(shaders[i], "target_facing");
 		shader_uniforms[i][uniform_target_topview_fixup] = glGetUniformLocation(shaders[i], "target_topview_fixup");
 		shader_uniforms[i][uniform_width] = glGetUniformLocation(shaders[i], "width");
+		shader_uniforms[i][uniform_sprite_offsets] = glGetUniformLocation(shaders[i], "position_offset");
+		shader_uniforms[i][uniform_sprite_scale] = glGetUniformLocation(shaders[i], "scale");
+		shader_uniforms[i][uniform_sprite_texture_start] = glGetUniformLocation(shaders[i], "texture_start");
+		shader_uniforms[i][uniform_sprite_texture_size] = glGetUniformLocation(shaders[i], "texture_size");
 	}
 }
 
@@ -913,7 +940,112 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindVertexArray(vao_array[vo_trade_flow]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_trade_flow]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
-	}	
+
+		// trade particles
+
+		load_shader(shader_map_sprite);
+
+		auto gfx_id =
+			state.ui_defs.gui[
+				state.ui_state.defs_by_name.find(
+					state.lookup_key("gfx_storage_commodity")
+				)->second.definition
+			].data.image.gfx_object;
+		auto& gfx_def = state.ui_defs.gfx[gfx_id];
+		auto frame = state.world.commodity_get_icon(state.selected_trade_good);
+		auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+		glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+		glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
+		glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
+
+		glBindVertexArray(vao_array[vo_square]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+
+		const float speed = 0.5f;
+
+		bool spawned_something = false;
+
+		for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+			auto& p = trade_particles_positions[i];
+
+			// update movement
+			if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
+				auto direction = p.target_ - p.position_;
+				auto length = float(glm::length(direction));
+				if(length < speed * 2) {
+					p.trade_graph_node_prev = p.trade_graph_node_current;
+					p.trade_graph_node_current = p.trade_graph_node_next;
+					p.trade_graph_node_next = -1;
+				} else {
+					p.position_ += direction / length * speed;
+				}
+			}
+
+			// choose target
+			if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
+				// choose next target according to probability
+				// use time as random engine for simplicity
+				auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
+
+				int target = -1;
+
+				auto accumulated = 0.f;
+				for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
+					accumulated += probability;
+					// prevent trivial loops
+					if(random < accumulated && candidate != p.trade_graph_node_prev) {
+						target = candidate;
+						break;
+					}
+				}
+
+				// moving to itself or having no paths to go out implies deletion
+				if(target == -1 || target == p.trade_graph_node_current) {
+					p.trade_graph_node_current = -1;
+				} else {
+					p.trade_graph_node_next = target;
+					p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
+				}
+			}
+
+
+			if(p.trade_graph_node_current != -1) {
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			}
+
+			// spawn "new" particles
+			// don't spawn them too often
+			if(!spawned_something && p.trade_graph_node_current == -1) {
+				spawned_something = true;
+
+				auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
+
+				int target = -1;
+				float accumulated = 0.f;
+				for(auto const& [candidate, probability] : particle_creation_probability) {
+					accumulated += probability;
+					if(random < accumulated) {
+						target = candidate;
+						break;
+					}
+				}
+
+				if(target != -1) {
+					p.trade_graph_node_current = target;
+					p.position_ = trade_node_position[target];
+					p.target_ = trade_node_position[target];
+					p.trade_graph_node_next = -1;
+					p.trade_graph_node_prev = -1;
+				}
+			}
+		}
+	}
 
 	if(zoom > map::zoom_close) { //only render if close enough
 		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()
