@@ -2844,8 +2844,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			if(!state.world.commodity_get_is_available_from_start(c)) {
 				reset_route_commodity = reset_route_commodity
-					|| !unlocked_A
-					|| !unlocked_B;
+					|| (!unlocked_A && !unlocked_B);
 			}
 
 			//state.world.execute_serial_over_trade_route([&](auto trade_route) {
