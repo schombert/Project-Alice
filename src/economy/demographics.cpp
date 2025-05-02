@@ -3564,8 +3564,8 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 		ve::fp_vector base = ve::select(
 			pop_types == state.culture_definitions.bureaucrat
 			&& (accepted || state.world.nation_get_primary_culture(owners) == state.world.pop_get_culture(ids)),
-			administration_base_push,
-			0.f
+			ve::fp_vector { administration_base_push },
+			ve::fp_vector { }
 		);
 
 		auto amounts =
@@ -3688,8 +3688,8 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 		ve::fp_vector base = ve::select(
 			pop_types == state.culture_definitions.bureaucrat
 			&& (accepted || state.world.nation_get_primary_culture(owners) == state.world.pop_get_culture(ids)),
-			administration_base_push,
-			0.f
+			ve::fp_vector{ administration_base_push },
+			ve::fp_vector{ 0.f }
 		);
 
 		auto amounts = (base + ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f)) *
