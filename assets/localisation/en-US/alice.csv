@@ -552,6 +552,7 @@ pop_mig_1;There is no internal migration from colonial provinces
 pop_mig_2;Slaves do not migrate internally
 pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$)
 pop_mig_4;?YMigration factor:
+pop_migration_bureaucracy;Bureaucracy has to move around in order to administer the land: $x$
 pop_cmig_1;The nation does not have any colonies
 pop_cmig_2;There is no colonial migration from colonial provinces
 pop_cmig_3;Slaves do not migrate colonially
@@ -1478,4 +1479,6 @@ pop_emigration_attraction_2;The national modifier to immigrant attraction: $x$
 pop_emigration_attraction_3;And the migration target factor: $x$
 pop_migration_attraction_1;Migration attraction is the product of:
 pop_migration_attraction_2;The provincial modifier to immigrant attraction: $x$
-pop_migration_attraction_3;And the migration target factor: $x$
+pop_migration_attraction_3;The migration target factor: $x$
+pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
+pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$

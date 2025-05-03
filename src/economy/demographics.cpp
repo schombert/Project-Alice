@@ -3252,11 +3252,9 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	}
 }
 
-namespace impl {
-
 float wage_based_multiplier(sys::state& state, dcon::province_id origin, dcon::province_id target, int32_t labor_type) {
-	float wage_origin =	state.world.province_get_labor_price(origin, labor_type);
-	float wage_target =	state.world.province_get_labor_price(target, labor_type);
+	float wage_origin = state.world.province_get_labor_price(origin, labor_type);
+	float wage_target = state.world.province_get_labor_price(target, labor_type);
 
 	if(labor_type == economy::labor::high_education_and_accepted) {
 		wage_origin = std::max(wage_origin, state.world.province_get_labor_price(origin, economy::labor::high_education));
@@ -3269,6 +3267,89 @@ float wage_based_multiplier(sys::state& state, dcon::province_id origin, dcon::p
 		return std::min(1000000.f, wage_target / (wage_origin + 0.00001f));
 	}
 }
+
+int32_t signature_labor_type(sys::state& state, dcon::nation_id n, dcon::pop_type_id pt, dcon::culture_id cuid) {
+	auto labor_type = economy::labor::no_education;
+	auto accepted = state.world.nation_get_accepted_cultures(n, cuid) || state.world.nation_get_primary_culture(n) == cuid;
+
+	if(pt == state.culture_definitions.primary_factory_worker) {
+		labor_type = economy::labor::basic_education;
+	} else if(pt == state.culture_definitions.secondary_factory_worker) {
+		if(accepted) {
+			labor_type = economy::labor::high_education_and_accepted;
+		} else {
+			labor_type = economy::labor::high_education;
+		}
+	} else if(pt == state.culture_definitions.bureaucrat) {
+		if(accepted) {
+			labor_type = economy::labor::high_education_and_accepted;
+		} else {
+			labor_type = economy::labor::high_education;
+		}
+	} else if(pt == state.culture_definitions.clergy) {
+		if(accepted) {
+			labor_type = economy::labor::high_education_and_accepted;
+		} else {
+			labor_type = economy::labor::high_education;
+		}
+	}
+
+	return labor_type;
+}
+
+province_migration_weight_explanation explain_province_internal_migration_weight(sys::state& state, dcon::pop_id p, dcon::province_id pid) {
+	auto origin = state.world.pop_get_province_from_pop_location(p);
+	auto pt = state.world.pop_get_poptype(p);
+	auto labor_type = signature_labor_type(
+		state,
+		state.world.province_get_nation_from_province_ownership(origin),
+		pt.id,
+		state.world.pop_get_culture(p)
+	);
+
+	float base_weight = 0.f;
+	if(pt == state.culture_definitions.bureaucrat) {
+		base_weight = administration_additional_province_weight;
+	}
+
+	province_migration_weight_explanation result{
+		.base_multiplier = 0.f,
+		.base_weight = base_weight,
+		.modifier = 0.f,
+		.wage_multiplier = 0.f,
+		.result = 0.f
+	};
+
+	auto modifier = state.world.pop_type_get_migration_target(pt);
+	auto modifier_fn = state.world.pop_type_get_migration_target_fn(pt);
+	auto attraction = state.world.province_get_modifier_values(pid, sys::provincial_mod_offsets::immigrant_attract);
+
+	if(!modifier)
+		return result;
+
+	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(pt);
+	auto sid = state.world.province_get_state_membership(pid);
+	auto sid_capital = state.world.state_instance_get_capital(sid);
+
+
+	if(limit_to_capitals && sid_capital != pid) {
+		return result;
+	}
+
+	float weight = 0.0f;
+	float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(pid), trigger::to_generic(p), 0);
+	weight = std::max(0.0f, interp_result * (attraction + 1.0f));
+	float wage_mult = wage_based_multiplier(state, origin, pid, labor_type);
+
+	result.base_multiplier = interp_result;
+	result.modifier = attraction;
+	result.wage_multiplier = wage_mult;
+	result.result = (base_weight + weight) * wage_mult;
+
+	return result;
+}
+
+namespace impl {
 
 dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
 	/*
@@ -3284,33 +3365,16 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 
 	auto origin = state.world.pop_get_province_from_pop_location(p);
 	auto pt = state.world.pop_get_poptype(p);
-
-	auto labor_type = economy::labor::no_education;
-	if(pt == state.culture_definitions.primary_factory_worker) {
-		labor_type = economy::labor::basic_education;
-	} else if(pt == state.culture_definitions.secondary_factory_worker) {
-		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p))) {
-			labor_type = economy::labor::high_education_and_accepted;
-		} else {
-			labor_type = economy::labor::high_education;
-		}
-	} else if(pt == state.culture_definitions.bureaucrat) {
-		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p))) {
-			labor_type = economy::labor::high_education_and_accepted;
-		} else {
-			labor_type = economy::labor::high_education;
-		}
-	} else if(pt == state.culture_definitions.clergy) {
-		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p))) {
-			labor_type = economy::labor::high_education_and_accepted;
-		} else {
-			labor_type = economy::labor::high_education;
-		}
-	}
+	auto labor_type = signature_labor_type(
+		state,
+		state.world.province_get_nation_from_province_ownership(origin),
+		pt.id,
+		state.world.pop_get_culture(p)
+	);
 
 	float base_weight = 0.f;
 	if(pt == state.culture_definitions.bureaucrat) {
-		base_weight = 0.1f;
+		base_weight = administration_additional_province_weight;
 	}
 
 	auto modifier = state.world.pop_type_get_migration_target(pt);
@@ -3372,32 +3436,16 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 	auto origin = state.world.pop_get_province_from_pop_location(p);
 	auto pt = state.world.pop_get_poptype(p);
 
-	auto labor_type = economy::labor::no_education;
-	if(pt == state.culture_definitions.primary_factory_worker) {
-		labor_type = economy::labor::basic_education;
-	} else if(pt == state.culture_definitions.secondary_factory_worker) {
-		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p))) {
-			labor_type = economy::labor::high_education_and_accepted;
-		} else {
-			labor_type = economy::labor::high_education;
-		}
-	} else if(pt == state.culture_definitions.bureaucrat) {
-		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p))) {
-			labor_type = economy::labor::high_education_and_accepted;
-		} else {
-			labor_type = economy::labor::high_education;
-		}
-	} else if(pt == state.culture_definitions.clergy) {
-		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p))) {
-			labor_type = economy::labor::high_education_and_accepted;
-		} else {
-			labor_type = economy::labor::high_education;
-		}
-	}
+	auto labor_type = signature_labor_type(
+		state,
+		state.world.province_get_nation_from_province_ownership(origin),
+		pt.id,
+		state.world.pop_get_culture(p)
+	);
 
 	float base_weight = 0.f;
 	if(pt == state.culture_definitions.bureaucrat) {
-		base_weight = 0.1f;
+		base_weight = administration_additional_province_weight;
 	}
 
 	auto modifier = state.world.pop_type_get_migration_target(state.world.pop_get_poptype(p));
@@ -3536,9 +3584,6 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 
 } // namespace impl
 
-// bureacracy has to travel around the realm
-inline constexpr float administration_base_push = 0.9f;
-
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
@@ -3561,9 +3606,11 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 			}, state.world.pop_get_culture(ids), owners
 		);
 
+		ve::mask_vector can_migrate_due_to_job = pop_types == state.culture_definitions.bureaucrat
+			&& (accepted || state.world.nation_get_primary_culture(owners) == state.world.pop_get_culture(ids));
+
 		ve::fp_vector base = ve::select(
-			pop_types == state.culture_definitions.bureaucrat
-			&& (accepted || state.world.nation_get_primary_culture(owners) == state.world.pop_get_culture(ids)),
+			can_migrate_due_to_job,
 			ve::fp_vector { administration_base_push },
 			ve::fp_vector { }
 		);
@@ -3591,12 +3638,12 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 		) * state.defines.immigration_scale;
 
 		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
+				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size, bool can_migrate_from_colony) {
 					if(amount <= 0.0f)
 						return; // early exit
 					if(!owner)
 						return; // early exit
-					if(state.world.province_get_is_colonial(location))
+					if(state.world.province_get_is_colonial(location) && !can_migrate_from_colony)
 						return; // early exit
 					if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
 						return; // early exit
@@ -3610,7 +3657,7 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 					//}
 					pbuf.destinations.set(p, dest);
 				},
-				ids, loc, owners, amounts, pop_sizes);
+				ids, loc, owners, amounts, pop_sizes, can_migrate_due_to_job);
 	});
 }
 
@@ -3683,7 +3730,10 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 			[&](dcon::culture_id culture, dcon::nation_id owner) {
 				return state.world.nation_get_accepted_cultures(owner, culture);
 			}, state.world.pop_get_culture(ids), owners
-				);
+		);
+
+		ve::mask_vector can_migrate_due_to_job = pop_types == state.culture_definitions.bureaucrat
+			&& (accepted || state.world.nation_get_primary_culture(owners) == state.world.pop_get_culture(ids));
 
 		ve::fp_vector base = ve::select(
 			pop_types == state.culture_definitions.bureaucrat
@@ -3693,13 +3743,13 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 		);
 
 		auto amounts = (base + ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0),  0.0f)) *
-			 pop_sizes *
+			pop_sizes *
 			ve::max((state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f), 0.0f) *
 			ve::max((state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::colonial_migration) + 1.0f), 0.0f) *
 			state.defines.immigration_scale;
 
 		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
+				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size, bool can_migrate_from_colony) {
 					if(amount <= 0.0f)
 						return; // early exit
 					if(!owner)
@@ -3709,7 +3759,7 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 					auto pt = state.world.pop_get_poptype(p);
 					if(state.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
 						return; // early exit
-					if(state.world.province_get_is_colonial(location))
+					if(state.world.province_get_is_colonial(location) && !can_migrate_from_colony)
 						return; // early exit
 					if(pt == state.culture_definitions.slaves || pt == state.culture_definitions.primary_factory_worker ||
 							pt == state.culture_definitions.secondary_factory_worker)
@@ -3724,7 +3774,7 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 					auto dest = impl::get_colonial_province_target_in_nation(state, owner, p);
 					pbuf.destinations.set(p, dest);
 				},
-				ids, loc, owners, amounts, pop_sizes);
+				ids, loc, owners, amounts, pop_sizes, can_migrate_due_to_job);
 	});
 }
 

@@ -3995,8 +3995,8 @@ void update_budget(sys::state& state) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 
-		n.set_construction_spending(75);
-		n.set_administrative_spending(10);
+		n.set_construction_spending(50);
+		n.set_administrative_spending(25);
 		
 		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
