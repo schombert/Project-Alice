@@ -18,7 +18,7 @@ namespace economy {
 // local administration: total population in a given market divided by C
 // 
 // imperial administration generates demand on accepted high educated labor in capital market
-// local administration generates demand on local high educated labor
+// local administration generates demand on local high educated labor in state capital
 // (we don't want too much demand on accepted highly educated pops in the middle of nowhere)
 //
 // employed people in administration influence the maximum amount of taxes the nation can collect
@@ -47,9 +47,12 @@ float required_labour_in_capital_administration(sys::state& state, dcon::nation_
 }
 
 float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::province_id pid) {
+	auto local_administrative_region = state.world.province_get_state_membership(pid);
+	auto local_administration_center = state.world.state_instance_get_capital(local_administrative_region);
+
 	auto tax_collection_global = 1.f + global_admin_ratio(state, n);
 	auto local_tax_collectors = state.world.province_get_administration_employment_target(pid)
-		* state.world.province_get_labor_demand_satisfaction(pid, economy::labor::high_education);
+		* state.world.province_get_labor_demand_satisfaction(local_administration_center, economy::labor::high_education);
 
 	auto collection_rate_per_tax_collector =
 		state.world.province_get_labor_price(pid, economy::labor::high_education)
@@ -95,12 +98,15 @@ float global_admin_ratio(sys::state& state, dcon::nation_id n) {
 }
 
 float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id pid) {
+	auto local_administrative_region = state.world.province_get_state_membership(pid);
+	auto local_administration_center = state.world.state_instance_get_capital(local_administrative_region);
+
 	auto local_population = state.world.province_get_demographics(pid, demographics::total);
 	float required_labor_local = local_population / population_per_admin(state, n);
 
 	auto current_labor_local =
 		state.world.province_get_administration_employment_target(pid)
-		* state.world.province_get_labor_demand_satisfaction(pid, economy::labor::high_education);
+		* state.world.province_get_labor_demand_satisfaction(local_administration_center, economy::labor::high_education);
 
 	return current_labor_local / required_labor_local;
 }
@@ -111,20 +117,26 @@ float estimate_spendings_administration_capital(sys::state& state, dcon::nation_
 	auto capital = state.world.nation_get_capital(n);
 	auto required_labor_capital = required_labour_in_capital_administration(state, n);
 	auto labor_price_capital = state.world.province_get_labor_price(capital, economy::labor::high_education_and_accepted);
-	float required_budget = required_labor_capital * labor_price_capital * state.world.province_get_labor_demand_satisfaction(capital, labor::high_education_and_accepted);
+	float required_budget =
+		required_labor_capital
+		* labor_price_capital
+		* state.world.province_get_labor_demand_satisfaction(capital, labor::high_education_and_accepted);
 
 	return std::min(required_budget, admin_budget);
 }
 
 float estimate_spendings_administration_local(sys::state& state, dcon::nation_id n, dcon::province_id pid, float budget_priority) {
+	auto local_administrative_region = state.world.province_get_state_membership(pid);
+	auto local_administration_center = state.world.state_instance_get_capital(local_administrative_region);
+
 	auto local_population = state.world.province_get_demographics(pid, demographics::total);
 	float required_labor_local = local_population / population_per_admin(state, n);
-	float labor_price_local = state.world.province_get_labor_price(pid, economy::labor::high_education);
+	float labor_price_local = state.world.province_get_labor_price(local_administration_center, economy::labor::high_education);
 
 	return
 		required_labor_local
 		* labor_price_local
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
+		* state.world.province_get_labor_demand_satisfaction(local_administration_center, labor::high_education);
 }
 
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority) {
@@ -154,10 +166,14 @@ float full_spendings_administration(sys::state& state, dcon::nation_id n) {
 
 	state.world.nation_for_each_province_ownership(n, [&](auto poid) {
 		auto local_province = state.world.province_ownership_get_province(poid);
+
+		auto local_administrative_region = state.world.province_get_state_membership(local_province);
+		auto local_administration_center = state.world.state_instance_get_capital(local_administrative_region);
+
 		total_cost +=
 			state.world.province_get_administration_employment_target(local_province)
-			* state.world.province_get_labor_demand_satisfaction(local_province, labor::high_education)
-			* state.world.province_get_labor_price(local_province, labor::high_education);
+			* state.world.province_get_labor_demand_satisfaction(local_administration_center, labor::high_education)
+			* state.world.province_get_labor_price(local_administration_center, labor::high_education);
 	});
 
 	assert(total_cost >= 0.f);
@@ -197,14 +213,18 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 
 		state.world.nation_for_each_province_ownership(n, [&](auto poid) {
 			auto local_province = state.world.province_ownership_get_province(poid);
+
+			auto local_administrative_region = state.world.province_get_state_membership(local_province);
+			auto local_administration_center = state.world.state_instance_get_capital(local_administrative_region);
+
 			auto local_population = state.world.province_get_demographics(local_province, demographics::total);
 
 			required_labor_capital += local_population / admin_efficiency;
 			float required_labor_local = local_population / admin_efficiency;
-			float labor_price_local = state.world.province_get_labor_price(local_province, economy::labor::high_education);
+			float labor_price_local = state.world.province_get_labor_price(local_administration_center, economy::labor::high_education);
 			required_budget += required_labor_local
 				* labor_price_local
-				* state.world.province_get_labor_demand_satisfaction(local_province, economy::labor::high_education);
+				* state.world.province_get_labor_demand_satisfaction(local_administration_center, economy::labor::high_education);
 		});
 
 		auto scale = 1.f;
@@ -214,11 +234,15 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 
 		state.world.nation_for_each_province_ownership(n, [&](auto poid) {
 			auto local_province = state.world.province_ownership_get_province(poid);
+
+			auto local_administrative_region = state.world.province_get_state_membership(local_province);
+			auto local_administration_center = state.world.state_instance_get_capital(local_administrative_region);
+
 			auto local_population = state.world.province_get_demographics(local_province, demographics::total);
 
 			required_labor_capital += local_population / admin_efficiency;
 			float required_labor_local = local_population / admin_efficiency;
-			state.world.province_get_labor_demand(local_province, economy::labor::high_education) += required_labor_local * scale;
+			state.world.province_get_labor_demand(local_administration_center, economy::labor::high_education) += required_labor_local * scale;
 			state.world.province_set_administration_employment_target(local_province, required_labor_local * scale);
 		});
 	}

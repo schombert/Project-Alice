@@ -844,7 +844,7 @@ void initialize(sys::state& state) {
 
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto fn = fatten(state.world, n);
-		fn.set_administrative_spending(int8_t(10));
+		fn.set_administrative_spending(int8_t(25));
 		fn.set_military_spending(int8_t(60));
 		fn.set_education_spending(int8_t(100));
 		fn.set_social_spending(int8_t(100));
@@ -1128,6 +1128,10 @@ void update_pops_employment(sys::state& state) {
 			auto subsistence_employment = 0.f;
 			for(auto pop_location : state.world.province_get_pop_location(p)) {
 				auto pop = pop_location.get_pop();
+
+				auto accepted = state.world.nation_get_accepted_cultures(n, pop.get_culture())
+					|| state.world.nation_get_primary_culture(n) == pop.get_culture();
+
 				if(pop.get_poptype() == state.culture_definitions.slaves) {
 					pop_demographics::set_raw_employment(state, pop, rgo);
 					subsistence_employment += pop.get_size() * (1.f - rgo);
@@ -1138,7 +1142,7 @@ void update_pops_employment(sys::state& state) {
 					pop_demographics::set_raw_employment(state, pop, primary);
 					subsistence_employment += pop.get_size() * (1.f - primary);
 				} else if(pop.get_poptype() == state.culture_definitions.secondary_factory_worker) {
-					if(state.world.nation_get_accepted_cultures(n, pop.get_culture())) {
+					if(accepted) {
 						pop_demographics::set_raw_employment(state, pop, high_accepted);
 						subsistence_employment += pop.get_size() * (1.f - high_accepted);
 					} else {
@@ -1146,7 +1150,7 @@ void update_pops_employment(sys::state& state) {
 						subsistence_employment += pop.get_size() * (1.f - high);
 					}
 				} else if(pop.get_poptype() == state.culture_definitions.bureaucrat) {
-					if(state.world.nation_get_accepted_cultures(n, pop.get_culture())) {
+					if(accepted) {
 						pop_demographics::set_raw_employment(state, pop, high_accepted);
 						subsistence_employment += pop.get_size() * (1.f - high_accepted);
 					} else {
@@ -1154,7 +1158,7 @@ void update_pops_employment(sys::state& state) {
 						subsistence_employment += pop.get_size() * (1.f - high);
 					}
 				} else if(pop.get_poptype() == state.culture_definitions.clergy) {
-					if(state.world.nation_get_accepted_cultures(n, pop.get_culture())) {
+					if(accepted) {
 						pop_demographics::set_raw_employment(state, pop, high_accepted);
 						subsistence_employment += pop.get_size() * (1.f - high_accepted);
 					} else {
@@ -2844,8 +2848,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			if(!state.world.commodity_get_is_available_from_start(c)) {
 				reset_route_commodity = reset_route_commodity
-					|| !unlocked_A
-					|| !unlocked_B;
+					|| (!unlocked_A && !unlocked_B);
 			}
 
 			//state.world.execute_serial_over_trade_route([&](auto trade_route) {
@@ -4145,14 +4148,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto total_high_education = ve::apply([&](auto p, auto n) {
 				auto total = 0.f;
 				for(auto pl : state.world.province_get_pop_location(p)) {
+					auto not_accepted = !state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture())
+						&& state.world.nation_get_primary_culture(n) != pl.get_pop().get_culture().id;
+
 					if(state.culture_definitions.secondary_factory_worker == pl.get_pop().get_poptype()) {
-						if(!state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture()) && state.world.nation_get_primary_culture(n) != pl.get_pop().get_culture().id)
+						if(not_accepted)
 							total += pl.get_pop().get_size();
 					} else if(pl.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
-						if(!state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture()) && state.world.nation_get_primary_culture(n) != pl.get_pop().get_culture().id)
+						if(not_accepted)
 							total += pl.get_pop().get_size();
 					} else if(pl.get_pop().get_poptype() == state.culture_definitions.clergy) {
-						if(!state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture()) && state.world.nation_get_primary_culture(n) != pl.get_pop().get_culture().id)
+						if(not_accepted)
 							total += pl.get_pop().get_size();
 					}
 				}
@@ -4162,14 +4168,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto total_high_education_and_accepted = ve::apply([&](auto p, auto n) {
 				auto total = 0.f;
 				for(auto pl : state.world.province_get_pop_location(p)) {
+					auto accepted = state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture())
+						|| state.world.nation_get_primary_culture(n) == pl.get_pop().get_culture().id;
+
 					if(state.culture_definitions.secondary_factory_worker == pl.get_pop().get_poptype()) {
-						if(state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture()) || state.world.nation_get_primary_culture(n) == pl.get_pop().get_culture().id)
+						if(accepted)
 							total += pl.get_pop().get_size();
 					} else if(pl.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
-						if(state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture()) || state.world.nation_get_primary_culture(n) == pl.get_pop().get_culture().id)
+						if(accepted)
 							total += pl.get_pop().get_size();
 					} else if(pl.get_pop().get_poptype() == state.culture_definitions.clergy) {
-						if(state.world.nation_get_accepted_cultures(n, pl.get_pop().get_culture()) || state.world.nation_get_primary_culture(n) == pl.get_pop().get_culture().id)
+						if(accepted)
 							total += pl.get_pop().get_size();
 					}
 				}
@@ -4541,6 +4550,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto savings = pop.get_savings();
 				auto poptype = pop.get_poptype();
 				auto size = pop.get_size();
+
+				auto accepted = state.world.nation_get_accepted_cultures(n, pop.get_culture())
+					|| state.world.nation_get_primary_culture(n) == pop.get_culture();
+
 				if(poptype.get_is_paid_rgo_worker()) {
 					pop.set_savings(savings + income_scale * state.inflation * size * rgo_workers_wage * (1.f - local_market_cut));
 					total_wage += size * rgo_workers_wage;
@@ -4555,7 +4568,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
 #endif
 				} else if(state.culture_definitions.secondary_factory_worker == pop.get_poptype()) {
-					if(state.world.nation_get_accepted_cultures(n, pop.get_culture())) {
+					if(accepted) {
 						pop.set_savings(savings + income_scale * state.inflation * size * high_accepted_workers_wage * (1.f - local_market_cut));
 						total_wage += size * high_accepted_workers_wage;
 #ifndef NDEBUG
@@ -4570,7 +4583,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					}
 					assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
 				} else if(pop.get_poptype() == state.culture_definitions.bureaucrat) {
-					if(state.world.nation_get_accepted_cultures(n, pop.get_culture())) {
+					if(accepted) {
 						pop.set_savings(savings + income_scale * state.inflation * size * high_accepted_workers_wage * (1.f - local_market_cut));
 						total_wage += size * high_accepted_workers_wage;
 #ifndef NDEBUG
@@ -4584,7 +4597,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 #endif
 					}
 				} else if(pop.get_poptype() == state.culture_definitions.clergy) {
-					if(state.world.nation_get_accepted_cultures(n, pop.get_culture())) {
+					if(accepted) {
 						pop.set_savings(pop.get_savings() + income_scale * state.inflation * size * high_accepted_workers_wage * (1.f - local_market_cut));
 						total_wage += size * high_accepted_workers_wage;
 #ifndef NDEBUG
