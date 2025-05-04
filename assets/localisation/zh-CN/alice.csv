@@ -536,34 +536,34 @@ pop_l_emigration_header;?Y移居国外: $val$
 pop_mig_1;无国内殖民地移民
 pop_mig_2;奴隶从不迁徙
 pop_mig_3;国内可能迁移人数=人群规模*移民规模（$x$）*当地移民潮规模修正（$y$）*移民系数（$val$）
-pop_mig_4;?Y移民因素：
+pop_mig_4;?Y移民因子：
 pop_cmig_1;此国没有殖民地
 pop_cmig_2;无来自殖民地省份的殖民迁移
 pop_cmig_3;奴隶不会进行殖民迁移
 pop_cmig_4;富裕阶层不会进行殖民迁移
 pop_cmig_5;工厂工人不会进行殖民迁移
 pop_cmig_6;可能迁移殖民地的人数=人群规模*移民规模（$x$）*当地移民潮规模修正（$y$）*当地殖民迁移修正（吸引力）（$num$）*殖民迁移系数（$val$）
-pop_cmig_7;?Y殖民迁移因素：
+pop_cmig_7;?Y殖民迁移因子：
 pop_emg_1;人群只可从开化国家移民
 pop_emg_2;没有殖民地移民
 pop_emg_3;奴隶从不迁徙
 pop_emg_4;没有 ?海外?!文化的人群不能移民
 pop_emg_5;可能移民数=人群规模*移民规模（$x$）*当地移民潮规模修正（$y$，如＞1则平方）*出境移民系数（$val$）
-pop_emg_6;?Y移民因素：
+pop_emg_6;?Y移民因子：
 pop_prom_1;?Y升职系数：
 pop_prom_2;来自国家焦点：?G$val$
 pop_prom_3;0 (由于国家焦点)
 pop_prom_4;?Y降职系数:
 pop_prom_5;这个人群正在升职因为升职系数大于降职系数
 pop_prom_6;这个人群正在降职因为降职系数大于升职系数
-pop_prom_7;由于这两个因素都是负数，此人群将维持现状
+pop_prom_7;由于这两个因子都是负数，此人群将维持现状
 pop_prom_8;可能升职人数=人群规模*升职规模（$x$）*升职系数（$val$）*行政效率（$y$）
 pop_prom_9;可能降职人数=人群规模*降职规模（$x$）*降职系数（$val$）
 pop_con_1;每月觉醒度变化：
 pop_con_2;总计：
 pop_con_3;来自奢侈品满足度：?G+$x$
 pop_con_4;来自当地神职人员比例（$val$）：?R$x$
-pop_con_5;多元性 和 识字因素：?G+$x$?!（乘积）：
+pop_con_5;多元性 和 识字因子：?G+$x$?!（乘积）：
 pop_con_6;多元性：$x$
 pop_con_7;识字率对觉醒度的修正：$x$
 pop_con_8;识字率影响：$x$
@@ -603,7 +603,7 @@ pop_growth_1;每月人群增长：
 pop_growth_2;奴隶自愿绝育
 pop_growth_3;人群增长与人口规模成正比（乘积）：
 pop_growth_4;生活条件系数 $x$（乘积）：
-pop_growth_5;当地因素 $x$（总和）：
+pop_growth_5;当地因子 $x$（总和）：
 pop_growth_6;当地生活条件 $x$ 减去 最低生活条件 $y$，总乘数为 $val$
 pop_growth_7;和 基础人群增长值$x$
 pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 最低饱腹 $val$）
@@ -621,7 +621,7 @@ pop_assim_8;国内同化率修正：$x$
 pop_assim_9;当地同化率修正：$x$
 pop_assim_10;0.1 因为没有海外文化
 pop_assim_11;$x$来自现在的省份核心
-pop_assim_12;动态同化因素：$x$
+pop_assim_12;动态同化因子：$x$
 pop_conver_1;每月人群传教：$x$
 pop_conver_2;地区信徒虔诚
 pop_conver_3;人群一般不改宗，除非当地有国教人口。
@@ -629,13 +629,13 @@ pop_conver_4;传教与人群规模成正比（乘积）：
 pop_conver_5;基础传教规模：$x$
 pop_conver_6;国内传教率修正：$x$
 pop_conver_7;当地传教率修正：$x$
-pop_conver_8;动态传教因素：$x$
+pop_conver_8;动态传教因子：$x$
 pop_issue_attraction_1;议题吸引力：$x$
 pop_issue_attraction_2;此改革目前不能
-pop_issue_attraction_3;政治观点吸引力是以下因素的结果：
+pop_issue_attraction_3;政治观点吸引力是以下因子的结果：
 pop_issue_attraction_4;社会改革诉求国内修正：$x$
 pop_issue_attraction_5;政治改革诉求国内修正：$x$
-pop_issue_attraction_6;和政见吸引力因素：$x$
+pop_issue_attraction_6;和政见吸引力因子：$x$
 pop_ideology_attraction_1;意识形态吸引力：$x$
 pop_ideology_attraction_2;此意识形态目前不能
 trade_setting_drawing;使用库存
@@ -1366,7 +1366,7 @@ alice_budget_social_spending;福利
 potentials;潜在
 factory_build_condition_11;地区有潜在资源
 factory_upgrade_condition_11;地区有潜在资源
-factory_stats_7;规模加成：?G+$val$?!
+factory_stats_7;规模吞吐：?G+$val$?!
 factory_consumer_count;轻工厂：?Y$val$?!
 factory_heavy_count;重工厂：?Y$val$?!
 factory_military_count;军工厂：?Y$val$?!
@@ -1447,12 +1447,12 @@ alice_pop_details_emm;移民
 alice_pop_details_mig;迁移
 alice_pop_details_i_amount;国内：
 alice_pop_details_c_amount;殖民：
-pop_emigration_attraction_1;移民因素：
+pop_emigration_attraction_1;移民因子：
 pop_emigration_attraction_2;国家修正：$x$
-pop_emigration_attraction_3;目标因素：$x$
-pop_migration_attraction_1;迁移因素：
+pop_emigration_attraction_3;目标因子：$x$
+pop_migration_attraction_1;迁移因子：
 pop_migration_attraction_2;地区修正：$x$
-pop_migration_attraction_3;目标因素：$x$
+pop_migration_attraction_3;目标因子：$x$
 alice_technology_leadership_points;领导力：
 alice_reserve_reg_count;$x$ 当前有 ?Y$y$?W 预备队在战斗中
 alice_reinforce_battle_mod_top;?Y$x$?W 预备队增援修正：
@@ -1479,3 +1479,7 @@ payment_received_per_unit;每单位卖方收到 ?Y$val$
 merchants_received_per_unit;每单位卖方利润 ?Y$val$
 disallow_naval_trade;海上禁运
 disallow_land_trade;陆上禁运
+pop_migration_bureaucracy;流动官僚管理地方：$x$
+pop_migration_attraction_3;迁移目标因子：$x$
+pop_migration_attraction_wage_ratio;工资差距：$x$
+pop_migration_attraction_bureaucracy;官僚基础因子：$x$
