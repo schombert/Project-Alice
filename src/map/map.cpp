@@ -2287,7 +2287,7 @@ void display_data::update_railroad_paths(sys::state& state) {
 	for(const auto p1 : state.world.in_province) {
 		if(visited_prov[p1.id.index()]) {
 			auto const p1_level = p1.get_building_level(uint8_t(economy::province_building_type::railroad));
-			auto admin_efficiency = province::state_admin_efficiency(state, p1.get_state_membership());
+			auto admin_efficiency = state.world.province_get_control_ratio(p1);
 			auto max_adj = std::max<uint32_t>(uint32_t(admin_efficiency * 2.75f), rr_ends[p1.id.index()] ? 3 : 1);
 			std::vector<dcon::province_adjacency_id> valid_adj;
 			for(const auto adj : p1.get_province_adjacency_as_connected_provinces()) {

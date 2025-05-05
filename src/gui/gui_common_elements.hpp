@@ -303,8 +303,8 @@ public:
 class state_admin_efficiency_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		set_text(state, text::format_percentage(province::state_admin_efficiency(state, content), 1));
+		auto content = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(state.world.province_get_control_ratio(content), 1));
 	}
 };
 

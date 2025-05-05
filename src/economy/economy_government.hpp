@@ -8,10 +8,8 @@ struct state;
 namespace economy {
 // see details about internal workings of the system in cpp file
 
-// amount of taxes you can collect in a given region
-float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::province_id);
-// amount of taxes you can collect in a given region summed up for each region
-float total_tax_collection_capacity(sys::state& state, dcon::nation_id n);
+// ratio of taxes you can collect in a given province
+float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_id);
 // ratio of current employed imperial admin to imperial admin required by your nation
 float global_admin_ratio(sys::state& state, dcon::nation_id n);
 // ratio of current employed local admin to local admin required by given state instance
@@ -37,7 +35,7 @@ struct tax_information {
 	float mid = 0.f;
 	float rich = 0.f;
 
-	float capacity = 0.f;
+	float local_multiplier = 0.f;
 
 	float poor_potential = 0.f;
 	float mid_potential = 0.f;

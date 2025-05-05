@@ -1585,10 +1585,11 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 		for(auto so : state.world.nation_get_province_ownership(state.local_player_nation)) {
 			auto province = so.get_province();
 			auto info = economy::explain_tax_income_local(state, state.local_player_nation, province);
-			add_budget_row(
-				text::produce_simple_string(state, province.get_name()),
-				info.poor
-			);
+			if (info.poor > 0.f)
+				add_budget_row(
+					text::produce_simple_string(state, province.get_name()),
+					info.poor
+				);
 		}
 		add_bottom_spacer();
 	} else {
@@ -1600,10 +1601,11 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 		for(auto so : state.world.nation_get_province_ownership(state.local_player_nation)) {
 			auto province = so.get_province();
 			auto info = economy::explain_tax_income_local(state, state.local_player_nation, province);
-			add_budget_row(
-				text::produce_simple_string(state, province.get_name()),
-				info.mid
-			);
+			if (info.mid > 0.f)
+				add_budget_row(
+					text::produce_simple_string(state, province.get_name()),
+					info.mid
+				);
 		}
 		add_bottom_spacer();
 	} else {
@@ -1615,10 +1617,11 @@ void  budgetwindow_main_income_table_t::update(sys::state& state, layout_window_
 		for(auto so : state.world.nation_get_province_ownership(state.local_player_nation)) {
 			auto province = so.get_province();
 			auto info = economy::explain_tax_income_local(state, state.local_player_nation, province);
-			add_budget_row(
-				text::produce_simple_string(state, province.get_name()),
-				info.rich
-			);
+			if (info.rich > 0.f)
+				add_budget_row(
+					text::produce_simple_string(state, province.get_name()),
+					info.rich
+				);
 		}
 		add_bottom_spacer();
 	} else {
@@ -1993,6 +1996,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 			)
 		);
 
+		/*
 		auto in = culture::income_type::administration;
 		state.world.nation_for_each_province_ownership(state.local_player_nation, [&](auto poid) {
 			auto local_province = state.world.province_ownership_get_province(poid);
@@ -2003,6 +2007,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 					)
 			);
 		});
+		*/
 		add_bottom_spacer();
 	} else {
 		add_neutral_spacer();

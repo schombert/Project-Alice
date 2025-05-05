@@ -3953,20 +3953,20 @@ void update_budget(sys::state& state) {
 		float sea_budget_ratio					= 0.05f;
 		float education_budget_ratio			= 0.30f;
 		float investments_budget_ratio			= 0.05f;
-		float soldiers_budget_ratio				= 0.40f;
-		float construction_budget_ratio			= 0.50f;
+		float soldiers_budget_ratio				= 0.30f;
+		float construction_budget_ratio			= 0.45f;
 		float overseas_maintenance_budget_ratio = 0.10f;
 
 		if(n.get_is_at_war()) {
-			land_budget_ratio = 2.f;
-			sea_budget_ratio = 2.f;
+			land_budget_ratio *= 1.75f;
+			sea_budget_ratio *= 1.75f;
 			education_budget_ratio *= 0.15f;
 			overseas_maintenance_budget_ratio *= 0.15f;
 			//n.set_land_spending(int8_t(100));
 			//n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
-			land_budget_ratio = 0.5f;
-			sea_budget_ratio = 0.25f;
+			land_budget_ratio *= 1.25f;
+			sea_budget_ratio *= 1.25f;
 			education_budget_ratio *= 0.75f;
 			overseas_maintenance_budget_ratio *= 0.75f;
 			//n.set_land_spending(int8_t(50));
