@@ -569,12 +569,8 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	auto si = state.world.province_get_state_membership(id);
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
 	if(si && owner)
-		return (
-			state.world.province_get_control_ratio(id)
-			* state.defines.admin_efficiency_crimefight_percent
-			+
-			(1 - state.defines.admin_efficiency_crimefight_percent)
-			* state.world.nation_get_administrative_efficiency(owner))
+		return state.world.province_get_control_ratio(id)
+			* (1.f + state.world.nation_get_administrative_efficiency(owner))
 			* (
 				state.defines.max_crimefight_percent
 				- state.defines.min_crimefight_percent
@@ -1168,7 +1164,7 @@ void update_crimes(sys::state& state) {
 
 		auto chance = uint32_t(province::crime_fighting_efficiency(state, p) * 256.0f);
 		auto rvalues = rng::get_random_pair(state, uint32_t((p.index() << 2) + 1));
-		if((rvalues.high & 0xFF) >= chance) {
+		if((rvalues.high & 0xFF) <= chance) {
 			if(state.world.province_get_crime(p)) {
 				if(!province::is_overseas(state, p))
 					state.world.nation_get_central_crime_count(owner) -= uint16_t(1);
