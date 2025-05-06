@@ -893,13 +893,19 @@ void update_administrative_efficiency(sys::state& state) {
 			0.99f * state.world.province_get_control_ratio(pids)
 			+ 0.01f * ve::select(population == 0.f, 0.f, consumed_control / population)			
 		);
-		auto supply = ve::max(0.f, (
+		auto supply = ve::max(
+			0.f, 
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::supply_limit) + 1.f
-		));
-		auto movement = ve::max(0.f, (
+		);
+		auto movement = ve::max(
+			0.f, 
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
-		));
-		auto decay = 0.01f / (1.f + supply) * (1.f + movement);
+		);
+		auto attrition = ve::max(
+			0.f,
+			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::max_attrition) + 1.f
+		);
+		auto decay = 0.01f / (1.f + supply) * (1.f + movement) * (1.f + attrition);
 		state.world.province_set_control_scale(pids, ve::max(control * (1.f - decay) - consumed_control, 0.f));
 	});
 }
