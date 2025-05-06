@@ -2081,8 +2081,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 
 			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
 				auto pop_of_type =
-					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt))
-					/ state.defines.alice_needs_scaling_factor;
+					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt));
 				if(pop_of_type <= 0)
 					return;
 
