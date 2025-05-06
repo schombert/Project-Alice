@@ -3666,8 +3666,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto const p_level = state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::pension_level);
 		auto const unemp_level = state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::unemployment_benefit);
 
-		auto pension_ratio = ve::select(p_level > 0.f, p_level * population / (p_level * population + unemp_level * unemployed), 0.f);
-		auto unemployment_ratio = ve::select(unemp_level > 0.f, unemp_level * unemployed / (p_level * population + unemp_level * unemployed), 0.f);
+		auto pension_ratio = ve::select(p_level * population > 0.f, p_level * population / (p_level * population + unemp_level * unemployed), 0.f);
+		auto unemployment_ratio = ve::select(unemp_level * unemployed > 0.f, unemp_level * unemployed / (p_level * population + unemp_level * unemployed), 0.f);
 
 		// +1.f is here to avoid division by zero
 		// which should never happen
