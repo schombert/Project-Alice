@@ -1123,20 +1123,20 @@ void update_ai_ruling_party(sys::state& state) {
 	}
 }
 
-void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types, bool pop_project) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
 
-	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const tax_eff = economy::tax_collection_rate(state, nid, pid);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
@@ -1150,13 +1150,13 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	}
 }
 
-void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types, bool pop_project) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
 
-	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const tax_eff = economy::tax_collection_rate(state, nid, pid);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
@@ -1191,7 +1191,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
@@ -1234,7 +1234,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
@@ -1275,7 +1275,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
@@ -1301,7 +1301,7 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
@@ -1337,7 +1337,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
@@ -1364,7 +1364,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
@@ -4010,11 +4010,7 @@ void update_budget(sys::state& state) {
 		// If State can build factories - why subsidize capitalists
 		auto rules = n.get_combined_issue_rules();
 		if(n.get_is_civilized() && (rules & issue_rule::build_factory) == 0) {
-			float investment_budget = investments_budget_ratio * base_income;
-			float max_investment_budget = 1.f + economy::estimate_max_domestic_investment(state, n);
-			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
-			investment_ratio = std::clamp(investment_ratio, 0.f, 100.f);
-			n.set_domestic_investment_spending(int8_t(investment_ratio));
+			n.set_domestic_investment_spending(int8_t(investments_budget_ratio * 100.f));
 		} else {
 			n.set_domestic_investment_spending(int8_t(0));
 		}
@@ -4051,7 +4047,7 @@ void update_budget(sys::state& state) {
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
-				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
+				n.set_social_spending(1);
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
@@ -4062,7 +4058,7 @@ void update_budget(sys::state& state) {
 				} else {
 					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
 				}
-				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
+				n.set_social_spending(3);
 
 				if(enough_tax) {
 					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 10, std::max(10, max_poor_tax))));
@@ -4074,7 +4070,7 @@ void update_budget(sys::state& state) {
 			int max_poor_tax = int(10.f + 90.f * (1.f - poor_militancy));
 			int max_mid_tax = int(10.f + 90.f * (1.f - mid_militancy));
 			int max_rich_tax = int(10.f + 40.f * (1.f - rich_militancy));
-			int max_social = int(100.f * poor_militancy);
+			int max_social = int(20.f * poor_militancy);
 
 			// enough tax?
 			bool enough_tax = true;
@@ -4090,7 +4086,7 @@ void update_budget(sys::state& state) {
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
-				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
+				n.set_social_spending(int8_t(max_social / 2));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
@@ -4101,7 +4097,7 @@ void update_budget(sys::state& state) {
 				} else {
 					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
 				}
-				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
+				n.set_social_spending(int8_t(max_social));
 
 				if(enough_tax) {
 					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 10, std::max(10, max_poor_tax))));

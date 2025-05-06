@@ -47,7 +47,7 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 	// of desired taxes.
 	auto base = 0.5f;
 	auto from_control = state.world.province_get_control_ratio(pid);
-	auto efficiency = (1.f + nations::tax_efficiency(state, n));
+	auto efficiency = nations::tax_efficiency(state, n);
 
 	// we can always collect at least some taxes in the capital:
 	auto capital = state.world.nation_get_capital(n);
@@ -172,7 +172,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 	auto total_budget = std::max(0.f, state.world.nation_get_stockpiles(n, economy::money));
 	auto admin_budget = total_budget * state.world.nation_get_spending_level(n) * float(state.world.nation_get_administrative_spending(n)) / 100.f;
 
-	auto admin_efficiency = base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n));
+	auto admin_efficiency = population_per_admin(state, n);
 
 	auto required_labor_capital = required_labour_in_capital_administration(state, n);
 	auto labor_price_capital = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
@@ -336,8 +336,6 @@ tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, d
 
 tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	tax_information result{ };
-
-	auto const tax_eff = nations::tax_efficiency(state, n);
 
 	float total_poor_tax_base = 0.0f;
 	float total_mid_tax_base = 0.0f;

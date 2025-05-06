@@ -89,7 +89,7 @@ float factory_type_input_cost(
 	dcon::market_id m,
 	dcon::factory_type_id factory_type
 );
-float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::factory_type_id factory_type);
+float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id factory_type, bool is_pop_project);
 
 // SHORTAGES, SURPLUS
 

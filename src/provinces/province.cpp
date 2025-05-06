@@ -518,6 +518,8 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 }
 
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
+	// unused
+
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
 	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);

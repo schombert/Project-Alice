@@ -367,10 +367,6 @@ public:
 					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
 						color = text::text_color::red;
 					}
-				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
-						color = text::text_color::red;
-					}
 				}
 				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
 				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
@@ -798,8 +794,7 @@ public:
 		text::add_line(state, contents, "alice_province_building_build");
 
 		// Construction cost goods breakdown
-		float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
-		float admin_cost_factor = 2.0f - admin_eff;
+		float factor = economy::build_cost_multiplier(state, id, false);
 		auto constr_cost = state.economy_definitions.building_definitions[uint8_t(Value)].cost;
 
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -814,7 +809,7 @@ public:
 			text::add_unparsed_text_to_layout_box(state, contents, box, description);
 			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(constr_cost.commodity_type[i]));
 			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-			text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] * factor });
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -846,8 +841,7 @@ public:
 				auto& goods = state.economy_definitions.building_definitions[int32_t(Value)].cost;
 				auto& cgoods = pb_con.get_purchased_goods();
 
-				float admin_eff = state.world.nation_get_administrative_efficiency(pb_con.get_nation());
-				float admin_cost_factor = pb_con.get_is_pop_project() ? 1.0f :  2.0f - admin_eff;
+				float factor = economy::build_cost_multiplier(state, prov, pb_con.get_is_pop_project());
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
@@ -862,7 +856,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factor });
 						text::close_layout_box(contents, box);
 					}
 				}

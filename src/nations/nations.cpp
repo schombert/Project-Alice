@@ -727,19 +727,11 @@ void update_administrative_efficiency(sys::state& state) {
 	(sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x
 	define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
+
+	// replaced with control ratio at capital which is doing the same thing but better
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
-		ve::fp_vector issue_sum;
-		for(auto i : state.culture_definitions.social_issues) {
-			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
-		}
-		auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
-
-		auto non_colonial = state.world.nation_get_non_colonial_population(ids);
-		auto total = ve::select(non_colonial > 0.0f,
-				(admin_mod + 1.0f) * state.world.nation_get_non_colonial_bureaucrats(ids) / (non_colonial * from_issues), 0.0f);
-
-		state.world.nation_set_administrative_efficiency(ids, ve::min(total, 1.0f));
+		auto capital = state.world.nation_get_capital(ids);
+		state.world.nation_set_administrative_efficiency(ids, state.world.province_get_control_ratio(capital));
 	});
 
 	// check that all nations have a capital administration
@@ -1788,16 +1780,18 @@ float get_debt(sys::state& state, dcon::nation_id n) {
 	return v < 0.0f ? -v : 0.0f;
 }
 
-float tariff_efficiency(sys::state& state, dcon::nation_id n) {
+// estimates rate of tariffs collected in a market
+float tariff_efficiency(sys::state& state, dcon::nation_id n, dcon::market_id m) {
+	auto sid = state.world.market_get_zone_from_local_market(m);
+	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
-	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
-	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff * 10.f, 0.001f, 1.f);
+	auto adm_eff = state.world.province_get_control_scale(pid);
+	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.001f, 1.f);
 }
 
 float tax_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
-	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
-	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod * adm_eff, 0.01f, 1.f);
+	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.01f, 1.f);
 }
 
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {

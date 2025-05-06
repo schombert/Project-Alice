@@ -427,14 +427,11 @@ public:
 			float purchased = 0.0f;
 			auto& goods = state.world.factory_type_get_construction_costs(st_con.get_type());
 
-			float factory_mod = state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
-			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
-			auto admin_eff = st_con.get_nation().get_administrative_efficiency();
-			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+			float factory_mod = economy::factory_build_cost_multiplier(state, st_con.get_nation(), st_con.get_province(), st_con.get_is_pop_project());
 			float refit_discount = (st_con.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				total += goods.commodity_amounts[i] * admin_cost_factor * refit_discount;
+				total += goods.commodity_amounts[i] * factory_mod * refit_discount;
 				purchased += st_con.get_purchased_goods().commodity_amounts[i];
 			}
 			auto progress = total > 0.0f ? purchased / total : 0.0f;
@@ -502,10 +499,6 @@ public:
 				//Is the NF not optimal? Recolor it
 				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
 					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
-						color = text::text_color::red;
-					}
-				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) >= 1.f) {
 						color = text::text_color::red;
 					}
 				}
