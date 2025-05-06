@@ -285,9 +285,9 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 
 		// apply actual tax
 
-		auto const poor_effect = float(state.world.nation_get_poor_tax(n)) / 100.0f * tax_multiplier;
-		auto const middle_effect = float(state.world.nation_get_middle_tax(n)) / 100.0f * tax_multiplier;
-		auto const rich_effect =float(state.world.nation_get_rich_tax(n)) / 100.0f * tax_multiplier;
+		auto const poor_effect = 1.f - float(state.world.nation_get_poor_tax(n)) / 100.0f * tax_multiplier;
+		auto const middle_effect = 1.f - float(state.world.nation_get_middle_tax(n)) / 100.0f * tax_multiplier;
+		auto const rich_effect = 1.f - float(state.world.nation_get_rich_tax(n)) / 100.0f * tax_multiplier;
 
 		assert(poor_effect >= 0 && middle_effect >= 0 && rich_effect >= 0);
 

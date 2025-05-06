@@ -1121,7 +1121,10 @@ void update_pops_employment(sys::state& state) {
 			* basic_education
 			+
 			state.world.province_get_pop_labor_distribution(pids, pop_labor::high_education_accepted_high_education)
-			* high_education;
+			* high_education
+			+
+			state.world.province_get_pop_labor_distribution(pids, pop_labor::high_education_accepted_high_education_accepted)
+			* high_education_and_accepted;
 
 
 		ve::apply([&](dcon::province_id p, dcon::nation_id n, float rgo, float primary, float high, float high_accepted) {
