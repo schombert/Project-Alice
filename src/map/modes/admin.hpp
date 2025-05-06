@@ -8,11 +8,25 @@ std::vector<uint32_t> admin_map_from(sys::state& state) {
 	dcon::province_id selected_province = state.map_state.get_selected_province();
 	dcon::nation_id selected_nation = selected_province
 		? state.world.province_get_nation_from_province_ownership(selected_province)
-		: state.local_player_nation;
+		: dcon::nation_id{};
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto i = province::to_map_id(prov_id);
 		auto fat_id = dcon::fatten(state.world, prov_id);
-		if(!selected_nation || fat_id.get_nation_from_province_ownership() == selected_nation) {
+		auto owner = fat_id.get_nation_from_province_ownership();
+		auto sphere_leader = owner.get_in_sphere_of();
+		auto overlord = owner.get_overlord_as_subject().get_ruler();
+		auto selected_is_subject = false;
+		for(auto subject : owner.get_overlord_as_ruler()) {
+			if(subject.get_subject() == selected_nation)
+				selected_is_subject = true;
+		}
+		if(
+			!selected_nation
+			|| owner == selected_nation
+			|| sphere_leader == selected_nation
+			|| overlord == selected_nation
+			|| selected_is_subject
+		) {
 			auto admin_efficiency = fat_id.get_control_ratio();
 			uint32_t color = ogl::color_gradient_viridis(admin_efficiency);
 			prov_color[i] = color;
