@@ -780,10 +780,103 @@ void render_ui_selection_screen(sys::state& state) {
 }
 
 void render_ui_ingame(sys::state& state) {
+	state.iui_state.frame_start(state);
 	if(state.ui_state.tl_chat_list) {
 		state.ui_state.root->move_child_to_front(state.ui_state.tl_chat_list);
 	}
 	if(state.map_state.get_zoom() > map::zoom_close) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUseProgram(state.open_gl.ui_shader_program);
+		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(state.x_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(state.y_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
+		glViewport(0, 0, state.x_size, state.y_size);
+		glDepthRange(-1.0f, 1.0f);
+
+		iui::rect label_rect{ 0.f, 0.f, state.iui_state.map_label.w * 2.f, state.iui_state.map_label.h * 1.5f };
+		iui::rect label_text_rect = label_rect;
+		iui::shrink(label_text_rect, 2.f);
+		auto screen_size = glm::vec2(state.x_size, state.y_size) / state.user_settings.ui_scale;
+
+		if(state.map_state.active_map_mode == map_mode::mode::admin) {
+			state.world.for_each_nation([&](auto nid) {
+				auto capital = state.world.nation_get_capital(nid);
+				auto& midpoint = state.world.province_get_mid_point(capital);
+				auto map_pos = state.map_state.normalize_map_coord(midpoint);
+				glm::vec2 screen_pos{};
+				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+					return;
+				}
+				screen_pos.y += 40.f;
+				if(screen_pos.x < -100.f) {
+					return;
+				}
+				if(screen_pos.y < -100.f) {
+					return;
+				}
+				if(screen_pos.x > screen_size.x + 100.f) {
+					return;
+				}
+				if(screen_pos.y > screen_size.y + 100.f) {
+					return;
+				}
+				iui::move_to(
+					label_rect,
+					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
+				);
+				iui::move_to(
+					label_text_rect,
+					screen_pos.x - label_text_rect.w / 2.f, screen_pos.y - label_text_rect.h / 2.f + 2.f
+				);
+				state.iui_state.panel_textured(state, label_rect, state.iui_state.map_label.texture_handle);
+				state.iui_state.localized_string(
+					state, capital.id.index(),
+					label_text_rect,
+					text::produce_simple_string(state, state.world.province_get_name(capital))
+				);
+			});
+
+			state.world.for_each_administration([&](auto aid) {
+				auto capital = state.world.administration_get_capital(aid);
+				auto& midpoint = state.world.province_get_mid_point(capital);
+				auto map_pos = state.map_state.normalize_map_coord(midpoint);
+				glm::vec2 screen_pos{};
+				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+					return;
+				}
+				screen_pos.y += 40.f;
+				if(screen_pos.x < -100.f) {
+					return;
+				}
+				if(screen_pos.y < -100.f) {
+					return;
+				}
+				if(screen_pos.x > screen_size.x + 100.f) {
+					return;
+				}
+				if(screen_pos.y > screen_size.y + 100.f) {
+					return;
+				}
+				iui::move_to(
+					label_rect,
+					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
+				);
+				iui::move_to(
+					label_text_rect,
+					screen_pos.x - label_text_rect.w / 2.f, screen_pos.y - label_text_rect.h / 2.f + 2.f
+				);
+				state.iui_state.panel_textured(state, label_rect, state.iui_state.map_label.texture_handle);
+				state.iui_state.localized_string(
+					state, capital.id.index(),
+					label_text_rect,
+					text::produce_simple_string(state, state.world.province_get_name(capital))
+				);
+			});
+		}
+
 		if(!state.ui_state.ctrl_held_down) {
 			if(state.ui_state.rgos_root
 			&& (state.map_state.active_map_mode == map_mode::mode::rgo_output
@@ -798,6 +891,8 @@ void render_ui_ingame(sys::state& state) {
 			state.ui_state.province_details_root->impl_render(state, 0, 0);
 		}
 	}
+
+	state.iui_state.frame_end();
 }
 
 ui::mouse_probe recalculate_mouse_probe_identity(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {

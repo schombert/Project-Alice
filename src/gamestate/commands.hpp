@@ -114,6 +114,7 @@ enum class command_type : uint8_t {
 	ask_for_free_trade_agreement = 105,
 	switch_embargo_status = 106,
 	revoke_trade_rights = 107,
+	toggle_local_administration = 108,
 
 	// network
 	notify_player_ban = 110,
@@ -851,6 +852,9 @@ void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled
 
 void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);

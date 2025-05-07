@@ -1996,18 +1996,6 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 			)
 		);
 
-		/*
-		auto in = culture::income_type::administration;
-		state.world.nation_for_each_province_ownership(state.local_player_nation, [&](auto poid) {
-			auto local_province = state.world.province_ownership_get_province(poid);
-			add_budget_row(
-					text::produce_simple_string(state, state.world.province_get_name(local_province)),
-					economy::estimate_spendings_administration_local(
-						state, state.local_player_nation, local_province, fraction
-					)
-			);
-		});
-		*/
 		add_bottom_spacer();
 	} else {
 		add_neutral_spacer();
@@ -2606,7 +2594,7 @@ void budgetwindow_main_expenses_amount_t::on_update(sys::state& state) noexcept 
 // BEGIN main::expenses_amount::update
 	float total = 0.0f;
 	total += economy::estimate_diplomatic_expenses(state, state.local_player_nation); 
-	total += economy::estimate_social_spending(state, state.local_player_nation) * float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
+	total += economy::estimate_social_spending(state, state.local_player_nation);
 	total += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military) * float(state.world.nation_get_military_spending(state.local_player_nation)) * float(state.world.nation_get_military_spending(state.local_player_nation)) / 10000.0f;
 	total += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education) * float(state.world.nation_get_education_spending(state.local_player_nation)) * float(state.world.nation_get_education_spending(state.local_player_nation)) / 10000.0f;
 	total += economy::estimate_spendings_administration(state, state.local_player_nation, float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f);
@@ -5149,7 +5137,7 @@ void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) no
 	case budget_categories::tariffs_export: set_text(state, text::prettify_currency(economy::estimate_tariff_export_income(state, state.local_player_nation))); break;
 	case budget_categories::gold: set_text(state, text::prettify_currency(economy::estimate_gold_income(state, state.local_player_nation))); break;
 	case budget_categories::diplomatic_expenses: set_text(state, text::prettify_currency(economy::estimate_diplomatic_expenses(state, state.local_player_nation))); break;
-	case budget_categories::social: set_text(state,  text::prettify_currency(economy::estimate_social_spending(state, state.local_player_nation) * float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f)); break;
+	case budget_categories::social: set_text(state,  text::prettify_currency(economy::estimate_social_spending(state, state.local_player_nation))); break;
 	case budget_categories::military: set_text(state, text::prettify_currency(economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military) * float(state.world.nation_get_military_spending(state.local_player_nation)) * float(state.world.nation_get_military_spending(state.local_player_nation)) / 10000.0f)); break;
 	case budget_categories::education: set_text(state, text::prettify_currency(economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education) * float(state.world.nation_get_education_spending(state.local_player_nation)) * float(state.world.nation_get_education_spending(state.local_player_nation)) / 10000.0f)); break;
 	case budget_categories::admin: set_text(state, text::prettify_currency(economy::estimate_spendings_administration(state, state.local_player_nation, float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f))); break;

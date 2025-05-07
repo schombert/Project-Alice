@@ -10,17 +10,11 @@ namespace economy {
 
 // ratio of taxes you can collect in a given province
 float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_id);
-// ratio of current employed imperial admin to imperial admin required by your nation
-float global_admin_ratio(sys::state& state, dcon::nation_id n);
-// ratio of current employed local admin to local admin required by given state instance
-float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id);
 
 // these functions estimate spendings for given budget priority
 
 // estimate "imperial administration" spendings which are based on total population of the realm
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority);
-// estimate "local administration" spendings
-float estimate_spendings_administration_local(sys::state&, dcon::nation_id, dcon::province_id, float budget_priority);
 // estimate total spendings for your administration
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority);
 // total current spendings

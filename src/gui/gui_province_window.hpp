@@ -497,6 +497,29 @@ public:
 	}
 };
 
+class province_toggle_administration_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_toggle_local_administration(state, state.local_player_nation, p);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::toggle_local_administration(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		text::add_line(state, contents, "alice_toggle_administration");
+	}
+};
+
 class province_take_province_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -650,6 +673,8 @@ public:
 			return btn;
 		} else if(name == "alice_move_capital") {
 			return make_element_by_type<province_move_capital_button>(state, id);
+		} else if(name == "alice_toggle_administration") {
+			return make_element_by_type<province_toggle_administration_button>(state, id);
 		} else if(name == "alice_take_province") {
 			return make_element_by_type<province_take_province_button>(state, id);
 		} else if(name == "alice_grant_province") {

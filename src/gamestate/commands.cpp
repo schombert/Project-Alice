@@ -5058,6 +5058,42 @@ void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::provi
 	state.world.nation_set_capital(source, p);
 }
 
+void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	payload command;
+	memset(&command, 0, sizeof(payload));
+	command.type = command_type::toggle_local_administration;
+	command.source = source;
+	command.data.generic_location.prov = p;
+	add_to_command_queue(state, command);
+}
+bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	// allow planning future capitals
+	// capitals outside of your actual control are not updated
+	// also allows to not handle deletion of administations
+	auto rebels = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+	if(source == rebels || !source) {
+		return false;
+	}
+	return true;
+}
+void execute_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	dcon::administration_id existing_admin{ };
+	state.world.nation_for_each_nation_administration(source, [&](auto naid) {
+		auto aid = state.world.nation_administration_get_administration(naid);
+		auto capital = state.world.administration_get_capital(aid);
+		if(p == capital) {
+			existing_admin = aid;
+		}
+	});
+	if(existing_admin) {
+		state.world.delete_administration(existing_admin);
+	} else {
+		auto admin = state.world.create_administration();
+		state.world.administration_set_capital(admin, p);
+		state.world.force_create_nation_administration(admin, source);
+	}
+}
+
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5952,6 +5988,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::move_capital:
 		return can_move_capital(state, c.source, c.data.generic_location.prov);
 
+	case command_type::toggle_local_administration:
+		return can_toggle_local_administration(state, c.source, c.data.generic_location.prov);
+
 	case command_type::take_province:
 		return can_take_province(state, c.source, c.data.generic_location.prov);
 
@@ -6335,6 +6374,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::move_capital:
 		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::toggle_local_administration:
+		execute_toggle_local_administration(state, c.source, c.data.generic_location.prov);
 		break;
 	case command_type::take_province:
 		execute_take_province(state, c.source, c.data.generic_location.prov);

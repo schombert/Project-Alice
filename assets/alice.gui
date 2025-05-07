@@ -4574,6 +4574,12 @@ guiTypes = {
 		quadTextureSprite = "GFX_move_capital"	
 	}
 	guiButtonType = {
+		name = "alice_toggle_administration"
+		extends = "province_view_header"
+		position = { x= 100 y = 43 }
+		quadTextureSprite = "GFX_move_capital"	
+	}
+	guiButtonType = {
 		name = "alice_take_province"
 		extends = "province_view_header"
 		position = { x= 148 y = 3 }

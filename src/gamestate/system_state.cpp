@@ -3299,22 +3299,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
-	// create administrations:
-	for(auto n : world.in_nation) {
-		if(n.get_owned_province_count() == 0) {
-			continue;
-		}
-
-		auto capital_admin = world.create_administration();
-		auto capital_province = n.get_capital();
-		world.administration_set_capital(capital_admin, capital_province);
-		capital_province.set_control_scale(1.f);
-
-		n.for_each_state_ownership([&](auto soid) {
-			world.force_create_local_administration(world.state_ownership_get_state(soid), capital_admin);
-		});
-	}
-
 	economy::sanity_check(*this);
 
 	nations::generate_initial_trade_routes(*this);
