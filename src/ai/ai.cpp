@@ -3045,13 +3045,26 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	// Its easy to defeat a nation at war
 	if(state.world.nation_get_is_at_war(target)) {
-		return estimate_strength(state, from) >= estimate_strength(state, target) * 0.15f;
+		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.15f) {
+			return false;
+		}
 	} else {
 		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
 			return false;
 	}
 	if(state.world.nation_get_owned_province_count(target) <= 2)
 		return false;
+
+	// if target is a landlocked nation or we are landlocked nation outselves
+	// and we are not neighbors
+	// we don't need any land of the nation
+	// because we cannot reliably benefit from it due to local control mechanic
+	if(nations::is_landlocked(state, target) || nations::is_landlocked(state, from)) {
+		if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(from, target)) {
+			return false;
+		}
+	}
+
 	// Attacking people from other continents only if we have naval superiority
 	if(state.world.province_get_continent(state.world.nation_get_capital(from)) != state.world.province_get_continent(state.world.nation_get_capital(target))) {
 		// We must achieve naval superiority to even invade them
@@ -3091,23 +3104,53 @@ void update_cb_fabrication(sys::state& state) {
 				}
 			}
 
-			static std::vector<dcon::nation_id> possible_targets;
+			static std::vector<std::pair<dcon::nation_id, float>> possible_targets;
 			possible_targets.clear();
+			float total_weight = 0.f;
 			for(auto i : state.world.in_nation) {
 				if(valid_construction_target(state, n, i)
 				&& !military::has_truce_with(state, n, i)) {
-					possible_targets.push_back(i.id);
-					if(!i.get_is_civilized())
-						possible_targets.push_back(i.id); //twice the chance!
+
+					auto weight = 1.f / province::sorting_distance(
+						state,
+						state.world.nation_get_capital(n),
+						state.world.nation_get_capital(i)
+					);
+
+					// if nations are neighbors, then it's much easier to prepare a successful invasion:
+					if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, i)) {
+						weight *= 10.f;
+					}
+
+					// uncivs have higher priority
+					if(!i.get_is_civilized()) {
+						weight *= 2.f;
+					}
+
+					total_weight += weight;
+					possible_targets.push_back({ i.id, weight });
 				}
 			}
 			if(!possible_targets.empty()) {
-				auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
-				if(auto pcb = pick_fabrication_type(state, n, t); pcb.cb) {
-					n.set_constructing_cb_target(t);
-					n.set_constructing_cb_type(pcb.cb);
-					n.set_constructing_cb_target_state(pcb.state_def);
-					continue;
+				auto random_value = uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2);
+				auto limited_value = rng::reduce(random_value, 1000);
+				auto random_float = float(limited_value) / 1000.f * total_weight;
+				auto acc = 0.f;
+				dcon::nation_id target{ };
+				for(auto& weighted_nation : possible_targets) {
+					acc += weighted_nation.second;
+					if(acc > random_float) {
+						target = weighted_nation.first;
+						break;
+					}
+				}
+				if(target) {
+					if(auto pcb = pick_fabrication_type(state, n, target); pcb.cb) {
+						n.set_constructing_cb_target(target);
+						n.set_constructing_cb_type(pcb.cb);
+						n.set_constructing_cb_target_state(pcb.state_def);
+						continue;
+					}
 				}
 			}
 		}
