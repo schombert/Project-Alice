@@ -3,6 +3,7 @@
 #include "demographics.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
+#include "economy_government.hpp"
 #include "construction.hpp"
 #include "effects.hpp"
 #include "gui_effect_tooltips.hpp"

@@ -4,6 +4,7 @@
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
 #include "demographics.hpp"
+#include "construction.hpp"
 
 #include "province_templates.hpp"
 
