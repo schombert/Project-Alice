@@ -3111,11 +3111,11 @@ void update_cb_fabrication(sys::state& state) {
 				if(valid_construction_target(state, n, i)
 				&& !military::has_truce_with(state, n, i)) {
 
-					auto weight = 1.f / province::sorting_distance(
+					auto weight = 1.f / (province::direct_distance(
 						state,
 						state.world.nation_get_capital(n),
 						state.world.nation_get_capital(i)
-					);
+					) + 1.f);
 
 					// if nations are neighbors, then it's much easier to prepare a successful invasion:
 					if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, i)) {
