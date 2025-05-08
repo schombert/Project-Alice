@@ -4623,14 +4623,17 @@ object {
 	property {
 		name{ output }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ output_per_worker }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ input_cost }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ input_cost_per_worker }
