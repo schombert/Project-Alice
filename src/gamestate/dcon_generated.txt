@@ -1711,7 +1711,18 @@ object {
 		name{ pop_labor_distribution }
 		type{ array{int32_t}{float} }
 		tag{ save }
-	} 
+	}
+
+	property {
+		name{ control_scale }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ control_ratio }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -2957,6 +2968,58 @@ object {
 		name{ colonization_stage }
 		type{ uint8_t }
 		tag{ save }
+	}
+}
+
+object {
+	name{ administration }
+	storage_type{ erasable }
+	size{ 3000 }
+	tag{ save }
+
+	property{
+		name{ capital }
+		type{ province_id }
+		tag{ save }
+	}
+	property{
+		name{ desired_size }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ weight }
+		type{ float }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ local_administration }
+	tag{ save }
+	link{
+		object{state_instance}
+		name{state_instance}
+		type{unique}
+	}
+	link{
+		object{administration}
+		name{administration}
+		type{many}
+	}
+}
+relationship{
+	name{ nation_administration }
+	tag{ save }
+	link{
+		object{administration}
+		name{administration}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
 	}
 }
 
@@ -4560,14 +4623,17 @@ object {
 	property {
 		name{ output }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ output_per_worker }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ input_cost }
 		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ input_cost_per_worker }

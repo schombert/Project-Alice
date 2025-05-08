@@ -128,6 +128,8 @@ struct iui_state {
 	ankerl::unordered_dense::map<int32_t, float> gui_float_map;
 	ankerl::unordered_dense::map<int32_t, int32_t> gui_int_map;
 
+	void init(sys::state& state);
+
 	void panel(
 		sys::state& state,
 		rect& r
@@ -202,8 +204,12 @@ struct iui_state {
 		rect r, std::string_view key, ogl::color3f color = { 0.f, 0.f, 0.f }
 	);
 
-	void frame_start() {
+	void frame_start(sys::state& state) {
 		over_ui = false;
+		init(state);
+		if(current_font == 0) {
+			current_font = text::name_into_font_id(state, "garamond_16");
+		}
 	}
 
 	void frame_end() {

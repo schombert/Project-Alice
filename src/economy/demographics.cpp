@@ -2745,7 +2745,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 
 					bool promoting = promotion_chance >= demotion_chance;
 					float base_amount = promoting
-						? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size))
+						? (std::ceil(promotion_chance * state.defines.promotion_scale * current_size))
 						: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
 
 					if(!promoting) {
@@ -2904,7 +2904,7 @@ float get_effective_estimation_type_change(sys::state& state, dcon::nation_id na
 
 			bool promoting = promotion_chance >= demotion_chance;
 			float base_amount = promoting
-				? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(nation) * state.defines.promotion_scale * current_size))
+				? (std::ceil(promotion_chance * state.defines.promotion_scale * current_size))
 				: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
 
 			auto transfer_amount = base_amount >= 0.001f ? std::min(current_size, base_amount) : 0.0f;
@@ -3028,8 +3028,7 @@ float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
 
 	bool promoting = promotion_chance >= demotion_chance;
 	return std::min(current_size, promoting
-			? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) *
-				state.defines.promotion_scale * current_size))
+			? (std::ceil(promotion_chance * state.defines.promotion_scale * current_size))
 			: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
 }
 
@@ -3065,8 +3064,7 @@ float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 
 	bool promoting = promotion_chance >= demotion_chance;
 	return std::min(current_size, promoting
-			? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) *
-				state.defines.promotion_scale * current_size))
+			? (std::ceil(promotion_chance *	state.defines.promotion_scale * current_size))
 			: 0.0f);
 }
 float get_estimated_demotion(sys::state& state, dcon::pop_id ids) {

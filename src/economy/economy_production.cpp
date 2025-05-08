@@ -4,6 +4,7 @@
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
 #include "demographics.hpp"
+#include "construction.hpp"
 
 #include "province_templates.hpp"
 
@@ -1731,19 +1732,19 @@ void update_production_consumption(sys::state& state) {
 	});
 }
 
-float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::factory_type_id factory_type) {
+float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id factory_type, bool is_pop_project) {
 	auto fat = dcon::fatten(state.world, factory_type);
 	auto& costs = fat.get_construction_costs();
+	auto cost_factor = economy::factory_build_cost_multiplier(state, n, p, is_pop_project);
 
-	float factory_mod = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::factory_cost) + 1.0f;
-	float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
-	float admin_cost_factor = (2.0f - admin_eff) * factory_mod;
+	auto sid = state.world.province_get_state_membership(p);
+	auto m = state.world.state_instance_get_market_from_local_market(sid);
 
 	auto total = 0.0f;
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 		auto cid = costs.commodity_type[i];
 		if(bool(cid)) {
-			total += price(state, m, cid) * costs.commodity_amounts[i] * admin_cost_factor;
+			total += price(state, m, cid) * costs.commodity_amounts[i] * cost_factor;
 		}
 	}
 

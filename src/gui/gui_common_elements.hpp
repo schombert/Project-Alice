@@ -303,8 +303,8 @@ public:
 class state_admin_efficiency_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		set_text(state, text::format_percentage(province::state_admin_efficiency(state, content), 1));
+		auto content = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(state.world.province_get_control_ratio(content), 1));
 	}
 };
 
@@ -1977,10 +1977,6 @@ public:
 				//Is the NF not optimal? Recolor it
 				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
 					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
-						color = text::text_color::red;
-					}
-				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) >= 1.f) {
 						color = text::text_color::red;
 					}
 				}

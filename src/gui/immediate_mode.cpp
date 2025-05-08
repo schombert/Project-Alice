@@ -354,7 +354,7 @@ void iui_state::localized_string(
 	}
 
 	auto layout = text::layout{};
-	auto contents = init_layout(state, layout, current_font, text::alignment::left, r.w, r.h);
+	auto contents = init_layout(state, layout, current_font, text::alignment::center, r.w, r.h);
 	auto box = text::open_layout_box(contents);
 	text::localised_format_box(state, contents, box, key);
 	text::close_layout_box(contents, box);
@@ -383,5 +383,71 @@ void iui_state::load_description(sys::state& state, std::string_view name, eleme
 	auto& gfx_def = state.ui_defs.gfx[desc.data.button.button_image];
 	auto handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
 	local_desc.texture_handle = handle;
+}
+
+void iui_state::init(sys::state& state) {
+	if(!state.iui_state.loaded_descriptions) {
+		state.iui_state.load_description(
+			state,
+			"alice_button_factory_type_priority",
+			state.iui_state.priority_button
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_button_economy_viewer_page",
+			state.iui_state.page_button
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_page_selector_bg",
+			state.iui_state.page_selector_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_button_economy_item_selector",
+			state.iui_state.item_selector_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_factory_type_bg",
+			state.iui_state.factory_type_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"commodity_bg",
+			state.iui_state.commodity_bg
+		);
+		state.iui_state.load_description(
+			state,
+			"alice_factory_type_name_bg",
+			state.iui_state.factory_type_name_bg
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_factory_type_priority_bg",
+			state.iui_state.factory_type_priority_bg
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_economy_view_close_button",
+			state.iui_state.close_button
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_economy_view_top_bar",
+			state.iui_state.top_bar_button
+		);
+
+		state.iui_state.load_description(
+			state,
+			"alice_economy_view_map_label",
+			state.iui_state.map_label
+		);
+
+		state.iui_state.loaded_descriptions = true;
+	}
 }
 }

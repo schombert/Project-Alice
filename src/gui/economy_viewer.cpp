@@ -497,72 +497,8 @@ void render(sys::state& state) {
 		state.iui_state.per_province_data.resize(state.world.province_size() + 1);
 	}
 
-	state.iui_state.frame_start();
-
-	if(!state.iui_state.loaded_descriptions) {
-		state.iui_state.load_description(
-			state,
-			"alice_button_factory_type_priority",
-			state.iui_state.priority_button
-		);
-		state.iui_state.load_description(
-			state,
-			"alice_button_economy_viewer_page",
-			state.iui_state.page_button
-		);
-		state.iui_state.load_description(
-			state,
-			"alice_page_selector_bg",
-			state.iui_state.page_selector_bg
-		);
-		state.iui_state.load_description(
-			state,
-			"alice_button_economy_item_selector",
-			state.iui_state.item_selector_bg
-		);		
-		state.iui_state.load_description(
-			state,
-			"alice_factory_type_bg",
-			state.iui_state.factory_type_bg
-		);
-		state.iui_state.load_description(
-			state,
-			"commodity_bg",
-			state.iui_state.commodity_bg
-		);
-		state.iui_state.load_description(
-			state,
-			"alice_factory_type_name_bg",
-			state.iui_state.factory_type_name_bg
-		);
-
-		state.iui_state.load_description(
-			state,
-			"alice_factory_type_priority_bg",
-			state.iui_state.factory_type_priority_bg
-		);
-
-		state.iui_state.load_description(
-			state,
-			"alice_economy_view_close_button",
-			state.iui_state.close_button
-		);
-
-		state.iui_state.load_description(
-			state,
-			"alice_economy_view_top_bar",
-			state.iui_state.top_bar_button
-		);
-
-		state.iui_state.load_description(
-			state,
-			"alice_economy_view_map_label",
-			state.iui_state.map_label
-		);
-
-		
-		state.iui_state.loaded_descriptions = true;
-	}
+	state.iui_state.frame_start(state);
+	
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -580,10 +516,6 @@ void render(sys::state& state) {
 
 	// render market data
 	if(zoom > map::zoom_close || (zoom > map::zoom_close / 2.f && state.iui_state.national_data && state.iui_state.tab == iui::iui_tab::commodities_markets)) {
-		if(state.iui_state.current_font == 0) {
-			state.iui_state.current_font = text::name_into_font_id(state, "garamond_16");
-		}
-
 		iui::rect market_label_rect{ 0.f, 0.f, state.iui_state.map_label.w, state.iui_state.map_label.h };
 		iui::rect market_label_rect_text = market_label_rect;
 		iui::shrink(market_label_rect_text, 2.f);

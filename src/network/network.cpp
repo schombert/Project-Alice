@@ -647,6 +647,7 @@ static std::map<int, std::string> readableCommandTypes = {
 { 105,"ask_for_free_trade_agreement" },
 { 106,"switch_embargo_status" },
 { 107,"revoke_trade_rights" },
+{ 108,"toggle_local_administration" },
 { 110,"notify_player_ban" },
 { 111,"notify_player_kick" },
 { 112,"notify_player_picks_nation" },

@@ -156,8 +156,8 @@ void sanity_check(sys::state& state);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
-float effective_tariff_import_rate(sys::state& state, dcon::nation_id n);
-float effective_tariff_export_rate(sys::state& state, dcon::nation_id n);
+float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
+float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
 
 float subsistence_max_pseudoemployment(sys::state& state, dcon::nation_id n, dcon::province_id p);
 float factory_total_employment_score(sys::state const& state, dcon::factory_id f);
@@ -202,7 +202,6 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_total_imports(sys::state& state, dcon::nation_id n);
-float pop_income(sys::state& state, dcon::pop_id p);
 
 struct tariff_data {
 	std::array<bool, 2> applies_tariff;
