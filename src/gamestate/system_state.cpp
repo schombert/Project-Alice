@@ -1025,7 +1025,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto screen_size =
 					glm::vec2{ float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale) };
 				glm::vec2 screen_pos;
-				if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+				if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 					ui_state.tooltip->set_visible(*this, false);
 				} else {
 					ui_state.tooltip->base_data.position =

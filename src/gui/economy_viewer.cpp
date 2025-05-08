@@ -547,20 +547,7 @@ void render(sys::state& state) {
 			}
 
 			glm::vec2 screen_pos{};
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
-				return;
-			}
-
-			if(screen_pos.x < -100.f) {
-				return;
-			}
-			if(screen_pos.y < -100.f) {
-				return;
-			}
-			if(screen_pos.x > screen_size.x + 100.f) {
-				return;
-			}
-			if(screen_pos.y > screen_size.y + 100.f) {
+			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 				return;
 			}
 

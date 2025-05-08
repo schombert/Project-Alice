@@ -32,7 +32,7 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto id = adj.index();
 	auto& map_data = state.map_state.map_data;
 	auto& border = map_data.borders[id];
-	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
+	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
 	return vertex.position * map_size;
