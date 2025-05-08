@@ -32,7 +32,7 @@ public:
 	void update_borders(sys::state& state);
 
 	glm::vec2 normalize_map_coord(glm::vec2 pos);
-	bool map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos);
+	bool map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance);
 
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);

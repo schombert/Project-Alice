@@ -1983,7 +1983,23 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 	}
 }
 
-bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
+bool validate_screen_position(glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance) {
+	if(screen_pos.x < -tolerance.x) {
+		return false;
+	}
+	if(screen_pos.y < -tolerance.y) {
+		return false;
+	}
+	if(screen_pos.x > screen_size.x + tolerance.x) {
+		return false;
+	}
+	if(screen_pos.y > screen_size.y + tolerance.y) {
+		return false;
+	}
+	return true;
+}
+
+bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance) {
 	switch(state.user_settings.map_is_globe) {
 	case sys::projection_mode::globe_ortho:
 		{
@@ -2030,7 +2046,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 			screen_pos.x *= screen_size.y / screen_size.x;
 			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
 			screen_pos *= screen_size;
-			return true;
+			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::globe_perpect:
 		{
@@ -2107,7 +2123,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 			screen_pos.x *= screen_size.y / screen_size.x;
 			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
 			screen_pos *= screen_size;
-			return true;
+			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::flat:
 		{
@@ -2133,7 +2149,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 				return false;
 			if(screen_pos.y <= float(std::numeric_limits<int16_t>::min() / 2))
 				return false;
-			return true;
+			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::num_of_modes:
 		return false;

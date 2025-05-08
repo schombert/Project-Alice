@@ -349,7 +349,7 @@ bool province_mid_point_is_in_selection(sys::state& state, int32_t x, int32_t y,
 	auto map_pos = state.map_state.normalize_map_coord(mid_point);
 	auto screen_size = glm::vec2{ float(state.x_size), float(state.y_size) };
 	glm::vec2 screen_pos;
-	if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+	if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 5.f, 5.f })) {
 		if(state.x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
 			&& state.y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
 			return true;
@@ -372,7 +372,7 @@ bool province_port_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon
 		glm::vec2 map_pos(map_x, 1.0f - map_y);
 		auto screen_size = glm::vec2{ float(state.x_size), float(state.y_size) };
 		glm::vec2 screen_pos;
-		if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+		if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 5.f, 5.f })) {
 			if(state.x_drag_start <= int32_t(screen_pos.x)
 				&& int32_t(screen_pos.x) <= x
 				&& state.y_drag_start <= int32_t(screen_pos.y)
@@ -807,22 +807,10 @@ void render_ui_ingame(sys::state& state) {
 				auto& midpoint = state.world.province_get_mid_point(capital);
 				auto map_pos = state.map_state.normalize_map_coord(midpoint);
 				glm::vec2 screen_pos{};
-				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 					return;
 				}
 				screen_pos.y += 40.f;
-				if(screen_pos.x < -100.f) {
-					return;
-				}
-				if(screen_pos.y < -100.f) {
-					return;
-				}
-				if(screen_pos.x > screen_size.x + 100.f) {
-					return;
-				}
-				if(screen_pos.y > screen_size.y + 100.f) {
-					return;
-				}
 				iui::move_to(
 					label_rect,
 					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
@@ -844,22 +832,10 @@ void render_ui_ingame(sys::state& state) {
 				auto& midpoint = state.world.province_get_mid_point(capital);
 				auto map_pos = state.map_state.normalize_map_coord(midpoint);
 				glm::vec2 screen_pos{};
-				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 					return;
 				}
 				screen_pos.y += 40.f;
-				if(screen_pos.x < -100.f) {
-					return;
-				}
-				if(screen_pos.y < -100.f) {
-					return;
-				}
-				if(screen_pos.x > screen_size.x + 100.f) {
-					return;
-				}
-				if(screen_pos.y > screen_size.y + 100.f) {
-					return;
-				}
 				iui::move_to(
 					label_rect,
 					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
