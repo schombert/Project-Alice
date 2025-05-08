@@ -156,7 +156,7 @@ public:
 		assert(adj);
 		auto id = adj.index();
 		auto& border = state.map_state.map_data.borders[id];
-		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 2];
+		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4];
 
 		map_x = vertex.position.x;
 		map_y = vertex.position.y;

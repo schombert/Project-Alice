@@ -364,7 +364,7 @@ bool province_port_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon
 	if(adj) {
 		auto id = adj.index();
 		auto& border = state.map_state.map_data.borders[id];
-		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 2];
+		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4];
 
 		auto map_x = vertex.position.x;
 		auto map_y = vertex.position.y;
