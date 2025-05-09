@@ -137,7 +137,7 @@ void main() {
 		vec2 bnorm = vec2(-bdir.y, bdir.x);
 		vec2 corner_normal = normalize(anorm + bnorm);
 
-		corner_shift = texture_coord * corner_normal * zoom * true_width / (1.0f + max(-0.5f, dot(anorm, bnorm)));
+		corner_shift = texture_coord * corner_normal * zoom * true_width; /// (1.0f + max(-0.5f, dot(anorm, bnorm)));
 
 		// transform result back to screen + depth coordinates
 		corner_shift.x /= aspect_ratio;

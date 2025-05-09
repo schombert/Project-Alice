@@ -167,7 +167,7 @@ void create_textured_line_b_vbo(GLuint vbo, std::vector<textured_line_vertex_b>&
 	// Create and populate the border VBO
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	if(!data.empty())
-		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex_b) * data.size(), data.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex_b) * data.size(), data.data(), GL_DYNAMIC_DRAW);
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex_b));
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, position));
@@ -312,7 +312,7 @@ void display_data::update_borders_mesh() {
 		sizeof(textured_line_vertex_b_enriched_with_province_index)
 		* border_vertices.size(),
 		border_vertices.data(),
-		GL_STATIC_DRAW
+		GL_DYNAMIC_DRAW
 	);
 }
 

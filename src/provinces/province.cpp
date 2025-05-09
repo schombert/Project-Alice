@@ -201,17 +201,43 @@ void update_connected_regions(sys::state& state) {
 		auto& PBs1 = state.map_state.map_data.border_vertices[border_start_B + 1];
 		auto& PBs2 = state.map_state.map_data.border_vertices[border_end_B + 1];
 
+		if(PA1.position.x > 0.27852 && PA1.position.x < 0.27854 && PA1.position.y > 0.61007 && PA1.position.y < 0.61009) {
+			OutputDebugStringW(L"x;y;next_x;next_y;prev_x;prev_y\n");
+			for(int k = 0; k < border.count; k++) {
+				auto& vertex = state.map_state.map_data.border_vertices[border.start_index + k];
+				OutputDebugStringW((
+					std::to_wstring(vertex.position.x) + L";" + std::to_wstring(vertex.position.y) + L";"
+					+ std::to_wstring(vertex.next_point.x) + L";" + std::to_wstring(vertex.next_point.y) + L";"
+					+ std::to_wstring(vertex.previous_point.x) + L";" + std::to_wstring(vertex.previous_point.y) + L"\n"
+				).c_str());
+			}
+		}
+
 		if(PA1.position == PA2.position) {
+
 			PA1.previous_point = PA2.previous_point;
-			PA2.previous_point = PA1.previous_point;
+			PA2.next_point = PA1.next_point;
 			PAs1.previous_point = PAs2.previous_point;
-			PAs2.previous_point = PAs1.previous_point;
+			PAs2.next_point = PAs1.next_point;
 
 			PB1.previous_point = PB2.previous_point;
-			PB2.previous_point = PB1.previous_point;
+			PB2.next_point = PB1.next_point;
 			PBs1.previous_point = PBs2.previous_point;
-			PBs2.previous_point = PBs1.previous_point;
+			PBs2.next_point = PBs1.next_point;
 
+			/*
+			if(PA1.next_point == PA1.position) {
+				PA1.next_point = PA2.next_point;
+				PA2.next_point = PA1.next_point;
+				PAs1.next_point = PAs2.next_point;
+				PAs2.next_point = PAs1.next_point;
+
+				PB1.previous_point = PB2.previous_point;
+				PB2.previous_point = PB1.previous_point;
+				PBs1.previous_point = PBs2.previous_point;
+				PBs2.previous_point = PBs1.previous_point;
+			}
+			*/
 			continue;
 		}
 
