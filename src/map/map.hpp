@@ -308,7 +308,9 @@ public:
 	static constexpr uint32_t uniform_sprite_scale = 36;
 	static constexpr uint32_t uniform_sprite_texture_start = 37;
 	static constexpr uint32_t uniform_sprite_texture_size = 38;
-	static constexpr uint32_t uniform_count = 39;
+	static constexpr uint32_t uniform_is_national_border = 39;
+	static constexpr uint32_t uniform_graphics_mode = 40;
+	static constexpr uint32_t uniform_count = 41;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
@@ -327,6 +329,7 @@ public:
 	void make_borders(sys::state& state, std::vector<bool>& visited);
 
 	void load_shaders(simple_fs::directory& root);
+	void update_borders_mesh();
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 

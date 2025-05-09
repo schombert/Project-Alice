@@ -555,6 +555,37 @@ void color_blind_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void graphics_left::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.graphics_mode);
+	if(index > 0) {
+		state.user_settings.graphics_mode = sys::graphics_mode(index - 1);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void graphics_right::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.graphics_mode);
+	if(index + 1 < (uint8_t)sys::graphics_mode::total) {
+		state.user_settings.graphics_mode = sys::graphics_mode(index + 1);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void graphics_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.graphics_mode) {
+	case sys::graphics_mode::ugly:
+		set_text(state, text::produce_simple_string(state, "graphics_details_0"));
+		break;
+	case sys::graphics_mode::classic:
+		set_text(state, text::produce_simple_string(state, "graphics_details_1"));
+		break;
+	case sys::graphics_mode::modern:
+		set_text(state, text::produce_simple_string(state, "graphics_details_2"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
+}
+
 /*
 class autosave_left : public button_element_base {
 public:
