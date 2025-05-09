@@ -483,6 +483,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
+		map_state.map_data.update_borders_mesh();
 		if(user_settings.map_label != sys::map_label_mode::none) {
 			map::update_text_lines(*this, map_state.map_data);
 		}

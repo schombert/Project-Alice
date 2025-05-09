@@ -304,6 +304,18 @@ void display_data::create_border_ogl_objects() {
 	// TODO: remove unused function
 }
 
+void display_data::update_borders_mesh() {
+	if(border_vertices.empty()) return;
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		sizeof(textured_line_vertex_b_enriched_with_province_index)
+		* border_vertices.size(),
+		border_vertices.data(),
+		GL_STATIC_DRAW
+	);
+}
+
 void display_data::create_meshes() {
 	std::vector<map_vertex> land_vertices;
 

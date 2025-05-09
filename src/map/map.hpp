@@ -327,6 +327,7 @@ public:
 	void make_borders(sys::state& state, std::vector<bool>& visited);
 
 	void load_shaders(simple_fs::directory& root);
+	void update_borders_mesh();
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 
