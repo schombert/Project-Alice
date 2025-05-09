@@ -186,7 +186,7 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 	// prepare textures for rendering
 	glGenTextures(1, &state.open_gl.province_map_rendertexture);
 	glBindTexture(GL_TEXTURE_2D, state.open_gl.province_map_rendertexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 

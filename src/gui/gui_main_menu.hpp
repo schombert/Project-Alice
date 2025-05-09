@@ -272,6 +272,19 @@ class color_blind_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class graphics_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+};
+class graphics_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+};
+class graphics_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
+
 class music_player_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -391,6 +404,12 @@ class options_menu_window : public window_element_base {
 			return make_element_by_type<color_blind_left>(state, id);
 		} else if(name == "color_blind_right") {
 			return make_element_by_type<color_blind_right>(state, id);
+		} else if(name == "graphics_details_value") {
+			return make_element_by_type<graphics_display>(state, id);
+		} else if(name == "graphics_details_left") {
+			return make_element_by_type<graphics_left>(state, id);
+		} else if(name == "graphics_details_right") {
+			return make_element_by_type<graphics_right>(state, id);
 		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "background") {

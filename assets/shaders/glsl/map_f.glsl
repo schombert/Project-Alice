@@ -16,6 +16,7 @@ uniform sampler2D province_fow;
 uniform sampler2D provinces_sea_mask;
 uniform usampler2D diag_border_identifier;
 uniform uint subroutines_index_2;
+uniform uint graphics_mode;
 // location 0 : offset
 // location 1 : zoom
 // location 2 : screen_size
@@ -122,7 +123,8 @@ vec4 get_water_political() {
 
 // The terrain color from the current texture coordinate offset with one pixel in the "corner" direction
 vec4 get_terrain(vec2 corner, vec2 offset) {
-	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
+	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = sample.xy;
 	float index = texture(terrain_texture_sampler, floor(tex_coord * map_size + vec2(0.5, 0.5)) / map_size + 0.5 * pix * corner).r;
 	index = floor(index * 256);
 
@@ -137,6 +139,10 @@ vec4 get_terrain(vec2 corner, vec2 offset) {
 }
 
 vec4 get_terrain_mix() {
+	if (int(graphics_mode) == 0) {
+		return get_terrain(vec2(0.f, 0.f), vec2(0.f, 0.f));
+	}
+
 	// Pixel size on map texture
 	vec2 scaling = fract(tex_coord * map_size + vec2(0.5, 0.5));
 
@@ -169,7 +175,7 @@ vec4 get_land_political_close() {
 	// Make the terrain a gray scale color
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
     float grey = dot( terrain.rgb, GREYIFY );
-	terrain.rgb = vec3(grey);
+	//terrain.rgb = vec3(grey);
 
 	vec2 tex_coords = tex_coord;
 	vec2 rounded_tex_coords = (floor(tex_coord * map_size) + vec2(0.5, 0.5)) / map_size;
@@ -180,7 +186,9 @@ vec4 get_land_political_close() {
 
 	rounded_tex_coords.y += ((int(test >> shift) & 1) != 0) && (abs(rel_coord.x) + abs(rel_coord.y) > 0.5) ? sign(rel_coord.y) / map_size.y : 0;
 
-	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
+	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = sample.xy;
+	float to_national_border = sample.z;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
@@ -196,7 +204,12 @@ vec4 get_land_political_close() {
 	political = political - 0.7;
 
 	// Mix together the terrain and map mode color
-	terrain.rgb = mix(terrain.rgb, political, 0.3);
+	if (int(graphics_mode) == 2) {
+		terrain.rgb = mix(vec3(grey), political, 0.2f + (1.f - to_national_border) * 0.3f);
+	} else {
+		terrain.rgb = mix(vec3(grey), political, 0.3f);
+	}
+
 	terrain.rgb *= 1.5;
 	//terrain.rgb += vec3((test * 255) == id);
 	//terrain.r += ((abs(rel_coord.y) + abs(rel_coord.x)) > 0.5 ? 6 : 0) * 0.3;
@@ -204,13 +217,26 @@ vec4 get_land_political_close() {
 }
 
 vec4 get_land_political_far() {
-	vec4 terrain = get_terrain(vec2(0, 0), vec2(0));
+	//vec4 terrain = get_terrain(vec2(0, 0), vec2(0));
+	vec4 terrain = get_terrain_mix();
+	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+    float grey = dot( terrain.rgb, GREYIFY );
+
 	float is_land = terrain.a;
-	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
+
+	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = sample.xy;
+	float to_national_border = sample.z;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
 	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
+
+	float sum_of_prov_colors = dot(prov_color, vec4(1.f, 1.f, 1.f, 0.f));
+	bool is_colonised = true;
+	if (sum_of_prov_colors > 2.99f) {
+		is_colonised = false;
+	}
 
 	vec2 stripe_coord = tex_coord * vec2(512., 512. * map_size.y / map_size.x);
 
@@ -229,9 +255,19 @@ vec4 get_land_political_far() {
 	OutColor.a = OverlayColor.a;
 
 	vec3 background = texture(colormap_political, get_corrected_coords(tex_coord)).rgb;
-	OutColor.rgb = mix(background, OutColor.rgb, 0.3);
 
-	OutColor.rgb *= 1.5;
+	if (int(graphics_mode) == 2) {
+		if (is_colonised) {
+			OutColor.rgb = mix((background + terrain.rgb) / 2.f, OutColor.rgb, 0.4f + (1.f - to_national_border) * 0.3f);
+			OutColor.rgb *= 1.5;
+		} else {
+			OutColor.rgb = (1.f * grey + terrain.rgb) / 1.5f;
+		}
+	} else {
+		OutColor.rgb = mix(background, OutColor.rgb, 0.3);
+		OutColor.rgb *= 1.5;
+	}
+
 	OutColor.a = is_land;
 
 	return OutColor;
@@ -260,7 +296,12 @@ default: break;
 // No province color is used here
 void main() {
 	vec4 terrain = get_land();
-	vec4 water = get_water();
+
+	vec4 water = vec4(0.5f, 0.5f, 0.8f, 1.f);
+	if (int(graphics_mode) > 0) {
+		water = get_water();
+	}
+
 	frag_color.rgb = mix(water.rgb, terrain.rgb, terrain.a);
 	frag_color.a = 1.f;
 	frag_color = gamma_correct(frag_color);

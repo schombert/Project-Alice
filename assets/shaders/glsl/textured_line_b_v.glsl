@@ -9,6 +9,7 @@ layout (location = 5) in float distance;
 out float tex_coord;
 out float o_dist;
 out vec2 map_coord;
+out float distance_to_national_border;
 flat out vec2 frag_province_index;
 
 uniform vec2 offset;
@@ -18,6 +19,7 @@ uniform vec2 map_size;
 uniform float width;
 uniform mat3 rotation;
 uniform uint subroutines_index;
+uniform float is_national_border;
 
 vec4 globe_coords(vec2 world_pos) {
 
@@ -149,4 +151,11 @@ void main() {
 	map_coord = vertex_position;
     
     frag_province_index = province_index;
+
+	if (is_national_border > 0.5f) {
+		distance_to_national_border = tex_coord;
+		gl_Position.z -= 0.001f;
+	} else {
+		distance_to_national_border = 1.f;
+	}
 }
