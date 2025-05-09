@@ -221,7 +221,7 @@ vec4 get_land_political_close() {
 	if (int(graphics_mode) == 2) {
 		terrain.rgb = mix(terrain.rgb, political, 0.2f + (1.f - to_national_border) * 0.3f);
 		if (is_colonised) {
-			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.6, 0.4f + (1.f - to_national_border) * 0.3f);
+			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
 			OutColor.rgb *= 1.05;
 		} else {
 			OutColor.rgb = (grey + terrain.rgb) / 1.5f;
@@ -279,7 +279,7 @@ vec4 get_land_political_far() {
 
 	if (int(graphics_mode) == 2) {
 		if (is_colonised) {
-			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.6, 0.4f + (1.f - to_national_border) * 0.3f);
+			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
 			OutColor.rgb *= 1.05;
 		} else {
 			OutColor.rgb = (grey + terrain.rgb) / 1.5f;
