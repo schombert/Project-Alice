@@ -581,6 +581,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f); // width
 			if(b.count == 0) continue;
 			if(
+				!b.adj
+				||
 				(
 					state.world.province_adjacency_get_type(b.adj)
 					&

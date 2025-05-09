@@ -164,30 +164,35 @@ void update_connected_regions(sys::state& state) {
 		if(border.count == 0) {
 			continue;
 		}
-		auto adj = border.adj;
-		auto A = state.world.province_adjacency_get_connected_provinces(adj, 0);
-		auto B = state.world.province_adjacency_get_connected_provinces(adj, 1);
-
-		auto n_A = state.world.province_get_nation_from_province_ownership(A);
-		auto n_B = state.world.province_get_nation_from_province_ownership(B);
-
-		if(n_A == n_B) {
-			continue;
-		}
 
 		auto border_start_A = border.start_index;
 		auto border_end_A = border.start_index + border.count / 2 - 2;
 		auto border_start_B = border.start_index + border.count / 2;
 		auto border_end_B = border.start_index + border.count - 2;
 
-		auto expected_A = province::from_map_id(state.map_state.map_data.border_vertices[border_start_A].province_index);
-		auto expected_B = province::from_map_id(state.map_state.map_data.border_vertices[border_start_B].province_index);
+		auto A = province::from_map_id(state.map_state.map_data.border_vertices[border_start_A].province_index);
+		auto B = province::from_map_id(state.map_state.map_data.border_vertices[border_start_B].province_index);
+		auto n_A = state.world.province_get_nation_from_province_ownership(A);
+		auto n_B = state.world.province_get_nation_from_province_ownership(B);
 
-		if(expected_A != A) {
-			//std::swap(border_start_A, border_start_B);
-			//std::swap(border_end_A, border_end_B);
-			std::swap(A, B);
-			std::swap(n_A, n_B);
+		if(n_A == n_B && A && B) {
+			if(n_A) {
+				continue;
+			}
+			if(
+				A.index() >= state.province_definitions.first_sea_province.index()
+				&&
+				B.index() >= state.province_definitions.first_sea_province.index()
+			) {
+				continue;
+			}
+			if(
+				A.index() < state.province_definitions.first_sea_province.index()
+				&&
+				B.index() < state.province_definitions.first_sea_province.index()
+			) {
+				continue;
+			}
 		}
 
 		auto& PA1 = state.map_state.map_data.border_vertices[border_start_A];
@@ -195,34 +200,33 @@ void update_connected_regions(sys::state& state) {
 		auto& PAs1 = state.map_state.map_data.border_vertices[border_start_A + 1];
 		auto& PAs2 = state.map_state.map_data.border_vertices[border_end_A + 1];
 
-
 		auto& PB1 = state.map_state.map_data.border_vertices[border_start_B];
 		auto& PB2 = state.map_state.map_data.border_vertices[border_end_B];
 		auto& PBs1 = state.map_state.map_data.border_vertices[border_start_B + 1];
 		auto& PBs2 = state.map_state.map_data.border_vertices[border_end_B + 1];
 
 		if(PA1.position == PA2.position) {
-
-			PA1.previous_point = PA2.previous_point;
-			PA2.next_point = PA1.next_point;
-			PAs1.previous_point = PAs2.previous_point;
-			PAs2.next_point = PAs1.next_point;
-
-			PB1.previous_point = PB2.previous_point;
-			PB2.next_point = PB1.next_point;
-			PBs1.previous_point = PBs2.previous_point;
-			PBs2.next_point = PBs1.next_point;
-
-			/*
-			if(PA1.next_point == PA1.position) {
-				PA1.next_point = PA2.next_point;
+			if(PA1.previous_point == PA1.position) {
+				PA1.previous_point = PA2.previous_point;
 				PA2.next_point = PA1.next_point;
-				PAs1.next_point = PAs2.next_point;
+				PAs1.previous_point = PAs2.previous_point;
 				PAs2.next_point = PAs1.next_point;
 
 				PB1.previous_point = PB2.previous_point;
-				PB2.previous_point = PB1.previous_point;
+				PB2.next_point = PB1.next_point;
 				PBs1.previous_point = PBs2.previous_point;
+				PBs2.next_point = PBs1.next_point;
+			}
+			/*
+			if(PA1.next_point == PA1.position) {
+				PA1.next_point = PA2.next_point;
+				PA2.previous_point = PA1.previous_point;
+				PAs1.next_point = PAs2.next_point;
+				PAs2.previous_point = PAs1.previous_point;
+
+				PB1.next_point = PB2.next_point;
+				PB2.previous_point = PB1.previous_point;
+				PBs1.next_point = PBs2.next_point;
 				PBs2.previous_point = PBs1.previous_point;
 			}
 			*/
