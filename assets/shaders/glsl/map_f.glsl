@@ -175,7 +175,6 @@ vec4 get_land_political_close() {
 	// Make the terrain a gray scale color
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
     float grey = dot( terrain.rgb, GREYIFY );
-	//terrain.rgb = vec3(grey);
 
 	vec2 tex_coords = tex_coord;
 	vec2 rounded_tex_coords = (floor(tex_coord * map_size) + vec2(0.5, 0.5)) / map_size;
@@ -192,6 +191,13 @@ vec4 get_land_political_close() {
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
+
+	float sum_of_prov_colors = dot(prov_color, vec4(1.f, 1.f, 1.f, 0.f));
+	bool is_colonised = true;
+	if (sum_of_prov_colors > 2.99f) {
+		is_colonised = false;
+	}
+
 	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
 
 	vec2 stripe_coord = tex_coord * vec2(512., 512. * map_size.y / map_size.x);
@@ -203,14 +209,29 @@ vec4 get_land_political_close() {
 	political *= texture(province_fow, prov_id).rgb;
 	political = political - 0.7;
 
+	// vec4 OverlayColor = texture(overlay, tex_coord * vec2(11., 11.*map_size.y/map_size.x));
+	vec3 OutColor;
+	OutColor.r = 0.5;
+	OutColor.g = 0.5;
+	OutColor.b = 0.5;
+
+	vec3 background = texture(colormap_political, get_corrected_coords(tex_coord)).rgb;
+
 	// Mix together the terrain and map mode color
 	if (int(graphics_mode) == 2) {
-		terrain.rgb = mix(vec3(grey), political, 0.2f + (1.f - to_national_border) * 0.3f);
+		terrain.rgb = mix(terrain.rgb, political, 0.2f + (1.f - to_national_border) * 0.3f);
+		if (is_colonised) {
+			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.6, 0.4f + (1.f - to_national_border) * 0.3f);
+			OutColor.rgb *= 1.05;
+		} else {
+			OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+		}
+		terrain.rgb = OutColor.rgb;
 	} else {
 		terrain.rgb = mix(vec3(grey), political, 0.3f);
+		terrain.rgb *= 1.5;
 	}
 
-	terrain.rgb *= 1.5;
 	//terrain.rgb += vec3((test * 255) == id);
 	//terrain.r += ((abs(rel_coord.y) + abs(rel_coord.x)) > 0.5 ? 6 : 0) * 0.3;
 	return terrain;
@@ -258,10 +279,10 @@ vec4 get_land_political_far() {
 
 	if (int(graphics_mode) == 2) {
 		if (is_colonised) {
-			OutColor.rgb = mix((background + terrain.rgb) / 2.f, OutColor.rgb, 0.4f + (1.f - to_national_border) * 0.3f);
-			OutColor.rgb *= 1.5;
+			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.6, 0.4f + (1.f - to_national_border) * 0.3f);
+			OutColor.rgb *= 1.05;
 		} else {
-			OutColor.rgb = (1.f * grey + terrain.rgb) / 1.5f;
+			OutColor.rgb = (grey + terrain.rgb) / 1.5f;
 		}
 	} else {
 		OutColor.rgb = mix(background, OutColor.rgb, 0.3);
