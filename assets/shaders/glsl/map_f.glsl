@@ -302,6 +302,12 @@ void main() {
 		water = get_water();
 	}
 
+	if (int(graphics_mode) == 2) {
+		vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+		float to_national_border = sample.z;
+		water.rgb = mix(water.rgb, vec3(0.0f, 0.0f, 0.0f), (1.f - to_national_border) * 0.5f);
+	}
+
 	frag_color.rgb = mix(water.rgb, terrain.rgb, terrain.a);
 	frag_color.a = 1.f;
 	frag_color = gamma_correct(frag_color);
