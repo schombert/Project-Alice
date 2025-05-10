@@ -147,7 +147,7 @@ inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_goo
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.1f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float labor_greed_life = 1.05f;
+inline constexpr float labor_greed_life = 2.1f;
 inline constexpr float labor_greed_everyday = 0.001f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 

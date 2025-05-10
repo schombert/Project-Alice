@@ -1726,7 +1726,7 @@ void update_pop_consumption(
 
 		// we want to focus on life needs first if we are poor AND our satisfaction is low
 		auto is_poor = ve::max(0.f, 1.f - 4.f * savings / (0.00001f + required_spendings_for_life_needs));
-		is_poor = ve::min(1.f, ve::max(0.f, is_poor * 2.f * (life_to_satisfy - 0.5f)));
+		is_poor = ve::min(1.f, ve::max(0.f, is_poor + life_to_satisfy));
 
 		auto life_spending_mod = //ve::fp_vector{ 1.f };
 			(savings * state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
