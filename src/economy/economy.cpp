@@ -2809,6 +2809,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
 				continue;
 			}
+			if(
+				state.world.commodity_get_rgo_amount(c) > 0.f
+				&& !state.world.commodity_get_actually_exists_in_nature(c)
+			) {
+				continue;
+			}
 
 			auto unlocked_A = state.world.nation_get_unlocked_commodities(n_A, c);
 			auto unlocked_B = state.world.nation_get_unlocked_commodities(n_B, c);
@@ -3211,11 +3217,24 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	}
 
+	// rgo/factories/artisans consumption
 	update_production_consumption(state);
 
-	sanity_check(state);
+	state.world.for_each_commodity([&](auto cid) {
+		bool is_potential_rgo = state.world.commodity_get_rgo_amount(cid) > 0.f;
+		bool already_known_to_exist = state.world.commodity_get_actually_exists_in_nature(cid);
+		if(is_potential_rgo && !already_known_to_exist) {
+			for(auto pid : state.world.in_province) {
+				auto potential = state.world.province_get_rgo_size(pid, cid);
+				if(potential > 0) {
+					state.world.commodity_set_actually_exists_in_nature(cid, true);
+					break;
+				}
+			}
+		}
+	});
 
-	// RGO do not consume anything... yet
+	sanity_check(state);
 
 	// STEP 3 update pops consumption:
 
