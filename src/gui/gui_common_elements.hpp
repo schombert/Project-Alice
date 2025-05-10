@@ -644,7 +644,7 @@ public:
 class nation_ppp_gdp_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {		
-		return text::format_float(economy::gdp_adjusted(state, nation_id));
+		return text::format_float(economy::gdp(state, nation_id));
 	}
 };
 
@@ -652,7 +652,7 @@ class nation_ppp_gdp_per_capita_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		float population = state.world.nation_get_demographics(nation_id, demographics::total);
-		return text::format_float(economy::gdp_adjusted(state, nation_id) / population * 1000000.f);
+		return text::format_float(economy::gdp(state, nation_id) / population * 1000000.f);
 	}
 };
 

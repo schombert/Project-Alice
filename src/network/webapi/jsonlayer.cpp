@@ -95,9 +95,9 @@ json format_nation(sys::state& state, dcon::nation_id n) {
 	}
 	j["states"] = jlist;
 
-	auto nation_ppp_gdp_text = text::format_float(economy::gdp_adjusted(state, n));
+	auto nation_ppp_gdp_text = text::format_float(economy::gdp(state, n));
 	float population = state.world.nation_get_demographics(n, demographics::total);
-	auto nation_ppp_gdp_per_capita_text = text::format_float(economy::gdp_adjusted(state, n) / population * 1000000.f);
+	auto nation_ppp_gdp_per_capita_text = text::format_float(economy::gdp(state, n) / population * 1000000.f);
 	auto nation_sol_text = text::format_float(demographics::calculate_nation_sol(state, n));
 
 	auto national_bank = state.world.nation_get_national_bank(n);

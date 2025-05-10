@@ -163,18 +163,18 @@ float ideal_pound_conversion_rate(sys::state& state, dcon::market_id n) {
 		+ 0.1f * state.world.market_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker);
 }
 
-float gdp_adjusted(sys::state& state, dcon::market_id n) {
+float gdp(sys::state& state, dcon::market_id n) {
 	float raw = state.world.market_get_gdp(n);
-	float ideal_pound = ideal_pound_conversion_rate(state, n);
-	return raw / ideal_pound;
+	//float ideal_pound = ideal_pound_conversion_rate(state, n);
+	return raw; /// ideal_pound;
 }
 
-float gdp_adjusted(sys::state& state, dcon::nation_id n) {
+float gdp(sys::state& state, dcon::nation_id n) {
 	auto total = 0.f;
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto sid = state.world.state_ownership_get_state(soid);
 		auto market = state.world.state_instance_get_market_from_local_market(sid);
-		total = total + economy::gdp_adjusted(state, market);
+		total = total + economy::gdp(state, market);
 	});
 	return total;
 }
@@ -4912,6 +4912,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			//the only purpose of upper price bound is to prevent float overflow
 			state.world.market_set_price(ids, cid, ve::min(ve::max(current_price, 0.001f), 1'000'000'000'000.f));
 		});
+	});
+
+	// update median prices
+	state.world.for_each_commodity([&](auto cid) {
+		state.world.commodity_set_median_price(cid, median_price(state, cid));
 	});
 
 	sanity_check(state);
