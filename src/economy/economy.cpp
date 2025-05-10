@@ -961,7 +961,7 @@ void update_local_subsistence_factor(sys::state& state) {
 	state.world.execute_serial_over_province([&](auto ids) {
 		auto quality = (ve::to_float(state.world.province_get_life_rating(ids)) - 10.f) / 10.f;
 		quality = ve::max(quality, 0.f) + 0.01f;
-		auto score = (subsistence_factor * quality) + subsistence_score_life * 0.5f;
+		auto score = (subsistence_factor * quality) + subsistence_score_life * 0.9f;
 		state.world.province_set_subsistence_score(ids, score);
 	});
 }
