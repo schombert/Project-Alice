@@ -3146,11 +3146,16 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					*/
 
 					float current_size = state.world.pop_get_size(p);
+					float total_size = state.world.province_get_demographics(location, demographics::total);
+
+					auto anti_spam_measure = std::max(0.f, 0.02f - current_size / (total_size + 1.f)) * 50.f;
+
 					float base_amount =
+							(anti_spam_measure + 
 							state.defines.assimilation_scale *
 							std::max(0.0f, (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f)) *
 							std::max(0.0f, (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f)) *
-							assimilation_chance * current_size;
+							assimilation_chance) * current_size;
 
 					/*
 					In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a

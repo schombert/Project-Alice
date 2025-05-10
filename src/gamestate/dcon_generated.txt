@@ -339,6 +339,16 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ median_price }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ actually_exists_in_nature }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
 		name{ commodity_group }
 		type{ uint8_t }
 		tag{ scenario }
