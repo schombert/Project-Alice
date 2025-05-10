@@ -635,7 +635,7 @@ pop_issue_attraction_2;此改革目前不能
 pop_issue_attraction_3;政治观点吸引力是以下因子的结果：
 pop_issue_attraction_4;社会改革诉求国内修正：$x$
 pop_issue_attraction_5;政治改革诉求国内修正：$x$
-pop_issue_attraction_6;和政见吸引力因子：$x$
+pop_issue_attraction_6;政见吸引力：$x$
 pop_ideology_attraction_1;意识形态吸引力：$x$
 pop_ideology_attraction_2;此意识形态目前不能
 trade_setting_drawing;使用库存
@@ -1482,4 +1482,4 @@ disallow_land_trade;陆上禁运
 pop_migration_bureaucracy;流动官僚管理地方：$x$
 pop_migration_attraction_3;迁移目标因子：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
-pop_migration_attraction_bureaucracy;官僚基础因子：$x$
+pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
