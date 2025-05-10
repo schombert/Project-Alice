@@ -775,92 +775,6 @@ float export_volume(
 	return total;
 }
 
-trade_volume_data_detailed export_volume_detailed(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-) {
-	static ve::vectorizable_buffer<float, dcon::nation_id> per_nation_data(uint32_t(1));
-	static uint32_t old_count = 1;
-
-	auto new_count = state.world.nation_size();
-	if(new_count > old_count) {
-		per_nation_data = state.world.nation_make_vectorizable_float_buffer();
-		old_count = new_count;
-	}
-
-	state.world.execute_serial_over_nation([&](auto nids) {
-		per_nation_data.set(nids, 0.f);
-	});
-
-	float total = 0.f;
-
-	state.world.nation_for_each_state_ownership(s, [&](auto soid) {
-		auto sid = state.world.state_ownership_get_state(soid);
-		auto market = state.world.state_instance_get_market_from_local_market(sid);
-		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
-			auto origin =
-				current_volume > 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
-			auto target =
-				current_volume <= 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
-
-			if(origin != market) return;
-
-			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
-			auto absolute_volume = std::abs(current_volume);
-			auto s_origin = state.world.market_get_zone_from_local_market(origin);
-			auto s_target = state.world.market_get_zone_from_local_market(target);
-			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
-			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
-
-			auto distance = state.world.trade_route_get_distance(trade_route);
-
-			auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
-
-			if(n_origin != n_target) {
-				per_nation_data.get(n_target) += sat * absolute_volume;
-			}
-		});
-
-		total += state.world.market_get_export(market, c);
-	});
-
-	nation_enriched_float top[5] = { };
-
-	state.world.for_each_nation([&](dcon::nation_id nid) {
-		auto value = per_nation_data.get(nid);
-		for(size_t i = 0; i < 5; i++) {
-			if(top[i].nation) {
-				if(value > top[i].value) {
-					for(size_t j = 4; j > i; j--) {
-						top[j].value = top[j - 1].value;
-						top[j].nation = top[j - 1].nation;
-					}
-					top[i].nation = nid;
-					top[i].value = value;
-					return;
-				}
-			} else {
-				top[i].nation = nid;
-				top[i].value = value;
-
-				return;
-			}
-		}
-	});
-
-	trade_volume_data_detailed result = {
-		total, c, { top[0], top[1], top[2], top[3], top[4] }
-	};
-
-	return result;
-}
-
 float import_volume(
 	sys::state& state,
 	dcon::market_id s,
@@ -882,7 +796,7 @@ float import_volume(
 	return total;
 }
 
-trade_volume_data_detailed import_volume_detailed(
+std::array<trade_volume_data_detailed, 2> export_import_volume_detailed(
 	sys::state& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
@@ -906,64 +820,86 @@ trade_volume_data_detailed import_volume_detailed(
 		auto sid = state.world.state_ownership_get_state(soid);
 		auto market = state.world.state_instance_get_market_from_local_market(sid);
 		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
-			auto origin =
-				current_volume > 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
-			auto target =
-				current_volume <= 0.f
-				? state.world.trade_route_get_connected_markets(trade_route, 0)
-				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto origin = state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target = state.world.trade_route_get_connected_markets(trade_route, 0);
 
 			if(target != market) return;
 
 			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
-			auto absolute_volume = std::abs(current_volume);
+			auto trade_value = state.world.trade_route_get_volume(trade_route, c) * state.world.market_get_price(market, c);
 			auto s_origin = state.world.market_get_zone_from_local_market(origin);
 			auto s_target = state.world.market_get_zone_from_local_market(target);
 			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
 			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
 
 			auto distance = state.world.trade_route_get_distance(trade_route);
-
 			auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
 
 			if(n_origin != n_target) {
-				per_nation_data.get(n_origin) += sat * absolute_volume * trade_good_loss_mult;
+				per_nation_data.get(n_origin) += sat * absolute_value * trade_good_loss_mult;
 			}
 		});
 
-		total += state.world.market_get_import(market, c);
+		total += (state.world.market_get_export(market, c)-state.world.market_get_import(market, c)) * state.world.market_get_price(market, c);
 	});
 
-	nation_enriched_float top[5] = { };
+	nation_enriched_float top_export[5] = { };
 
 	state.world.for_each_nation([&](dcon::nation_id nid) {
 		auto value = per_nation_data.get(nid);
 		for(size_t i = 0; i < 5; i++) {
-			if(top[i].nation) {
-				if(value > top[i].value) {
+			if(top_export[i].nation) {
+				if(value > top_export[i].value) {
 					for(size_t j = 4; j > i; j--) {
-						top[j].value = top[j - 1].value;
-						top[j].nation = top[j - 1].nation;
+						top_export[j].value = top_export[j - 1].value;
+						top_export[j].nation = top_export[j - 1].nation;
 					}
-					top[i].nation = nid;
-					top[i].value = value;
+					top_export[i].nation = nid;
+					top_export[i].value = value;
 					return;
 				}
 			} else {
-				top[i].nation = nid;
-				top[i].value = value;
+				top_export[i].nation = nid;
+				top_export[i].value = value;
 
 				return;
 			}
 		}
 	});
 
-	trade_volume_data_detailed result = {
-		total, c, { top[0], top[1], top[2], top[3], top[4] }
+	trade_volume_data_detailed result_export = {
+	total, c, { top_export[0], top_export[1], top_export[2], top_export[3], top_export[4] }
 	};
+
+	nation_enriched_float top_import[5] = { };
+
+	state.world.for_each_nation([&](dcon::nation_id nid) {
+		auto value = -per_nation_data.get(nid);
+		for(size_t i = 0; i < 5; i++) {
+			if(top_import[i].nation) {
+				if(value > top_import[i].value) {
+					for(size_t j = 4; j > i; j--) {
+						top_import[j].value = top_import[j - 1].value;
+						top_import[j].nation = top_import[j - 1].nation;
+					}
+					top_import[i].nation = nid;
+					top_import[i].value = value;
+					return;
+				}
+			} else {
+				top_import[i].nation = nid;
+				top_import[i].value = value;
+
+				return;
+			}
+		}
+	});
+
+	trade_volume_data_detailed result_import = {
+	-total, c, { top_import[0], top_import[1], top_import[2], top_import[3], top_import[4] }
+	};
+
+	std::array<trade_volume_data_detailed, 2> result = { result_export, result_import };
 
 	return result;
 }
