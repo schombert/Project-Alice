@@ -3146,9 +3146,13 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					*/
 
 					float current_size = state.world.pop_get_size(p);
-					float total_size = state.world.province_get_demographics(location, demographics::total);
 
-					auto anti_spam_measure = std::max(0.f, 0.02f - current_size / (total_size + 1.f)) * 50.f;
+					auto pc = state.world.pop_get_culture(p);
+
+					// to avoid 20 cultures per province due to migration
+					float culture_size = state.world.province_get_demographics(location, demographics::to_key(state, pc));
+					float total_size = state.world.province_get_demographics(location, demographics::total);
+					auto anti_spam_measure = std::max(0.f, 0.04f - culture_size / (total_size + 1.f)) * 50.f;
 
 					float base_amount =
 							(anti_spam_measure + 
@@ -3162,8 +3166,6 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture
 					group are reduced by a factor of 10.
 					*/
-
-					auto pc = state.world.pop_get_culture(p);
 
 					if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
 						base_amount /= 10.0f;
@@ -3212,12 +3214,20 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
 		return 0.0f; // early exit
 
+	auto pc = state.world.pop_get_culture(ids);
 	float current_size = state.world.pop_get_size(ids);
+
+	float culture_size = state.world.province_get_demographics(location, demographics::to_key(state, pc));
+	float total_size = state.world.province_get_demographics(location, demographics::total);
+	auto anti_spam_measure = std::max(0.f, 0.04f - culture_size / (total_size + 1.f)) * 50.f;
+
 	float base_amount =
+		(anti_spam_measure
+		+
 		state.defines.assimilation_scale *
 		std::max(0.0f, (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f)) *
 		std::max(0.0f, (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f)) *
-			assimilation_chances * current_size;
+			assimilation_chances) * current_size;
 
 	/*
 	In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a
@@ -3225,7 +3235,6 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 	group are reduced by a factor of 10.
 	*/
 
-	auto pc = state.world.pop_get_culture(ids);
 	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
 		base_amount /= 10.0f;
 	}

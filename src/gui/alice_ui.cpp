@@ -1914,7 +1914,14 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
 	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
+	auto pc = state.world.pop_get_culture(ids);
+
+	float culture_size = state.world.province_get_demographics(location, demographics::to_key(state, pc));
+	float total_size = state.world.province_get_demographics(location, demographics::total);
+	auto anti_spam_measure = std::max(0.f, 0.04f - culture_size / (total_size + 1.f)) * 50.f;
+
 	float base_amount =
+		anti_spam_measure +
 		state.defines.assimilation_scale *
 		(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) *
 		(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) *
@@ -1926,7 +1933,6 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	group are reduced by a factor of 10.
 	*/
 
-	auto pc = state.world.pop_get_culture(ids);
 	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
 		base_amount /= 10.0f;
 	}
@@ -1973,7 +1979,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 		text::add_line(state, contents, "pop_assim_5");
 		return;
 	}
-	text::add_line(state, contents, "pop_assim_6");
+	text::add_line(state, contents, "pop_assim_6", text::variable_type::x, text::fp_three_places{ anti_spam_measure });
 	text::add_line(state, contents, "pop_assim_7", text::variable_type::x, text::fp_three_places{ state.defines.assimilation_scale });
 	text::add_line(state, contents, "pop_assim_8", text::variable_type::x, text::fp_two_places{ std::max(0.0f,state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) });
 	ui::active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_assimilation_rate, true);

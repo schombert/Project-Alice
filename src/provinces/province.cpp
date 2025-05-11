@@ -2080,6 +2080,8 @@ void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 		next_size = pop_amount * 5.f;
 	}
 	state.world.province_get_rgo_size(prov, c) += next_size;
+	// immediately employ workers
+	state.world.province_get_rgo_target_employment(prov, c) += next_size;
 	state.world.province_get_rgo_max_size(prov, c) += next_size;
 	state.world.province_set_rgo_efficiency(prov, c, 1.f);
 	if(state.world.commodity_get_is_mine(old_rgo) != state.world.commodity_get_is_mine(c)) {

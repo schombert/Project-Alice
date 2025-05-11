@@ -225,9 +225,13 @@ void initialize_artisan_distribution(sys::state& state) {
 
 	auto const csize = state.world.commodity_size();
 
+	auto artisans = state.culture_definitions.artisans;
+	auto keys = demographics::to_key(state, artisans);
+
 	state.world.for_each_commodity([&](auto cid) {
 		state.world.execute_serial_over_province([&](auto ids) {
-			state.world.province_set_artisan_score(ids, cid, 0.f);
+			auto local_artisans = state.world.province_get_demographics(ids, keys);
+			state.world.province_set_artisan_score(ids, cid, local_artisans);
 		});
 	});
 }
@@ -836,7 +840,7 @@ void initialize(sys::state& state) {
 						state.world.province_get_rgo_potential(p, c) + max_rgo_size * true_distribution[c.index()]
 					);
 					state.world.province_set_rgo_efficiency(p, c, 1.f);
-					state.world.province_set_rgo_target_employment(p, c, pop_amount);
+					state.world.province_set_rgo_target_employment(p, c, state.world.province_get_rgo_size(p, c));
 				}
 			});
 		});
@@ -3590,6 +3594,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					- total_demand * new_saturation
 					))
 			);
+
+			if(presimulation) {
+				state.world.market_set_stockpile(
+					ids, c,	stockpile_target_merchants
+				);
+			}
 
 			state.world.market_set_stockpile(
 				ids, economy::money,
