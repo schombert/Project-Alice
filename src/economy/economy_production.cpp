@@ -1265,7 +1265,7 @@ void update_rgo_consumption(
 		register_inputs_demand(state, m, e_inputs, demand_scale, economy_reason::rgo);
 		
 		auto target = state.world.province_get_rgo_target_employment(p, c);
-		state.world.province_get_labor_demand(p, labor::no_education) += std::min(target, 100.f + workers * 1.1f);
+		state.world.province_get_labor_demand(p, labor::no_education) += target; //std::min(target, 100.f + workers * 1.1f);
 		assert(std::isfinite(target));
 		assert(std::isfinite(state.world.province_get_labor_demand(p, labor::no_education)));
 
@@ -1904,8 +1904,9 @@ float rgo_potential_size(sys::state const& state, dcon::nation_id n, dcon::provi
 }
 
 float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
-	return state.world.province_get_rgo_target_employment(p, c)
-		* state.world.province_get_labor_demand_satisfaction(p, labor::no_education);
+	auto target = state.world.province_get_rgo_target_employment(p, c);
+	auto sat = state.world.province_get_labor_demand_satisfaction(p, labor::no_education);
+	return target * sat;
 }
 
 float rgo_wage(sys::state& state, dcon::commodity_id c, dcon::province_id p) {

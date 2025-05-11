@@ -121,8 +121,9 @@ void register_intermediate_demand(
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
 	auto local_price = ve_price(state, s, c);
+	auto median_price = state.world.commodity_get_median_price(c);
 	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 void register_intermediate_demand(
 	sys::state& state,
@@ -138,8 +139,9 @@ void register_intermediate_demand(
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
 	auto local_price = ve_price(state, s, c);
+	auto median_price = state.world.commodity_get_median_price(c);
 	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 void register_intermediate_demand(
 	sys::state& state,
@@ -155,8 +157,9 @@ void register_intermediate_demand(
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
 	auto local_price = ve_price(state, s, c);
+	auto median_price = state.world.commodity_get_median_price(c);
 	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 
 void register_intermediate_demand(
@@ -173,8 +176,9 @@ void register_intermediate_demand(
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
 	auto local_price = price(state, s, c);
+	auto median_price = state.world.commodity_get_median_price(c);
 	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * local_price * sat);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 
 void register_domestic_supply(
@@ -185,7 +189,8 @@ void register_domestic_supply(
 	economy_reason reason
 ) {
 	state.world.market_get_supply(s, commodity_type) += amount;
-	state.world.market_get_gdp(s) += amount * price(state, s, commodity_type);
+	auto median_price = state.world.commodity_get_median_price(commodity_type);
+	state.world.market_get_gdp(s) += amount * median_price;
 }
 
 void register_foreign_supply(
@@ -211,10 +216,11 @@ void ve_register_domestic_supply(
 		commodity_type,
 		state.world.market_get_supply(s, commodity_type) + amount
 	);
+	auto median_price = state.world.commodity_get_median_price(commodity_type);
 	state.world.market_set_gdp(
 		s,
 		state.world.market_get_gdp(s)
-		+ amount * ve_price(state, s, commodity_type)
+		+ amount * median_price
 	);
 }
 
@@ -1012,21 +1018,23 @@ float state_factory_level(sys::state& state, dcon::state_instance_id sid, dcon::
 }
 
 bool has_factory(sys::state const& state, dcon::province_id si) {
-	auto crng = state.world.province_get_factory_construction(si);
-	auto rng = state.world.province_get_factory_location(si);
-	if((crng.begin() != crng.end()) || (rng.begin() != rng.end()))
-		return true;
-	return false;
+	return true;
+	//auto crng = state.world.province_get_factory_construction(si);
+	//auto rng = state.world.province_get_factory_location(si);
+	//if((crng.begin() != crng.end()) || (rng.begin() != rng.end()))
+	//	return true;
+	//return false;
 }
 
 bool has_factory(sys::state const& state, dcon::state_instance_id sid) {
-	auto d = state.world.state_instance_get_definition(sid);
-	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
-		if(p.get_province().get_state_membership() == sid) {
-			if(has_factory(state, p.get_province()))
-				return true;
-		}
-	return false;
+	return true;
+	//auto d = state.world.state_instance_get_definition(sid);
+	//for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+	//	if(p.get_province().get_state_membership() == sid) {
+	//		if(has_factory(state, p.get_province()))
+	//			return true;
+	//	}
+	//return false;
 }
 
 

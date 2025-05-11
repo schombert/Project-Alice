@@ -147,7 +147,7 @@ inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_goo
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.1f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float labor_greed_life = 1.05f;
+inline constexpr float labor_greed_life = 2.1f;
 inline constexpr float labor_greed_everyday = 0.001f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 
@@ -333,8 +333,8 @@ int32_t previous_price_record_index(sys::state& state);
 int32_t most_recent_gdp_record_index(sys::state& state);
 int32_t previous_gdp_record_index(sys::state& state);
 
-float gdp_adjusted(sys::state& state, dcon::nation_id n);
-float gdp_adjusted(sys::state& state, dcon::market_id n);
+float gdp(sys::state& state, dcon::nation_id n);
+float gdp(sys::state& state, dcon::market_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);

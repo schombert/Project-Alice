@@ -1832,7 +1832,7 @@ float tariff_efficiency(sys::state& state, dcon::nation_id n, dcon::market_id m)
 	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
 	auto adm_eff = state.world.province_get_control_scale(pid);
-	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.001f, 1.f);
+	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.f, 1.f);
 }
 
 float tax_efficiency(sys::state& state, dcon::nation_id n) {

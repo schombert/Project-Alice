@@ -163,18 +163,18 @@ float ideal_pound_conversion_rate(sys::state& state, dcon::market_id n) {
 		+ 0.1f * state.world.market_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker);
 }
 
-float gdp_adjusted(sys::state& state, dcon::market_id n) {
+float gdp(sys::state& state, dcon::market_id n) {
 	float raw = state.world.market_get_gdp(n);
-	float ideal_pound = ideal_pound_conversion_rate(state, n);
-	return raw / ideal_pound;
+	//float ideal_pound = ideal_pound_conversion_rate(state, n);
+	return raw; /// ideal_pound;
 }
 
-float gdp_adjusted(sys::state& state, dcon::nation_id n) {
+float gdp(sys::state& state, dcon::nation_id n) {
 	auto total = 0.f;
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto sid = state.world.state_ownership_get_state(soid);
 		auto market = state.world.state_instance_get_market_from_local_market(sid);
-		total = total + economy::gdp_adjusted(state, market);
+		total = total + economy::gdp(state, market);
 	});
 	return total;
 }
@@ -225,9 +225,13 @@ void initialize_artisan_distribution(sys::state& state) {
 
 	auto const csize = state.world.commodity_size();
 
+	auto artisans = state.culture_definitions.artisans;
+	auto keys = demographics::to_key(state, artisans);
+
 	state.world.for_each_commodity([&](auto cid) {
 		state.world.execute_serial_over_province([&](auto ids) {
-			state.world.province_set_artisan_score(ids, cid, 0.f);
+			auto local_artisans = state.world.province_get_demographics(ids, keys);
+			state.world.province_set_artisan_score(ids, cid, local_artisans);
 		});
 	});
 }
@@ -836,7 +840,7 @@ void initialize(sys::state& state) {
 						state.world.province_get_rgo_potential(p, c) + max_rgo_size * true_distribution[c.index()]
 					);
 					state.world.province_set_rgo_efficiency(p, c, 1.f);
-					state.world.province_set_rgo_target_employment(p, c, pop_amount);
+					state.world.province_set_rgo_target_employment(p, c, state.world.province_get_rgo_size(p, c));
 				}
 			});
 		});
@@ -961,7 +965,7 @@ void update_local_subsistence_factor(sys::state& state) {
 	state.world.execute_serial_over_province([&](auto ids) {
 		auto quality = (ve::to_float(state.world.province_get_life_rating(ids)) - 10.f) / 10.f;
 		quality = ve::max(quality, 0.f) + 0.01f;
-		auto score = (subsistence_factor * quality) + subsistence_score_life * 0.5f;
+		auto score = (subsistence_factor * quality) + subsistence_score_life * 0.9f;
 		state.world.province_set_subsistence_score(ids, score);
 	});
 }
@@ -1726,7 +1730,7 @@ void update_pop_consumption(
 
 		// we want to focus on life needs first if we are poor AND our satisfaction is low
 		auto is_poor = ve::max(0.f, 1.f - 4.f * savings / (0.00001f + required_spendings_for_life_needs));
-		is_poor = ve::min(1.f, ve::max(0.f, is_poor * 2.f * (life_to_satisfy - 0.5f)));
+		is_poor = ve::min(1.f, ve::max(0.f, is_poor + life_to_satisfy));
 
 		auto life_spending_mod = //ve::fp_vector{ 1.f };
 			(savings * state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
@@ -2809,6 +2813,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
 				continue;
 			}
+			if(
+				state.world.commodity_get_rgo_amount(c) > 0.f
+				&& !state.world.commodity_get_actually_exists_in_nature(c)
+			) {
+				continue;
+			}
 
 			auto unlocked_A = state.world.nation_get_unlocked_commodities(n_A, c);
 			auto unlocked_B = state.world.nation_get_unlocked_commodities(n_B, c);
@@ -3211,11 +3221,24 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	}
 
+	// rgo/factories/artisans consumption
 	update_production_consumption(state);
 
-	sanity_check(state);
+	state.world.for_each_commodity([&](auto cid) {
+		bool is_potential_rgo = state.world.commodity_get_rgo_amount(cid) > 0.f;
+		bool already_known_to_exist = state.world.commodity_get_actually_exists_in_nature(cid);
+		if(is_potential_rgo && !already_known_to_exist) {
+			for(auto pid : state.world.in_province) {
+				auto potential = state.world.province_get_rgo_size(pid, cid);
+				if(potential > 0) {
+					state.world.commodity_set_actually_exists_in_nature(cid, true);
+					break;
+				}
+			}
+		}
+	});
 
-	// RGO do not consume anything... yet
+	sanity_check(state);
 
 	// STEP 3 update pops consumption:
 
@@ -3571,6 +3594,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					- total_demand * new_saturation
 					))
 			);
+
+			if(presimulation) {
+				state.world.market_set_stockpile(
+					ids, c,	stockpile_target_merchants
+				);
+			}
 
 			state.world.market_set_stockpile(
 				ids, economy::money,
@@ -4893,6 +4922,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			//the only purpose of upper price bound is to prevent float overflow
 			state.world.market_set_price(ids, cid, ve::min(ve::max(current_price, 0.001f), 1'000'000'000'000.f));
 		});
+	});
+
+	// update median prices
+	state.world.for_each_commodity([&](auto cid) {
+		state.world.commodity_set_median_price(cid, median_price(state, cid));
 	});
 
 	sanity_check(state);

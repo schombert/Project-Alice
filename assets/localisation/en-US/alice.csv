@@ -631,7 +631,7 @@ pop_assim_2;Slaves do not assimilate
 pop_assim_3;Pops of an accepted culture do not assimilate
 pop_assim_4;Pops in colonial provinces do not assimilate
 pop_assim_5;Pops in overseas provinces do not assimilate
-pop_assim_6;Assimilation is proportional to the size of the pop times the product of:
+pop_assim_6;Assimilation is proportional to the size of the pop times the sum of base assimilation of microcultures $x$ and the product of:
 pop_assim_7;The base assimilation scale: $x$
 pop_assim_8;The national assimilation-rate modifier: $x$
 pop_assim_9;The local assimilation-rate modifier: $x$
