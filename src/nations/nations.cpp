@@ -2639,7 +2639,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 }
 
 void crisis_add_wargoal(std::vector<sys::full_wg>& list, sys::full_wg wg) {
-	assert(wg.cb && wg.added_by && wg.target_nation);
+	assert(wg.cb /* && wg.added_by*/ && wg.target_nation);
 	for(unsigned i = 0; i < list.size(); i++) {
 		if(!list[i].cb) {
 			list[i] = wg;
@@ -2740,6 +2740,10 @@ void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
 		m.type = diplomatic_message::type::be_crisis_primary_attacker;
 		m.to = n;
 		m.from = state.crisis_attacker;
+		if(state.current_crisis == sys::crisis_type::liberation) {
+			auto from = state.world.state_instance_get_flashpoint_tag(state.crisis_state_instance);
+			m.from = from.get_nation_from_identity_holder();
+		}
 		diplomatic_message::post(state, m);
 	}
 }
@@ -3022,7 +3026,7 @@ void update_crisis(sys::state& state) {
 				state.crisis_defender = owner;
 
 				crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
-					dcon::nation_id{}, // added_by;
+						dcon::nation_id{}, // added_by;
 						owner, // target_nation;
 						dcon::nation_id{}, //  secondary_nation;
 						crisis_liberation_tag, // wg_tag;
@@ -3036,7 +3040,9 @@ void update_crisis(sys::state& state) {
 						text::add_line(state, contents, "msg_new_crisis_1", text::variable_type::x, st);
 					},
 					"msg_new_crisis_title",
-					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+					state.local_player_nation,
+					crisis_liberation_tag.get_nation_from_identity_holder(),
+					owner,
 					sys::message_base_type::crisis_starts
 				});
 
@@ -3098,7 +3104,7 @@ void update_crisis(sys::state& state) {
 		}
 
 		state.crisis_temperature = 0.0f;
-		crisis_state_transition(state, sys::crisis_state::finding_attacker);
+		//crisis_state_transition(state, sys::crisis_state::finding_attacker);
 	}
 	// Current crisis state = sys::crisis_state::finding_attacker
 	else if(state.current_crisis_state == sys::crisis_state::finding_attacker) {
