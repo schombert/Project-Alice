@@ -703,8 +703,29 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glCullFace(GL_BACK);
 	glDisable(GL_PRIMITIVE_RESTART);
 
+	
+	glEnable(GL_BLEND);
+
+	// Draw the railroads and city
+	if(zoom > map::zoom_close && !city_vertices.empty()) {
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+		{
+			load_shader(shader_textured_triangle);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_city]);
+			glUniform1i(shader_uniforms[shader_textured_triangle][uniform_texture_sampler], 0);
+			glBindVertexArray(vao_array[vo_cities]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)city_vertices.size());
+		}
+	}
+
+
 	// Draw the rivers
 	if(state.user_settings.rivers_enabled) {
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_river_body]);
 		glActiveTexture(GL_TEXTURE1);
@@ -726,31 +747,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 	}
 
-	
-	//glEnable(GL_DEPTH_TEST);
-	//{
-
-		
-	//}
-
-	glEnable(GL_BLEND);
-	
-
-	// Draw the city
-
-
-	// Draw the railroads and city
 	if(zoom > map::zoom_close && !railroad_vertices.empty()) {
-		glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-		{
-			load_shader(shader_textured_triangle);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_city]);
-			glUniform1i(shader_uniforms[shader_textured_triangle][uniform_texture_sampler], 0);
-			glBindVertexArray(vao_array[vo_cities]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
-			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)city_vertices.size());
-		}
 
 		{
 			glActiveTexture(GL_TEXTURE0);
@@ -770,7 +767,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
@@ -2350,171 +2346,270 @@ void display_data::update_railroad_paths(sys::state& state) {
 
 	// Populate paths with railroads - only account provinces that have been visited
 	// but not the adjacencies
-	for(const auto p1 : state.world.in_province) {
+	for(const auto p : state.world.in_province) {
 
-		auto urban_pop = p1.get_demographics(demographics::total);
+		auto rural_population = 0.f;
+		for(auto wt : state.culture_definitions.rgo_workers) {
+			rural_population += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+		}
+		rural_population += state.world.province_get_demographics(p, demographics::to_employment_key(state, state.culture_definitions.slaves));
+
+
+		auto urban_pop = p.get_demographics(demographics::total) - rural_population;
 
 		if(urban_pop < 1000.f) {
 			continue;
 		}
 
-		auto road_level = int(sqrt(urban_pop / 100'000.f) * 2.f) + 1.f;
+		auto central_settlement = p.get_mid_point();
 
-		if(road_level < 3.f) {
-			road_level = 1.f;
+		// spawn local settlements
+
+		std::vector<std::pair<glm::vec2, float>> weighted_settlements = { {central_settlement, 0.5f} };
+
+		int settlement_slots = 5;
+		if(p.get_port_to()) {
+			auto port_location = duplicates::get_port_location(state, p.id);
+			if(glm::length(port_location - central_settlement) > 2.f) {
+				weighted_settlements.push_back({ port_location, 0.2f });
+				settlement_slots -= 2;
+				roads.push_back({ port_location, central_settlement });
+			}
+		}
+		auto province_size = state.map_state.map_data.province_area[province::to_map_id(p)];
+		if(province_size < 1) {
+			continue;
 		}
 
-			//p1.get_building_level(uint8_t(economy::province_building_type::railroad)) * 3 - 1;
-		auto mid_point = p1.get_mid_point();
+		auto side = sqrt(province_size);
 
-		//if(p1.get_port_to()) {
-			//mid_point = duplicates::get_port_location(state, p1.id);
-		//}
+		// try to spawn random settlements in this area
+		int attempts = 15;
 
+		for(int i = 0; i < attempts; i++) {
+			const auto rp1 = rng::get_random(state, p.id.index() ^ i, p.id.index());
+			const int r1 = (int)rng::reduce(uint32_t(rp1), (uint32_t)side);
+			const auto rp2 = rng::get_random(state, p.id.index() ^ i ^ 5653, p.id.index() ^ 435427);
+			const int r2 = (int)rng::reduce(uint32_t(rp2), (uint32_t)side);
 
-		std::vector<glm::vec2> key_points{ };
-		std::vector<char> used{ };
+			int x = (int)(central_settlement.x) + r1 - (int)side / 2;
+			int y = (int)(central_settlement.y) + r2 - (int)side / 2;
 
-		// spawn key points
-
-		int N = 20;
-
-
-		for(int i = 0; i < (road_level + 3) * N; i++) {
-			const auto rpx = rng::get_random(state, p1.id.index(), p1.id.index() ^ (uint32_t)i);
-			const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f) - 0.5f) * 0.25f;
-			const auto rpy = rng::get_random(state, p1.id.index() ^ 5653, p1.id.index() ^ (uint32_t)i ^ 435427);
-			const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f) - 0.5f) * 0.25f;
-			auto angle = (float)(i % N) * std::numbers::pi_v<float> / float(N) * 2.f;
-			float scale = sqrt(float(1 + i / N)) * float(1 + i / N) * 0.2f;
-			glm::vec2 shift{ (cos(angle) + rx), (sin(angle) + ry) };
-			key_points.push_back(mid_point + shift * scale);
-			used.push_back(0);
+			auto sample = province::from_map_id(safe_get_province({x, y}));
+			if(sample == p) {
+				settlement_slots -= 1;
+				auto pos = glm::vec2{ (float)x, (float)y };
+				weighted_settlements.push_back({ pos, 0.1f });
+				roads.push_back({ pos, central_settlement });
+				if(settlement_slots == 0) {
+					break;
+				}
+			}
 		}
 
-		// connect key points into loops
+		auto population_level = int(sqrt(urban_pop / 100'000.f) * 10.f) + 1.f;
 
-		for(int i = 0; i < road_level; i++) {
-			for(int k = 0; k < N; k++) {
-				auto node_1 = key_points[i * N + k];
-				auto node_2 = key_points[i * N + ((k + 1) % N)];
-				auto sample_1 = province::from_map_id(safe_get_province({ int(node_1.x), int(node_1.y) }));
-				auto sample_2 = province::from_map_id(safe_get_province({ int(node_2.x), int(node_2.y) }));
+		if(population_level < 3.f) {
+			population_level = 1.f;
 
-				if(sample_1.index() > state.province_definitions.first_sea_province.index()) {
-					continue;
-				}
-				if(sample_2.index() > state.province_definitions.first_sea_province.index()) {
-					continue;
-				}
+			continue;
+			//ignore for now
+		}
 
-				const auto rh = rng::get_random(state, p1.id.index() ^ 9572456, 432864 ^ p1.id.index() ^ (uint32_t)(i * N + k));
-				const float rhf = (float(rng::reduce(uint32_t(rh), 8192)) / (8192.f));
-				if(rhf * (i + 1) > 0.5f || road_level == 1.f) {
-					roads.push_back({ key_points[i * N + k], key_points[i * N + ((k + 1) % N)] });
 
-					if(i == 0) {
-						city_vertices.push_back(
-							vertex{
-								key_points[i * N + k] / size,
-								{0.f, 0.f }
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								key_points[i * N + ((k + 1) % N)] / size,
-								{0.f, 1.f }
-							}
-						);
+		for(size_t center = 0; center < weighted_settlements.size(); center++) {
+			std::vector<glm::vec2> key_points{ };
+			//std::vector<char> used{ };
+			int N = 20;
 
-						city_vertices.push_back(
-							vertex{
-								mid_point / size,
-								{1.f, 1.f }
-							}
-						);
-					} else {
-						city_vertices.push_back(
-							vertex{
-								key_points[i * N + k] / size,
-								{0.f, 0.f }
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								key_points[i * N + ((k + 1) % N)] / size,
-								{1.f, 0.f }
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								key_points[(i - 1) * N + k] / size,
-								{0.f, 1.f }
-							}
-						);
+			const auto rp1 = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index());
+			const float r1 = (float(rng::reduce(uint32_t(rp1), 8192)) / (8192.f));
+			const auto rp2 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ 435427);
+			const float r2 = (float(rng::reduce(uint32_t(rp2), 8192)) / (8192.f));
+			const auto rp3 = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index() ^ 56467);
+			const float r3 = (float(rng::reduce(uint32_t(rp3), 8192)) / (8192.f));
+			const auto rp4 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ 343576);
+			const float r4 = (float(rng::reduce(uint32_t(rp4), 8192)) / (8192.f));
 
-						city_vertices.push_back(
-							vertex{
-								key_points[i * N + ((k + 1) % N)] / size,
-								{1.f, 0.f }
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								key_points[(i - 1) * N + ((k + 1) % N)] / size,
-								{1.f, 1.f }
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								key_points[(i - 1) * N + k] / size,
-								{0.f, 1.f }
-							}
-						);
+			auto max_rotation = r1 * 0.75f + 0.25f;
+			auto initial_rotation = r3 * std::numbers::pi_v<float> * 2.f;
+
+			auto settlement = weighted_settlements[center];
+
+			auto layers = int(population_level * settlement.second + 1);
+
+			if(layers == 1) {
+				N = 8;
+			}
+
+			for(int i = 0; i < (layers) * N; i++) {
+				const auto rpx = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index() ^ (uint32_t)i);
+				const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f) - 0.5f) * 0.25f;
+				const auto rpy = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ (uint32_t)i ^ 435427);
+				const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f) - 0.5f) * 0.25f;
+				auto angle = ((float)(i % N)) * std::numbers::pi_v<float> / float(N) * 2.f + initial_rotation;
+				float scale = float(1 + i / N) * 0.2f;
+				glm::vec2 shift{ (cos(angle) + rx), (sin(angle) + ry) };
+				key_points.push_back(settlement.first + shift * scale);
+				//used.push_back(0);
+			}
+
+			// connect key points into loops
+
+
+			for(int i = 0; i < layers; i++) {
+				for(int k = 0; k < N; k++) {
+					if(max_rotation < 0.6f && k == N - 1) {
+						continue;
+					}
+					auto node_1 = key_points[i * N + k];
+					auto node_2 = key_points[i * N + ((k + 1) % N)];
+
+					auto sample_1 = province::from_map_id(safe_get_province({ int(node_1.x), int(node_1.y) }));
+					auto sample_2 = province::from_map_id(safe_get_province({ int(node_2.x), int(node_2.y) }));
+
+					if(sample_1.index() > state.province_definitions.first_sea_province.index()) {
+						continue;
+					}
+					if(sample_2.index() > state.province_definitions.first_sea_province.index()) {
+						continue;
 					}
 
-					//used[i * N + k] = 1;
-					//used[i * N + ((k + 1) % N)];
-					if(i > 0) {
-						const auto r = rng::get_random(state, p1.id.index() ^ 43542, 4634 ^ p1.id.index() ^ (uint32_t)(i * N + k));
+					// check if it is "pretty"
+					if (layers > 1) {
+						bool is_pretty = false;
+						for(
+							size_t other_settlement_index = 0;
+							other_settlement_index < weighted_settlements.size();
+							other_settlement_index++
+						) {
+							if(other_settlement_index == center) {
+								continue;
+							}
+
+							auto& target_settlement = weighted_settlements[other_settlement_index];
+
+							auto v1 = node_1 - settlement.first;
+							auto v2 = node_1 - target_settlement.first;
+
+							auto c = (settlement.first + target_settlement.first) / 2.f;
+
+							auto radius_1 = glm::length(v1) / population_level / settlement.second;
+							auto radius_2 = glm::length(v2) / population_level / target_settlement.second;
+
+							auto collinear = v1.x * v2.y - v1.y * v2.x;
+							auto scaler = glm::length(c - node_1);
+
+							if(radius_1 * radius_2 * collinear * collinear / (scaler + 1.f) < 0.5f) {
+								is_pretty = true;
+								break;
+							}
+						}
+
+						if(!is_pretty) {
+							continue;
+						}
+					}					
+
+					const auto rpm1 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ (i / 2), p.id.index() ^ (k / 2));
+					const float rm1 = (float(rng::reduce(uint32_t(rpm1), 8192)) / (8192.f));
+					const auto rpm2 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653 ^ (i / 2), p.id.index() ^ 435427 ^ (k / 2));
+					const float rm2 = (float(rng::reduce(uint32_t(rpm2), 8192)) / (8192.f));
+
+
+					glm::mat2 transform{
+						rm1, rm2, -rm2, rm1
+					};
+
+					transform /= sqrt(rm1 * rm1 + rm2 * rm2);
+					transform *= 3.f;
+
+					const auto rh = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 9572456, 432864 ^ p.id.index() ^ (uint32_t)(i * N + k));
+					const float rhf = (float(rng::reduce(uint32_t(rh), 8192)) / (8192.f));
+					if(rhf * (i + 1) > 0.5f || layers == 1) {
+						roads.push_back({ key_points[i * N + k], key_points[i * N + ((k + 1) % N)] });
+
+						if(layers > 1) {						
+							if(i == 0) {
+								city_vertices.push_back(
+									vertex{
+										key_points[i * N + k] / size,
+										key_points[i * N + k] * transform
+									}
+								);
+								city_vertices.push_back(
+									vertex{
+										key_points[i * N + ((k + 1) % N)] / size,
+										key_points[i * N + ((k + 1) % N)] * transform
+									}
+								);
+
+								city_vertices.push_back(
+									vertex{
+										settlement.first / size,
+										settlement.first * transform
+									}
+								);
+							} else {
+								city_vertices.push_back(
+									vertex{
+										key_points[i * N + k] / size,
+										key_points[i * N + k] * transform
+									}
+								);
+								city_vertices.push_back(
+									vertex{
+										key_points[i * N + ((k + 1) % N)] / size,
+										key_points[i * N + ((k + 1) % N)] * transform
+									}
+								);
+								city_vertices.push_back(
+									vertex{
+										key_points[(i - 1) * N + k] / size,
+										key_points[(i - 1) * N + k] * transform
+									}
+								);
+
+								city_vertices.push_back(
+									vertex{
+										key_points[i * N + ((k + 1) % N)] / size,
+										key_points[i * N + ((k + 1) % N)] * transform
+									}
+								);
+								city_vertices.push_back(
+									vertex{
+										key_points[(i - 1) * N + ((k + 1) % N)] / size,
+										key_points[(i - 1) * N + ((k + 1) % N)] * transform
+									}
+								);
+								city_vertices.push_back(
+									vertex{
+										key_points[(i - 1) * N + k] / size,
+										key_points[(i - 1) * N + k] * transform
+									}
+								);
+							}
+						}
+
+						//used[i * N + k] = 1;
+						//used[i * N + ((k + 1) % N)];
+						const auto r = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 43542, 4634 ^ p.id.index() ^ (uint32_t)(i * N + k));
 						const float rf = (float(rng::reduce(uint32_t(r), 8192)) / (8192.f));
 
 						if(rf > 0.25f) {
-							roads.push_back({ key_points[(i - 1) * N + k], key_points[i * N + k] });
+							if(i > 0) {
+								roads.push_back({ key_points[(i - 1) * N + k], key_points[i * N + k] });
+								
+							}
+
+							if(i == layers - 1) {
+								connectors[p.id.index()].push_back(key_points[i * N + k]);
+							}
 						}
 					}
 				}
-			}
-		}
-
-		// extend roads outside
-		for(int k = 0; k < N; k++) {
-			const auto rh = rng::get_random(state, p1.id.index() ^ 9572456, 432864 ^ p1.id.index() ^ (uint32_t)(k * N + k));
-			const float rhf = (float(rng::reduce(uint32_t(rh), 8192)) / (8192.f));
-			if(rhf * road_level > 0.8f) {
-
-				auto node_1 = key_points[k];
-				auto node_2 = key_points[k];
-
-				for(int i = int(road_level); i < road_level + 3; i++) {
-					node_1 = key_points[(i - 1) * N + k];
-					node_2 = key_points[i * N + k];
-					auto sample_2 = province::from_map_id(safe_get_province({ int(node_2.x), int(node_2.y) }));
-					if(sample_2.index() > state.province_definitions.first_sea_province.index()) {
-						node_2 = node_1;
-						break;
-					}
-
-					roads.push_back({ node_1, node_2 });
-				}
-
-				connectors[p1.id.index()].push_back(node_2);
-			} else {
-				if(rhf > 0.6f) {
-					connectors[p1.id.index()].push_back(key_points[k]);
-				}
-			}
-		}
+			}			
+		}		
 	}
 
 	// connect some provs:
