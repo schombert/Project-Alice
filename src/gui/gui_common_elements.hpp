@@ -318,7 +318,7 @@ public:
 		auto owner = state.world.province_get_nation_from_province_ownership(content);
 		auto sid = state.world.province_get_state_membership(content);
 
-		text::add_line(state, contents, "admin_explain_8", text::variable_type::val, text::fp_percentage{ economy::local_admin_ratio(state, owner, content) });
+		// text::add_line(state, contents, "admin_explain_8", text::variable_type::val, text::fp_percentage{ economy::local_admin_ratio(state, owner, content) });
 
 		// Vanilla numbers. Show only in colonial states
 		if(state.world.province_get_is_colonial(content)) {
@@ -326,7 +326,7 @@ public:
 		}
 
 		// Population per admin
-		text::add_line(state, contents, "admin_explain_11", text::variable_type::val, text::fp_one_place{ economy::population_per_admin(state, owner) });
+		// text::add_line(state, contents, "admin_explain_11", text::variable_type::val, text::fp_one_place{ economy::population_per_admin(state, owner) });
 
 		auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
 		text::add_line(state, contents, "admin_explain_1", text::variable_type::val, text::fp_percentage{ 1.0f + admin_mod }, 15);
@@ -363,7 +363,7 @@ public:
 		text::add_line(state, contents, "admin_explain_5", text::variable_type::val, text::fp_one_place{ non_core_effect }, 15);
 		text::add_line(state, contents, "admin_explain_6", text::variable_type::val, text::fp_one_place{ separatism_effect }, 15);
 
-		text::add_line(state, contents, "admin_explain_9", text::variable_type::val, text::fp_currency{ economy::tax_collection_capacity(state, owner, content) });
+		// text::add_line(state, contents, "admin_explain_9", text::variable_type::val, text::fp_currency{ economy::tax_collection_capacity(state, owner, content) });
 
 		auto localtax = economy::explain_tax_income_local(state, state.local_player_nation, content);
 		// Collected taxes
@@ -390,8 +390,8 @@ public:
 		};
 
 		// Spendings on salaries
-		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
-		text::add_line(state, contents, "admin_explain_10", text::variable_type::val, text::fp_currency{ economy::estimate_spendings_administration_local(state, owner, content, fraction) });
+		// auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
+		// text::add_line(state, contents, "admin_explain_10", text::variable_type::val, text::fp_currency{ economy::estimate_spendings_administration_local(state, owner, content, fraction) });
 	}
 };
 
@@ -2526,6 +2526,17 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 
 
 inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_id fid) {
+	auto p = state.world.factory_get_province_from_factory_location(fid);
+	auto p_fat = fatten(state.world, p);
+	auto n = p_fat.get_nation_from_province_ownership();
+	auto sdef = state.world.abstract_state_membership_get_state(state.world.province_get_abstract_state_membership(p));
+	dcon::state_instance_id s{};
+	state.world.for_each_state_instance([&](dcon::state_instance_id id) {
+		if(state.world.state_instance_get_definition(id) == sdef)
+			s = id;
+	});
+	auto market = state.world.state_instance_get_market_from_local_market(s);
+
 	// nation data
 
 	float mobilization_impact = state.world.nation_get_is_mobilized(n) ? military::mobilization_impact(state, n) : 1.0f;

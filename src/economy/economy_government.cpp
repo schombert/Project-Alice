@@ -20,6 +20,17 @@ inline constexpr float base_tax_collection_capacity = 10000.f;
 inline constexpr float base_population_per_admin = 200.f;
 
 float population_per_admin(sys::state& state, dcon::nation_id n) {
+	// Proposed: make population_per_admin dynamic to every province
+	// Increase the cost if there is separatism in the province
+	// Increase the cost if the province is not a core
+	/*
+	if(!state.world.province_get_is_owner_core(content)) {
+			non_core_effect += state.defines.noncore_tax_penalty;
+	}
+	if(state.world.province_get_nationalism(content) > 0.f) {
+		separatism_effect += state.defines.separatism_tax_penalty;
+	}
+	*/
 	return base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n));
 }
 
@@ -28,55 +39,6 @@ float population_per_admin(sys::state& state, dcon::nation_id n) {
 // with the central administration
 inline constexpr float base_admin_employment = 250.f;
 
-// tax collector can collect taxes N times larger than local sum of wages
-// this value is modified by tax and admin efficiency techs
-
-inline constexpr float tax_collection_multiplier = 10.f;
-
-float required_labour_in_capital_administration(sys::state& state, dcon::nation_id n) {
-	auto admin_efficiency = base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n));
-	auto total_population = state.world.nation_get_demographics(n, demographics::total);
-	return total_population / admin_efficiency + base_admin_employment;
-}
-
-float tax_collection_capacity(sys::state& state, dcon::nation_id n, dcon::province_id pid) {
-	auto tax_collection_global = 1.f + global_admin_ratio(state, n);
-	auto local_tax_collectors = state.world.province_get_administration_employment_target(pid)
-		* state.world.province_get_labor_demand_satisfaction(pid, economy::labor::high_education);
-
-	auto collection_rate_per_tax_collector =
-		state.world.province_get_labor_price(pid, economy::labor::high_education)
-		+ state.world.province_get_labor_price(pid, economy::labor::basic_education)
-		+ state.world.province_get_labor_price(pid, economy::labor::no_education);
-
-	
-
-	auto effort =
-		float(state.world.nation_get_poor_tax(n))
-		+ float(state.world.nation_get_middle_tax(n))
-		+ float(state.world.nation_get_rich_tax(n));
-
-	return
-		base_tax_collection_capacity
-		* collection_rate_per_tax_collector
-		+
-		tax_collection_global
-		* (1.f + state.world.nation_get_administrative_efficiency(n))
-		* nations::tax_efficiency(state, n)
-		* collection_rate_per_tax_collector
-		* effort / 100.f
-		* (base_tax_collection + local_tax_collectors)
-		* tax_collection_multiplier;
-}
-
-float total_tax_collection_capacity(sys::state& state, dcon::nation_id n) {
-	auto total = 0.f;
-	state.world.nation_for_each_province_ownership(n, [&](auto poid) {
-		auto local_province = state.world.province_ownership_get_province(poid);
-		total += tax_collection_capacity(state, n, local_province);
-		});
-	return num_of_administrations;
-}
 float count_active_administrations(sys::state& state, dcon::nation_id n) {
 	auto num_of_administrations = 0.f;
 	{
@@ -106,54 +68,6 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 	auto capital = state.world.nation_get_capital(n);
 	if(pid == capital) {
 		from_control = std::max(0.1f, from_control);
-	}
-
-	auto required_labor_capital = required_labour_in_capital_administration(state, n);
-	auto current_labor_capital =
-		state.world.nation_get_administration_employment_target_in_capital(n)
-		* state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education_and_accepted);
-
-	return current_labor_capital / required_labor_capital;
-}
-
-float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id pid) {
-	auto local_population = state.world.province_get_demographics(pid, demographics::total);
-	float required_labor_local = local_population / population_per_admin(state, n);
-
-	auto current_labor_local =
-		state.world.province_get_administration_employment_target(pid)
-		* state.world.province_get_labor_demand_satisfaction(pid, economy::labor::high_education);
-
-	float side_effects = 0.0f;
-	float bsum = 0.0f;
-	float rsum = 0.0f;
-
-	if(!state.world.province_get_is_owner_core(pid)) {
-		side_effects += state.defines.noncore_tax_penalty;
-	}
-	if(state.world.province_get_nationalism(pid) > 0.f) {
-		side_effects += state.defines.separatism_tax_penalty;
-	}
-	for(auto po : state.world.province_get_pop_location(pid)) {
-		if(po.get_pop().get_is_primary_or_accepted_culture() &&
-				po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
-			bsum += po.get_pop().get_size();
-			if(po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
-				rsum += po.get_pop().get_size();
-			}
-		}
-	}
-
-	float issue_sum = 0.0f;
-	for(auto i : state.culture_definitions.social_issues) {
-		issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(n, i));
-	}
-	auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
-	current_labor_local *= ((bsum - rsum) / bsum); // Rebellious bureaucrats damage local tax collection
-	current_labor_local /= 0.01f / from_issues;
-
-	if(std::isnan(current_labor_local)) {
-		return 0.f;
 	}
 
 	return base * from_control * efficiency;
@@ -319,7 +233,7 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_total_middle_income(n, total_mid_tax_base);
 	state.world.nation_set_total_poor_income(n, total_poor_tax_base);
 
-	
+
 
 	assert(std::isfinite(collected_tax));
 	assert(collected_tax >= 0);
