@@ -114,6 +114,7 @@ enum class command_type : uint8_t {
 	ask_for_free_trade_agreement = 105,
 	switch_embargo_status = 106,
 	revoke_trade_rights = 107,
+	toggle_local_administration = 108,
 
 	// network
 	notify_player_ban = 110,
@@ -770,7 +771,7 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest);
 
-std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset = true);
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
@@ -851,6 +852,9 @@ void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled
 
 void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);

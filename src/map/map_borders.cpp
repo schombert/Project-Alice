@@ -536,9 +536,9 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 
 		{
 			if(wrap_around) {
-				old_pos = put_in_local(glm::vec2(points[1].x, points[1].y), current_pos, float(dat.size_x));
+				old_pos = current_pos; //put_in_local(glm::vec2(points[1].x, points[1].y), current_pos, float(dat.size_x));
 			} else {
-				old_pos = 2.0f * current_pos - next_pos;
+				old_pos = current_pos; //2.0f * current_pos - next_pos;
 			}
 
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
@@ -547,9 +547,9 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 				0.0f, distance
 			});
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
-				norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y),
+				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
 				province_A,
-				1.0f, distance
+				-1.0f, distance
 			});
 
 			raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
@@ -572,9 +572,9 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 				0.0f, distance
 			});
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
-				norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y),
+				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
 				province_A,
-				1.0f, distance
+				-1.0f, distance
 			});
 
 			raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
@@ -587,9 +587,9 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 			current_pos = glm::vec2(points[0].x, points[0].y);
 
 			if(wrap_around) {
-				next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+				next_pos = current_pos; // put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
 			} else {
-				next_pos = 2.0f * current_pos - old_pos;
+				next_pos = current_pos; //2.0f * current_pos - old_pos;
 			}
 
 			auto next_direction = glm::normalize(next_pos - current_pos);
@@ -600,7 +600,7 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), province_A, 0.0f, distance
 			});
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
-				norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), province_A, 1.0f, distance
+				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), province_A, -1.0f, distance
 			});
 
 			raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
@@ -622,9 +622,9 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 
 		{
 			if(wrap_around) {
-				old_pos = put_in_local(glm::vec2(points[1].x, points[1].y), current_pos, float(dat.size_x));
+				old_pos = current_pos; //put_in_local(glm::vec2(points[1].x, points[1].y), current_pos, float(dat.size_x));
 			} else {
-				old_pos = 2.0f * current_pos - next_pos;
+				old_pos = current_pos; // 2.0f * current_pos - next_pos;
 			}
 
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
@@ -633,7 +633,7 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 				1.0f, distance
 			});
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
-				norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y),
+				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
 				province_B,
 				0.0f, distance
 			});
@@ -658,7 +658,7 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 				1.0f, distance
 			});
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
-				norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y),
+				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
 				province_B,
 				0.0f, distance
 			});
@@ -673,9 +673,9 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 			current_pos = glm::vec2(points[0].x, points[0].y);
 
 			if(wrap_around) {
-				next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+				next_pos = current_pos; //put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
 			} else {
-				next_pos = 2.0f * current_pos - old_pos;
+				next_pos = current_pos; //2.0f * current_pos - old_pos;
 			}
 
 			auto next_direction = glm::normalize(next_pos - current_pos);
@@ -687,7 +687,7 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 				province_B, 1.0f, distance
 			});
 			dat.border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
-				norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y),
+				norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y),
 				province_B, 0.0f, distance
 			});
 

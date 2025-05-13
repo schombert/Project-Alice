@@ -579,10 +579,7 @@ public:
 
 				text::add_line(state, contents, state.world.factory_type_get_name(nf.type));
 
-				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
-				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
-				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
-				float admin_cost_factor = (p.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+				float factory_mod = economy::factory_build_cost_multiplier(state, p.get_nation(), pid, p.get_is_pop_project());
 
 				auto& goods = state.world.factory_type_get_construction_costs(nf.type);
 				auto& cgoods = p.get_purchased_goods();
@@ -598,7 +595,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factory_mod });
 						text::close_layout_box(contents, box);
 					}
 				}
@@ -624,13 +621,10 @@ public:
 			return;
 		for(auto p : state.world.province_get_factory_construction(pid)) {
 			if(p.get_type() == nf.type) {
-				float admin_eff = state.world.nation_get_administrative_efficiency(p.get_nation());
-				float factory_mod = state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
-				float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(p.get_nation(), sys::national_mod_offsets::factory_owner_cost));
-				float admin_cost_factor = (p.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
+				float factory_mod = economy::factory_build_cost_multiplier(state, p.get_nation(), pid, p.get_is_pop_project());
 				auto owner = state.world.province_get_nation_from_province_ownership(pid);
 
-				auto goods = economy::calculate_factory_refit_goods_cost(state, owner, state.world.province_get_state_membership(pid), nf.type, nf.target_type);
+				auto goods = economy::calculate_factory_refit_goods_cost(state, owner, pid, nf.type, nf.target_type);
 				auto& cgoods = p.get_purchased_goods();
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -644,7 +638,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factory_mod });
 						text::close_layout_box(contents, box);
 					}
 				}
@@ -1266,10 +1260,6 @@ public:
 					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
 						color = text::text_color::red;
 					}
-				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
-						color = text::text_color::red;
-					}
 				}
 				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
 				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
@@ -1671,8 +1661,8 @@ inline table::column<dcon::factory_type_id> factory_type_cost = {
 		auto nation = retrieve<dcon::nation_id>(state, container);
 		auto market = retrieve<dcon::market_id>(state, container);
 
-		auto av = economy::factory_type_build_cost(state, nation, market, a);
-		auto bv = economy::factory_type_build_cost(state, nation, market, b);
+		auto av = economy::factory_type_build_cost(state, nation, state.world.nation_get_capital(nation), a, false);
+		auto bv = economy::factory_type_build_cost(state, nation, state.world.nation_get_capital(nation), b, false);
 
 		if(av != bv)
 			return av > bv;
@@ -1683,7 +1673,7 @@ inline table::column<dcon::factory_type_id> factory_type_cost = {
 		auto nation = retrieve<dcon::nation_id>(state, container);
 		auto market = retrieve<dcon::market_id>(state, container);
 
-		auto value = economy::factory_type_build_cost(state, nation, market, id);
+		auto value = economy::factory_type_build_cost(state, nation, state.world.nation_get_capital(nation), id, false);
 		return text::format_money(value);
 	},
 };
@@ -1701,8 +1691,8 @@ inline table::column<dcon::factory_type_id> factory_type_payback = {
 			- economy::factory_type_input_cost(state, nation, market, b);
 		av = std::max(0.f, av);
 		bv = std::max(0.f, bv);
-		av = economy::factory_type_build_cost(state, nation, market, a) / av;
-		bv = economy::factory_type_build_cost(state, nation, market, b) / bv;
+		av = economy::factory_type_build_cost(state, nation, state.world.nation_get_capital(nation), a, false) / av;
+		bv = economy::factory_type_build_cost(state, nation, state.world.nation_get_capital(nation), b, false) / bv;
 
 		if(av != bv)
 			return av > bv;
@@ -1716,7 +1706,7 @@ inline table::column<dcon::factory_type_id> factory_type_payback = {
 		auto value = economy::factory_type_output_cost(state, nation, market, id)
 			- economy::factory_type_input_cost(state, nation, market, id);
 		value = std::max(0.f, value);
-		value = economy::factory_type_build_cost(state, nation, market, id) / value;
+		value = economy::factory_type_build_cost(state, nation, state.world.nation_get_capital(nation), id, false) / value;
 
 		return text::format_float(value);
 	},

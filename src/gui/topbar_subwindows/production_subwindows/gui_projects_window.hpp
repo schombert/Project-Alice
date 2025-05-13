@@ -5,6 +5,7 @@
 #include "gui_project_investment_window.hpp"
 #include "gui_production_enum.hpp"
 #include "economy_stats.hpp"
+#include "construction.hpp"
 
 namespace ui {
 
@@ -167,13 +168,11 @@ public:
 			needed_commodities = fat_id.get_type().get_construction_costs();
 			satisfied_commodities = fat_id.get_purchased_goods();
 
-			float factory_mod = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::factory_cost) + 1.0f;
-			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::factory_owner_cost));
-			float admin_cost_factor =  pop_factory_mod * factory_mod;
+			float factory_mod = economy::factory_build_cost_multiplier(state, state.local_player_nation, fat_id.get_province(), fat_id.get_is_pop_project());
 			float refit_discount = (fat_id.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				needed_commodities.commodity_amounts[i] *= admin_cost_factor * refit_discount;
+				needed_commodities.commodity_amounts[i] *= factory_mod * refit_discount;
 			}
 		}
 

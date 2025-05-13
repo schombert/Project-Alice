@@ -413,7 +413,7 @@ void admin_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_admin"), text::variable_type::value, text::fp_one_place{ province::state_admin_efficiency(state, fat.get_state_membership().id) * 100.0f });
+		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_admin"), text::variable_type::value, text::fp_one_place{ state.world.province_get_control_ratio(prov) * 100.0f });
 		text::close_layout_box(contents, box);
 		if(fat.get_crime()) {
 			text::add_line_break_to_layout(state, contents);

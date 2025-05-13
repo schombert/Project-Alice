@@ -1309,18 +1309,28 @@ void describe_conversion(sys::state& state, text::columnar_layout& contents, dco
 void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 
+	auto owners = state.world.province_get_nation_from_province_ownership(loc);
+	float base = 0.f;
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.bureaucrat
+		&& (
+			state.world.nation_get_accepted_cultures(owners, state.world.pop_get_culture(ids))
+			|| state.world.nation_get_primary_culture(owners) == state.world.pop_get_culture(ids)
+			)
+	) {
+		base = demographics::administration_base_push;
+		text::add_line(state, contents, "pop_migration_bureaucracy", text::variable_type::x, text::fp_two_places{ base });
+	}
 
-	if(state.world.province_get_is_colonial(loc)) {
+	if(state.world.province_get_is_colonial(loc) && base == 0.f) {
 		text::add_line(state, contents, "pop_mig_1");
 		return;
 	}
 	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves) {
 		text::add_line(state, contents, "pop_mig_2");
 		return;
-	}
+	}	
 
-	auto owners = state.world.province_get_nation_from_province_ownership(loc);
-	auto migration_chance = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+	auto migration_chance = base + std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 	auto prov_mod = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 	auto scale = state.defines.immigration_scale;
 
@@ -1337,7 +1347,7 @@ void describe_colonial_migration(sys::state& state, text::columnar_layout& conte
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 
-
+	
 	if(state.world.nation_get_is_colonial_nation(owner) == false) {
 		text::add_line(state, contents, "pop_cmig_1");
 		return;
@@ -1360,7 +1370,18 @@ void describe_colonial_migration(sys::state& state, text::columnar_layout& conte
 		return;
 	}
 
-	auto mig_chance = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+	float base = 0.f;
+	if(state.world.pop_get_poptype(ids) == state.culture_definitions.bureaucrat
+		&& (
+			state.world.nation_get_accepted_cultures(owner, state.world.pop_get_culture(ids))
+			|| state.world.nation_get_primary_culture(owner) == state.world.pop_get_culture(ids)
+			)
+	) {
+		base = demographics::administration_base_push;
+		text::add_line(state, contents, "pop_migration_bureaucracy", text::variable_type::x, text::fp_two_places{ base });
+	}
+
+	auto mig_chance = base + std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 	auto im_push = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 	auto cmig = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::colonial_migration) + 1.0f);
 	auto scale = state.defines.immigration_scale;
@@ -1893,7 +1914,14 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
 	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
+	auto pc = state.world.pop_get_culture(ids);
+
+	float culture_size = state.world.province_get_demographics(location, demographics::to_key(state, pc));
+	float total_size = state.world.province_get_demographics(location, demographics::total);
+	auto anti_spam_measure = std::max(0.f, 0.04f - culture_size / (total_size + 1.f)) * 50.f;
+
 	float base_amount =
+		anti_spam_measure +
 		state.defines.assimilation_scale *
 		(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) *
 		(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) *
@@ -1905,7 +1933,6 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	group are reduced by a factor of 10.
 	*/
 
-	auto pc = state.world.pop_get_culture(ids);
 	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
 		base_amount /= 10.0f;
 	}
@@ -1952,7 +1979,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 		text::add_line(state, contents, "pop_assim_5");
 		return;
 	}
-	text::add_line(state, contents, "pop_assim_6");
+	text::add_line(state, contents, "pop_assim_6", text::variable_type::x, text::fp_three_places{ anti_spam_measure });
 	text::add_line(state, contents, "pop_assim_7", text::variable_type::x, text::fp_three_places{ state.defines.assimilation_scale });
 	text::add_line(state, contents, "pop_assim_8", text::variable_type::x, text::fp_two_places{ std::max(0.0f,state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) });
 	ui::active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_assimilation_rate, true);

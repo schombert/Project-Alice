@@ -156,7 +156,7 @@ public:
 		assert(adj);
 		auto id = adj.index();
 		auto& border = state.map_state.map_data.borders[id];
-		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 2];
+		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4];
 
 		map_x = vertex.position.x;
 		map_y = vertex.position.y;
@@ -227,7 +227,7 @@ public:
 			auto screen_size =
 				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 				visible = false;
 				return;
 			}
@@ -1092,7 +1092,7 @@ public:
 			auto map_pos = state.map_state.normalize_map_coord(mid_point);
 			auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 				visible = false;
 				return;
 			}
@@ -1723,7 +1723,7 @@ public:
 			auto map_pos = state.map_state.normalize_map_coord(mid_point);
 			auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 				visible = false;
 				return;
 			}
@@ -2043,7 +2043,7 @@ public:
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 		glm::vec2 screen_pos;
 
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 			visible = false;
 			return;
 		}
@@ -2086,7 +2086,7 @@ public:
 		auto screen_size =
 				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
 		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f }))
 			return;
 		auto new_position = xy_pair{int16_t(screen_pos.x - base_data.size.x / 2), int16_t(screen_pos.y - base_data.size.y / 2)};
 		image_element_base::base_data.position = new_position;

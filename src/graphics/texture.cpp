@@ -886,102 +886,26 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 	return 0;
 }
 
-native_string flag_type_to_name(sys::state& state, culture::flag_type type) {
-	switch(type) {
-	case culture::flag_type::count:
-	case culture::flag_type::default_flag:
-		return NATIVE("");
-	case culture::flag_type::communist:
-		return NATIVE("_communist");
-	case culture::flag_type::fascist:
-		return NATIVE("_fascist");
-	case culture::flag_type::monarchy:
-		return NATIVE("_monarchy");
-	case culture::flag_type::republic:
-		return NATIVE("_republic");
-		// Non-vanilla
-	case culture::flag_type::theocracy:
-		return NATIVE("_theocracy");
-	case culture::flag_type::special:
-		return NATIVE("_special");
-	case culture::flag_type::spare:
-		return NATIVE("_spare");
-	case culture::flag_type::populist:
-		return NATIVE("_populist");
-	case culture::flag_type::realm:
-		return NATIVE("_realm");
-	case culture::flag_type::other:
-		return NATIVE("_other");
-	case culture::flag_type::monarchy2:
-		return NATIVE("_monarchy2");
-	case culture::flag_type::monarchy3:
-		return NATIVE("_monarchy3");
-	case culture::flag_type::republic2:
-		return NATIVE("_republic2");
-	case culture::flag_type::republic3:
-		return NATIVE("_republic3");
-	case culture::flag_type::communist2:
-		return NATIVE("_communist2");
-	case culture::flag_type::communist3:
-		return NATIVE("_communist3");
-	case culture::flag_type::fascist2:
-		return NATIVE("_fascist2");
-	case culture::flag_type::fascist3:
-		return NATIVE("_fascist3");
-	case culture::flag_type::theocracy2:
-		return NATIVE("_theocracy2");
-	case culture::flag_type::theocracy3:
-		return NATIVE("_theocracy3");
-	case culture::flag_type::cosmetic_1:
-		return NATIVE("_cosmetic_1");
-	case culture::flag_type::cosmetic_2:
-		return NATIVE("_cosmetic_2");
-	case culture::flag_type::colonial:
-		return NATIVE("_colonial");
-	case culture::flag_type::nationalist:
-		return NATIVE("_nationalist");
-	case culture::flag_type::sectarian:
-		return NATIVE("_sectarian");
-	case culture::flag_type::socialist:
-		return NATIVE("_socialist");
-	case culture::flag_type::dominion:
-		return NATIVE("_dominion");
-	case culture::flag_type::agrarism:
-		return NATIVE("_agrarism");
-	case culture::flag_type::national_syndicalist:
-		return NATIVE("_national_syndicalist");
-	case culture::flag_type::theocratic:
-		return NATIVE("_theocratic");
-	case culture::flag_type::slot1:
-		return NATIVE("_slot1");
-	case culture::flag_type::slot2:
-		return NATIVE("_slot2");
-	case culture::flag_type::slot3:
-		return NATIVE("_slot3");
-	case culture::flag_type::slot4:
-		return NATIVE("_slot4");
-	case culture::flag_type::anarcho_liberal:
-		return NATIVE("_anarcho_liberal");
-	case culture::flag_type::green:
-		return NATIVE("_green");
-	case culture::flag_type::traditionalist:
-		return NATIVE("_traditionalist");
-	case culture::flag_type::ultranationalist:
-		return NATIVE("_ultranationalist");
-	default:
-		return NATIVE("");
-
-	}
+native_string flag_type_to_name(sys::state& state, dcon::government_flag_id type) {
+	if (type)
+		return NATIVE("_") + simple_fs::utf8_to_native( std::string{ state.to_string_view(state.world.government_flag_get_filename(type)) } );
+	return NATIVE("");
 }
 
-GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
+GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, dcon::government_flag_id type) {
 	auto masq_nat_id = state.world.nation_get_masquerade_identity(state.world.national_identity_get_nation_from_identity_holder(nat_id));
 	if(!masq_nat_id) {
 		masq_nat_id = nat_id;
 	}
 
-	auto const offset = culture::get_remapped_flag_type(state, type);
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + masq_nat_id.id.index()) * state.flag_types.size() + offset) };
+	dcon::texture_id id = dcon::texture_id{
+		dcon::texture_id::value_base_t(
+			state.ui_defs.textures.size()
+			+ (1 + masq_nat_id.id.index())
+			* state.world.government_flag_size()
+		)
+	};
+
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
@@ -1012,7 +936,7 @@ GLuint get_rebel_flag_handle(sys::state& state, dcon::rebel_faction_id faction) 
 	dcon::ideology_fat_id ideology = rtype.get_ideology();
 
 	if(!ideology) {
-		return get_flag_handle(state, state.national_definitions.rebel_id, culture::flag_type::default_flag);
+		return get_flag_handle(state, state.national_definitions.rebel_id, dcon::government_flag_id{ });
 	}
 
 	GLuint o_tex = state.ui_state.rebel_flags[ideology.id.index()];

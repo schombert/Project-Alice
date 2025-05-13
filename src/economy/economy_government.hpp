@@ -18,13 +18,13 @@ float total_tax_collection_capacity(sys::state& state, dcon::nation_id n);
 float global_admin_ratio(sys::state& state, dcon::nation_id n);
 // ratio of current employed local admin to local admin required by given state instance
 float local_admin_ratio(sys::state& state, dcon::nation_id n, dcon::province_id);
+// ratio of taxes you can collect in a given province
+float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_id);
 
 // these functions estimate spendings for given budget priority
 
 // estimate "imperial administration" spendings which are based on total population of the realm
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority);
-// estimate "local administration" spendings
-float estimate_spendings_administration_local(sys::state&, dcon::nation_id, dcon::province_id, float budget_priority);
 // estimate total spendings for your administration
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority);
 // total current spendings
@@ -39,7 +39,7 @@ struct tax_information {
 	float mid = 0.f;
 	float rich = 0.f;
 
-	float capacity = 0.f;
+	float local_multiplier = 0.f;
 
 	float poor_potential = 0.f;
 	float mid_potential = 0.f;

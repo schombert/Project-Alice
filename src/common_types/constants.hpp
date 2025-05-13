@@ -562,6 +562,10 @@ enum class color_blind_mode {
 	achroma, //black and white
 };
 
+enum class graphics_mode {
+	ugly, classic, modern, total
+};
+
 constexpr int32_t max_event_options = 8;
 constexpr uint32_t max_languages = 64;
 

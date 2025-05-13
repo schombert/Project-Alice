@@ -389,6 +389,7 @@ struct user_settings_s {
 	bool wasd_for_map_movement = false;
 	bool notify_rebels_defeat = true;
 	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
+	sys::graphics_mode graphics_mode = sys::graphics_mode::classic;
 	uint32_t UNUSED_UINT32_T = 0;
 	char locale[16] = "en-US";
 };
@@ -579,9 +580,6 @@ struct alignas(64) state {
 
 	ui::definitions ui_defs; // definitions for graphics and ui
 
-	std::vector<uint8_t> flag_type_map;   // flag_type remapper for saving space while also allowing mods to add flags not present in vanilla
-	std::vector<culture::flag_type> flag_types; // List of unique flag types
-
 	//
 	// persistent user settings
 	//
@@ -599,7 +597,7 @@ struct alignas(64) state {
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
-	float inflation = 1.0f;
+	float inflation = 0.999f; // to compensate for some of money generation which will happen anyway
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::regiment_id> selected_regiments; // selected regiments inside the army

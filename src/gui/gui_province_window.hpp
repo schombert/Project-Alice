@@ -368,10 +368,6 @@ public:
 					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
 						color = text::text_color::red;
 					}
-				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
-						color = text::text_color::red;
-					}
 				}
 				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
 				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
@@ -499,6 +495,29 @@ public:
 		text::add_line_with_condition(state, contents, "alice_mvcap_10", !(state.world.province_get_nation_from_province_ownership(p) != source));
 		text::add_line_with_condition(state, contents, "alice_mvcap_11", !(state.world.province_get_nation_from_province_control(p) != source));
 		text::add_line_with_condition(state, contents, "alice_mvcap_12", !(state.world.province_get_is_owner_core(p) == false));
+	}
+};
+
+class province_toggle_administration_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_toggle_local_administration(state, state.local_player_nation, p);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::toggle_local_administration(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		text::add_line(state, contents, "alice_toggle_administration");
 	}
 };
 
@@ -655,6 +674,8 @@ public:
 			return btn;
 		} else if(name == "alice_move_capital") {
 			return make_element_by_type<province_move_capital_button>(state, id);
+		} else if(name == "alice_toggle_administration") {
+			return make_element_by_type<province_toggle_administration_button>(state, id);
 		} else if(name == "alice_take_province") {
 			return make_element_by_type<province_take_province_button>(state, id);
 		} else if(name == "alice_grant_province") {
@@ -799,8 +820,7 @@ public:
 		text::add_line(state, contents, "alice_province_building_build");
 
 		// Construction cost goods breakdown
-		float admin_eff = state.world.nation_get_administrative_efficiency(state.local_player_nation);
-		float admin_cost_factor = 2.0f - admin_eff;
+		float factor = economy::build_cost_multiplier(state, id, false);
 		auto constr_cost = state.economy_definitions.building_definitions[uint8_t(Value)].cost;
 
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -815,7 +835,7 @@ public:
 			text::add_unparsed_text_to_layout_box(state, contents, box, description);
 			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(constr_cost.commodity_type[i]));
 			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-			text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] * factor });
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -847,8 +867,7 @@ public:
 				auto& goods = state.economy_definitions.building_definitions[int32_t(Value)].cost;
 				auto& cgoods = pb_con.get_purchased_goods();
 
-				float admin_eff = state.world.nation_get_administrative_efficiency(pb_con.get_nation());
-				float admin_cost_factor = pb_con.get_is_pop_project() ? 1.0f :  2.0f - admin_eff;
+				float factor = economy::build_cost_multiplier(state, prov, pb_con.get_is_pop_project());
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(goods.commodity_type[i]) {
@@ -863,7 +882,7 @@ public:
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * admin_cost_factor });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factor });
 						text::close_layout_box(contents, box);
 					}
 				}
@@ -2685,17 +2704,17 @@ inline table::column<dcon::commodity_id> rgo_profit = {
 	}
 };
 
-inline table::column<dcon::commodity_id> rgo_expected_profit = {
+inline table::column<dcon::commodity_id> rgo_wages = {
 	.sortable = true,
-	.header = "rgo_expected_profit",
+	.header = "rgo_wage",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = economy::rgo_expected_worker_norm_profit(state, p, m, n, a);
-		auto bv = economy::rgo_expected_worker_norm_profit(state, p, m, n, b);
+		auto av = economy::rgo_wage(state, a, p);
+		auto bv = economy::rgo_wage(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2703,34 +2722,29 @@ inline table::column<dcon::commodity_id> rgo_expected_profit = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto p = retrieve<dcon::province_id>(state, container);
-		auto n = state.world.province_get_nation_from_province_ownership(p);
-		auto si = retrieve<dcon::state_instance_id>(state, container);
-		auto m = state.world.state_instance_get_market_from_local_market(si);
-
-		auto value = economy::rgo_expected_worker_norm_profit(state, p, m, n, id)
-			* state.defines.alice_rgo_per_size_employment;
-		return text::format_money(value);
+		return text::format_money(-economy::rgo_wage(state, id, p));
 	}
 };
 
-inline table::column<dcon::commodity_id> rgo_desired_profit = {
+inline table::column<dcon::commodity_id> rgo_inputs = {
 	.sortable = true,
-	.header = "rgo_desired_profit",
+	.header = "rgo_inputs",
 	.compare = [](sys::state& state, element_base* container, dcon::commodity_id a, dcon::commodity_id b) {
-		return a.index() < b.index();
-	},
-	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto p = retrieve<dcon::province_id>(state, container);
 		auto n = state.world.province_get_nation_from_province_ownership(p);
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
-		auto pops = economy::rgo_relevant_population(state, p, n);
-		auto min_wage_factor = economy::pop_min_wage_factor(state, n);
-		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-		auto v = state.world.province_get_labor_price(p, economy::labor::no_education) * (1.f + economy::aristocrats_greed);
 
-		auto value = v * state.defines.alice_rgo_per_size_employment;
-		return text::format_money(value);
+		auto av = economy::rgo_efficiency_spendings(state, a, p);
+		auto bv = economy::rgo_efficiency_spendings(state, b, p);
+		if(av != bv)
+			return av > bv;
+		else
+			return a.index() < b.index();
+	},
+	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
+		auto p = retrieve<dcon::province_id>(state, container);
+		return text::format_money(-economy::rgo_efficiency_spendings(state, id, p));
 	}
 };
 
@@ -2859,8 +2873,8 @@ public:
 			return make_element_by_type<economy_data_toggle>(state, id);
 		} else if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
-				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_expected_profit,
-				rgo_desired_profit, rgo_employment, rgo_max_employment, rgo_saturation
+				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_wages,
+				rgo_inputs, rgo_employment, rgo_max_employment, rgo_saturation
 			};
 			auto ptr = make_element_by_type<table::display<dcon::commodity_id>>(
 				state,

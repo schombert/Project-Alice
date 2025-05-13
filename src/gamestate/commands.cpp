@@ -3590,7 +3590,7 @@ bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	return state.network_mode != sys::network_mode_type::single_player;
 }
 
-std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return std::vector<dcon::province_id>{};
 	if(state.world.army_get_is_retreating(a))
@@ -3599,19 +3599,31 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 		return std::vector<dcon::province_id>{}; // stop movement
 
 	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
+	// the "reset" param dictaties whether or not it checks if you can move from the armies *current position* (reset is true), or from the province the army is currently queued to walk to (reset is false)
 	auto last_province = state.world.army_get_location_from_army_location(a);
-	auto movement = state.world.army_get_path(a);
-	if(movement.size() > 0) {
-		last_province = movement.at(0);
+	if(!reset) {
+		auto movement = state.world.army_get_path(a);
+		if(movement.size() > 0) {
+			last_province = movement.at(0);
+		}
 	}
+	else {
+		// if reset is true and the armies' current province is the same as the desination province, return a path vector with just the current province.
+		// if passed to execute_move_army, it will pick it up and cancel the current pathing
+		if(last_province == dest) {
+			return std::vector<dcon::province_id>{last_province};
+		}
+	}
+	
 
 	return calculate_army_path(state, source, a, last_province, dest);
 }
 
 
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest) {
-	if(last_province == dest)
-		return std::vector<dcon::province_id>{};
+	if(last_province == dest) {
+		return std::vector<dcon::province_id>{};	
+	}
 
 	if(!can_partial_retreat_from(state, state.world.army_get_battle_from_army_battle_participation(a)))
 		return std::vector<dcon::province_id>{};
@@ -3745,9 +3757,15 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 	if(reset) {
 		existing_path.clear();
+		//if the movement is to be reset, and the destination province is the same province as the unit is currently in
+		//we assume that the intention is to cancel the current move command. Cancel the existing path and return w/o assigning a new one
+		if(state.world.army_get_location_from_army_location(a) == dest) {
+			state.world.army_set_arrival_time(a, sys::date{});
+			return;
+		}
 	}
 
-	auto path = can_move_army(state, source, a, dest);
+	auto path = can_move_army(state, source, a, dest, reset);
 
 	if(path.size() > 0) {
 		auto append_size = uint32_t(path.size());
@@ -5049,6 +5067,42 @@ void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::provi
 	state.world.nation_set_capital(source, p);
 }
 
+void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	payload command;
+	memset(&command, 0, sizeof(payload));
+	command.type = command_type::toggle_local_administration;
+	command.source = source;
+	command.data.generic_location.prov = p;
+	add_to_command_queue(state, command);
+}
+bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	// allow planning future capitals
+	// capitals outside of your actual control are not updated
+	// also allows to not handle deletion of administations
+	auto rebels = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+	if(source == rebels || !source) {
+		return false;
+	}
+	return true;
+}
+void execute_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	dcon::administration_id existing_admin{ };
+	state.world.nation_for_each_nation_administration(source, [&](auto naid) {
+		auto aid = state.world.nation_administration_get_administration(naid);
+		auto capital = state.world.administration_get_capital(aid);
+		if(p == capital) {
+			existing_admin = aid;
+		}
+	});
+	if(existing_admin) {
+		state.world.delete_administration(existing_admin);
+	} else {
+		auto admin = state.world.create_administration();
+		state.world.administration_set_capital(admin, p);
+		state.world.force_create_nation_administration(admin, source);
+	}
+}
+
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5832,7 +5886,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_send_peace_offer(state, c.source);
 
 	case command_type::move_army:
-		return can_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest).size() != 0;
+		return can_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset).size() != 0;
 
 	case command_type::move_navy:
 		return can_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest).size() != 0;
@@ -5942,6 +5996,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::move_capital:
 		return can_move_capital(state, c.source, c.data.generic_location.prov);
+
+	case command_type::toggle_local_administration:
+		return can_toggle_local_administration(state, c.source, c.data.generic_location.prov);
 
 	case command_type::take_province:
 		return can_take_province(state, c.source, c.data.generic_location.prov);
@@ -6326,6 +6383,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::move_capital:
 		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::toggle_local_administration:
+		execute_toggle_local_administration(state, c.source, c.data.generic_location.prov);
 		break;
 	case command_type::take_province:
 		execute_take_province(state, c.source, c.data.generic_location.prov);

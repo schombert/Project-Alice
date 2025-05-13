@@ -3900,20 +3900,8 @@ void  pop_details_main_mig_list_t::update(sys::state& state, layout_window_eleme
 							auto const& b = std::get<mig_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::mig_list::mig_table::sort::weight
-						float aweight = 0.0f;
-						float bweight = 0.0f;
-
-						auto pt = state.world.pop_get_poptype(main.for_pop);
-						auto modifier = state.world.pop_type_get_migration_target(pt);
-
-						{
-							float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(a.destination), trigger::to_generic(main.for_pop), 0);
-							aweight = std::max(0.0f, interp_result * (state.world.province_get_modifier_values(a.destination, sys::provincial_mod_offsets::immigrant_attract) + 1.0f));
-						}
-						{
-							float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(b.destination), trigger::to_generic(main.for_pop), 0);
-							bweight = std::max(0.0f, interp_result * (state.world.province_get_modifier_values(b.destination, sys::provincial_mod_offsets::immigrant_attract) + 1.0f));
-						}
+						float aweight = demographics::explain_province_internal_migration_weight(state, main.for_pop, a.destination).result;
+						float bweight = demographics::explain_province_internal_migration_weight(state, main.for_pop, b.destination).result;
 
 						result = cmp3(aweight, bweight);
 // END
@@ -10181,7 +10169,7 @@ void pop_details_emm_row_dest_flag_t::update_tooltip(sys::state& state, int32_t 
 }
 void pop_details_emm_row_dest_flag_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(std::holds_alternative<dcon::nation_id>(flag)) {
-		culture::flag_type flag_type = culture::flag_type{};
+		dcon::government_flag_id flag_type {};
 		auto h_temp = state.world.nation_get_identity_from_identity_holder(std::get<dcon::nation_id>(flag));
 		if(bool(std::get<dcon::nation_id>(flag)) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) != 0) {
 			flag_type = culture::get_current_flag_type(state, std::get<dcon::nation_id>(flag));
@@ -10191,7 +10179,7 @@ void pop_details_emm_row_dest_flag_t::render(sys::state & state, int32_t x, int3
 		auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
 		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
 	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
-		culture::flag_type flag_type = culture::flag_type{};
+		dcon::government_flag_id flag_type {};
 		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
 		if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
 			flag_type = culture::get_current_flag_type(state, n_temp);
@@ -10203,7 +10191,7 @@ void pop_details_emm_row_dest_flag_t::render(sys::state & state, int32_t x, int3
 	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
 		dcon::rebel_faction_id rf_temp = std::get<dcon::rebel_faction_id>(flag);
 		if(state.world.rebel_faction_get_type(rf_temp).get_independence() != uint8_t(culture::rebel_independence::none) && state.world.rebel_faction_get_defection_target(rf_temp)) {
-			culture::flag_type flag_type = culture::flag_type{};
+			dcon::government_flag_id flag_type {};
 			auto h_temp = state.world.rebel_faction_get_defection_target(rf_temp);
 			auto n_temp = state.world.national_identity_get_nation_from_identity_holder(h_temp);
 			if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
@@ -10750,18 +10738,20 @@ void pop_details_mig_row_content_t::update_tooltip(sys::state& state, int32_t x,
 	pop_details_mig_row_t& mig_row = *((pop_details_mig_row_t*)(parent)); 
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
 // BEGIN mig_row::content::weight::column_tooltip
+
+	auto explanation = demographics::explain_province_internal_migration_weight(state, main.for_pop, mig_row.destination);
 	auto pt = state.world.pop_get_poptype(main.for_pop);
 	auto modifier = state.world.pop_type_get_migration_target(pt);
 
-	float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(mig_row.destination), trigger::to_generic(main.for_pop), 0);
-	//float aweight = std::max(0.0f, interp_result * (state.world.province_get_modifier_values(mig_row.destination, sys::provincial_mod_offsets::immigrant_attract) + 1.0f));
-	
 	text::add_line(state, contents, "pop_migration_attraction_1");
-	text::add_line(state, contents, "pop_migration_attraction_2", text::variable_type::x, text::fp_percentage{ state.world.province_get_modifier_values(mig_row.destination, sys::provincial_mod_offsets::immigrant_attract) + 1.0f });
+	text::add_line(state, contents, "pop_migration_attraction_2", text::variable_type::x, text::fp_percentage{ explanation.modifier });
 	ui::active_modifiers_description(state, contents, mig_row.destination, 15, sys::provincial_mod_offsets::immigrant_attract, false);
-	text::add_line(state, contents, "pop_migration_attraction_3", text::variable_type::x, text::fp_two_places{ interp_result });
+	text::add_line(state, contents, "pop_migration_attraction_3", text::variable_type::x, text::fp_two_places{ explanation.base_multiplier });
 	ui::multiplicative_value_modifier_description(state, contents, modifier, trigger::to_generic(mig_row.destination), trigger::to_generic(main.for_pop), 0);
-	
+	if(explanation.base_weight > 0.f) {
+		text::add_line(state, contents, "pop_migration_attraction_bureaucracy", text::variable_type::x, text::fp_percentage{ explanation.base_weight });
+	}
+	text::add_line(state, contents, "pop_migration_attraction_wage_ratio", text::variable_type::x, text::fp_percentage{ explanation.wage_multiplier });
 // END
 	}
 }
@@ -10817,14 +10807,8 @@ void pop_details_mig_row_content_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
 // BEGIN mig_row::content::update
 	set_destination_text(state, text::produce_simple_string(state, state.world.province_get_name(mig_row.destination)));
-
-	auto pt = state.world.pop_get_poptype(main.for_pop);
-	auto modifier = state.world.pop_type_get_migration_target(pt);
-
-	float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(mig_row.destination), trigger::to_generic(main.for_pop), 0);
-	float aweight = std::max(0.0f, interp_result * (state.world.province_get_modifier_values(mig_row.destination, sys::provincial_mod_offsets::immigrant_attract) + 1.0f));
-
-	set_weight_text(state, text::format_float(aweight, 2));
+	auto explanation = demographics::explain_province_internal_migration_weight(state, main.for_pop, mig_row.destination);
+	set_weight_text(state, text::format_float(explanation.result, 2));
 // END
 }
 void pop_details_mig_row_content_t::on_create(sys::state& state) noexcept {

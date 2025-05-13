@@ -158,7 +158,7 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 		error_type = "Error group pop";
 		break;
 	case GL_DEBUG_TYPE_OTHER:
-		error_type = "Uknown error type";
+		error_type = "Unknown error type";
 		break;
 	default:
 		break;

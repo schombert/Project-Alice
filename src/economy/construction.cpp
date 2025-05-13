@@ -4,21 +4,15 @@
 
 namespace economy {
 
-economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to) {
+economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::province_id pid, dcon::factory_type_id from, dcon::factory_type_id to) {
 	auto& from_cost = state.world.factory_type_get_construction_costs(from);
 	auto& to_cost = state.world.factory_type_get_construction_costs(to);
 
 	float level = 1;
 
-	auto d = state.world.state_instance_get_definition(sid);
-	auto o = state.world.state_instance_get_nation_from_state_ownership(sid);
-	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-		if(p.get_province().get_nation_from_province_ownership() == o) {
-			for(auto f : p.get_province().get_factory_location()) {
-				if(f.get_factory().get_building_type() == from) {
-					level = f.get_factory().get_size() / f.get_factory().get_building_type().get_base_workforce();
-				}
-			}
+	for(auto f : state.world.province_get_factory_location(pid)) {
+		if(f.get_factory().get_building_type() == from) {
+			level = f.get_factory().get_size() / f.get_factory().get_building_type().get_base_workforce();
 		}
 	}
  
@@ -64,17 +58,23 @@ economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dco
 
 	return res;
 }
-float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::state_instance_id sid, dcon::factory_type_id from, dcon::factory_type_id to) {
-	auto goods_cost = calculate_factory_refit_goods_cost(state, n, sid, from, to);
+float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::province_id pid, dcon::factory_type_id from, dcon::factory_type_id to) {
+	auto goods_cost = calculate_factory_refit_goods_cost(state, n, pid, from, to);
 
-	float admin_eff = state.world.nation_get_administrative_efficiency(n);
+	float admin_eff = state.world.province_get_control_ratio(pid);
 	float admin_cost_factor = 2.0f - admin_eff;
 	float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
 
 	auto total = 0.0f;
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 		if(goods_cost.commodity_type[i]) {
-			total += economy::price(state, sid, goods_cost.commodity_type[i]) * goods_cost.commodity_amounts[i] * factory_mod * admin_cost_factor;
+			total += economy::price(
+				state,
+				state.world.province_get_state_membership(pid),
+				goods_cost.commodity_type[i]
+			) * goods_cost.commodity_amounts[i]
+				* factory_mod
+				* admin_cost_factor;
 		}
 	}
 
@@ -89,14 +89,16 @@ float global_factory_construction_time_modifier(sys::state& state) {
 	return 0.1f;
 }
 
-float build_cost_multiplier(sys::state& state, dcon::nation_id n, dcon::province_id location, bool is_pop_project) {
-	float admin_eff = state.world.nation_get_administrative_efficiency(n);
+float build_cost_multiplier(sys::state& state, dcon::province_id location, bool is_pop_project) {
+	float admin_eff = state.world.province_get_control_ratio(location);
 	return is_pop_project ? 1.f : 2.0f - admin_eff;
 }
 
 float factory_build_cost_multiplier(sys::state& state, dcon::nation_id n, dcon::province_id location, bool is_pop_project) {
-	return build_cost_multiplier(state, n, location, is_pop_project)
-		* (std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost)) + 1.0f);
+	return
+		build_cost_multiplier(state, location, is_pop_project)
+		* (std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost)) + 1.0f)
+		* (std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost)));
 }
 
 float unit_construction_time(
@@ -160,7 +162,7 @@ unit_construction_data explain_land_unit_construction(
 	unit_construction_data result = {
 		.can_be_advanced = (owner && state.world.province_get_nation_from_province_control(province) == owner),
 		.construction_time = unit_construction_time(state, unit_type),
-		.cost_multiplier = build_cost_multiplier(state, owner, province, false),
+		.cost_multiplier = build_cost_multiplier(state, province, false),
 		.owner = owner,
 		.market = state.world.state_instance_get_market_from_local_market(local_zone),
 		.province = province,
@@ -237,7 +239,7 @@ unit_construction_data explain_naval_unit_construction(
 	unit_construction_data result = {
 		.can_be_advanced = (owner && state.world.province_get_nation_from_province_control(province) == owner),
 		.construction_time = unit_construction_time(state, unit_type),
-		.cost_multiplier = build_cost_multiplier(state, owner, province, false),
+		.cost_multiplier = build_cost_multiplier(state, province, false),
 		.owner = owner,
 		.market = state.world.state_instance_get_market_from_local_market(local_zone),
 		.province = province,
@@ -323,7 +325,7 @@ province_building_construction_data explain_province_building_construction(
 		.is_pop_project = is_pop_project,
 		.is_upgrade = false,
 		.construction_time = province_building_construction_time(state, t),
-		.cost_multiplier = build_cost_multiplier(state, owner, province, is_pop_project),
+		.cost_multiplier = build_cost_multiplier(state, province, is_pop_project),
 		.owner = owner,
 		.market = state.world.state_instance_get_market_from_local_market(local_zone),
 		.province = province,
@@ -451,7 +453,7 @@ void advance_factory_construction(
 	auto base_cost =
 		details.refit_target
 		? calculate_factory_refit_goods_cost(
-			state, details.owner, details.state_instance, details.building_type, details.refit_target
+			state, details.owner, details.province, details.building_type, details.refit_target
 		)
 		: state.world.factory_type_get_construction_costs(details.building_type);
 	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
@@ -489,7 +491,7 @@ void populate_state_construction_demand(
 
 	auto base_cost = details.refit_target
 		? calculate_factory_refit_goods_cost(
-			state, details.owner, details.state_instance, details.building_type, details.refit_target
+			state, details.owner, details.province, details.building_type, details.refit_target
 		) : state.world.factory_type_get_construction_costs(details.building_type);
 	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
 
@@ -903,7 +905,7 @@ float estimate_private_construction_spendings(sys::state& state, dcon::nation_id
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = global_factory_construction_time_modifier(state) *
 				float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
-			float factory_mod = (state.world.nation_get_modifier_values(nid, sys::national_mod_offsets::factory_cost) + 1.0f) * std::max(0.1f, state.world.nation_get_modifier_values(nid, sys::national_mod_offsets::factory_owner_cost));
+			float factory_mod = factory_build_cost_multiplier(state, nid, c.get_province(), true);
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
@@ -954,7 +956,7 @@ void populate_state_construction_private_demand(
 	if(!details.is_pop_project)	return;
 	auto base_cost = details.refit_target
 		? calculate_factory_refit_goods_cost(
-			state, details.owner, details.state_instance, details.building_type, details.refit_target
+			state, details.owner, details.province, details.building_type, details.refit_target
 		) : state.world.factory_type_get_construction_costs(details.building_type);
 	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {

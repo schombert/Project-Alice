@@ -79,7 +79,7 @@ void move_to(rect& rectangle, float x, float y);
 rect subrect(rect& rectangle, float w, float h, alignment_horizontal align_hor, alignment_vertical align_vert);
 
 enum iui_tab {
-	none, factory_types, markets, commodities_markets, commodities_nations
+	none, factory_types, markets, commodities_markets, wages
 };
 
 struct iui_state {
@@ -98,6 +98,7 @@ struct iui_state {
 
 	commodity_info_mode selected_commodity_info;
 
+	std::vector<float> per_province_data;
 	std::vector<float> per_market_data;
 	std::vector<float> per_nation_data;
 	std::vector<float> bins;
@@ -126,6 +127,8 @@ struct iui_state {
 	ankerl::unordered_dense::map<int32_t, std::string> gui_text_map;
 	ankerl::unordered_dense::map<int32_t, float> gui_float_map;
 	ankerl::unordered_dense::map<int32_t, int32_t> gui_int_map;
+
+	void init(sys::state& state);
 
 	void panel(
 		sys::state& state,
@@ -201,8 +204,12 @@ struct iui_state {
 		rect r, std::string_view key, ogl::color3f color = { 0.f, 0.f, 0.f }
 	);
 
-	void frame_start() {
+	void frame_start(sys::state& state) {
 		over_ui = false;
+		init(state);
+		if(current_font == 0) {
+			current_font = text::name_into_font_id(state, "garamond_16");
+		}
 	}
 
 	void frame_end() {

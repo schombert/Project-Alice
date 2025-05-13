@@ -18,6 +18,7 @@ inline constexpr float internal_check(float x, float err, float lower, float upp
 inline float sin(float x) noexcept {
 	// based on
 	// https://web.archive.org/web/20200628195036/http://mooooo.ooo/chebyshev-sine-approximation/
+	x = fmod(x, 2.f * pi);
 	assert(x >= -2.f * pi && x <= 2.f * pi);
 	if(x < -pi) {
 		x += 2.f * pi;

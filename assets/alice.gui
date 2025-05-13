@@ -454,22 +454,53 @@ guiTypes = {
 				quadTextureSprite = "option_next"
 			}
 
-			# 3D Models (Y/N)
+			# graphic details
 			instantTextBoxType = {
-				name = "render_models_label"
-				position = { 78 346 }
-				text = "render_models_label"
+				position = { 58 348 }
+				name = "graphics_details_label"
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
+				text = "graphics_details_label"
 				orientation = "UPPER_LEFT"
 				format = left
 			}
-			checkboxType = {
-				name = "render_models_checkbox"
-				position = { 51 346 }
-				quadTextureSprite = "GFX_checkbox_default"
+			instantTextBoxType = {
+				position = { 216 348 }
+				name = "graphics_details_value"
+				font = "Arial14"
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
+				orientation = "UPPER_LEFT"
+				format = center
 			}
+			guiButtonType = {
+				name = "graphics_details_left"
+				position = { 186 344 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "graphics_details_right"
+				position = { 289 344 }
+				quadTextureSprite = "option_next"
+			}
+
+			# 3D Models (Y/N)
+			#instantTextBoxType = {
+			#	name = "render_models_label"
+			#	position = { 78 346 }
+			#	text = "render_models_label"
+			#	font = "Arial16"
+			#	borderSize = { 0 0}
+			#	maxsize = { 236 18 }
+			#	orientation = "UPPER_LEFT"
+			#	format = left
+			#}
+			#checkboxType = {
+			#	name = "render_models_checkbox"
+			#	position = { 51 346 }
+			#	quadTextureSprite = "GFX_checkbox_default"
+			#}
 
 			# Black map font (Y/N)
 			instantTextBoxType = {
@@ -4570,7 +4601,13 @@ guiTypes = {
 	guiButtonType = {
 		name = "alice_move_capital"
 		extends = "province_view_header"
-		position = { x= 180 y = 3 }
+		position = { x= 368 y = 43 }
+		quadTextureSprite = "GFX_move_capital"	
+	}
+	guiButtonType = {
+		name = "alice_toggle_administration"
+		extends = "province_view_header"
+		position = { x= 100 y = 43 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
 	guiButtonType = {

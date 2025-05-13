@@ -483,6 +483,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
+		map_state.map_data.update_borders_mesh();
 		if(user_settings.map_label != sys::map_label_mode::none) {
 			map::update_text_lines(*this, map_state.map_data);
 		}
@@ -1025,7 +1026,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto screen_size =
 					glm::vec2{ float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale) };
 				glm::vec2 screen_pos;
-				if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+				if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
 					ui_state.tooltip->set_visible(*this, false);
 				} else {
 					ui_state.tooltip->base_data.position =
@@ -1561,6 +1562,7 @@ void state::save_user_settings() const {
 	US_SAVE(color_blind_mode);
 	US_SAVE(UNUSED_UINT32_T);
 	US_SAVE(locale);
+	US_SAVE(graphics_mode);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1629,6 +1631,7 @@ void state::load_user_settings() {
 			US_LOAD(color_blind_mode);
 			US_LOAD(UNUSED_UINT32_T);
 			US_LOAD(locale);
+			US_LOAD(graphics_mode);
 #undef US_LOAD
 		} while(false);
 
@@ -3182,17 +3185,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			if(auto f = simple_fs::peek_file(flags_dir, tag_native + NATIVE(".tga")); !f) {
 				err.accumulated_warnings += "Flag missing " + simple_fs::native_to_utf8(tag_native) + ".tga\n";
 			}
-			std::array<bool, size_t(culture::flag_type::count)> has_reported;
+			// TODO: handle max size better
+			std::array<bool, 500> has_reported;
 			std::fill(has_reported.begin(), has_reported.end(), false);
 			for(auto g : world.in_government_type) {
-				if(!has_reported[g.get_flag()]) {
+				if(!has_reported[g.get_flag().id.value]) {
 					native_string file_str = tag_native;
-					file_str += ogl::flag_type_to_name(*this, culture::flag_type(g.get_flag()));
+					file_str += ogl::flag_type_to_name(*this, g.get_flag());
 					file_str += NATIVE(".tga");
 					if(auto f = simple_fs::peek_file(flags_dir, file_str); !f) {
 						err.accumulated_warnings += "Flag missing " + simple_fs::native_to_utf8(file_str) + "\n";
 					}
-					has_reported[g.get_flag()] = true;
+					has_reported[g.get_flag().id.value] = true;
 				}
 			}
 		}
@@ -4444,7 +4448,7 @@ void state::single_game_tick() {
 	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
 		auto index = economy::most_recent_gdp_record_index(*this);
 		for(auto n : world.in_nation) {
-			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
+			n.set_gdp_record(index, economy::gdp(*this, n));
 		}
 	}
 
@@ -5404,7 +5408,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 			if(location == target) {
 				regiment.set_status(army_group_regiment_status::standby);
 			} else {
-				auto path = command::can_move_army(*this, local_player_nation, army, target);
+				auto path = command::can_move_army(*this, local_player_nation, army, target, false);
 				if(!path.empty()) {
 					command::move_army(*this, local_player_nation, army, target, false);
 					regiment.set_await_command_execution_flag(true);
@@ -5454,7 +5458,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 					auto fleet_location = world.navy_get_location_from_navy_location(fleet);
 					if(fleet_location == port_to) {
 						// try to fit the regiment there
-						auto path_army = command::can_move_army(*this, local_player_nation, army, fleet_location);
+						auto path_army = command::can_move_army(*this, local_player_nation, army, fleet_location, false);
 						if(path_army.size() > 0) {
 							command::move_army(*this, local_player_nation, army, fleet_location, false);
 							regiment.set_status(army_group_regiment_status::embark);
@@ -5478,7 +5482,7 @@ void state::army_group_update_regiment_status(dcon::automated_army_group_id grou
 				//if we are at port, then we can try to disembark
 				if(fleet_location == port_to) {
 					// try to disembark the regiment here
-					auto path_army = command::can_move_army(*this, local_player_nation, army, ferry_target);
+					auto path_army = command::can_move_army(*this, local_player_nation, army, ferry_target, false);
 					if(path_army.size() > 0) {
 						command::move_army(*this, local_player_nation, army, ferry_target, false);
 						regiment.set_await_command_execution_flag(true);

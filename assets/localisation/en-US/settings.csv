@@ -54,3 +54,7 @@ map_label_2;Quadratic
 map_label_3;Cubic
 antialiasing_label;Antialiasing
 spoilers_label;Spoilers
+graphics_details_label;Graphics
+graphics_details_0;Ugly
+graphics_details_1;Classic
+graphics_details_2;Modern

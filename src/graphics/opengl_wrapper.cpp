@@ -181,10 +181,12 @@ std::string_view framebuffer_error(GLenum e) {
 }
 
 void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size_x, int32_t size_y) {
+	if(!size_x || !size_y)
+		return;
 	// prepare textures for rendering
 	glGenTextures(1, &state.open_gl.province_map_rendertexture);
 	glBindTexture(GL_TEXTURE_2D, state.open_gl.province_map_rendertexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -194,13 +196,9 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 
 	// framebuffer
 	glGenFramebuffers(1, &state.open_gl.province_map_framebuffer);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.province_map_framebuffer);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state.open_gl.province_map_rendertexture, 0);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, state.open_gl.province_map_depthbuffer);
-	state.console_log(ogl::opengl_get_error_name(glGetError()));
 
 	// drawbuffers
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
@@ -218,11 +216,11 @@ void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size
 void deinitialize_framebuffer_for_province_indices(sys::state& state) {
 	if(state.open_gl.province_map_rendertexture)
 		glDeleteTextures(1, &state.open_gl.province_map_rendertexture);
-	if(state.open_gl.province_map_rendertexture)
-		glDeleteRenderbuffers(1, &state.open_gl.province_map_rendertexture);
+	if(state.open_gl.province_map_depthbuffer)
+		glDeleteRenderbuffers(1, &state.open_gl.province_map_depthbuffer);
 	if(state.open_gl.province_map_framebuffer)
 		glDeleteFramebuffers(1, &state.open_gl.province_map_framebuffer);
-	
+	//state.console_log(ogl::opengl_get_error_name(glGetError()));	
 }
 
 void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
@@ -315,7 +313,7 @@ void deinitialize_msaa(sys::state& state) {
 	if(state.open_gl.msaa_texture)
 		glDeleteTextures(1, &state.open_gl.msaa_texture);
 	if(state.open_gl.msaa_interbuffer)
-		glDeleteFramebuffers(1, &state.open_gl.msaa_framebuffer);
+		glDeleteFramebuffers(1, &state.open_gl.msaa_interbuffer);
 	if(state.open_gl.msaa_rbo)
 		glDeleteRenderbuffers(1, &state.open_gl.msaa_rbo);
 	if(state.open_gl.msaa_texcolorbuffer)
@@ -340,28 +338,12 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
-	state.flag_type_map.resize(size_t(culture::flag_type::count), 0);
-	// Create the remapping for flags
-	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
-		auto fat_id = dcon::fatten(state.world, ident_id);
-		auto nat_id = fat_id.get_nation_from_identity_holder().id;
-		for(auto gov_id : state.world.in_government_type) {
-			state.flag_types.push_back(culture::flag_type(gov_id.get_flag()));
-		}
-	});
-	// Eliminate duplicates
-	std::sort(state.flag_types.begin(), state.flag_types.end());
-	state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
-
-	// Automatically assign texture offsets to the flag_types
-	auto id = 0;
-	for(auto type : state.flag_types)
-		state.flag_type_map[uint32_t(type)] = uint8_t(id++);
-	assert(state.flag_type_map[0] == 0); // default_flag
-
 	// Allocate textures for the flags
 	state.open_gl.asset_textures.resize(
-			state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
+		state.ui_defs.textures.size()
+		+ (state.world.national_identity_size() + 1)
+		* state.world.government_flag_size()
+	);
 
 	state.map_state.load_map(state);
 
@@ -942,7 +924,7 @@ GLuint get_flag_texture_handle_from_tag(sys::state& state, const char tag[3]) {
 	}
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
-	culture::flag_type flag_type = culture::flag_type{};
+	dcon::government_flag_id flag_type{};
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		flag_type = culture::get_current_flag_type(state, nation.id);
 	} else {
@@ -1008,7 +990,7 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 
 	auto fat_id = dcon::fatten(state.world, ico.tag);
 	auto nation = fat_id.get_nation_from_identity_holder();
-	culture::flag_type flag_type = culture::flag_type{};
+	dcon::government_flag_id flag_type{ };
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		flag_type = culture::get_current_flag_type(state, nation.id);
 	} else {

@@ -307,7 +307,7 @@ float leadership_points(sys::state const& state, dcon::nation_id n);
 float get_treasury(sys::state& state, dcon::nation_id n);
 float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
-float tariff_efficiency(sys::state& state, dcon::nation_id n);
+float tariff_efficiency(sys::state& state, dcon::nation_id n, dcon::market_id m);
 float tax_efficiency(sys::state& state, dcon::nation_id n);
 float colonial_points_from_naval_bases(sys::state& state, dcon::nation_id n);
 float colonial_points_from_ships(sys::state& state, dcon::nation_id n);

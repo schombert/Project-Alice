@@ -85,10 +85,10 @@ float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::co
 	auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B;
 	auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A;
 
-	auto import_tariff_A = economy::effective_tariff_import_rate(state, controller_capital_A);
-	auto export_tariff_A = economy::effective_tariff_export_rate(state, controller_capital_A);
-	auto import_tariff_B = economy::effective_tariff_import_rate(state, controller_capital_B);
-	auto export_tariff_B = economy::effective_tariff_export_rate(state, controller_capital_B);
+	auto import_tariff_A = economy::effective_tariff_import_rate(state, controller_capital_A, A);
+	auto export_tariff_A = economy::effective_tariff_export_rate(state, controller_capital_A, A);
+	auto import_tariff_B = economy::effective_tariff_import_rate(state, controller_capital_B, B);
+	auto export_tariff_B = economy::effective_tariff_export_rate(state, controller_capital_B, B);
 
 	auto is_sea_route = state.world.trade_route_get_is_sea_route(route);
 	auto is_land_route = state.world.trade_route_get_is_land_route(route);

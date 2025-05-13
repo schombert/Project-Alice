@@ -3,6 +3,7 @@
 #include "demographics.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
+#include "economy_government.hpp"
 #include "construction.hpp"
 #include "effects.hpp"
 #include "gui_effect_tooltips.hpp"
@@ -1160,26 +1161,20 @@ void update_ai_ruling_party(sys::state& state) {
 	}
 }
 
-void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types, bool pop_project) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
 
-	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const tax_eff = economy::tax_collection_rate(state, nid, pid);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Check rules for factories in colonies
-				if(sid.get_capital().get_is_colonial() && (state.defines.alice_disallow_factories_in_colonies != 0.f || !type.get_can_be_built_in_colonies())) {
-					continue;
-				}
-
-
-				float cost = economy::factory_type_build_cost(state, n, m, type);
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project);
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
@@ -1193,13 +1188,13 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 	}
 }
 
-void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
+void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types, bool pop_project) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
 
-	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const tax_eff = economy::tax_collection_rate(state, nid, pid);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
@@ -1240,7 +1235,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
@@ -1291,7 +1286,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
@@ -1340,7 +1335,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
@@ -1370,7 +1365,7 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 					continue;
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
@@ -1411,7 +1406,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
@@ -1444,7 +1439,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 					}
 				}
 
-				float cost = economy::factory_type_build_cost(state, n, m, type) + 0.1f;
+				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
@@ -3160,13 +3155,26 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	// Its easy to defeat a nation at war
 	if(state.world.nation_get_is_at_war(target)) {
-		return estimate_strength(state, from) >= estimate_strength(state, target) * 0.15f;
+		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.15f) {
+			return false;
+		}
 	} else {
 		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
 			return false;
 	}
 	if(state.world.nation_get_owned_province_count(target) <= 2)
 		return false;
+
+	// if target is a landlocked nation or we are landlocked nation outselves
+	// and we are not neighbors
+	// we don't need any land of the nation
+	// because we cannot reliably benefit from it due to local control mechanic
+	if(nations::is_landlocked(state, target) || nations::is_landlocked(state, from)) {
+		if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(from, target)) {
+			return false;
+		}
+	}
+
 	// Attacking people from other continents only if we have naval superiority
 	if(state.world.province_get_continent(state.world.nation_get_capital(from)) != state.world.province_get_continent(state.world.nation_get_capital(target))) {
 		// We must achieve naval superiority to even invade them
@@ -3210,23 +3218,53 @@ void update_cb_fabrication(sys::state& state) {
 				}
 			}
 
-			static std::vector<dcon::nation_id> possible_targets;
+			static std::vector<std::pair<dcon::nation_id, float>> possible_targets;
 			possible_targets.clear();
+			float total_weight = 0.f;
 			for(auto i : state.world.in_nation) {
 				if(valid_construction_target(state, n, i)
 				&& !military::has_truce_with(state, n, i)) {
-					possible_targets.push_back(i.id);
-					if(!i.get_is_civilized())
-						possible_targets.push_back(i.id); //twice the chance!
+
+					auto weight = 1.f / (province::direct_distance(
+						state,
+						state.world.nation_get_capital(n),
+						state.world.nation_get_capital(i)
+					) + 1.f);
+
+					// if nations are neighbors, then it's much easier to prepare a successful invasion:
+					if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, i)) {
+						weight *= 10.f;
+					}
+
+					// uncivs have higher priority
+					if(!i.get_is_civilized()) {
+						weight *= 2.f;
+					}
+
+					total_weight += weight;
+					possible_targets.push_back({ i.id, weight });
 				}
 			}
 			if(!possible_targets.empty()) {
-				auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
-				if(auto pcb = pick_fabrication_type(state, n, t); pcb.cb) {
-					n.set_constructing_cb_target(t);
-					n.set_constructing_cb_type(pcb.cb);
-					n.set_constructing_cb_target_state(pcb.state_def);
-					continue;
+				auto random_value = uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2);
+				auto limited_value = rng::reduce(random_value, 1000);
+				auto random_float = float(limited_value) / 1000.f * total_weight;
+				auto acc = 0.f;
+				dcon::nation_id target{ };
+				for(auto& weighted_nation : possible_targets) {
+					acc += weighted_nation.second;
+					if(acc > random_float) {
+						target = weighted_nation.first;
+						break;
+					}
+				}
+				if(target) {
+					if(auto pcb = pick_fabrication_type(state, n, target); pcb.cb) {
+						n.set_constructing_cb_target(target);
+						n.set_constructing_cb_type(pcb.cb);
+						n.set_constructing_cb_target_state(pcb.state_def);
+						continue;
+					}
 				}
 			}
 		}
@@ -4065,20 +4103,20 @@ void update_budget(sys::state& state) {
 		float sea_budget_ratio					= 0.05f;
 		float education_budget_ratio			= 0.30f;
 		float investments_budget_ratio			= 0.05f;
-		float soldiers_budget_ratio				= 0.40f;
-		float construction_budget_ratio			= 0.50f;
+		float soldiers_budget_ratio				= 0.30f;
+		float construction_budget_ratio			= 0.45f;
 		float overseas_maintenance_budget_ratio = 0.10f;
 
 		if(n.get_is_at_war()) {
-			land_budget_ratio = 2.f;
-			sea_budget_ratio = 2.f;
+			land_budget_ratio *= 1.75f;
+			sea_budget_ratio *= 1.75f;
 			education_budget_ratio *= 0.15f;
 			overseas_maintenance_budget_ratio *= 0.15f;
 			//n.set_land_spending(int8_t(100));
 			//n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
-			land_budget_ratio = 0.5f;
-			sea_budget_ratio = 0.25f;
+			land_budget_ratio *= 1.25f;
+			sea_budget_ratio *= 1.25f;
 			education_budget_ratio *= 0.75f;
 			overseas_maintenance_budget_ratio *= 0.75f;
 			//n.set_land_spending(int8_t(50));
@@ -4107,8 +4145,8 @@ void update_budget(sys::state& state) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 
-		n.set_construction_spending(75);
-		n.set_administrative_spending(10);
+		n.set_construction_spending(50);
+		n.set_administrative_spending(25);
 		
 		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
@@ -4122,11 +4160,7 @@ void update_budget(sys::state& state) {
 		// If State can build factories - why subsidize capitalists
 		auto rules = n.get_combined_issue_rules();
 		if(n.get_is_civilized() && (rules & issue_rule::build_factory) == 0) {
-			float investment_budget = investments_budget_ratio * base_income;
-			float max_investment_budget = 1.f + economy::estimate_max_domestic_investment(state, n);
-			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
-			investment_ratio = std::clamp(investment_ratio, 0.f, 100.f);
-			n.set_domestic_investment_spending(int8_t(investment_ratio));
+			n.set_domestic_investment_spending(int8_t(investments_budget_ratio * 100.f));
 		} else {
 			n.set_domestic_investment_spending(int8_t(0));
 		}
@@ -4163,7 +4197,7 @@ void update_budget(sys::state& state) {
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
-				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
+				n.set_social_spending(1);
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
@@ -4174,7 +4208,7 @@ void update_budget(sys::state& state) {
 				} else {
 					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
 				}
-				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
+				n.set_social_spending(3);
 
 				if(enough_tax) {
 					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 10, std::max(10, max_poor_tax))));
@@ -4186,7 +4220,7 @@ void update_budget(sys::state& state) {
 			int max_poor_tax = int(10.f + 90.f * (1.f - poor_militancy));
 			int max_mid_tax = int(10.f + 90.f * (1.f - mid_militancy));
 			int max_rich_tax = int(10.f + 40.f * (1.f - rich_militancy));
-			int max_social = int(100.f * poor_militancy);
+			int max_social = int(20.f * poor_militancy);
 
 			// enough tax?
 			bool enough_tax = true;
@@ -4202,7 +4236,7 @@ void update_budget(sys::state& state) {
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
-				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
+				n.set_social_spending(int8_t(max_social / 2));
 
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
@@ -4213,7 +4247,7 @@ void update_budget(sys::state& state) {
 				} else {
 					n.set_military_spending(int8_t(std::min(75, n.get_military_spending() + 10)));
 				}
-				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
+				n.set_social_spending(int8_t(max_social));
 
 				if(enough_tax) {
 					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 10, std::max(10, max_poor_tax))));

@@ -2621,7 +2621,7 @@ struct country_history_context {
 struct govt_flag_block {
 	void finish(country_history_context&) { }
 
-	::culture::flag_type flag_ = ::culture::flag_type::default_flag;
+	dcon::government_flag_id flag_{};
 	dcon::government_type_id government_;
 
 	void flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);

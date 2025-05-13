@@ -3408,17 +3408,17 @@ TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_no_limit) {
 TRIGGER_FUNCTION(tf_work_available_nation) {
 	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
-		" r> 0.8 * >= " + truth_inversion(tval[0]);
+		" r> 0.4 * >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_state) {
 	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
-		" r> 0.8 * >= " + truth_inversion(tval[0]);
+		" r> 0.4 * >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_work_available_province) {
 	return "dup " + std::to_string(demographics::to_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ >r "
 		"dup " + std::to_string(demographics::to_employment_key(ws, trigger::payload(tval[1]).popt_id).index()) + " >demographics_key demographics @ "
-		" r> 0.8 * >= " + truth_inversion(tval[0]);
+		" r> 0.4 * >= " + truth_inversion(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_ideology_name_nation) {
 	return "dup " + std::to_string(demographics::total.index()) + " >demographics_key demographics @ >r "

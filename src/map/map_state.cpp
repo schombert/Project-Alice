@@ -78,7 +78,33 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 
+void register_trade_flow(display_data& map_data, int node1, int node2, float volume) {
+	if(map_data.particle_next_node_probability.contains(node1)) {
+		if(map_data.particle_next_node_probability[node1].contains(node2)) {
+			map_data.particle_next_node_probability[node1][node2] += volume;
+		} else {
+			map_data.particle_next_node_probability[node1][node2] = volume;
+		}
+	} else {
+		map_data.particle_next_node_probability[node1] = { };
+		map_data.particle_next_node_probability[node1][node2] = volume;
+	}
+}
+
 void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
+	// idea:
+	// trade graph emits particles which move from the start of edge to the end of edge
+	// when particle reaches the node, it has a chance to dissappear
+	// depending on difference between trade inflow and outflow
+	// or it can be redirected to one of other nodes depending on the volume
+
+	map_data.trade_particles_positions.clear();
+	map_data.particle_next_node_probability.clear();
+	map_data.particle_creation_probability.clear();
+
+	auto size_x = float(map_data.size_x);
+	auto size_y = float(map_data.size_y);
+
 	map_data.trade_flow_vertices.clear();
 	map_data.trade_flow_arrow_counts.clear();
 	map_data.trade_flow_arrow_starts.clear();
@@ -96,6 +122,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	auto count = 0.f;
 
 	std::vector<float> volume_sample;
+	float total_volume = 0.f;
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
@@ -109,9 +136,13 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			: state.world.trade_route_get_connected_markets(trade_route, 1);
 		auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
 		auto absolute_volume = std::abs(sat * current_volume);
-
+		total_volume += absolute_volume;
 		volume_sample.push_back(absolute_volume);
 	});
+
+	if(total_volume == 0.f) {
+		return;
+	}
 
 	std::sort(volume_sample.begin(), volume_sample.end());
 	// we are interested only in the most significant routes
@@ -162,6 +193,16 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					trade_graph[start.index()][end.index()] = absolute_volume;
 				}
 
+				auto start_index = start.index();
+				if(start.index() < state.province_definitions.first_sea_province.index()) {
+					start_index += state.world.province_size();
+				}
+				auto end_index = end.index();
+				if(end.index() < state.province_definitions.first_sea_province.index()) {
+					end_index += state.world.province_size();
+				}
+				register_trade_flow(map_data, start_index, end_index, absolute_volume);
+
 				start = end;
 			}
 		} else {
@@ -180,6 +221,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					trade_graph[start.index()][end.index()] = absolute_volume;
 				}
 
+				register_trade_flow(map_data, start.index(), end.index(), absolute_volume);
+
 				start = end;
 			}
 		}
@@ -188,6 +231,9 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	state.world.for_each_market([&](dcon::market_id mid) {
 		auto trade_balance_sea = 0.f;
 		auto trade_balance_land = 0.f;
+
+		auto total_in = 0.f;
+		auto total_out = 0.f;
 
 		state.world.market_for_each_trade_route(mid, [&](auto route) {
 			auto current_volume = state.world.trade_route_get_volume(route, cid);		
@@ -212,14 +258,46 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			} else {
 				trade_balance_land += current_volume * sat;
 			}
+
+			if(current_volume > 0) {
+				total_out += current_volume * sat;
+			} else {
+				total_in -= current_volume * sat;
+			}
 		});
+
+		
+
+		// if total in > total out
+		// we assume that commodity has a chance to be consumed
+		// it will be represented by a loop edge
+		// so we can assume that total out is actually total in
+
+		auto disappear_weight = 0.f;
+		if(total_in > total_out) {
+			total_out = total_in;
+			disappear_weight = total_in - total_out;
+		}
+
+		
 
 		auto sid = state.world.market_get_zone_from_local_market(mid);
 		auto port = province::state_get_coastal_capital(state, sid);
 		auto stockpile_location = state.world.state_instance_get_capital(sid);
 		auto absolute_volume = std::abs(trade_balance_sea);
 
-		if(trade_balance_sea < -cutoff) {
+
+		// set trade graph edges
+
+		auto stockpile_index = stockpile_location.id.index();
+		register_trade_flow(map_data, stockpile_index, stockpile_index, disappear_weight);
+
+
+		if(total_out > total_in) {
+			map_data.particle_creation_probability[stockpile_index] = total_out - total_in;
+		}
+
+		if(trade_balance_sea > cutoff) {
 			auto path = province::make_unowned_path(state, stockpile_location, port);
 			auto start = stockpile_location.id;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
@@ -235,14 +313,21 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					trade_graph[start.index()][end.index()] = absolute_volume;
 				}
 
+				register_trade_flow(map_data, start.index(), end.index(), absolute_volume);
+
 				start = end;
 			}
 			trade_graph_toward_port[port.index()] = absolute_volume;
-		} else if(trade_balance_sea > cutoff) {
+
+			auto port_index = port.index() + state.world.province_size();
+			auto city_index = port.index();
+			register_trade_flow(map_data, city_index, port_index, absolute_volume);
+		} else if(trade_balance_sea < -cutoff) {
 			auto path = province::make_unowned_path(state, port, stockpile_location);
 			auto start = port;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
 				auto end = path[i];
+
 				if(trade_graph.contains(start.index())) {
 					if(trade_graph[start.index()].contains(end.index())) {
 						trade_graph[start.index()][end.index()] += absolute_volume;
@@ -254,16 +339,85 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					trade_graph[start.index()][end.index()] = absolute_volume;
 				}
 
+				register_trade_flow(map_data, start.index(), end.index(), absolute_volume);
+
 				start = end;
 			}
+
 			trade_graph_toward_port[port.index()] = -absolute_volume;
+
+			auto port_index = port.index() + state.world.province_size();
+			auto city_index = port.index();
+			register_trade_flow(map_data, port_index, city_index, absolute_volume);
+		}
+	});
+
+	// generate some particles:
+
+	for(int i = 0; i < std::min(std::max(300, (int)total_volume), 5000); i++) {
+		trade_particle data{
+			{ },
+			{ },
+			-1,
+			-1,
+			-1
+		};
+		map_data.trade_particles_positions.push_back(data);
+	}
+
+	// normalisation:
+
+	{
+		float total_score = 0.f;
+		for(auto const& [candidate, probability] : map_data.particle_creation_probability) {
+			total_score += probability;
+		}
+
+		if(total_score > 0.f) {
+			for(auto const& [candidate, probability] : map_data.particle_creation_probability) {
+				map_data.particle_creation_probability[candidate] /= total_score;
+			}
+		}
+	}
+
+	state.world.for_each_province([&](dcon::province_id origin) {
+		// normal prov
+
+		auto base_index = origin.index();
+		if(map_data.particle_next_node_probability.contains(base_index)) {
+			float total_volume_out = 0.f;
+			for(auto const& [target_index, volume] : map_data.particle_next_node_probability[base_index]) {
+				total_volume_out += volume;
+			}
+
+			for(auto const& [target_index, volume] : map_data.particle_next_node_probability[base_index]) {
+				map_data.particle_next_node_probability[base_index][target_index] = volume / total_volume_out;
+			}
+		}
+
+		map_data.trade_node_position[base_index] = get_army_location(state, origin);
+
+		// port prov
+
+		base_index += state.world.province_size();
+		if(map_data.particle_next_node_probability.contains(base_index)) {
+			float total_volume_out = 0.f;
+			for(auto const& [target_index, volume] : map_data.particle_next_node_probability[base_index]) {
+				total_volume_out += volume;
+			}
+
+			if(total_volume_out > 0.f)
+				for(auto const& [target_index, volume] : map_data.particle_next_node_probability[base_index]) {
+					map_data.particle_next_node_probability[base_index][target_index] = volume / total_volume_out;
+				}
+		}
+
+		if(state.world.province_get_port_to(origin)) {
+			map_data.trade_node_position[base_index] = get_port_location(state, origin) ;
 		}
 	});
 
 	// now we are building vertices
-
-	auto size_x = float(map_data.size_x);
-	auto size_y = float(map_data.size_y);
 
 	for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
 		auto coastal_province = dcon::province_id{ dcon::province_id::value_base_t(coastal_province_index) };
@@ -1829,7 +1983,23 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 	}
 }
 
-bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
+bool validate_screen_position(glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance) {
+	if(screen_pos.x < -tolerance.x) {
+		return false;
+	}
+	if(screen_pos.y < -tolerance.y) {
+		return false;
+	}
+	if(screen_pos.x > screen_size.x + tolerance.x) {
+		return false;
+	}
+	if(screen_pos.y > screen_size.y + tolerance.y) {
+		return false;
+	}
+	return true;
+}
+
+bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance) {
 	switch(state.user_settings.map_is_globe) {
 	case sys::projection_mode::globe_ortho:
 		{
@@ -1876,7 +2046,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 			screen_pos.x *= screen_size.y / screen_size.x;
 			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
 			screen_pos *= screen_size;
-			return true;
+			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::globe_perpect:
 		{
@@ -1953,7 +2123,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 			screen_pos.x *= screen_size.y / screen_size.x;
 			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
 			screen_pos *= screen_size;
-			return true;
+			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::flat:
 		{
@@ -1979,7 +2149,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 				return false;
 			if(screen_pos.y <= float(std::numeric_limits<int16_t>::min() / 2))
 				return false;
-			return true;
+			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::num_of_modes:
 		return false;

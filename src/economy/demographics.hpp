@@ -289,6 +289,19 @@ float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
 float get_estimated_con_change(sys::state& state, dcon::nation_id n);
 float get_estimated_promotion(sys::state& state, dcon::nation_id n);
 
+// bureacracy has to travel around the realm
+inline constexpr float administration_base_push = 0.9f;
+inline constexpr float administration_additional_province_weight = 0.1f;
+
+struct province_migration_weight_explanation {
+	float base_multiplier;
+	float base_weight;
+	float modifier;
+	float wage_multiplier;
+	float result;
+};
+province_migration_weight_explanation explain_province_internal_migration_weight(sys::state& state, dcon::pop_id p, dcon::province_id pid);
+
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
 void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
