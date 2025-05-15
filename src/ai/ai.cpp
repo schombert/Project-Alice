@@ -3668,7 +3668,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 
 	// War-ending peace from primary participant to primary participant (concession & demand)
 	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
-		if((overall_score <= -50 || war_exhaustion > 25) && overall_score <= overall_po_value * 2)
+		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
 			return true;
 
 		if(concession && my_side_peace_cost <= overall_po_value)
@@ -3687,7 +3687,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 	}
 	// Peace offer from secondary participant to primary participant (concession)
 	else if((prime_attacker == n || prime_defender == n) && concession) {
-		if(scoreagainst_me > 50 || war_exhaustion > 25)
+		if(scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit)
 			return true;
 
 		if(overall_score < 0.0f) { // we are losing
@@ -3704,7 +3704,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(contains_sq)
 			return false;
 
-		if((scoreagainst_me > 50 || war_exhaustion > 25) && scoreagainst_me > -overall_po_value * 2)
+		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
 		if(overall_score < 0.0f) { // we are losing
@@ -3782,7 +3782,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 
 	// War-ending peace from primary participant to primary participant (concession & demand)
 	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
-		if((overall_score <= -50 || war_exhaustion > 25 ) && overall_score <= overall_po_value * 2)
+		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
 			return true;
 
 		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
@@ -3803,7 +3803,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	else if((prime_attacker == n || prime_defender == n) && concession) {
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
 
-		if(scoreagainst_me > 50 || war_exhaustion > 25)
+		if(scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit)
 			return true;
 
 		int32_t my_side_against_target = 0;
@@ -3829,7 +3829,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			return false;
 
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-		if((scoreagainst_me > 50 || war_exhaustion > 25) && scoreagainst_me > -overall_po_value * 2)
+		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
 		if(overall_score < 0.0f) { // we are losing
@@ -3884,7 +3884,11 @@ void make_war_decs(sys::state& state) {
 			return;
 		if(state.world.nation_get_military_score(n) == 0)
 			return;
-		if(auto ol = state.world.nation_get_overlord_as_subject(n); state.world.overlord_get_ruler(ol))
+		// Subjects don't declare wars without a define set
+		if(auto ol = state.world.nation_get_overlord_as_subject(n); state.world.overlord_get_ruler(ol) && state.defines.alice_allow_subjects_declare_wars < 1)
+			return;
+		// AI shouldn't declare wars if it has high war exhaustion that would make it want to peace out immediately
+		if(state.world.nation_get_war_exhaustion(n) > state.defines.alice_ai_war_exhaustion_readiness_limit)
 			return;
 		auto base_strength = estimate_strength(state, n);
 		float best_difference = 2.0f;
