@@ -20,6 +20,17 @@ inline constexpr float base_tax_collection_capacity = 10000.f;
 inline constexpr float base_population_per_admin = 200.f;
 
 float population_per_admin(sys::state& state, dcon::nation_id n) {
+	// Proposed: make population_per_admin dynamic to every province
+	// Increase the cost if there is separatism in the province
+	// Increase the cost if the province is not a core
+	/*
+	if(!state.world.province_get_is_owner_core(content)) {
+			non_core_effect += state.defines.noncore_tax_penalty;
+	}
+	if(state.world.province_get_nationalism(content) > 0.f) {
+		separatism_effect += state.defines.separatism_tax_penalty;
+	}
+	*/
 	return base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n));
 }
 
@@ -222,7 +233,7 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_total_middle_income(n, total_mid_tax_base);
 	state.world.nation_set_total_poor_income(n, total_poor_tax_base);
 
-	
+
 
 	assert(std::isfinite(collected_tax));
 	assert(collected_tax >= 0);

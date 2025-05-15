@@ -834,6 +834,7 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 	return bsum;
 }
 
+/* Vanilla State Admin efficiency: used for integrating colonial states and thus still counts only accepted/primary culture bureaucrats */
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	// unused
 
@@ -846,15 +847,18 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 		issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
 	}
 	auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
-	float non_core_effect = 0.0f;
+	float side_effects = 0.0f;
 	float bsum = 0.0f;
 	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
 		if(!state.world.province_get_is_owner_core(p)) {
-			non_core_effect += state.defines.noncore_tax_penalty;
+			side_effects += state.defines.noncore_tax_penalty;
+		}
+		if(state.world.province_get_nationalism(p) > 0.f) {
+			side_effects += state.defines.separatism_tax_penalty;
 		}
 		for(auto po : state.world.province_get_pop_location(p)) {
 			if(po.get_pop().get_is_primary_or_accepted_culture() &&
-					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+					po.get_pop().get_poptype() == state.culture_definitions.bureaucrat && po.get_pop().get_rebel_faction_from_pop_rebellion_membership()) {
 				bsum += po.get_pop().get_size();
 			}
 		}
@@ -862,7 +866,7 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto total_pop = state.world.state_instance_get_demographics(id, demographics::total);
 	auto total =
 			total_pop > 0
-					? std::clamp(admin_mod + non_core_effect + state.defines.base_country_admin_efficiency +
+					? std::clamp(admin_mod + side_effects + state.defines.base_country_admin_efficiency +
 													 std::min(state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop, 1.0f) / from_issues,
 								0.0f, 1.0f)
 					: 0.0f;
@@ -1711,7 +1715,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0 && p.get_province().get_nation_from_province_control() == n) {
 				auto dist = province::direct_distance(state, p.get_province(), coastal_target);
-				if(dist <= province::world_circumference *  0.04f * nb_level) {
+				if(dist <= province::world_circumference *  state.defines.alice_naval_base_to_colonial_distance_factor * nb_level) {
 					reachable_by_sea = true;
 					break;
 				}
@@ -1944,7 +1948,19 @@ void update_colonization(sys::state& state) {
 
 			float adjust = state.defines.colonization_influence_temperature_per_day +
 										 float(max_points) * state.defines.colonization_influence_temperature_per_level +
-										 (state.current_crisis_state == sys::crisis_state::inactive ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+										 (state.current_crisis_state == sys::crisis_state::inactive ? 0.0f : state.defines.tension_while_crisis) + at_war_adjust;
+
+			bool anyone_has_army = false;
+			for(auto c : colonizers) {
+				if(c.get_colonizer().get_is_great_power())
+					adjust *= 1.5f;
+
+				if(c.get_colonizer().get_active_regiments())
+					anyone_has_army = true;
+			}
+
+			if(!anyone_has_army)
+				adjust *= 0.f;
 
 			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
 		} else if(num_colonizers == 1 &&

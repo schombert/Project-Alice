@@ -33,6 +33,7 @@
 	LUA_DEFINES_LIST_ELEMENT(diplomat_travel_time, -1.000000)                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(province_overseas_penalty, 0.030000)                                                                  \
 	LUA_DEFINES_LIST_ELEMENT(noncore_tax_penalty, -0.075000)                                                                       \
+	LUA_DEFINES_LIST_ELEMENT(separatism_tax_penalty, -0.05000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(base_tariff_efficiency, 0.100000)                                                                     \
 	LUA_DEFINES_LIST_ELEMENT(colony_formed_prestige, 1.000000)                                                                     \
 	LUA_DEFINES_LIST_ELEMENT(created_cb_valid_time, 24.000000)                                                                     \
@@ -737,6 +738,11 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_leadership_generation_divisor, 2.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_won_score_to_leadership, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_lost_score_to_leadership, 20.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_disable_price_control, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_disallow_factories_in_colonies, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_naval_base_to_colonial_distance_factor, 0.04) \
+	LUA_DEFINES_LIST_ELEMENT(alice_always_available_cbs_zero_infamy, 1.0) \
+
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

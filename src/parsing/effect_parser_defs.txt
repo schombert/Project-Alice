@@ -147,6 +147,10 @@ ef_change_party_position
 	ideology                       value     text                           member_fn
 	position                            value     text                           member_fn
 
+ef_change_factory_limit
+	trade_good                       value     text                           member_fn
+	value                            value     float                          member
+
 ef_random_list
 	#any                            extern      add_to_random_list  member_fn
 
@@ -287,6 +291,7 @@ effect_body
 	build_university_in_capital     group       ef_build_university_in_capital member_fn
 	change_party_name         group         ef_change_party_name       member_fn
 	change_party_position     group      ef_change_party_position    member_fn
+	change_factory_limit     group      ef_change_factory_limit    member_fn
 	hidden_tooltip                  extern      ef_scope_hidden_tooltip     discard
 	any_neighbor_province           extern      ef_scope_any_neighbor_province   discard
 	any_neighbor_country            extern      ef_scope_any_neighbor_country    discard
