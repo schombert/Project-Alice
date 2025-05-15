@@ -5745,6 +5745,16 @@ dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r)
 		return ruler;
 	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 }
+dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army) {
+	auto nation = state.world.army_get_controller_from_army_control(army);
+	if(nation)
+		return nation;
+	auto rf = state.world.army_get_controller_from_army_rebel_control(army);
+	auto ruler = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
+	if(ruler)
+		return ruler;
+	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+}
 
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {
 	return false;
@@ -6178,6 +6188,54 @@ float get_reg_org_damage(sys::state& state, dcon::regiment_id damage_dealer, dco
 	}
 	return dmg_dealer_str * (org_dam_mul / receiver_max_org_divisor) * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers / (fort_mod * dmg_receiver_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::land_organisation)) * (1.0f + receiver_exp));
 }
+// defines the general algorithm for getting the effective fort level
+int32_t get_effective_fort_level(sys::state& state, dcon::province_id location, float total_strength, float strength_siege_units, float max_siege_value) {
+	/*
+		We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
+		greatest-siege-value-present x
+		((the ratio of the strength of regiments with siege present to the total strength of all regiments) ^
+		define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
+		*/
+
+	return std::clamp(state.world.province_get_building_level(location, uint8_t(economy::province_building_type::fort)) -
+									 int32_t(max_siege_value *
+										 std::min(strength_siege_units / total_strength, state.defines.engineer_unit_ratio) /
+										 state.defines.engineer_unit_ratio),
+				0, 9);
+
+}
+// gets the fort level for combat in the specified province, taking all of the units in the province into account
+int32_t get_combat_fort_level(sys::state& state, dcon::province_id location) {
+	auto location_controller = state.world.province_get_nation_from_province_control(location);
+	float total_enemy_strength = 0;
+	float strength_siege_units = 0;
+	float max_siege_value = 0;
+	for(auto ar : state.world.province_get_army_location(location)) {
+		auto army = ar.get_army();
+		auto army_controller = army.get_controller_from_army_control();
+		// only units in a battle and hostile to the fort controller can count towards reducing fort level
+		if(army.get_battle_from_army_battle_participation() && are_enemies(state, location_controller, army_controller)) {
+			auto army_stats = tech_nation_for_army(state, ar.get_army());
+			for(auto r : army.get_army_membership()) {
+				auto reg_str = r.get_regiment().get_strength();
+				if(reg_str > 0.001f) {
+					auto type = r.get_regiment().get_type();
+					auto& stats = state.world.nation_get_unit_stats(army_stats, type);
+
+					total_enemy_strength += reg_str;
+
+					if(stats.siege_or_torpedo_attack > 0.0f) {
+						strength_siege_units += reg_str;
+						max_siege_value = std::max(max_siege_value, stats.siege_or_torpedo_attack);
+					}
+				}
+			}
+		}
+	}
+	return get_effective_fort_level(state, location, total_enemy_strength, strength_siege_units, max_siege_value);
+}
+
+		
 
 
 void update_land_battles(sys::state& state) {
@@ -6274,7 +6332,7 @@ void update_land_battles(sys::state& state) {
 		auto local_control = state.world.province_get_nation_from_province_control(location);
 		if((!attacking_nation && local_control) ||
 				(attacking_nation && (!bool(local_control) || military::are_at_war(state, attacking_nation, local_control)))) {
-			defender_fort = 1.0f + 0.1f * state.world.province_get_building_level(location, uint8_t(economy::province_building_type::fort));
+			defender_fort = 1.0f + 0.1f * get_combat_fort_level(state, location);
 		}
 
 		// apply damage to all regiments
