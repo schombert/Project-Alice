@@ -437,8 +437,8 @@ public:
 			for(auto& twg : wargoals) {
 				auto wg = fatten(state.world, twg.wg);
 				auto wg_value = military::peace_cost(state, w, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
-
 				if(twg.added) {
+					// UI allows to add both concession and demands goals. E.g. I concede 93, but demand 1. Then this is calculated as 94 instead of 92.
 					overall_po_value += wg_value;
 					if(wg.get_target_nation() == target) {
 						target_personal_po_value += wg_value;
