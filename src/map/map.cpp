@@ -370,6 +370,19 @@ void display_data::create_meshes() {
 	create_textured_line_vbo(vbo_array[vo_river], river_vertices);
 	glBindVertexArray(vao_array[vo_railroad]);
 	create_textured_line_vbo(vbo_array[vo_railroad], railroad_vertices);
+	{
+		glBindVertexArray(vao_array[vo_cities]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
+		if(!city_vertices.empty())
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * city_vertices.size(), city_vertices.data(), GL_STATIC_DRAW);
+		glBindVertexBuffer(0, vbo_array[vo_cities], 0, sizeof(vertex));
+		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(vertex, position_));
+		glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(vertex, texcoord_));
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribBinding(0, 0);
+		glVertexAttribBinding(1, 0);
+	}
 	glBindVertexArray(vao_array[vo_coastal]);
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_trade_flow]);
@@ -442,6 +455,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/screen_v.glsl"));
 	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/white_color_f.glsl"));
 
+	// generic on-map shader
+	auto triangles_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_v.glsl"));
+	auto triangles_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_f.glsl"));
+
 	// On-map sprite shader
 	auto sprite_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_v.glsl"));
 	auto sprite_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_f.glsl"));
@@ -459,6 +476,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto river_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_river_f.glsl"));
 
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
+
+	auto tlinew_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/wavy_textured_line_f.glsl"));
 	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_f.glsl"));
 	auto tlineb_provinces_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_provinces_f.glsl"));
 
@@ -470,7 +489,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
 	shaders[shader_textured_line_with_variable_width] = create_program(*tline_width_vshader, *river_fshader);
 	shaders[shader_trade_flow] = create_program(*tline_width_vshader, *tlineb_fshader);
-	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
+	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlinew_fshader);
 	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
 	shaders[shader_borders_provinces] = create_program(*tlineb_vshader, *tlineb_provinces_fshader);
 	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
@@ -478,6 +497,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_drag_box] = create_program(*screen_vshader, *white_color_fshader);
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
 	shaders[shader_map_sprite] = create_program(*sprite_vshader, *sprite_fshader);
+	shaders[shader_textured_triangle] = create_program(*triangles_vshader, *triangles_fshader);
 
 	for(uint32_t i = 0; i < shader_count; i++) {
 		if(shaders[i] == 0)
@@ -680,8 +700,31 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glCullFace(GL_BACK);
 	glDisable(GL_PRIMITIVE_RESTART);
 
+	
+	glEnable(GL_BLEND);
+
+	// Draw the railroads and city
+	if(zoom > map::zoom_close && !city_vertices.empty() && state.user_settings.railroads_enabled) {
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
+		{
+			load_shader(shader_textured_triangle);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_city]);
+			glUniform1i(shader_uniforms[shader_textured_triangle][uniform_texture_sampler], 0);
+			glBindVertexArray(vao_array[vo_cities]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)city_vertices.size());
+		}
+	}
+
+
 	// Draw the rivers
 	if(state.user_settings.rivers_enabled) {
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_river_body]);
 		glActiveTexture(GL_TEXTURE1);
@@ -703,18 +746,25 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 	}
 
+	if(zoom > map::zoom_close && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
-
-	// Draw the railroads
-	if(zoom > map::zoom_close && !railroad_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_sea_mask]);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, state.open_gl.province_map_rendertexture);
 
 		load_shader(shader_railroad_line);
 		glUniform1i(shader_uniforms[shader_railroad_line][uniform_line_texture], 0);
 		glUniform1i(shader_uniforms[shader_railroad_line][uniform_colormap_water], 1);
+		glUniform1i(shader_uniforms[shader_railroad_line][uniform_provinces_sea_mask], 2);
+		glUniform1i(shader_uniforms[shader_railroad_line][uniform_provinces_texture_sampler], 3);
+
 		glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.0001f);
 		glUniform1f(shader_uniforms[shader_railroad_line][uniform_time], 0.f);
 
@@ -722,6 +772,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
 	}
+
+	glEnable(GL_BLEND);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
@@ -2289,108 +2342,364 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 	return true;
 }
 
-void display_data::update_railroad_paths(sys::state& state) {
+glm::vec2 get_node(sys::state& state, glm::vec2 center, int i, int j) {
+	const auto rpx = rng::get_random(state, j ^ i ^ (uint32_t)center.x, i);
+	const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f)) - 0.5f;
+	const auto rpy = rng::get_random(state, j ^ i ^ (uint32_t)center.y ^ 5653, j);
+	const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f)) - 0.5f;
+
+	auto base_shift = glm::vec2{ (float)i + rx, (float)j + ry } * 0.4f / sqrt(sqrt((float) (i * i) + (float) (j * j) + 1));
+	return center + base_shift;
+}
+
+void display_data::update_sprawl(sys::state& state) {
+	city_vertices.clear();
+
+	auto size = glm::vec2(size_x, size_y);
 	// Create paths for the main railroad sections
-	std::vector<bool> visited_prov(state.world.province_size() + 1, false);
-	std::vector<bool> rr_ends(state.world.province_size() + 1, false);
-	std::vector<bool> visited_adj(state.world.province_adjacency_size() + 1, false);
-	std::vector<std::vector<glm::vec2>> railroads;
-	for(const auto p : state.world.in_province) {
-		std::vector<dcon::province_id> provinces;
-		if(get_provinces_part_of_rr_path(state, visited_adj, visited_prov, provinces, p)) {
-			if(provinces.size() > 1) {
-				std::vector<glm::vec2> railroad;
-				for(uint32_t i = 0; i < uint32_t(provinces.size() - 1); i++)
-					create_railroad_connection(state, railroad, provinces[i], provinces[i + 1]);
-				railroad.emplace_back(state.world.province_get_mid_point(provinces.back()));
-				assert(!railroad.empty());
-				railroads.push_back(railroad);
-				assert(provinces.front());
-				assert(provinces.back());
-				rr_ends[provinces.front().index()] = true;
-				rr_ends[provinces.back().index()] = true;
-			}
-		}
-	}
+	std::vector<std::vector<glm::vec2>> roads{};
+
+	std::vector<std::vector<glm::vec2>> connectors{};
+	connectors.resize(state.world.province_size());
 
 	// Populate paths with railroads - only account provinces that have been visited
 	// but not the adjacencies
-	for(const auto p1 : state.world.in_province) {
-		if(visited_prov[p1.id.index()]) {
-			auto const p1_level = p1.get_building_level(uint8_t(economy::province_building_type::railroad));
-			auto admin_efficiency = state.world.province_get_control_ratio(p1);
-			auto max_adj = std::max<uint32_t>(uint32_t(admin_efficiency * 2.75f), rr_ends[p1.id.index()] ? 3 : 1);
-			std::vector<dcon::province_adjacency_id> valid_adj;
-			for(const auto adj : p1.get_province_adjacency_as_connected_provinces()) {
-				if(max_adj == 0)
-					break;
-				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1.id ? 1 : 0);
-				if(p2.get_building_level(uint8_t(economy::province_building_type::railroad)) == 0)
-					continue;
-				max_adj--;
-				assert(adj.id);
-				assert(p2);
-				if(visited_adj[adj.id.index()])
-					continue;
-				if(rr_ends[p1.id.index()] != rr_ends[p2.id.index()]
-				&& rr_ends[p1.id.index()] == false)
-					continue;
-				visited_adj[adj.id.index()] = true;
-				valid_adj.push_back(adj.id);
-			}
-			std::sort(valid_adj.begin(), valid_adj.end(), [&](auto const a, auto const b) -> bool {
-				auto const ad = state.world.province_adjacency_get_distance(a);
-				auto const bd = state.world.province_adjacency_get_distance(b);
-				return ad < bd;
-			});
-			for(const auto a : valid_adj) {
-				auto const adj = dcon::fatten(state.world, a);
-				auto const p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1.id ? 1 : 0);
-				//
-				std::vector<glm::vec2> railroad;
-				create_railroad_connection(state, railroad, p1.id, p2.id);
-				railroad.emplace_back(state.world.province_get_mid_point(p2.id));
-				assert(!railroad.empty());
-				railroads.push_back(railroad);
+	for(const auto p : state.world.in_province) {
+
+		auto rural_population = 0.f;
+		for(auto wt : state.culture_definitions.rgo_workers) {
+			rural_population += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+		}
+		rural_population += state.world.province_get_demographics(p, demographics::to_employment_key(state, state.culture_definitions.slaves));
+
+
+		auto urban_pop = p.get_demographics(demographics::total) - rural_population;
+
+		if(urban_pop < 1000.f) {
+			continue;
+		}
+
+		auto province_size = state.map_state.map_data.province_area[province::to_map_id(p)];
+		if(province_size < 1) {
+			continue;
+		}
+
+		auto population_level = int(sqrt(urban_pop / 100'000.f) * 10.f) + 1.f;
+
+		if(population_level < 3.f) {
+			population_level = 1.f;
+			continue;
+			//ignore for now
+		}
+
+		auto central_settlement = p.get_mid_point();
+
+		bool midpoint_is_good_enough = true;
+		auto sample_midpoint = province::from_map_id(safe_get_province({ (int)central_settlement.x, (int)central_settlement.y }));
+		if(sample_midpoint != p) {
+			midpoint_is_good_enough = false;
+		}
+
+		// spawn local settlements
+
+		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
+
+		int potential_settlement_slots = std::min((unsigned)7, province_size / 200);
+		int settlement_slots = potential_settlement_slots;
+
+		if(p.get_port_to()) {
+			auto port_location = duplicates::get_port_location(state, p.id);
+			if(glm::length(port_location - central_settlement) > 2.f) {
+				if(!midpoint_is_good_enough) {
+					central_settlement = port_location;
+					midpoint_is_good_enough = true;
+				} else {
+					weighted_settlements.push_back({ port_location, 0.5f / (potential_settlement_slots + 1) });
+					settlement_slots -= 2;
+					roads.push_back({ port_location, central_settlement });
+				}
 			}
 		}
+
+		auto side = sqrt(province_size);
+
+		// try to spawn random settlements in this area
+
+		if(settlement_slots > 0) {
+			int attempts = 15;
+			for(int i = 0; i < attempts; i++) {
+				const auto rp1 = rng::get_random(state, p.id.index() ^ i, p.id.index());
+				const int r1 = (int)rng::reduce(uint32_t(rp1), (uint32_t)side);
+				const auto rp2 = rng::get_random(state, p.id.index() ^ i ^ 5653, p.id.index() ^ 435427);
+				const int r2 = (int)rng::reduce(uint32_t(rp2), (uint32_t)side);
+
+				int x = (int)(central_settlement.x) + r1 - (int)side / 2;
+				int y = (int)(central_settlement.y) + r2 - (int)side / 2;
+
+				auto sample = province::from_map_id(safe_get_province({x, y}));
+				if(sample == p) {
+					auto pos = glm::vec2{ (float)x, (float)y };
+					if(!midpoint_is_good_enough) {
+						central_settlement = pos;
+						midpoint_is_good_enough = true;
+					} else {
+						settlement_slots -= 1;
+						weighted_settlements.push_back({ pos, 0.5f / (potential_settlement_slots + 1) });
+						roads.push_back({ pos, central_settlement });
+						if(settlement_slots < 0) {
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		weighted_settlements.push_back({ central_settlement, 0.5f });
+
+		
+
+		for(size_t center = 0; center < weighted_settlements.size(); center++) {
+			//std::vector<glm::vec2> key_points{ };
+			//std::vector<char> used{ };
+			int N = 10;
+
+			const auto rp1 = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index());
+			float r1 = (float(rng::reduce(uint32_t(rp1), 8192)) / (8192.f)) - 0.5f;
+			const auto rp2 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ 435427);
+			float r2 = (float(rng::reduce(uint32_t(rp2), 8192)) / (8192.f)) - 0.5f;
+
+			const auto ap = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index() ^ 1);
+			float a = (float(rng::reduce(uint32_t(ap), 8192)) / (8192.f)) - 0.5f;
+
+			const auto bp = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ 2);
+			float b = (float(rng::reduce(uint32_t(bp), 8192)) / (8192.f)) - 0.5f;
+
+			const auto cp = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ 3);
+			const float c = (float(rng::reduce(uint32_t(cp), 8192)) / (8192.f)) - 0.5f;
+
+			auto n = sqrt(r1 * r1 + r2 * r2);
+
+			r1 /= n;
+			r2 /= n;
+
+			auto n2 = sqrt(a * a + b * b);
+
+			a /= n2;
+			b /= n2;
+ 
+			//auto initial_rotation = r3 * std::numbers::pi_v<float> * 2.f;
+
+			auto settlement = weighted_settlements[center];
+
+			auto layers = int(population_level * settlement.second + 1);
+
+			if(layers == 1) {
+				N = 5;
+			}
+
+			/*
+			for(int i = 0; i < (layers) * N; i++) {
+				const auto rpx = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index() ^ (uint32_t)i);
+				const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f) - 0.5f) * 0.25f;
+				const auto rpy = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ (uint32_t)i ^ 435427);
+				const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f) - 0.5f) * 0.25f;
+				auto angle = ((float)(i % N)) * std::numbers::pi_v<float> / float(N) * 2.f + initial_rotation;
+				float scale = float(1 + i / N) * 0.2f;
+				glm::vec2 shift{ (cos(angle) + rx), (sin(angle) + ry) };
+				key_points.push_back(settlement.first + shift * scale);
+				//used.push_back(0);
+			}
+			*/
+
+			// connect key points into loops
+
+
+			for(int i = -layers; i < layers; i++) {
+				for(int k = -layers; k < layers; k++) {
+
+					if(layers > 3) {
+						if(i / (2 * layers / 3) != 0 && k / (2 * layers / 3) != 0) {
+							continue;
+						}
+					}
+
+					if(abs(i * r1 + k * r2) > layers * 0.5f && abs(i * a + k * b + c) > layers * 0.2f) {
+						continue;
+					}
+
+					auto node_1 = get_node(state, settlement.first, i, k);
+					auto node_2 = get_node(state, settlement.first, i + 1, k);
+					auto node_3 = get_node(state, settlement.first, i, k + 1);
+					auto node_4 = get_node(state, settlement.first, i + 1, k + 1);
+
+					auto node_center = (node_1 + node_2 + node_3 + node_4) / 4.f;
+
+					//auto sample_1 = province::from_map_id(safe_get_province({ int(node_1.x), int(node_1.y) }));
+					//auto sample_2 = province::from_map_id(safe_get_province({ int(node_2.x), int(node_2.y) }));
+					//auto sample_3 = province::from_map_id(safe_get_province({ int(node_3.x), int(node_3.y) }));
+					//auto sample_4 = province::from_map_id(safe_get_province({ int(node_4.x), int(node_4.y) }));
+
+					auto sample = province::from_map_id(safe_get_province({ int(node_center.x), int(node_center.y) }));
+
+					if(sample.index() > state.province_definitions.first_sea_province.index()) {
+						continue;
+					}
+
+					//if(sample_2.index() > state.province_definitions.first_sea_province.index()) {
+					//	continue;
+					//}
+					//if(sample_3.index() > state.province_definitions.first_sea_province.index()) {
+					//	continue;
+					//}
+					//if(sample_4.index() > state.province_definitions.first_sea_province.index()) {
+					//	continue;
+					//}
+
+					// check if the node is far away from major roads:
+
+
+					const auto rpm1 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ (i / 2), p.id.index() ^ (k / 2));
+					const float rm1 = (float(rng::reduce(uint32_t(rpm1), 8192)) / (8192.f));
+					const auto rpm2 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653 ^ (i / 2), p.id.index() ^ 435427 ^ (k / 2));
+					const float rm2 = (float(rng::reduce(uint32_t(rpm2), 8192)) / (8192.f));
+
+					glm::mat2 transform{
+						rm1, rm2, -rm2, rm1
+					};
+
+					transform /= sqrt(rm1 * rm1 + rm2 * rm2);
+					transform *= 3.f;
+
+					const auto rh = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 9572456, 432864 ^ p.id.index() ^ (uint32_t)(i * N + k));
+					const float rhf = (float(rng::reduce(uint32_t(rh), 8192)) / (8192.f));
+					{
+						city_vertices.push_back(
+							vertex{
+								node_1 / size,
+								node_1 * transform
+							}
+						);
+						city_vertices.push_back(
+							vertex{
+								node_2 / size,
+								node_2* transform
+							}
+						);
+						city_vertices.push_back(
+							vertex{
+								node_3 / size,
+								node_3* transform
+							}
+						);
+
+						city_vertices.push_back(
+							vertex{
+								node_2 / size,
+								node_2 * transform
+							}
+						);
+						city_vertices.push_back(
+							vertex{
+								node_4 / size,
+								node_4* transform
+							}
+						);
+						city_vertices.push_back(
+							vertex{
+								node_3 / size,
+								node_3* transform
+							}
+						);
+						const auto r = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 43542, 4634 ^ p.id.index() ^ (uint32_t)(i * N + k));
+						const float rf = (float(rng::reduce(uint32_t(r), 8192)) / (8192.f));
+
+						if(rf > 0.25f && (i == -layers || i + 1 == layers || k == -layers || k + 1 == layers)) {
+							connectors[p.id.index()].push_back((node_1 + node_2 + node_3 + node_4) / 4.f);
+						}
+					}
+				}
+			}			
+		}		
 	}
+
+	// connect some provs:
+
+	for(auto adj : state.world.in_province_adjacency) {
+		if(
+			(adj.get_type() & province::border::impassible_bit) != 0
+			||
+			(adj.get_type() & province::border::non_adjacent_bit) != 0
+		) {
+			continue;
+		}
+
+		// find closest connectors:
+
+		auto p1 = adj.get_connected_provinces(0);
+		auto p2 = adj.get_connected_provinces(1);
+
+		auto closest1 = -1;
+		auto closest2 = -1;
+		auto min_dist = 0.f;
+
+		for(int i = 0; i < (int)connectors[p1.id.index()].size(); i++) {
+			for(int j = 0; j < (int)connectors[p2.id.index()].size(); j++) {
+				if(closest1 == -1) {
+					closest1 = i;
+					closest2 = j;
+					auto node1 = connectors[p1.id.index()][i];
+					auto node2 = connectors[p2.id.index()][j];
+					min_dist = glm::length(node1 - node2);
+				} else {
+					auto node1 = connectors[p1.id.index()][i];
+					auto node2 = connectors[p2.id.index()][j];
+					auto dist = glm::length(node1 - node2);
+					if(dist < min_dist) {
+						closest1 = i;
+						closest2 = j;
+						min_dist = dist;
+					}
+				}
+			}
+		}
+
+		if(closest1 > 0) {
+			auto node1 = connectors[p1.id.index()][closest1];
+			auto node2 = connectors[p2.id.index()][closest2];
+
+			auto id = adj.id.index();
+			auto& map_data = state.map_state.map_data;
+			auto& border = map_data.borders[id];
+			if(border.count > 0) {
+				auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+				roads.push_back({ node1, vertex.position * size });
+				roads.push_back({ vertex.position * size, node2 });
+			} else {
+				roads.push_back({ node1, node2 });
+			}
+		}
+	};
 
 	railroad_vertices.clear();
 	railroad_starts.clear();
 	railroad_counts.clear();
-	for(const auto& railroad : railroads) {
+	for(const auto& railroad : roads) {
 		railroad_starts.push_back(GLint(railroad_vertices.size()));
 		glm::vec2 current_pos = railroad.back();
-		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
+		glm::vec2 next_pos = put_in_local(railroad[0], current_pos, float(size_x));
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+		auto norm_next = next_pos / glm::vec2(size_x, size_y);
+
+		float distance = glm::length(norm_next - norm_pos);
+
 		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
 		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
-		float distance = 0.0f;
-		for(auto i = railroad.size() - 1; i-- > 0;) {
-			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
-			next_pos = put_in_local(railroad[i], current_pos, float(size_x));
-			if(i > 0) {
-				glm::vec2 next_next_pos = put_in_local(railroad[i - 1], next_pos, float(size_x));
-				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
-				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
-				glm::vec2 temp = a_per + b_per;
-				if(glm::length(temp) < 0.00001f) {
-					next_perpendicular = -a_per;
-				} else {
-					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular))
-						next_perpendicular *= -1.0f;
-				}
-			} else {
-				next_perpendicular = glm::normalize(current_pos - next_pos);
-			}
-			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
-			prev_perpendicular = -1.0f * next_perpendicular;
-			current_pos = railroad[i];
-		}
+
+		railroad_vertices.emplace_back(textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+		railroad_vertices.emplace_back(textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
+
 		railroad_counts.push_back(GLsizei(railroad_vertices.size() - railroad_starts.back()));
 		assert(railroad_counts.back() > 1);
 	}
@@ -2399,6 +2708,10 @@ void display_data::update_railroad_paths(sys::state& state) {
 	if(!railroad_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex) * railroad_vertices.size(), railroad_vertices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * city_vertices.size(), city_vertices.data(), GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 }
@@ -3077,6 +3390,9 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_railroad] = load_dds_texture(gfx_anims_dir, NATIVE("railroad.dds"));
 	ogl::set_gltex_parameters(textures[texture_railroad], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_city] = ogl::make_gl_texture(assets_dir, NATIVE("city.png"));
+	ogl::set_gltex_parameters(textures[texture_city], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);

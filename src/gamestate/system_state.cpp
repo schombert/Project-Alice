@@ -4342,6 +4342,8 @@ void state::single_game_tick() {
 
 		if(ymd_date.day == 1) {
 			if(ymd_date.month == 1) {
+				sprawl_update_requested.store(true);
+
 				// yearly update : redo the upper house
 				for(auto n : world.in_nation) {
 					if(n.get_owned_province_count() != 0)
