@@ -339,6 +339,7 @@ void on_lbutton_up_ui_click_hold_and_release(sys::state& state, int32_t x, int32
 	}
 }
 
+// Should be called only from the UI thread
 void deselect_units(sys::state& state) {
 	state.selected_armies.clear();
 	state.selected_navies.clear();
