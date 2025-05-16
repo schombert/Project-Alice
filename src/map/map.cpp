@@ -321,7 +321,7 @@ void display_data::create_meshes() {
 
 	auto add_vertex = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0) {
 		vertices.emplace_back(pos0.x, pos0.y);
-	};
+		};
 
 	glm::vec2 last_pos(0, 0);
 	glm::vec2 pos(0, 0);
@@ -334,7 +334,7 @@ void display_data::create_meshes() {
 			add_vertex(land_vertices, pos);
 		}
 	}
-	
+
 	map_indices.clear();
 	for(int y = 0; y < sections.y; y++) {
 		auto top_row_start = y * (sections.x + 1);
@@ -543,7 +543,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
 		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
 		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
-	};	
+		};
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
@@ -580,19 +580,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		for(auto b : borders) {
 			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f); // width
 			if(b.count == 0) continue;
-			if(
-				!b.adj
-				||
+			if(!b.adj || (
+				state.world.province_adjacency_get_type(b.adj) &
 				(
-					state.world.province_adjacency_get_type(b.adj)
-					&
-					(
-						province::border::coastal_bit
-						| province::border::national_bit
-						| province::border::impassible_bit
-					)
+					province::border::coastal_bit
+					| province::border::national_bit
+					| province::border::impassible_bit
 				)
-			) {
+			)) {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
 			} else {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
@@ -604,7 +599,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	
+
 	if(ogl::msaa_enabled(state)) {
 		glBindFramebuffer(GL_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
 		glClearColor(1.f, 1.f, 1.f, 0.f);
@@ -708,7 +703,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 	}
 
-	
+
 
 	// Draw the railroads
 	if(zoom > map::zoom_close && !railroad_vertices.empty()) {
@@ -840,7 +835,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 	}
-	
+
 
 	if(state.map_state.selected_province || (state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation)) {
 		glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
@@ -926,7 +921,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
 					}
 				}
-			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::province)  {
+			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::province) {
 				//per province
 				for(auto b : borders) {
 					if(!b.adj) continue;
@@ -942,7 +937,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 	// coasts
 
-	if (state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
+	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_coastal_border]);
@@ -1179,7 +1174,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		load_shader(shader_map_standing_object);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
-		
+
 		//for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
 		//	glActiveTexture(GL_TEXTURE0);
 		//	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
@@ -1293,10 +1288,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_facing], theta);
 			glUniform1f(shader_uniforms[shader_map_standing_object][uniform_target_topview_fixup], 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
-		};
+			};
 		render_canal(3, 0, 0.f); //Kiel
 		render_canal(4, 1, glm::pi<float>() / 2.f), //Suez
-		render_canal(2, 2, 0.f); //Panama
+			render_canal(2, 2, 0.f); //Panama
 		// Factory
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[9]);
@@ -1363,7 +1358,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					}
 				}
 			}
-		};
+			};
 		render_regiment(17, military::unit_type::infantry, dist_step); //shadow
 		render_regiment(17, military::unit_type::cavalry, 0.f); //shadow
 		render_regiment(17, military::unit_type::support, -dist_step); //shadow
@@ -1406,7 +1401,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					}
 				}
 			}
-		};
+			};
 
 		//ship wakes
 		render_ship(16, military::unit_type::big_ship, 2, 3.f * dist_step); //raider
@@ -1767,8 +1762,8 @@ void add_tl_segment_buffer(
 	end /= glm::vec2(size_x, size_y);
 	auto d = start - end;
 	distance += glm::length(d) * width / 1000.f;
-	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width});//C
-	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width});//D
+	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width });//C
+	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width });//D
 }
 
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance) {
@@ -1926,7 +1921,7 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-		
+
 		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
 		for(auto i = ps; i-- > 0;) {
@@ -2022,14 +2017,14 @@ void make_sea_path(
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
 
-		buffer.emplace_back(map::textured_line_with_width_vertex {
+		buffer.emplace_back(map::textured_line_with_width_vertex{
 			norm_pos,
 			+start_normal,
 			0.f,
 			0.0f,
 			width
 		});
-		buffer.emplace_back(map::textured_line_with_width_vertex {
+		buffer.emplace_back(map::textured_line_with_width_vertex{
 			norm_pos,
 			-start_normal,
 			1.f,
@@ -2169,7 +2164,7 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
 
-		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{0,0}, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
@@ -2214,7 +2209,7 @@ void make_army_direction(sys::state& state, std::vector<map::curved_line_vertex>
 
 		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
-		for(auto i = ps; i-- > path.size()-1;) {
+		for(auto i = ps; i-- > path.size() - 1;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
 
@@ -2434,7 +2429,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			// y = a + 1bx^1 + 1cx^2 + 1dx^3
 			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-		};
+			};
 
 
 		//cutting box if graph goes outside
@@ -2448,7 +2443,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				right = (1.f - e.coeff[0]) / e.coeff[1];
 			} else if(e.coeff[1] < -0.01f) {
 				left = (1.f - e.coeff[0]) / e.coeff[1];
-				right = (- e.coeff[0]) / e.coeff[1];
+				right = (-e.coeff[0]) / e.coeff[1];
 			}
 		} else {
 			while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
@@ -2495,7 +2490,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(font_size_index > 45.f) {
 			font_size_index = 45.f;
 		}
-		if (font_size_index > 5.f)
+		if(font_size_index > 5.f)
 			font_size_index = 5.f * std::round(font_size_index / 5.f);
 
 		size = std::pow(1.618034f, font_size_index / 5.f);
@@ -2515,7 +2510,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(size > ratio.y / 2.f) {
 			size = ratio.y / 2.f;
 		}
-		
+
 		size = std::round(size / size_step) * size_step;
 
 		if(size < size_step) {
@@ -2601,7 +2596,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
 	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
-	
+
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
@@ -2651,7 +2646,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 					// y = a + 1bx^1 + 1cx^2 + 1dx^3
 					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-				};
+					};
 				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
 				curr_dir.x *= 0.5f;
@@ -3007,7 +3002,7 @@ void display_data::load_map(sys::state& state) {
 
 	state.console_log(ogl::opengl_get_error_name(glGetError()));
 
-	
+
 
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
@@ -3017,12 +3012,19 @@ void display_data::load_map(sys::state& state) {
 
 	glGenTextures(1, &textures[texture_diag_border_identifier]);
 	if(textures[texture_diag_border_identifier]) {
+		assert(!diagonal_borders.empty());
+
 		glBindTexture(GL_TEXTURE_2D, textures[texture_diag_border_identifier]);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, size_x, size_y);
+		assert(size_x > 0);
+		assert(size_y > 0);
+		// assert(diagonal_borders.size() != size_x * size_y);
+		assert(size_x % 4 == 0); // The texture data might have incorrect row alignment (default is 4 bytes). If the texture width is not a multiple of 4, this can corrupt the upload.
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED_INTEGER, GL_UNSIGNED_BYTE, diagonal_borders.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	ogl::set_gltex_parameters(textures[texture_diag_border_identifier], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+
 
 	textures[texture_terrain] = ogl::make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
 	ogl::set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
@@ -3039,22 +3041,22 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));
-	
+
 	textures[texture_colormap_water] = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
 	if(!textures[texture_colormap_water]) textures[texture_colormap_water] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap_water.png"));
-	
+
 	textures[texture_colormap_terrain] = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
 	if(!textures[texture_colormap_terrain]) textures[texture_colormap_terrain] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap.png"));
 
 	textures[texture_colormap_political] = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	if(!textures[texture_colormap_political]) textures[texture_colormap_political] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap_political.png"));
-	
+
 	textures[texture_overlay] = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	if(!textures[texture_overlay]) textures[texture_overlay] = ogl::make_gl_texture(map_items_dir, NATIVE("map_overlay_tile.png"));
-	
+
 	textures[texture_stripes] = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	if(!textures[texture_stripes]) textures[texture_stripes] = ogl::make_gl_texture(map_items_dir, NATIVE("stripes.png"));
-	
+
 	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
