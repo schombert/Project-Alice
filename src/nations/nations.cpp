@@ -3065,6 +3065,8 @@ void update_crisis(sys::state& state) {
 						state.current_crisis = sys::crisis_type::colonial;
 						sd.set_colonization_temperature(0.0f);
 
+						// In colonial crisis there should be two simmetrical wargoals: attacker vs defender and defender vs attacker.
+
 						crisis_add_wargoal(state.crisis_attacker_wargoals, sys::full_wg{
 							attacking_colonizer, // added_by;
 								defending_colonizer, // target_nation;
