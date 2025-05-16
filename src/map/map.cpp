@@ -580,19 +580,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		for(auto b : borders) {
 			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f); // width
 			if(b.count == 0) continue;
-			if(
-				!b.adj
-				||
+			if(!b.adj || (
+				state.world.province_adjacency_get_type(b.adj) &
 				(
-					state.world.province_adjacency_get_type(b.adj)
-					&
-					(
-						province::border::coastal_bit
-						| province::border::national_bit
-						| province::border::impassible_bit
-						)
-					)
-			) {
+					province::border::coastal_bit
+					| province::border::national_bit
+					| province::border::impassible_bit
+				)
+			)) {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
 			} else {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
@@ -2725,7 +2720,7 @@ emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material 
 	}
 	return mat.layers.empty()
 		? emfx::xac_pp_actor_material_layer{}
-	: mat.layers[0];
+		: mat.layers[0];
 }
 
 void load_static_meshes(sys::state& state) {
