@@ -3638,7 +3638,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					state.world.nation_set_stockpiles(
 						nations_i, economy::money, treasury + bought_from_nation_cost);
 				}
-			}, capital_mask, total_demand, national_stockpile, supply_sold_ratio, nations, ids);
+			}, capital_mask && draw_from_stockpile, total_demand, national_stockpile, supply_sold_ratio, nations, ids);
 		}
 	});
 
