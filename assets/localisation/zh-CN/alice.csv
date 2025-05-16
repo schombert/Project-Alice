@@ -615,7 +615,7 @@ pop_assim_2;奴隶不被同化
 pop_assim_3;可接受民族人群不被同化
 pop_assim_4;殖民地人群不被同化
 pop_assim_5;海外省人群不被同化
-pop_assim_6;同化与人群规模成正比（乘积）：
+pop_assim_6;同化与人群规模成正比，等于亚文化的基础同化 $x$ 的总和与以下乘积的乘积：
 pop_assim_7;基础同化规模：$x$
 pop_assim_8;国内同化率修正：$x$
 pop_assim_9;当地同化率修正：$x$
@@ -1483,3 +1483,28 @@ pop_migration_bureaucracy;流动官僚管理地方：$x$
 pop_migration_attraction_3;迁移目标因子：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
 pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
+ask_free_trade_agreement;贸易协定
+revoke_trade_rights;撤销贸易权利
+msg_trade_rights_revoked;国家 ?Y$y$?W 撤回了 ?Y$x$?! 在其国内的自由贸易权利。
+trade_rights_desc;贸易权利或不平等条约给予对方在贸易上的优惠待遇，忽略我国的关税。一旦实施，在 ?Y$x$ 年内无法撤销。
+revoke_trade_rights_explain_1;自贸易权利实施以来已经过了足够的时间
+free_trade_desc;如果另一方同意，我们将签订贸易协定，在 ?Y$x$?W 年内取消我们两国之间的所有关税。
+free_trade_explain_1;我们的贸易商在 ?G$date$?! 之前无需支付他们的关税！
+free_trade_explain_2;他们的贸易商在 ?R$date$?! 之前无需支付我们的关税！
+free_trade_explain_3;我们正在对其进行禁运
+free_trade_explain_4;他们正在对我们进行禁运
+issue_embargo;实施禁运
+lift_embargo;解除禁运
+embargo_desc;禁运阻止我们两国之间的所有贸易。战争期间会自动对敌人实施禁运。
+embargo_explain_1;?G我们对其进行禁运。?!
+embargo_explain_2;?R他们对我们进行禁运。?!
+embargo_explain_3;我们在他们的国家没有贸易权利
+embargo_explain_4;他们在我们的国家没有贸易权利
+embargo_explain_5;我们不在一个势力范围内
+embargo_explain_6;他们不在一个势力范围内
+msg_embargo_issued_title;禁运已发布
+msg_embargo_issued;国家 ?Y$y$?! 已经发布禁令，禁止与 ?Y$x$?! 进行贸易。
+msg_embargo_lifted_title;禁运已解除
+msg_embargo_lifted;国家 ?Y$y$?! 已经解除了对 ?Y$x$?! 的贸易禁运。
+msg_free_trade_agreement_signed_title;自由贸易协定已签署。
+msg_free_trade_agreement_signed;我们两国 $x$ 和 $y$ 已经签署了自由贸易协定。这将取消我们两国之间贸易的所有关税。

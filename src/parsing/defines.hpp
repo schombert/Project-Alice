@@ -662,6 +662,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_speed_2, 750.000000)                                                                            \
 	LUA_DEFINES_LIST_ELEMENT(alice_speed_3, 250.000000)                                                                            \
 	LUA_DEFINES_LIST_ELEMENT(alice_speed_4, 125.000000)                                                                            \
+/* How much war exhaustion is the AI ready to take when declaring wars & peacing out */ \
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_war_exhaustion_readiness_limit, 25.000000)                                                   \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_gather_radius, -0.996000)                                                                    \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_radius, -0.996000)                                                                    \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_overestimate, 1.150000)                                                               \

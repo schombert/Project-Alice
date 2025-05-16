@@ -824,6 +824,31 @@ rem_sphere_explain_2;The nation has a friendly opinion of you
 rem_sphere_explain_3;The nation is in your sphere of influence
 rem_sphere_explain_4;Removing a nation from your own sphere of influence will increase your infamy by ?R$x$
 rem_sphere_explain_5;Removing a nation from your own sphere of influence will reduce your prestige by ?R$x$
+ask_free_trade_agreement;Trade agreement
+revoke_trade_rights;Revoke trade rights
+msg_trade_rights_revoked;Nation ?Y$y$?W has revoked free trade rights of ?Y$x$?! in their country.
+trade_rights_desc;Trade rights or unequal treaties give the other party preferential treatment in trade ignoring tariffs of our country. Once imposed, cannot be revoked for ?Y$x$ years.
+revoke_trade_rights_explain_1;Enough time has passed since trade rights were imposed
+free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
+free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
+free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
+free_trade_explain_3;We are embargoeing them
+free_trade_explain_4;They are embargoing us
+issue_embargo;Issue Embargo
+lift_embargo;Lift Embargo
+embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
+embargo_explain_1;?GWe embargo them.?!
+embargo_explain_2;?RThey embargo us.?!
+embargo_explain_3;We don't have trade rights in their country
+embargo_explain_4;They don't have trade rights in our country
+embargo_explain_5;We aren't in a sphere
+embargo_explain_6;They aren't in a sphere
+msg_embargo_issued_title;Embargo issued
+msg_embargo_issued;Nation ?Y$y$?! has issued embargo to ban trade with ?Y$x$?!.
+msg_embargo_lifted_title;Embargo lifted
+msg_embargo_lifted;Nation ?Y$y$?! has lifted embargo on trade with ?Y$x$?!.
+msg_free_trade_agreement_signed_title;Free trade agreement signed.
+msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.
 fab_explain_1;You can't justify war against yourself
 fab_explain_2;You have at least $x$ diplomatic point(s)
 fab_explain_3;You are not currently fabricating a casus belli
