@@ -339,6 +339,7 @@ bool railroad_checkbox::is_active(sys::state& state) noexcept {
 void railroad_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.railroads_enabled = !state.user_settings.railroads_enabled;
 	state.railroad_built.store(true, std::memory_order::release);
+	state.sprawl_update_requested.store(true, std::memory_order::release);
 	send(state, parent, notify_setting_update{});
 }
 

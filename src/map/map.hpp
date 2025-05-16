@@ -129,7 +129,7 @@ public:
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
-	void update_railroad_paths(sys::state& state);
+	void update_sprawl(sys::state& state);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 

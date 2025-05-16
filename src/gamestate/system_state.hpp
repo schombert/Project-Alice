@@ -640,6 +640,7 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 	std::atomic<bool> railroad_built = true; // game state -> map
+	std::atomic<bool> sprawl_update_requested = true;
 	std::atomic<bool> update_trade_flow = true;
 
 	// synchronization: notifications from the gamestate to ui
