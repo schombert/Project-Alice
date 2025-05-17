@@ -1239,7 +1239,7 @@ supply;供应
 demand;需求
 balance;结余
 market_stockpiles;库存
-national_stockpile;储备
+national_stockpile;政府储备
 government_need;政府采购
 factory_need;工厂输入
 pop_need;需求缺口
@@ -1508,3 +1508,9 @@ msg_embargo_lifted_title;禁运已解除
 msg_embargo_lifted;国家 ?Y$y$?! 已经解除了对 ?Y$x$?! 的贸易禁运。
 msg_free_trade_agreement_signed_title;自由贸易协定已签署。
 msg_free_trade_agreement_signed;我们两国 $x$ 和 $y$ 已经签署了自由贸易协定。这将取消我们两国之间贸易的所有关税。
+state;地区情况
+state_id;地区情况 ID
+state_definition;国家定义
+state_definition_id;国家定义 ID
+nation_id;爱丽丝 国家 ID
+province_colonisation_temperature;地区移民热度：?R$val$?W
