@@ -4649,7 +4649,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 		}
 	} else {
 		auto& def_bonus = state.world.land_battle_get_defender_bonus(b);
-		auto prev_dig_in = def_bonus | defender_bonus_dig_in_mask;
+		auto prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
 		auto new_dig_in = std::min(prev_dig_in, state.world.army_get_dig_in(a) & defender_bonus_dig_in_mask);
 		def_bonus &= ~defender_bonus_dig_in_mask;
 		def_bonus |= new_dig_in;
