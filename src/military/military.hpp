@@ -485,6 +485,7 @@ void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon:
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
 uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle);
+float get_army_recon_eff(sys::state& state, dcon::army_id army);
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);

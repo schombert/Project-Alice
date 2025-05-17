@@ -6124,6 +6124,27 @@ float unit_get_effective_default_org(sys::state& state, dcon::ship_id ship) {
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves) {
 	std::sort(reserves.begin(), reserves.end(), [&state](reserve_regiment a, reserve_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
 }
+// gets the recon efficiency of an army, for display in ui mostly
+float get_army_recon_eff(sys::state& state, dcon::army_id army) {
+	dcon::nation_id tech_nation = tech_nation_for_army(state, army);
+	float total_strength = 0;
+	float total_recon_strength = 0;
+	for(auto r : state.world.army_get_army_membership(army)) {
+		auto reg = r.get_regiment();
+		if(reg.get_strength() > 0.0f) {
+			total_strength += reg.get_strength();
+			float recon = state.world.nation_get_unit_stats(tech_nation, reg.get_type()).reconnaissance_or_fire_range;
+			if(recon > 0.0f) {
+				total_recon_strength += reg.get_strength();
+			}
+		}
+	}
+	// guard for DBZ errors if this is run on an army that has no regiments, before it is disbanded.
+	if(total_strength == 0) {
+		return 0;
+	}
+	return std::clamp((total_recon_strength / total_strength) / state.defines.recon_unit_ratio, 0.0f, 1.0f);
+}
 
 // calculates the effective digin of a battle after recon units are taken into account.
 uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle) {

@@ -2174,6 +2174,7 @@ public:
 			unitengineer_text->set_visible(state, true);
 			unitrecon_icon->set_visible(state, true);
 			unitrecon_text->set_visible(state, true);
+			unitrecon_text->set_text(state, text::format_percentage( military::get_army_recon_eff(state, unit_id), 0));
 
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::val, uint16_t(military::effective_army_speed(state, unit_id)));
