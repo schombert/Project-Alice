@@ -6124,6 +6124,38 @@ float unit_get_effective_default_org(sys::state& state, dcon::ship_id ship) {
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves) {
 	std::sort(reserves.begin(), reserves.end(), [&state](reserve_regiment a, reserve_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
 }
+
+// calculates the effective digin of a battle after recon units are taken into account.
+uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle) {
+	float total_attacking_strength = 0;
+	float total_recon_strength = 0;
+	float highest_recon = 0;
+	uint8_t current_dig_in = state.world.land_battle_get_defender_bonus(battle) & defender_bonus_dig_in_mask;
+	for(auto a : state.world.land_battle_get_army_battle_participation(battle)) {
+		auto army = a.get_army();
+		dcon::nation_id tech_nation = tech_nation_for_army(state, army);
+		if(is_attacker_in_battle(state, army)) {
+			for(auto r : state.world.army_get_army_membership(army)) {
+				auto reg = r.get_regiment();
+				if(reg.get_strength() > 0.0f) {
+					total_attacking_strength += reg.get_strength();
+					float recon = state.world.nation_get_unit_stats(tech_nation, reg.get_type()).reconnaissance_or_fire_range;
+					if(recon > 0.0f) {
+						highest_recon = std::max(recon, highest_recon);
+						total_recon_strength += reg.get_strength();
+					}
+				}
+			}
+		}
+	}
+	// if there is 0 attacking strength left the day before the battle ends, return early to avoid DBZ error
+	if(total_attacking_strength == 0) {
+		return current_dig_in;
+	}
+	return uint8_t( current_dig_in / (1 + (highest_recon * std::min(total_recon_strength / total_attacking_strength, state.defines.recon_unit_ratio) / state.defines.recon_unit_ratio)));
+
+}
+
 // gets the land combat target of a regiment in a battle, given its combat width position and the opposing frontline. Will return a regiment id 0 if it is unable to taget any regiment
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line)
 {
@@ -6312,7 +6344,7 @@ void update_land_battles(sys::state& state) {
 
 		auto both_dice = state.world.land_battle_get_dice_rolls(b);
 		auto defender_mods = state.world.land_battle_get_defender_bonus(b);
-		auto dig_in_value = defender_mods & defender_bonus_dig_in_mask;
+		auto dig_in_value = get_effective_battle_dig_in(state, b);
 		auto crossing_value = defender_mods & defender_bonus_crossing_mask;
 
 		auto attacking_nation = get_land_battle_lead_attacker(state, b);

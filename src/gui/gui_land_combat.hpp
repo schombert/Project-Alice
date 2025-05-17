@@ -560,8 +560,7 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		auto both_dice = state.world.land_battle_get_dice_rolls(b);
-		auto defender_mods = state.world.land_battle_get_defender_bonus(b);
-		auto dig_in_value = defender_mods & military::defender_bonus_dig_in_mask;
+		auto dig_in_value = military::get_effective_battle_dig_in(state, b);
 
 		auto attacking_nation = military::get_land_battle_lead_attacker(state, b);
 		auto defending_nation = military::get_land_battle_lead_defender(state, b);
