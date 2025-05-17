@@ -5332,10 +5332,14 @@ uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
 }
 
 uint32_t ef_change_factory_limit(EFFECT_PARAMTERS) {
+	/*
+	Use Case: increase the factory limit for the commodity during runtime (e.g. natural resources discovery).
+	*/
 	auto com = trigger::payload(tval[1]).com_id;
 	auto change = trigger::payload(tval[2]).value;
 
 	if(com) {
+		assert(change > 0 && "Decreasing factory limit is not implemented.");
 		auto p = trigger::to_prov(primary_slot);
 		ws.world.province_get_factory_max_size(p, com) += (int)change;
 		return 0;
