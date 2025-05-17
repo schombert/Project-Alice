@@ -740,6 +740,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_won_score_to_leadership, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_battle_lost_score_to_leadership, 20.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_base_to_colonial_distance_factor, 0.04) \
+	LUA_DEFINES_LIST_ELEMENT(alice_allow_factories_in_colonies, 0.0) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

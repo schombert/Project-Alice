@@ -1297,10 +1297,12 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 	auto treasury = n.get_stockpiles(economy::money);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
-
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				if(!economy::can_build_in_colony(state, sid)) {
+					continue;
+				}
 
 				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
@@ -1325,6 +1327,11 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				// Check rules for factories in colonies
+				if(!economy::can_build_in_colony(state, pid, type)) {
+					continue;
+				}
+
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1492,8 +1499,10 @@ void update_ai_econ_construction(sys::state& state) {
 			static std::vector<dcon::province_id> ordered_provinces;
 			ordered_provinces.clear();
 			for(auto p : n.get_province_ownership()) {
-				if(p.get_province().get_state_membership().get_capital().get_is_colonial() == false)
+				// Check rules for factories in colonies
+				if(economy::can_build_in_colony(state, p.get_province())) {
 					ordered_provinces.push_back(p.get_province());
+				}
 			}
 			std::sort(ordered_provinces.begin(), ordered_provinces.end(), [&](auto a, auto b) {
 				auto apop = state.world.province_get_demographics(a, demographics::total);

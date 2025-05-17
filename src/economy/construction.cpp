@@ -1173,4 +1173,32 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		});
 	});
 }
+
+// Check rules for factories in colonies
+inline bool can_build_in_colony(sys::state& state, dcon::province_id p) {
+	if(state.world.province_get_is_colonial(p) && state.defines.alice_allow_factories_in_colonies == 0.f) {
+		return false;
+	}
+
+	return true;
+}
+
+// Check rules for factories in colonies
+inline bool can_build_in_colony(sys::state& state, dcon::state_instance_id s) {
+	auto p = state.world.state_instance_get_capital(s);
+	return can_build_in_colony(state, p);
+}
+
+// Check rules for factories in colonies
+inline bool can_build_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+	auto cond_1 = state.world.factory_type_get_can_be_built_in_colonies(ft);
+	return can_build_in_colony(state, s) && cond_1;
+}
+
+// Check rules for factories in colonies
+inline bool can_build_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft) {
+	auto cond_1 = state.world.factory_type_get_can_be_built_in_colonies(ft);
+	return can_build_in_colony(state, p) && cond_1;
+}
+
 }

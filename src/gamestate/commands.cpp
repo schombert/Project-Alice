@@ -522,11 +522,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 	if(state.world.nation_get_active_building(source, type) == false && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
-	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid)))
-		return false;
 
-	/* There can't be duplicate factories... */
+	/* There can't be duplicate factories */
 	if(!is_upgrade && !refit_target) {
+		// Disallow building in colonies unless define flag is set
+		if(!economy::can_build_in_colony(state, sid, type))
+			return false;
 		// Check factories being built
 		bool has_dup = false;
 		economy::for_each_new_factory(state, location, [&](economy::new_factory const& nf) { has_dup = has_dup || nf.type == type; });
@@ -550,6 +551,10 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 		// Refit target must be unlocked and available
 		if(state.world.nation_get_active_building(source, refit_target) == false && !state.world.factory_type_get_is_available_from_start(refit_target))
+			return false;
+
+		// Disallow building in colonies unless define flag is set
+		if(!economy::can_build_in_colony(state, sid, refit_target))
 			return false;
 
 		// Check if this factory is already being refit
@@ -647,6 +652,10 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			if(p.get_type() == type)
 				return false;
 		}
+
+		// Disallow building in colonies unless define flag is set
+		if(!economy::can_build_in_colony(state, sid, type))
+			return false;
 
 		// must already exist as a factory
 		// For upgrades: no upgrading past max level.
