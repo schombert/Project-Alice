@@ -6124,6 +6124,27 @@ float unit_get_effective_default_org(sys::state& state, dcon::ship_id ship) {
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves) {
 	std::sort(reserves.begin(), reserves.end(), [&state](reserve_regiment a, reserve_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
 }
+// gets the land combat target of a regiment in a battle, given its combat width position and the opposing frontline. Will return a regiment id 0 if it is unable to taget any regiment
+dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line)
+{
+	auto tech_nation = tech_nation_for_regiment(state, damage_dealer);
+	const auto& stats = state.world.nation_get_unit_stats(tech_nation, state.world.regiment_get_type(damage_dealer));
+	dcon::regiment_id target = opposing_line[position];
+	if(auto mv = stats.maneuver; !target && mv > 0.0f) {
+		// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
+		if(position == 1 && mv >= 1.0f && opposing_line[0]) {
+			target = opposing_line[0];
+		} else {
+			for(int32_t cnt = 1; position - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
+				if(opposing_line[position - cnt * 2]) {
+					target = opposing_line[position - cnt * 2];
+					break;
+				}
+			}
+		}
+	}
+	return target;
+}
 
 // caluclates expected strength damage, has no side effects
 float get_reg_str_damage(sys::state& state, dcon::regiment_id damage_dealer, dcon::regiment_id damage_receiver, float battle_modifiers, bool backline, bool attacker, float fort_mod = 1.0f) {
@@ -6375,24 +6396,8 @@ void update_land_battles(sys::state& state) {
 			if(att_back[i]) {
 				assert(state.world.regiment_is_valid(att_back[i]));
 
-				auto tech_att_nation = tech_nation_for_regiment(state, att_back[i]);
-				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_back[i]));
+				auto att_back_target = get_land_combat_target(state, att_back[i], i, def_front);
 
-				auto att_back_target = def_front[i];
-
-				if(auto mv = att_stats.maneuver; !att_back_target && mv > 0.0f) {
-					// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
-					if(i == 1 && mv >= 1.0f && def_front[0]) {
-						att_back_target = def_front[0];
-					} else {
-						for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
-							if(def_front[i - cnt * 2]) {
-								att_back_target = def_front[i - cnt * 2];
-								break;
-							}
-						}
-					}
-				}
 				if(att_back_target) {
 
 					auto str_damage = get_reg_str_damage(state, att_back[i], att_back_target, attacker_mod, true, true, defender_fort);
@@ -6430,23 +6435,8 @@ void update_land_battles(sys::state& state) {
 			if(def_back[i]) {
 
 				assert(state.world.regiment_is_valid(def_back[i]));
-				auto tech_def_nation = tech_nation_for_regiment(state, def_back[i]);
-				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_back[i]));
 
-				auto def_back_target = att_front[i];
-				if(auto mv = def_stats.maneuver; !def_back_target && mv > 0.0f) {
-					// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
-					if(i == 1 && mv >= 1.0f && att_front[0]) {
-						def_back_target = att_front[0];
-					} else {
-						for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
-							if(att_front[i - cnt * 2]) {
-								def_back_target = def_front[i - cnt * 2];
-								break;
-							}
-						}
-					}
-				}
+				auto def_back_target = get_land_combat_target(state, def_back[i], i, att_front);
 
 				if(def_back_target) {
 
@@ -6485,24 +6475,7 @@ void update_land_battles(sys::state& state) {
 			if(att_front[i]) {
 				assert(state.world.regiment_is_valid(att_front[i]));
 
-				auto tech_att_nation = tech_nation_for_regiment(state, att_front[i]);
-				auto& att_stats = state.world.nation_get_unit_stats(tech_att_nation, state.world.regiment_get_type(att_front[i]));
-
-				auto att_front_target = def_front[i];
-				if(auto mv = att_stats.maneuver; !att_front_target && mv > 0.0f) {
-					// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
-					if(i == 1 && mv >= 1.0f && def_front[0]) {
-						att_front_target = def_front[0];
-					}
-					else {
-						for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
-							if(def_front[i - cnt * 2]) {
-								att_front_target = def_front[i - cnt * 2];
-								break;
-							}
-						}
-					}
-				}
+				auto att_front_target = get_land_combat_target(state, att_front[i], i, def_front);
 
 				if(att_front_target) {
 					assert(state.world.regiment_is_valid(att_front_target));
@@ -6545,22 +6518,7 @@ void update_land_battles(sys::state& state) {
 				auto tech_def_nation = tech_nation_for_regiment(state, def_front[i]);
 				auto& def_stats = state.world.nation_get_unit_stats(tech_def_nation, state.world.regiment_get_type(def_front[i]));
 
-				auto def_front_target = att_front[i];
-
-				if(auto mv = def_stats.maneuver; !def_front_target && mv > 0.0f) {
-					// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
-					if(i == 1 && mv >= 1.0f && att_front[0]) {
-						def_front_target = att_front[0];
-					}
-					else {
-						for(int32_t cnt = 1; i - cnt * 2 >= 0 && cnt <= int32_t(mv); ++cnt) {
-							if(att_front[i - cnt * 2]) {
-								def_front_target = att_front[i - cnt * 2];
-								break;
-							}
-						}
-					}
-				}
+				auto def_front_target = get_land_combat_target(state, def_front[i], i, att_front);
 
 				if(def_front_target) {
 					assert(state.world.regiment_is_valid(def_front_target));
