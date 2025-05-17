@@ -130,6 +130,31 @@ void update_ai_general_status(sys::state& state) {
 	}
 }
 
+// Does nation N have supremacy over target nation
+bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
+
+	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	if(!real_target)
+		real_target = target;
+
+	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
+		return false;
+
+	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
+		return false;
+
+	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
+		if(!a.get_are_allied())
+			continue;
+		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
+		if(self_sup <= other.get_used_naval_supply_points())
+			return false;
+	}
+
+	return true;
+}
+
 static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
@@ -1469,7 +1494,8 @@ int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
 	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
 #endif
 
-	return int16_t(std::clamp(total * double(factor), 0.1 * fid.get_recruitable_regiments(), 1.0 * fid.get_recruitable_regiments()));
+	// Use ceil: we want a bit stronger army than the enemy, at least one regiment.
+	return int16_t(std::clamp(ceil(total * double(factor)), ceil(0.1 * fid.get_recruitable_regiments()), 1.0 * fid.get_recruitable_regiments()));
 }
 
 void update_ai_econ_construction(sys::state& state) {
