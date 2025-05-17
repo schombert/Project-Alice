@@ -159,8 +159,15 @@ struct global_military_state {
 	dcon::cb_type_id liberate;
 	dcon::cb_type_id uninstall_communist_gov;
 
+	// CB type used to resolve crisis over colonizing the same state. Both parties have this WG.
 	dcon::cb_type_id crisis_colony;
+	/*
+	CB type used to liberate a tag from the target in the liberation crisis.
+	In vanilla - free_peoples. 
+	po_transfer_provinces = yes
+	*/
 	dcon::cb_type_id crisis_liberate;
+	/* This type of a wargoal will be used for annex nation crises (restore order cb for example) */
 	dcon::cb_type_id crisis_annex;
 
 	dcon::unit_type_id irregular;

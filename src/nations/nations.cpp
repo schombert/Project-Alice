@@ -2981,6 +2981,7 @@ void update_crisis(sys::state& state) {
 		// determine type if any
 
 		/*
+		Liberation crisis.
 		When a crisis becomes possible, we first check each of the three states with the highest tension > 50 where neither the
 		owner of the state nor the nation associated with the flashpoint (if any) is at war. I believe the probability of a crisis
 		happening in any of those states is 0.001 x define:CRISIS_BASE_CHANCE x state-tension / 100. If this turns into a crisis,
@@ -3013,6 +3014,7 @@ void update_crisis(sys::state& state) {
 														 state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
 			auto rvalue = rng::get_random(state, uint32_t(most_likely_states[i].index())) % 10000;
 			if(rvalue < chance) {
+				// Start liberation crisis
 				state.crisis_state_instance = most_likely_states[i];
 				auto crisis_liberation_tag = state.world.state_instance_get_flashpoint_tag(state.crisis_state_instance);
 				state.world.state_instance_set_flashpoint_tension(state.crisis_state_instance, 0.0f);

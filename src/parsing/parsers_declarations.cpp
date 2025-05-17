@@ -660,6 +660,7 @@ void cb_body::finish(individual_cb_context& context) {
 		context.outer_context.state.military_definitions.crisis_liberate = context.id;
 	}
 	// This type of a wargoal will be used for annex nation crises (restore order cb for example)
+	// This isn't triggered in vanilla. Perhaps a bug.
 	else if((bits & military::cb_flag::po_annex) != 0 && (bits & military::cb_flag::all_allowed_states) == 0 && (bits & military::cb_flag::not_in_crisis) == 0) {
 		context.outer_context.state.military_definitions.crisis_annex = context.id;
 	}
