@@ -1130,7 +1130,7 @@ void update_ai_ruling_party(sys::state& state) {
 				}
 			}
 
-			assert(target != state.world.nation_get_ruling_party(n));
+			assert(target != state.world.nation_get_ruling_party(n)); // Fires if some nation has no available parties
 			if(target) {
 				politics::appoint_ruling_party(state, n, target);
 			}
@@ -1199,7 +1199,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						// If there is absolute deficit of construction goods, don't build for now
+						// However, we're interested in this market signal only if there are any transactions happening
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
@@ -1242,7 +1244,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						// If there is absolute deficit of construction goods, don't build for now
+						// However, we're interested in this market signal only if there are any transactions happening
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
