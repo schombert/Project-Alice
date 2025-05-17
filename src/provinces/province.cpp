@@ -1959,19 +1959,6 @@ void update_colonization(sys::state& state) {
 			if(!anyone_has_army)
 				adjust *= 0.f;
 
-			bool anyone_has_army = false;
-			for(auto c : colonizers) {
-				if(c.get_colonizer().get_is_great_power())
-					adjust *= 1.5f;
-
-				if(c.get_colonizer().get_active_regiments())
-					anyone_has_army = true;
-			}
-
-			// If none of the colonizers has army to participate in the war - don't increase temperature
-			if(!anyone_has_army)
-				adjust *= 0.f;
-
 			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
 		} else if(num_colonizers == 1 &&
 							(*colonizers.begin()).get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment) <=
