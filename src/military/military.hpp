@@ -484,6 +484,7 @@ uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, b
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
+dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);

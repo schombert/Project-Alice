@@ -1020,24 +1020,35 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::regiment_id target;
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		dcon::regiment_id reg{};
 		switch(rank) {
 		case regiment_rank::attacker_front:
 			reg = state.world.land_battle_get_attacker_front_line(b).at(slot);
+			target = military::get_land_combat_target(state, reg, slot, state.world.land_battle_get_defender_front_line(b));
 			break;
 		case regiment_rank::attacker_back:
 			reg = state.world.land_battle_get_attacker_back_line(b).at(slot);
+			target = military::get_land_combat_target(state, reg, slot, state.world.land_battle_get_defender_front_line(b));
 			break;
 		case regiment_rank::defender_front:
 			reg = state.world.land_battle_get_defender_front_line(b).at(slot);
+			target = military::get_land_combat_target(state, reg, slot, state.world.land_battle_get_attacker_front_line(b));
 			break;
 		case regiment_rank::defender_back:
 			reg = state.world.land_battle_get_defender_back_line(b).at(slot);
+			target = military::get_land_combat_target(state, reg, slot, state.world.land_battle_get_attacker_front_line(b));
 			break;
 		default:
 			break;
 		}
+		std::string_view target_display = "";
+		if(target) {
+			dcon::unit_type_id target_type = state.world.regiment_get_type(target);
+			target_display = state.to_string_view( state.military_definitions.unit_base_definitions[target_type].name);
+		}
+		auto target_type = state.world.regiment_get_type(target);
 		auto utid = state.world.regiment_get_type(reg);
 		if(reg && utid) {
 			auto p = state.world.land_battle_get_location_from_land_battle_location(b);
@@ -1083,7 +1094,8 @@ public:
 			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).maneuver, 0));
 			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).maximum_speed, 2));
 			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_percentage(state.world.nation_get_unit_stats(n, utid).supply_consumption, 0));
-
+			text::add_line(state, contents, "alice_unit_target", text::variable_type::x, target_display);
+			
 		}
 	}
 };
