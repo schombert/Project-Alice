@@ -834,9 +834,8 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 	return bsum;
 }
 
+/* Unused function. Vanilla State Admin efficiency: previously used for integrating colonial states and thus still counts only accepted/primary culture bureaucrats */
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
-	// unused
-
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
 	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
@@ -1943,8 +1942,22 @@ void update_colonization(sys::state& state) {
 			}
 
 			float adjust = state.defines.colonization_influence_temperature_per_day +
-										 float(max_points) * state.defines.colonization_influence_temperature_per_level +
-										 (state.current_crisis_state == sys::crisis_state::inactive ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+				float(max_points) * state.defines.colonization_influence_temperature_per_level +
+				(state.current_crisis_state == sys::crisis_state::inactive ? 0.0f : state.defines.tension_while_crisis) + at_war_adjust;
+
+			// Colonial tension does not grow if neither of participants has an army
+			// Colonial tension grows by 50% faster per each GP participant
+			bool anyone_has_army = false;
+			for(auto c : colonizers) {
+				if(c.get_colonizer().get_is_great_power())
+					adjust *= 1.5f;
+
+				if(c.get_colonizer().get_active_regiments())
+					anyone_has_army = true;
+			}
+
+			if(!anyone_has_army)
+				adjust *= 0.f;
 
 			bool anyone_has_army = false;
 			for(auto c : colonizers) {
