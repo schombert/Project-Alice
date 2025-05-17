@@ -16,6 +16,9 @@ Here is how you can use the console to change some common values:
 - `10.0 TAG diplomatic_points !` : set the diplo points (what you pay for diplomatic actions) of the three letter tag to 10.0
 - `10.0 TAG leadership_points !` : set the leadership points (what you pay for generals and admirals) of the three letter tag to 10.0
 
+Command to display all commodities IDs into console:
+`commodity-size while 1 - dup 0 >= loop dup dup >commodity_id @ name @ localize swap end-while drop`
+
 #### Special console functions
 
 And here is a list of some more specialized console functions that you can use
@@ -23,7 +26,7 @@ And here is a list of some more specialized console functions that you can use
 - `clear` : removes old text form the console window
 - `spectate` : switches the game to spectator mode (use `change-tag` to resume playing)
 - `true fps` : turns the visible FPS counter on. A value of `false` will instead turn it off
-- `provid`: Turns on and off display of content province ids in tooltips
+- `true provid`: Turns on display of content province ids in tooltips
 - `false set-auto-choice` : turns off all existing auto event choices
 - `TAG change-tag` : changes who you are playing as to TAG
 - `TAG true set-westernized` : changes the civilized/uncivilized status of TAG

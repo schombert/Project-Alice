@@ -23,6 +23,12 @@ struct map_vertex {
 	map_vertex(float x, float y) : position_(x, y){};
 	glm::vec2 position_;
 };
+
+struct vertex {
+	glm::vec2 position_;
+	glm::vec2 texcoord_;
+};
+
 struct trade_particle {
 	glm::vec2 position_;
 	glm::vec2 target_;
@@ -123,21 +129,29 @@ public:
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
-	void update_railroad_paths(sys::state& state);
+	void update_sprawl(sys::state& state);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b_enriched_with_province_index> border_vertices;
+	//
 	std::vector<textured_line_with_width_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
+	// ROADS
 	std::vector<textured_line_vertex> railroad_vertices;
 	std::vector<GLint> railroad_starts;
 	std::vector<GLsizei> railroad_counts;
+	// CITY VERTICES
+	std::vector<vertex> city_vertices;
+	std::vector<GLint> city_starts;
+	std::vector<GLsizei> city_counts;
+	//
 	std::vector<textured_line_vertex_b> coastal_vertices;
 	std::vector<GLint> coastal_starts;
 	std::vector<GLsizei> coastal_counts;
+	//
 	std::vector<GLint> static_mesh_starts;
 	std::vector<GLsizei> static_mesh_counts;
 	//
@@ -212,7 +226,8 @@ public:
 	static constexpr uint32_t vo_other_objective_unit_arrow = 14;
 	static constexpr uint32_t vo_trade_flow = 15;
 	static constexpr uint32_t vo_square = 16;
-	static constexpr uint32_t vo_count = 17;
+	static constexpr uint32_t vo_cities = 17;
+	static constexpr uint32_t vo_count = 18;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -243,7 +258,8 @@ public:
 	static constexpr uint32_t texture_hover_border = 24;
 	static constexpr uint32_t texture_sea_mask = 25;
 	static constexpr uint32_t texture_arrow = 26;
-	static constexpr uint32_t texture_count = 27;
+	static constexpr uint32_t texture_city = 27;
+	static constexpr uint32_t texture_count = 28;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -265,7 +281,8 @@ public:
 	static constexpr uint32_t shader_provinces = 11;
 	static constexpr uint32_t shader_borders_provinces = 12;
 	static constexpr uint32_t shader_map_sprite = 13;
-	static constexpr uint32_t shader_count = 14;
+	static constexpr uint32_t shader_textured_triangle = 14;
+	static constexpr uint32_t shader_count = 15;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;

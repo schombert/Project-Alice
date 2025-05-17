@@ -239,6 +239,7 @@ public:
 		state.map_state.set_selected_province(dcon::province_id{});
 		state.map_state.unhandled_province_selection = true;
 		state.railroad_built.store(true, std::memory_order::release);
+		state.sprawl_update_requested.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
 

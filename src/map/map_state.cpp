@@ -1550,9 +1550,9 @@ void map_state::update(sys::state& state) {
 	update_unit_arrows(state, map_data);	
 
 	// Update railroads, only if railroads are being built and we have 'em enabled
-	if(state.user_settings.railroads_enabled && state.railroad_built.load(std::memory_order::acquire)) {
-		state.map_state.map_data.update_railroad_paths(state);
-		state.railroad_built.store(false, std::memory_order::release);
+	if(state.user_settings.railroads_enabled && state.sprawl_update_requested.load(std::memory_order::acquire)) {
+		state.map_state.map_data.update_sprawl(state);
+		state.sprawl_update_requested.store(false, std::memory_order::release);
 	}
 
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
