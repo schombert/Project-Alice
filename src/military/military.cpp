@@ -6188,7 +6188,8 @@ float get_reg_org_damage(sys::state& state, dcon::regiment_id damage_dealer, dco
 	}
 	return dmg_dealer_str * (org_dam_mul / receiver_max_org_divisor) * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers / (fort_mod * dmg_receiver_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::land_organisation)) * (1.0f + receiver_exp));
 }
-// defines the general algorithm for getting the effective fort level
+// defines the general algorithm for getting the effective fort level with said amount of total strength of units who are enemies with the fort controller,
+// total strength of siege units who are enemies with the fort controller, and the highest siege stat among them.
 int32_t get_effective_fort_level(sys::state& state, dcon::province_id location, float total_strength, float strength_siege_units, float max_siege_value) {
 	/*
 		We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
@@ -7696,12 +7697,7 @@ void update_siege_progress(sys::state& state) {
 			define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
 			*/
 
-			int32_t effective_fort_level =
-					std::clamp(state.world.province_get_building_level(prov, uint8_t(economy::province_building_type::fort)) -
-												 int32_t(max_siege_value *
-																 std::min(strength_siege_units / total_sieging_strength, state.defines.engineer_unit_ratio) /
-																 state.defines.engineer_unit_ratio),
-							0, 9);
+			int32_t effective_fort_level = get_effective_fort_level(state, prov, total_sieging_strength, strength_siege_units, max_siege_value);
 
 			/*
 			We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greatest-reconnaissance-value-present x ((the
