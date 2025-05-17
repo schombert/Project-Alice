@@ -2034,6 +2034,25 @@ public:
 	}
 };
 
+
+class dug_in_icon : public image_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto army = retrieve<dcon::army_id>(state, parent);
+		uint8_t current_dig_in = state.world.army_get_dig_in(army);
+		auto controller = military::tech_nation_for_army(state, army);
+		uint8_t max_dig_in = uint8_t(state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::dig_in_cap));
+		text::add_line(state, contents, "DIG_IN_TOOLTIP_1", text::variable_type::lev, text::format_wholenum(current_dig_in), text::variable_type::max, text::format_wholenum(max_dig_in));
+		text::add_line(state, contents, "DIG_IN_TOOLTIP_2", text::variable_type::days, text::format_wholenum(uint32_t(state.defines.dig_in_increase_each_days)), text::variable_type::val, text::format_wholenum(1));
+
+	}
+};
+
+
 template<class T>
 class unit_details_window : public window_element_base {
 	simple_text_element_base* unitspeed_text = nullptr;
@@ -2042,7 +2061,7 @@ class unit_details_window : public window_element_base {
 	image_element_base* unitengineer_icon = nullptr;
 	simple_text_element_base* unitengineer_text = nullptr;
 	progress_bar* unitsupply_bar = nullptr;
-	image_element_base* unitdugin_icon = nullptr;
+	dug_in_icon* unitdugin_icon = nullptr;
 	unit_selection_panel<T>* unit_selection_win = nullptr;
 
 	unit_upgrade_window<T>* unit_upgrade_win = nullptr;
@@ -2151,7 +2170,7 @@ public:
 			unitsupply_bar = ptr.get();
 			return ptr;
 		} else if(name == "unitstatus_dugin") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<dug_in_icon>(state, id);
 			unitdugin_icon = ptr.get();
 			return ptr;
 		} else {
@@ -2172,8 +2191,10 @@ public:
 		} else if constexpr(std::is_same_v<T, dcon::army_id>) {
 			unitengineer_icon->set_visible(state, true);
 			unitengineer_text->set_visible(state, true);
+			unitengineer_text->set_text(state, text::format_percentage(military::get_army_siege_eff(state, unit_id), 0));
 			unitrecon_icon->set_visible(state, true);
 			unitrecon_text->set_visible(state, true);
+			unitrecon_text->set_text(state, text::format_percentage( military::get_army_recon_eff(state, unit_id), 0));
 
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::val, uint16_t(military::effective_army_speed(state, unit_id)));
