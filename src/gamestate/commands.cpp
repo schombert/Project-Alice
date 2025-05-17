@@ -2,6 +2,7 @@
 #include "demographics.hpp"
 #include "economy_templates.hpp"
 #include "economy_stats.hpp"
+#include "construction.hpp"
 #include "effects.hpp"
 #include "gui_event.hpp"
 #include "serialization.hpp"

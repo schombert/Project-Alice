@@ -2965,7 +2965,7 @@ relationship{
 object {
 	name{ state_definition }
 	storage_type{ contiguous }
-	size{ 3000 }
+	size{ 6000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -3041,7 +3041,7 @@ relationship{
 object {
 	name{ state_instance }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 6000 }
 	tag{ save }
 
 	property{
@@ -4186,7 +4186,7 @@ object {
 object{
 	name { market }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 6000 }
 	tag{ save }
 	property {
 		name{ gdp }
