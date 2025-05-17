@@ -1827,8 +1827,9 @@ void update_ai_econ_construction(sys::state& state) {
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
-		if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
 
 		static std::vector<dcon::province_id> project_provs;
 		project_provs.clear();
@@ -1969,8 +1970,9 @@ void update_ai_econ_construction(sys::state& state) {
 			}
 		}
 
-		if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
 
 		// try forts
 		if(budget - additional_expenses > 0.f) {
