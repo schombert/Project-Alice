@@ -134,6 +134,15 @@ static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
 
+		auto our_strength = estimate_strength(state, n);
+		auto other_strength = estimate_strength(state, other);
+
+		// We really shouldn't ally very weak neighbours
+		// Surrounding ourselves with useless alliances stops expansion
+		if(other_strength <= our_strength * 0.2f) {
+			continue;
+		}
+
 		bool b = other.get_is_player_controlled()
 			? state.world.unilateral_relationship_get_interested_in_alliance(state.world.get_unilateral_relationship_by_unilateral_pair(n, other))
 			: ai_will_accept_alliance(state, other, n);
