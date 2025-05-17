@@ -6281,7 +6281,19 @@ void update_land_battles(sys::state& state) {
 		auto reserves = state.world.land_battle_get_reserves(b);
 
 		if((state.current_date.value - state.world.land_battle_get_start_date(b).value) % 5 == 4) {
-			state.world.land_battle_set_dice_rolls(b, make_dice_rolls(state, uint32_t(index)));
+			uint8_t new_dice = make_dice_rolls(state, uint32_t(index));
+			state.world.land_battle_set_dice_rolls(b, new_dice);
+			auto attacker_dice = new_dice & 0x0F;
+			auto defender_dice = (new_dice >> 4) & 0x0F;
+			auto& def_bonus = state.world.land_battle_get_defender_bonus(b);
+			// if the attacker rolls higher than the defender and dig-in is higher than 0, remove 1 level of dig-in from the defender
+			if(attacker_dice > defender_dice && (def_bonus & defender_bonus_dig_in_mask) > 0) {
+				auto prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
+				auto new_dig_in = prev_dig_in - 1;
+				def_bonus &= ~defender_bonus_dig_in_mask;
+				def_bonus |= new_dig_in;
+			}
+			
 		}
 
 		// calculate modifier values for each side
