@@ -3730,6 +3730,10 @@ struct effect_body {
 			err.accumulated_errors += "change_factory_limit effect used without a valid position " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 				std::to_string(line) + ")\n";
 			return;
+		} else if(!value.value) {
+			err.accumulated_errors += "WARNING: change_factory_limit effect used with a negative limit. It can lead to unintended concequences (" + err.file_name + ", line " +
+				std::to_string(line) + ")\n";
+			return;
 		}
 		context.compiled_effect.push_back(effect::change_factory_limit);
 		context.compiled_effect.push_back(trigger::payload(value.trade_good_).value);

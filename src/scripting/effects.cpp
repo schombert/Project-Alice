@@ -5339,7 +5339,6 @@ uint32_t ef_change_factory_limit(EFFECT_PARAMTERS) {
 	auto change = trigger::payload(tval[2]).value;
 
 	if(com) {
-		assert(change > 0 && "Decreasing factory limit is not implemented.");
 		auto p = trigger::to_prov(primary_slot);
 		ws.world.province_get_factory_max_size(p, com) += (int)change;
 		return 0;
