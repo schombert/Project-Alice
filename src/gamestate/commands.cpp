@@ -4038,6 +4038,12 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 	state.world.army_get_path(a).clear();
 	state.world.army_set_arrival_time(a, sys::date{});
 
+	// set dig in to the lowest value of the two armies
+	state.world.army_set_dig_in(a,std::min(
+		state.world.army_get_dig_in(a),
+		state.world.army_get_dig_in(b)
+	));
+
 	auto regs = state.world.army_get_army_membership(b);
 	while(regs.begin() != regs.end()) {
 		auto reg = (*regs.begin()).get_regiment();
@@ -4469,6 +4475,7 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 		new_u.set_controller_from_army_control(source);
 		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
 		new_u.set_black_flag(state.world.army_get_black_flag(a));
+		new_u.set_dig_in(state.world.army_get_dig_in(a));
 
 		for(auto t : to_transfer) {
 			state.world.regiment_set_army_from_army_membership(t, new_u);
@@ -4564,6 +4571,7 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 		new_u.set_controller_from_army_control(source);
 		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
 		new_u.set_black_flag(state.world.army_get_black_flag(a));
+		new_u.set_dig_in(state.world.army_get_dig_in(a));
 
 		for(auto t : to_transfer) {
 			state.world.regiment_set_army_from_army_membership(t, new_u);
