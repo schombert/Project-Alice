@@ -116,7 +116,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 	}
 }
 
-std::vector<dcon::province_id> country_get_province_adjacency(sys::state &state, dcon::nation_id nat_id) {
+std::vector<dcon::province_id> country_get_province_adjacency(sys::state& state, dcon::nation_id nat_id) {
 	std::vector<dcon::province_id> v;
 
 	for(auto own : state.world.nation_get_province_ownership(nat_id)) {
@@ -131,7 +131,7 @@ std::vector<dcon::province_id> country_get_province_adjacency(sys::state &state,
 					v.push_back(other.id);
 				}
 			}
-		}		
+		}
 	}
 
 	return v;
@@ -3086,7 +3086,7 @@ uint32_t ef_reduce_pop(EFFECT_PARAMTERS) {
 }
 uint32_t ef_reduce_pop_abs(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_int32_t_from_payload(tval + 1);
-	
+
 	demographics::reduce_pop_size_safe(ws, trigger::to_pop(primary_slot), amount);
 	return 0;
 }
@@ -3291,7 +3291,7 @@ uint32_t ef_literacy(EFFECT_PARAMTERS) {
 	auto l = pop_demographics::get_literacy(ws, trigger::to_pop(primary_slot));
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
-	pop_demographics::set_literacy(ws, trigger::to_pop(primary_slot),  std::clamp(l + amount, 0.0f, 1.0f));
+	pop_demographics::set_literacy(ws, trigger::to_pop(primary_slot), std::clamp(l + amount, 0.0f, 1.0f));
 	return 0;
 }
 uint32_t ef_add_crisis_interest(EFFECT_PARAMTERS) {
@@ -4375,7 +4375,7 @@ uint32_t ef_ideology(EFFECT_PARAMTERS) {
 	assert(std::isfinite(factor));
 
 	auto s = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i));
-	float new_total = 1.0f  - s + std::max(0.0f, s + factor);
+	float new_total = 1.0f - s + std::max(0.0f, s + factor);
 	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), pop_demographics::to_key(ws, i), std::max(0.0f, s + factor));
 
 	for(auto j : ws.world.in_ideology) {
@@ -4393,7 +4393,7 @@ uint32_t ef_upper_house(EFFECT_PARAMTERS) {
 	auto& u = ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), i);
 	float new_total = 100.0f - u + std::max(0.0f, u + 100.0f * amount);
 	u = std::max(0.0f, u + 100.0f * amount);
-	
+
 
 	for(auto j : ws.world.in_ideology) {
 		//auto prior_value = ws.world.nation_get_upper_house(trigger::to_nation(primary_slot), j);
@@ -4432,7 +4432,7 @@ uint32_t ef_scaled_militancy_unemployment(EFFECT_PARAMTERS) {
 	assert(std::isfinite(adjustment));
 	auto v = pop_demographics::get_militancy(ws, trigger::to_pop(primary_slot));
 	pop_demographics::set_militancy(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
-	
+
 	return 0;
 }
 uint32_t ef_scaled_consciousness_issue(EFFECT_PARAMTERS) {
@@ -4462,7 +4462,7 @@ uint32_t ef_scaled_consciousness_unemployment(EFFECT_PARAMTERS) {
 	float adjustment = trigger::read_float_from_payload(tval + 1) * float(unemployed);
 	auto v = pop_demographics::get_consciousness(ws, trigger::to_pop(primary_slot));
 	pop_demographics::set_consciousness(ws, trigger::to_pop(primary_slot), std::clamp(v + adjustment, 0.0f, 10.0f));
-	
+
 	return 0;
 }
 uint32_t ef_scaled_militancy_nation_issue(EFFECT_PARAMTERS) {
@@ -5330,6 +5330,19 @@ uint32_t ef_change_party_position(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
+
+uint32_t ef_change_factory_limit(EFFECT_PARAMTERS) {
+	auto com = trigger::payload(tval[1]).com_id;
+	auto change = trigger::payload(tval[2]).value;
+
+	if(com) {
+		auto p = trigger::to_prov(primary_slot);
+		ws.world.province_get_factory_max_size(p, com) += (int)change;
+		return 0;
+	}
+	return 0;
+}
+
 
 inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
