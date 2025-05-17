@@ -98,7 +98,8 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 ```
 - `diplo_points = ...` : Will add the number to the currently stored diplomatic points of the nation in scope. (Note: so you can use a negative number to subtract points. Diplomatic points can not be reduced to less than zero.)
 - `suppression_points = ...` : Will add the number to the currently stored suppression points of the nation in scope. (Note: so you can use a negative number to subtract points. Suppression points can not be reduced to less than zero.)
- 
+
+
 As for `build_xxx_in_capital`, the game doesn't allow custom defined buildings to be used in this mode as an effect.
 
 The syntax for `build_bank_in_capital` and it's university counterpart is the same:
@@ -752,7 +753,7 @@ rgo_distribution_add = {
 
 Factory potentials (e.g. resource potentials) is a feature that allows modders to limit number of factories per province (state).
 
-To limit factory creation to provinces having potentials, factory definition must have `uses_potentials = yes`.
+To limit factory creation to states that have provinces with corresponding commodity potentials, commodity definition must have `uses_potentials = yes`.
 
 In province history files define limits as follows:
 ```
@@ -761,5 +762,13 @@ factory_limit = {
         trade_good = iron
         max_level = 16
 	}
+}
+```
+
+To change the limit during runtime use the effect. As of v1.2.3 decreasing factory limits has no implemented checks:
+```
+change_factory_limit = {
+    trade_good = rubber
+    value = 15
 }
 ```
