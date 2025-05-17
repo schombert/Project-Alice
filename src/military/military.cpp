@@ -6146,6 +6146,28 @@ float get_army_recon_eff(sys::state& state, dcon::army_id army) {
 	return std::clamp((total_recon_strength / total_strength) / state.defines.recon_unit_ratio, 0.0f, 1.0f);
 }
 
+// gets the siege efficiency of an army, for display in ui mostly
+float get_army_siege_eff(sys::state& state, dcon::army_id army) {
+	dcon::nation_id tech_nation = tech_nation_for_army(state, army);
+	float total_strength = 0;
+	float total_siege_strength = 0;
+	for(auto r : state.world.army_get_army_membership(army)) {
+		auto reg = r.get_regiment();
+		if(reg.get_strength() > 0.0f) {
+			total_strength += reg.get_strength();
+			float siege = state.world.nation_get_unit_stats(tech_nation, reg.get_type()).siege_or_torpedo_attack;
+			if(siege > 0.0f) {
+				total_siege_strength += reg.get_strength();
+			}
+		}
+	}
+	// guard for DBZ errors if this is run on an army that has no regiments, before it is disbanded.
+	if(total_strength == 0) {
+		return 0;
+	}
+	return std::clamp((total_siege_strength / total_strength) / state.defines.engineer_unit_ratio, 0.0f, 1.0f);
+}
+
 // calculates the effective digin of a battle after recon units are taken into account.
 uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle) {
 	float total_attacking_strength = 0;

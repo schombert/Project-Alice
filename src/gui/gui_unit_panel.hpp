@@ -2172,6 +2172,7 @@ public:
 		} else if constexpr(std::is_same_v<T, dcon::army_id>) {
 			unitengineer_icon->set_visible(state, true);
 			unitengineer_text->set_visible(state, true);
+			unitengineer_text->set_text(state, text::format_percentage(military::get_army_siege_eff(state, unit_id), 0));
 			unitrecon_icon->set_visible(state, true);
 			unitrecon_text->set_visible(state, true);
 			unitrecon_text->set_text(state, text::format_percentage( military::get_army_recon_eff(state, unit_id), 0));
