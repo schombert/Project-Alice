@@ -445,6 +445,11 @@ void update_ai_research(sys::state& state) {
 				continue; // Already researched
 
 			if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tid)) {
+				// Research technologies costing LP (military doctrines) only if can research it immediately
+				if(culture::effective_technology_lp_cost(state, year, n, tid) > state.world.nation_get_leadership_points(n)) {
+					continue;
+				}
+				// Technologies costing RP:
 				// Find previous technology before this one
 				dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tid.id.index() - 1));
 				// Previous technology is from the same folder so we have to check that we have researched it beforehand
