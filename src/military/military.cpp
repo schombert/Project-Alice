@@ -2309,7 +2309,7 @@ float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, d
 	}
 
 	// Always available CBs cost zero infamy
-	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0) {
 		return 0.0f;
 	}
 
@@ -2323,7 +2323,7 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 	}
 
 	// Always available CBs cost zero infamy
-	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0) {
 		return 0.0f;
 	}
 

@@ -3717,6 +3717,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
 			return true;
 
+		// Forced peace when 100 warscore
+		if(overall_score <= -100 and overall_po_value <= 100)
+			return true;
+
 		if(concession && my_side_peace_cost <= overall_po_value)
 			return true; // offer contains everything
 		if(war_duration < 365) {
@@ -3751,6 +3755,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 			return false;
 
 		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
+			return true;
+
+		// Forced peace when 100 warscore
+		if(scoreagainst_me >= 100 and overall_po_value <= 100)
 			return true;
 
 		if(overall_score < 0.0f) { // we are losing
@@ -3805,6 +3813,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	}
 	if(overall_po_value < -100)
 		return false;
+
 
 	int32_t potential_peace_score_against = 0;
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
@@ -3892,30 +3901,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	if(has_cores_occupied(state, n))
 		return true;
 	return false;
-}
-
-bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
-	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
-
-	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-	if(!real_target)
-		real_target = target;
-
-	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
-		return false;
-
-	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
-		return false;
-
-	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
-		if(!a.get_are_allied())
-			continue;
-		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
-		if(self_sup <= other.get_used_naval_supply_points())
-			return false;
-	}
-
-	return true;
 }
 
 void make_war_decs(sys::state& state) {
