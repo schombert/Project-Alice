@@ -704,16 +704,13 @@ bool province_is_blockaded_by_enemy(sys::state& state, dcon::province_id prov, d
 			return true;
 		}
 	}
-	return false;
-	
+	return false;	
 }
 
 bool compute_blockade_status(sys::state& state, dcon::province_id p) {
 	auto controller = state.world.province_get_nation_from_province_control(p);
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(!owner)
-		return false;
-	if(controller != owner)
 		return false;
 
 	auto port_to = state.world.province_get_port_to(p);
@@ -722,7 +719,7 @@ bool compute_blockade_status(sys::state& state, dcon::province_id p) {
 
 	for(auto n : state.world.province_get_navy_location(port_to)) {
 		if(n.get_navy().get_is_retreating() == false && !n.get_navy().get_battle_from_navy_battle_participation()) {
-			if(military::are_at_war(state, owner, n.get_navy().get_controller_from_navy_control()))
+			if(military::are_at_war(state, controller, n.get_navy().get_controller_from_navy_control()))
 				return true;
 		}
 	}
