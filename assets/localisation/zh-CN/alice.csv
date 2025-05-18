@@ -1385,7 +1385,7 @@ landowners_investment_ratio;地主投资率：?G$x$?!
 production_refit_factory_tooltip_1;改装 ?Y$what$?! 到不同生产线
 production_refit_factory_tooltip_2;改装 ?Y$what$?! 到 ?Y$name$?!
 production_refit_factory_tooltip_3;执政党允许修建工厂
-production_refit_factory_tooltip_4;新旧类型兼容输入或输出
+production_refit_factory_tooltip_4;更换类型需要相同输入或输出
 factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
 factory_refit_cost_total;总计：?Y$value$?!
 tb_suppression_points;镇压点数：
@@ -1514,3 +1514,5 @@ state_definition;国家定义
 state_definition_id;国家定义 ID
 nation_id;爱丽丝 国家 ID
 province_colonisation_temperature;地区移民热度：?R$val$?W
+alice_unit_target;===> $x$
+change_factory_limit_by;将 $good$ 工厂 潜力 改为 $value$
