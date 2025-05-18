@@ -6101,7 +6101,7 @@ void update_land_constructions(sys::state& state) {
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-							while(num_to_make_local > 0 && num_to_build_nation) {
+							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));

@@ -489,6 +489,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 				state.world.nation_get_occupied_count(owner) += uint16_t(1);
 				if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
 					state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+					assert(state.world.nation_get_central_blockaded(owner) >= 0);
 				}
 			} else if(n == owner) {
 				state.world.nation_get_occupied_count(owner) -= uint16_t(1);
@@ -515,6 +516,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 			state.world.nation_get_occupied_count(owner) += uint16_t(1);
 			if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
 				state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+				assert(state.world.nation_get_central_blockaded(owner) >= 0);
 			}
 		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
@@ -591,12 +593,13 @@ void restore_cached_values(sys::state& state) {
 			if(!is_overseas(state, pid)) {
 				state.world.nation_get_central_province_count(owner) += uint16_t(1);
 
-				if(military::province_is_blockaded(state, pid)) {
+				if(military::province_is_blockaded(state, pid) && owner == state.world.province_get_nation_from_province_control(pid)) {
 					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
 				}
 				if(state.world.province_get_is_coast(pid)) {
 					state.world.nation_get_central_ports(owner) += uint16_t(1);
 				}
+				assert(state.world.nation_get_central_blockaded(owner) <= state.world.nation_get_central_ports(owner));
 				if(reb_controlled) {
 					state.world.nation_get_central_rebel_controlled(owner) += uint16_t(1);
 				}
@@ -635,7 +638,8 @@ void update_blockaded_cache(sys::state& state) {
 		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
 
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
-		if(owner) {
+		auto controller = state.world.province_get_nation_from_province_control(pid);
+		if(owner && owner == controller) {
 			if(!is_overseas(state, pid)) {
 				if(military::province_is_blockaded(state, pid)) {
 					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
@@ -1357,6 +1361,13 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto rng = state.world.province_get_province_building_construction(id);
 		while(rng.begin() != rng.end()) {
 			state.world.delete_province_building_construction(*(rng.begin()));
+		}
+	}
+
+	{
+		auto rng = state.world.province_get_factory_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_factory_construction(*(rng.begin()));
 		}
 	}
 
