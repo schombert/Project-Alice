@@ -489,6 +489,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 				state.world.nation_get_occupied_count(owner) += uint16_t(1);
 				if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
 					state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+					assert(state.world.nation_get_central_blockaded(owner) >= 0);
 				}
 			} else if(n == owner) {
 				state.world.nation_get_occupied_count(owner) -= uint16_t(1);
@@ -515,6 +516,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 			state.world.nation_get_occupied_count(owner) += uint16_t(1);
 			if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
 				state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+				assert(state.world.nation_get_central_blockaded(owner) >= 0);
 			}
 		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
@@ -591,12 +593,13 @@ void restore_cached_values(sys::state& state) {
 			if(!is_overseas(state, pid)) {
 				state.world.nation_get_central_province_count(owner) += uint16_t(1);
 
-				if(military::province_is_blockaded(state, pid)) {
+				if(military::province_is_blockaded(state, pid) && owner == state.world.province_get_nation_from_province_control(pid)) {
 					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
 				}
 				if(state.world.province_get_is_coast(pid)) {
 					state.world.nation_get_central_ports(owner) += uint16_t(1);
 				}
+				assert(state.world.nation_get_central_blockaded(owner) <= state.world.nation_get_central_ports(owner));
 				if(reb_controlled) {
 					state.world.nation_get_central_rebel_controlled(owner) += uint16_t(1);
 				}
@@ -635,7 +638,8 @@ void update_blockaded_cache(sys::state& state) {
 		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
 
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
-		if(owner) {
+		auto controller = state.world.province_get_nation_from_province_control(pid);
+		if(owner && owner == controller) {
 			if(!is_overseas(state, pid)) {
 				if(military::province_is_blockaded(state, pid)) {
 					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
@@ -834,9 +838,8 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 	return bsum;
 }
 
+/* Unused function. Vanilla State Admin efficiency: previously used for integrating colonial states and thus still counts only accepted/primary culture bureaucrats */
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
-	// unused
-
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
 	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
@@ -1362,6 +1365,13 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	}
 
 	{
+		auto rng = state.world.province_get_factory_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_factory_construction(*(rng.begin()));
+		}
+	}
+
+	{
 		auto rng = state.world.province_get_province_naval_construction(id);
 		while(rng.begin() != rng.end()) {
 			state.world.delete_province_naval_construction(*(rng.begin()));
@@ -1711,7 +1721,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0 && p.get_province().get_nation_from_province_control() == n) {
 				auto dist = province::direct_distance(state, p.get_province(), coastal_target);
-				if(dist <= province::world_circumference *  0.04f * nb_level) {
+				if(dist <= province::world_circumference * state.defines.alice_naval_base_to_colonial_distance_factor * nb_level) {
 					reachable_by_sea = true;
 					break;
 				}
@@ -1943,8 +1953,22 @@ void update_colonization(sys::state& state) {
 			}
 
 			float adjust = state.defines.colonization_influence_temperature_per_day +
-										 float(max_points) * state.defines.colonization_influence_temperature_per_level +
-										 (state.current_crisis_state == sys::crisis_state::inactive ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+				float(max_points) * state.defines.colonization_influence_temperature_per_level +
+				(state.current_crisis_state == sys::crisis_state::inactive ? 0.0f : state.defines.tension_while_crisis) + at_war_adjust;
+
+			// Colonial tension does not grow if neither of participants has an army
+			// Colonial tension grows by 50% faster per each GP participant
+			bool anyone_has_army = false;
+			for(auto c : colonizers) {
+				if(c.get_colonizer().get_is_great_power())
+					adjust *= 1.5f;
+
+				if(c.get_colonizer().get_active_regiments())
+					anyone_has_army = true;
+			}
+
+			if(!anyone_has_army)
+				adjust *= 0.f;
 
 			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
 		} else if(num_colonizers == 1 &&
