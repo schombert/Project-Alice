@@ -40,7 +40,7 @@ void state_target_list(std::vector<dcon::state_instance_id>& result, sys::state&
 void update_cb_fabrication(sys::state& state);
 bool will_join_war(sys::state& state, dcon::nation_id, dcon::war_id, bool as_attacker);
 void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w);
-void add_gw_goals(sys::state& state);
+void add_wargoals(sys::state& state);
 bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_id from, dcon::peace_offer_id p);
 void make_peace_offers(sys::state& state);
 void make_war_decs(sys::state& state);

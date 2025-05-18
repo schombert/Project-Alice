@@ -4225,7 +4225,7 @@ void state::single_game_tick() {
 			break;
 		case 3:
 			military::monthly_leaders_update(*this);
-			ai::add_gw_goals(*this);
+			ai::add_wargoals(*this);
 			break;
 		case 4:
 			military::reinforce_regiments(*this);

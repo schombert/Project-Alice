@@ -3197,6 +3197,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	assert(target);
 	assert(wargoal);
 
+	state.pressed_wargoals++;
+
 	auto bits = state.world.cb_type_get_type_bits(wargoal);
 	bool for_attacker = is_attacker(state, war, from);
 

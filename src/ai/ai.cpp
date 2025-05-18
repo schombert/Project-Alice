@@ -3025,6 +3025,31 @@ possible_cb pick_fabrication_type(sys::state& state, dcon::nation_id from, dcon:
 	}
 }
 
+bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
+
+	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	if(!real_target)
+		real_target = target;
+
+	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
+		return false;
+
+	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
+		return false;
+
+	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
+		if(!a.get_are_allied())
+			continue;
+		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
+		if(self_sup <= other.get_used_naval_supply_points())
+			return false;
+	}
+
+	return true;
+}
+
+
 bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
 	// Copied from commands.cpp:can_fabricate_cb()
 	if(from == target)
@@ -3052,7 +3077,7 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
 			return false;
 	}
-	if(state.world.nation_get_owned_province_count(target) <= 2)
+	if(state.world.nation_get_owned_province_count(target) <= 0)
 		return false;
 
 	// if target is a landlocked nation or we are landlocked nation outselves
@@ -3068,6 +3093,9 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 	// Attacking people from other continents only if we have naval superiority
 	if(state.world.province_get_continent(state.world.nation_get_capital(from)) != state.world.province_get_continent(state.world.nation_get_capital(target))) {
 		// We must achieve naval superiority to even invade them
+		if(!naval_supremacy(state, from, target)) {
+			return false;
+		}
 		if(state.world.nation_get_capital_ship_score(from) < std::max(1.f, 1.5f * state.world.nation_get_capital_ship_score(target)))
 			return false;
 	}
@@ -3126,6 +3154,9 @@ void update_cb_fabrication(sys::state& state) {
 					if(!i.get_is_civilized()) {
 						weight *= 2.f;
 					}
+
+					// nations with strong military have lower weight
+					weight = weight / (estimate_strength(state, i) + 1.f);
 
 					total_weight += weight;
 					possible_targets.push_back({ i.id, weight });
@@ -3408,11 +3439,13 @@ void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w
 
 }
 
-dcon::cb_type_id pick_gw_extra_cb_type(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+dcon::cb_type_id pick_wargoal_extra_cb_type(sys::state& state, dcon::nation_id from, dcon::nation_id target, bool is_great) {
 	static std::vector<dcon::cb_type_id> possibilities;
 	possibilities.clear();
 
 	auto free_infamy = state.defines.badboy_limit - state.world.nation_get_infamy(from);
+
+	auto multiplier = is_great ? state.defines.gw_justify_cb_badboy_impact : 1.f;
 
 	for(auto c : state.world.in_cb_type) {
 		auto bits = state.world.cb_type_get_type_bits(c);
@@ -3420,7 +3453,7 @@ dcon::cb_type_id pick_gw_extra_cb_type(sys::state& state, dcon::nation_id from, 
 			continue;
 		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
 			continue;
-		if(military::cb_infamy(state, c, target) * state.defines.gw_justify_cb_badboy_impact > free_infamy)
+		if(military::cb_infamy(state, c, target) * multiplier > free_infamy)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
@@ -3435,7 +3468,7 @@ dcon::cb_type_id pick_gw_extra_cb_type(sys::state& state, dcon::nation_id from, 
 	}
 }
 
-dcon::nation_id pick_gw_target(sys::state& state, dcon::nation_id from, dcon::war_id w, bool is_attacker) {
+dcon::nation_id pick_wargoal_target(sys::state& state, dcon::nation_id from, dcon::war_id w, bool is_attacker) {
 
 	if(is_attacker && military::get_role(state, w, state.world.nation_get_ai_rival(from)) == military::war_role::defender)
 		return state.world.nation_get_ai_rival(from);
@@ -3466,7 +3499,7 @@ dcon::nation_id pick_gw_target(sys::state& state, dcon::nation_id from, dcon::wa
 	}
 }
 
-void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
+void add_wargoal_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	auto rval = rng::get_random(state, n.index() ^ w.index() << 2);
 	if((rval & 1) == 0)
 		return;
@@ -3488,13 +3521,15 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	if(spare_ws < 1.0f)
 		return;
 
-	auto target = pick_gw_target(state, n, w, attacker);
+	auto target = pick_wargoal_target(state, n, w, attacker);
 	if(!target)
 		return;
 
-	auto cb = pick_gw_extra_cb_type(state, n, target);
+	auto cb = pick_wargoal_extra_cb_type(state, n, target, state.world.war_get_is_great(w));
 	if(!cb)
 		return;
+
+	auto multiplier = state.world.war_get_is_great(w) ? state.defines.gw_justify_cb_badboy_impact : 1.f;
 
 	static std::vector<dcon::state_instance_id> target_states;
 	state_target_list(target_states, state, n, target);
@@ -3504,17 +3539,15 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	if(!result.empty() && result[0].target) {
 		military::add_wargoal(state, w, n, target, cb, result[0].state_def, result[0].associated_tag, result[0].secondary_nation);
 		nations::adjust_relationship(state, n, target, state.defines.addwargoal_relation_on_accept);
-		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb, target) * state.defines.gw_justify_cb_badboy_impact;
+		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb, target) * multiplier;
 	}
 }
 
-void add_gw_goals(sys::state& state) {
+void add_wargoals(sys::state& state) {
 	for(auto w : state.world.in_war) {
-		if(w.get_is_great()) {
-			for(auto par : w.get_war_participant()) {
-				if(par.get_nation().get_is_player_controlled() == false) {
-					add_wg_to_great_war(state, par.get_nation(), w);
-				}
+		for(auto par : w.get_war_participant()) {
+			if(par.get_nation().get_is_player_controlled() == false) {
+				add_wargoal_to_war(state, par.get_nation(), w);
 			}
 		}
 	}
@@ -3848,29 +3881,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	return false;
 }
 
-bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
-	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
-
-	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-	if(!real_target)
-		real_target = target;
-
-	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
-		return false;
-
-	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
-		return false;
-
-	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
-		if(!a.get_are_allied())
-			continue;
-		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
-		if(self_sup <= other.get_used_naval_supply_points())
-			return false;
-	}
-
-	return true;
-}
 
 void make_war_decs(sys::state& state) {
 	auto targets = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
