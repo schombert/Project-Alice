@@ -3457,6 +3457,8 @@ dcon::cb_type_id pick_wargoal_extra_cb_type(sys::state& state, dcon::nation_id f
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
+		if(!valid_construction_target(state, from, target))
+			continue;
 
 		possibilities.push_back(c);
 	}
