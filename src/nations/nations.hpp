@@ -278,6 +278,7 @@ void recalculate_markets_distance(sys::state& state);
 dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag);
 
 void update_administrative_efficiency(sys::state& state);
+void update_national_administrative_efficiency(sys::state& state);
 
 float priority_national(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
 float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);

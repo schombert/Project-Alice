@@ -357,8 +357,10 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			break;
 		case 10:
 			nations::update_administrative_efficiency(ws1);
+			nations::update_administrative_efficiency(ws1);
 			rebel::daily_update_rebel_organization(ws1);
 
+			nations::update_administrative_efficiency(ws2);
 			nations::update_administrative_efficiency(ws2);
 			rebel::daily_update_rebel_organization(ws2);
 			break;

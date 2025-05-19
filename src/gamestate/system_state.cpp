@@ -3261,6 +3261,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::reinforce_regiments(*this);
 	military::repair_ships(*this);
 
+
+	nations::update_national_administrative_efficiency(*this);
 	nations::update_administrative_efficiency(*this);
 	military::regenerate_land_unit_average(*this);
 	military::regenerate_ship_scores(*this);
@@ -3762,7 +3764,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	pop_demographics::regenerate_is_primary_or_accepted(*this);
 
-	nations::update_administrative_efficiency(*this);
+	nations::update_national_administrative_efficiency(*this);
 	rebel::update_movement_values(*this);
 
 	economy::regenerate_unsaved_values(*this);
@@ -3858,7 +3860,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 
 #ifndef NDEBUG
-	for(auto p : world.in_pop) {
+	/*for(auto p : world.in_pop) {
 		float total = 0.0f;
 		for(auto i : world.in_ideology) {
 			auto val = pop_demographics::get_demo(*this, p, pop_demographics::to_key(*this, i));
@@ -3902,7 +3904,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 				sin_battle.push_back(slot.ship);
 			}
 		}
-	}
+	}*/
 
 #endif // ! NDEBUG
 
@@ -4148,6 +4150,7 @@ void state::single_game_tick() {
 				economy::update_employment(*this);
 				break;
 			case 8:
+				nations::update_national_administrative_efficiency(*this);
 				nations::update_administrative_efficiency(*this);
 				rebel::daily_update_rebel_organization(*this);
 				break;
