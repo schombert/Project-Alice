@@ -4096,11 +4096,12 @@ void update_budget(sys::state& state) {
 		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::middle_total))) / 10.f;
 		float rich_militancy = (state.world.nation_get_demographics(n, demographics::rich_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::rich_total))) / 10.f;
 
+		// don't tax pops too much
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
-			int max_poor_tax = int(10.f + 70.f * (1.f - poor_militancy));
-			int max_mid_tax = int(10.f + 80.f * (1.f - mid_militancy));
-			int max_rich_tax = int(10.f + 90.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 25.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 35.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 50.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// enough tax?
@@ -4136,9 +4137,9 @@ void update_budget(sys::state& state) {
 				}
 			}
 		} else {
-			int max_poor_tax = int(10.f + 90.f * (1.f - poor_militancy));
-			int max_mid_tax = int(10.f + 90.f * (1.f - mid_militancy));
-			int max_rich_tax = int(10.f + 40.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 30.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 30.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 10.f * (1.f - rich_militancy));
 			int max_social = int(20.f * poor_militancy);
 
 			// enough tax?
