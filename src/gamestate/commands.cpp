@@ -5576,15 +5576,15 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	size_t length = sizeof_save_section(state);
 	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
 	sys::write_save_section(save_buffer.get(), state);
+	state.local_player_nation = dcon::nation_id{ };
 	/* Then reload as if we loaded the save data */
 	state.preload();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-	state.local_player_nation = dcon::nation_id{ };
+	state.fill_unsaved_data();
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-	state.fill_unsaved_data();
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 
 #ifndef NDEBUG
