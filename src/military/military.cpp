@@ -3604,12 +3604,24 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	if((bits & cb_flag::po_annex) != 0 && target != from) {
 		// Unless CB has po_save_subjects - release all subjects
 		if((bits & cb_flag::po_save_subjects) == 0) {
-			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
-				nations::release_vassal(state, sub);
+			// Release vassals
+			for(auto n : state.world.in_nation) {
+				auto rel = state.world.nation_get_overlord_as_subject(n);
+				auto overlord = state.world.overlord_get_ruler(rel);
+
+				if(overlord == target) {
+					nations::release_vassal(state, rel);
+				}
 			}
 		} else {
-			for(auto sub : state.world.nation_get_overlord_as_ruler(target)) {
-				nations::make_vassal(state, sub.get_subject(), from);
+			// Transfer vassals
+			for(auto n : state.world.in_nation) {
+				auto rel = state.world.nation_get_overlord_as_subject(n);
+				auto overlord = state.world.overlord_get_ruler(rel);
+
+				if(overlord == target) {
+					nations::make_vassal(state, n, from);
+				}
 			}
 		}
 
