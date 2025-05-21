@@ -114,7 +114,10 @@ public:
 		return target.rgo_commodity;
 	}
 
-	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override { }
+	void button_action(sys::state& state, economy::province_tile target, ui::element_base* parent) noexcept override {
+		// Switch to economy scene on click
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_economy_viewer);
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, economy::province_tile target) noexcept override {
 		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
