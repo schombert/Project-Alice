@@ -2004,7 +2004,50 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 		* state.world.market_get_supply_sold_ratio(mid, c);
 }
 
+commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact) {
+	auto size = state.world.province_get_rgo_size(p, c);
+	if(size <= 0.f) {
+		return;
+	}
 
+	auto max_efficiency = max_rgo_efficiency(state, n, p, c);
+	auto free_efficiency = max_efficiency * 0.1f;
+	auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
+	auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
+	auto e_inputs_data = get_inputs_data(state, m, e_inputs);
+	// we try to update our efficiency according to current profit derivative
+	// if higher efficiency brings profit, we increase it
+	// 10% of max efficiency is free
+	auto cost_derivative = 0.f;
+	if(current_efficiency > free_efficiency) {
+		cost_derivative = e_inputs_data.total_cost;
+	}
+	auto profit_derivative =
+		state.world.commodity_get_rgo_amount(c)
+		/ state.defines.alice_rgo_per_size_employment
+		* state.world.market_get_price(m, c)
+		* state.world.market_get_supply_sold_ratio(m, c);
+	auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
+	// we assume that we can maintain efficiency even when there is not enough goods on the market:
+	// efficiency goods are "preserved" (but still demanded to "update")
+	// it's very risky to decrease efficiency depending on available efficiency goods directly
+	// because it might lead to instability cycles
+	// there is some natural decay of efficiency
+	// we decrease efficiency outside of decay only if decreasing efficiency is profitable
+	// but to increase efficiency, there should be enough of goods on the local market unless it's a free efficiency
+	if(efficiency_growth > 0.f && current_efficiency > free_efficiency) {
+		efficiency_growth = efficiency_growth * e_inputs_data.min_available;
+	}
+	auto new_efficiency = std::min(max_efficiency, std::max(free_efficiency, current_efficiency * 0.9999f + efficiency_growth));
+	state.world.province_set_rgo_efficiency(p, c, new_efficiency);
+
+	auto workers = state.world.province_get_rgo_target_employment(p, c)
+		* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+		* mobilization_impact;
+	auto demand_scale = workers * std::max(new_efficiency - free_efficiency, 0.f);
+
+	return e_inputs;
+}
 
 float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	return state.world.province_get_artisan_score(id, c);
