@@ -1175,7 +1175,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 }
 
 // Check rules for factories in colonies: can a factory be built in provided province
-inline bool can_build_in_colony(sys::state& state, dcon::province_id p) {
+bool can_build_in_colony(sys::state& state, dcon::province_id p) {
 	if(state.world.province_get_is_colonial(p) && state.defines.alice_allow_factories_in_colonies == 0.f) {
 		return false;
 	}
@@ -1184,18 +1184,18 @@ inline bool can_build_in_colony(sys::state& state, dcon::province_id p) {
 }
 
 // Check rules for factories in colonies: can a factory be built in provided state
-inline bool can_build_in_colony(sys::state& state, dcon::state_instance_id s) {
+bool can_build_in_colony(sys::state& state, dcon::state_instance_id s) {
 	auto p = state.world.state_instance_get_capital(s);
 	return can_build_in_colony(state, p);
 }
 
 // Check rules for factories in colonies: can this factory type be built in provided state
-inline bool can_build_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+bool can_build_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
 	return can_build_in_colony(state, s) && state.world.factory_type_get_can_be_built_in_colonies(ft);
 }
 
 // Check rules for factories in colonies: : can this factory type be built in provided province
-inline bool can_build_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft) {
+bool can_build_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft) {
 	return can_build_in_colony(state, p) && state.world.factory_type_get_can_be_built_in_colonies(ft);
 }
 
