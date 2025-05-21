@@ -1529,3 +1529,4 @@ pop_migration_attraction_3;The migration target factor: $x$
 pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
+alice_unit_target;===> $x$
