@@ -2004,16 +2004,16 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 		* state.world.market_get_supply_sold_ratio(mid, c);
 }
 
-commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact) {
-	auto size = state.world.province_get_rgo_size(p, c);
+commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id pid, dcon::commodity_id c, float mobilization_impact) {
+	auto size = state.world.province_get_rgo_size(pid, c);
 	if(size <= 0.f) {
 		return commodity_set{};
 	}
 
-	auto max_efficiency = max_rgo_efficiency(state, n, p, c);
+	auto max_efficiency = max_rgo_efficiency(state, n, pid, c);
 	auto free_efficiency = max_efficiency * 0.1f;
-	auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
-	auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
+	auto current_efficiency = state.world.province_get_rgo_efficiency(pid, c);
+	auto e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
 	auto e_inputs_data = get_inputs_data(state, m, e_inputs);
 	// we try to update our efficiency according to current profit derivative
 	// if higher efficiency brings profit, we increase it
@@ -2038,13 +2038,21 @@ commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::mark
 	if(efficiency_growth > 0.f && current_efficiency > free_efficiency) {
 		efficiency_growth = efficiency_growth * e_inputs_data.min_available;
 	}
-	auto new_efficiency = std::min(max_efficiency, std::max(free_efficiency, current_efficiency * 0.9999f + efficiency_growth));
-	state.world.province_set_rgo_efficiency(p, c, new_efficiency);
+	auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
+	state.world.province_set_rgo_efficiency(pid, c, new_efficiency);
 
-	auto workers = state.world.province_get_rgo_target_employment(p, c)
-		* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+	auto workers = state.world.province_get_rgo_target_employment(pid, c)
+		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)
 		* mobilization_impact;
 	auto demand_scale = workers * std::max(new_efficiency - free_efficiency, 0.f);
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(e_inputs.commodity_type[i]) {
+			e_inputs.commodity_amounts[i] *= demand_scale;
+		} else {
+			break;
+		}
+	}
 
 	return e_inputs;
 }
