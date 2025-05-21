@@ -2007,7 +2007,7 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact) {
 	auto size = state.world.province_get_rgo_size(p, c);
 	if(size <= 0.f) {
-		return;
+		return commodity_set{};
 	}
 
 	auto max_efficiency = max_rgo_efficiency(state, n, p, c);

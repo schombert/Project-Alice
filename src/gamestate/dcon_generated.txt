@@ -4361,7 +4361,7 @@ object{
 relationship {
 	name{ local_market }
 	storage_type{ compactable }
-	size{ 3000 }
+	size{ 6000 }
 	tag{ save }
 
 	link{
