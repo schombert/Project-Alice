@@ -96,9 +96,9 @@ void compare_game_states(sys::state& ws1, sys::state& ws2) {
 	INFO(ymd.year << "." << ymd.month << "." << ymd.day);
 
 	auto tmp1 = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(ws1)]);
-	write_save_section(tmp1.get(), ws1);
+	//write_save_section(tmp1.get(), ws1);
 	auto tmp2 = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(ws2)]);
-	write_save_section(tmp2.get(), ws1);
+	//write_save_section(tmp2.get(), ws1);
 	REQUIRE(sizeof_save_section(ws1) == sizeof_save_section(ws2));
 	// REQUIRE(std::memcmp(tmp1.get(), tmp2.get(), sizeof_save_section(ws1)) == 0);
 	REQUIRE(ws1.get_save_checksum().to_string() == ws2.get_save_checksum().to_string());
@@ -667,6 +667,100 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	ai::daily_cleanup(ws1);
 	ai::daily_cleanup(ws2);
 	compare_game_states(ws1, ws2);
+}
+
+void test_reload_save(sys::state& state) {
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	/* Save the buffer before we fill the unsaved data */
+	size_t length = sizeof_save_section(state);
+	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	sys::write_save_section(save_buffer.get(), state);
+	state.local_player_nation = dcon::nation_id{ };
+	/* Then reload as if we loaded the save data */
+	state.preload();
+	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+	state.fill_unsaved_data();
+	for(const auto n : players)
+		state.world.nation_set_is_player_controlled(n, true);
+	state.local_player_nation = old_local_player_nation;
+}
+void test_reload_network_save(sys::state& state) {
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	/* Save the buffer before we fill the unsaved data */
+	network::write_network_save(state);
+	state.local_player_nation = dcon::nation_id{ };
+	/* Then reload as if we loaded the save data */
+	state.preload();
+	network::with_network_decompressed_section(state.network_state.current_save_buffer.get(), [&state](uint8_t const* ptr_in, uint32_t length) {
+		read_save_section(ptr_in, ptr_in + length, state);
+		});
+	state.fill_unsaved_data();
+	for(const auto n : players)
+		state.world.nation_set_is_player_controlled(n, true);
+	state.local_player_nation = old_local_player_nation;
+}
+
+
+
+sys::checksum_key get_network_save_checksum(sys::state& state) {
+	dcon::load_record loaded = state.world.make_serialize_record_store_network_save();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[state.world.serialize_size(loaded)]);
+	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
+	state.world.serialize(start, loaded);
+
+	auto buffer_position = reinterpret_cast<uint8_t*>(start);
+	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+
+	sys::checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	return key;
+}
+
+
+sys::checksum_key get_scenario_checksum(sys::state& state) {
+	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[state.world.serialize_size(loaded)]);
+	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
+	state.world.serialize(start, loaded);
+
+	auto buffer_position = reinterpret_cast<uint8_t*>(start);
+	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+
+	sys::checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	return key;
+}
+
+TEST_CASE("test_reload", "[determinism]") {
+	// Test that the game states are equal AFTER loading
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	game_state_1->local_player_nation = dcon::nation_id{ 1 };
+	game_state_1->world.nation_set_is_player_controlled(dcon::nation_id{ 1 }, true);
+	game_state_2->local_player_nation = dcon::nation_id{ 1 };
+	game_state_2->world.nation_set_is_player_controlled(dcon::nation_id{ 1 }, true);
+	compare_game_states(*game_state_1, *game_state_2);
+	REQUIRE(get_network_save_checksum(*game_state_1).to_string() == get_network_save_checksum(*game_state_2).to_string());
+	game_state_1->single_game_tick();
+	game_state_2->single_game_tick();
+	compare_game_states(*game_state_1, *game_state_2);
+	REQUIRE(get_network_save_checksum(*game_state_1).to_string() == get_network_save_checksum(*game_state_2).to_string());
+	test_reload_network_save(*game_state_1);
+	compare_game_states(*game_state_1, *game_state_2);
+	REQUIRE(get_network_save_checksum(*game_state_1).to_string() == get_network_save_checksum(*game_state_2).to_string());
+	game_state_1->single_game_tick();
+	game_state_2->single_game_tick();
+	compare_game_states(*game_state_1, *game_state_2);
+	REQUIRE(get_network_save_checksum(*game_state_1).to_string() == get_network_save_checksum(*game_state_2).to_string());
 }
 
 TEST_CASE("sim_none", "[determinism]") {

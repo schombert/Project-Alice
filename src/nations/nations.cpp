@@ -739,11 +739,6 @@ void update_administrative_efficiency(sys::state& state) {
 	
 
 	// replaced with control ratio at capital which is doing the same thing but better
-	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
-		state.world.nation_set_administrative_efficiency(ids, ve::max(0.05f, ve::min(1.f, 0.05f + admin_mod)));
-	});
-
 	// prepare buffers
 	auto control_buffer = state.world.province_make_vectorizable_float_buffer();
 	state.world.execute_serial_over_province([&](auto ids) {
