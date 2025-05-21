@@ -80,6 +80,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
 		context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
 		context.state.world.factory_type_set_is_coastal(factory_id, res.is_coastal);
+		context.state.world.factory_type_set_can_be_built_in_colonies(factory_id, res.can_be_built_in_colonies);
 
 		/*for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
 			dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
