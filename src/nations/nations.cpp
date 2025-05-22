@@ -201,12 +201,12 @@ void recalculate_markets_distance(sys::state& state) {
 				auto coast_1 = province::state_get_coastal_capital(state, sid_1);
 				auto owner_0 = state.world.province_get_nation_from_province_ownership(coast_0);
 				auto owner_1 = state.world.province_get_nation_from_province_ownership( coast_1);
-				auto transport_0 = military::get_best_transport(state, owner_0);
-				auto transport_1 = military::get_best_transport(state, owner_1);
+				auto transport_0 = military::get_best_transport(state, owner_0, false, false);
+				auto transport_1 = military::get_best_transport(state, owner_1, false, false);
 				auto stats_0 = state.world.nation_get_unit_stats(owner_0, transport_0);
 				auto stats_1 = state.world.nation_get_unit_stats(owner_1, transport_1);
 
-				auto speed = std::max(stats_0.maximum_speed, stats_1.maximum_speed);
+				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
 				path = province::make_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
@@ -228,7 +228,15 @@ void recalculate_markets_distance(sys::state& state) {
 
 					p_prev = p_current;
 				}
-				state.world.trade_route_set_sea_distance(route, effective_distance / speed);
+
+				if(effective_distance == 0.f) {
+					// no path, remove sea connection
+					state.world.trade_route_set_sea_distance(route, 99999.f);
+				} else {
+					assert(speed > 0.f);
+					state.world.trade_route_set_sea_distance(route, effective_distance / speed);
+				}
+
 			} else {
 				state.world.trade_route_set_sea_distance(route, 99999.f);
 			}
@@ -248,7 +256,7 @@ void recalculate_markets_distance(sys::state& state) {
 				auto stats_0 = state.world.nation_get_unit_stats(owner_0, cav_0);
 				auto stats_1 = state.world.nation_get_unit_stats(owner_1, cav_1);
 
-				auto speed = std::max(stats_0.maximum_speed, stats_1.maximum_speed);
+				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 				p_prev = market_0_center;
 
 				auto ps = path.size();
@@ -276,6 +284,15 @@ void recalculate_markets_distance(sys::state& state) {
 
 					p_prev = p_current;
 				}
+
+				if(effective_distance == 0.f) {
+					// no path, remove sea connection
+					state.world.trade_route_set_land_distance(route, 99999.f);
+				} else {
+					assert(speed > 0.f);
+					state.world.trade_route_set_land_distance(route, effective_distance / speed);
+				}
+
 				state.world.trade_route_set_land_distance(route, effective_distance / speed);
 			} else {
 				state.world.trade_route_set_land_distance(route, 99999.f);

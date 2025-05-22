@@ -372,6 +372,7 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 			auto& base_stats = state.world.nation_get_unit_stats(nid, base_id);
 			auto& current_stats = state.world.nation_get_unit_stats(nid, uid);
 			current_stats += base_stats;
+			assert(current_stats.maximum_speed > 0.f);
 		});
 	}
 }
