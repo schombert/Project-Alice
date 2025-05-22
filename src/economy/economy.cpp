@@ -2800,6 +2800,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		distance = ve::select(is_land_route, ve::min(distance, land_distance), distance);
 		distance = ve::select(is_sea_route, ve::min(distance, sea_distance), distance);
 
+		ve::apply([&](auto value) {
+			assert(std::isfinite(value));
+		}, distance);
+
 		state.world.trade_route_set_distance(trade_route, distance);
 
 		auto trade_good_loss_mult = ve::max(0.f, 1.f - 0.0001f * distance);
