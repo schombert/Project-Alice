@@ -762,7 +762,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	}
 
 	// data container contribution
-	dcon::load_record loaded = state.world.make_serialize_record_store_full_save();
+	dcon::load_record loaded = state.world.make_serialize_record_store_save();
 	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
 	state.world.serialize(start, loaded);
 
@@ -809,7 +809,7 @@ size_t sizeof_save_section(sys::state& state) {
 	}
 
 	// data container contribution
-	dcon::load_record loaded = state.world.make_serialize_record_store_full_save();
+	dcon::load_record loaded = state.world.make_serialize_record_store_save();
 	sz += state.world.serialize_size(loaded);
 
 	return sz;

@@ -956,6 +956,8 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	state.local_player_nation = dcon::nation_id{ };
 	// Then reload from network
 	state.preload();
+	state.console_log(std::string("DERIVED CHECKSUM: ") + state.get_derived_state_checksum().to_string());
+	command::chat_message(state, state.local_player_nation, std::string("DERIVED CHECKSUM: ") + state.get_derived_state_checksum().to_string(), dcon::nation_id());
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
 	});

@@ -749,6 +749,68 @@ TEST_CASE("test_reload", "[determinism]") {
 	compare_game_states(*game_state_1, *game_state_2);
 }
 
+TEST_CASE("test_network_reload", "[determinism]") {
+	// Test that the game states are equal AFTER loading
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	game_state_1->game_seed = 808080;
+	//game_state_1->local_player_nation = dcon::nation_id{ 1 };
+	//game_state_1->world.nation_set_is_player_controlled(dcon::nation_id{ 1 }, true);
+	game_state_1->network_mode = sys::network_mode_type::host;
+	game_state_1->network_state.nickname.from_string_view("Host");
+	network::init(*game_state_1);
+	command::notify_start_game(*game_state_1, game_state_1->local_player_nation);
+	command::advance_tick(*game_state_1, game_state_1->local_player_nation);
+	network::send_and_receive_commands(*game_state_1);;
+	command::execute_pending_commands(*game_state_1);
+	game_state_1->network_state.is_new_game = false;
+	//std::thread update_thread_host([&]() { game_state_1->game_loop(); });
+
+
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	game_state_2->game_seed = 808080;
+	game_state_2->local_player_nation = dcon::nation_id{2 };
+	game_state_2->network_mode = sys::network_mode_type::client;
+	game_state_2->network_state.nickname.from_string_view("Client");
+	game_state_1->network_state.is_new_game = false;
+	network::init(*game_state_2);
+	network::send_and_receive_commands(*game_state_2);;
+	command::execute_pending_commands(*game_state_2);
+	network::send_and_receive_commands(*game_state_1);;
+	command::execute_pending_commands(*game_state_1);
+	network::send_and_receive_commands(*game_state_2);;
+	command::execute_pending_commands(*game_state_2);
+	network::send_and_receive_commands(*game_state_1);;
+	command::execute_pending_commands(*game_state_1);
+	network::send_and_receive_commands(*game_state_2);;
+	command::execute_pending_commands(*game_state_2);
+	network::send_and_receive_commands(*game_state_1);;
+	command::execute_pending_commands(*game_state_1);
+	network::send_and_receive_commands(*game_state_2);;
+	command::execute_pending_commands(*game_state_2);
+
+	//std::thread update_thread_client([&]() { game_state_2->game_loop(); });
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+	/*command::advance_tick(*game_state_1, game_state_1->local_player_nation);*/
+	game_state_1->single_game_tick();
+	game_state_2->single_game_tick();
+
+	network::send_and_receive_commands(*game_state_1);;
+	command::execute_pending_commands(*game_state_1);
+	network::send_and_receive_commands(*game_state_2);;
+	command::execute_pending_commands(*game_state_2);
+	network::send_and_receive_commands(*game_state_1);;
+	command::execute_pending_commands(*game_state_1);
+	network::send_and_receive_commands(*game_state_2);;
+	command::execute_pending_commands(*game_state_2);
+
+	/*update_thread_host.join();
+	update_thread_client.join();*/
+
+
+}
+
 TEST_CASE("sim_none", "[determinism]") {
 	// Test that the game states are equal AFTER loading
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();

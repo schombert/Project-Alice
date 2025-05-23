@@ -3324,12 +3324,95 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 }
 
 void state::preload() {
+
 	adjacency_data_out_of_date = true;
+	for(auto com : world.in_commodity) {
+		com.set_producer_payout_fraction(0);
+		com.set_is_life_need(false);
+		com.set_is_everyday_need(false);
+		com.set_is_luxury_need(false);
+
+	}
+	for(auto issue : world.in_issue) {
+		issue.set_issue_type(0);
+
+	}
+	for(auto fac : world.in_factory) {
+		fac.set_triggered_modifiers(0);
+	}
+	for(auto issue : world.in_issue_option) {
+		issue.set_parent_issue(dcon::issue_id{ });
+
+	}
+	for(auto ref : world.in_reform) {
+		ref.set_reform_type(0);
+
+	}
+	for(auto ref : world.in_reform_option) {
+		ref.set_parent_reform(dcon::reform_id{  });
+
+	}
+
 	for(auto si : world.in_state_instance) {
 		si.set_naval_base_is_taken(false);
-		si.set_capital(dcon::province_id{});
+		//si.set_capital(dcon::province_id{});
+		uint32_t size = si.get_demographics_size();
+		uint32_t size_alt = si.get_demographics_alt_size();
+		for(uint16_t i = 0; i < size; i++) {
+			si.set_demographics(dcon::demographics_key{ dcon::demographics_key::value_base_t(i) }, 0);
+		}
+		for(uint16_t i = 0; i < size_alt; i++) {
+			si.set_demographics_alt(dcon::demographics_key{ dcon::demographics_key::value_base_t(i) }, 0);
+		}
+		
+		si.set_dominant_culture(dcon::culture_id{  });
+		si.set_dominant_religion(dcon::religion_id{});
+		si.set_dominant_ideology(dcon::ideology_id{  });
+		si.set_dominant_issue_option(dcon::issue_option_id{ });
 	}
+	for(auto tech : world.in_technology) {
+		tech.set_ai_weight(0);
+	}
+
 	for(auto n : world.in_nation) {
+		for(uint8_t i = 0; i < military_definitions.unit_base_definitions.size(); i++) {
+			n.set_active_unit(dcon::unit_type_id{dcon::unit_type_id::value_base_t( i)}, false);
+			n.set_unit_stats(dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) }, unit_variable_stats());
+		}
+		// refactor this when buildings become moddable
+		for(int8_t buildingid = int8_t(economy::province_building_type::railroad); buildingid != int8_t(economy::province_building_type::last); buildingid++) {
+			n.set_max_building_level(buildingid, 0);
+		}
+		for(uint8_t i = 0; i < culture_definitions.crimes.size(); i++) {
+			n.set_active_crime(dcon::crime_id{ dcon::crime_id::value_base_t(i) }, false);
+		}
+		for(auto fact_type : world.in_factory_type) {
+			n.set_active_building(fact_type, false);
+		}
+		for(auto com : world.in_commodity) {
+			n.set_unlocked_commodities(com, false);
+			n.set_rgo_goods_output(com, 0);
+			n.set_factory_goods_output(com, 0);
+			n.set_rgo_size(com, 0);
+			n.set_factory_goods_throughput(com, 0);
+
+		}
+		for(uint16_t i = 0; i < sys::national_mod_offsets::count; i++) {
+			n.set_modifier_values(dcon::national_modifier_value{ dcon::national_modifier_value::value_base_t(i) }, 0);
+		}
+		for(auto rebel_type : world.in_rebel_type) {
+			n.set_rebel_org_modifier(rebel_type, 0);
+		}
+		uint32_t size = n.get_demographics_size();
+		uint32_t size_alt = n.get_demographics_alt_size();
+		for(uint16_t i = 0; i < size; i++) {
+			n.set_demographics(dcon::demographics_key{ dcon::demographics_key::value_base_t(i) }, 0);
+		}
+		for(uint16_t i = 0; i < size_alt; i++) {
+			n.set_demographics_alt(dcon::demographics_key{ dcon::demographics_key::value_base_t(i) }, 0);
+		}
+		n.set_color(0);
+		n.set_marked_for_gc(false);
 		n.set_combined_issue_rules(0);
 		n.set_is_at_war(false);
 		n.set_allies_count(0);
@@ -3344,16 +3427,85 @@ void state::preload() {
 		n.set_has_flash_point_state(false);
 		n.set_ai_is_threatened(false);
 		n.set_ai_home_port(dcon::province_id{});
+		n.set_has_gas_defense(false);
+		n.set_has_gas_attack(false);
+		n.set_rank(0);
+		n.set_industrial_rank(0);
+		n.set_military_rank(0);
+		n.set_prestige_rank(0);
+		n.set_private_investment_effective_fraction(0);
+		n.set_private_investment_education(0);
+		n.set_private_investment_administration(0);
+		n.set_industrial_score(0);
+		n.set_military_score(0);
+		n.set_central_blockaded(0);
+		n.set_central_rebel_controlled(0);
+		n.set_owned_province_count(0);
+		n.set_owned_state_count(0);
+		n.set_central_province_count(0);
+		n.set_rebel_controlled_count(0);
+		n.set_occupied_count(0);
+		n.set_central_ports(0);
+		n.set_total_ports(0);
+		n.set_central_crime_count(0);
+		n.set_dominant_culture(dcon::culture_id{  });
+		n.set_dominant_religion(dcon::religion_id{  });
+		n.set_dominant_ideology(dcon::ideology_id{ });
+		n.set_dominant_issue_option(dcon::issue_option_id{  });
+		n.set_non_colonial_population(0);
+		n.set_non_colonial_bureaucrats(0);
+		n.set_active_regiments(0);
+		n.set_recruitable_regiments(0);
+		n.set_averge_land_unit_score(0);
+		n.set_capital_ship_score(0);
+		n.set_naval_supply_points(0);
+		n.set_used_naval_supply_points(0);
+		n.remove_all_nation_adjacency();
+
+
 	}
 	for(auto p : world.in_pop) {
 		pop_demographics::set_social_reform_desire(*this, p, 0.0f);
 		pop_demographics::set_political_reform_desire(*this, p, 0.0f);
 		p.set_is_primary_or_accepted_culture(false);
+		p.set_dominant_ideology(dcon::ideology_id{  });
+		p.set_dominant_issue_option(dcon::issue_option_id{  });
+
 	}
 	for(auto p : world.in_province) {
+		for(uint16_t i = 0; i < sys::provincial_mod_offsets::count; i++) {
+			p.set_modifier_values(dcon::provincial_modifier_value{ dcon::provincial_modifier_value::value_base_t(i) }, 0);
+		}
+		uint32_t size = p.get_demographics_size();
+		uint32_t size_alt = p.get_demographics_alt_size();
+		for(uint16_t i = 0; i < size; i++) {
+			p.set_demographics(dcon::demographics_key{ dcon::demographics_key::value_base_t( i) }, 0);
+		}
+		for(uint16_t i = 0; i < size_alt; i++) {
+			p.set_demographics_alt(dcon::demographics_key{ dcon::demographics_key::value_base_t(i) }, 0);
+		}
+
 		p.set_state_membership(dcon::state_instance_id{});
 		p.set_is_owner_core(false);
 		p.set_is_blockaded(false);
+		p.set_mid_point_b(glm::vec3());
+		p.set_connected_region_id(0);
+		p.set_connected_coast_id(0);
+		p.set_is_coast(false);
+		p.set_dominant_culture(dcon::culture_id{ 0 });
+		p.set_dominant_accepted_culture(dcon::culture_id{  });
+		p.set_dominant_religion(dcon::religion_id{  });
+		p.set_dominant_ideology(dcon::ideology_id{  });
+		p.set_dominant_issue_option(dcon::issue_option_id{  });
+		p.set_artisan_profit(0);
+		p.set_subsistence_score(0);
+		p.set_daily_net_migration(0);
+		p.set_daily_net_immigration(0);
+		p.set_former_controller(dcon::nation_id{  });
+		p.set_former_rebel_controller(dcon::rebel_faction_id{ });
+	}
+	for(auto adj : world.in_province_adjacency) {
+		adj.set_distance(0);
 	}
 	for(auto m : world.in_movement) {
 		m.set_pop_support(0.0f);
@@ -3365,6 +3517,12 @@ void state::preload() {
 	for(auto r : world.in_regiment) {
 		r.set_pending_split(false);
 	}
+	for(auto b : world.in_land_battle) {
+		// maybe just put this in the save instead?
+		b.set_attacker_casualties(0);
+		b.set_defender_casualties(0);
+	}
+
 }
 
 void state::on_scenario_load() {
@@ -4486,6 +4644,20 @@ void state::console_log(std::string_view message) {
 
 sys::checksum_key state::get_save_checksum() {
 	dcon::load_record loaded = world.make_serialize_record_store_save();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
+	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
+	world.serialize(start, loaded);
+
+	auto buffer_position = reinterpret_cast<uint8_t*>(start);
+	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+
+	checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	return key;
+}
+
+sys::checksum_key state::get_derived_state_checksum() {
+	dcon::load_record loaded = world.make_serialize_record_store_only_derived_state();
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
