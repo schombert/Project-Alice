@@ -5578,7 +5578,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	sys::write_save_section(save_buffer.get(), state);
 	state.local_player_nation = dcon::nation_id{ };
 	/* Then reload as if we loaded the save data */
-	state.preload();
+	state.reset_state();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	state.fill_unsaved_data();
 	for(const auto n : players)

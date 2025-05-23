@@ -955,9 +955,8 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{ };
 	// Then reload from network
-	state.preload();
-	state.console_log(std::string("DERIVED CHECKSUM: ") + state.get_derived_state_checksum().to_string());
-	command::chat_message(state, state.local_player_nation, std::string("DERIVED CHECKSUM: ") + state.get_derived_state_checksum().to_string(), dcon::nation_id());
+	/*state.preload();*/
+	state.reset_state();
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
 	});
@@ -1050,8 +1049,11 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		if(!state.network_state.is_new_game) {
 			network::write_network_save(state);
 			// load the save which was just written
+			state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 			load_network_save(state, state.network_state.current_save_buffer.get());
 			send_savegame(state, client, true);
+			state.render_semaphore.release(); // release again as it is safe to read from it
+			//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
 		}
 		notify_player_joins_discovery(state, client);
 
@@ -1061,8 +1063,11 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				paused = pause_game(state);
 				network::write_network_save(state);
 				// load the save which was just written
+				state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 				load_network_save(state, state.network_state.current_save_buffer.get());
 				send_savegame(state, client, true);
+				state.render_semaphore.release(); // release again as it is safe to read from it
+				//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
 			}
 		notify_player_joins_discovery(state, client);
 		
@@ -1459,6 +1464,7 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 				state.console_log("client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
 #endif
+				state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 				load_network_save(state, state.network_state.save_data.data());
 
 #ifndef NDEBUG
@@ -1470,8 +1476,10 @@ void send_and_receive_commands(sys::state& state) {
 
 				state.railroad_built.store(true, std::memory_order::release);
 				state.game_state_updated.store(true, std::memory_order::release);
+				//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
+				state.render_semaphore.release(); // stop game from rendering to prevent data races while reloading state
 			});
 			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_last_error_msg());

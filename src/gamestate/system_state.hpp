@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
+#include <semaphore>
 
 #include "window.hpp"
 #include "constants.hpp"
@@ -694,6 +695,7 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> fif_environment;
 	int32_t type_text_key = -1;
 	int32_t type_localized_key = -1;
+	std::binary_semaphore render_semaphore{ 1 }; // semaphore for game rendering, acquiring this stops rendering updates
 
 	// the following functions will be invoked by the window subsystem
 
@@ -720,6 +722,8 @@ struct alignas(64) state {
 	void game_loop();
 	sys::checksum_key get_save_checksum();
 	sys::checksum_key get_derived_state_checksum();
+	sys::checksum_key get_mp_state_checksum();
+	checksum_key get_scenario_checksum();
 	void debug_save_oos_dump();
 	void debug_scenario_oos_dump();
 
@@ -767,6 +771,7 @@ struct alignas(64) state {
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void on_scenario_load(); // called when the scenario file is loaded (not when saves are loaded)
 	void preload(); // clears data that will be later reconstructed from saved values
+	void reset_state();
 
 	void console_log(std::string_view message);
 	void log_player_nations();
