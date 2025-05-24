@@ -372,6 +372,7 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 			auto& base_stats = state.world.nation_get_unit_stats(nid, base_id);
 			auto& current_stats = state.world.nation_get_unit_stats(nid, uid);
 			current_stats += base_stats;
+			assert(current_stats.maximum_speed > 0.f);
 		});
 	}
 }
@@ -2307,7 +2308,7 @@ float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, d
 	}
 
 	// Always available CBs cost zero infamy
-	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0) {
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
 		return 0.0f;
 	}
 

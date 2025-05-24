@@ -1501,14 +1501,13 @@ void update_employment(sys::state& state) {
 		};
 
 		// this time we are content with very simple first order approximation
-		auto price_speed_gradient_time =
-			ve::select(
-				state.world.commodity_get_money_rgo(output),
-				0.f, 
-				price_speed_mod * (demand / supply - supply / demand)
-			);
+		auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
+		auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
+		auto speed_modifer = (overdemand_factor - oversupply_factor);
+		auto price_speed = ve::min(ve::max(price_speed_mod * speed_modifer, -0.025f), 0.025f);
+		price_speed = price_speed * price_output;
 
-		auto price_prediction = (price_output + 0.5f * price_speed_gradient_time);
+		auto price_prediction = (price_output + price_speed);
 		auto size = state.world.factory_get_size(facids);
 
 		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids);
