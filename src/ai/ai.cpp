@@ -130,9 +130,43 @@ void update_ai_general_status(sys::state& state) {
 	}
 }
 
+// Does nation N have supremacy over target nation
+bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
+
+	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	if(!real_target)
+		real_target = target;
+
+	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
+		return false;
+
+	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
+		return false;
+
+	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
+		if(!a.get_are_allied())
+			continue;
+		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
+		if(self_sup <= other.get_used_naval_supply_points())
+			return false;
+	}
+
+	return true;
+}
+
 static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
+
+		auto our_strength = estimate_strength(state, n);
+		auto other_strength = estimate_strength(state, other);
+
+		// We really shouldn't ally very weak neighbours
+		// Surrounding ourselves with useless alliances stops expansion
+		if(other_strength <= our_strength * 0.2f) {
+			continue;
+		}
 
 		bool b = other.get_is_player_controlled()
 			? state.world.unilateral_relationship_get_interested_in_alliance(state.world.get_unilateral_relationship_by_unilateral_pair(n, other))
@@ -445,6 +479,11 @@ void update_ai_research(sys::state& state) {
 				continue; // Already researched
 
 			if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tid)) {
+				// Research technologies costing LP (military doctrines) only if can research it immediately
+				if(culture::effective_technology_lp_cost(state, year, n, tid) > state.world.nation_get_leadership_points(n)) {
+					continue;
+				}
+				// Technologies costing RP:
 				// Find previous technology before this one
 				dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tid.id.index() - 1));
 				// Previous technology is from the same folder so we have to check that we have researched it beforehand
@@ -1116,7 +1155,7 @@ void update_ai_ruling_party(sys::state& state) {
 				}
 			}
 
-			assert(target != state.world.nation_get_ruling_party(n));
+			assert(target != state.world.nation_get_ruling_party(n)); // Fires if some nation has no available parties
 			if(target) {
 				politics::appoint_ruling_party(state, n, target);
 			}
@@ -1185,7 +1224,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						// If there is absolute deficit of construction goods, don't build for now
+						// However, we're interested in this market signal only if there are any transactions happening
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
@@ -1228,7 +1269,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						// If there is absolute deficit of construction goods, don't build for now
+						// However, we're interested in this market signal only if there are any transactions happening
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
@@ -1458,7 +1501,8 @@ int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
 	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
 #endif
 
-	return int16_t(std::clamp(total * double(factor), 0.1 * fid.get_recruitable_regiments(), 1.0 * fid.get_recruitable_regiments()));
+	// Use ceil: we want a bit stronger army than the enemy, at least one regiment.
+	return int16_t(std::clamp(ceil(total * double(factor)), ceil(0.1 * fid.get_recruitable_regiments()), 1.0 * fid.get_recruitable_regiments()));
 }
 
 void update_ai_econ_construction(sys::state& state) {
@@ -1792,8 +1836,9 @@ void update_ai_econ_construction(sys::state& state) {
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
-		if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
 
 		static std::vector<dcon::province_id> project_provs;
 		project_provs.clear();
@@ -1934,8 +1979,9 @@ void update_ai_econ_construction(sys::state& state) {
 			}
 		}
 
-		if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
 
 		// try forts
 		if(budget - additional_expenses > 0.f) {
@@ -3680,6 +3726,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
 			return true;
 
+		// Forced peace when 100 warscore
+		if(overall_score <= -100 and overall_po_value <= 100)
+			return true;
+
 		if(concession && my_side_peace_cost <= overall_po_value)
 			return true; // offer contains everything
 		if(war_duration < 365) {
@@ -3714,6 +3764,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 			return false;
 
 		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
+			return true;
+
+		// Forced peace when 100 warscore
+		if(scoreagainst_me >= 100 and overall_po_value <= 100)
 			return true;
 
 		if(overall_score < 0.0f) { // we are losing
@@ -3768,6 +3822,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	}
 	if(overall_po_value < -100)
 		return false;
+
 
 	int32_t potential_peace_score_against = 0;
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
@@ -3855,30 +3910,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	if(has_cores_occupied(state, n))
 		return true;
 	return false;
-}
-
-bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
-	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
-
-	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-	if(!real_target)
-		real_target = target;
-
-	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
-		return false;
-
-	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
-		return false;
-
-	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
-		if(!a.get_are_allied())
-			continue;
-		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
-		if(self_sup <= other.get_used_naval_supply_points())
-			return false;
-	}
-
-	return true;
 }
 
 void make_war_decs(sys::state& state) {
@@ -6100,7 +6131,7 @@ void update_land_constructions(sys::state& state) {
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-							while(num_to_make_local > 0 && num_to_build_nation) {
+							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));

@@ -277,12 +277,12 @@ bool is_transport_better(sys::state& state, dcon::nation_id n, dcon::unit_type_i
 bool is_light_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id best, dcon::unit_type_id given);
 
-dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
-dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture = false);
-dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture = false);
-dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture = false);
-dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false);
-dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false);
+dcon::unit_type_id get_best_infantry(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
+dcon::unit_type_id get_best_artillery(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
+dcon::unit_type_id get_best_cavalry(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
+dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
+dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
+dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
@@ -424,7 +424,9 @@ bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::c
 bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id t);
 
 void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_loss);
-enum class war_result { draw, attacker_won, defender_won };
+enum class war_result {
+	draw, attacker_won, defender_won
+};
 void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
 
 void cleanup_army(sys::state& state, dcon::army_id n);
@@ -471,7 +473,9 @@ sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id 
 float fractional_distance_covered(sys::state& state, dcon::army_id a);
 float fractional_distance_covered(sys::state& state, dcon::navy_id a);
 
-enum class crossing_type { none, river, sea };
+enum class crossing_type {
+	none, river, sea
+};
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
@@ -491,6 +495,11 @@ uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, b
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
+uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle);
+float get_army_recon_eff(sys::state& state, dcon::army_id army);
+float get_army_siege_eff(sys::state& state, dcon::army_id army);
+dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
+dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
@@ -498,7 +507,7 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 void recover_org(sys::state& state);
 float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
-float unit_get_strength(sys::state & state, dcon::ship_id ship_id);
+float unit_get_strength(sys::state& state, dcon::ship_id ship_id);
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);

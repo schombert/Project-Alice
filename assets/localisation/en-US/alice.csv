@@ -1156,7 +1156,7 @@ CANCEL_WARSUBSIDIES_BUTTON;Cancel Subsidies;
 production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production line
 production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
 production_refit_factory_tooltip_3;Ruling party allows building factories
-production_refit_factory_tooltip_4;Old and new types match in inputs or outputs
+production_refit_factory_tooltip_4;Old and new types have the same inputs or the same outputs
 factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
 factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$

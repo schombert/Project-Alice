@@ -521,7 +521,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	Factories cannot be built in a colonial state.
 	*/
 
-	if(state.world.nation_get_active_building(source, type) == false && !state.world.factory_type_get_is_available_from_start(type))
+	if(!state.world.nation_get_active_building(source, type) && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
 
 	/* There can't be duplicate factories */
@@ -551,7 +551,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 
 		// Refit target must be unlocked and available
-		if(state.world.nation_get_active_building(source, refit_target) == false && !state.world.factory_type_get_is_available_from_start(refit_target))
+		if(!state.world.nation_get_active_building(source, refit_target) && !state.world.factory_type_get_is_available_from_start(refit_target))
 			return false;
 
 		// Disallow building in colonies unless define flag is set
@@ -4048,6 +4048,12 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 	state.world.army_get_path(a).clear();
 	state.world.army_set_arrival_time(a, sys::date{});
 
+	// set dig in to the lowest value of the two armies
+	state.world.army_set_dig_in(a,std::min(
+		state.world.army_get_dig_in(a),
+		state.world.army_get_dig_in(b)
+	));
+
 	auto regs = state.world.army_get_army_membership(b);
 	while(regs.begin() != regs.end()) {
 		auto reg = (*regs.begin()).get_regiment();
@@ -4479,6 +4485,7 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 		new_u.set_controller_from_army_control(source);
 		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
 		new_u.set_black_flag(state.world.army_get_black_flag(a));
+		new_u.set_dig_in(state.world.army_get_dig_in(a));
 
 		for(auto t : to_transfer) {
 			state.world.regiment_set_army_from_army_membership(t, new_u);
@@ -4574,6 +4581,7 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 		new_u.set_controller_from_army_control(source);
 		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
 		new_u.set_black_flag(state.world.army_get_black_flag(a));
+		new_u.set_dig_in(state.world.army_get_dig_in(a));
 
 		for(auto t : to_transfer) {
 			state.world.regiment_set_army_from_army_membership(t, new_u);
