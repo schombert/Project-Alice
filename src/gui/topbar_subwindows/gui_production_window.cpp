@@ -5,7 +5,7 @@ namespace ui {
 void populate_production_states_list(sys::state& state, std::vector<dcon::province_id>& row_contents, dcon::nation_id n, bool show_empty, production_sort_order sort_order) {
 
 	for(auto const fat_id : state.world.nation_get_province_ownership(n)) {
-		if(show_empty && !fat_id.get_province().get_state_membership().get_capital().get_is_colonial()) {
+		if(show_empty && economy::can_build_in_colony(state, fat_id.get_province())) {
 			row_contents.push_back(fat_id.get_province());
 		} else if(economy::has_factory(state, fat_id.get_province().id)) {
 			// Then account for factories **hidden** by the filter from goods...
