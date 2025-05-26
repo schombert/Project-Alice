@@ -173,7 +173,9 @@ void select_player_nation_from_selected_province(sys::state& state) {
 		// a nation, at the moment
 		// TODO: Allow Co-op
 		if(state.network_mode == sys::network_mode_type::single_player) {
-			state.world.nation_set_is_player_controlled(state.local_player_nation, false);
+			if(state.local_player_nation) {
+				state.world.nation_set_is_player_controlled(state.local_player_nation, false);
+			}
 			state.local_player_nation = owner;
 			state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 			if(state.ui_state.nation_picker) {

@@ -5508,7 +5508,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()) +
 					"|dt_local:" + state.current_date.to_string(state.start_date) + " | dt_incoming:" + new_date.to_string(state.start_date));
 #endif
-				sys::checksum_key current = state.get_save_checksum();
+				sys::checksum_key current = state.get_mp_state_checksum();
 				if(!current.is_equal(k)) {
 #ifndef NDEBUG
 					network::SHA512 sha512;
@@ -5585,7 +5585,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
+	assert(state.session_host_checksum.is_equal(state.get_mp_state_checksum()));
 
 #ifndef NDEBUG
 	network::SHA512 sha512;

@@ -33,7 +33,8 @@ void register_demand(
 	economy_reason reason
 ) {
 	assert(amount >= 0.f);
-	state.world.market_get_demand(s, commodity_type) += amount;
+	auto current = state.world.market_get_demand(s, commodity_type);
+	state.world.market_set_demand(s, commodity_type, current + amount);
 	assert(std::isfinite(state.world.market_get_demand(s, commodity_type)));
 }
 
@@ -169,16 +170,20 @@ void register_intermediate_demand(
 	float amount,
 	economy_reason reason
 ) {
-	register_demand(state, s, c, amount, reason);
-	state.world.market_set_intermediate_demand(
-		s,
-		c,
-		state.world.market_get_intermediate_demand(s, c) + amount
-	);
-	auto local_price = price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
+	// check for market validity before writing data to it
+	if(s) {
+			register_demand(state, s, c, amount, reason);
+		state.world.market_set_intermediate_demand(
+			s,
+			c,
+			state.world.market_get_intermediate_demand(s, c) + amount
+		);
+		auto local_price = price(state, s, c);
+		auto median_price = state.world.commodity_get_median_price(c);
+		auto sat = state.world.market_get_demand_satisfaction(s, c);
+		state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
+	}
+	
 }
 
 void register_domestic_supply(

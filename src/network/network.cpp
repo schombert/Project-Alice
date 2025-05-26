@@ -955,7 +955,6 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{ };
 	// Then reload from network
-	/*state.preload();*/
 	state.reset_state();
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
@@ -978,10 +977,10 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 		c.type = command::command_type::notify_save_loaded;
 		c.source = state.local_player_nation;
 		c.data.notify_save_loaded.target = client.playing_as;
-		network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
+		network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_mp_state_checksum);
 #ifndef NDEBUG
 
-		state.console_log("host:broadcast:cmd | (new->save_loaded) | checksum: " + sha512.hash(state.network_state.current_save_checksum.to_char())
+		state.console_log("host:broadcast:cmd | (new->save_loaded) | checksum: " + sha512.hash(state.network_state.current_mp_state_checksum.to_char())
 		+ " | target: " + std::to_string(c.data.notify_save_loaded.target.index()));
 		log_player_nations(state);
 #endif
@@ -1051,6 +1050,8 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			// load the save which was just written
 			state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 			load_network_save(state, state.network_state.current_save_buffer.get());
+			// generate checksum for the entire mp state
+			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 			send_savegame(state, client, true);
 			state.render_semaphore.release(); // release again as it is safe to read from it
 			//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
@@ -1065,6 +1066,8 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				// load the save which was just written
 				state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 				load_network_save(state, state.network_state.current_save_buffer.get());
+				// generate checksum for the entire mp state
+				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 				send_savegame(state, client, true);
 				state.render_semaphore.release(); // release again as it is safe to read from it
 				//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
@@ -1094,12 +1097,14 @@ void full_reset_after_oos(sys::state& state) {
 		network::write_network_save(state);
 		/* Then reload as if we loaded the save data */
 		load_network_save(state, state.network_state.current_save_buffer.get());
+		// generate checksum for the entire mp state
+		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 		{ /* Reload all the clients  */
 			command::payload c;
 			memset(&c, 0, sizeof(command::payload));
 			c.type = command::command_type::notify_reload;
 			c.source = state.local_player_nation;
-			c.data.notify_reload.checksum = state.get_save_checksum();
+			c.data.notify_reload.checksum = state.network_state.current_mp_state_checksum;
 			for(auto& other_client : state.network_state.clients) {
 				if(other_client.is_active()) {
 					socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
@@ -1115,7 +1120,7 @@ void full_reset_after_oos(sys::state& state) {
 			memset(&c, 0, sizeof(command::payload));
 			c.type = command::command_type::notify_save_loaded;
 			c.source = state.local_player_nation;
-			network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
+			network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_mp_state_checksum);
 #ifndef NDEBUG
 			state.console_log("host:broadcast:cmd | (new->save_loaded)");
 #endif
@@ -1285,7 +1290,7 @@ void write_network_save(sys::state& state) {
 	state.network_state.current_save_buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 	auto buffer_position = write_network_compressed_section(state.network_state.current_save_buffer.get(), save_buffer.get(), uint32_t(length));
 	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
-	state.network_state.current_save_checksum = state.get_save_checksum();
+	//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 }
 
@@ -1384,7 +1389,7 @@ void send_and_receive_commands(sys::state& state) {
 				// Generate checksum on the spot
 				if(c->type == command::command_type::advance_tick) {
 					if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
-						c->data.advance_tick.checksum = state.get_save_checksum();
+						c->data.advance_tick.checksum = state.get_mp_state_checksum();
 					}
 				}
 #ifndef NDEBUG
@@ -1468,9 +1473,9 @@ void send_and_receive_commands(sys::state& state) {
 				load_network_save(state, state.network_state.save_data.data());
 
 #ifndef NDEBUG
-				auto save_checksum = state.get_save_checksum();
-				assert(save_checksum.is_equal(state.session_host_checksum));
-				state.console_log("client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(save_checksum.to_char()));
+				auto mp_state_checksum = state.get_mp_state_checksum();
+				assert(mp_state_checksum.is_equal(state.session_host_checksum));
+				state.console_log("client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(mp_state_checksum.to_char()));
 				log_player_nations(state);
 #endif
 

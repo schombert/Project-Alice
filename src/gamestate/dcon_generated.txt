@@ -1608,7 +1608,7 @@ object {
 	property{
 		name{ rgo_efficiency }
 		type{ array{commodity_id}{float} }
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ rgo_target_employment }

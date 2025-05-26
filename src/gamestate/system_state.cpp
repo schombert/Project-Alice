@@ -3362,6 +3362,8 @@ void state::reset_state() {
 	auto scenario_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_sz.total_size]);
 
 	write_scenario_section(scenario_buffer.get(), *this);
+
+
 	dcon::load_record protected_loadmask = world.make_serialize_record_store_reload_protected_state();
 	size_t protected_size = world.serialize_size(protected_loadmask);
 	auto protected_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[protected_size]);
@@ -3372,6 +3374,10 @@ void state::reset_state() {
 	world.reset();
 	//deserialize scenario state
 	read_scenario_section(scenario_buffer.get(), scenario_buffer.get() + scenario_sz.total_size, *this);
+
+	/*try_read_scenario_file(*this, loaded_scenario_file);*/
+
+
 	//deserialize protected state
 	world.deserialize(const_start, reinterpret_cast<std::byte const*>(protected_buffer.get() + protected_size), loaded);
 
@@ -3732,6 +3738,7 @@ void state::on_scenario_load() {
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
+
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
 	world.nation_resize_factory_goods_output(world.commodity_size());
@@ -3911,7 +3918,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(*this);
-
 
 
 
@@ -4230,7 +4236,8 @@ void state::single_game_tick() {
 				break;
 			}
 		});
-
+				
+	
 		economy::daily_update(*this, false, 1.f);
 
 		//
@@ -4554,22 +4561,28 @@ sys::checksum_key state::get_save_checksum() {
 	return key;
 }
 
-sys::checksum_key state::get_derived_state_checksum() {
-	dcon::load_record loaded = world.make_serialize_record_store_only_derived_state();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
-
-	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
-	return key;
-}
-
 
 sys::checksum_key state::get_scenario_checksum() {
+
+
+	/*scenario_size sz = sizeof_scenario_section_test(*this);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sz.total_size]);
+
+	uint8_t* start = buffer.get();
+
+	start = write_scenario_section_test(start, *this);
+
+
+
+
+	int32_t total_size_used = static_cast<int32_t>(start - buffer.get());
+
+	sys::checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	return key;*/
+
+
+
 	dcon::load_record loaded = world.make_serialize_record_store_scenario();
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
@@ -4722,7 +4735,7 @@ void state::game_loop() {
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);
 		}
-		if(network_mode == sys::network_mode_type::client && network_mode == sys::network_mode_type::host) {
+		if(network_mode == sys::network_mode_type::client) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);

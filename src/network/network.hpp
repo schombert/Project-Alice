@@ -76,7 +76,7 @@ struct network_state {
 	server_handshake_data s_hshake;
 	sys::player_name nickname;
 	sys::player_password_raw player_password;
-	sys::checksum_key current_save_checksum;
+	sys::checksum_key current_mp_state_checksum;
 	struct sockaddr_storage address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
 	std::array<client_data, 128> clients;

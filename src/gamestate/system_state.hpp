@@ -721,8 +721,7 @@ struct alignas(64) state {
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
 	sys::checksum_key get_save_checksum();
-	sys::checksum_key get_derived_state_checksum();
-	sys::checksum_key get_mp_state_checksum();
+	sys::checksum_key get_mp_state_checksum(); // gets the checksum of the ENTIRE multiplayer state which is not strictly local
 	checksum_key get_scenario_checksum();
 	void debug_save_oos_dump();
 	void debug_scenario_oos_dump();

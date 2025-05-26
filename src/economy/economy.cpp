@@ -2535,7 +2535,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			break;
 		}
 	});
-
+		
 	populate_construction_consumption(state);
 
 	sanity_check(state);
@@ -2933,7 +2933,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				);
 			});
 		});
-	});
+			});
 
 	sanity_check(state);
 
@@ -3261,6 +3261,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// STEP 4 national budget updates
 	for(auto n : state.nations_by_rank) {
+		if(!n) {
+			continue;
+		}
 		spent_on_construction_buffer.set(n, 0.f);
 
 		auto cap_prov = state.world.nation_get_capital(n);
