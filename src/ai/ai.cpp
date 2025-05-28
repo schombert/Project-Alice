@@ -1334,7 +1334,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
-	assert(economy::can_build_factory_in_colony(state, sid)); // Do not call this function if building in state is impossible in principle
+	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
@@ -1361,7 +1361,7 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 
 void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
-	assert(economy::can_build_factory_in_colony(state, sid)); // Do not call this function if building in state is impossible in principle
+	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
 
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
