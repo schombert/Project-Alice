@@ -574,35 +574,6 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	if(state.world.nation_get_is_civilized(source) == false)
 		return false;
 
-	// Factory Upgrade
-	if(is_upgrade) {
-		// no double upgrade
-		for(auto p : state.world.province_get_factory_construction(location)) {
-			if(p.get_type() == type)
-				return false;
-		}
-
-		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_factory_type_in_colony(state, sid, type))
-			return false;
-
-		// must already exist as a factory
-		// For upgrades: no upgrading past max level.
-		for(auto f : state.world.province_get_factory_location(location))
-			if(f.get_factory().get_building_type() == type)
-				return true;
-		return false;
-	} else {
-		// coastal factories must be built on coast
-		if(state.world.factory_type_get_is_coastal(type)) {
-			if(!state.world.province_get_port_to(location))
-				return false;
-		}
-
-		int32_t num_factories = economy::province_factory_count(state, location);
-		return num_factories < int32_t(state.defines.factories_per_state);
-	}
-
 	// If Foreign target
 	if(owner != source) {
 		/*
@@ -689,6 +660,35 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		if(!economy::do_resource_potentials_allow_construction(state, source, location, type)) {
 			return false;
 		}
+	}
+
+	// Factory Upgrade
+	if(is_upgrade) {
+		// no double upgrade
+		for(auto p : state.world.province_get_factory_construction(location)) {
+			if(p.get_type() == type)
+				return false;
+		}
+
+		// Disallow building in colonies unless define flag is set
+		if(!economy::can_build_factory_type_in_colony(state, sid, type))
+			return false;
+
+		// must already exist as a factory
+		// For upgrades: no upgrading past max level.
+		for(auto f : state.world.province_get_factory_location(location))
+			if(f.get_factory().get_building_type() == type)
+				return true;
+		return false;
+	} else {
+		// coastal factories must be built on coast
+		if(state.world.factory_type_get_is_coastal(type)) {
+			if(!state.world.province_get_port_to(location))
+				return false;
+		}
+
+		int32_t num_factories = economy::province_factory_count(state, location);
+		return num_factories < int32_t(state.defines.factories_per_state);
 	}
 }
 
