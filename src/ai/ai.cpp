@@ -1345,7 +1345,7 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_in_colony(state, sid, type)) {
+				if(!economy::can_build_factory_type_in_colony(state, sid, type)) {
 					continue;
 				}
 				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
@@ -1374,7 +1374,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_in_colony(state, pid, type)) {
+				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
 					continue;
 				}
 
@@ -1406,7 +1406,7 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_in_colony(state, pid, type)) {
+				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
 					continue;
 				}
 

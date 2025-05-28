@@ -77,7 +77,7 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 // Check rules for factories in colonies
 bool can_build_factory_in_colony(sys::state& state, dcon::province_id p);
 bool can_build_factory_in_colony(sys::state& state, dcon::state_instance_id s);
-bool can_build_factory_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft);
-bool can_build_factory_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
+bool can_build_factory_type_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft);
+bool can_build_factory_type_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
 
 }

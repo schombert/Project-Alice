@@ -1190,12 +1190,12 @@ bool can_build_factory_in_colony(sys::state& state, dcon::state_instance_id s) {
 }
 
 // Check rules for factories in colonies: can this factory type be built in provided state
-bool can_build_factory_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+bool can_build_factory_type_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
 	return can_build_factory_in_colony(state, s) && state.world.factory_type_get_can_be_built_in_colonies(ft);
 }
 
 // Check rules for factories in colonies: : can this factory type be built in provided province
-bool can_build_factory_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft) {
+bool can_build_factory_type_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft) {
 	return can_build_factory_in_colony(state, p) && state.world.factory_type_get_can_be_built_in_colonies(ft);
 }
 
