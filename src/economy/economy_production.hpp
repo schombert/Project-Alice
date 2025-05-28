@@ -139,7 +139,7 @@ float rgo_employment(sys::state& state, dcon::province_id p);
 float rgo_wage(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float rgo_efficiency_spendings(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 
-commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact);
+commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact);
 
 // ARTISANS:
 

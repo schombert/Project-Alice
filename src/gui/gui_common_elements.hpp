@@ -2424,7 +2424,7 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 		text::close_layout_box(contents, box);
 	}
 
-	auto inputs = economy::rgo_inputs_actual(state, nat_id, market, prov_id, c, mobilization_impact);
+	auto inputs = economy::rgo_calculate_actual_efficiency_inputs(state, nat_id, market, prov_id, c, mobilization_impact);
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(inputs.commodity_type[i]) {
 			if(i == 0) {

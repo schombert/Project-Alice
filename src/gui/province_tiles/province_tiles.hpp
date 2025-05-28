@@ -4,7 +4,7 @@
 #include "dcon_generated.hpp"
 #include "commands.hpp"
 
-namespace economy {
+namespace ui {
 
 struct province_tile {
 	bool empty = true;

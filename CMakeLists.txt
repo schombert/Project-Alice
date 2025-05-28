@@ -41,7 +41,6 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/economy/economy_government.cpp"
 	"src/economy/economy_production.cpp"
 	"src/economy/construction.cpp"
-	"src/economy/province_tiles.cpp"
 	"src/gamestate/commands.cpp"
 	"src/gamestate/diplomatic_messages.cpp"
 	"src/gamestate/modifiers.cpp"
@@ -56,6 +55,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_leader_select.cpp"
 	"src/gui/gui_leader_tooltip.cpp"
 	"src/gui/gui_modifier_tooltips.cpp"
+	"src/gui/province_tiles/province_tiles.cpp"
 	"src/gui/gui_province_window.cpp"
 	"src/gui/gui_trigger_tooltips.cpp"
 	"src/gui/gui_error_window.cpp"
@@ -214,6 +214,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/filesystem
 	${PROJECT_SOURCE_DIR}/src/gamestate
 	${PROJECT_SOURCE_DIR}/src/gui
+	${PROJECT_SOURCE_DIR}/src/gui/province_tiles
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/diplomacy_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows

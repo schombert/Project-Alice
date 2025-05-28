@@ -1228,7 +1228,8 @@ void update_rgo_consumption(
 
 		auto max_efficiency = max_rgo_efficiency(state, n, p, c);
 		auto free_efficiency = max_efficiency * 0.1f;
-		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);		
+		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
+		// Calculation of e_inputs is duplicated in rgo_calculate_actual_efficiency_inputs function for use in the UI.
 		auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
 		auto e_inputs_data = get_inputs_data(state, m, e_inputs);
 		// we try to update our efficiency according to current profit derivative
@@ -2003,7 +2004,8 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 		* state.world.market_get_supply_sold_ratio(mid, c);
 }
 
-commodity_set rgo_inputs_actual(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id pid, dcon::commodity_id c, float mobilization_impact) {
+// Duplicates the calculation of RGO efficiency inputs consumption for the RGO tooltip.
+commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id pid, dcon::commodity_id c, float mobilization_impact) {
 	auto size = state.world.province_get_rgo_size(pid, c);
 	if(size <= 0.f) {
 		return commodity_set{};

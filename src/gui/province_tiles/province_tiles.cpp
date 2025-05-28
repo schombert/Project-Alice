@@ -4,7 +4,7 @@
 #include "commands.hpp"
 #include "economy_production.hpp"
 
-namespace economy {
+namespace ui {
 
 std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::province_id p) {
 	std::vector<province_tile> tiles = std::vector<province_tile>(64);

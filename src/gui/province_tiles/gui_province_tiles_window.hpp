@@ -1,8 +1,9 @@
+#pragma once
+
 #include "gui_element_types.hpp"
 #include "construction.hpp"
 #include "province_tiles.hpp"
-#include <gui_province_tiles_tiles.hpp>
-
+#include "gui_province_tiles_tiles.hpp"
 
 namespace ui {
 
@@ -14,7 +15,7 @@ inline static province_building_tile province_building_tile_logic;
 inline static province_resource_potential_tile province_resource_potential_tile_logic;
 inline static province_build_new_tile province_build_new_tile_logic;
 
-class province_tile : public button_element_base {
+class province_tile_button : public button_element_base {
 public:
 	int ind = 0;
 
@@ -23,7 +24,7 @@ public:
 	image_element_base* subicon_unit;
 
 	void on_update(sys::state& state) noexcept override {
-		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
+		auto tile = retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
 
 		if(tile.empty) {
 			tile_logic = &empty_tile_logic;
@@ -61,7 +62,7 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		hide_context_menu(state);
-		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
+		auto tile = retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
 		tile_logic->button_action(state, tile, parent);
 	}
 
@@ -70,7 +71,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto tile = economy::retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
+		auto tile = retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
 		tile_logic->update_tooltip(state, x, y, contents, tile);
 	}
 
@@ -81,13 +82,13 @@ public:
 
 class province_tiles_window : public window_element_base {
 public:
-	std::vector< province_tile*> tiles = std::vector<province_tile*>(64);
+	std::vector< province_tile_button*> tiles = std::vector<province_tile_button*>(64);
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
-				auto ptr = make_element_by_type<province_tile>(state, "province_tiles_tile");
+				auto ptr = make_element_by_type<province_tile_button>(state, "province_tiles_tile");
 				ptr->base_data.position.y += int16_t(ptr->base_data.size.y * i);
 				ptr->base_data.position.x += int16_t(ptr->base_data.size.x * j);
 
