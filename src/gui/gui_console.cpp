@@ -1085,6 +1085,16 @@ int32_t* f_dump_econ(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		state->cheat_data.prices_dump_buffer += "\n";
 		state->cheat_data.demand_dump_buffer += "\n";
 		state->cheat_data.supply_dump_buffer += "\n";
+
+		state->world.for_each_pop_type([&](auto pop_type) {
+			state->cheat_data.savings_buffer += text::produce_simple_string(
+				*state,
+				state->world.pop_type_get_name(pop_type)
+			);
+			state->cheat_data.savings_buffer += ";";
+		});
+
+		state->cheat_data.savings_buffer += "markets;nations;investments\n";
 	}
 	log_to_console(*state, state->ui_state.console_window, state->cheat_data.ecodump ? "✔" : "✘");
 

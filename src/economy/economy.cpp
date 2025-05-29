@@ -298,8 +298,8 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 	}
 }
 
-float need_weight(sys::state& state, dcon::market_id n, dcon::commodity_id c, float base_wage) {
-	auto cost_per_person = std::max(price(state, n, c), 0.0001f) / state.defines.alice_needs_scaling_factor;
+float need_weight(sys::state& state, dcon::market_id n, dcon::commodity_id c, float base_wage, float base_amount) {
+	auto cost_per_person = base_amount * std::max(price(state, n, c), 0.0001f) / state.defines.alice_needs_scaling_factor;
 	auto wage_ratio = base_wage / cost_per_person;
 	return std::min(1.f, wage_ratio * wage_ratio / 2.f);
 	//return 1.f;
@@ -310,11 +310,14 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 	auto capital = state.world.state_instance_get_capital(zone);
 
+	auto t = state.culture_definitions.secondary_factory_worker;
+
 	{
 		auto wage = state.world.province_get_labor_price(capital, labor::no_education);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_life_need(state, nation, c)) {
-				auto weight = need_weight(state, n, c, wage);
+				auto base_life = std::max(1.f, state.world.pop_type_get_life_needs(t, c));
+				auto weight = need_weight(state, n, c, wage, base_life);
 				auto& w = state.world.market_get_life_needs_weights(n, c);
 				w = weight * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
 
@@ -328,7 +331,8 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 		auto wage = state.world.province_get_labor_price(capital, labor::no_education) * 2.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_everyday_need(state, nation, c)) {
-				auto weight = need_weight(state, n, c, wage);
+				auto base_everyday = std::max(1.f, state.world.pop_type_get_everyday_needs(t, c));
+				auto weight = need_weight(state, n, c, wage, base_everyday);
 				auto& w = state.world.market_get_everyday_needs_weights(n, c);
 				w = weight * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
 
@@ -342,7 +346,8 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 		auto wage = state.world.province_get_labor_price(capital, labor::no_education) * 20.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(valid_luxury_need(state, nation, c)) {
-				auto weight = need_weight(state, n, c, wage);
+				auto base_luxury = std::max(1.f, state.world.pop_type_get_luxury_needs(t, c));
+				auto weight = need_weight(state, n, c, wage, base_luxury);
 				auto& w = state.world.market_get_luxury_needs_weights(n, c);
 				w = weight * state.defines.alice_need_drift_speed + w * (1.0f - state.defines.alice_need_drift_speed);
 
@@ -2779,8 +2784,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto import_tariff_B = ve::select(same_nation || B_is_open_to_A, ve::fp_vector{ 0.f }, import_tariff_buffer.get(B));
 		auto export_tariff_B = ve::select(same_nation || B_is_open_to_A, ve::fp_vector{ 0.f }, export_tariff_buffer.get(B));
 
-		auto imports_aversion_A = ve::min(1.f, ve::max(0.f, 1.f + state.world.market_get_stockpile(A, economy::money) / (state.world.province_get_labor_price(capital_A, labor::no_education) + 0.00001f) / market_savings_target));
-		auto imports_aversion_B = ve::min(1.f, ve::max(0.f, 1.f + state.world.market_get_stockpile(B, economy::money) / (state.world.province_get_labor_price(capital_B, labor::no_education) + 0.00001f) / market_savings_target));
+		auto wage_A = (state.world.province_get_labor_price(capital_A, labor::no_education) + 0.00001f);
+		auto wage_B = (state.world.province_get_labor_price(capital_B, labor::no_education) + 0.00001f);
+
+		auto scaler = (wage_A + wage_B) * state.defines.alice_needs_scaling_factor;
+		auto max_trade_transaction_volume = scaler * trade_transaction_soft_limit;
+
+		auto imports_aversion_A = ve::min(1.f, ve::max(0.f, 1.f + state.world.market_get_stockpile(A, economy::money) / wage_A / market_savings_target));
+		auto imports_aversion_B = ve::min(1.f, ve::max(0.f, 1.f + state.world.market_get_stockpile(B, economy::money) / wage_B / market_savings_target));
 
 		ve::fp_vector distance = 999999.f;
 		auto land_distance = state.world.trade_route_get_land_distance(trade_route);
@@ -2788,6 +2799,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		distance = ve::select(is_land_route, ve::min(distance, land_distance), distance);
 		distance = ve::select(is_sea_route, ve::min(distance, sea_distance), distance);
+
+		ve::apply([&](auto value) {
+			assert(std::isfinite(value));
+		}, distance);
 
 		state.world.trade_route_set_distance(trade_route, distance);
 
@@ -2855,7 +2870,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// otherwise assumption of stable demand breaks
 			// constant term is there to allow moving away from 0
 			auto max_expansion = 0.5f + absolute_volume * 0.1f;
-			auto max_shrinking = -absolute_volume * 0.005f;
+			auto max_shrinking = -0.1f - absolute_volume * 0.005f;
 
 			auto change = ve::select(current_profit_A_to_B > 0.f, current_profit_A_to_B / price_B_import, 0.f);
 			change = ve::select(current_profit_B_to_A > 0.f, -current_profit_B_to_A / price_A_import, change);
@@ -2867,14 +2882,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// essentially, regularisation of trade weights, but can lead to weird effects
 			ve::fp_vector decay = 1.f;
 
-			// dirty, embarassing and disgusting hack
-			// to avoid trade generating too much demand
-			// on already expensive goods
-			// but it works well
 			decay = ve::select(
 				current_volume + change > 0.f,
-				decay * ve::min(1.f, trade_transaction_soft_limit / price_A_export / ve::max(0.01f, current_volume + change)) * imports_aversion_B,
-				decay * ve::min(1.f, trade_transaction_soft_limit / price_B_export / ve::max(0.01f, current_volume + change)) * imports_aversion_A
+				decay * imports_aversion_B,
+				decay * imports_aversion_A
+			);
+
+			// quite dirty trade limit but better than before
+			auto max_volume = ve::select(
+				current_volume + change > 0.f,
+				max_trade_transaction_volume / price_A_export,
+				max_trade_transaction_volume / price_B_export
 			);
 
 			decay = ve::max(decay, 0.95f);
@@ -2905,7 +2923,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// decay is unconditional safeguard against high weights
 			change = change - current_volume * (1.f - decay);
 
-			auto new_volume = ve::select(reset_route_commodity, 0.f, current_volume + change);
+			auto new_volume = ve::select(reset_route_commodity, 0.f, ve::max(-max_volume, ve::min(max_volume, current_volume + change)));
 
 			state.world.trade_route_set_volume(trade_route, c, new_volume);
 
@@ -4111,7 +4129,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					+ state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.primary_factory_worker) * labor_greed_everyday
 				)
 				/ state.defines.alice_needs_scaling_factor
-				+ 0.00000001f;
+				+ 0.0001f;
 
 			auto no_education = state.world.province_get_labor_price(ids, labor::no_education);
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
@@ -4866,7 +4884,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			ve::fp_vector price_control = ve::fp_vector{ 0.f };
 			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.2f;
-			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 0.1f;
+			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 0.5f;
 
 			// we reduce min wage if unemployment is too high
 			// base min wage is decided by national multipliers
@@ -5128,16 +5146,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 
 		if(state.cheat_data.savings_buffer.size() == 0) {
-			state.world.for_each_pop_type([&](auto pop_type) {
-				state.cheat_data.savings_buffer += text::produce_simple_string(
-					state,
-					state.world.pop_type_get_name(pop_type)
-				);
-				state.cheat_data.savings_buffer += ";";
-			});
-
-			state.cheat_data.savings_buffer += "markets;nations;investments\n";
-		} else {
 			state.world.for_each_pop_type([&](auto pop_type) {
 				state.cheat_data.savings_buffer += std::to_string(total_savings_pops[pop_type.index()]);
 				state.cheat_data.savings_buffer += ";";
