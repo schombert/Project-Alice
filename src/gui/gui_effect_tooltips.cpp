@@ -330,7 +330,7 @@ uint32_t es_x_neighbor_province_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-				
+
 				show_full_random_tooltip(ws, tval[0], "neighboring_province", layout, rlist[r], indentation);
 				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
@@ -418,7 +418,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 			return 0;
 		}
 	}
-	
+
 	show_short_any_random_tooltip(ws, tval[0], "neighboring_nation", layout, indentation);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
@@ -3095,7 +3095,7 @@ uint32_t ef_remove_country_modifier(EFFECT_DISPLAY_PARAMS) {
 			modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 		}
 	}
-	
+
 	return 0;
 }
 uint32_t ef_create_alliance(EFFECT_DISPLAY_PARAMS) {
@@ -6854,6 +6854,24 @@ uint32_t ef_change_party_position(EFFECT_DISPLAY_PARAMS) {
 	}
 }
 
+
+uint32_t ef_change_factory_limit(EFFECT_DISPLAY_PARAMS) {
+	auto commodity = trigger::payload(tval[1]).com_id;
+	auto value = trigger::payload(tval[2]).value;
+
+	if(commodity) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::good, ws.world.commodity_get_name(commodity));
+		text::add_to_substitution_map(m, text::variable_type::value, value);
+		text::localised_format_box(ws, layout, box, "change_factory_limit_by", m);
+		text::close_layout_box(layout, box);
+		return 0;
+	}
+
+	return 0;
+}
+
 inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -7309,6 +7327,8 @@ ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3)
 ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2)
 ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2)
 ef_suppression_points, // EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2)
+ef_change_factory_limit, // EFFECT_BYTECODE_ELEMENT(0x01C2, change_factory_limit, 2)
+
 //
 // SCOPES
 //
