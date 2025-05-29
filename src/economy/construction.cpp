@@ -1174,6 +1174,14 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	});
 }
 
+bool is_colony(sys::state& state, dcon::province_id p) {
+	return state.world.province_get_is_colonial(p);
+}
+
+bool is_colony(sys::state& state, dcon::state_instance_id s) {
+	return state.world.province_get_is_colonial(state.world.state_instance_get_capital(s));
+}
+
 // Check rules for factories in colonies: can a factory be built in provided province
 bool can_build_factory_in_colony(sys::state& state, dcon::province_id p) {
 	if(state.world.province_get_is_colonial(p) && state.defines.alice_allow_factories_in_colonies == 0.f) {

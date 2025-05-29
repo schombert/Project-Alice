@@ -529,7 +529,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	// New factory construction
 	if(!is_upgrade && !refit_target) {
 		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_factory_type_in_colony(state, sid, type))
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, type))
 			return false;
 		/* There can't be duplicate factories */
 		// Check factories being built
@@ -559,7 +559,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			return false;
 
 		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_factory_type_in_colony(state, sid, refit_target))
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, refit_target))
 			return false;
 
 		// Check if this factory is already being refit
@@ -671,7 +671,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 
 		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_factory_type_in_colony(state, sid, type))
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, type))
 			return false;
 
 		// must already exist as a factory
