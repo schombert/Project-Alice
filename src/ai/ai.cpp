@@ -3739,122 +3739,49 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	bool is_attacking = military::is_attacker(state, w, n);
 	bool contains_sq = false;
 
-	auto overall_score = military::primary_warscore(state, w);
-	if(!is_attacking)
-		overall_score = -overall_score;
+	auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 
-	auto concession = state.world.peace_offer_get_is_concession(p);
+	auto is_concession = state.world.peace_offer_get_is_concession(p);
 
-	if(concession && overall_score <= -50.0f) {
-		return true;
-	}
-
-	int32_t overall_po_value = 0;
-	int32_t personal_po_value = 0;
-	int32_t my_po_target = 0;
-	for(auto wg : state.world.peace_offer_get_peace_offer_item(p)) {
-		auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-		overall_po_value += wg_value;
-
-		if((wg.get_wargoal().get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
-			contains_sq = true;
-
-		if(wg.get_wargoal().get_target_nation() == n) {
-			personal_po_value += wg_value;
-		}
-	}
-	if(!concession) {
-		overall_po_value = -overall_po_value;
-	}
-	if(overall_po_value < -100)
-		return false;
-
+	int32_t target_personal_po_value = 0;
 	int32_t potential_peace_score_against = 0;
-	for(auto wg : state.world.war_get_wargoals_attached(w)) {
-		if(wg.get_wargoal().get_target_nation() == n || wg.get_wargoal().get_added_by() == n) {
-			auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), n, wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
+	int32_t my_side_against_target = 0;
+	int32_t my_side_peace_cost = !military::is_attacker(state, w, state.local_player_nation) ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w);
+	int32_t overall_po_value = 0;
+	int32_t my_po_target = 0;
 
-			if(wg.get_wargoal().get_target_nation() == n && (wg.get_wargoal().get_added_by() == from || from == prime_attacker || from == prime_defender)) {
+	for(auto po : state.world.peace_offer_get_peace_offer_item(p)) {
+		auto wg = po.get_wargoal();
+		auto wg_value = military::peace_cost(state, w, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+		// UI allows to add both concession and demands goals. E.g. I concede 93, but demand 1. Then this is calculated as 94 instead of 92.
+		overall_po_value += wg_value;
+		if(wg.get_target_nation() == n) {
+			target_personal_po_value += wg_value;
+		}
+		if(wg.get_target_nation() == state.local_player_nation) {
+			my_side_against_target += wg_value;
+		}
+		if((wg.get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
+			contains_sq = true;
+		if(wg.get_target_nation() == n || wg.get_added_by() == n) {
+			if(wg.get_target_nation() == n && (wg.get_added_by() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
 				potential_peace_score_against += wg_value;
 			}
-			if(wg.get_wargoal().get_added_by() == n && (wg.get_wargoal().get_target_nation() == from || from == prime_attacker || from == prime_defender)) {
+			if(wg.get_added_by() == n && (wg.get_target_nation() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
 				my_po_target += wg_value;
 			}
 		}
 	}
-	auto personal_score_saved = personal_po_value - potential_peace_score_against;
 
-	auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
-	auto war_exhaustion = state.world.nation_get_war_exhaustion(n); // War exhaustion between 0 and 100
-	// Since we have functional blockades now, it's reasonable to account for war_exhaustion in AI willingness to peace out.
-	float willingness_factor = float(war_duration - 365) * 10.f / 365.0f + war_exhaustion;
-
-	// War-ending peace from primary participant to primary participant (concession & demand)
-	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
-		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
-			return true;
-
-		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
-			return true; // offer contains everything
-		if(war_duration < 365) {
-			return false;
-		}
-		if(overall_score >= 0) {
-			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
-				return true;
-		} else {
-			if((overall_score - willingness_factor) <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
-				return true;
-		}
-
-	}
-	// Peace offer from secondary participant to primary participant (concession)
-	else if((prime_attacker == n || prime_defender == n) && concession) {
-		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-
-		if(scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit)
-			return true;
-
-		int32_t my_side_against_target = 0;
-		for(auto wg : state.world.war_get_wargoals_attached(w)) {
-			if(wg.get_wargoal().get_target_nation() == from) {
-				auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), n, wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-
-				my_side_against_target += wg_value;
-			}
-		}
-
-		if(overall_score < 0.0f) { // we are losing
-			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
-				return true;
-		} else {
-			if(my_side_against_target <= overall_po_value)
-				return true;
-		}
-	}
-	// Peace offer to secondary participant (concession & demand)
-	else {
-		if(contains_sq)
-			return false;
-
-		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
-			return true;
-
-		if(overall_score < 0.0f) { // we are losing
-			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
-				return true;
-
-		} else { // we are winning
-			if(my_po_target > 0 && my_po_target >= overall_po_value)
-				return true;
-		}
-	}
-
-	//will accept anything
-	if(has_cores_occupied(state, n))
-		return true;
-	return false;
+	return will_accept_peace_offer_value(state,
+		n, state.local_player_nation,
+		prime_attacker, prime_defender,
+		military::primary_warscore(state, w), military::directed_warscore(state, w, state.local_player_nation, n),
+		military::is_attacker(state, w, state.local_player_nation), is_concession,
+		overall_po_value, my_po_target,
+		target_personal_po_value, potential_peace_score_against,
+		my_side_against_target, my_side_peace_cost,
+		war_duration, contains_sq);
 }
 
 bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
