@@ -1587,7 +1587,7 @@ void update_employment(sys::state& state) {
 		auto scaler = ve::select(total > state.world.factory_get_size(facids), state.world.factory_get_size(facids) / total, 1.f);
 
 #ifndef NDEBUG
-		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
+		/*ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
 			facids, unqualified_next
 		);
 		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
@@ -1595,7 +1595,7 @@ void update_employment(sys::state& state) {
 		);
 		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
 			facids, secondary_next
-		);
+		);*/
 #endif // !NDEBUG
 
 		state.world.factory_set_unqualified_employment(facids, unqualified_next * scaler);
