@@ -4610,6 +4610,8 @@ sys::checksum_key state::get_mp_state_checksum() {
 	loaded.mp_player_nickname = false;
 	loaded.mp_player_password_salt = false;
 	loaded.mp_player_password_hash = false;
+	loaded.mp_player_fully_loaded = false;
+	loaded.mp_player_is_oos = false;
 
 	loaded.locale = false;
 	loaded.locale_native_rtl = false;

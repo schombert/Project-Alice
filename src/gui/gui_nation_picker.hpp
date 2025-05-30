@@ -607,6 +607,12 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
+		// disable if there are any players loading
+		if(state.network_state.num_client_loading != 0) {
+			disabled = true;
+			return;
+		}
+
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
@@ -645,11 +651,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			auto box = text::open_layout_box(contents, 0);
 			if(state.network_state.save_stream) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
-			} else if(!state.session_host_checksum.is_equal(state.get_save_checksum())) {
+			}
+			else if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
 			}
 			for(auto const& client : state.network_state.clients) {
@@ -661,8 +668,13 @@ public:
 					}
 				}
 			}
-			text::close_layout_box(contents, box);
 		}
+		else if(state.network_mode == sys::network_mode_type::host) {
+			if(state.network_state.num_client_loading != 0) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_player_loading"));
+			}
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -673,39 +685,51 @@ public:
 	}
 };
 
-class multiplayer_status_text : public simple_text_element_base {
+class multiplayer_status_text : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::host) {
-			// on render
-		} else {
+
+
+		auto player = network::find_country_player(state, n);
+		if(state.world.mp_player_get_fully_loaded(player)) {
+			color = text::text_color::dark_green;
 			set_text(state, text::produce_simple_string(state, "ready"));
 		}
+		else {
+			color = text::text_color::yellow;
+			set_text(state, text::produce_simple_string(state, "Loading"));
+		}
+
+		//if(state.network_mode == sys::network_mode_type::host) {
+		//	// on render
+		//} else {
+		//	set_text(state, text::produce_simple_string(state, "ready"));
+		//}
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::host) {
-			set_text(state, text::produce_simple_string(state, "ready")); // default
-			if(state.network_state.is_new_game == false) {
-				for(auto const& c : state.network_state.clients) {
-					if(c.is_active() && c.playing_as == n) {
-						auto completed = c.total_sent_bytes - c.save_stream_offset;
-						auto total = c.save_stream_size;
-						if(total > 0.f) {
-							float progress = float(completed) / float(total);
-							if(progress < 1.f) {
-								text::substitution_map sub{};
-								text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-								set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
-							}
-						}
-						break;
-					}
-				}
-			}
-		}
-		simple_text_element_base::render(state, x, y);
+		//auto n = retrieve<dcon::nation_id>(state, parent);
+		//if(state.network_mode == sys::network_mode_type::host) {
+		//	set_text(state, text::produce_simple_string(state, "ready")); // default
+		//	if(state.network_state.is_new_game == false) {
+		//		for(auto const& c : state.network_state.clients) {
+		//			if(c.is_active() && c.playing_as == n) {
+		//				auto completed = c.total_sent_bytes - c.save_stream_offset;
+		//				auto total = c.save_stream_size;
+		//				if(total > 0.f) {
+		//					float progress = float(completed) / float(total);
+		//					if(progress < 1.f) {
+		//						text::substitution_map sub{};
+		//						text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+		//						set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+		//					}
+		//				}
+		//				break;
+		//			}
+		//		}
+		//	}
+		//}
+		color_text_element::render(state, x, y);
 	}
 };
 
@@ -781,7 +805,7 @@ public:
 			state.world.for_each_nation([&](dcon::nation_id n) {
 				if(state.world.nation_get_is_player_controlled(n))
 					row_contents.push_back(n);
-			});
+		});
 		}
 		update(state);
 	}

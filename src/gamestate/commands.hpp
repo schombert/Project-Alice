@@ -131,6 +131,8 @@ enum class command_type : uint8_t {
 	advance_tick = 121,
 	chat_message = 122,
 	network_inactivity_ping = 123,
+	notify_player_fully_loaded = 124, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
+	notify_player_is_loading = 125, // host sends this to all clients to notify that a specific client has begun loading
 
 	// console cheats
 	network_populate = 254,
@@ -470,6 +472,7 @@ struct advance_tick_data {
 struct notify_joins_data {
 	sys::player_name player_name;
 	sys::player_password_raw player_password;
+	bool needs_loading;
 };
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
@@ -481,6 +484,12 @@ struct notify_reload_data {
 };
 struct notify_leaves_data {
 	bool make_ai;
+};
+struct notify_player_fully_loaded_data {
+	sys::player_name name;
+};
+struct notify_player_is_loading_data {
+	sys::player_name name;
 };
 
 struct payload {
@@ -541,6 +550,8 @@ struct payload {
 		save_game_data save_game;
 		notify_save_loaded_data notify_save_loaded;
 		notify_reload_data notify_reload;
+		notify_player_fully_loaded_data notify_player_fully_loaded;
+		notify_player_is_loading_data notify_player_is_loading;
 		cheat_location_data cheat_location;
 		notify_joins_data notify_join;
 		notify_leaves_data notify_leave;
@@ -933,6 +944,9 @@ void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
 void notify_reload(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
+void notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name);
+void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name);
+void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
 

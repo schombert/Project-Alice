@@ -28,6 +28,13 @@ void add_to_command_queue(sys::state& state, payload& p) {
 #endif
 
 	switch(p.type) {
+		// do not allow starting or stopping the game while someone is loading to avoid issues.
+	case command_type::notify_start_game:
+	case command_type::notify_stop_game:
+		if(state.network_state.num_client_loading != 0) {
+			return;
+		}
+		break;
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
 	case command_type::notify_player_picks_nation:
@@ -35,16 +42,16 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_kick:
 	case command_type::notify_save_loaded:
 	case command_type::notify_reload:
-	case command_type::notify_start_game:
-	case command_type::notify_stop_game:
 	case command_type::notify_player_oos:
 	case command_type::notify_pause_game:
+	case command_type::notify_player_fully_loaded:
+	case command_type::notify_player_is_loading:
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	default:
-		// Normal commands are discarded iff we are not in the game
-		if(!state.current_scene.game_in_progress)
+		// Normal commands are discarded iff we are not in the game, or if any other client is loading
+		if(!state.current_scene.game_in_progress || state.network_state.num_client_loading != 0)
 			return;
 		state.network_state.is_new_game = false;
 		break;
@@ -5260,19 +5267,20 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	post_chat_message(state, m);
 }
 
-void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, bool needs_loading) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_joins;
 	p.source = source;
 	p.data.notify_join.player_name = name;
+	p.data.notify_join.needs_loading = needs_loading;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password) {
+void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password, bool needs_loading) {
 #ifndef NDEBUG
 	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
 #endif
@@ -5289,12 +5297,23 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 		if(!password.empty()) {
 			network::update_mp_player_password(state, p, password);
 		}
+		// update mp player with the joining players loading state
+		state.world.mp_player_set_fully_loaded(p, !needs_loading);
+		state.world.mp_player_set_is_oos(p, false);
 	}
 	else {
-		p = network::create_mp_player(state, name, password);
+		p = network::create_mp_player(state, name, password, !needs_loading, false);
 	}
  	state.world.nation_set_is_player_controlled(source, true);
 	state.world.force_create_player_nation(source, p);
+
+	if(needs_loading) {
+		payload cmd;
+		cmd.type = command::command_type::notify_player_is_loading;
+		cmd.source = source;
+		cmd.data.notify_player_is_loading.name = name;
+		execute_command(state, cmd);
+	}
 
 	ui::chat_message m{};
 	m.source = source;
@@ -5586,6 +5605,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	assert(state.session_host_checksum.is_equal(state.get_mp_state_checksum()));
+	command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify we are done reloading
 
 #ifndef NDEBUG
 	network::SHA512 sha512;
@@ -5630,6 +5650,52 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 	p.type = command::command_type::notify_start_game;
 	p.source = source;
 	add_to_command_queue(state, p);
+}
+
+void notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_player_is_loading;
+	p.source = source;
+	p.data.notify_player_is_loading.name = name;
+	add_to_command_queue(state, p);
+}
+
+void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	auto player = network::find_mp_player(state, name);
+	assert(player);
+	// if it is a valid player
+	if(player) {
+		state.world.mp_player_set_fully_loaded(player, false);
+		state.world.mp_player_set_is_oos(player, false);
+		state.network_state.num_client_loading++;
+		
+	};
+}
+
+
+
+void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_player_fully_loaded;
+	p.source = source;
+	p.data.notify_player_fully_loaded.name = name;
+	add_to_command_queue(state, p);
+}
+
+void execute_notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	auto player = network::find_mp_player(state, name);
+	assert(player);
+	// if it is a valid player
+	if(player) {
+		state.world.mp_player_set_fully_loaded(player, true);
+		state.world.mp_player_set_is_oos(player, false);
+		assert(state.network_state.num_client_loading != 0);
+		if(state.network_state.num_client_loading != 0) {
+			state.network_state.num_client_loading--;
+		}
+	};
 }
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
@@ -6063,6 +6129,10 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return false;
 	case command_type::network_populate:
 		return false;
+	case command_type::notify_player_fully_loaded:
+		return true;
+	case command_type::notify_player_is_loading:
+		return true;
 	}
 	return false;
 }
@@ -6422,7 +6492,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_kick(state, c.source, c.data.nation_pick.target);
 		break;
 	case command_type::notify_player_joins:
-		execute_notify_player_joins(state, c.source, c.data.notify_join.player_name, c.data.notify_join.player_password);
+		execute_notify_player_joins(state, c.source, c.data.notify_join.player_name, c.data.notify_join.player_password, c.data.notify_join.needs_loading);
 		break;
 	case command_type::notify_player_leaves:
 		execute_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);
@@ -6461,7 +6531,14 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::network_populate:
 		break;
+	case command_type::notify_player_fully_loaded:
+		execute_notify_player_fully_loaded(state, c.source, c.data.notify_player_fully_loaded.name);
+		break;
+	case command_type::notify_player_is_loading:
+		execute_notify_player_is_loading(state, c.source, c.data.notify_player_fully_loaded.name);
+		break;
 	}
+
 }
 
 void execute_pending_commands(sys::state& state) {

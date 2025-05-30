@@ -666,7 +666,7 @@ static std::map<int, std::string> readableCommandTypes = {
 { 255,"console_command" },
 };
 
-dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password) {
+dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos) {
 	auto p = state.world.create_mp_player();
 	state.world.mp_player_set_nickname(p, name.data);
 
@@ -674,6 +674,8 @@ dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, s
 	auto hash = sys::player_password_hash{}.from_string_view(sha512.hash(password.to_string() + salt.to_string()));
 	state.world.mp_player_set_password_hash(p, hash.data);
 	state.world.mp_player_set_password_salt(p, salt.data);
+	state.world.mp_player_set_fully_loaded(p, fully_loaded);
+	state.world.mp_player_set_is_oos(p, is_oos);
 
 	return p;
 }
@@ -899,7 +901,29 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation, sys::player_password_raw password) {
+
+
+void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::nation_id nation) {
+	command::payload c;
+	memset(&c, 0, sizeof(c));
+	c.type = command::command_type::notify_player_is_loading;
+	c.source = nation;
+	c.data.notify_player_is_loading.name = name;
+
+	for(auto cl : state.network_state.clients) {
+		if(!cl.is_active() || cl.playing_as == nation) {
+			continue;
+		}
+		socket_add_to_send_queue(cl.send_buffer, &c, sizeof(c));
+	}
+	command::execute_command(state, c);
+#ifndef NDEBUG
+	state.console_log("host:broadcast:cmd | type:notify_player_is_loading nation:" + std::to_string(nation.index()));
+#endif
+	write_player_nations(state);
+}
+
+void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation, sys::player_password_raw password, bool needs_loading) {
 	// Tell all clients about this client
 	command::payload c;
 	memset(&c, 0, sizeof(c));
@@ -908,6 +932,7 @@ void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_
 	c.source = nation;
 	c.data.notify_join.player_name = name;
 	c.data.notify_join.player_password = password;
+	c.data.notify_join.needs_loading = needs_loading;
 
 	for(auto cl : state.network_state.clients) {
 		if(!cl.is_active() || cl.playing_as == nation) {
@@ -922,8 +947,8 @@ void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_
 	write_player_nations(state);
 }
 
-void notify_player_joins(sys::state& state, network::client_data& client) {
-	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as, client.hshake_buffer.player_password);
+void notify_player_joins(sys::state& state, network::client_data& client, bool needs_loading) {
+	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as, client.hshake_buffer.player_password, needs_loading);
 }
 
 void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
@@ -936,8 +961,11 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 			c.type = command::command_type::notify_player_joins;
 			c.source = n;
 			auto p = find_country_player(state, n);
+			assert(p);
 			auto nickname = state.world.mp_player_get_nickname(p);
 			c.data.notify_join.player_name = sys::player_name{ nickname };
+			// if the player in question is not fully loaded, tell the other clients they have to load first
+			c.data.notify_join.needs_loading = !state.world.mp_player_get_fully_loaded(p);
 			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 			state.console_log("host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(n.id.index())
@@ -993,9 +1021,26 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 			memset(&c, 0, sizeof(command::payload));
 			c.type = command::command_type::notify_reload;
 			c.source = state.local_player_nation;
-			c.data.notify_reload.checksum = state.get_save_checksum();
+			c.data.notify_reload.checksum = state.get_mp_state_checksum();
 			for(auto& other_client : state.network_state.clients) {
 				if(other_client.playing_as != client.playing_as && other_client.is_active()) {
+					// for each client that must reload, notify every other client that they are loading
+					/*for(auto& to_be_notified : state.network_state.clients) {
+						if(to_be_notified.is_active() && to_be_notified.playing_as != client.playing_as) {
+							command::payload p;
+							memset(&p, 0, sizeof(p));
+							p.type = command::command_type::notify_player_is_loading;
+							p.source = other_client.playing_as;
+							p.data.notify_player_is_loading.name = other_client.hshake_buffer.nickname;
+							socket_add_to_send_queue(to_be_notified.send_buffer, &p, sizeof(p));
+							command::execute_notify_player_is_loading(state, p.source, p.data.notify_player_is_loading.name);
+						}
+						
+
+					}*/
+					command::notify_player_is_loading(state, other_client.playing_as, other_client.hshake_buffer.nickname);
+
+					// then send the actual reload notification
 					socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 					state.console_log("host:send:cmd: (new->reload) | to:" + std::to_string(other_client.playing_as.index()));
@@ -1044,33 +1089,27 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 	if(state.current_scene.starting_scene) {
 		/* Lobby - existing savegame */
-		notify_player_joins(state, client);
+		notify_player_joins(state, client, !state.network_state.is_new_game);
 		if(!state.network_state.is_new_game) {
 			network::write_network_save(state);
 			// load the save which was just written
-			state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 			load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 			send_savegame(state, client, true);
-			state.render_semaphore.release(); // release again as it is safe to read from it
-			//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
 		}
 		notify_player_joins_discovery(state, client);
 
 	} else if(state.current_scene.game_in_progress) {
-		notify_player_joins(state, client);
+		notify_player_joins(state, client, !state.network_state.is_new_game);
 			if(!state.network_state.is_new_game) {
 				paused = pause_game(state);
 				network::write_network_save(state);
 				// load the save which was just written
-				state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 				load_network_save(state, state.network_state.current_save_buffer.get());
 				// generate checksum for the entire mp state
 				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 				send_savegame(state, client, true);
-				state.render_semaphore.release(); // release again as it is safe to read from it
-				//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
 			}
 		notify_player_joins_discovery(state, client);
 		
@@ -1208,9 +1247,9 @@ int server_process_commands(sys::state& state, network::client_data& client) {
 			break; // has to be valid/sendable by client
 		default:
 			/* Has to be from the nation of the client proper - and early
-			discard invalid commands */
+			discard invalid commands, and no clients must be currently loading */
 			if(client.recv_buffer.source == client.playing_as
-			&& command::can_perform_command(state, client.recv_buffer)) {
+			&& command::can_perform_command(state, client.recv_buffer) && state.network_state.num_client_loading != 0) {
 				state.network_state.outgoing_commands.push(client.recv_buffer);
 			}
 			break;
@@ -1469,7 +1508,6 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 				state.console_log("client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
 #endif
-				state.render_semaphore.acquire(); // stop game from rendering to prevent data races while reloading state
 				load_network_save(state, state.network_state.save_data.data());
 
 #ifndef NDEBUG
@@ -1481,10 +1519,9 @@ void send_and_receive_commands(sys::state& state) {
 
 				state.railroad_built.store(true, std::memory_order::release);
 				state.game_state_updated.store(true, std::memory_order::release);
-				//state.province_ownership_changed.store(true, std::memory_order::release); // force it to re-calibrate names on the map
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
-				state.render_semaphore.release(); // stop game from rendering to prevent data races while reloading state
+				command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify that we are loaded and ready to start
 			});
 			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_last_error_msg());

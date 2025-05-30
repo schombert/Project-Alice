@@ -177,6 +177,23 @@ public:
 	}
 };
 
+class chat_player_ready_state : public color_text_element {
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+
+
+		auto player = network::find_country_player(state, n);
+		if(state.world.mp_player_get_fully_loaded(player)) {
+			color = text::text_color::dark_green;
+			set_text(state, text::produce_simple_string(state, "ready"));
+		} else {
+			color = text::text_color::yellow;
+			set_text(state, text::produce_simple_string(state, "Loading"));
+		}
+	}
+
+};
+
 class chat_player_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -193,6 +210,8 @@ public:
 			return make_element_by_type<player_kick_button>(state, id);
 		} else if(name == "button_ban") {
 			return make_element_by_type<player_ban_button>(state, id);
+		} else if(name == "ready_state") {
+			return make_element_by_type<chat_player_ready_state>(state, id);
 		}
 		else {
 			return nullptr;
@@ -259,7 +278,7 @@ public:
 		set_button_text(state, text::produce_simple_string(state, "alice_lobby_back"));
 	}
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode == sys::network_mode_type::client) || (state.current_scene.is_lobby);
+		disabled = (state.network_mode == sys::network_mode_type::client) || (state.current_scene.is_lobby) || (state.network_state.num_client_loading != 0);
 	}
 	void button_action(sys::state& state) noexcept override {
 		map_mode::set_map_mode(state, map_mode::mode::political);
@@ -269,6 +288,9 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.network_state.num_client_loading != 0) {
+			text::add_line(state, contents, "alice_lobby_back_player_loading");
+		}
 		if(state.current_scene.is_lobby) {
 			text::add_line(state, contents, "alice_lobby_back_tt_1");
 		}

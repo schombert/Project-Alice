@@ -5752,6 +5752,16 @@ object{
 		type{ std::array<uint8_t,64> }
 		tag { keep_after_state_reload }
 	}
+	property{
+		name{ fully_loaded }
+		type{ bitfield }
+		tag { keep_after_state_reload }
+	}
+	property{
+		name{ is_oos }
+		type{ bitfield }
+		tag { keep_after_state_reload }
+	}
 }
 
 relationship{
