@@ -4211,7 +4211,6 @@ void state::single_game_tick() {
 			ai::make_attacks(*this);
 			ai::update_ships(*this);
 		}
-		ai::take_ai_decisions(*this);
 
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
@@ -4292,6 +4291,7 @@ void state::single_game_tick() {
 			break;
 		case 21:
 			ai::update_ai_colony_starting(*this);
+			ai::update_ai_embargoes(*this);
 			break;
 		case 22:
 			ai::take_reforms(*this);

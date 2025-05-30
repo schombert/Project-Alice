@@ -2664,25 +2664,27 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dco
 		}
 	}
 
-	// Embargo issued
 	if(new_status) {
+		// Embargo issued
+		// Notify the person who got embargoed
 		notification::post(state, notification::message{
 				[source = asker, target = target](sys::state& state, text::layout_base& contents) {
 					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
 				},
 				"msg_embargo_issued_title",
-				target, asker, dcon::nation_id{},
+				asker, target, dcon::nation_id{},
 				sys::message_base_type::embargo
 		});
 	}
 	else {
 		// Embargo lifted
+		// Notify the person from whom we lifted embargo
 		notification::post(state, notification::message{
 		[source = asker, target = target](sys::state& state, text::layout_base& contents) {
 			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
 			},
 			"msg_embargo_lifted_title",
-			target, asker, dcon::nation_id{},
+			asker, target, dcon::nation_id{},
 			sys::message_base_type::embargo
 		});
 	}
