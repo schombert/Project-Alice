@@ -2626,41 +2626,40 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 
 	return true;
 }
-void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	if (state.world.nation_get_is_player_controlled(from))
+		state.world.nation_get_diplomatic_points(from) -= state.defines.askmilaccess_diplomatic_cost;
 
-	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {
-		rel_1 = state.world.force_create_unilateral_relationship(target, asker);
+		rel_1 = state.world.force_create_unilateral_relationship(to, from);
 	}
-	state.world.unilateral_relationship_set_embargo(rel_1, !state.world.unilateral_relationship_get_embargo(rel_1));
 
-	auto new_status = state.world.unilateral_relationship_get_embargo(rel_1);
+	auto new_status = !state.world.unilateral_relationship_get_embargo(rel_1);
+	state.world.unilateral_relationship_set_embargo(rel_1, new_status);
 
+	std::vector<dcon::nation_id> asker_party;
+	std::vector<dcon::nation_id> target_party;
+
+	// All subjects of asker have to embargo target as well
 	for(auto n : state.world.in_nation) {
 		auto subjrel = state.world.nation_get_overlord_as_subject(n);
 		auto subject = state.world.overlord_get_subject(subjrel);
 
-		if(state.world.overlord_get_ruler(subjrel) != asker) {
-			continue;
+		if(state.world.overlord_get_ruler(subjrel) == from) {
+			asker_party.push_back(subject);
+		} else if(state.world.overlord_get_ruler(subjrel) == to) {
+			target_party.push_back(subject);
 		}
+	}
 
-		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject);
-		if(!rel_2) {
-			rel_2 = state.world.force_create_unilateral_relationship(target, subject);
-		}
-		state.world.unilateral_relationship_set_embargo(rel_2, new_status);
-
-		// 2nd level subjects
-		for(auto n2 : state.world.in_nation) {
-			auto subjrel_2 = state.world.nation_get_overlord_as_subject(n2);
-			auto subject_2 = state.world.overlord_get_subject(subjrel_2);
-
-			auto rel_3 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject_2);
-			if(!rel_3) {
-				rel_3 = state.world.force_create_unilateral_relationship(target, subject_2);
+	for(auto froms : asker_party) {
+		for(auto tos : target_party) {
+			auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(tos, froms);
+			if(!rel_2) {
+				rel_2 = state.world.force_create_unilateral_relationship(tos, froms);
 			}
-			state.world.unilateral_relationship_set_embargo(rel_3, new_status);
+			state.world.unilateral_relationship_set_embargo(rel_2, new_status);
 		}
 	}
 
@@ -2668,11 +2667,11 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dco
 		// Embargo issued
 		// Notify the person who got embargoed
 		notification::post(state, notification::message{
-				[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+				[source = from, target = to](sys::state& state, text::layout_base& contents) {
 					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
 				},
 				"msg_embargo_issued_title",
-				asker, target, dcon::nation_id{},
+				from, to, dcon::nation_id{},
 				sys::message_base_type::embargo
 		});
 	}
@@ -2680,11 +2679,11 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dco
 		// Embargo lifted
 		// Notify the person from whom we lifted embargo
 		notification::post(state, notification::message{
-		[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
 			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
 			},
 			"msg_embargo_lifted_title",
-			asker, target, dcon::nation_id{},
+			from, to, dcon::nation_id{},
 			sys::message_base_type::embargo
 		});
 	}

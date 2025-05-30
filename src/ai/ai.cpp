@@ -6233,14 +6233,11 @@ bool ai_will_issue_embargo(sys::state& state, dcon::nation_id from, dcon::nation
 }
 
 void update_ai_embargoes(sys::state& state) {
-	static std::vector<dcon::nation_id> embargo_targets;
 	for(auto from : state.world.in_nation) {
 		// Only independent AI countries can issue embargoes
 		if(from.get_is_player_controlled() || from.get_overlord_as_subject().get_ruler()) {
 			continue;
 		}
-
-		embargo_targets.clear();
 
 		for(auto to : state.world.in_nation) {
 			// Do not consider subjects as embargo targets
