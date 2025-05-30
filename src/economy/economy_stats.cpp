@@ -600,7 +600,7 @@ float inline market_speculation_budget(
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_speculation_budget = std::min(state.world.market_get_stockpile(m, economy::money), wage * population) / 100.f;
+	auto local_speculation_budget = wage * population / 100.f;
 	return local_speculation_budget;
 }
 template<typename M>
@@ -613,7 +613,7 @@ ve::fp_vector market_speculation_budget(
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_speculation_budget = ve::min(state.world.market_get_stockpile(m, economy::money), wage * population) / 100.f;
+	auto local_speculation_budget = wage * population / 100.f;
 	return ve::max(0.f, local_speculation_budget);
 }
 ve::fp_vector ve_market_speculation_budget(
