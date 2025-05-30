@@ -6253,4 +6253,47 @@ float estimate_rebel_strength(sys::state& state, dcon::province_id p) {
 	return v;
 }
 
+bool ai_will_issue_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	// Embargo countries with high infamy
+	if(state.world.nation_get_infamy(to) > state.defines.badboy_limit / 1.2f) {
+		return true;
+	}
+
+	// Embargo rival nations
+	if(state.world.nation_get_ai_rival(from) == to) {
+		return true;
+	}
+
+	// If a player has embargoed us - embargo him back
+	if (state.world.nation_get_is_player_controlled(to) && economy::has_active_embargo(state, to, from)) {
+		return true;
+	}
+
+	return false;
+}
+
+void update_ai_embargoes(sys::state& state) {
+	for(auto from : state.world.in_nation) {
+		// Only independent AI countries can issue embargoes
+		if(from.get_is_player_controlled() || from.get_overlord_as_subject().get_ruler()) {
+			continue;
+		}
+
+		for(auto to : state.world.in_nation) {
+			// Do not consider subjects as embargo targets
+			if(to.get_overlord_as_subject().get_ruler()) {
+				continue;
+			}
+
+			auto has_embargo = economy::has_active_embargo(state, from, to);
+			if(has_embargo != ai_will_issue_embargo(state, from, to) && command::can_switch_embargo_status(state, from, to, true)) {
+				command::execute_switch_embargo_status(state, from, to);
+
+				// For gameplay reasons limit to one embargo per month per AI.
+				break;
+			}
+		}
+	}
+}
+
 }

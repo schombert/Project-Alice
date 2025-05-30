@@ -736,6 +736,8 @@ bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, 
 
 void switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+// AI uses the function directly
+void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost = false);

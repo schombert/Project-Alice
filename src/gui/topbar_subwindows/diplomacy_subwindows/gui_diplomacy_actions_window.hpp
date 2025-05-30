@@ -1105,19 +1105,14 @@ public:
 		text::add_line(state, contents, "embargo_desc", text::variable_type::x, text::fp_one_place{ state.defines.alice_free_trade_agreement_years });
 		text::add_line_break_to_layout(state, contents);
 
-		// Rel source if obliged towards target
 		// Show existing embargoes
-		auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
-		auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
-		if(source_tariffs_rel) {
-			if(state.world.unilateral_relationship_get_embargo(source_tariffs_rel)) {
-				text::add_line(state, contents, "embargo_explain_1");
-			}
+		// We embargo them
+		if(economy::has_active_embargo(state, asker, target)) {
+			text::add_line(state, contents, "embargo_explain_1");
 		}
-		if(target_tariffs_rel) {
-			if(state.world.unilateral_relationship_get_embargo(target_tariffs_rel)) {
+		// They embargo us
+		if(economy::has_active_embargo(state, target, asker)) {
 				text::add_line(state, contents, "embargo_explain_2");
-			}
 		}
 
 		text::add_line_break_to_layout(state, contents);
