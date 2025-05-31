@@ -472,7 +472,9 @@ inline constexpr int32_t tooltip_width = 400;
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
-	//render_semaphore.acquire();
+	if(!render_semaphore.try_acquire()) {
+		return;
+	}
 	if(!current_scene.get_root)
 		return;
 
@@ -1116,7 +1118,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 	}
-	//render_semaphore.release();
+	render_semaphore.release();
 }
 
 void state::on_create() {

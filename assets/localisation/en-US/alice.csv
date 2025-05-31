@@ -1518,3 +1518,9 @@ pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
 alice_unit_target;===> $x$
+alice_lobby_resync;Resync lobby
+alice_lobby_resync_players_loading;Cannot resync when players are loading
+alice_lobby_resync_no_oos;No one is OOS
+alice_lobby_resync_not_host;Only the host may resync
+alice_host_has_resync;Host has resynced the lobby
+

@@ -4636,6 +4636,20 @@ guiTypes = {
 			delayedTooltipText = ""
 			position = { x=228 y =2}
 		}
+
+		guiButtonType = {
+			name = "resync_button"
+			extends = "ingame_lobby_window"
+			quadTextureSprite = "GFX_button_standard_144"
+			buttonFont = "vic_18_black"
+			tooltip = ""
+			tooltipText =""	
+			delayedTooltipText = ""
+			position = { x=205 y =314}
+		}
+
+
+
     guiButtonType = {
 		name = "alice_budget_warning"
 		extends = "topbar"

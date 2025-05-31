@@ -300,6 +300,50 @@ public:
 	}
 };
 
+
+
+
+class chat_resync_button : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, text::produce_simple_string(state, "alice_lobby_resync"));
+	}
+	void on_update(sys::state& state) noexcept override {
+		disabled = true;
+		if(state.network_state.num_client_loading != 0 || state.network_mode != sys::network_mode_type::host) {
+			return;
+		}
+		disabled = !network::any_player_oos(state);
+	}
+	void button_action(sys::state& state) noexcept override {
+		if(state.network_mode == sys::network_mode_type::host) {
+			network::full_reset_after_oos(state);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.network_state.num_client_loading != 0) {
+			text::add_line(state, contents, "alice_lobby_resync_players_loading");
+		}
+		if(!network::any_player_oos(state)) {
+			text::add_line(state, contents, "alice_lobby_resync_no_oos");
+		}
+		if(state.network_mode != sys::network_mode_type::host) {
+			text::add_line(state, contents, "alice_lobby_resync_not_host");
+		}
+	}
+};
+
+
+
+
+
+
+
+
 class chat_close_button : public generic_close_button {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -336,6 +380,8 @@ public:
 			return ptr;
 		} else if(name == "back_button") {
 			return make_element_by_type<chat_return_to_lobby_button>(state, id);
+		} else if(name == "resync_button") {
+			return make_element_by_type<chat_resync_button>(state, id);
 		} else {
 			return nullptr;
 		}
