@@ -1334,6 +1334,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
+	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
@@ -1343,10 +1344,10 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				if(!economy::can_build_in_colony(state, sid)) {
+				// Is particular factory type allowed to be built in colony
+				if(!economy::can_build_factory_type_in_colony(state, sid, type)) {
 					continue;
 				}
-
 				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
@@ -1360,6 +1361,8 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 
 void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
+	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
+
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
@@ -1370,8 +1373,8 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Check rules for factories in colonies
-				if(!economy::can_build_in_colony(state, pid, type)) {
+				// Is particular factory type allowed to be built in colony
+				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
 					continue;
 				}
 
@@ -1402,6 +1405,11 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				// Is particular factory type allowed to be built in colony
+				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
+					continue;
+				}
+
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1543,8 +1551,9 @@ void update_ai_econ_construction(sys::state& state) {
 			static std::vector<dcon::province_id> ordered_provinces;
 			ordered_provinces.clear();
 			for(auto p : n.get_province_ownership()) {
-				// Check rules for factories in colonies
-				if(economy::can_build_in_colony(state, p.get_province())) {
+				// Is building in colonies is impossible in principle: don't let these provinces slip into provinces list
+				// However, we check if particular factory type is allowed to be built in colony we check later
+				if(economy::can_build_factory_in_colony(state, p.get_province().get_state_membership().get_capital())) {
 					ordered_provinces.push_back(p.get_province());
 				}
 			}
@@ -6252,6 +6261,49 @@ float estimate_rebel_strength(sys::state& state, dcon::province_id p) {
 		if(ar.get_army().get_controller_from_army_rebel_control())
 			v += estimate_army_defensive_strength(state, ar.get_army());
 	return v;
+}
+
+bool ai_will_issue_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	// Embargo countries with high infamy
+	if(state.world.nation_get_infamy(to) > state.defines.badboy_limit / 1.2f) {
+		return true;
+	}
+
+	// Embargo rival nations
+	if(state.world.nation_get_ai_rival(from) == to) {
+		return true;
+	}
+
+	// If a player has embargoed us - embargo him back
+	if (state.world.nation_get_is_player_controlled(to) && economy::has_active_embargo(state, to, from)) {
+		return true;
+	}
+
+	return false;
+}
+
+void update_ai_embargoes(sys::state& state) {
+	for(auto from : state.world.in_nation) {
+		// Only independent AI countries can issue embargoes
+		if(from.get_is_player_controlled() || from.get_overlord_as_subject().get_ruler()) {
+			continue;
+		}
+
+		for(auto to : state.world.in_nation) {
+			// Do not consider subjects as embargo targets
+			if(to.get_overlord_as_subject().get_ruler()) {
+				continue;
+			}
+
+			auto has_embargo = economy::has_active_embargo(state, from, to);
+			if(has_embargo != ai_will_issue_embargo(state, from, to) && command::can_switch_embargo_status(state, from, to, true)) {
+				command::execute_switch_embargo_status(state, from, to);
+
+				// For gameplay reasons limit to one embargo per month per AI.
+				break;
+			}
+		}
+	}
 }
 
 }

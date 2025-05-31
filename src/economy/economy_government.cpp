@@ -268,4 +268,16 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
+bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	// When embargo is issued, it is automatically propagated onto all subjects. Therefore, checking for direct relationship is enough
+
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
+	if(!rel_1) {
+		return false;
+	}
+
+	return state.world.unilateral_relationship_get_embargo(rel_1);
+
+}
+
 }

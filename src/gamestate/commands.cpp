@@ -523,12 +523,15 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 	if(!state.world.nation_get_active_building(source, type) && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
+	if(!economy::can_build_factory_in_colony(state, state.world.state_instance_get_capital(sid)))
+		return false;
 
-	/* There can't be duplicate factories */
+	// New factory construction
 	if(!is_upgrade && !refit_target) {
 		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_in_colony(state, sid, type))
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, type))
 			return false;
+		/* There can't be duplicate factories */
 		// Check factories being built
 		bool has_dup = false;
 		economy::for_each_new_factory(state, location, [&](economy::new_factory const& nf) { has_dup = has_dup || nf.type == type; });
@@ -541,6 +544,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				return false;
 	}
 
+	// Factory refit from one type into another
 	if(refit_target) {
 		if(type == refit_target) {
 			return false;
@@ -555,7 +559,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			return false;
 
 		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_in_colony(state, sid, refit_target))
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, refit_target))
 			return false;
 
 		// Check if this factory is already being refit
@@ -565,13 +569,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			return false;
 
 		// We deliberately allow for duplicates to existing factories as this scenario is handled when construction is finished
-
 	}
 
 	if(state.world.nation_get_is_civilized(source) == false)
 		return false;
 
-
+	// If Foreign target
 	if(owner != source) {
 		/*
 		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great
@@ -593,20 +596,27 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 		if(military::are_at_war(state, source, owner))
 			return false;
-	} else {
+
+		// Refit in foreign countries is not allowed
+		if(refit_target) {
+			return false;
+		}
+	}
+	// Else Internal target
+	else {
 		/*
 		The nation must have the rule set to allow building / upgrading if this is a domestic target.
 		*/
-
 		auto rules = state.world.nation_get_combined_issue_rules(owner);
 		if(is_upgrade) {
 			if((rules & issue_rule::expand_factory) == 0)
 				return false;
 		} else if (refit_target) {
 			if((rules & issue_rule::build_factory) != 0) {
+				// In state capitalism economies, any factory can be refitted into any type.
 			}
 			else {
-				// For capitalist economies, refit factories must match in output good or inputs.
+				// For capitalist economies, during refit FROM and TO types must match in output good or inputs.
 				auto output_1 = state.world.factory_type_get_output(type);
 				auto output_2 = state.world.factory_type_get_output(refit_target);
 				auto inputs_1 = state.world.factory_type_get_inputs(type);
@@ -633,20 +643,26 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 
 	/* If mod uses Factory Province limits */
+	// Upgrade
 	if(is_upgrade) {
 		if(!economy::do_resource_potentials_allow_upgrade(state, source, location, type)) {
 			return false;
 		}
-	} else if(refit_target) {
+	}
+	// Refit into another factory type
+	else if(refit_target) {
 		if(!economy::do_resource_potentials_allow_refit(state, source, location, type, refit_target)) {
 			return false;
 		}
-	} else {
+	}
+	// Construction
+	else {
 		if(!economy::do_resource_potentials_allow_construction(state, source, location, type)) {
 			return false;
 		}
 	}
 
+	// Factory Upgrade
 	if(is_upgrade) {
 		// no double upgrade
 		for(auto p : state.world.province_get_factory_construction(location)) {
@@ -655,7 +671,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 
 		// Disallow building in colonies unless define flag is set
-		if(!economy::can_build_in_colony(state, sid, type))
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, type))
 			return false;
 
 		// must already exist as a factory
@@ -2626,63 +2642,64 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 
 	return true;
 }
-void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	if (state.world.nation_get_is_player_controlled(from))
+		state.world.nation_get_diplomatic_points(from) -= state.defines.askmilaccess_diplomatic_cost;
 
-	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {
-		rel_1 = state.world.force_create_unilateral_relationship(target, asker);
+		rel_1 = state.world.force_create_unilateral_relationship(to, from);
 	}
-	state.world.unilateral_relationship_set_embargo(rel_1, !state.world.unilateral_relationship_get_embargo(rel_1));
 
-	auto new_status = state.world.unilateral_relationship_get_embargo(rel_1);
+	auto new_status = !state.world.unilateral_relationship_get_embargo(rel_1);
+	state.world.unilateral_relationship_set_embargo(rel_1, new_status);
 
+	std::vector<dcon::nation_id> asker_party;
+	std::vector<dcon::nation_id> target_party;
+
+	// All subjects of asker have to embargo target as well
 	for(auto n : state.world.in_nation) {
 		auto subjrel = state.world.nation_get_overlord_as_subject(n);
 		auto subject = state.world.overlord_get_subject(subjrel);
 
-		if(state.world.overlord_get_ruler(subjrel) != asker) {
-			continue;
-		}
-
-		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject);
-		if(!rel_2) {
-			rel_2 = state.world.force_create_unilateral_relationship(target, subject);
-		}
-		state.world.unilateral_relationship_set_embargo(rel_2, new_status);
-
-		// 2nd level subjects
-		for(auto n2 : state.world.in_nation) {
-			auto subjrel_2 = state.world.nation_get_overlord_as_subject(n2);
-			auto subject_2 = state.world.overlord_get_subject(subjrel_2);
-
-			auto rel_3 = state.world.get_unilateral_relationship_by_unilateral_pair(target, subject_2);
-			if(!rel_3) {
-				rel_3 = state.world.force_create_unilateral_relationship(target, subject_2);
-			}
-			state.world.unilateral_relationship_set_embargo(rel_3, new_status);
+		if(state.world.overlord_get_ruler(subjrel) == from) {
+			asker_party.push_back(subject);
+		} else if(state.world.overlord_get_ruler(subjrel) == to) {
+			target_party.push_back(subject);
 		}
 	}
 
-	// Embargo issued
+	for(auto froms : asker_party) {
+		for(auto tos : target_party) {
+			auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(tos, froms);
+			if(!rel_2) {
+				rel_2 = state.world.force_create_unilateral_relationship(tos, froms);
+			}
+			state.world.unilateral_relationship_set_embargo(rel_2, new_status);
+		}
+	}
+
 	if(new_status) {
+		// Embargo issued
+		// Notify the person who got embargoed
 		notification::post(state, notification::message{
-				[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+				[source = from, target = to](sys::state& state, text::layout_base& contents) {
 					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
 				},
 				"msg_embargo_issued_title",
-				target, asker, dcon::nation_id{},
+				from, to, dcon::nation_id{},
 				sys::message_base_type::embargo
 		});
 	}
 	else {
 		// Embargo lifted
+		// Notify the person from whom we lifted embargo
 		notification::post(state, notification::message{
-		[source = asker, target = target](sys::state& state, text::layout_base& contents) {
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
 			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
 			},
 			"msg_embargo_lifted_title",
-			target, asker, dcon::nation_id{},
+			from, to, dcon::nation_id{},
 			sys::message_base_type::embargo
 		});
 	}

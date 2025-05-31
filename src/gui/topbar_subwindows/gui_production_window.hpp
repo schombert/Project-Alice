@@ -1439,7 +1439,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
 		// Disallow building in colonies unless define flag is set
 		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
-			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_in_colony(state, sid));
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
 		}
 
 		if(n == state.local_player_nation) {
@@ -1508,7 +1508,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
 		// Disallow building in colonies unless define flag is set
 		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
-			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_in_colony(state, sid));
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
 		}
 
 		if(n == state.local_player_nation) {
