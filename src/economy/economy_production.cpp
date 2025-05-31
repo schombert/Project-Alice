@@ -1158,13 +1158,21 @@ void update_single_factory_consumption(
 		expansion_scale = expansion_scale * std::min(1.f, actual_profit * 0.1f / base_expansion_cost);
 		register_inputs_demand(state, m, costs, expansion_scale, economy_reason::construction);
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
+		assert(std::isfinite(state.world.factory_get_size(fac)));
+		assert(state.world.factory_get_size(fac) > 0.f);
 	} else if(actual_profit < 0) {
 		state.world.factory_set_size(fac, std::max(500.f, current_size - base_size * expansion_scale));
+		assert(std::isfinite(state.world.factory_get_size(fac)));
+		assert(state.world.factory_get_size(fac) > 0.f);
 	}
 
 	if(state.world.commodity_get_uses_potentials(fac_type.get_output())) {
 		auto new_size = state.world.factory_get_size(fac);
-		state.world.factory_set_size(fac, std::min(new_size, state.world.province_get_factory_max_size(p, fac_type.get_output())));
+		// A factory may be created in history but have no potentials for such factory in the province
+		// Then we apply min size
+		state.world.factory_set_size(fac, std::min(new_size, std::max(500.f, state.world.province_get_factory_max_size(p, fac_type.get_output()))));
+		assert(std::isfinite(state.world.factory_get_size(fac)));
+		assert(state.world.factory_get_size(fac) > 0.f);
 	}
 
 	fac.set_unprofitable(actual_profit <= 0.0f);
@@ -1587,6 +1595,18 @@ void update_employment(sys::state& state) {
 		auto scaler = ve::select(total > state.world.factory_get_size(facids), state.world.factory_get_size(facids) / total, 1.f);
 
 #ifndef NDEBUG
+		ve::apply([&](auto p) { assert(std::isfinite(state.world.province_get_labor_demand_satisfaction(p, labor::high_education))); },
+			pid
+		);
+		ve::apply([&](auto factory) { if(state.world.factory_is_valid(factory)) {
+			assert(std::isfinite(state.world.factory_get_size(factory)));
+			assert(state.world.factory_get_size(factory) > 0.f);
+		}},
+			facids
+		);
+		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
+			facids, unqualified
+		);
 		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
 			facids, unqualified_next
 		);

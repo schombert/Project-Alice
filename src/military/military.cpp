@@ -8316,7 +8316,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto in_nation = ar.get_controller_from_army_control();
 	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
-	auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
+	auto spending_level = (in_nation ? std::clamp(in_nation.get_effective_land_spending(), 0.f, 1.f) : 1.0f);
 
 	float location_modifier;
 	if(ar.get_battle_from_army_battle_participation()) {
@@ -8328,7 +8328,8 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
 
-	return combined;
+	assert(std::isfinite(combined));
+	return std::clamp(combined, 0.f, 1.f);
 }
 
 
@@ -8422,6 +8423,9 @@ float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id 
 		newstr = curstr + combined;
 	}
 
+	assert(std::isfinite(newstr));
+	assert(std::isfinite(curstr));
+
 	return newstr - curstr;
 }
 
@@ -8438,7 +8442,6 @@ float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, 
 		}
 	}
 	return total;
-
 }
 
 
@@ -8470,6 +8473,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 		auto combined = calculate_army_combined_reinforce(state, ar);
 		for(auto reg : ar.get_army_membership()) {
 			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
+			assert(std::isfinite(reinforcement));
 			reg.get_regiment().get_strength() += reinforcement;
 			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), reinforcement * 5.f * state.defines.exp_gain_div);
 		}

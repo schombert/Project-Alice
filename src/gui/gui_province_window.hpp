@@ -1798,6 +1798,49 @@ public:
 template<typename T>
 class province_build_unit : public button_element_base {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			text::add_line(state, contents, "military_build_army_tooltip");
+		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			text::add_line(state, contents, "military_build_navy_tooltip");
+		}
+
+		// Nation must not be disarmed
+		auto disarmed = state.world.nation_get_disarmed_until(state.local_player_nation) && state.current_date < state.world.nation_get_disarmed_until(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "canbuild_forcedisarm", !disarmed);
+
+		// There must be possible units to build in the selected province
+		auto no_possible_units = true;
+
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(uint8_t i = 2; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto utid = dcon::unit_type_id(i);
+			auto const& def = state.military_definitions.unit_base_definitions[utid];
+			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+				continue;
+			if(def.is_land != std::is_same_v<T, dcon::army_id>)
+				continue;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				for(const auto c : state.world.in_culture) {
+					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						no_possible_units = false;
+					}
+				}
+			} else {
+				no_possible_units = !command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
+			}
+
+			if(!no_possible_units) {
+				break;
+			}
+		}
+
+		text::add_line_with_condition(state, contents, "alice_has_possible_units", !no_possible_units);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		disabled = true;
 		//
@@ -1810,14 +1853,14 @@ public:
 			if(def.is_land != std::is_same_v<T, dcon::army_id>)
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				for(const auto c : state.world.in_culture) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					for(const auto c : state.world.in_culture) {
+						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
-									disabled = false;
-									break;
-								}
+								disabled = false;
+								break;
+						}
 							}
 						}
 					} else {
