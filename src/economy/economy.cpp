@@ -3893,6 +3893,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 			if(total > 0.f)
 				max_sp /= total;
+			assert(std::isfinite(nations_commodity_spending* max_sp* spending_level));
 			state.world.nation_set_effective_land_spending(
 				n, nations_commodity_spending * max_sp * spending_level);
 		}

@@ -408,6 +408,10 @@ void province_history_file::state_building(pv_state_building const& value, error
 	if(value.id) {
 		auto new_fac = context.outer_context.state.world.create_factory();
 		auto base_size = 10'000.f;
+
+		assert(std::isfinite(value.level));
+		assert(value.level > 0);
+
 		context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
 		context.outer_context.state.world.factory_set_size(new_fac, (float)value.level * base_size);
 		context.outer_context.state.world.factory_set_unqualified_employment(new_fac, base_size * 0.1f);
@@ -505,7 +509,7 @@ void province_factory_limit_desc::finish(province_file_context& context) {
 void province_factory_limit::entry(province_factory_limit_desc const& value, error_handler& err, int32_t line, province_file_context& context) {
 	if(value.trade_good_id) {
 		auto p = context.id;
-		context.outer_context.state.world.province_set_factory_max_size(p, value.trade_good_id, value.max_level_value / 10'000.f);
+		context.outer_context.state.world.province_set_factory_max_size(p, value.trade_good_id, value.max_level_value * 10'000.f);
 		context.outer_context.state.world.province_set_factory_limit_was_set_during_scenario_creation(p, true);
 	}
 }
