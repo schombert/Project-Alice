@@ -31,10 +31,6 @@ void add_to_command_queue(sys::state& state, payload& p) {
 		// do not allow starting or stopping the game while someone is loading to avoid issues.
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
-		if(state.network_state.num_client_loading != 0) {
-			return;
-		}
-		break;
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
 	case command_type::notify_player_picks_nation:
@@ -5309,6 +5305,7 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 
 	if(needs_loading) {
 		payload cmd;
+		memset(&cmd, 0, sizeof(cmd));
 		cmd.type = command::command_type::notify_player_is_loading;
 		cmd.source = source;
 		cmd.data.notify_player_is_loading.name = name;
@@ -5344,6 +5341,11 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	if(make_ai) {
 		state.world.nation_set_is_player_controlled(source, false);
 	}
+	auto player = network::find_country_player(state, source);
+	// if the leaving player was loading, decrement num of loading clients
+	if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
+		state.network_state.num_client_loading--;
+	}
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
@@ -5377,6 +5379,13 @@ bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nati
 	return true;
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+
+	auto player = network::find_country_player(state, source);
+	// if the leaving player was loading, decrement num of loading clients
+	if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
+		state.network_state.num_client_loading--;
+	}
+
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
@@ -5411,6 +5420,11 @@ bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nat
 	return true;
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto player = network::find_country_player(state, source);
+	// if the leaving player was loading, decrement num of loading clients
+	if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
+		state.network_state.num_client_loading--;
+	}
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
@@ -5599,10 +5613,10 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	/* Then reload as if we loaded the save data */
 	state.reset_state();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-	state.fill_unsaved_data();
+	state.local_player_nation = old_local_player_nation;
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
-	state.local_player_nation = old_local_player_nation;
+	state.fill_unsaved_data();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	assert(state.session_host_checksum.is_equal(state.get_mp_state_checksum()));
 	command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify we are done reloading
@@ -6114,8 +6128,14 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::notify_reload:
 		return true;
 	case command_type::notify_start_game:
+		if(state.network_state.num_client_loading != 0) {
+			return false;
+		}
 		return true; //return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
+		if(state.network_state.num_client_loading != 0) {
+			return false;
+		}
 		return true; //return can_notify_stop_game(state, c.source);
 	case command_type::notify_pause_game:
 		return true; //return can_notify_pause_game(state, c.source);
@@ -6137,9 +6157,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	return false;
 }
 
-void execute_command(sys::state& state, payload& c) {
+bool execute_command(sys::state& state, payload& c) {
 	if(!can_perform_command(state, c))
-		return;
+		return false;
 	switch(c.type) {
 	case command_type::invalid:
 		std::abort(); // invalid command
@@ -6538,7 +6558,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_is_loading(state, c.source, c.data.notify_player_fully_loaded.name);
 		break;
 	}
-
+	return true;
 }
 
 void execute_pending_commands(sys::state& state) {

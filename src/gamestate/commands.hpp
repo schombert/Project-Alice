@@ -949,8 +949,8 @@ void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source,
 void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
-
-void execute_command(sys::state& state, payload& c);
+// returns true if the command was performed, false if not
+bool execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, payload& c);
 
