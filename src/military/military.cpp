@@ -5,6 +5,7 @@
 #include "effects.hpp"
 #include "events.hpp"
 #include "ai.hpp"
+#include "ai_war.hpp"
 #include "demographics.hpp"
 #include "politics.hpp"
 #include "province_templates.hpp"
