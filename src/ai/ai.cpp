@@ -5289,8 +5289,18 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 		return 0.f;
 	// provide continous function for each military unit composition
 	// such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
+	
+	assert(std::isfinite(total_str));
+	assert(std::isfinite(str_inf));
+	assert(std::isfinite(str_art));
+	assert(std::isfinite(str_cav));
+
 	float min_cav = std::min(str_cav, str_inf * (1.f / 4.f)); // more cavalry isn't bad (if the rest of the composition is 4x/y/4x), just don't underestimate it!
+	assert(std::isfinite(min_cav));
+
 	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * min_cav / total_str)));
+	assert(std::isfinite(scale));
+
 	return total_str * scale;
 }
 
