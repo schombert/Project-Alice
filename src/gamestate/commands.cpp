@@ -5649,6 +5649,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	/* And clear the save stuff */
 	state.network_state.current_save_buffer.reset();
 	state.network_state.current_save_length = 0;
+	state.network_state.last_save_checksum = sys::checksum_key{ };
 	/* Clear AI data */
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
@@ -6128,14 +6129,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::notify_reload:
 		return true;
 	case command_type::notify_start_game:
-		if(state.network_state.num_client_loading != 0) {
-			return false;
-		}
 		return true; //return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
-		if(state.network_state.num_client_loading != 0) {
-			return false;
-		}
 		return true; //return can_notify_stop_game(state, c.source);
 	case command_type::notify_pause_game:
 		return true; //return can_notify_pause_game(state, c.source);

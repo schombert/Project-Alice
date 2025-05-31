@@ -1090,7 +1090,10 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		notify_player_joins(state, client, !state.network_state.is_new_game);
 		notify_player_joins_discovery(state, client);
 		if(!state.network_state.is_new_game) {
-			network::write_network_save(state);
+			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
+			if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
+				network::write_network_save(state);
+			}
 			// load the save which was just written
 			load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
@@ -1103,7 +1106,10 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		notify_player_joins_discovery(state, client);
 			if(!state.network_state.is_new_game) {
 				paused = pause_game(state);
-				network::write_network_save(state);
+				// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
+				if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
+					network::write_network_save(state);
+				}
 				// load the save which was just written
 				load_network_save(state, state.network_state.current_save_buffer.get());
 				// generate checksum for the entire mp state
@@ -1255,7 +1261,7 @@ int server_process_commands(sys::state& state, network::client_data& client) {
 			discard invalid commands, and no clients must be currently loading */
 			if(client.recv_buffer.source == client.playing_as
 			&& command::can_perform_command(state, client.recv_buffer)
-			&& state.network_state.num_client_loading != 0  ) {
+			&& state.network_state.num_client_loading == 0  ) {
 				state.network_state.outgoing_commands.push(client.recv_buffer);
 			}
 			break;
@@ -1335,6 +1341,7 @@ void write_network_save(sys::state& state) {
 	state.network_state.current_save_buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 	auto buffer_position = write_network_compressed_section(state.network_state.current_save_buffer.get(), save_buffer.get(), uint32_t(length));
 	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
+	state.network_state.last_save_checksum = state.get_save_checksum();
 	//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 }

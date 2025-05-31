@@ -103,6 +103,8 @@ struct network_state {
 	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
 	uint16_t num_client_loading = 0; // the number of clients loading
+	sys::checksum_key last_save_checksum; // the last save checksum which was written to the network
+	bool full_reload_needed = true; // whether or not a full host&lobby reload is needed when a new client connects, or a partial reload. Generally after an ingame command is issued a full reload becomes needed
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
