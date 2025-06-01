@@ -22,13 +22,15 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 
 `notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled.
 `notify_player_pick_nation` - Picks a nation, this is useful for example on the lobby where players are switching nations constantly, IF the `source` is invalid (i.e a `dcon::nation_id{}`) then it refers to the current local player nation of the client, this is useful to set the "temporal nation" on the lobby so that clients can be identified by their nation automatically assigned by the server. Otherwise the `source` is the client who requested to pick a nation `target` in `data.nation_pick.target`.
-`notify_save_loaded` - Updates the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state. Following it comes an `uint32_t` describing the size of the save stream, and the save stream itself!
+`notify_save_loaded` - Updates the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state. Following it comes an `uint32_t` describing the size of the save stream, and the save stream itself! Keep in mind that the client will automatically reload their state first before loading the save
 `notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.
 `notify_player_ban` - When banning a player, it is disconnected, and not allowed to rejoin.
 `notify_start_game` - Host has started the game, all players connected will be sent into the game.
 `notify_stop_game` - Host has stopped the game (not paused), all players connected will be sent into the lobby.
 `notify_pause_game` - Host has paused the game, exists mainly to notify clients that the host has paused the game.
 `notify_reload` - Perform a game state reload as if it was a savefile.
+`notify_player_is_loading` - Sent by the host to (usually) all of the clients to notify that `source` is currently loading. The host will NOT process most commands while more than 0 clients are loading. This command may be sent to the loading client itself. The command is sent out after a reload or save stream is requested, or when a new player joins a lobby with a save.
+`notify_notify_player_fully_loaded` - Sent by the client to notify the host, and then re-broadcast to all clients that `source` has finished loading.
 
 The server will send new clients a `notify_player_joins` for each connected player. It will send a `notify_player_pick_nation` to the client, with an invalid source, telling it what is their "assigned nation".
 
