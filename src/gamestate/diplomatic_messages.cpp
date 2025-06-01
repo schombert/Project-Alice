@@ -4,6 +4,7 @@
 #include "nations.hpp"
 #include "ai_campaign.hpp"
 #include "ai_war.hpp"
+#include "ai_types.hpp"
 
 namespace diplomatic_message {
 
@@ -448,11 +449,11 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			if(overlord == m.from) {
 				return true; // Always accept overlord reorganizing states
 			}
-			static std::vector<dcon::state_instance_id> target_states;
-			ai::state_target_list(target_states, state, m.to, m.from);
+			static std::vector<ai::weighted_state_instance> target_states;
+			ai::prepare_and_sort_list_of_desired_states(state, target_states, m.to, m.from);
 
 			for(auto sid : target_states) {
-				if(state.world.state_instance_get_definition(sid) == m.data.state) {
+				if(state.world.state_instance_get_definition(sid.target) == m.data.state) {
 					return true; // AI wants this state
 				}
 			}

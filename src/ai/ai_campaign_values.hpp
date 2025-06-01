@@ -11,6 +11,8 @@ struct layout_base;
 
 namespace ai {
 
+float estimate_naval_strength(sys::state& state, dcon::nation_id n);
+
 float estimate_strength(sys::state& state, dcon::nation_id n);
 float estimate_defensive_strength(sys::state& state, dcon::nation_id n);
 float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id n, dcon::nation_id target);

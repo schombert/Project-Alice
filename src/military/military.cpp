@@ -8759,6 +8759,10 @@ bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id fro
 }
 
 bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+	// handle case of invalid war gracefully to simplify some logic
+	if(!w) {
+		return false;
+	}
 
 	if(cb_state) { // ensure that the state will not be annexed, transferred, or liberated
 		if(state_claimed_in_war(state, w, source, target, cb_state))

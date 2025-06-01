@@ -50,6 +50,10 @@ float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id 
 	return value * state.defines.alice_ai_offensive_strength_overestimate;
 }
 
+float estimate_naval_strength(sys::state& state, dcon::nation_id n) {
+	return (float)state.world.nation_get_used_naval_supply_points(n);
+}
+
 bool does_have_naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
 	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
 
