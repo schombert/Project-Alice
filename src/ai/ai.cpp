@@ -130,9 +130,43 @@ void update_ai_general_status(sys::state& state) {
 	}
 }
 
+// Does nation N have supremacy over target nation
+bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
+
+	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	if(!real_target)
+		real_target = target;
+
+	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
+		return false;
+
+	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
+		return false;
+
+	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
+		if(!a.get_are_allied())
+			continue;
+		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
+		if(self_sup <= other.get_used_naval_supply_points())
+			return false;
+	}
+
+	return true;
+}
+
 static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
+
+		auto our_strength = estimate_strength(state, n);
+		auto other_strength = estimate_strength(state, other);
+
+		// We really shouldn't ally very weak neighbours
+		// Surrounding ourselves with useless alliances stops expansion
+		if(other_strength <= our_strength * 0.2f) {
+			continue;
+		}
 
 		bool b = other.get_is_player_controlled()
 			? state.world.unilateral_relationship_get_interested_in_alliance(state.world.get_unilateral_relationship_by_unilateral_pair(n, other))
@@ -445,6 +479,11 @@ void update_ai_research(sys::state& state) {
 				continue; // Already researched
 
 			if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tid)) {
+				// Research technologies costing LP (military doctrines) only if can research it immediately
+				if(culture::effective_technology_lp_cost(state, year, n, tid) > state.world.nation_get_leadership_points(n)) {
+					continue;
+				}
+				// Technologies costing RP:
 				// Find previous technology before this one
 				dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tid.id.index() - 1));
 				// Previous technology is from the same folder so we have to check that we have researched it beforehand
@@ -1116,7 +1155,7 @@ void update_ai_ruling_party(sys::state& state) {
 				}
 			}
 
-			assert(target != state.world.nation_get_ruling_party(n));
+			assert(target != state.world.nation_get_ruling_party(n)); // Fires if some nation has no available parties
 			if(target) {
 				politics::appoint_ruling_party(state, n, target);
 			}
@@ -1185,7 +1224,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						// If there is absolute deficit of construction goods, don't build for now
+						// However, we're interested in this market signal only if there are any transactions happening
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
@@ -1228,7 +1269,9 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
+						// If there is absolute deficit of construction goods, don't build for now
+						// However, we're interested in this market signal only if there are any transactions happening
+						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
 							lacking_constr = true;
 					} else {
 						break;
@@ -1291,17 +1334,20 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
+	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto sid = m.get_zone_from_local_market();
 	auto treasury = n.get_stockpiles(economy::money);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
-
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-
+				// Is particular factory type allowed to be built in colony
+				if(!economy::can_build_factory_type_in_colony(state, sid, type)) {
+					continue;
+				}
 				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
@@ -1315,6 +1361,8 @@ void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon
 
 void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
+	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
+
 	auto n = dcon::fatten(state.world, nid);
 	auto m = dcon::fatten(state.world, mid);
 	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
@@ -1325,6 +1373,11 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				// Is particular factory type allowed to be built in colony
+				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
+					continue;
+				}
+
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1352,6 +1405,11 @@ void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dco
 	if(desired_types.empty()) {
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
+				// Is particular factory type allowed to be built in colony
+				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
+					continue;
+				}
+
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
 				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
@@ -1451,7 +1509,8 @@ int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
 	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
 #endif
 
-	return int16_t(std::clamp(total * double(factor), 0.1 * fid.get_recruitable_regiments(), 1.0 * fid.get_recruitable_regiments()));
+	// Use ceil: we want a bit stronger army than the enemy, at least one regiment.
+	return int16_t(std::clamp(ceil(total * double(factor)), ceil(0.1 * fid.get_recruitable_regiments()), 1.0 * fid.get_recruitable_regiments()));
 }
 
 void update_ai_econ_construction(sys::state& state) {
@@ -1492,8 +1551,11 @@ void update_ai_econ_construction(sys::state& state) {
 			static std::vector<dcon::province_id> ordered_provinces;
 			ordered_provinces.clear();
 			for(auto p : n.get_province_ownership()) {
-				if(p.get_province().get_state_membership().get_capital().get_is_colonial() == false)
+				// Is building in colonies is impossible in principle: don't let these provinces slip into provinces list
+				// However, we check if particular factory type is allowed to be built in colony we check later
+				if(economy::can_build_factory_in_colony(state, p.get_province().get_state_membership().get_capital())) {
 					ordered_provinces.push_back(p.get_province());
+				}
 			}
 			std::sort(ordered_provinces.begin(), ordered_provinces.end(), [&](auto a, auto b) {
 				auto apop = state.world.province_get_demographics(a, demographics::total);
@@ -1783,8 +1845,9 @@ void update_ai_econ_construction(sys::state& state) {
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
-		if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
 
 		static std::vector<dcon::province_id> project_provs;
 		project_provs.clear();
@@ -1925,8 +1988,9 @@ void update_ai_econ_construction(sys::state& state) {
 			}
 		}
 
-		if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
-			continue;
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.95f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
 
 		// try forts
 		if(budget - additional_expenses > 0.f) {
@@ -3671,6 +3735,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
 			return true;
 
+		// Forced peace when 100 warscore
+		if(overall_score <= -100 and overall_po_value <= 100)
+			return true;
+
 		if(concession && my_side_peace_cost <= overall_po_value)
 			return true; // offer contains everything
 		if(war_duration < 365) {
@@ -3707,6 +3775,10 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
+		// Forced peace when 100 warscore
+		if(scoreagainst_me >= 100 and overall_po_value <= 100)
+			return true;
+
 		if(overall_score < 0.0f) { // we are losing
 			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
@@ -3730,146 +3802,49 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	bool is_attacking = military::is_attacker(state, w, n);
 	bool contains_sq = false;
 
-	auto overall_score = military::primary_warscore(state, w);
-	if(!is_attacking)
-		overall_score = -overall_score;
+	auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 
-	auto concession = state.world.peace_offer_get_is_concession(p);
+	auto is_concession = state.world.peace_offer_get_is_concession(p);
 
-	if(concession && overall_score <= -50.0f) {
-		return true;
-	}
-
-	int32_t overall_po_value = 0;
-	int32_t personal_po_value = 0;
-	int32_t my_po_target = 0;
-	for(auto wg : state.world.peace_offer_get_peace_offer_item(p)) {
-		auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-		overall_po_value += wg_value;
-
-		if((wg.get_wargoal().get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
-			contains_sq = true;
-
-		if(wg.get_wargoal().get_target_nation() == n) {
-			personal_po_value += wg_value;
-		}
-	}
-	if(!concession) {
-		overall_po_value = -overall_po_value;
-	}
-	if(overall_po_value < -100)
-		return false;
-
+	int32_t target_personal_po_value = 0;
 	int32_t potential_peace_score_against = 0;
-	for(auto wg : state.world.war_get_wargoals_attached(w)) {
-		if(wg.get_wargoal().get_target_nation() == n || wg.get_wargoal().get_added_by() == n) {
-			auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), n, wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
+	int32_t my_side_against_target = 0;
+	int32_t my_side_peace_cost = !military::is_attacker(state, w, state.local_player_nation) ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w);
+	int32_t overall_po_value = 0;
+	int32_t my_po_target = 0;
 
-			if(wg.get_wargoal().get_target_nation() == n && (wg.get_wargoal().get_added_by() == from || from == prime_attacker || from == prime_defender)) {
+	for(auto po : state.world.peace_offer_get_peace_offer_item(p)) {
+		auto wg = po.get_wargoal();
+		auto wg_value = military::peace_cost(state, w, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+		// UI allows to add both concession and demands goals. E.g. I concede 93, but demand 1. Then this is calculated as 94 instead of 92.
+		overall_po_value += wg_value;
+		if(wg.get_target_nation() == n) {
+			target_personal_po_value += wg_value;
+		}
+		if(wg.get_target_nation() == state.local_player_nation) {
+			my_side_against_target += wg_value;
+		}
+		if((wg.get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
+			contains_sq = true;
+		if(wg.get_target_nation() == n || wg.get_added_by() == n) {
+			if(wg.get_target_nation() == n && (wg.get_added_by() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
 				potential_peace_score_against += wg_value;
 			}
-			if(wg.get_wargoal().get_added_by() == n && (wg.get_wargoal().get_target_nation() == from || from == prime_attacker || from == prime_defender)) {
+			if(wg.get_added_by() == n && (wg.get_target_nation() == state.local_player_nation || state.local_player_nation == prime_attacker || state.local_player_nation == prime_defender)) {
 				my_po_target += wg_value;
 			}
 		}
 	}
-	auto personal_score_saved = personal_po_value - potential_peace_score_against;
 
-	auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
-	auto war_exhaustion = state.world.nation_get_war_exhaustion(n); // War exhaustion between 0 and 100
-	// Since we have functional blockades now, it's reasonable to account for war_exhaustion in AI willingness to peace out.
-	float willingness_factor = float(war_duration - 365) * 10.f / 365.0f + war_exhaustion;
-
-	// War-ending peace from primary participant to primary participant (concession & demand)
-	if((prime_attacker == n || prime_defender == n) && (prime_attacker == from || prime_defender == from)) {
-		if((overall_score <= -50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && overall_score <= overall_po_value * 2)
-			return true;
-
-		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
-			return true; // offer contains everything
-		if(war_duration < 365) {
-			return false;
-		}
-		if(overall_score >= 0) {
-			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
-				return true;
-		} else {
-			if((overall_score - willingness_factor) <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
-				return true;
-		}
-
-	}
-	// Peace offer from secondary participant to primary participant (concession)
-	else if((prime_attacker == n || prime_defender == n) && concession) {
-		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-
-		if(scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit)
-			return true;
-
-		int32_t my_side_against_target = 0;
-		for(auto wg : state.world.war_get_wargoals_attached(w)) {
-			if(wg.get_wargoal().get_target_nation() == from) {
-				auto wg_value = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), n, wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-
-				my_side_against_target += wg_value;
-			}
-		}
-
-		if(overall_score < 0.0f) { // we are losing
-			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
-				return true;
-		} else {
-			if(my_side_against_target <= overall_po_value)
-				return true;
-		}
-	}
-	// Peace offer to secondary participant (concession & demand)
-	else {
-		if(contains_sq)
-			return false;
-
-		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-		if((scoreagainst_me > 50 || war_exhaustion > state.defines.alice_ai_war_exhaustion_readiness_limit) && scoreagainst_me > -overall_po_value * 2)
-			return true;
-
-		if(overall_score < 0.0f) { // we are losing
-			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
-				return true;
-
-		} else { // we are winning
-			if(my_po_target > 0 && my_po_target >= overall_po_value)
-				return true;
-		}
-	}
-
-	//will accept anything
-	if(has_cores_occupied(state, n))
-		return true;
-	return false;
-}
-
-bool naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
-	auto self_sup = state.world.nation_get_used_naval_supply_points(n);
-
-	auto real_target = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-	if(!real_target)
-		real_target = target;
-
-	if(self_sup <= state.world.nation_get_used_naval_supply_points(real_target))
-		return false;
-
-	if(self_sup <= state.world.nation_get_in_sphere_of(real_target).get_used_naval_supply_points())
-		return false;
-
-	for(auto a : state.world.nation_get_diplomatic_relation(real_target)) {
-		if(!a.get_are_allied())
-			continue;
-		auto other = a.get_related_nations(0) != real_target ? a.get_related_nations(0) : a.get_related_nations(1);
-		if(self_sup <= other.get_used_naval_supply_points())
-			return false;
-	}
-
-	return true;
+	return will_accept_peace_offer_value(state,
+		n, state.local_player_nation,
+		prime_attacker, prime_defender,
+		military::primary_warscore(state, w), military::directed_warscore(state, w, state.local_player_nation, n),
+		military::is_attacker(state, w, state.local_player_nation), is_concession,
+		overall_po_value, my_po_target,
+		target_personal_po_value, potential_peace_score_against,
+		my_side_against_target, my_side_peace_cost,
+		war_duration, contains_sq);
 }
 
 void make_war_decs(sys::state& state) {
@@ -4096,11 +4071,12 @@ void update_budget(sys::state& state) {
 		float mid_militancy = (state.world.nation_get_demographics(n, demographics::middle_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::middle_total))) / 10.f;
 		float rich_militancy = (state.world.nation_get_demographics(n, demographics::rich_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::rich_total))) / 10.f;
 
+		// don't tax pops too much
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
-			int max_poor_tax = int(10.f + 70.f * (1.f - poor_militancy));
-			int max_mid_tax = int(10.f + 80.f * (1.f - mid_militancy));
-			int max_rich_tax = int(10.f + 90.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 25.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 35.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 50.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// enough tax?
@@ -4136,9 +4112,9 @@ void update_budget(sys::state& state) {
 				}
 			}
 		} else {
-			int max_poor_tax = int(10.f + 90.f * (1.f - poor_militancy));
-			int max_mid_tax = int(10.f + 90.f * (1.f - mid_militancy));
-			int max_rich_tax = int(10.f + 40.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 30.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 30.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 10.f * (1.f - rich_militancy));
 			int max_social = int(20.f * poor_militancy);
 
 			// enough tax?
@@ -5322,8 +5298,18 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 		return 0.f;
 	// provide continous function for each military unit composition
 	// such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
+	
+	assert(std::isfinite(total_str));
+	assert(std::isfinite(str_inf));
+	assert(std::isfinite(str_art));
+	assert(std::isfinite(str_cav));
+
 	float min_cav = std::min(str_cav, str_inf * (1.f / 4.f)); // more cavalry isn't bad (if the rest of the composition is 4x/y/4x), just don't underestimate it!
+	assert(std::isfinite(min_cav));
+
 	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * min_cav / total_str)));
+	assert(std::isfinite(scale));
+
 	return total_str * scale;
 }
 

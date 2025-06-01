@@ -1158,13 +1158,21 @@ void update_single_factory_consumption(
 		expansion_scale = expansion_scale * std::min(1.f, actual_profit * 0.1f / base_expansion_cost);
 		register_inputs_demand(state, m, costs, expansion_scale, economy_reason::construction);
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
+		assert(std::isfinite(state.world.factory_get_size(fac)));
+		assert(state.world.factory_get_size(fac) > 0.f);
 	} else if(actual_profit < 0) {
 		state.world.factory_set_size(fac, std::max(500.f, current_size - base_size * expansion_scale));
+		assert(std::isfinite(state.world.factory_get_size(fac)));
+		assert(state.world.factory_get_size(fac) > 0.f);
 	}
 
 	if(state.world.commodity_get_uses_potentials(fac_type.get_output())) {
 		auto new_size = state.world.factory_get_size(fac);
-		state.world.factory_set_size(fac, std::min(new_size, state.world.province_get_factory_max_size(p, fac_type.get_output())));
+		// A factory may be created in history but have no potentials for such factory in the province
+		// Then we apply min size
+		state.world.factory_set_size(fac, std::min(new_size, std::max(500.f, state.world.province_get_factory_max_size(p, fac_type.get_output()))));
+		assert(std::isfinite(state.world.factory_get_size(fac)));
+		assert(state.world.factory_get_size(fac) > 0.f);
 	}
 
 	fac.set_unprofitable(actual_profit <= 0.0f);
@@ -1228,7 +1236,8 @@ void update_rgo_consumption(
 
 		auto max_efficiency = max_rgo_efficiency(state, n, p, c);
 		auto free_efficiency = max_efficiency * 0.1f;
-		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);		
+		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
+		// Calculation of e_inputs is duplicated in rgo_calculate_actual_efficiency_inputs function for use in the UI.
 		auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
 		auto e_inputs_data = get_inputs_data(state, m, e_inputs);
 		// we try to update our efficiency according to current profit derivative
@@ -1501,14 +1510,13 @@ void update_employment(sys::state& state) {
 		};
 
 		// this time we are content with very simple first order approximation
-		auto price_speed_gradient_time =
-			ve::select(
-				state.world.commodity_get_money_rgo(output),
-				0.f, 
-				price_speed_mod * (demand / supply - supply / demand)
-			);
+		auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
+		auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
+		auto speed_modifer = (overdemand_factor - oversupply_factor);
+		auto price_speed = ve::min(ve::max(price_speed_mod * speed_modifer, -0.025f), 0.025f);
+		price_speed = price_speed * price_output;
 
-		auto price_prediction = (price_output + 0.5f * price_speed_gradient_time);
+		auto price_prediction = (price_output + price_speed);
 		auto size = state.world.factory_get_size(facids);
 
 		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids);
@@ -1588,6 +1596,18 @@ void update_employment(sys::state& state) {
 		auto scaler = ve::select(total > state.world.factory_get_size(facids), state.world.factory_get_size(facids) / total, 1.f);
 
 #ifndef NDEBUG
+		ve::apply([&](auto p) { assert(std::isfinite(state.world.province_get_labor_demand_satisfaction(p, labor::high_education))); },
+			pid
+		);
+		ve::apply([&](auto factory) { if(state.world.factory_is_valid(factory)) {
+			assert(std::isfinite(state.world.factory_get_size(factory)));
+			assert(state.world.factory_get_size(factory) > 0.f);
+		}},
+			facids
+		);
+		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
+			facids, unqualified
+		);
 		ve::apply([&](auto factory, auto value) { if(state.world.factory_is_valid(factory)) assert(std::isfinite(value) && (value >= 0.f)); },
 			facids, unqualified_next
 		);
@@ -2004,7 +2024,59 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 		* state.world.market_get_supply_sold_ratio(mid, c);
 }
 
+// Duplicates the calculation of RGO efficiency inputs consumption for the RGO tooltip.
+commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id pid, dcon::commodity_id c, float mobilization_impact) {
+	auto size = state.world.province_get_rgo_size(pid, c);
+	if(size <= 0.f) {
+		return commodity_set{};
+	}
 
+	auto max_efficiency = max_rgo_efficiency(state, n, pid, c);
+	auto free_efficiency = max_efficiency * 0.1f;
+	auto current_efficiency = state.world.province_get_rgo_efficiency(pid, c);
+	auto e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
+	auto e_inputs_data = get_inputs_data(state, m, e_inputs);
+	// we try to update our efficiency according to current profit derivative
+	// if higher efficiency brings profit, we increase it
+	// 10% of max efficiency is free
+	auto cost_derivative = 0.f;
+	if(current_efficiency > free_efficiency) {
+		cost_derivative = e_inputs_data.total_cost;
+	}
+	auto profit_derivative =
+		state.world.commodity_get_rgo_amount(c)
+		/ state.defines.alice_rgo_per_size_employment
+		* state.world.market_get_price(m, c)
+		* state.world.market_get_supply_sold_ratio(m, c);
+	auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
+	// we assume that we can maintain efficiency even when there is not enough goods on the market:
+	// efficiency goods are "preserved" (but still demanded to "update")
+	// it's very risky to decrease efficiency depending on available efficiency goods directly
+	// because it might lead to instability cycles
+	// there is some natural decay of efficiency
+	// we decrease efficiency outside of decay only if decreasing efficiency is profitable
+	// but to increase efficiency, there should be enough of goods on the local market unless it's a free efficiency
+	if(efficiency_growth > 0.f && current_efficiency > free_efficiency) {
+		efficiency_growth = efficiency_growth * e_inputs_data.min_available;
+	}
+	auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
+	state.world.province_set_rgo_efficiency(pid, c, new_efficiency);
+
+	auto workers = state.world.province_get_rgo_target_employment(pid, c)
+		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)
+		* mobilization_impact;
+	auto demand_scale = workers * std::max(new_efficiency - free_efficiency, 0.f);
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(e_inputs.commodity_type[i]) {
+			e_inputs.commodity_amounts[i] *= demand_scale;
+		} else {
+			break;
+		}
+	}
+
+	return e_inputs;
+}
 
 float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	return state.world.province_get_artisan_score(id, c);

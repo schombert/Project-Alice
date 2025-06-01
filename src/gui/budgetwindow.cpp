@@ -2072,16 +2072,10 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 					state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt));
 				if(pop_of_type <= 0)
 					return;
-
-				auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
-				if(ln_type == culture::income_type::administration || ln_type == culture::income_type::education || ln_type == culture::income_type::military) {
-					//nothing
-				} else { // unemployment, pensions
-					total += pop_of_type * pension_per_person;
-					if(state.world.pop_type_get_has_unemployment(pt)) {
-						auto emp = state.world.state_instance_get_demographics(local_state, demographics::to_employment_key(state, pt));
-						total += (pop_of_type - emp) * benefits_per_person;
-					}
+				total += pop_of_type * pension_per_person;
+				if(state.world.pop_type_get_has_unemployment(pt)) {
+					auto emp = state.world.state_instance_get_demographics(local_state, demographics::to_employment_key(state, pt));
+					total += (pop_of_type - emp) * benefits_per_person;
 				}
 			});
 			if(total > 0.0f) {

@@ -307,6 +307,12 @@ a_railroad;a railroad
 a_fort;a fort
 a_naval_base;a naval base
 a_factory;a factory
+build_factory;Build factory
+upgrade_factory;Upgrade factory
+build_province_building;Build province building
+resource_potential;Resource potential
+available_potential;Local resources allow ?Y$val$?W levels of buildings producing $what$
+factory_level;Factory level ?Y$val$
 empty;unowned
 blockaded;blockaded
 national_modifier;national modifier
@@ -490,6 +496,7 @@ factory_condition_1;The nation is civilized
 factory_condition_2;This is not a colonial state
 factory_condition_3;The ruling party allows building factories
 factory_condition_4;There are fewer than $val$ factories in the state
+factory_condition_8;Factory type is allowed in colonial states
 cant_subsidize_explanation;The ruling party does not allow us to subsidize factories
 percent_of_pop_strata;$val$ of the population of their strata
 cant_prioritize_explanation;The ruling party does not allow us to change factory priority
@@ -504,9 +511,12 @@ factory_upgrade_condition_8;The ruling party allows upgrading factories
 factory_upgrade_condition_9;The factory is not already being upgraded
 factory_upgrade_condition_10;The factory is not at max level
 factory_build_condition_11;State has available resource potentials
+resource_potential;Resource potential
+available_potential;Local resources allow ?Y$val$?W levels of buildings producing $what$
 factory_upgrade_condition_11;State has available resource potentials
 factory_delete_header;Delete factory
 factory_delete_not_allowed;The ruling party does not allow us to delete factories
+factory_level;Factory level ?Y$val$
 factory_stats_1;This factory is currently operating at $val$ capacity
 factory_stats_2;This factory is targeting $val$ capacity
 factory_stats_3;It produced $val$ units of $x$ in the previous day
@@ -1080,7 +1090,9 @@ is_primary_religion;?Y$NAME$?! is the primary religion.
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
+alice_has_possible_units;Some unit can be built.
 alice_no_possible_units;No possible units can be built, and no units are in construction.
+CANBUILD_FORCEDISARM;Nation has not been disarmed.
 alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
 alice_loan_size_mod;Max loan free money modifier: ?G+$x$
@@ -1103,7 +1115,7 @@ alice_ca_cant_influence;We currently are unable to increase or decrease the opin
 alice_gp_status_regain_expiration;If we don't become rank ?Y$x$?W or higher, we will lose ?Ygreat power?W status by ?Y$date$?W!
 alice_mil_decay_description;Natural decay ?G-$x$
 alice_con_decay_description;Natural decay ?R-$x$
-x_from_y;$culture$ $x$ from $y$
+x_from_y;?Y$culture$?W $x$ from ?Y$y$?W
 x_in_y;$x$ at $y$
 alice_reserve_reg_count;$x$ currently have ?Y$y$?W reserve brigades in the battle.
 alice_reinforce_battle_mod_top;?Y$x$?W reserve brigades affected by the following reinforcement modifiers:
@@ -1348,12 +1360,16 @@ change_pname_to;Change $x$ party name to $text$
 change_rpname_to;Change ruling party name to $text$
 change_pposition_to;Change $x$ party position to $text$
 change_rpposition_to;Change ruling party position to $text$
-change_factory_limit_by;Change $good$ factory potential by $value$
+change_factory_limit_by;Change $good$ resource potential by $value$
 pname_is;$x$ party name
 rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
 topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
+provinceview_goodsprofit;With Profit of: ?Y$value$
+provinceview_max_employment;Potential max employment: ?Y$value$
+province_rgo_efficiency_inputs;Efficiency inputs:
+province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
 rgo_output;Output
 rgo_profit;Total
 rgo_expected_profit;Actual

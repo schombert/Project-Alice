@@ -1040,7 +1040,7 @@ alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
 alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去?Y列强?W地位！
 alice_mil_decay_description;自然衰减?G-$x$
 alice_con_decay_description;自然衰减?R-$x$
-x_from_y;$culture$ $x$来自$y$
+x_from_y;?Y$culture$?W $x$ 来自 ?Y$y$?W
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
 alice_domestic_investment_button;不推荐投资单个项目，请改用预算屏幕上的国内投资滑块
@@ -1516,3 +1516,16 @@ nation_id;爱丽丝 国家 ID
 province_colonisation_temperature;地区移民热度：?R$val$?W
 alice_unit_target;===> $x$
 change_factory_limit_by;将 $good$ 工厂 潜力 改为 $value$
+build_factory;建造工厂
+upgrade_factory;升级工厂
+build_province_building;建造省份工厂
+resource_potential;潜在资源
+available_potential;本地资源允许 ?Y$val$?W 生产等级于 $what$ 建筑
+factory_level;工厂等级 ?Y$val$
+provinceview_goodsprofit;利润：?Y$value$
+provinceview_max_employment;可能最多雇工数：?Y$value$
+province_rgo_efficiency_inputs;效率输入：
+province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
+factory_condition_8;殖民地允许的工厂类型
+alice_has_possible_units;可以建造一些单位。
+CANBUILD_FORCEDISARM;国家尚未解除武装。

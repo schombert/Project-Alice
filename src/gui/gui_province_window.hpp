@@ -14,9 +14,9 @@
 #include "gui_build_unit_large_window.hpp"
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
+#include "gui_province_tiles_window.hpp"
 
 namespace ui {
-
 
 class land_rally_point : public button_element_base {
 public:
@@ -1798,6 +1798,49 @@ public:
 template<typename T>
 class province_build_unit : public button_element_base {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			text::add_line(state, contents, "military_build_army_tooltip");
+		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+			text::add_line(state, contents, "military_build_navy_tooltip");
+		}
+
+		// Nation must not be disarmed
+		auto disarmed = state.world.nation_get_disarmed_until(state.local_player_nation) && state.current_date < state.world.nation_get_disarmed_until(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "canbuild_forcedisarm", !disarmed);
+
+		// There must be possible units to build in the selected province
+		auto no_possible_units = true;
+
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(uint8_t i = 2; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto utid = dcon::unit_type_id(i);
+			auto const& def = state.military_definitions.unit_base_definitions[utid];
+			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+				continue;
+			if(def.is_land != std::is_same_v<T, dcon::army_id>)
+				continue;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				for(const auto c : state.world.in_culture) {
+					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						no_possible_units = false;
+					}
+				}
+			} else {
+				no_possible_units = !command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
+			}
+
+			if(!no_possible_units) {
+				break;
+			}
+		}
+
+		text::add_line_with_condition(state, contents, "alice_has_possible_units", !no_possible_units);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		disabled = true;
 		//
@@ -1810,14 +1853,14 @@ public:
 			if(def.is_land != std::is_same_v<T, dcon::army_id>)
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				for(const auto c : state.world.in_culture) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					for(const auto c : state.world.in_culture) {
+						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
-									disabled = false;
-									break;
-								}
+								disabled = false;
+								break;
+						}
 							}
 						}
 					} else {
@@ -2838,12 +2881,23 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 	}
 };
 
-struct province_economy_toggle_signal { };
+enum province_subtab_toggle_signal {
+	economy = 1,
+	tiles = 2
+};
+
 
 class economy_data_toggle : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send<province_economy_toggle_signal>(state, parent, { });
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::economy);
+	}
+};
+
+class province_tiles_toggle : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::tiles);
 	}
 };
 
@@ -2859,7 +2913,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "toggle-economy-province") {
 			return make_element_by_type<economy_data_toggle>(state, id);
-		}else if(name == "table_rgo_data") {
+		} else if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
 				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_wages,
 				rgo_inputs, rgo_employment, rgo_max_employment, rgo_saturation
@@ -2976,17 +3030,24 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<province_economy_toggle_signal>()) {
-			if(rgo_bg->is_visible()) {
-				trade_table->set_visible(state, false);
-				trade_routes_bg->set_visible(state, false);
-				rgo_table->set_visible(state, false);
-				rgo_bg->set_visible(state, false);
-				rgo_headers->set_visible(state, false);
-			} else {
-				rgo_table->set_visible(state, true);
-				rgo_bg->set_visible(state, true);
-				rgo_headers->set_visible(state, true);
+		if(payload.holds_type<province_subtab_toggle_signal>()) {
+			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
+
+			if(enum_val == province_subtab_toggle_signal::economy) {
+				if(rgo_bg->is_visible()) {
+					trade_table->set_visible(state, false);
+					trade_routes_bg->set_visible(state, false);
+					rgo_table->set_visible(state, false);
+					rgo_bg->set_visible(state, false);
+					rgo_headers->set_visible(state, false);
+				} else {
+					rgo_table->set_visible(state, true);
+					rgo_bg->set_visible(state, true);
+					rgo_headers->set_visible(state, true);
+				}
+			}
+			else if(enum_val == province_subtab_toggle_signal::tiles) {
+
 			}
 			return message_result::consumed;
 		}
@@ -3004,6 +3065,7 @@ private:
 	province_window_colony* colony_window = nullptr;
 	province_economy_window* economy_window = nullptr;
 	element_base* nf_win = nullptr;
+	element_base* tiles_window = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -3014,6 +3076,11 @@ public:
 		auto ptr = make_element_by_type<build_unit_province_window>(state, "build_unit_view");
 		state.ui_state.build_province_unit_window = ptr.get();
 		add_child_to_front(std::move(ptr));
+
+		auto ptr2 = make_element_by_type<province_tiles_window>(state, "province_tiles_window");
+		tiles_window = ptr2.get();
+		tiles_window->set_visible(state, false);
+		add_child_to_front(std::move(ptr2));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -3054,6 +3121,8 @@ public:
 			auto ptr = make_element_by_type<province_economy_window>(state, id);
 			economy_window = ptr.get();
 			return ptr;
+		} else if(name == "toggle-tiles-province") {
+			return make_element_by_type<province_tiles_toggle>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -3078,10 +3147,17 @@ public:
 			dcon::market_id mid = dcon::fatten(state.world, active_province).get_state_membership().get_market_from_local_market();
 			payload.emplace<dcon::market_id>(mid);
 			return message_result::consumed;
+		} else if (payload.holds_type<province_subtab_toggle_signal>()) {
+			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
+
+			if(enum_val == province_subtab_toggle_signal::tiles) {
+				tiles_window->set_visible(state, !tiles_window->is_visible());
+			}
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
-
+	
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
