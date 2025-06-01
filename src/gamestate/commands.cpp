@@ -5601,8 +5601,9 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
-	state.render_semaphore.acquire();
 
+	window::change_cursor(state, window::cursor_type::busy);
+	state.render_semaphore.acquire();
 	std::vector<dcon::nation_id> players;
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
@@ -5618,8 +5619,9 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	network::place_players_after_reload(state, players, old_local_player_nation);
 	state.fill_unsaved_data();
-
 	state.render_semaphore.release();
+	window::change_cursor(state, window::cursor_type::normal);
+	
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	assert(state.session_host_checksum.is_equal(state.get_mp_state_checksum()));
 	command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify we are done reloading
