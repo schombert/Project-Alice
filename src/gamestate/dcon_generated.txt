@@ -5801,12 +5801,6 @@ load_save{
 	only_objects{save}{local_save}
 	only_properties{save}{local_save}
 }
-
-load_save{
-	name{store_only_derived_state}
-	only_objects{derived_state}
-	only_properties{derived_state}
-}
 load_save{
 	name{store_reload_protected_state}
 	only_objects{keep_after_state_reload}

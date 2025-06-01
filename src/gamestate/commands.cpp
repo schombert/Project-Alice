@@ -5311,7 +5311,7 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	if(p) {
 		auto oldnation = state.world.mp_player_get_nation_from_player_nation(p);
 
-		if (oldnation != source)
+		if (oldnation != source && oldnation) // check for old nation validity before setting it to be not player controlled
 			state.world.nation_set_is_player_controlled(oldnation, false);
 
 		// Server already validated password by this point

@@ -40,6 +40,11 @@ An assigned nation is a "random" nation that the server will hand out to the cli
 
 We send a copy of the save to the client, ultra-compressed, to permit it to connect without having to use external toolage, this is done for example when the host is loading a savefile - the client is given the new data of the savefile to keep them in sync.
 
+### Re-sync
+
+The lobby can be resyncronized if one or more players are OOS, and must be done manually by the host in the "tab" lobby screen.
+
+
 ### Hot-join
 
 A new functionality is hotjoining to running sessions - the client may connect to the host and the host will assign them a random nation, if they wish to change their nation then they'll have to ask the host to go back to the lobby.
