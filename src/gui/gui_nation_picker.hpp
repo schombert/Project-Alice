@@ -183,7 +183,9 @@ public:
 			if(state.world.nation_get_is_player_controlled(n))
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
-		state.preload();
+		/*state.preload();*/
+		state.render_semaphore.acquire();
+		state.reset_state();
 		bool loaded = false;
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
@@ -214,11 +216,21 @@ public:
 			friendly reminder that, scenario loading and reloading ends up with different outcomes */
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
+
+
+				// notfy every client that every client is now loading (loading the save)
+				for(auto& loading_client : state.network_state.clients) {
+					if(loading_client.is_active()) {
+						network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
+					}
+				}
+
 				/* Save the buffer before we fill the unsaved data */
 				state.local_player_nation = dcon::nation_id{ };
-				network::place_host_player_after_saveload(state);
+				//network::place_host_player_after_saveload(state);
 
 				network::write_network_save(state);
+				network::place_players_after_reload(state, players, old_local_player_nation);
 				state.fill_unsaved_data();
 				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
@@ -243,6 +255,7 @@ public:
 		state.sprawl_update_requested.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
+		state.render_semaphore.release();
 
 		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
 	}

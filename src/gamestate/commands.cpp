@@ -5616,9 +5616,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	/* Then reload as if we loaded the save data */
 	state.reset_state();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-	state.local_player_nation = old_local_player_nation;
-	for(const auto n : players)
-		state.world.nation_set_is_player_controlled(n, true);
+	network::place_players_after_reload(state, players, old_local_player_nation);
 	state.fill_unsaved_data();
 
 	state.render_semaphore.release();

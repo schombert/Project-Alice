@@ -318,6 +318,7 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		if(state.network_mode == sys::network_mode_type::host) {
+			disabled = true;
 			network::full_reset_after_oos(state);
 		}
 	}

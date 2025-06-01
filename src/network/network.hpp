@@ -124,10 +124,13 @@ void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
 dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos);
+void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::nation_id nation, bool execute_self); // wrapper for notiying clients are loading
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
 dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation);
+dcon::nation_id get_first_available_ai_nation(sys::state& state); // returns the first available nation from dcon which is ai controlled, should be deterministic with saves to use on client+host and not break synch
+void place_players_after_reload(sys::state& state, std::vector<dcon::nation_id>& players, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
 bool any_player_oos(sys::state& state);
 void log_player_nations(sys::state& state);
 

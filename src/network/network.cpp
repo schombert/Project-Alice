@@ -743,6 +743,42 @@ static dcon::nation_id choose_nation_for_player(sys::state& state) {
 	return dcon::nation_id{ };
 }
 
+dcon::nation_id get_first_available_ai_nation(sys::state& state) {
+	for(auto nation : state.world.in_nation) {
+		if(nation && !nation.get_is_player_controlled()) {
+			return nation;
+		}
+	}
+
+	// if there are no nations available
+	return dcon::nation_id{ };
+}
+
+
+void place_players_after_reload(sys::state& state, std::vector<dcon::nation_id>& players, dcon::nation_id old_local_player_nation) {
+	for(auto playernation : players) {
+		if(state.world.nation_is_valid(playernation)) {
+			state.world.nation_set_is_player_controlled(playernation, true);
+			if(playernation == old_local_player_nation) {
+				state.local_player_nation = playernation;
+			}
+		}
+		else {
+			auto new_nation = network::get_first_available_ai_nation(state);
+			if(new_nation) {
+				state.world.nation_set_is_player_controlled(new_nation, true);
+				if(playernation == old_local_player_nation) {
+					state.local_player_nation = playernation;
+				}
+			}
+			else {
+				// refactor this when co-op becomes possible
+				ui::popup_error_window(state, "Too many players", "There are not enough nations for the amount of players");
+			}
+		}
+	}
+}
+
 bool any_player_oos(sys::state& state) {
 	for(auto player : state.world.in_mp_player) {
 		if(player && player.get_is_oos()) {
@@ -912,7 +948,7 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 
 
 
-void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::nation_id nation) {
+void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::nation_id nation, bool execute_self) {
 	command::payload c;
 	memset(&c, 0, sizeof(c));
 	c.type = command::command_type::notify_player_is_loading;
@@ -920,12 +956,14 @@ void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::na
 	c.data.notify_player_is_loading.name = name;
 
 	for(auto& cl : state.network_state.clients) {
-		if(!cl.is_active() || cl.playing_as == nation) {
+		if(!cl.is_active()) {
 			continue;
 		}
 		socket_add_to_send_queue(cl.send_buffer, &c, sizeof(c));
 	}
-	command::execute_command(state, c);
+	if(execute_self) {
+		command::execute_command(state, c);
+	}
 #ifndef NDEBUG
 	state.console_log("host:broadcast:cmd | type:notify_player_is_loading nation:" + std::to_string(nation.index()));
 #endif
@@ -997,9 +1035,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
 	});
-	state.local_player_nation = old_local_player_nation;
-	for(const auto n : players)
-		state.world.nation_set_is_player_controlled(n, true);
+	network::place_players_after_reload(state, players, old_local_player_nation);
 	state.fill_unsaved_data();
 	state.render_semaphore.release();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
