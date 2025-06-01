@@ -6685,11 +6685,12 @@ bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_i
 bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
 	/* If mod uses Factory Province limits */
 	auto output = state.world.factory_type_get_output(type);
-	auto limit = economy::calculate_province_factory_limit(state, location, output);
 
 	if(!output.get_uses_potentials()) {
 		return true;
 	}
+
+	auto limit = economy::calculate_province_factory_limit(state, location, output);
 
 	// Will upgrade put us over the limit?
 	auto existing_levels = 0.f;
