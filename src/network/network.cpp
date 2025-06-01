@@ -1072,17 +1072,7 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 			for(auto& other_client : state.network_state.clients) {
 				if(other_client.playing_as != client.playing_as && other_client.is_active()) {
 					// for each client that must reload, notify every other client that they are loading
-					command::payload p;
-					memset(&p, 0, sizeof(p));
-					p.type = command::command_type::notify_player_is_loading;
-					p.source = other_client.playing_as;
-					p.data.notify_player_is_loading.name = other_client.hshake_buffer.nickname;
-					command::execute_command(state, p);
-					for(auto& to_be_notified : state.network_state.clients) {
-						if(to_be_notified.is_active()) {						
-							socket_add_to_send_queue(to_be_notified.send_buffer, &p, sizeof(p));	
-						}					
-					}
+					network::notify_player_is_loading(state, other_client.hshake_buffer.nickname, other_client.playing_as, true);
 
 					// then send the actual reload notification
 					socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
@@ -1186,19 +1176,8 @@ void full_reset_after_oos(sys::state& state) {
 		// notfy every client that every client is now loading (reloading or loading the save)
 		for(auto& loading_client : state.network_state.clients) {
 			if(loading_client.is_active()) {
-				command::payload c;
-				memset(&c, 0, sizeof(command::payload));
-				c.type = command::command_type::notify_player_is_loading;
-				c.source = loading_client.playing_as;
-				c.data.notify_player_is_loading.name = loading_client.hshake_buffer.nickname;
-				command::execute_command(state, c);
-				for(auto& to_be_notified : state.network_state.clients) {
-					if(to_be_notified.is_active()) {
-						socket_add_to_send_queue(to_be_notified.send_buffer, &c, sizeof(c));
-					}
-				}
+				network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
 			}
-			
 		}
 		// if the save state has changed, write a new network save
 		if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
