@@ -3220,6 +3220,10 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 
 	if(!nations::is_great_power(state, new_gp))
 		return;
+	if(nations::is_great_power(state, member)) {
+		// edge case which happens when losing nation became a great power during the war
+		return;
+	}
 	if(state.world.nation_get_owned_province_count(member) == 0)
 		return;
 
