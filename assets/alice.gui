@@ -4640,12 +4640,8 @@ guiTypes = {
 		guiButtonType = {
 			name = "resync_button"
 			extends = "ingame_lobby_window"
-			quadTextureSprite = "GFX_button_standard_144"
-			buttonFont = "vic_18_black"
-			tooltip = ""
-			tooltipText =""	
-			delayedTooltipText = ""
-			position = { x=205 y =314}
+			quadTextureSprite = "GFX_alice_event_auto"
+			position = { x=535 y =314}
 		}
 
 

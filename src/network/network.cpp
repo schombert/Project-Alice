@@ -1619,6 +1619,7 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 				state.console_log("client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
 #endif
+				window::change_cursor(state, window::cursor_type::busy);
 				load_network_save(state, state.network_state.save_data.data());
 
 #ifndef NDEBUG
@@ -1632,6 +1633,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.game_state_updated.store(true, std::memory_order::release);
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
+				window::change_cursor(state, window::cursor_type::normal);
 				command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify that we are loaded and ready to start
 			});
 			if(r > 0) { // error

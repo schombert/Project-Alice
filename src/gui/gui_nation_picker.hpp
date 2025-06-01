@@ -184,7 +184,7 @@ public:
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		/*state.preload();*/
-		state.render_semaphore.acquire();
+		/*state.render_semaphore.acquire();*/
 		state.reset_state();
 		bool loaded = false;
 		if(i->is_new_game) {
@@ -255,7 +255,7 @@ public:
 		state.sprawl_update_requested.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
-		state.render_semaphore.release();
+		/*state.render_semaphore.release();*/
 
 		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
 	}

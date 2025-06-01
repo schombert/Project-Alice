@@ -5657,9 +5657,11 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
 			ai::remove_ai_data(state, n);
+	state.render_semaphore.acquire();
 	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
+	state.render_semaphore.release();
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -5716,9 +5718,11 @@ void execute_notify_player_fully_loaded(sys::state& state, dcon::nation_id sourc
 }
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
+	state.render_semaphore.acquire();
 	game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
+	state.render_semaphore.release();
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {

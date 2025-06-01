@@ -307,7 +307,7 @@ class chat_resync_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_lobby_resync"));
+		//set_button_text(state, text::produce_simple_string(state, "alice_lobby_resync"));
 	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = true;
