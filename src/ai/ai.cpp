@@ -1,5 +1,6 @@
 #include "ai.hpp"
 #include "ai_types.hpp"
+#include "ai_campaign_values.hpp"
 #include "system_state.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
@@ -157,85 +158,6 @@ void update_ai_ruling_party(sys::state& state) {
 		}
 	}
 }
-
-int32_t future_rebels_in_nation(sys::state& state, dcon::nation_id n) {
-	auto total = 0;
-	for(auto fac : state.world.nation_get_rebellion_within(n)) {
-		for(auto ar : state.world.rebel_faction_get_army_rebel_control(fac.get_rebels())) {
-			auto regs = ar.get_army().get_army_membership();
-			total += int32_t(regs.end() - regs.begin());
-		}
-	}
-
-	return total;
-}
-
-int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
-	auto fid = dcon::fatten(state.world, nation);
-
-	auto factor = 1.0f;
-
-	if(state.world.nation_get_ai_is_threatened(nation)) {
-		factor *= 1.25f;
-	}
-
-	if(fid.get_is_at_war()) {
-		factor *= 1.5f;
-	}
-
-	if(state.world.nation_get_ai_strategy(nation) == ai_strategies::militant) {
-		factor *= 1.25f;
-	} else {
-		factor *= 0.75f;
-	}
-
-	if(future_rebels_in_nation(state, nation) == 0) {
-		factor *= 0.9f;
-	}
-	else {
-		factor *= 1.1f;
-	}
-
-	auto in_sphere_of = state.world.nation_get_in_sphere_of(nation);
-
-	// Most dangerous neighbor
-	dcon::nation_id greatest_neighbor;
-	auto greatest_neighbor_strength = 0.0f;
-
-	auto own_str = estimate_strength(state, nation);
-	for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(nation)) {
-		auto other = b.get_connected_nations(0) != nation ? b.get_connected_nations(0) : b.get_connected_nations(1);
-		if(!nations::are_allied(state, nation, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
-
-			auto other_str = estimate_strength(state, other);
-			if(other_str > greatest_neighbor_strength && other_str < own_str * 10.0f) {
-				greatest_neighbor_strength = other_str;
-				greatest_neighbor = other;
-			}
-		}
-	}
-
-	// How many regiments it has
-	int16_t total = 0;
-	for(auto p : state.world.nation_get_army_control(greatest_neighbor)) {
-		auto frange = p.get_army().get_army_membership();
-		total += int16_t(frange.end() - frange.begin());
-	}
-
-	// Debug lines
-#ifndef NDEBUG
-	auto fid2 = dcon::fatten(state.world, nation);
-	auto identity = fid.get_identity_from_identity_holder();
-	auto tagname = text::produce_simple_string(state, identity.get_name());
-	fid2 = dcon::fatten(state.world, greatest_neighbor);
-	identity = fid2.get_identity_from_identity_holder();
-	auto greatest_neighbour_tagname = text::produce_simple_string(state, identity.get_name());
-#endif
-
-	// Use ceil: we want a bit stronger army than the enemy, at least one regiment.
-	return int16_t(std::clamp(ceil(total * double(factor)), ceil(0.1 * fid.get_recruitable_regiments()), 1.0 * fid.get_recruitable_regiments()));
-}
-
 
 void update_ai_colonial_investment(sys::state& state) {
 	static std::vector<dcon::state_definition_id> investments;

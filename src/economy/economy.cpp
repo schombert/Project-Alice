@@ -6,7 +6,7 @@
 #include "construction.hpp"
 #include "demographics.hpp"
 #include "dcon_generated.hpp"
-#include "ai.hpp"
+#include "ai_economy.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
 #include "math_fns.hpp"

@@ -1,6 +1,7 @@
 #include "ai_campaign.hpp"
 #include "ai_campaign_values.hpp"
 #include "ai_types.hpp"
+#include "prng.hpp"
 
 namespace ai {
 

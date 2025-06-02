@@ -1,3 +1,6 @@
+#include "ai_alliances.hpp"
+#include "ai_campaign_values.hpp"
+
 namespace ai {
 
 constexpr inline float ally_overestimate = 2.f;

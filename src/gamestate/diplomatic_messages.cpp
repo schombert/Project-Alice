@@ -5,6 +5,8 @@
 #include "ai_campaign.hpp"
 #include "ai_war.hpp"
 #include "ai_types.hpp"
+#include "ai_campaign_values.hpp"
+#include "ai_alliances.hpp"
 
 namespace diplomatic_message {
 

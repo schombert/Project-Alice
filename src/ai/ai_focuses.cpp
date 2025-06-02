@@ -1,3 +1,8 @@
+#include "ai_focuses.hpp"
+#include "demographics.hpp"
+#include "triggers.hpp"
+
+
 namespace ai {
 void identify_focuses(sys::state& state) {
 	for(auto f : state.world.in_national_focus) {

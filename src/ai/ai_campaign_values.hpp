@@ -11,6 +11,8 @@ struct layout_base;
 
 namespace ai {
 
+int32_t future_rebels_in_nation(sys::state& state, dcon::nation_id n);
+int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation);
 float estimate_naval_strength(sys::state& state, dcon::nation_id n);
 
 float estimate_strength(sys::state& state, dcon::nation_id n);

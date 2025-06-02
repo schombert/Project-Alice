@@ -1,3 +1,13 @@
+#include "ai_economy.hpp"
+#include "ai_campaign_values.hpp"
+#include "economy_stats.hpp"
+#include "economy_production.hpp"
+#include "economy_government.hpp"
+#include "construction.hpp"
+#include "demographics.hpp"
+#include "prng.hpp"
+#include "math_fns.hpp"
+
 namespace ai {
 
 void update_factory_types_priority(sys::state& state) {
