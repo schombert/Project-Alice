@@ -453,7 +453,9 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			ai::prepare_and_sort_list_of_desired_states(state, target_states, m.to, m.from);
 
 			for(auto sid : target_states) {
-				if(state.world.state_instance_get_definition(sid.target) == m.data.state) {
+				if(
+					state.world.state_instance_get_definition(sid.target) == m.data.state
+				) {
 					return true; // AI wants this state
 				}
 			}

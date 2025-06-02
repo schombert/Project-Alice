@@ -84,8 +84,8 @@ float utility_multiplier(
 
 // no chance to win a war against equal enemy
 
-inline constexpr float STRENGTH_RATIO_UNLIKELY_VICTORY = 1.f;
-inline constexpr float STRENGTH_RATIO_TOTAL_VICTORY = 2.f;
+inline constexpr float STRENGTH_RATIO_UNLIKELY_VICTORY = 0.5f;
+inline constexpr float STRENGTH_RATIO_TOTAL_VICTORY = 3.f;
 // probability to naval invade given a total naval superiority 
 inline constexpr float AI_NAVAL_INVASION_STUPIDITY = 0.8f;
 static_assert(STRENGTH_RATIO_TOTAL_VICTORY > STRENGTH_RATIO_UNLIKELY_VICTORY);
@@ -102,7 +102,8 @@ float probability_of_conquering_state(
 	sys::state& state,
 	dcon::nation_id conqueror,
 	float conqueror_strength,
-	dcon::state_instance_id target
+	dcon::state_instance_id target,
+	float target_strength
 ) {
 	auto victim = state.world.state_instance_get_nation_from_state_ownership(target);
 
@@ -130,8 +131,7 @@ float probability_of_conquering_state(
 		}
 	}
 
-	float victim_strength = 5.f + ai::estimate_defensive_strength(state, victim);
-	probability_to_conquer *= supremacy_ratio_to_probability(conqueror_strength / victim_strength);
+	probability_to_conquer *= supremacy_ratio_to_probability(conqueror_strength / (target_strength + 1.f));
 
 	return probability_to_conquer;
 }
@@ -140,7 +140,8 @@ float probability_of_winning(
 	sys::state& state,
 	dcon::nation_id conqueror,
 	float conqueror_strength,
-	dcon::nation_id victim
+	dcon::nation_id victim,
+	float victim_strength
 ) {
 	float probability_to_conquer = 1.f;
 	bool target_is_close = false;
@@ -169,7 +170,6 @@ float probability_of_winning(
 		}
 	}
 
-	float victim_strength = 5.f + ai::estimate_defensive_strength(state, victim);
 	probability_to_conquer *= supremacy_ratio_to_probability(conqueror_strength / victim_strength);
 
 	return probability_to_conquer;
@@ -187,7 +187,7 @@ float utility_of_offensive_war(
 	dcon::nation_id attacker,
 	dcon::nation_id defender
 ) {
-	// assume that we lose 5% of population during war we can't win
+	// assume that we lose 0.1% of population during war we can't win
 	// assume that we lose nothing during total victory 
 	// TODO: make better estimations and assumptions
 	// requires gathering more data and statistics
@@ -196,9 +196,10 @@ float utility_of_offensive_war(
 	float victim_strength = 5.f + ai::estimate_defensive_strength(state, defender);
 
 	float chance_to_win = supremacy_ratio_to_probability(our_strength / victim_strength);
-	float lost_population_ratio = (1.f - chance_to_win) * 0.05f;
+	float lost_population_ratio = (1.f - chance_to_win) * 0.001f;
 
-	return -state.world.nation_get_demographics(attacker, demographics::total);
+	return -state.world.nation_get_demographics(attacker, demographics::total)
+		* lost_population_ratio;
 }
 
 float utility_efficiency_of_state(
@@ -475,33 +476,19 @@ bool ai_offer_cb(sys::state& state, dcon::cb_type_id t) {
 void prepare_and_sort_list_of_desired_states(
 	sys::state& state,
 	std::vector<ai::weighted_state_instance>& result,
-	dcon::nation_id attacker,
+	dcon::nation_id beneficiary,
 	dcon::nation_id target
 ) {
-	auto attacker_strength = ai::estimate_strength(state, attacker);
-	auto utility_of_war = utility_of_offensive_war(state, attacker, target);
-	auto multiplier = utility_multiplier(
-		state, attacker, target, attacker
-	);
-
 	for(auto soid : state.world.nation_get_state_ownership(target)) {
 		auto sid = soid.get_state().id;
 		auto utility = utility_of_state(
-			state, attacker, sid
+			state, beneficiary, sid
 		);
 		auto efficiency = utility_efficiency_of_state(
-			state, attacker, sid
-		);
-		auto probability = probability_of_conquering_state(
-			state, attacker, attacker_strength, sid
+			state, beneficiary, sid
 		);
 
-		// if we do not want some territorry,
-		// conquering it from an ally to help him
-		// to lose this bad territorry would be strange
-		// so we put a max clamp here
-
-		auto expected_utility = utility * efficiency * probability * std::max(multiplier, 0.f) + utility_of_war;
+		auto expected_utility = utility * efficiency;
 		if(expected_utility > 0.f) {
 			result.push_back(weighted_state_instance{
 				sid,
@@ -521,15 +508,19 @@ void prepare_list_of_states_for_conquest(
 	sys::state& state,
 	std::vector<ai::possible_cb>& result,
 	dcon::nation_id attacker,
+	float attacker_strength,
 	dcon::nation_id target,
+	float target_strength,
 	dcon::cb_type_id cb,
 	dcon::trigger_key trigger,
 	dcon::war_id war // can be empty!!!
 ) {
 	assert(trigger);
 
-	auto attacker_strength = ai::estimate_strength(state, attacker);
-	auto utility_of_war = utility_of_offensive_war(state, attacker, target);
+	auto utility_of_war = 0.f;
+	if(!war) {
+		utility_of_war = utility_of_offensive_war(state, attacker, target);
+	}
 	auto multiplier = utility_multiplier(
 		state, attacker, target, attacker
 	);
@@ -543,7 +534,7 @@ void prepare_list_of_states_for_conquest(
 			state, attacker, sid
 		);
 		auto probability = probability_of_conquering_state(
-			state, attacker, attacker_strength, sid
+			state, attacker, attacker_strength, sid, target_strength
 		);
 
 		// if we do not want some territorry,
@@ -618,7 +609,7 @@ void prepare_list_of_targets_for_cb(
 	dcon::nation_id attacker,
 	dcon::nation_id target,
 	dcon::cb_type_id cb,
-	dcon::war_id w // can be empty!!!
+	dcon::war_id war // can be empty!!!
 ) {
 	auto can_use = state.world.cb_type_get_can_use(cb);
 
@@ -644,24 +635,55 @@ void prepare_list_of_targets_for_cb(
 		return;
 	}
 
-	auto attacker_strength = ai::estimate_strength(state, attacker);
+	auto attacker_strength = 1.f;
+	auto defender_strength = 1.f;
+
+	if(war) {
+		auto attacker_role = military::get_role(state, war, attacker);
+		if(attacker_role == military::war_role::attacker) {
+			state.world.war_for_each_war_participant(war, [&](auto wpid) {
+				auto nation = state.world.war_participant_get_nation(wpid);
+				if(state.world.war_participant_get_is_attacker(wpid)) {
+					attacker_strength += ai::estimate_strength(state, nation);
+				} else {
+					defender_strength += ai::estimate_strength(state, nation);
+				}
+			});
+		} else {
+			state.world.war_for_each_war_participant(war, [&](auto wpid) {
+				auto nation = state.world.war_participant_get_nation(wpid);
+				if(state.world.war_participant_get_is_attacker(wpid)) {
+					defender_strength += ai::estimate_strength(state, nation);
+				} else {
+					attacker_strength += ai::estimate_strength(state, nation);
+				}
+			});
+		}
+	} else {
+		attacker_strength = ai::estimate_strength(state, attacker);
+		defender_strength = ai::estimate_defensive_strength(state, target);
+	}
+
+	auto probability_to_win_war = probability_of_winning(
+		state, attacker, attacker_strength, target, defender_strength
+	);
 
 	// we don't care about declaration of war if we are already in war
 	auto utility_of_war = 0.f;
-	if(!w) {
+	if(!war) {
 		utility_of_war = utility_of_offensive_war(state, attacker, target);
 	}
 
 	if(!nation_trigger && state_instance_trigger) {		
 		prepare_list_of_states_for_conquest(
-			state, result, attacker, target, cb, state_instance_trigger, w
+			state, result, attacker, attacker_strength, target, defender_strength, cb, state_instance_trigger, war
 		);
 		return;
 	}
 
 	if(substate_trigger) { // checking for whether the target is a substate is already done above
 		prepare_list_of_states_for_conquest(
-			state, result, attacker, target, cb, substate_trigger, w
+			state, result, attacker, attacker_strength, target, defender_strength, cb, substate_trigger, war
 		);
 		return;
 	}
@@ -704,7 +726,7 @@ void prepare_list_of_targets_for_cb(
 					for(auto soid : state.world.nation_get_state_ownership(target)) {
 						auto sid = soid.get_state().id;
 						auto probability = probability_of_conquering_state(
-							state, attacker, attacker_strength, sid
+							state, attacker, attacker_strength, sid, defender_strength
 						);
 
 						auto expectation = utility_of_state(state, target, sid)
@@ -721,7 +743,7 @@ void prepare_list_of_targets_for_cb(
 						auto duplicated = military::war_goal_would_be_duplicate(
 							state,
 							attacker,
-							w,
+							war,
 							target,
 							cb,
 							state.world.state_instance_get_definition(sid),
@@ -745,13 +767,9 @@ void prepare_list_of_targets_for_cb(
 				} else {
 					assert(military::cb_conditions_satisfied(state, attacker, target, cb));
 
-					auto probability = probability_of_winning(
-						state, attacker, attacker_strength, target
-					);
-
 					auto expectation = utility_of_states_trigger(state, target, liberated, state_instance_trigger)
 						* multiplier
-						* probability
+						* probability_to_win_war
 						+ utility_of_war;
 
 					if(expectation <= 0) {
@@ -761,7 +779,7 @@ void prepare_list_of_targets_for_cb(
 					auto duplicated = military::war_goal_would_be_duplicate(
 						state,
 						attacker,
-						w,
+						war,
 						target,
 						cb,
 						dcon::state_definition_id{},
@@ -788,7 +806,7 @@ void prepare_list_of_targets_for_cb(
 					for(auto soid : state.world.nation_get_state_ownership(target)) {
 						auto sid = soid.get_state().id;
 						auto probability = probability_of_conquering_state(
-							state, attacker, attacker_strength, sid
+							state, attacker, attacker_strength, sid, defender_strength
 						);
 
 						auto expectation = utility_of_state(state, target, sid)
@@ -805,7 +823,7 @@ void prepare_list_of_targets_for_cb(
 						auto duplicated = military::war_goal_would_be_duplicate(
 							state,
 							attacker,
-							w,
+							war,
 							target,
 							cb,
 							state.world.state_instance_get_definition(sid),
@@ -828,13 +846,10 @@ void prepare_list_of_targets_for_cb(
 					}
 				} else {
 					assert(military::cb_conditions_satisfied(state, attacker, target, cb));
-					auto probability = probability_of_winning(
-							state, attacker, attacker_strength, target
-					);
 
 					auto expectation = utility_of_states_trigger(state, target, liberated, state_instance_trigger)
 						* multiplier
-						* probability
+						* probability_to_win_war
 						+ utility_of_war;
 
 					if(expectation <= 0) {
@@ -844,13 +859,17 @@ void prepare_list_of_targets_for_cb(
 					auto duplicated = military::war_goal_would_be_duplicate(
 						state,
 						attacker,
-						w,
+						war,
 						target,
 						cb,
 						dcon::state_definition_id{},
 						dcon::national_identity_id{},
 						liberated
 					);
+
+					if(duplicated) {
+						continue;
+					}
 
 					result.push_back(possible_cb{
 						target,
@@ -875,14 +894,15 @@ void prepare_list_of_targets_for_cb(
 	auto duplicated = military::war_goal_would_be_duplicate(
 		state,
 		attacker,
-		w,
+		war,
 		target,
 		cb,
 		dcon::state_definition_id{},
 		dcon::national_identity_id{},
 		dcon::nation_id{}
 	);
-	if (!duplicated)
+	
+	if (!duplicated && probability_to_win_war > 0.5f)
 		result.push_back(possible_cb{ target, dcon::nation_id{}, dcon::national_identity_id{}, dcon::state_definition_id{}, cb, 1.f });
 	return;
 }
@@ -1359,40 +1379,11 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 		return false;
 	if(military::has_truce_with(state, target, from))
 		return false;
+	if(state.world.nation_get_owned_province_count(target) == 0)
+		return false;
 	auto sl = state.world.nation_get_in_sphere_of(target);
 	if(sl == from)
 		return false;
-	// Its easy to defeat a nation at war
-	if(state.world.nation_get_is_at_war(target)) {
-		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.15f) {
-			return false;
-		}
-	} else {
-		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
-			return false;
-	}
-	if(state.world.nation_get_owned_province_count(target) <= 0)
-		return false;
-
-	// if target is a landlocked nation or we are landlocked nation outselves
-	// and we are not neighbors
-	// we don't need any land of the nation
-	// because we cannot reliably benefit from it due to local control mechanic
-	if(nations::is_landlocked(state, target) || nations::is_landlocked(state, from)) {
-		if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(from, target)) {
-			return false;
-		}
-	}
-
-	// Attacking people from other continents only if we have naval superiority
-	if(state.world.province_get_continent(state.world.nation_get_capital(from)) != state.world.province_get_continent(state.world.nation_get_capital(target))) {
-		// We must achieve naval superiority to even invade them
-		if(!does_have_naval_supremacy(state, from, target)) {
-			return false;
-		}
-		if(state.world.nation_get_capital_ship_score(from) < std::max(1.f, 1.5f * state.world.nation_get_capital_ship_score(target)))
-			return false;
-	}
 	return true;
 }
 
@@ -1432,7 +1423,6 @@ void update_cb_fabrication(sys::state& state) {
 			for(auto i : state.world.in_nation) {
 				if(valid_construction_target(state, n, i)
 				&& !military::has_truce_with(state, n, i)) {
-
 					auto weight = 1.f / (province::direct_distance(
 						state,
 						state.world.nation_get_capital(n),
@@ -1441,7 +1431,11 @@ void update_cb_fabrication(sys::state& state) {
 
 					// if nations are neighbors, then it's much easier to prepare a successful invasion:
 					if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, i)) {
-						weight *= 10.f;
+						weight *= 100.f;
+					} else {
+						// never fabricate on targets you are unable to conquer:
+						if(state.world.nation_get_central_ports(n) == 0 || state.world.nation_get_central_ports(i) == 0)
+							weight = 0.f;
 					}
 
 					// uncivs have higher priority
@@ -1587,15 +1581,12 @@ dcon::cb_type_id pick_wargoal_extra_cb_type(sys::state& state, dcon::nation_id f
 		auto bits = state.world.cb_type_get_type_bits(c);
 		if((bits & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0)
 			continue;
-		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) == 0)
+		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex | military::cb_flag::po_transfer_provinces)) == 0)
 			continue;
 		if(military::cb_infamy(state, c, target) * multiplier > free_infamy)
 			continue;
 		if(!military::cb_conditions_satisfied(state, from, target, c))
 			continue;
-		if(!valid_construction_target(state, from, target))
-			continue;
-
 		possibilities.push_back(c);
 	}
 
@@ -1655,7 +1646,10 @@ void add_wargoal_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 		return;
 
 	bool attacker = military::get_role(state, w, n) == military::war_role::attacker;
-	auto spare_ws = attacker ? (military::primary_warscore(state, w) - military::attacker_peace_cost(state, w)) : (-military::primary_warscore(state, w) - military::defender_peace_cost(state, w));
+	auto spare_ws = attacker
+		? (std::clamp(30.f + military::primary_warscore(state, w) * 2.f, 30.f, 100.f) - military::attacker_peace_cost(state, w))
+		: (std::clamp(30.f - military::primary_warscore(state, w) * 2.f, 30.f, 100.f) - military::defender_peace_cost(state, w));
+
 	if(spare_ws < 1.0f)
 		return;
 
@@ -1674,10 +1668,37 @@ void add_wargoal_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	prepare_list_of_targets_for_cb(state, result, n, target, cb, w);
 	sort_prepared_list_of_cb(state, result);
 
-	if(!result.empty() && result[0].target) {
+	for(size_t i = 0; i < result.size(); i++) {
+		if(!command::can_add_war_goal(
+			state,
+			n,
+			w,
+			target,
+			result[i].cb,
+			result[i].state_def,
+			result[i].associated_tag,
+			result[i].secondary_nation)
+		) {
+			continue;
+		}		
+		auto predicted_cost = military::peace_cost(
+			state,
+			w,
+			result[i].cb,
+			n,
+			target,
+			result[i].secondary_nation,
+			result[i].state_def,
+			result[i].associated_tag
+		);
+		if(predicted_cost > spare_ws) {
+			continue;
+		}
+
 		military::add_wargoal(state, w, n, target, cb, result[0].state_def, result[0].associated_tag, result[0].secondary_nation);
 		nations::adjust_relationship(state, n, target, state.defines.addwargoal_relation_on_accept);
 		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb, target) * multiplier;
+		return;
 	}
 }
 
