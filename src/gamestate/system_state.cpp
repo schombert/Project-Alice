@@ -2397,6 +2397,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						parsers::token_generator gen(content.data, content.data + content.file_size);
 						parsers::parse_province_history_file(gen, err, pf_context);
 						context.state.world.province_set_provid(pid, province_id);
+
 					}
 				}
 			}
@@ -2406,6 +2407,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			load_from_dir(subdir);
 		}
 	}
+
 	culture::set_default_issue_and_reform_options(*this);
 	// load pop history files
 	{
@@ -3244,6 +3246,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			if(!(!ng || uint32_t(ng.id.index()) < world.government_type_size())) {
 				err.accumulated_errors += "Government change for rebel type '" + text::produce_simple_string(*this, rt.get_name()) + "' with government '" + text::produce_simple_string(*this, g.get_name()) + "' is not valid\n";
 			}
+		}
+	}
+
+	// Sanity check for invalid factories in provinces
+	for(auto f : context.state.world.in_factory) {
+		if(!context.state.world.commodity_get_uses_potentials(f.get_building_type().get_output())) {
+			continue;
+		}
+		auto p = f.get_province_from_factory_location();
+
+		if(f.get_size() > p.get_factory_max_size(f.get_building_type().get_output())) {
+			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
 		}
 	}
 

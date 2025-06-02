@@ -247,19 +247,39 @@ public:
 			text::close_layout_box(contents, box);
 		}
 
+		/*
+		* We do not need to list party issues with full descriptions here since they are displayed literally below the party name with separate working tooltips.
 		for(auto pi : state.culture_definitions.party_issues) {
 			reform_description(state, contents, state.world.political_party_get_party_issues(party, pi));
 			text::add_line_break_to_layout(state, contents);
 		}
+		*/
 
+		auto cond_0 = (state.current_date >= state.world.political_party_get_start_date(party)) && (state.current_date <= state.world.political_party_get_end_date(party));
 		if(state.world.political_party_get_trigger(party)) {
-			text::add_line(state, contents, "alice_political_party_trigger", text::variable_type::date_long_0, state.world.political_party_get_start_date(party),
+			text::add_line_with_condition(state, contents, "alice_political_party_trigger", cond_0, text::variable_type::date_long_0, state.world.political_party_get_start_date(party),
 				text::variable_type::date_long_1, state.world.political_party_get_end_date(party));
 			ui::trigger_description(state, contents, state.world.political_party_get_trigger(party), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 		} else {
-			text::add_line(state, contents, "alice_political_party_no_trigger", text::variable_type::date_long_0, state.world.political_party_get_start_date(party),
+			text::add_line_with_condition(state, contents, "alice_political_party_no_trigger", cond_0, text::variable_type::date_long_0, state.world.political_party_get_start_date(party),
 				text::variable_type::date_long_1, state.world.political_party_get_end_date(party));
 		}
+
+		// Requirements for changing the party with vanilla texts
+		auto cond_1 = politics::can_appoint_ruling_party(state, state.local_player_nation);
+		text::add_line_with_condition(state, contents, "POLITICS_CANNOT_SET_RULING_PARTY_RULE", cond_1);
+
+		auto gov = state.world.nation_get_government_type(state.local_player_nation);
+		auto new_ideology = state.world.political_party_get_ideology(party);
+		auto cond_2 = (state.world.government_type_get_ideologies_allowed(gov) & ::culture::to_bits(new_ideology)) != 0;
+		text::add_line_with_condition(state, contents, "POLITICS_NOT_ACCEPTED", cond_2, text::variable_type::which, state.world.ideology_get_name(new_ideology), 0);
+
+		auto cond_3 = politics::is_election_ongoing(state, state.local_player_nation);
+		text::add_line_with_condition(state, contents, "POLITICS_CANNOT_SET_RULING_PARTY_IN_ELECTION", cond_3);
+
+		auto last_change = state.world.nation_get_ruling_party_last_appointed(state.local_player_nation);
+		auto cond_4 = (!last_change) || (state.current_date >= last_change + 365);
+		text::add_line_with_condition(state, contents, "POLITICS_NOT_BEFORE", cond_4, text::variable_type::date, (last_change + 365), 0);
 	}
 };
 

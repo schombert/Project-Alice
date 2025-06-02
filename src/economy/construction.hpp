@@ -73,4 +73,13 @@ float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, d
 
 float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
+
+// Check rules for factories in colonies
+bool is_colony(sys::state& state, dcon::province_id p);
+bool is_colony(sys::state& state, dcon::state_instance_id s);
+bool can_build_factory_in_colony(sys::state& state, dcon::province_id p);
+bool can_build_factory_in_colony(sys::state& state, dcon::state_instance_id s);
+bool can_build_factory_type_in_colony(sys::state& state, dcon::province_id p, dcon::factory_type_id ft);
+bool can_build_factory_type_in_colony(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
+
 }

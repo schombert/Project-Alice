@@ -15,6 +15,9 @@ struct building_gfx_context;
 }
 
 namespace ui {
+
+class context_menu_window;
+
 enum class object_type : uint8_t {
 	generic_sprite = 0x00,
 	bordered_rect = 0x01,
@@ -501,6 +504,7 @@ struct state {
 	element_base* macro_builder_window = nullptr;
 	element_base* request_topbar_listbox = nullptr;
 	element_base* build_province_unit_window = nullptr;
+	context_menu_window* context_menu = nullptr;
 
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;

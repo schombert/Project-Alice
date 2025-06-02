@@ -1432,15 +1432,15 @@ public:
 		const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-		bool non_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-
-		bool is_civilized = state.world.nation_get_is_civilized(n);
 		int32_t num_factories = economy::state_factory_count(state, sid, n);
 
 		text::add_line(state, contents, "production_build_new_factory_tooltip");
 		text::add_line_break_to_layout(state, contents);
-		text::add_line_with_condition(state, contents, "factory_condition_1", is_civilized);
-		text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
+		// Disallow building in colonies unless define flag is set
+		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
+		}
 
 		if(n == state.local_player_nation) {
 			auto rules = state.world.nation_get_combined_issue_rules(n);
@@ -1501,15 +1501,15 @@ public:
 		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 
-		bool non_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-
-		bool is_civilized = state.world.nation_get_is_civilized(n);
 		int32_t num_factories = economy::state_factory_count(state, sid, n);
 
 		text::add_line(state, contents, "production_build_new_factory_tooltip");
 		text::add_line_break_to_layout(state, contents);
-		text::add_line_with_condition(state, contents, "factory_condition_1", is_civilized);
-		text::add_line_with_condition(state, contents, "factory_condition_2", non_colonial);
+		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
+		// Disallow building in colonies unless define flag is set
+		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
+		}
 
 		if(n == state.local_player_nation) {
 			auto rules = state.world.nation_get_combined_issue_rules(n);

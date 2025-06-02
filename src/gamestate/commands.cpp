@@ -2,6 +2,7 @@
 #include "demographics.hpp"
 #include "economy_templates.hpp"
 #include "economy_stats.hpp"
+#include "construction.hpp"
 #include "effects.hpp"
 #include "gui_event.hpp"
 #include "serialization.hpp"
@@ -522,11 +523,15 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 	if(!state.world.nation_get_active_building(source, type) && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
-	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid)))
+	if(!economy::can_build_factory_in_colony(state, state.world.state_instance_get_capital(sid)))
 		return false;
 
-	/* There can't be duplicate factories... */
+	// New factory construction
 	if(!is_upgrade && !refit_target) {
+		// Disallow building in colonies unless define flag is set
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, type))
+			return false;
+		/* There can't be duplicate factories */
 		// Check factories being built
 		bool has_dup = false;
 		economy::for_each_new_factory(state, location, [&](economy::new_factory const& nf) { has_dup = has_dup || nf.type == type; });
@@ -539,6 +544,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				return false;
 	}
 
+	// Factory refit from one type into another
 	if(refit_target) {
 		if(type == refit_target) {
 			return false;
@@ -552,6 +558,10 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		if(!state.world.nation_get_active_building(source, refit_target) && !state.world.factory_type_get_is_available_from_start(refit_target))
 			return false;
 
+		// Disallow building in colonies unless define flag is set
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, refit_target))
+			return false;
+
 		// Check if this factory is already being refit
 		bool has_dup = false;
 		economy::for_each_upgraded_factory(state, location, [&](economy::upgraded_factory const& nf) { has_dup = has_dup || nf.type == type; });
@@ -559,13 +569,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			return false;
 
 		// We deliberately allow for duplicates to existing factories as this scenario is handled when construction is finished
-
 	}
 
 	if(state.world.nation_get_is_civilized(source) == false)
 		return false;
 
-
+	// If Foreign target
 	if(owner != source) {
 		/*
 		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great
@@ -587,20 +596,27 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 		if(military::are_at_war(state, source, owner))
 			return false;
-	} else {
+
+		// Refit in foreign countries is not allowed
+		if(refit_target) {
+			return false;
+		}
+	}
+	// Else Internal target
+	else {
 		/*
 		The nation must have the rule set to allow building / upgrading if this is a domestic target.
 		*/
-
 		auto rules = state.world.nation_get_combined_issue_rules(owner);
 		if(is_upgrade) {
 			if((rules & issue_rule::expand_factory) == 0)
 				return false;
 		} else if (refit_target) {
 			if((rules & issue_rule::build_factory) != 0) {
+				// In state capitalism economies, any factory can be refitted into any type.
 			}
 			else {
-				// For capitalist economies, refit factories must match in output good or inputs.
+				// For capitalist economies, during refit FROM and TO types must match in output good or inputs.
 				auto output_1 = state.world.factory_type_get_output(type);
 				auto output_2 = state.world.factory_type_get_output(refit_target);
 				auto inputs_1 = state.world.factory_type_get_inputs(type);
@@ -627,26 +643,36 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	}
 
 	/* If mod uses Factory Province limits */
+	// Upgrade
 	if(is_upgrade) {
 		if(!economy::do_resource_potentials_allow_upgrade(state, source, location, type)) {
 			return false;
 		}
-	} else if(refit_target) {
+	}
+	// Refit into another factory type
+	else if(refit_target) {
 		if(!economy::do_resource_potentials_allow_refit(state, source, location, type, refit_target)) {
 			return false;
 		}
-	} else {
+	}
+	// Construction
+	else {
 		if(!economy::do_resource_potentials_allow_construction(state, source, location, type)) {
 			return false;
 		}
 	}
 
+	// Factory Upgrade
 	if(is_upgrade) {
 		// no double upgrade
 		for(auto p : state.world.province_get_factory_construction(location)) {
 			if(p.get_type() == type)
 				return false;
 		}
+
+		// Disallow building in colonies unless define flag is set
+		if(economy::is_colony(state, sid) && !economy::can_build_factory_type_in_colony(state, sid, type))
+			return false;
 
 		// must already exist as a factory
 		// For upgrades: no upgrading past max level.
