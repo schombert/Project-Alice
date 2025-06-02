@@ -1041,7 +1041,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }
 
-void send_savegame(sys::state& state, network::client_data& client, bool hotjoin = false) {
+void send_savegame(sys::state& state, network::client_data& client, sys::checksum_key& host_state_checksum, bool hotjoin = false) {
 	/*std::vector<char> tmp = client.send_buffer;
 	client.send_buffer.clear();*/
 
@@ -1068,7 +1068,7 @@ void send_savegame(sys::state& state, network::client_data& client, bool hotjoin
 			memset(&c, 0, sizeof(command::payload));
 			c.type = command::command_type::notify_reload;
 			c.source = state.local_player_nation;
-			c.data.notify_reload.checksum = state.get_mp_state_checksum();
+			c.data.notify_reload.checksum = host_state_checksum;
 			for(auto& other_client : state.network_state.clients) {
 				if(other_client.playing_as != client.playing_as && other_client.is_active()) {
 					// for each client that must reload, notify every other client that they are loading
@@ -1131,10 +1131,12 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				network::write_network_save(state);
 			}
 			// load the save which was just written
+			window::change_cursor(state, window::cursor_type::busy);
 			load_network_save(state, state.network_state.current_save_buffer.get());
+			window::change_cursor(state, window::cursor_type::normal);
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-			send_savegame(state, client, true);
+			send_savegame(state, client, state.network_state.current_mp_state_checksum, true);
 		}
 
 	} else if(state.current_scene.game_in_progress) {
@@ -1147,10 +1149,12 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 					network::write_network_save(state);
 				}
 				// load the save which was just written
+				window::change_cursor(state, window::cursor_type::busy);
 				load_network_save(state, state.network_state.current_save_buffer.get());
+				window::change_cursor(state, window::cursor_type::normal);
 				// generate checksum for the entire mp state
 				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-				send_savegame(state, client, true);
+				send_savegame(state, client, state.network_state.current_mp_state_checksum, true);
 			}
 		
 		notify_start_game(state, client);
@@ -1183,8 +1187,10 @@ void full_reset_after_oos(sys::state& state) {
 		if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
 			network::write_network_save(state);
 		}
+		window::change_cursor(state, window::cursor_type::busy);
 		/* Then reload as if we loaded the save data */
 		load_network_save(state, state.network_state.current_save_buffer.get());
+		window::change_cursor(state, window::cursor_type::normal);
 		// generate checksum for the entire mp state
 		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 		{ // set up commands, one for reload, one for save load

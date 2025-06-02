@@ -20,7 +20,7 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 
 ### Notification commands
 
-`notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled.
+`notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled. When a player joins, all other players in the lobby (including the host) will fully reset, then reload their gamestate. Currently this is done so that there is no "lingering" data left behind after reloading their own state. This is to futureproof it against even minor mistakes/changes in contributions which can easily breka sync if state is not fully reset first.
 `notify_player_pick_nation` - Picks a nation, this is useful for example on the lobby where players are switching nations constantly, IF the `source` is invalid (i.e a `dcon::nation_id{}`) then it refers to the current local player nation of the client, this is useful to set the "temporal nation" on the lobby so that clients can be identified by their nation automatically assigned by the server. Otherwise the `source` is the client who requested to pick a nation `target` in `data.nation_pick.target`.
 `notify_save_loaded` - Updates the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state. Following it comes an `uint32_t` describing the size of the save stream, and the save stream itself! Keep in mind that the client will automatically reload their state first before loading the save
 `notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.
@@ -36,6 +36,8 @@ The server will send new clients a `notify_player_joins` for each connected play
 
 An assigned nation is a "random" nation that the server will hand out to the client so it can identifiably connect to the server as a nation, and perform commands as such nation.
 
+When a state-reset&reload is happening, it will block rendering updates in the meantime to prevent crashes or other oddities happening while the state is completly empty. This is also the case when the `notify_stop_game` or `notify_start_game` are executed, it will block rendering updates until the scene change has been executed.
+
 ### Save streams
 
 We send a copy of the save to the client, ultra-compressed, to permit it to connect without having to use external toolage, this is done for example when the host is loading a savefile - the client is given the new data of the savefile to keep them in sync.
@@ -43,6 +45,7 @@ We send a copy of the save to the client, ultra-compressed, to permit it to conn
 ### Re-sync
 
 The lobby can be resyncronized if one or more players are OOS, and must be done manually by the host in the "tab" lobby screen.
+When a resync starts, it will send the notify_save_loaded command to the oos'd clients together with a save for them to load. The non-oos clients will receive a notify_reload command, and will reload their own save.
 
 
 ### Hot-join
