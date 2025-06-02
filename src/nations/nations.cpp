@@ -2495,22 +2495,15 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 
 	return false;
 }
-
-void monthly_flashpoint_update(sys::state& state) {
-	// determine which states have flashpoints
-	/*
-	Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner
-	and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the
-	primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and
-	its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
-	*/
+// updates the flashpoint tags for state instances, which is saved data, so should be run on update, and not in fill_unsaved_data
+void update_flashpoint_tags(sys::state& state) {
 	for(auto si : state.world.in_state_instance) {
 		auto owner = si.get_nation_from_state_ownership();
 		auto owner_tag = owner.get_identity_from_identity_holder();
 
 		auto owner_accepts_culture = [&](dcon::culture_id c) {
 			return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
-		};
+			};
 
 		if(auto fp_focus_nation = si.get_nation_from_flashpoint_focus(); fp_focus_nation) {
 			if(can_put_flashpoint_focus_in_state(state, si, fp_focus_nation)) {
@@ -2543,6 +2536,16 @@ void monthly_flashpoint_update(sys::state& state) {
 		si.set_flashpoint_tag(qualifying_tag);
 
 	}
+}
+
+void monthly_flashpoint_update(sys::state& state) {
+	/*
+	Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner
+	and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the
+	primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and
+	its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
+	*/
+
 
 	// set which nations contain such states
 	state.world.execute_serial_over_nation(

@@ -4367,6 +4367,7 @@ void state::single_game_tick() {
 			ai::update_budget(*this);
 			break;
 		case 20:
+			nations::update_flashpoint_tags(*this);
 			nations::monthly_flashpoint_update(*this);
 			if(!bool(defines.alice_eval_ai_mil_everyday)) {
 				ai::make_defense(*this);

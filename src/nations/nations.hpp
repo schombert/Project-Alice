@@ -370,6 +370,7 @@ void update_influence(sys::state& state);
 void update_revanchism(sys::state& state);
 
 void monthly_flashpoint_update(sys::state& state);
+void update_flashpoint_tags(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
 void crisis_state_transition(sys::state& state, sys::crisis_state new_state);
 void update_crisis(sys::state& state);

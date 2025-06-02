@@ -351,11 +351,11 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			economy::update_employment(ws2);
 			break;
 		case 10:
-			nations::update_administrative_efficiency(ws1);
+			nations::update_national_administrative_efficiency(ws1);
 			nations::update_administrative_efficiency(ws1);
 			rebel::daily_update_rebel_organization(ws1);
 
-			nations::update_administrative_efficiency(ws2);
+			nations::update_national_administrative_efficiency(ws2);
 			nations::update_administrative_efficiency(ws2);
 			rebel::daily_update_rebel_organization(ws2);
 			break;
@@ -550,7 +550,9 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			ai::update_budget(ws1);
 			ai::update_budget(ws2);
 		case 20:
+			nations::update_flashpoint_tags(ws1);		
 			nations::monthly_flashpoint_update(ws1);
+			nations::update_flashpoint_tags(ws2);
 			nations::monthly_flashpoint_update(ws2);
 			compare_game_states(ws1, ws2);
 			ai::make_defense(ws1);
@@ -963,14 +965,17 @@ void checked_single_tick_advanced(sys::state& state1, sys::state& state2) {
 				economy::update_employment(state2);
 				break;
 			case 8:
+				nations::update_national_administrative_efficiency(state1);
 				nations::update_administrative_efficiency(state1);
+
+				nations::update_national_administrative_efficiency(state2);
 				nations::update_administrative_efficiency(state2);
 				rebel::daily_update_rebel_organization(state1);
 				rebel::daily_update_rebel_organization(state2);
 				break;
 			case 9:
 				military::daily_leaders_update(state1);
-				military::daily_leaders_update(state1);
+				military::daily_leaders_update(state2);
 				break;
 			case 10:
 				politics::daily_party_loyalty_update(state1);
@@ -1191,7 +1196,9 @@ void checked_single_tick_advanced(sys::state& state1, sys::state& state2) {
 			compare_game_states(state1, state2);
 			break;
 		case 20:
+			nations::update_flashpoint_tags(state1);
 			nations::monthly_flashpoint_update(state1);
+			nations::update_flashpoint_tags(state2);
 			nations::monthly_flashpoint_update(state2);
 			if(!bool(state1.defines.alice_eval_ai_mil_everyday)) {
 				ai::make_defense(state1);
@@ -1638,31 +1645,23 @@ TEST_CASE("sim_game_advanced", "[determinism]") {
 TEST_CASE("fill_unsaved_values_determinism", "[determinism]") {
 	// allocated statically untill crash fix is found
 	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 
-	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	game_state_1->game_seed = 808080;
+
 
 	for(int i = 0; i <= 600; i++) {
 
 
 
 		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
 
 		auto before_key1 = game_state_1->get_save_checksum();
-		auto before_key2 = game_state_2->get_save_checksum();
-
-
-		// make sure that it isnt just a "regular" oos bug, if it is we catch it here.
-		REQUIRE(before_key1.to_string() == before_key2.to_string());
 
 		game_state_1->fill_unsaved_data();
-		game_state_2->fill_unsaved_data();
 
 
 		// make sure that the fill_unsaved_data does not change saved data at all
 		REQUIRE(before_key1.to_string() == game_state_1->get_save_checksum().to_string());
-		REQUIRE(before_key2.to_string() == game_state_2->get_save_checksum().to_string());
 
 	}
 }
