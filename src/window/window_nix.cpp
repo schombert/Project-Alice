@@ -341,9 +341,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 
 
-		if(!game_state.render_semaphore.try_acquire()) {
-			continue;
-		}
+		game_state.render_semaphore.acquire()
 		game_state.render();
 		glfwSwapBuffers(window);
 		game_state.render_semaphore.release();
