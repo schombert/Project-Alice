@@ -1623,8 +1623,8 @@ TEST_CASE("sim_game", "[determinism]") {
 // this one uses the slower, but more accurate checked tick
 TEST_CASE("sim_game_advanced", "[determinism]") {
 	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
 
@@ -1633,5 +1633,36 @@ TEST_CASE("sim_game_advanced", "[determinism]") {
 	for(int i = 0; i <= 400; i++) {
 		checked_single_tick_advanced(*game_state_1, *game_state_2);
 		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("fill_unsaved_values_determinism", "[determinism]") {
+	// allocated statically untill crash fix is found
+	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	for(int i = 0; i <= 600; i++) {
+
+
+
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+
+		auto before_key1 = game_state_1->get_save_checksum();
+		auto before_key2 = game_state_2->get_save_checksum();
+
+
+		// make sure that it isnt just a "regular" oos bug, if it is we catch it here.
+		REQUIRE(before_key1.to_string() == before_key2.to_string());
+
+		game_state_1->fill_unsaved_data();
+		game_state_2->fill_unsaved_data();
+
+
+		// make sure that the fill_unsaved_data does not change saved data at all
+		REQUIRE(before_key1.to_string() == game_state_1->get_save_checksum().to_string());
+		REQUIRE(before_key2.to_string() == game_state_2->get_save_checksum().to_string());
+
 	}
 }
