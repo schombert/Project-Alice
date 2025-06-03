@@ -478,12 +478,12 @@ bool ai_offer_cb(sys::state& state, dcon::cb_type_id t) {
 	return true;
 }
 
-void prepare_and_sort_list_of_desired_states(
+std::vector<ai::weighted_state_instance> prepare_and_sort_list_of_desired_states(
 	sys::state& state,
-	std::vector<ai::weighted_state_instance>& result,
 	dcon::nation_id beneficiary,
 	dcon::nation_id target
 ) {
+	std::vector<ai::weighted_state_instance> result;
 	for(auto soid : state.world.nation_get_state_ownership(target)) {
 		auto sid = soid.get_state().id;
 		auto utility = utility_of_state(
@@ -507,6 +507,8 @@ void prepare_and_sort_list_of_desired_states(
 			return a.weight > b.weight;
 		return a.target.index() < b.target.index();
 	});
+
+	return result;
 }
 
 void prepare_list_of_states_for_conquest(
@@ -1345,6 +1347,9 @@ possible_cb pick_fabrication_type(sys::state& state, dcon::nation_id from, dcon:
 
 		// Make sure no country higher than originator on rank is justifying on that target
 		for(auto n : state.nations_by_rank) {
+			if(!n) {
+				break;
+			}
 			if(n == from) {
 				break;
 			}
@@ -1394,6 +1399,9 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 
 void update_cb_fabrication(sys::state& state) {
 	for(auto nid : state.nations_by_rank) {
+		if(!nid) {
+			break;
+		}
 		auto n = dcon::fatten(state.world, nid);
 
 		if(!n.get_is_player_controlled() && n.get_owned_province_count() > 0) {

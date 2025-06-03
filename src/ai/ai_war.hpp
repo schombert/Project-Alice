@@ -42,7 +42,7 @@ void sort_prepared_list_of_cb(
 	sys::state& state,
 	std::vector<ai::possible_cb>& result
 );
-void prepare_and_sort_list_of_desired_states(
+std::vector<ai::weighted_state_instance> prepare_and_sort_list_of_desired_states(
 	sys::state& state,
 	std::vector<ai::weighted_state_instance>& result,
 	dcon::nation_id attacker,

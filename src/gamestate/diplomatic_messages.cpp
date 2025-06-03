@@ -451,9 +451,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			if(overlord == m.from) {
 				return true; // Always accept overlord reorganizing states
 			}
-			static std::vector<ai::weighted_state_instance> target_states;
-			ai::prepare_and_sort_list_of_desired_states(state, target_states, m.to, m.from);
-
+			auto target_states = ai::prepare_and_sort_list_of_desired_states(state, m.to, m.from);
 			for(auto sid : target_states) {
 				if(
 					state.world.state_instance_get_definition(sid.target) == m.data.state
