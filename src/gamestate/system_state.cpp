@@ -29,6 +29,12 @@
 #include "demographics.hpp"
 #include "rebels.hpp"
 #include "ai.hpp"
+#include "ai_alliances.hpp"
+#include "ai_focuses.hpp"
+#include "ai_economy.hpp"
+#include "ai_influence.hpp"
+#include "ai_campaign.hpp"
+#include "ai_war.hpp"
 #include "effects.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_land_combat.hpp"
@@ -4239,7 +4245,7 @@ void state::single_game_tick() {
 			break;
 		case 3:
 			military::monthly_leaders_update(*this);
-			ai::add_gw_goals(*this);
+			ai::add_wargoals(*this);
 			break;
 		case 4:
 			military::reinforce_regiments(*this);
@@ -4423,6 +4429,7 @@ void state::single_game_tick() {
 		}
 
 		ai::general_ai_unit_tick(*this);
+		ai::update_ai_campaign_strategy(*this);
 
 		military::run_gc(*this);
 		nations::run_gc(*this);

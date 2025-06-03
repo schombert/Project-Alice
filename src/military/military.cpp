@@ -5,6 +5,7 @@
 #include "effects.hpp"
 #include "events.hpp"
 #include "ai.hpp"
+#include "ai_war.hpp"
 #include "demographics.hpp"
 #include "politics.hpp"
 #include "province_templates.hpp"
@@ -3219,6 +3220,10 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 
 	if(!nations::is_great_power(state, new_gp))
 		return;
+	if(nations::is_great_power(state, member)) {
+		// edge case which happens when losing nation became a great power during the war
+		return;
+	}
 	if(state.world.nation_get_owned_province_count(member) == 0)
 		return;
 
@@ -3248,6 +3253,9 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	assert(from);
 	assert(target);
 	assert(wargoal);
+
+	// variable for testing AI changes
+	// state.pressed_wargoals++;
 
 	auto bits = state.world.cb_type_get_type_bits(wargoal);
 	bool for_attacker = is_attacker(state, war, from);
@@ -8760,6 +8768,10 @@ bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id fro
 }
 
 bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+	// handle case of invalid war gracefully to simplify some logic
+	if(!w) {
+		return false;
+	}
 
 	if(cb_state) { // ensure that the state will not be annexed, transferred, or liberated
 		if(state_claimed_in_war(state, w, source, target, cb_state))

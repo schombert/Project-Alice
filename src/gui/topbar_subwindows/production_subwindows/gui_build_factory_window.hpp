@@ -2,7 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_production_enum.hpp"
-#include "ai.hpp"
+#include "ai_economy.hpp"
 #include "triggers.hpp"
 #include "construction.hpp"
 
