@@ -247,24 +247,26 @@ float utility_efficiency_of_nation(
 
 float utility_of_state(
 	sys::state& state,
-	dcon::nation_id owner,
+	dcon::nation_id potential_owner,
 	dcon::state_instance_id target
 ) {
-	auto victim = state.world.state_instance_get_nation_from_state_ownership(target);
-	auto primary_key = demographics::to_key(state, state.world.nation_get_primary_culture(owner));
+	auto primary_key = demographics::to_key(state, state.world.nation_get_primary_culture(potential_owner));
+
 	auto total = state.world.state_instance_get_demographics(target, demographics::total);
 	auto primary = state.world.state_instance_get_demographics(target, primary_key);
+
 	auto base_utility = total * BASE_EFFICIENCY + primary * PRIMARY_EFFICIENCY;
+
 	// TODO: account for local goods
 	return base_utility;
 }
 
 float utility_of_nation(
 	sys::state& state,
-	dcon::nation_id owner,
+	dcon::nation_id potential_owner,
 	dcon::nation_id target
 ) {
-	auto primary_key = demographics::to_key(state, state.world.nation_get_primary_culture(owner));
+	auto primary_key = demographics::to_key(state, state.world.nation_get_primary_culture(potential_owner));
 
 	auto total = state.world.nation_get_demographics(target, demographics::total);
 	auto primary = state.world.nation_get_demographics(target, primary_key);
