@@ -29,7 +29,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 #endif
 
 	switch(p.type) {
-		// do not allow starting or stopping the game while someone is loading to avoid issues.
+		
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
 	case command_type::notify_player_joins:
@@ -5629,7 +5629,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.network_state.reported_oos = false;
 
 	window::change_cursor(state, window::cursor_type::busy);
-	state.render_semaphore.acquire();
+	state.ui_lock.lock();
 	std::vector<dcon::nation_id> players;
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
@@ -5645,7 +5645,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	network::place_players_after_reload(state, players, old_local_player_nation);
 	state.fill_unsaved_data();
-	state.render_semaphore.release();
+	state.ui_lock.unlock();
 	window::change_cursor(state, window::cursor_type::normal);
 	
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
@@ -5685,11 +5685,11 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
 			ai::remove_ai_data(state, n);
-	state.render_semaphore.acquire();
+	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
-	state.render_semaphore.release();
+	state.ui_lock.unlock();
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -5746,11 +5746,11 @@ void execute_notify_player_fully_loaded(sys::state& state, dcon::nation_id sourc
 }
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
-	state.render_semaphore.acquire();
+	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
-	state.render_semaphore.release();
+	state.ui_lock.unlock();
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {

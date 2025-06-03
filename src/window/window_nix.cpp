@@ -341,10 +341,10 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 
 
-		game_state.render_semaphore.acquire()
+		game_state.ui_lock.lock();
 		game_state.render();
 		glfwSwapBuffers(window);
-		game_state.render_semaphore.release();
+		game_state.ui_lock.unlock();
 
 		sound::update_music_track(game_state);
 	}

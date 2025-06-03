@@ -93,7 +93,7 @@ struct network_state {
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
 	uint8_t lobby_password[16] = { 0 };
-	std::atomic<bool> save_slock = false;
+	std::mutex save_slock;
 	bool as_v6 = false;
 	bool as_server = false;
 	bool save_stream = false; //client

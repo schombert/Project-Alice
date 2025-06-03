@@ -1023,7 +1023,7 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 }
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
-	state.render_semaphore.acquire();
+	state.ui_lock.lock();
 	std::vector<dcon::nation_id> players;
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
@@ -1037,7 +1037,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	});
 	network::place_players_after_reload(state, players, old_local_player_nation);
 	state.fill_unsaved_data();
-	state.render_semaphore.release();
+	state.ui_lock.unlock();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }
 
@@ -1171,6 +1171,7 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 void full_reset_after_oos(sys::state& state) {
 	pause_game(state);
+	window::change_cursor(state, window::cursor_type::busy);
 #ifndef NDEBUG
 	state.console_log("host:full_reset_after_oos");
 	network::log_player_nations(state);
@@ -1183,16 +1184,19 @@ void full_reset_after_oos(sys::state& state) {
 				network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
 			}
 		}
+		// lock the slock here as this is being called from the ui thread! And we do not want any other commands queued or executed during this time
+		state.network_state.save_slock.lock();
 		// if the save state has changed, write a new network save
 		if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
 			network::write_network_save(state);
 		}
-		window::change_cursor(state, window::cursor_type::busy);
+		
 		/* Then reload as if we loaded the save data */
 		load_network_save(state, state.network_state.current_save_buffer.get());
-		window::change_cursor(state, window::cursor_type::normal);
 		// generate checksum for the entire mp state
 		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+
+		state.network_state.save_slock.unlock();
 		{ // set up commands, one for reload, one for save load
 			command::payload reload_cmd;
 			memset(&reload_cmd, 0, sizeof(command::payload));
@@ -1231,41 +1235,11 @@ void full_reset_after_oos(sys::state& state) {
 #endif
 						}
 
-						// for each client that must reload, notify every other client that they are loading
-						/*command::payload p;
-						memset(&p, 0, sizeof(p));
-						p.type = command::command_type::notify_player_is_loading;
-						p.source = other_client.playing_as;
-						p.data.notify_player_is_loading.name = other_client.hshake_buffer.nickname;
-						command::execute_command(state, p);
-						for(auto& to_be_notified : state.network_state.clients) {
-							if(to_be_notified.is_active()) {
-								socket_add_to_send_queue(to_be_notified.send_buffer, &p, sizeof(p));
-							}
-						}*/
-
-
 					}
 				}
 				
 			}
 		}
-		/*{ 
-			command::payload c;
-			memset(&c, 0, sizeof(command::payload));
-			c.type = command::command_type::notify_save_loaded;
-			c.source = state.local_player_nation;
-			c.data.notify_save_loaded.checksum = state.network_state.current_mp_state_checksum;
-
-			for(auto& other_client : state.network_state.clients) {
-				for(auto player : state.world.in_mp_player) {
-					if(other_client.playing_as == player.get_nation_from_player_nation() && player.get_is_oos()) {
-						broadcast_save_to_single_client(state, c, other_client, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
-					}
-				}
-			}
-
-		}*/
 	}
 	{
 		command::payload c;
@@ -1281,6 +1255,7 @@ void full_reset_after_oos(sys::state& state) {
 		state.console_log("host:broadcast:cmd | (new->start_game)");
 #endif
 	}
+	window::change_cursor(state, window::cursor_type::normal);
 }
 
 int server_process_handshake(sys::state& state, network::client_data& client) {
@@ -1525,8 +1500,8 @@ void send_and_receive_commands(sys::state& state) {
 	   commands until the savefile is finished loading
 	   This way, we're able to effectively and safely queue commands until we
 	   can receive them AFTER loading the savefile. */
-	if(state.network_state.save_slock.load(std::memory_order::acquire) == true)
-		return;
+	// this lock has been moved to game_loop
+
 
 	if(state.network_state.finished)
 		return;

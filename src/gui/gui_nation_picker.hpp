@@ -177,7 +177,7 @@ public:
 			win->set_visible(state, false);
 		ui::clear_event_windows(state);
 
-		state.network_state.save_slock.store(true, std::memory_order::release);
+		state.network_state.save_slock.lock();
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
@@ -253,7 +253,7 @@ public:
 		state.map_state.unhandled_province_selection = true;
 		state.railroad_built.store(true, std::memory_order::release);
 		state.sprawl_update_requested.store(true, std::memory_order::release);
-		state.network_state.save_slock.store(false, std::memory_order::release);
+		state.network_state.save_slock.unlock();
 		state.game_state_updated.store(true, std::memory_order_release);
 		/*state.render_semaphore.release();*/
 

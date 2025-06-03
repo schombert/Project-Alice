@@ -695,7 +695,7 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> fif_environment;
 	int32_t type_text_key = -1;
 	int32_t type_localized_key = -1;
-	std::binary_semaphore render_semaphore{ 1 }; // semaphore for game rendering, acquiring this stops rendering updates
+	std::mutex ui_lock; // lock for rendering the ui, when this is locked no rendering updates will occur
 
 	// the following functions will be invoked by the window subsystem
 
