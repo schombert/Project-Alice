@@ -5371,6 +5371,7 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	// if the leaving player was loading, decrement num of loading clients
 	if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
 		state.network_state.num_client_loading--;
+		state.world.mp_player_set_is_oos(player, false);
 	}
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5410,6 +5411,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	// if the leaving player was loading, decrement num of loading clients
 	if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
 		state.network_state.num_client_loading--;
+		state.world.mp_player_set_is_oos(player, false);
 	}
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5450,6 +5452,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	// if the leaving player was loading, decrement num of loading clients
 	if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
 		state.network_state.num_client_loading--;
+		state.world.mp_player_set_is_oos(player, false);
 	}
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {

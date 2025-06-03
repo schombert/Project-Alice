@@ -1502,14 +1502,7 @@ static void accept_new_clients(sys::state& state) {
 }
 
 void send_and_receive_commands(sys::state& state) {
-	/* An issue that arose in multiplayer is that the UI was loading the savefile
-	   directly, while the game state loop was running, this was fine with the
-	   assumption that commands weren't executed while the save was being loaded
-	   HOWEVER in multiplayer this is often the case, so we have to block all
-	   commands until the savefile is finished loading
-	   This way, we're able to effectively and safely queue commands until we
-	   can receive them AFTER loading the savefile. */
-	// this lock has been moved to game_loop
+	
 
 
 	if(state.network_state.finished)
@@ -1517,93 +1510,109 @@ void send_and_receive_commands(sys::state& state) {
 
 	bool command_executed = false;
 	if(state.network_mode == sys::network_mode_type::host) {
-		accept_new_clients(state); // accept new connections
-		receive_from_clients(state); // receive new commands
 
-		// send the commands of the server to all the clients
-		auto* c = state.network_state.outgoing_commands.front();
-		while(c) {
-			if(!command::is_console_command(c->type)) {
-				// Generate checksum on the spot
-				if(c->type == command::command_type::advance_tick) {
-					if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
-						c->data.advance_tick.checksum = state.get_mp_state_checksum();
+		/* An issue that arose in multiplayer is that the UI was loading the savefile
+	   directly, while the game state loop was running, this was fine with the
+	   assumption that commands weren't executed while the save was being loaded
+	   HOWEVER in multiplayer this is often the case, so we have to block all
+	   commands until the savefile is finished loading
+	   This way, we're able to effectively and safely queue commands until we
+	   can receive them AFTER loading the savefile.
+	   The slock is only locked here in the host section as it is redundant to lock it in singleplayer, and clients in a mp game cannot load the save via the ui anyway */
+
+
+		if(state.network_state.save_slock.try_lock()) {
+
+			accept_new_clients(state); // accept new connections
+			receive_from_clients(state); // receive new commands
+
+			// send the commands of the server to all the clients
+			auto* c = state.network_state.outgoing_commands.front();
+			while(c) {
+				if(!command::is_console_command(c->type)) {
+					// Generate checksum on the spot
+					if(c->type == command::command_type::advance_tick) {
+						if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+							c->data.advance_tick.checksum = state.get_mp_state_checksum();
+						}
+					}
+#ifndef NDEBUG
+					const auto now = std::chrono::system_clock::now();
+					state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->source.index()) + " type:" + readableCommandTypes[(uint32_t(c->type))]);
+#endif
+					// if the command could not be performed on the host, don't bother sending it to the clients
+					if(command::execute_command(state, *c)) {
+						broadcast_to_clients(state, *c);
+					}
+					command_executed = true;
+				}
+				state.network_state.outgoing_commands.pop();
+				c = state.network_state.outgoing_commands.front();
+			}
+
+			// Clear lost sockets
+			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+				for(auto& client : state.network_state.clients) {
+					if(!client.is_active())
+						continue;
+
+					// Drop lost clients
+					if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
+						disconnect_client(state, client, true);
+					}
+					// Slow down for the lagging ones
+					else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
+						state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
 					}
 				}
-#ifndef NDEBUG
-				const auto now = std::chrono::system_clock::now();
-				state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->source.index()) + " type:" + readableCommandTypes[(uint32_t(c->type))]);
-#endif
-				// if the command could not be performed on the host, don't bother sending it to the clients
-				if(command::execute_command(state, *c)) {
-					broadcast_to_clients(state, *c);
-				}
-				command_executed = true;
 			}
-			state.network_state.outgoing_commands.pop();
-			c = state.network_state.outgoing_commands.front();
-		}
 
-		// Clear lost sockets
-		if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
 			for(auto& client : state.network_state.clients) {
 				if(!client.is_active())
 					continue;
+				if(client.early_send_buffer.size() > 0) {
+					size_t old_size = client.early_send_buffer.size();
+					int r = socket_send(client.socket_fd, client.early_send_buffer);
+					if(r > 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+						const auto now = std::chrono::system_clock::now();
+						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
+#endif
+						disconnect_client(state, client, false);
+						continue;
+					}
+					client.total_sent_bytes += old_size - client.early_send_buffer.size();
+#ifndef NDEBUG
+					if(old_size != client.early_send_buffer.size()) {
+						const auto now = std::chrono::system_clock::now();
+						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+					}
 
-				// Drop lost clients
-				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-					disconnect_client(state, client, true);
-				}
-				// Slow down for the lagging ones
-				else if (state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
-					state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
+#endif
+				} else if(client.send_buffer.size() > 0) {
+					size_t old_size = client.send_buffer.size();
+					int r = socket_send(client.socket_fd, client.send_buffer);
+					if(r > 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+						const auto now = std::chrono::system_clock::now();
+						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
+#endif
+						disconnect_client(state, client, false);
+						continue;
+					}
+					client.total_sent_bytes += old_size - client.send_buffer.size();
+#ifndef NDEBUG
+					if(old_size != client.send_buffer.size()) {
+						const auto now = std::chrono::system_clock::now();
+						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+					}
+
+#endif
 				}
 			}
+			state.network_state.save_slock.unlock();
 		}
-
-		for(auto& client : state.network_state.clients) {
-			if(!client.is_active())
-				continue;
-			if(client.early_send_buffer.size() > 0) {
-				size_t old_size = client.early_send_buffer.size();
-				int r = socket_send(client.socket_fd, client.early_send_buffer);
-				if(r > 0) { // error
-#if !defined(NDEBUG) && defined(_WIN32)
-					const auto now = std::chrono::system_clock::now();
-					state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
-#endif
-					disconnect_client(state, client, false);
-					continue;
-				}
-				client.total_sent_bytes += old_size - client.early_send_buffer.size();
-#ifndef NDEBUG
-				if(old_size != client.early_send_buffer.size()) {
-					const auto now = std::chrono::system_clock::now();
-					state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
-				}
-					
-#endif
-		} else if(client.send_buffer.size() > 0) {
-				size_t old_size = client.send_buffer.size();
-				int r = socket_send(client.socket_fd, client.send_buffer);
-				if(r > 0) { // error
-#if !defined(NDEBUG) && defined(_WIN32)
-					const auto now = std::chrono::system_clock::now();
-					state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
-#endif
-					disconnect_client(state, client, false);
-					continue;
-				}
-				client.total_sent_bytes += old_size - client.send_buffer.size();
-#ifndef NDEBUG
-				if(old_size != client.send_buffer.size()) {
-					const auto now = std::chrono::system_clock::now();
-					state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
-				}
-					
-#endif
-			}
-		}
+		
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		if(state.network_state.handshake) {
 			int r = client_process_handshake(state);

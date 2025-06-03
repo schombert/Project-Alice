@@ -4749,10 +4749,7 @@ void state::game_loop() {
 	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		if(network_state.save_slock.try_lock()) {
-			network::send_and_receive_commands(*this);
-			network_state.save_slock.unlock();
-		}
+		network::send_and_receive_commands(*this);	
 		{
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);

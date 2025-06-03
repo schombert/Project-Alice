@@ -1621,7 +1621,7 @@ TEST_CASE("sim_game", "[determinism]") {
 
 	compare_game_states(*game_state_1, *game_state_2);
 
-	for(int i = 0; i <= 400; i++) {
+	for(int i = 0; i <= 1000; i++) {
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();
 		compare_game_states(*game_state_1, *game_state_2);
