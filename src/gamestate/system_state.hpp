@@ -613,8 +613,9 @@ struct alignas(64) state {
 	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;
 	std::array<std::vector<dcon::navy_id>, 10> ctrl_navies;
 
-	//statistics
-	int pressed_wargoals = 0;
+	// statistics
+	// variable for testing AI changes
+	// int pressed_wargoals = 0;
 
 	//army group
 	dcon::automated_army_group_id selected_army_group{};
