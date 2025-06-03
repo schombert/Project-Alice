@@ -1047,6 +1047,21 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 
 	state.save_list_updated.store(true, std::memory_order::release); // update for ui
 
+	/*
+	// log count of pressed wargoals
+	// can be used as a simple measure of how well AI expands during tests of AI changes
+	{
+		auto data_dumps_directory = simple_fs::get_or_create_data_dumps_directory();
+		auto data = (std::to_string(state.pressed_wargoals) + "\n");
+		simple_fs::append_file(
+			data_dumps_directory,
+			NATIVE("diplomacy_stats.txt"),
+			data.c_str(),
+			uint32_t(data.size())
+		);
+	}
+	*/
+
 
 	if(state.cheat_data.ecodump) {
 		auto data_dumps_directory = simple_fs::get_or_create_data_dumps_directory();

@@ -29,6 +29,13 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	${ALICE_CORE_SOURCES_LIST}
 	"src/ai/ai.cpp"
+	"src/ai/ai_campaign.cpp"
+	"src/ai/ai_campaign_values.cpp"
+	"src/ai/ai_focuses.cpp"
+	"src/ai/ai_influence.cpp"
+	"src/ai/ai_alliances.cpp"
+	"src/ai/ai_economy.cpp"
+	"src/ai/ai_war.cpp"
 	"src/common_types/blake2.cpp"
 	"src/common_types/date_interface.cpp"
 	"src/common_types/prng.cpp"
