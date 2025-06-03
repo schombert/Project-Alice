@@ -1634,6 +1634,8 @@ TEST_CASE("sim_game_advanced", "[determinism]") {
 	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	game_state_1->network_mode = sys::network_mode_type::host;
+	game_state_2->network_mode = sys::network_mode_type::client;
 
 	compare_game_states(*game_state_1, *game_state_2);
 
