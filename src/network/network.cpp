@@ -663,6 +663,8 @@ static std::map<int, std::string> readableCommandTypes = {
 { 121,"advance_tick" },
 { 122,"chat_message" },
 { 123,"network_inactivity_ping" },
+{ 124, "notify_player_fully_loaded" },
+{ 125, "notify_player_is_loading" },
 { 255,"console_command" },
 };
 
