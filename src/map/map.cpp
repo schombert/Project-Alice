@@ -605,7 +605,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				(
 					province::border::coastal_bit
 					| province::border::national_bit
-					| province::border::impassible_bit
+					//| province::border::impassible_bit
 				)
 			)) {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
