@@ -4,7 +4,7 @@ Assembled by SneakBug8
 
 ## by Schombert
 
-
+- As always, reviewing all incoming PRs, providing guidance and architecture oversight to the project.
 
 ## by Peter
 
@@ -22,7 +22,9 @@ Assembled by SneakBug8
 - Small adjustments to migration and bureaucracy
 - Visual urban sprawl on the map
 - Smoother borders and graphics improvements
-- Fix lingering constructions, allow to blockade occupied land. 
+- Fix lingering constructions, allow to blockade occupied land.
+- Changed inpassable borders graphics.
+- Several tooltip changes and UI fixes.
 
 ## by SneakBug8
 
@@ -37,7 +39,8 @@ Assembled by SneakBug8
 - Fixes to crisis mechanics
 - Fix lost localization for free trade & embargoes 
 - Hotfix to national stockpiles: do not use commodities until draw mode is selected
-- Expanded provid tooltip 
+- Several tooltip changes and UI fixes.
+
 
 ## by MeizhouWan
 
@@ -58,3 +61,5 @@ Max organisation implemenation of military units & other military QoL and fixes.
 Implenting allowing reserves in battle to reinforce/reorg, among other things. 
 
 Leader selection fix .
+
+Multiple fixes in different parts of the game to fix MP reload and prevent desyncs.
