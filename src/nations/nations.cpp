@@ -109,8 +109,13 @@ void restore_cached_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_allies_count(ids, ve::int_vector()); });
 	state.world.for_each_diplomatic_relation([&](dcon::diplomatic_relation_id id) {
 		if(state.world.diplomatic_relation_get_are_allied(id)) {
-			state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(id, 0)) += uint16_t(1);
-			state.world.nation_get_allies_count(state.world.diplomatic_relation_get_related_nations(id, 1)) += uint16_t(1);
+			auto related_nation_0 = state.world.diplomatic_relation_get_related_nations(id, 0);
+			auto& allies_count_0 = state.world.nation_get_allies_count(related_nation_0);
+			state.world.nation_set_allies_count(related_nation_0, allies_count_0 + uint16_t(1));
+
+			auto related_nation_1 = state.world.diplomatic_relation_get_related_nations(id, 1);
+			auto& allies_count_1 = state.world.nation_get_allies_count(related_nation_1);
+			state.world.nation_set_allies_count(related_nation_1, allies_count_1 + uint16_t(1));
 		}
 	});
 
@@ -828,8 +833,8 @@ void update_administrative_efficiency(sys::state& state) {
 				auto naval_shift_of_control =
 					(port_B_control - port_A_control)
 					* std::min(0.1f, propagation_multiplier / (distance + 1.f) * naval_base_multiplier);
-				state.world.province_get_control_scale(port_A) += naval_shift_of_control;
-				state.world.province_get_control_scale(port_B) -= naval_shift_of_control;
+				state.world.province_set_control_scale(port_A, state.world.province_get_control_scale(port_A) + naval_shift_of_control);
+				state.world.province_set_control_scale(port_B, state.world.province_get_control_scale(port_B) - naval_shift_of_control);
 			}
 		}
 		// propagate along land trade routes
@@ -861,8 +866,8 @@ void update_administrative_efficiency(sys::state& state) {
 				auto land_shift_of_control =
 					(capital_B_control - capital_A_control)
 					* std::min(0.1f, propagation_multiplier / (distance + 1.f) / 2.f);
-				state.world.province_get_control_scale(capital_A) += land_shift_of_control;
-				state.world.province_get_control_scale(capital_B) -= land_shift_of_control;
+				state.world.province_set_control_scale(capital_A, state.world.province_get_control_scale(capital_A) + land_shift_of_control);
+				state.world.province_set_control_scale(capital_B, state.world.province_get_control_scale(capital_B) - land_shift_of_control);
 			}
 		}
 	});
@@ -873,8 +878,8 @@ void update_administrative_efficiency(sys::state& state) {
 		auto capital = state.world.state_instance_get_capital(sid);
 		province::for_each_province_in_state_instance(state, sid, [&](auto pid) {
 			auto change = control_buffer.get(capital) - control_buffer.get(pid);
-			state.world.province_get_control_scale(capital) -= change * 0.01f;
-			state.world.province_get_control_scale(pid) += change * 0.01f;
+			state.world.province_set_control_scale(capital, state.world.province_get_control_scale(capital) - change * 0.01f);
+			state.world.province_set_control_scale(pid, state.world.province_get_control_scale(pid) + change * 0.01f);
 		});
 	});
 
@@ -936,8 +941,8 @@ void update_administrative_efficiency(sys::state& state) {
 		auto rail_multiplier = 1.f + railroad_A + railroad_B;
 
 		auto land_shift_of_control = (B_control - A_control) * std::min(0.1f, propagation_multiplier / (distance + 1.f) * rail_multiplier);
-		state.world.province_get_control_scale(A) += land_shift_of_control;
-		state.world.province_get_control_scale(B) -= land_shift_of_control;
+		state.world.province_set_control_scale(A, state.world.province_get_control_scale(A) + land_shift_of_control);
+		state.world.province_set_control_scale(B, state.world.province_get_control_scale(B) - land_shift_of_control);
 	});
 
 	// add friction to control expansion:
@@ -2441,12 +2446,11 @@ void update_influence(sys::state& state) {
 					Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of
 					the great power with the most influence (other than the influencing nation).
 					*/
-
-					rel.get_influence() += std::max(0.0f, gain_amount);
+					
+					rel.set_influence(rel.get_influence() + std::max(0.0f, gain_amount));
 					if(rel.get_influence() > state.defines.max_influence) {
 						auto overflow = rel.get_influence() - state.defines.max_influence;
-						rel.get_influence() = state.defines.max_influence;
-
+						rel.set_influence(state.defines.max_influence);
 						dcon::gp_relationship_id other_rel;
 						for(auto orel : rel.get_influence_target().get_gp_relationship_as_influence_target()) {
 							if(orel != rel) {
@@ -2458,7 +2462,7 @@ void update_influence(sys::state& state) {
 
 						if(other_rel) {
 							auto& orl_i = state.world.gp_relationship_get_influence(other_rel);
-							orl_i = std::max(0.0f, orl_i - overflow);
+							state.world.gp_relationship_set_influence(other_rel, std::max(0.0f, orl_i - overflow));
 						}
 					}
 				}
@@ -2656,7 +2660,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			/*
 			- Tension ranges between 0 and 100
 			*/
-			si.get_flashpoint_tension() = std::clamp(si.get_flashpoint_tension() + total_increase, 0.0f, 100.0f);
+			si.set_flashpoint_tension(std::clamp(si.get_flashpoint_tension() + total_increase, 0.0f, 100.0f));
 		} else {
 			si.set_flashpoint_tension(0.0f);
 		}
@@ -3396,7 +3400,7 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 		rel = state.world.force_create_gp_relationship(target, great_power);
 	}
 	auto& inf = state.world.gp_relationship_get_influence(rel);
-	inf = std::clamp(inf + delta, 0.0f, state.defines.max_influence);
+	state.world.gp_relationship_set_influence(rel, std::clamp(inf + delta, 0.0f, state.defines.max_influence));
 }
 
 void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
@@ -3412,43 +3416,43 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 		rel = state.world.force_create_gp_relationship(target, great_power);
 	}
 	auto& inf = state.world.gp_relationship_get_influence(rel);
-	inf += delta;
+	state.world.gp_relationship_set_influence(rel, inf + delta);
 
 	while(inf < 0) {
 		if(state.world.nation_get_in_sphere_of(target) == great_power) {
-			inf += state.defines.addtosphere_influence_cost;
+			state.world.gp_relationship_set_influence(rel, inf + state.defines.addtosphere_influence_cost);
 			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
 
 			auto& l = state.world.gp_relationship_get_status(rel);
-			l = nations::influence::decrease_level(l);
+			state.world.gp_relationship_set_status(rel, nations::influence::decrease_level(l));
 		} else {
-			inf += state.defines.increaseopinion_influence_cost;
+			state.world.gp_relationship_set_influence(rel, inf + state.defines.increaseopinion_influence_cost);
 
 			auto& l = state.world.gp_relationship_get_status(rel);
-			l = nations::influence::decrease_level(l);
+			state.world.gp_relationship_set_status(rel, nations::influence::decrease_level(l));
 		}
 	}
 
 	while(inf > state.defines.max_influence) {
 		if(state.world.nation_get_in_sphere_of(target) != great_power) {
-			inf -= state.defines.removefromsphere_influence_cost;
+			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
 			auto affected_gp = state.world.nation_get_in_sphere_of(target);
 			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
 			{
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
 				auto& l = state.world.gp_relationship_get_status(orel);
-				l = nations::influence::decrease_level(l);
+				state.world.gp_relationship_set_status(orel, nations::influence::decrease_level(l));
 			}
 		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
 			state.world.nation_set_in_sphere_of(target, great_power);
-			inf -= state.defines.addtosphere_influence_cost;
+			state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
 			auto& l = state.world.gp_relationship_get_status(rel);
-			l = nations::influence::increase_level(l);
+			state.world.gp_relationship_set_status(rel, nations::influence::increase_level(l));
 		} else {
-			inf -= state.defines.increaseopinion_influence_cost;
+			state.world.gp_relationship_set_influence(rel, inf - state.defines.increaseopinion_influence_cost);
 
 			auto& l = state.world.gp_relationship_get_status(rel);
-			l = nations::influence::increase_level(l);
+			state.world.gp_relationship_set_status(rel, nations::influence::increase_level(l));
 		}
 	}
 }
@@ -3459,7 +3463,7 @@ void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, d
 		rel = state.world.force_create_unilateral_relationship(target, great_power);
 	}
 	auto& invest = state.world.unilateral_relationship_get_foreign_investment(rel);
-	invest = std::max(0.0f, invest + delta);
+	state.world.unilateral_relationship_set_foreign_investment(rel, std::max(0.0f, invest + delta));
 }
 
 float get_yesterday_income(sys::state& state, dcon::nation_id n) {
@@ -3628,12 +3632,13 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 		float base_cost = float(state.world.reform_option_get_technology_cost(r));
 		float reform_factor = politics::get_military_reform_multiplier(state, source);
 
-		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
+		state.world.nation_set_research_points(source, state.world.nation_get_research_points(source) - base_cost * reform_factor);
+
 	} else {
 		float base_cost = float(state.world.reform_option_get_technology_cost(r));
 		float reform_factor = politics::get_economic_reform_multiplier(state, source);
 
-		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
+		state.world.nation_set_research_points(source, state.world.nation_get_research_points(source) - base_cost * reform_factor);
 	}
 
 	/*
@@ -3643,10 +3648,11 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 	*/
 
 	for(auto id : state.world.in_ideology) {
+		auto& upper_house = state.world.nation_get_upper_house(source, id);
 		if(id == state.culture_definitions.conservative) {
-			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
+			state.world.nation_set_upper_house(source, id, upper_house + state.defines.conservative_increase_after_reform * 100.0f);
 		}
-		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
+		state.world.nation_set_upper_house(source, id, upper_house / (1.0f + state.defines.conservative_increase_after_reform));
 	}
 	state.world.nation_set_reforms(source, state.world.reform_option_get_parent_reform(r), r);
 
@@ -3676,8 +3682,8 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 		if(m.get_movement().get_associated_issue_option() && m.get_movement().get_associated_issue_option() != i &&
 				m.get_movement().get_pop_support() > winner_support) {
 
-			m.get_movement().get_transient_radicalism() +=
-				std::min(3.0f, m.get_movement().get_pop_support() / winner_support - 1.0f) * state.defines.wrong_reform_radical_impact;
+			auto& cur_radicalism =  m.get_movement().get_transient_radicalism();
+			m.get_movement().set_transient_radicalism(cur_radicalism + std::min(3.0f, m.get_movement().get_pop_support() / winner_support - 1.0f) * state.defines.wrong_reform_radical_impact);
 		}
 	}
 	if(winner) {
@@ -3745,10 +3751,11 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 	- If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
 	*/
 	for(auto id : state.world.in_ideology) {
+		auto& upper_house = state.world.nation_get_upper_house(source, id);
 		if(id == state.culture_definitions.conservative) {
-			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
+			state.world.nation_set_upper_house(source, id, upper_house + state.defines.conservative_increase_after_reform * 100.0f);
 		}
-		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
+		state.world.nation_set_upper_house(source, id, upper_house / (1.0f + state.defines.conservative_increase_after_reform));
 	}
 
 	state.world.nation_set_issues(source, issue, i);
