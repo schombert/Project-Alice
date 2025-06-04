@@ -465,8 +465,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			military::monthly_leaders_update(ws1);
 			military::monthly_leaders_update(ws2);
 			compare_game_states(ws1, ws2);
-			ai::add_gw_goals(ws1);
-			ai::add_gw_goals(ws2);
+			ai::add_wargoals(ws1);
+			ai::add_wargoals(ws2);
 			break;
 		case 4:
 			military::reinforce_regiments(ws1);
@@ -659,6 +659,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 
 	ai::general_ai_unit_tick(ws1);
 	ai::general_ai_unit_tick(ws2);
+	ai::update_ai_campaign_strategy(ws1);
+	ai::update_ai_campaign_strategy(ws2);
 	compare_game_states(ws1, ws2);
 
 	ai::daily_cleanup(ws1);
@@ -1093,8 +1095,8 @@ void checked_single_tick_advanced(sys::state& state1, sys::state& state2) {
 		case 3:
 			military::monthly_leaders_update(state1);
 			military::monthly_leaders_update(state2);
-			ai::add_gw_goals(state1);
-			ai::add_gw_goals(state2);
+			ai::add_wargoals(state1);
+			ai::add_wargoals(state2);
 			compare_game_states(state1, state2);
 			break;
 		case 4:
@@ -1439,6 +1441,8 @@ void checked_single_tick_advanced(sys::state& state1, sys::state& state2) {
 
 		ai::general_ai_unit_tick(state1);
 		ai::general_ai_unit_tick(state2);
+		ai::update_ai_campaign_strategy(state1);
+		ai::update_ai_campaign_strategy(state2);
 
 		compare_game_states(state1, state2);
 		military::run_gc(state1);
@@ -1618,6 +1622,8 @@ TEST_CASE("sim_game", "[determinism]") {
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
+	game_state_1->network_mode = sys::network_mode_type::host;
+	game_state_2->network_mode = sys::network_mode_type::client;
 
 	compare_game_states(*game_state_1, *game_state_2);
 
