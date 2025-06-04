@@ -1,5 +1,5 @@
 #include "gui_common_elements.hpp"
-#include "ai.hpp"
+#include "ai_alliances.hpp"
 
 namespace ui {
 bool country_category_filter_check(sys::state& state, country_list_filter filt, dcon::nation_id a, dcon::nation_id b) {

@@ -278,6 +278,7 @@ void recalculate_markets_distance(sys::state& state);
 dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag);
 
 void update_administrative_efficiency(sys::state& state);
+void update_national_administrative_efficiency(sys::state& state);
 
 float priority_national(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
 float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
@@ -369,6 +370,7 @@ void update_influence(sys::state& state);
 void update_revanchism(sys::state& state);
 
 void monthly_flashpoint_update(sys::state& state);
+void update_flashpoint_tags(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
 void crisis_state_transition(sys::state& state, sys::crisis_state new_state);
 void update_crisis(sys::state& state);

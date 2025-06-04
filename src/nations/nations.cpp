@@ -737,7 +737,8 @@ dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag) 
 		return state.world.national_identity_get_name(tag);
 }
 
-void update_administrative_efficiency(sys::state& state) {
+// updates ONLY national admin
+void update_national_administrative_efficiency(sys::state& state) {
 	/*
 	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier +
 	efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x
@@ -745,12 +746,16 @@ void update_administrative_efficiency(sys::state& state) {
 	define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
 
-	// replaced with control ratio at capital which is doing the same thing but better
 	state.world.execute_serial_over_nation([&](auto ids) {
 		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
 		state.world.nation_set_administrative_efficiency(ids, ve::max(0.05f, ve::min(1.f, 0.05f + admin_mod)));
 	});
+}
 
+void update_administrative_efficiency(sys::state& state) {
+	
+
+	// replaced with control ratio at capital which is doing the same thing but better
 	// prepare buffers
 	auto control_buffer = state.world.province_make_vectorizable_float_buffer();
 	state.world.execute_serial_over_province([&](auto ids) {
@@ -2490,22 +2495,15 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 
 	return false;
 }
-
-void monthly_flashpoint_update(sys::state& state) {
-	// determine which states have flashpoints
-	/*
-	Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner
-	and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the
-	primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and
-	its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
-	*/
+// updates the flashpoint tags for state instances, which is saved data, so should be run on update, and not in fill_unsaved_data
+void update_flashpoint_tags(sys::state& state) {
 	for(auto si : state.world.in_state_instance) {
 		auto owner = si.get_nation_from_state_ownership();
 		auto owner_tag = owner.get_identity_from_identity_holder();
 
 		auto owner_accepts_culture = [&](dcon::culture_id c) {
 			return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
-		};
+			};
 
 		if(auto fp_focus_nation = si.get_nation_from_flashpoint_focus(); fp_focus_nation) {
 			if(can_put_flashpoint_focus_in_state(state, si, fp_focus_nation)) {
@@ -2538,6 +2536,16 @@ void monthly_flashpoint_update(sys::state& state) {
 		si.set_flashpoint_tag(qualifying_tag);
 
 	}
+}
+
+void monthly_flashpoint_update(sys::state& state) {
+	/*
+	Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner
+	and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the
+	primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and
+	its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
+	*/
+
 
 	// set which nations contain such states
 	state.world.execute_serial_over_nation(

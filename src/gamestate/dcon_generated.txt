@@ -321,6 +321,7 @@ object {
 	size{ 126 }
 	tag{ scenario }
 	tag{ save }
+	
 
 	property{
 		name{ name }
@@ -411,6 +412,8 @@ object {
 	property{
 		name{ producer_payout_fraction }
 		type{ float }
+		
+		
 	}
 	property{
 		name{ price_record }
@@ -420,14 +423,17 @@ object {
 	property{
 		name{ is_life_need }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ is_everyday_need }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ is_luxury_need }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ uses_potentials }
@@ -668,6 +674,7 @@ object {
 	storage_type{ contiguous }
 	size{ 120 }
 	tag{ scenario }
+	
 
 	property{
 		name{ name }
@@ -697,6 +704,7 @@ object {
 	property{
 		name{ issue_type }
 		type{ uint8_t }
+		
 	}
 }
 
@@ -705,6 +713,7 @@ object {
 	storage_type{ contiguous }
 	size{ 720 }
 	tag{ scenario }
+	
 
 	property{
 		name{ name }
@@ -767,6 +776,7 @@ object {
 	property{
 		name{ parent_issue }
 		type{ issue_id }
+		
 	}
 
 	property{
@@ -781,6 +791,7 @@ object {
 	storage_type{ contiguous }
 	size{ 120 }
 	tag{ scenario }
+	
 
 	property{
 		name{ name }
@@ -805,6 +816,7 @@ object {
 	property{
 		name{ reform_type }
 		type{ uint8_t }
+		
 	}
 }
 
@@ -813,6 +825,7 @@ object {
 	storage_type{ contiguous }
 	size{ 720 }
 	tag{ scenario }
+	
 
 	property{
 		name{ name }
@@ -869,6 +882,7 @@ object {
 	property{
 		name{ parent_reform }
 		type{ reform_id }
+		
 	}
 }
 
@@ -1078,6 +1092,7 @@ object {
 	storage_type{ contiguous }
 	size{ 20 }
 	tag{ scenario }
+	tag{ keep_after_state_reload }
 
 	property{
 		name{ name }
@@ -1154,6 +1169,7 @@ object {
 	property{
 		name{ migration_target_fn }
 		type{ uint64_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ country_migration_target }
@@ -1163,6 +1179,7 @@ object {
 	property{
 		name{ country_migration_target_fn }
 		type{ uint64_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ issues }
@@ -1172,6 +1189,7 @@ object {
 	property{
 		name{ issues_fns }
 		type{array{issue_option_id}{uint64_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ ideology }
@@ -1181,6 +1199,7 @@ object {
 	property{
 		name{ ideology_fns }
 		type{array{ideology_id}{uint64_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ promotion }
@@ -1190,6 +1209,7 @@ object {
 	property{
 		name{ promotion_fns }
 		type{array{pop_type_id}{uint64_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ life_needs }
@@ -1385,6 +1405,7 @@ object {
 	size{ 17000 }
 	tag{ scenario }
 	tag{ save }
+	
 
 	property{
 		name{ provid }
@@ -1464,6 +1485,7 @@ object {
 	property{
 		name{ mid_point_b }
 		type{ glm::vec3 }
+		
 	}
 
 	property{
@@ -1481,6 +1503,7 @@ object {
 	property{
 		name{ modifier_values }
 		type{ array{provincial_modifier_value}{float} }
+		
 	}
 
 	property {
@@ -1496,18 +1519,22 @@ object {
 	property {
 		name{ connected_region_id }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ connected_coast_id }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ state_membership }
 		type{ state_instance_id }
+		
 	}
 	property {
 		name{ is_coast }
 		type{ bitfield }
+		
 	}
 	property {
 		name{ demographics }
@@ -1521,22 +1548,27 @@ object {
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+		
 	}
 	property {
 		name{ dominant_accepted_culture }
 		type{ culture_id }
+		
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+		
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		
 	}
 	property {
 		name{ last_control_change }
@@ -1551,6 +1583,7 @@ object {
 	property{
 		name{ is_owner_core }
 		type{ bitfield }
+		
 	}
 	property {
 		name{ rgo_base_size }
@@ -1580,7 +1613,7 @@ object {
 	property{
 		name{ rgo_efficiency }
 		type{ array{commodity_id}{float} }
-		tag{ scenario }
+		tag{ save }
 	}
 	property{
 		name{ rgo_target_employment }
@@ -1627,11 +1660,13 @@ object {
 	property {
 		name{ artisan_profit }
 		type{ float }
+		
 	}
 
 	property{
 		name{ subsistence_score }
 		type{ float }
+		
 	}
 	property{
 		name{ landowners_share }
@@ -1668,10 +1703,12 @@ object {
 	property{
 		name{ daily_net_migration }
 		type{ float }
+		
 	}
 	property{
 		name{ daily_net_immigration }
 		type{ float }
+		
 	}
 	property{
 		name{ siege_progress }
@@ -1681,14 +1718,17 @@ object {
 	property{
 		name{ is_blockaded }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ former_controller }
 		type{ dcon::nation_id }
+		
 	}
 	property{
 		name{ former_rebel_controller }
 		type{ dcon::rebel_faction_id }
+		
 	}
 
 
@@ -1744,8 +1784,9 @@ relationship{
 	name{ province_adjacency }
 	storage_type{ compactable }
 	size{ 28000 }
-	tag{ scenario }
 	tag{ save }
+	tag { scenario }
+	
 
 	link{
 		object{province}
@@ -1763,6 +1804,7 @@ relationship{
 	property{
 		name{ distance }
 		type{ float }
+		
 	}
 
 	property{
@@ -1782,6 +1824,7 @@ relationship{
 	name{ nation_adjacency }
 	storage_type{ compactable }
 	size{ 4000 }
+	
 
 	link{
 		object{nation}
@@ -1802,6 +1845,7 @@ object {
 	storage_type{ erasable }
 	size{ 32000 }
 	tag{ save }
+	
 
 	property{
 		name{ name }
@@ -1821,6 +1865,8 @@ object {
 	property{	
 		name{ pending_damage }
 		type{ float }
+		
+		
 	}
 	property{	
 		name{ org }
@@ -1830,6 +1876,8 @@ object {
 	property{
 		name{ pending_split }
 		type{ bitfield }
+		
+		
 	}
 	property{
 		name{ experience }
@@ -1971,6 +2019,8 @@ object {
 	storage_type{ erasable }
 	size{ 32000 }
 	tag{ save }
+	
+	
 
 	property{
 		name{ name }
@@ -1995,6 +2045,8 @@ object {
 	property{
 		name{ pending_split }
 		type{ bitfield }
+		
+		
 	}
 	property{
 		name{ experience }
@@ -2449,6 +2501,8 @@ object {
 	storage_type{ erasable }
 	size{ 1000 }
 	tag{ save }
+	
+	
 
 	property{
 		name{ start_date }
@@ -2567,11 +2621,15 @@ object {
 	property{
 		name{ defender_casualties }
 		type{ float }
+		
+		
 	}
 	
 	property{
 		name{ attacker_casualties }
 		type{ float }
+		
+		
 	}
 }
 
@@ -3043,6 +3101,8 @@ object {
 	storage_type{ erasable }
 	size{ 6000 }
 	tag{ save }
+	
+	
 
 	property{
 		name{ definition }
@@ -3072,31 +3132,43 @@ object {
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
+		
 	}
 	property {
 		name{ demographics_alt }
 		type{ array{demographics_key}{float} }
+		
 	}
 	swappable{demographics}{demographics_alt}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+		
+		
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+		
+		
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		
+		
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		
+		
 	}
 	property {
 		name{ naval_base_is_taken }
 		type{ bitfield }
+		
+		
 	}
 }
 relationship{
@@ -3265,6 +3337,8 @@ object {
 	storage_type{ contiguous }
 	size{ 400 }
 	tag{ scenario }
+	
+	
 
 	property{
 		name{ name }
@@ -3309,6 +3383,7 @@ object {
 	property{
 		name{ ai_weight }
 		type{ float }
+		
 	}
 	property{
 		name{cost}
@@ -3481,10 +3556,13 @@ object {
 	storage_type{ erasable }
 	size{ 2000 }
 	tag{ save }
+	
 
 	property{
 		name{ color }
 		type{ uint32_t }
+		
+		
 	}
 	property{
 		name{ masquerade_identity }
@@ -3520,10 +3598,14 @@ object {
 	property{
 		name{ marked_for_gc }
 		type{ bitfield }
+		
+		
 	}
 	property{
 		name{ is_great_power }
 		type{ bitfield }
+		
+		
 	}
 	property{
 		name{ national_value }
@@ -3603,6 +3685,8 @@ object {
 	property{
 		name{ combined_issue_rules }
 		type{ uint32_t }
+		
+		
 	}
 	property{
 		name{ upper_house }
@@ -3627,46 +3711,57 @@ object {
 	property{
 		name{ modifier_values }
 		type{ array{national_modifier_value}{float} }
+		
 	}
 	property{
 		name{ rgo_goods_output }
 		type{ array{commodity_id}{float} }
+		
 	}
 	property{
 		name{ factory_goods_output }
 		type{ array{commodity_id}{float} }
+		
 	}
 	property{
 		name{ rgo_size }
 		type{ array{commodity_id}{float} }
+		
 	}
 	property{
 		name{ factory_goods_throughput }
 		type{ array{commodity_id}{float} }
+		
 	}
 	property{
 		name{ rebel_org_modifier }
 		type{ array{rebel_type_id}{float} }
+		
 	}
 	property{
 		name{ unit_stats }
 		type{array{unit_type_id}{sys::unit_variable_stats}}
+		
 	}
 	property{
 		name{ active_unit }
 		type{array{unit_type_id}{bitfield}}
+		
 	}
 	property{
 		name{ active_crime }
 		type{array{crime_id}{bitfield}}
+		
 	}
 	property{
 		name{ active_building }
 		type{array{factory_type_id}{bitfield}}
+		
 	}
 	property{
 		name{ unlocked_commodities }
 		type{array{commodity_id}{bitfield}}
+		
 	}
 	property{
 		name{ factory_type_experience }
@@ -3686,14 +3781,19 @@ object {
 	property{
 		name{ has_gas_attack }
 		type{ bitfield }
+		
+		
 	}
 	property{
 		name{ has_gas_defense }
 		type{ bitfield }
+		
+		
 	}
 	property {
 		name{ max_building_level }
 		type{ array{uint8_t}{uint8_t} }
+		
 	}
 	property {
 		name{ current_modifiers }
@@ -3703,30 +3803,41 @@ object {
 	property {
 		name{ in_sphere_of }
 		type{ nation_id }
+		
+		
 	}
 	property {
 		name{ rank }
 		type{ uint16_t }
+		
+		
 	}
 	property {
 		name{ industrial_rank }
 		type{ uint16_t }
+		
+		
 	}
 	property {
 		name{ military_rank }
 		type{ uint16_t }
+		
+		
 	}
 	property {
 		name{ prestige_rank }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
+		
 	}
 	property {
 		name{ demographics_alt }
 		type{ array{demographics_key}{float} }
+		
 	}
 	swappable{demographics}{demographics_alt}
 	property {
@@ -3737,6 +3848,7 @@ object {
 	property {
 		name{ is_at_war }
 		type{ bitfield }
+		
 	}
 	property {
 		name{ is_mobilized }
@@ -3866,10 +3978,12 @@ object {
 	property {
 		name{ private_investment_effective_fraction }
 		type{ float }
+		
 	}
 	property {
 		name{ private_investment_education }
 		type{ float }
+		
 	}
 	property {
 		name{ private_investment_administration }
@@ -3918,66 +4032,82 @@ object {
 	property {
 		name{ last_treasury }
 		type{ float }
+		
 	}
 	property {
 		name{ industrial_score }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ military_score }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ central_blockaded }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ central_rebel_controlled }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ owned_province_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ owned_state_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ central_province_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ rebel_controlled_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ occupied_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ central_ports }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ total_ports }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ central_crime_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ allies_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ vassals_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ substates_count }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ gdp }
@@ -4036,22 +4166,27 @@ object {
 	property{
 		name{ is_colonial_nation }
 		type{ bitfield }
+		
 	}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+		
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+		
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		
 	}
 	property {
 		name{ constructing_cb_target }
@@ -4086,14 +4221,17 @@ object {
 	property {
 		name{ non_colonial_population }
 		type{ float }
+		
 	}
 	property {
 		name{ non_colonial_bureaucrats }
 		type{ float }
+		
 	}
 	property {
 		name{ administrative_efficiency }
 		type{ float }
+		
 	}
 	property {
 		name{ research_points }
@@ -4108,18 +4246,22 @@ object {
 	property {
 		name{ active_regiments }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ recruitable_regiments }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ averge_land_unit_score }
 		type{ float }
+		
 	}
 	property {
 		name{ capital_ship_score }
 		type{ float }
+		
 	}
 	property {
 		name{ suppression_points }
@@ -4139,18 +4281,22 @@ object {
 	property {
 		name{ naval_supply_points }
 		type{ uint16_t }
+		
 	}
 	property {
 		name{ used_naval_supply_points }
 		type{ uint16_t }
+		
 	}
 	property{
 		name{ has_flash_point_state }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ is_target_of_some_cb }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ is_interesting }
@@ -4161,6 +4307,7 @@ object {
 	property{
 		name{ ai_is_threatened }
 		type{ bitfield }
+		
 	}
 	property{
 		name{ ai_rival }
@@ -4170,6 +4317,7 @@ object {
 	property{
 		name{ ai_home_port }
 		type{ province_id }
+		
 	}
 	property{
 		name{ mobilized_is_ai_controlled }
@@ -4584,6 +4732,7 @@ object {
 	storage_type{ erasable }
 	size{ 20000 }
 	tag{ save }
+	
 
 	property{
 		name{ building_type }
@@ -4634,6 +4783,7 @@ object {
 	property {
 		name{ triggered_modifiers }
 		type{ float }
+		
 	}	
 	property {
 		name{ output }
@@ -4964,6 +5114,7 @@ object {
 	storage_type{ compactable }
 	size{ 8000 }
 	tag{ save }
+	
 
 	property{
 		name{ associated_issue_option }
@@ -4978,10 +5129,12 @@ object {
 	property{
 		name{ pop_support }
 		type{ float }
+		
 	}
 	property{
 		name{ radicalism }
 		type{ float }
+		
 	}
 	property{
 		name{ transient_radicalism }
@@ -5046,6 +5199,7 @@ object {
 	storage_type{ compactable }
 	size{ 300000 }
 	tag{ save }
+	
 
 	property{
 		name{ poptype }
@@ -5110,10 +5264,12 @@ object {
 	property {
 		name{ upolitical_reform_desire }
 		type{ uint8_t }
+		
 	}
 	property {
 		name{ usocial_reform_desire }
 		type{ uint8_t }
+		
 	}
 	property {
 		name{ udemographics }
@@ -5123,14 +5279,17 @@ object {
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
+		
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+		
 	}
 	property {
 		name{ is_primary_or_accepted_culture }
 		type{ bitfield }
+		
 	}
 }
 
@@ -5156,6 +5315,7 @@ object {
 	storage_type{ contiguous }
 	size{ 4000 }
 	tag{ scenario }
+	tag{ keep_after_state_reload }
 
 	property{
 		name{ name }
@@ -5190,6 +5350,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ allow_multiple_instances }
@@ -5203,6 +5364,7 @@ object {
 	storage_type{ contiguous }
 	size{ 2000 }
 	tag{ scenario }
+	tag{ keep_after_state_reload }
 
 	property{
 		name{ name }
@@ -5227,6 +5389,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ keep_after_state_reload }
 	}
 }
 
@@ -5236,6 +5399,7 @@ object {
 	size{ 8000 }
 	tag{ scenario }
 	tag{ save }
+	tag{ keep_after_state_reload }
 
 	property{
 		name{ name }
@@ -5295,6 +5459,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ keep_after_state_reload }
 	}
 }
 
@@ -5304,6 +5469,7 @@ object {
 	size{ 8000 }
 	tag{ scenario }
 	tag{ save }
+	tag{ keep_after_state_reload }
 
 	property{
 		name{ name }
@@ -5348,6 +5514,7 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+		tag{ keep_after_state_reload }
 	}
 }
 
@@ -5485,70 +5652,87 @@ object {
 	name{ locale }
 	storage_type{ contiguous }
 	size{ 2000 }
+	tag{ keep_after_state_reload }
 
 	property{
 		name{ native_rtl }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ prevent_letterspace }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ display_name }
 		type{vector_pool{5000}{uint8_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ locale_name }
 		type{vector_pool{5000}{uint8_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ fallback }
 		type{vector_pool{5000}{uint8_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ resolved_language }
 		type{ hb_language_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ hb_script }
 		type{ uint32_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ resolved_body_font }
 		type{ uint16_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ resolved_header_font }
 		type{ uint16_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ resolved_map_font }
 		type{ uint16_t }
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ body_font }
 		type{vector_pool{5000}{uint8_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ header_font }
 		type{vector_pool{5000}{uint8_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ map_font }
 		type{vector_pool{5000}{uint8_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ body_font_features }
 		type{vector_pool{1000}{uint32_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ header_font_features }
 		type{vector_pool{1000}{uint32_t}}
+		tag{ keep_after_state_reload }
 	}
 	property{
 		name{ map_font_features }
 		type{vector_pool{1000}{uint32_t}}
+		tag{ keep_after_state_reload }
 	}
 }
 
@@ -5556,23 +5740,38 @@ object{
 	name{ mp_player }
 	storage_type{ erasable }
 	size{ 200 }
+	tag { keep_after_state_reload }
 
 	property{
 		name{ nickname }
 		type{ std::array<uint8_t,24> }
+		tag { keep_after_state_reload }
 	}
 	property{
 		name{ password_salt }
 		type{ std::array<uint8_t,24> }
+		tag { keep_after_state_reload }
 	}
 	property{
 		name{ password_hash }
 		type{ std::array<uint8_t,64> }
+		tag { keep_after_state_reload }
+	}
+	property{
+		name{ fully_loaded }
+		type{ bitfield }
+		tag { keep_after_state_reload }
+	}
+	property{
+		name{ is_oos }
+		type{ bitfield }
+		tag { keep_after_state_reload }
 	}
 }
 
 relationship{
 	name{ player_nation }
+	tag { keep_after_state_reload }
 	link{
 		object{nation}
 		name{nation}
@@ -5602,3 +5801,10 @@ load_save{
 	only_objects{save}{local_save}
 	only_properties{save}{local_save}
 }
+load_save{
+	name{store_reload_protected_state}
+	only_objects{keep_after_state_reload}
+	only_properties{keep_after_state_reload}
+}
+
+

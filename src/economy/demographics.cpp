@@ -193,7 +193,8 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto location = state.world.pop_get_province_from_pop_location(p);
-		state.world.province_get_demographics(location, key) += source(state, p);
+		auto current = state.world.province_get_demographics(location, key);
+		state.world.province_set_demographics(location, key, current + source(state, p));
 	});
 	// clear state
 	state.world.execute_serial_over_state_instance(
@@ -201,14 +202,21 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
-		state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(p, key);
+		// check if province is uncolonized, as uncolonized provinces do not have valid state membership
+		if(location) {
+			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(p, key);
+		}
 	});
 	// clear nation
 	state.world.execute_serial_over_nation([&](auto ni) { state.world.nation_set_demographics(ni, key, ve::fp_vector()); });
 	// sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-		state.world.nation_get_demographics(location, key) += state.world.state_instance_get_demographics(s, key);
+		// check if state is not owned by a nation
+		if(location) {
+			state.world.nation_get_demographics(location, key) += state.world.state_instance_get_demographics(s, key);
+		}
+		
 	});
 }
 
@@ -219,7 +227,8 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto location = state.world.pop_get_province_from_pop_location(p);
-		state.world.province_get_demographics_alt(location, key) += source(state, p);
+		auto current = state.world.province_get_demographics_alt(location, key);
+		state.world.province_set_demographics_alt(location, key, current + source(state, p));
 	});
 	// clear state
 	state.world.execute_serial_over_state_instance(
@@ -227,14 +236,22 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
-		state.world.state_instance_get_demographics_alt(location, key) += state.world.province_get_demographics_alt(p, key);
+		// check if province is uncolonized, as uncolonized provinces do not have valid state membership
+		if(location) {
+			state.world.state_instance_get_demographics_alt(location, key) += state.world.province_get_demographics_alt(p, key);
+		}
+		
 	});
 	// clear nation
 	state.world.execute_serial_over_nation([&](auto ni) { state.world.nation_set_demographics_alt(ni, key, ve::fp_vector()); });
 	// sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-		state.world.nation_get_demographics_alt(location, key) += state.world.state_instance_get_demographics_alt(s, key);
+		// check if state is not owned by a nation
+		if(location) {
+			state.world.nation_get_demographics_alt(location, key) += state.world.state_instance_get_demographics_alt(s, key);
+		}
+		
 	});
 }
 

@@ -7,6 +7,26 @@ struct state;
 
 namespace economy {
 
+void build_land_unit_construction_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	dcon::province_land_construction_id conid
+);
+
+void build_naval_unit_construction_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	dcon::province_naval_construction_id conid
+);
+
+economy::commodity_set calculate_factory_upgrade_goods_cost(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::province_id pid,
+	dcon::factory_type_id upgrade_target,
+	bool is_pop_project
+);
+
 void populate_construction_consumption(sys::state& state);
 
 struct unit_construction_data {
@@ -18,6 +38,14 @@ struct unit_construction_data {
 	dcon::province_id province;
 	dcon::unit_type_id unit_type;
 };
+unit_construction_data explain_land_unit_construction(
+	sys::state& state,
+	dcon::province_land_construction_id construction
+);
+unit_construction_data explain_naval_unit_construction(
+	sys::state& state,
+	dcon::province_naval_construction_id construction
+);
 struct province_construction_spending_entry {
 	dcon::province_building_construction_id construction;
 	float spending;

@@ -177,13 +177,15 @@ public:
 			win->set_visible(state, false);
 		ui::clear_event_windows(state);
 
-		state.network_state.save_slock.store(true, std::memory_order::release);
+		state.network_state.save_slock.lock();
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
-		state.preload();
+		/*state.preload();*/
+		/*state.render_semaphore.acquire();*/
+		state.reset_state();
 		bool loaded = false;
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
@@ -214,12 +216,23 @@ public:
 			friendly reminder that, scenario loading and reloading ends up with different outcomes */
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
+
+
+				// notfy every client that every client is now loading (loading the save)
+				for(auto& loading_client : state.network_state.clients) {
+					if(loading_client.is_active()) {
+						network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
+					}
+				}
+
 				/* Save the buffer before we fill the unsaved data */
 				state.local_player_nation = dcon::nation_id{ };
-				network::place_host_player_after_saveload(state);
+				//network::place_host_player_after_saveload(state);
 
 				network::write_network_save(state);
+				network::place_players_after_reload(state, players, old_local_player_nation);
 				state.fill_unsaved_data();
+				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 				/* Now send the saved buffer before filling the unsaved data to the clients
@@ -229,7 +242,7 @@ public:
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
+				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_mp_state_checksum);
 			} else {
 				state.fill_unsaved_data();
 			}
@@ -240,8 +253,9 @@ public:
 		state.map_state.unhandled_province_selection = true;
 		state.railroad_built.store(true, std::memory_order::release);
 		state.sprawl_update_requested.store(true, std::memory_order::release);
-		state.network_state.save_slock.store(false, std::memory_order::release);
+		state.network_state.save_slock.unlock();
 		state.game_state_updated.store(true, std::memory_order_release);
+		/*state.render_semaphore.release();*/
 
 		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
 	}
@@ -606,11 +620,17 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
+		// disable if there are any players loading
+		if(state.network_state.num_client_loading != 0) {
+			disabled = true;
+			return;
+		}
+
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
 			} else {
-				if(!state.session_host_checksum.is_equal(state.get_save_checksum())) { //can't start if checksum doesn't match
+				if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) { //can't start if checksum doesn't match
 					disabled = true;
 				}
 			}
@@ -644,11 +664,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			auto box = text::open_layout_box(contents, 0);
 			if(state.network_state.save_stream) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
-			} else if(!state.session_host_checksum.is_equal(state.get_save_checksum())) {
+			}
+			else if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
 			}
 			for(auto const& client : state.network_state.clients) {
@@ -660,8 +681,13 @@ public:
 					}
 				}
 			}
-			text::close_layout_box(contents, box);
 		}
+		else if(state.network_mode == sys::network_mode_type::host) {
+			if(state.network_state.num_client_loading != 0) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_player_loading"));
+			}
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -672,39 +698,51 @@ public:
 	}
 };
 
-class multiplayer_status_text : public simple_text_element_base {
+class multiplayer_status_text : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::host) {
-			// on render
-		} else {
+
+
+		auto player = network::find_country_player(state, n);
+		if(state.world.mp_player_get_fully_loaded(player)) {
+			color = text::text_color::dark_green;
 			set_text(state, text::produce_simple_string(state, "ready"));
 		}
+		else {
+			color = text::text_color::yellow;
+			set_text(state, text::produce_simple_string(state, "Loading"));
+		}
+
+		//if(state.network_mode == sys::network_mode_type::host) {
+		//	// on render
+		//} else {
+		//	set_text(state, text::produce_simple_string(state, "ready"));
+		//}
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::host) {
-			set_text(state, text::produce_simple_string(state, "ready")); // default
-			if(state.network_state.is_new_game == false) {
-				for(auto const& c : state.network_state.clients) {
-					if(c.is_active() && c.playing_as == n) {
-						auto completed = c.total_sent_bytes - c.save_stream_offset;
-						auto total = c.save_stream_size;
-						if(total > 0.f) {
-							float progress = float(completed) / float(total);
-							if(progress < 1.f) {
-								text::substitution_map sub{};
-								text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-								set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
-							}
-						}
-						break;
-					}
-				}
-			}
-		}
-		simple_text_element_base::render(state, x, y);
+		//auto n = retrieve<dcon::nation_id>(state, parent);
+		//if(state.network_mode == sys::network_mode_type::host) {
+		//	set_text(state, text::produce_simple_string(state, "ready")); // default
+		//	if(state.network_state.is_new_game == false) {
+		//		for(auto const& c : state.network_state.clients) {
+		//			if(c.is_active() && c.playing_as == n) {
+		//				auto completed = c.total_sent_bytes - c.save_stream_offset;
+		//				auto total = c.save_stream_size;
+		//				if(total > 0.f) {
+		//					float progress = float(completed) / float(total);
+		//					if(progress < 1.f) {
+		//						text::substitution_map sub{};
+		//						text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+		//						set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+		//					}
+		//				}
+		//				break;
+		//			}
+		//		}
+		//	}
+		//}
+		color_text_element::render(state, x, y);
 	}
 };
 
@@ -780,7 +818,7 @@ public:
 			state.world.for_each_nation([&](dcon::nation_id n) {
 				if(state.world.nation_get_is_player_controlled(n))
 					row_contents.push_back(n);
-			});
+		});
 		}
 		update(state);
 	}

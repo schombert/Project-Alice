@@ -395,10 +395,12 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			DispatchMessageW(&msg);
 		} else {
 			// Run game code
-
+			game_state.ui_lock.lock();;
+			
 			game_state.render();
 			SwapBuffers(game_state.win_ptr->opengl_window_dc);
-		}
+			game_state.ui_lock.unlock();
+		}	
 	}
 }
 

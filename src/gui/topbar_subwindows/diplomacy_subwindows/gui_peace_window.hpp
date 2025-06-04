@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "ai_war.hpp"
 
 namespace ui {
 
