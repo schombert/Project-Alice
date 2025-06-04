@@ -5804,7 +5804,7 @@ guiTypes = {
 
 	guiButtonType = {
 		name = "factory_refit_button"
-		position = { x = 25 y = 15 }
+		position = { x = 60 y = 15 }
 		quadTextureSprite ="GFX_unit_upgrade_button"
 		extends="factory_info"
 	}

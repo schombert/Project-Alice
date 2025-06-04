@@ -15,6 +15,7 @@
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
 #include "gui_province_tiles_window.hpp"
+#include "construction.hpp"
 
 namespace ui {
 
@@ -1692,6 +1693,10 @@ public:
 
 class province_army_progress : public progress_bar {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		progress = 0.f;
 		float amount = 0.f;
@@ -1701,12 +1706,13 @@ public:
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 				auto lcs = pop.get_pop().get_province_land_construction();
 				for(const auto lc : lcs) {
+					auto details = economy::explain_land_unit_construction(state, lc);
 					auto& base_cost = state.military_definitions.unit_base_definitions[lc.get_type()].build_cost;
 					auto& current_purchased = lc.get_purchased_goods();
 					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 						if(base_cost.commodity_type[i]) {
 							amount += current_purchased.commodity_amounts[i];
-							total += base_cost.commodity_amounts[i];
+							total += base_cost.commodity_amounts[i] * details.cost_multiplier;
 						} else {
 							break;
 						}
@@ -1718,9 +1724,25 @@ public:
 			progress = amount / total;
 		}
 	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(auto pop : dcon::fatten(state.world, p).get_pop_location()) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				auto lcs = pop.get_pop().get_province_land_construction();
+				for(const auto lc : lcs) {
+					economy::build_land_unit_construction_tooltip(state, contents, lc.id);
+				}
+			}
+		}
+	}
 };
 class province_navy_progress : public progress_bar {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		progress = 0.f;
 		float amount = 0.f;
@@ -1731,9 +1753,10 @@ public:
 			auto& base_cost = state.military_definitions.unit_base_definitions[nc.get_type()].build_cost;
 			auto& current_purchased = nc.get_purchased_goods();
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				auto details = economy::explain_naval_unit_construction(state, nc);
 				if(base_cost.commodity_type[i]) {
 					amount += current_purchased.commodity_amounts[i];
-					total += base_cost.commodity_amounts[i];
+					total += base_cost.commodity_amounts[i] * details.cost_multiplier;
 				} else {
 					break;
 				}
@@ -1741,6 +1764,14 @@ public:
 		}
 		if(total > 0.f) {
 			progress = amount / total;
+		}
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto ncs = state.world.province_get_province_naval_construction(p);
+		for(auto nc : ncs) {
+			economy::build_naval_unit_construction_tooltip(state, contents, nc.id);
 		}
 	}
 };
