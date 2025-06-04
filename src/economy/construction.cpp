@@ -1,8 +1,111 @@
 #include "construction.hpp"
 #include "economy_stats.hpp"
 #include "province_templates.hpp"
+#include "text.hpp"
 
 namespace economy {
+
+void build_land_unit_construction_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	const dcon::province_land_construction_id conid
+) {
+	auto details = explain_land_unit_construction(state, conid);
+	auto unit = state.world.province_land_construction_get_type(conid);
+	auto& goods = state.military_definitions.unit_base_definitions[unit].build_cost;
+	auto& cgoods = state.world.province_land_construction_get_purchased_goods(conid);
+
+	float total = 0.0f;
+	float purchased = 0.0f;
+
+	{
+		auto name = state.military_definitions.unit_base_definitions[unit].name;
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
+	}
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(goods.commodity_type[i]) {
+			auto box = text::open_layout_box(contents, 0);
+
+			auto cid = goods.commodity_type[i];
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
+			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * details.cost_multiplier });
+			text::close_layout_box(contents, box);
+		}
+	}
+}
+
+void build_naval_unit_construction_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	const dcon::province_naval_construction_id conid
+) {
+	auto details = explain_naval_unit_construction(state, conid);
+	auto unit = state.world.province_naval_construction_get_type(conid);
+	auto& goods = state.military_definitions.unit_base_definitions[unit].build_cost;
+	auto& cgoods = state.world.province_naval_construction_get_purchased_goods(conid);
+
+	float total = 0.0f;
+	float purchased = 0.0f;
+
+	{
+		auto name = state.military_definitions.unit_base_definitions[unit].name;
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, name);
+		text::close_layout_box(contents, box);
+	}
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(goods.commodity_type[i]) {
+			auto box = text::open_layout_box(contents, 0);
+
+			auto cid = goods.commodity_type[i];
+			std::string padding = cid.index() < 10 ? "0" : "";
+			std::string description = "@$" + padding + std::to_string(cid.index());
+			text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
+			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * details.cost_multiplier });
+			text::close_layout_box(contents, box);
+		}
+	}
+}
+
+economy::commodity_set calculate_factory_upgrade_goods_cost(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::province_id pid,
+	dcon::factory_type_id upgrade_target,
+	bool is_pop_project
+) {
+	economy::commodity_set res{};
+	auto& base_cost = state.world.factory_type_get_construction_costs(upgrade_target);
+	float factory_mod = factory_build_cost_multiplier(state, n, pid, is_pop_project);
+
+
+	for(uint32_t j = 0; j < commodity_set::set_size; ++j) {
+		if(base_cost.commodity_type[j]) {
+			res.commodity_type[j] = base_cost.commodity_type[j];
+			res.commodity_amounts[j] = base_cost.commodity_amounts[j] * factory_mod;
+		} else {
+			break;
+		}
+	}
+
+	return res;
+}
 
 economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dcon::nation_id n, dcon::province_id pid, dcon::factory_type_id from, dcon::factory_type_id to) {
 	auto& from_cost = state.world.factory_type_get_construction_costs(from);

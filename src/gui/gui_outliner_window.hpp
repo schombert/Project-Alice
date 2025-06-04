@@ -79,6 +79,20 @@ public:
 				auto nationname = text::produce_simple_string(state, text::get_name(state, n));
 				text::add_line(state, contents, nationname + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")", 0);
 			}
+		} else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
+			auto plcid = std::get<dcon::province_land_construction_id>(content);
+			economy::build_land_unit_construction_tooltip(
+				state,
+				contents,
+				plcid
+			);
+		} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
+			auto pncid = std::get<dcon::province_naval_construction_id>(content);
+			economy::build_naval_unit_construction_tooltip(
+				state,
+				contents,
+				pncid
+			);
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
