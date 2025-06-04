@@ -5354,9 +5354,13 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 }
 
 void adjust_leader_prestige(sys::state& state, dcon::leader_id l, float value) {
-	auto v = state.world.leader_get_prestige(l);
-	v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
-	state.world.leader_set_prestige(l, v);
+	// dont adjust prestige to a invalid leader (no leader), as it will be an invalid write
+	if(l) {
+		auto v = state.world.leader_get_prestige(l);
+		v = std::clamp(v + value, 0.f, 1.f); //from 0% to 100%
+		state.world.leader_set_prestige(l, v);
+	}
+	
 }
 
 // Won and lost battles give leadership points to highlight the growing experience of the military high command

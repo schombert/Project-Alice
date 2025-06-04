@@ -4616,6 +4616,17 @@ guiTypes = {
 		position = { x= 148 y = 3 }
 		quadTextureSprite = "GFX_take_province"	
 	}
+
+	instantTextBoxType = {
+			name = "ready_state"
+			extends = "ingame_multiplayer_entry"
+			position = { x=160 y =2}
+			borderSize = { 0 0}
+			maxsize = { 50 32 }
+			textureFile = ""
+			font = "vic_18_black"
+		}
+
 	guiButtonType = {
 			name = "button_ban"
 			extends = "ingame_multiplayer_entry"
@@ -4625,6 +4636,16 @@ guiTypes = {
 			delayedTooltipText = ""
 			position = { x=228 y =2}
 		}
+
+		guiButtonType = {
+			name = "resync_button"
+			extends = "ingame_lobby_window"
+			quadTextureSprite = "GFX_alice_event_auto"
+			position = { x=535 y =314}
+		}
+
+
+
     guiButtonType = {
 		name = "alice_budget_warning"
 		extends = "topbar"
