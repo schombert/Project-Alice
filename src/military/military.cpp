@@ -17,8 +17,7 @@
 namespace military {
 
 template auto province_is_blockaded<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
-template auto province_is_under_siege<ve::tagged
-_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
+template auto province_is_under_siege<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 template auto battle_is_ongoing_in_province<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 
 constexpr inline float org_dam_mul = 0.18f;
@@ -4711,24 +4710,30 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
+			{
 				reserves.push_back(
 						reserve_regiment{ reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_infantry });
 				auto& atk_infantry = state.world.land_battle_get_attacker_infantry(b);
 				state.world.land_battle_set_attacker_infantry(b, atk_infantry + reg.get_regiment().get_strength());
 				break;
+			}	
 			case unit_type::cavalry:
+			{
 				reserves.push_back(
 						reserve_regiment{ reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_cavalry });
 				auto& atk_cav = state.world.land_battle_get_attacker_cav(b);
 				state.world.land_battle_set_attacker_cav(b, atk_cav + reg.get_regiment().get_strength());
 				break;
+			}				
 			case unit_type::special:
 			case unit_type::support:
+			{
 				reserves.push_back(
 						reserve_regiment{ reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_support });
 				auto& atk_sup = state.world.land_battle_get_attacker_support(b);
 				state.world.land_battle_set_attacker_support(b, atk_sup + reg.get_regiment().get_strength());
 				break;
+			}				
 			default:
 				assert(false);
 			}
@@ -4736,7 +4741,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 	} else {
 		auto& def_bonus = state.world.land_battle_get_defender_bonus(b);
 		auto prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
-		auto new_dig_in = std::min(prev_dig_in, state.world.army_get_dig_in(a) & defender_bonus_dig_in_mask);
+		auto new_dig_in = uint8_t(std::min(prev_dig_in, state.world.army_get_dig_in(a) & defender_bonus_dig_in_mask));
 		state.world.land_battle_set_defender_bonus(b, def_bonus & ~defender_bonus_dig_in_mask);
 		state.world.land_battle_set_defender_bonus(b, def_bonus | new_dig_in);
 
@@ -4749,25 +4754,31 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
+			{
 				reserves.push_back(reserve_regiment{ reg.get_regiment().id, reserve_regiment::type_infantry });
 
 				auto& def_infantry = state.world.land_battle_get_defender_infantry(b);
 				state.world.land_battle_set_defender_infantry(b, def_infantry + reg.get_regiment().get_strength());
 
 				break;
+			}			
 			case unit_type::cavalry:
+			{
 				reserves.push_back(reserve_regiment{ reg.get_regiment().id, reserve_regiment::type_cavalry });
 
 				auto& def_cav = state.world.land_battle_get_defender_cav(b);
 				state.world.land_battle_set_defender_cav(b, def_cav + reg.get_regiment().get_strength());
 				break;
+			}
 			case unit_type::special:
 			case unit_type::support:
+			{
 				reserves.push_back(reserve_regiment{ reg.get_regiment().id, reserve_regiment::type_support });
 
 				auto& def_sup = state.world.land_battle_get_defender_support(b);
 				state.world.land_battle_set_defender_support(b, def_sup + reg.get_regiment().get_strength());
 				break;
+			}		
 			default:
 				assert(false);
 			}
@@ -6459,8 +6470,8 @@ void update_land_battles(sys::state& state) {
 			auto& def_bonus = state.world.land_battle_get_defender_bonus(b);
 			// if the attacker rolls higher than the defender and dig-in is higher than 0, remove 1 level of dig-in from the defender
 			if(attacker_dice > defender_dice && (def_bonus & defender_bonus_dig_in_mask) > 0) {
-				auto prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
-				auto new_dig_in = prev_dig_in - 1;
+				uint8_t prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
+				uint8_t new_dig_in = prev_dig_in - 1;
 				state.world.land_battle_set_defender_bonus(b, def_bonus & ~defender_bonus_dig_in_mask);
 				state.world.land_battle_set_defender_bonus(b, def_bonus | new_dig_in);
 			}
@@ -6600,19 +6611,25 @@ void update_land_battles(sys::state& state) {
 					state.world.regiment_set_org(att_back_target, std::max(0.0f, org - org_damage));
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_back_target)].type) {
 					case unit_type::infantry:
+					{
 						auto& cur_lost = state.world.land_battle_get_defender_infantry_lost(b);
 						state.world.land_battle_set_defender_infantry_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					case unit_type::cavalry:
+					{
 						auto& cur_lost = state.world.land_battle_get_defender_cav_lost(b);
 						state.world.land_battle_set_defender_cav_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					case unit_type::support:
 						// fallthrough
 					case unit_type::special:
+					{
 						auto& cur_lost = state.world.land_battle_get_defender_support_lost(b);
 						state.world.land_battle_set_defender_support_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					default:
 						break;
 					}
@@ -6646,19 +6663,25 @@ void update_land_battles(sys::state& state) {
 
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_back_target)].type) {
 					case unit_type::infantry:
+					{
 						auto& cur_lost = state.world.land_battle_get_attacker_infantry_lost(b);
 						state.world.land_battle_set_attacker_infantry_lost(b, cur_lost + str_damage);
 						break;
+					}				
 					case unit_type::cavalry:
+					{
 						auto& cur_lost = state.world.land_battle_get_attacker_cav_lost(b);
 						state.world.land_battle_set_attacker_cav_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					case unit_type::support:
 						// fallthrough
 					case unit_type::special:
+					{
 						auto& cur_lost = state.world.land_battle_get_attacker_support_lost(b);
 						state.world.land_battle_set_attacker_support_lost(b, cur_lost + str_damage);
 						break;
+					}						
 					default:
 						break;
 					}
@@ -6690,19 +6713,25 @@ void update_land_battles(sys::state& state) {
 					state.world.regiment_set_org(att_front_target, std::max(0.0f, org - org_damage));
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front_target)].type) {
 					case unit_type::infantry:
+					{
 						auto& cur_lost = state.world.land_battle_get_defender_infantry_lost(b);
 						state.world.land_battle_set_defender_infantry_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					case unit_type::cavalry:
+					{
 						auto& cur_lost = state.world.land_battle_get_defender_cav_lost(b);
 						state.world.land_battle_set_defender_cav_lost(b, cur_lost + str_damage);
 						break;
+					}				
 					case unit_type::support:
 						// fallthrough
 					case unit_type::special:
+					{
 						auto& cur_lost = state.world.land_battle_get_defender_support_lost(b);
 						state.world.land_battle_set_defender_support_lost(b, cur_lost + str_damage);
 						break;
+					}			
 					default:
 						break;
 					}
@@ -6737,19 +6766,25 @@ void update_land_battles(sys::state& state) {
 					state.world.regiment_set_org(def_front_target, std::max(0.0f, org - org_damage));
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front_target)].type) {
 					case unit_type::infantry:
+					{
 						auto& cur_lost = state.world.land_battle_get_attacker_infantry_lost(b);
 						state.world.land_battle_set_attacker_infantry_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					case unit_type::cavalry:
+					{
 						auto& cur_lost = state.world.land_battle_get_attacker_cav_lost(b);
 						state.world.land_battle_set_attacker_cav_lost(b, cur_lost + str_damage);
 						break;
+					}					
 					case unit_type::support:
 						// fallthrough
 					case unit_type::special:
+					{
 						auto& cur_lost = state.world.land_battle_get_attacker_support_lost(b);
 						state.world.land_battle_set_attacker_support_lost(b, cur_lost + str_damage);
 						break;
+					}
 					default:
 						break;
 					}
