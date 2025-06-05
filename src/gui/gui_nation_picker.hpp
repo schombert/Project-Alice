@@ -703,16 +703,21 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 
-
-		auto player = network::find_country_player(state, n);
-		if(state.world.mp_player_get_fully_loaded(player)) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
 			set_text(state, text::produce_simple_string(state, "ready"));
 		}
 		else {
-			color = text::text_color::yellow;
-			set_text(state, text::produce_simple_string(state, "Loading"));
+			auto player = network::find_country_player(state, n);
+			if(state.world.mp_player_get_fully_loaded(player)) {
+				color = text::text_color::dark_green;
+				set_text(state, text::produce_simple_string(state, "ready"));
+			} else {
+				color = text::text_color::yellow;
+				set_text(state, text::produce_simple_string(state, "Loading"));
+			}
 		}
+
 
 		//if(state.network_mode == sys::network_mode_type::host) {
 		//	// on render
