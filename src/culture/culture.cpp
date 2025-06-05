@@ -438,19 +438,23 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 			auto fixed_offset = tech_nat_values.offsets[i];
 			auto modifier_amount = tech_nat_values.values[i];
 
-			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
+			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
+			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals + modifier_amount);
 		}
 	}
 
+	
 	auto& plur = state.world.nation_get_plurality(target_nation);
-	plur = std::clamp(plur + tech_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+	state.world.nation_set_plurality(target_nation, std::clamp(plur + tech_id.get_plurality() * 100.0f, 0.0f, 100.0f));
 
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
-			state.world.nation_get_max_building_level(target_nation, uint8_t(t)) += 1;
+			auto& cur_max = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max + 1);
 		}
 	}
-	state.world.nation_get_permanent_colonial_points(target_nation) += tech_id.get_colonial_points();
+	auto& cur_colonial_pts = state.world.nation_get_permanent_colonial_points(target_nation);
+	state.world.nation_set_permanent_colonial_points(target_nation, cur_colonial_pts + tech_id.get_colonial_points());
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, true);
@@ -468,13 +472,16 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 	}
 
 	for(auto cmod : tech_id.get_rgo_goods_output()) {
-		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_goods_output(target_nation, cmod.type);
+		state.world.nation_set_rgo_goods_output(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto cmod : tech_id.get_factory_goods_output()) {
-		state.world.nation_get_factory_goods_output(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_factory_goods_output(target_nation, cmod.type);
+		state.world.nation_set_factory_goods_output(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto cmod : tech_id.get_rgo_size()) {
-		state.world.nation_get_rgo_size(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_size(target_nation, cmod.type);
+		state.world.nation_set_rgo_size(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto& umod : tech_id.get_modified_units()) {
 		if(umod.type == state.military_definitions.base_army_unit) {
@@ -512,19 +519,22 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 			auto fixed_offset = tech_nat_values.offsets[i];
 			auto modifier_amount = tech_nat_values.values[i];
 
-			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
+			auto& cur_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
+			state.world.nation_set_modifier_values(target_nation, fixed_offset, cur_modifier_vals - modifier_amount);
 		}
 	}
 
 	auto& plur = state.world.nation_get_plurality(target_nation);
-	plur = std::clamp(plur - tech_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+	state.world.nation_set_plurality(target_nation, std::clamp(plur - tech_id.get_plurality() * 100.0f, 0.0f, 100.0f));
 
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
-			state.world.nation_get_max_building_level(target_nation, uint8_t(t)) -= 1;
+			auto& cur_max_size = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max_size - 1);
 		}
 	}
-	state.world.nation_get_permanent_colonial_points(target_nation) -= tech_id.get_colonial_points();
+	auto& cur_colonial_pts = state.world.nation_get_permanent_colonial_points(target_nation);
+	state.world.nation_set_permanent_colonial_points(target_nation, cur_colonial_pts - tech_id.get_colonial_points());
 	
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
@@ -542,13 +552,16 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 	}
 
 	for(auto cmod : tech_id.get_rgo_goods_output()) {
-		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) -= cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_goods_output(target_nation, cmod.type);
+		state.world.nation_set_rgo_goods_output(target_nation, cmod.type, cur_output - cmod.amount);
 	}
 	for(auto cmod : tech_id.get_factory_goods_output()) {
-		state.world.nation_get_factory_goods_output(target_nation, cmod.type) -= cmod.amount;
+		auto& cur_output = state.world.nation_get_factory_goods_output(target_nation, cmod.type);
+		state.world.nation_set_factory_goods_output(target_nation, cmod.type, cur_output - cmod.amount);
 	}
 	for(auto cmod : tech_id.get_rgo_size()) {
-		state.world.nation_get_rgo_size(target_nation, cmod.type) -= cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_size(target_nation, cmod.type);
+		state.world.nation_set_rgo_size(target_nation, cmod.type, cur_output - cmod.amount);
 	}
 	for(auto& umod : tech_id.get_modified_units()) {
 		if(umod.type == state.military_definitions.base_army_unit) {
@@ -587,17 +600,20 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
 
-			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
+			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
+			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals + modifier_amount);
 		}
 	}
 
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(inv_id.get_increase_building(t)) {
-			state.world.nation_get_max_building_level(target_nation, uint8_t(t)) += 1;
+			auto& cur_max_size = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max_size + 1);
 		}
 	}
 
-	state.world.nation_get_permanent_colonial_points(target_nation) += inv_id.get_colonial_points();
+	auto& cur_colonial_pts = state.world.nation_get_permanent_colonial_points(target_nation);
+	state.world.nation_set_permanent_colonial_points(target_nation, cur_colonial_pts + inv_id.get_colonial_points());
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, true);
 	}
@@ -606,7 +622,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	}
 
 	auto& plur = state.world.nation_get_plurality(target_nation);
-	plur = std::clamp(plur + inv_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+	state.world.nation_set_plurality(target_nation, std::clamp(plur + inv_id.get_plurality() * 100.0f, 0.0f, 100.0f));
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(inv_id.get_activate_building(id)) {
@@ -629,23 +645,31 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	}
 
 	for(auto cmod : inv_id.get_rgo_goods_output()) {
-		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_goods_output(target_nation, cmod.type);
+		state.world.nation_set_rgo_goods_output(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto cmod : inv_id.get_rgo_size()) {
-		state.world.nation_get_rgo_size(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_size(target_nation, cmod.type);
+		state.world.nation_set_rgo_size(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto cmod : inv_id.get_factory_goods_output()) {
-		state.world.nation_get_factory_goods_output(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_factory_goods_output(target_nation, cmod.type);
+		state.world.nation_set_factory_goods_output(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto cmod : inv_id.get_factory_goods_throughput()) {
-		state.world.nation_get_factory_goods_throughput(target_nation, cmod.type) += cmod.amount;
+		auto& cur_output = state.world.nation_get_factory_goods_throughput(target_nation, cmod.type);
+		state.world.nation_set_factory_goods_throughput(target_nation, cmod.type, cur_output + cmod.amount);
 	}
 	for(auto cmod : inv_id.get_rebel_org()) {
 		if(cmod.type) {
-			state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) += cmod.amount;
+			auto& cur_rebel_mod = state.world.nation_get_rebel_org_modifier(target_nation, cmod.type);
+			state.world.nation_set_rebel_org_modifier(target_nation, cmod.type, cur_rebel_mod + cmod.amount);
 		} else {
 			state.world.for_each_rebel_type(
-					[&](dcon::rebel_type_id rt) { state.world.nation_get_rebel_org_modifier(target_nation, rt) += cmod.amount; });
+					[&](dcon::rebel_type_id rt) {
+						auto& cur_rebel_mod = state.world.nation_get_rebel_org_modifier(target_nation, rt);
+						state.world.nation_set_rebel_org_modifier(target_nation, rt, cur_rebel_mod + cmod.amount);
+					});
 		}
 	}
 	for(auto& umod : inv_id.get_modified_units()) {
@@ -696,13 +720,15 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
 
-			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
+			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
+			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals - modifier_amount);
 		}
 	}
 
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(inv_id.get_increase_building(t)) {
-			state.world.nation_get_max_building_level(target_nation, uint8_t(t)) -= 1;
+			auto& cur_max_size = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max_size - 1);
 		}
 	}
 
@@ -715,7 +741,7 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 	}
 
 	auto& plur = state.world.nation_get_plurality(target_nation);
-	plur = std::clamp(plur - inv_id.get_plurality() * 100.0f, 0.0f, 100.0f);
+	state.world.nation_set_plurality(target_nation, std::clamp(plur - inv_id.get_plurality() * 100.0f, 0.0f, 100.0f));
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(inv_id.get_activate_building(id)) {
@@ -739,23 +765,32 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 	}
 
 	for(auto cmod : inv_id.get_rgo_goods_output()) {
+		auto& cur_output = state.world.nation_get_rgo_goods_output(target_nation, cmod.type);
+		state.world.nation_set_rgo_goods_output(target_nation, cmod.type, cur_output - cmod.amount);
 		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) -= cmod.amount;
 	}
 	for(auto cmod : inv_id.get_rgo_size()) {
-		state.world.nation_get_rgo_size(target_nation, cmod.type) -= cmod.amount;
+		auto& cur_output = state.world.nation_get_rgo_size(target_nation, cmod.type);
+		state.world.nation_set_rgo_size(target_nation, cmod.type, cur_output - cmod.amount);
 	}
 	for(auto cmod : inv_id.get_factory_goods_output()) {
-		state.world.nation_get_factory_goods_output(target_nation, cmod.type) -= cmod.amount;
+		auto& cur_output = state.world.nation_get_factory_goods_output(target_nation, cmod.type);
+		state.world.nation_set_factory_goods_output(target_nation, cmod.type, cur_output - cmod.amount);
 	}
 	for(auto cmod : inv_id.get_factory_goods_throughput()) {
-		state.world.nation_get_factory_goods_throughput(target_nation, cmod.type) -= cmod.amount;
+		auto& cur_output = state.world.nation_get_factory_goods_throughput(target_nation, cmod.type);
+		state.world.nation_set_factory_goods_throughput(target_nation, cmod.type, cur_output - cmod.amount);
 	}
 	for(auto cmod : inv_id.get_rebel_org()) {
 		if(cmod.type) {
-			state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) -= cmod.amount;
+			auto& cur_rebel_mod = state.world.nation_get_rebel_org_modifier(target_nation, cmod.type);
+			state.world.nation_set_rebel_org_modifier(target_nation, cmod.type, cur_rebel_mod - cmod.amount);
 		} else {
 			state.world.for_each_rebel_type(
-					[&](dcon::rebel_type_id rt) { state.world.nation_get_rebel_org_modifier(target_nation, rt) -= cmod.amount; });
+					[&](dcon::rebel_type_id rt) {
+						auto& cur_rebel_mod = state.world.nation_get_rebel_org_modifier(target_nation, rt);
+						state.world.nation_set_rebel_org_modifier(target_nation, rt, cur_rebel_mod - cmod.amount);
+					});
 		}
 	}
 	for(auto& umod : inv_id.get_modified_units()) {
@@ -1073,8 +1108,8 @@ void update_research(sys::state& state, uint32_t current_year) {
 				auto lp_cost = effective_technology_lp_cost(state, current_year, n, n.get_current_research());
 
 				if (n.get_research_points() >= rp_cost && n.get_leadership_points() >= lp_cost) {
-					n.get_research_points() -= rp_cost;
-					n.get_leadership_points() -= lp_cost;
+					n.set_research_points(n.get_research_points() - rp_cost);
+					n.set_leadership_points(n.get_leadership_points() - lp_cost);
 					apply_technology(state, n, n.get_current_research());
 
 					notification::post(state, notification::message{
