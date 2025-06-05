@@ -1733,36 +1733,33 @@ void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::pro
 	}
 }
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::finish_colonization;
 	p.source = source;
-	p.data.generic_location.prov = pr;
+	p.data.generic_state_definition.state_def = d;
 	add_to_command_queue(state, p);
 }
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-	if(state.world.state_definition_get_colonization_stage(state_def) != 3)
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	if(state.world.state_definition_get_colonization_stage(d) != 3)
 		return false;
-	auto rng = state.world.state_definition_get_colonization(state_def);
+	auto rng = state.world.state_definition_get_colonization(d);
 	if(rng.begin() == rng.end())
 		return false;
 	return (*rng.begin()).get_colonizer() == source;
 }
-void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-
-	for(auto pr : state.world.state_definition_get_abstract_state_membership(state_def)) {
+void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	for(auto pr : state.world.state_definition_get_abstract_state_membership(d)) {
 		if(!pr.get_province().get_nation_from_province_ownership()) {
 			province::change_province_owner(state, pr.get_province(), source);
 		}
 	}
 
-	state.world.state_definition_set_colonization_temperature(state_def, 0.0f);
-	state.world.state_definition_set_colonization_stage(state_def, uint8_t(0));
+	state.world.state_definition_set_colonization_temperature(d, 0.0f);
+	state.world.state_definition_set_colonization_stage(d, uint8_t(0));
 
-	auto rng = state.world.state_definition_get_colonization(state_def);
+	auto rng = state.world.state_definition_get_colonization(d);
 
 	while(rng.begin() != rng.end()) {
 		state.world.delete_colonization(*rng.begin());
@@ -5904,7 +5901,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_abandon_colony(state, c.source, c.data.generic_location.prov);
 
 	case command_type::finish_colonization:
-		return can_finish_colonization(state, c.source, c.data.generic_location.prov);
+		return can_finish_colonization(state, c.source, c.data.generic_state_definition.state_def);
 
 	case command_type::intervene_in_war:
 		return can_intervene_in_war(state, c.source, c.data.war_target.war, c.data.war_target.for_attacker);
@@ -6299,7 +6296,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_abandon_colony(state, c.source, c.data.generic_location.prov);
 		break;
 	case command_type::finish_colonization:
-		execute_finish_colonization(state, c.source, c.data.generic_location.prov);
+		execute_finish_colonization(state, c.source, c.data.generic_state_definition.state_def);
 		break;
 	case command_type::intervene_in_war:
 		execute_intervene_in_war(state, c.source, c.data.war_target.war, c.data.war_target.for_attacker);

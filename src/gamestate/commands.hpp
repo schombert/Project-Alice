@@ -225,6 +225,10 @@ struct generic_location_data {
 	dcon::province_id prov;
 };
 
+struct generic_state_definition {
+	dcon::state_definition_id state_def;
+};
+
 struct cheat_location_data {
 	dcon::province_id prov;
 	dcon::nation_id n;
@@ -508,6 +512,7 @@ struct payload {
 		influence_action_data influence_action;
 		influence_priority_data influence_priority;
 		generic_location_data generic_location;
+		generic_state_definition generic_state_definition;
 		war_target_data war_target;
 		movement_data movement;
 		political_party_data political_party;
@@ -684,8 +689,9 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::provi
 void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
 
 void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
