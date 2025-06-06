@@ -478,9 +478,7 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 	province_area_km2.resize(context.state.world.province_size() + 1);
 
 	float R = context.state.defines.alice_globe_mean_radius_km;
-#ifndef NDEBUG
-	float total = 0.f;
-#endif
+
 	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
 	for(int i = size_x * size_y - 1; i-- > 0;) {
 		auto prov_id = province_id_map[i];
@@ -495,14 +493,7 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 		auto area_form = R * R * math::cos(t);
 		auto pixel_size = area_form * (1.f / (float)size_y * math::pi) * (1.f / (float)size_x * 2 * math::pi);
 		province_area_km2[prov_id] += pixel_size;
-#ifndef NDEBUG
-		total += pixel_size;
-#endif
 	}
-
-#ifndef NDEBUG
-	OutputDebugStringA(("total area of globe is " + std::to_string(total) + "\n").c_str());
-#endif
 
 	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		int max_index = 64;
