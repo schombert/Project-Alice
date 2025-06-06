@@ -57,7 +57,7 @@ struct ship_in_battle {
 	static constexpr uint16_t type_transport = 0x0000;
 
 	dcon::ship_id ship;
-	uint16_t target_slot = 0;
+	int16_t target_slot = -1;
 	uint16_t flags = 0;
 	uint16_t ships_targeting_this = 0;
 };
