@@ -6404,6 +6404,62 @@ int32_t get_combat_fort_level(sys::state& state, dcon::province_id location) {
 	return get_effective_fort_level(state, location, total_enemy_strength, strength_siege_units, max_siege_value);
 }
 
+// gets a target for a ship in a naval battle, returns true if a valid target was found, puts the target into the "target_out"
+bool get_naval_battle_target(sys::state& state, const ship_in_battle& ship, dcon::naval_battle_id battle, uint32_t defender_ships, uint32_t attacker_ships, uint16_t& target_out) {
+
+	auto slots = state.world.naval_battle_get_slots(battle);
+	// if the ship is attacking
+	if((ship.flags & ship_in_battle::is_attacking) != 0) {
+		auto pick = rng::get_random(state, uint32_t(ship.ship.value)) % defender_ships;
+
+		for(uint32_t k = slots.size(); k-- > 0;) {
+			switch(slots[k].flags & ship_in_battle::mode_mask) {
+
+			case ship_in_battle::mode_seeking:
+			case ship_in_battle::mode_approaching:
+			case ship_in_battle::mode_retreating:
+			case ship_in_battle::mode_engaged:
+				if((slots[k].flags & ship_in_battle::is_attacking) == 0 && slots[k].ships_targeting_this <= state.defines.naval_combat_max_targets) {
+					if(pick == 0) {
+						target_out = uint16_t(k);
+						return true;
+					} else {
+						--pick;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}	
+	}
+	else {
+		auto pick = rng::get_random(state, uint32_t(ship.ship.value)) % attacker_ships;
+
+		for(uint32_t k = slots.size(); k-- > 0;) {
+			switch(slots[k].flags & ship_in_battle::mode_mask) {
+
+			case ship_in_battle::mode_seeking:
+			case ship_in_battle::mode_approaching:
+			case ship_in_battle::mode_retreating:
+			case ship_in_battle::mode_engaged:
+				if((slots[k].flags & ship_in_battle::is_attacking) != 0 && slots[k].ships_targeting_this <= state.defines.naval_combat_max_targets) {
+					if(pick == 0) {
+						target_out = uint16_t(k);
+						return true;
+					} else {
+						--pick;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	return false;
+
+}
 		
 
 
@@ -6952,6 +7008,84 @@ void update_land_battles(sys::state& state) {
 	}
 }
 
+// updates the ship in a naval battle after it has been hit by another ship, and may alter its state and battle-related statistics accordingly. Returns false if the target is no longer targetable (sunk), otherwise true
+bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle, int32_t& defender_ships, int32_t& attacker_ships) {
+
+	auto ship_owner =
+		state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(ship.ship));
+	auto type = state.world.ship_get_type(ship.ship);
+
+	switch(ship.flags & ship_in_battle::mode_mask) {
+	case ship_in_battle::mode_seeking:
+	case ship_in_battle::mode_approaching:
+	case ship_in_battle::mode_engaged:
+		if(state.world.ship_get_strength(ship.ship) <= 0) {
+			if((ship.flags & ship_in_battle::is_attacking) != 0) {
+				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+					state.world.naval_battle_get_attacker_big_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+					state.world.naval_battle_get_attacker_small_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+					state.world.naval_battle_get_attacker_transport_ships_lost(battle)++;
+				}
+				state.world.naval_battle_get_attacker_loss_value(battle) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
+				attacker_ships--;
+			} else {
+				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+					state.world.naval_battle_get_defender_big_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+					state.world.naval_battle_get_defender_small_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+					state.world.naval_battle_get_defender_transport_ships_lost(battle)++;
+				}
+				state.world.naval_battle_get_defender_loss_value(battle) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
+				defender_ships--;
+			}
+			ship.flags &= ~ship_in_battle::mode_mask;
+			ship.flags |= ship_in_battle::mode_sunk;
+			return false;
+		}
+		else if(state.world.ship_get_strength(ship.ship) <= state.defines.naval_combat_retreat_str_org_level ||
+				state.world.ship_get_org(ship.ship) <= state.defines.naval_combat_retreat_str_org_level) {
+
+			ship.flags &= ~ship_in_battle::mode_mask;
+			ship.flags |= ship_in_battle::mode_retreating;
+		}
+		break;
+	case ship_in_battle::mode_retreating:
+		if(state.world.ship_get_strength(ship.ship) <= 0) {
+			if((ship.flags & ship_in_battle::is_attacking) != 0) {
+				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+					state.world.naval_battle_get_attacker_big_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+					state.world.naval_battle_get_attacker_small_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+					state.world.naval_battle_get_attacker_transport_ships_lost(battle)++;
+				}
+				attacker_ships--;
+			} else {
+				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+					state.world.naval_battle_get_defender_big_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+					state.world.naval_battle_get_defender_small_ships_lost(battle)++;
+				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+					state.world.naval_battle_get_defender_transport_ships_lost(battle)++;
+				}
+				defender_ships--;
+			}
+			ship.flags &= ~ship_in_battle::mode_mask;
+			ship.flags |= ship_in_battle::mode_sunk;
+			return false;
+		}
+		break;
+	default:
+		break;
+	}
+	return true;
+
+
+}
+
 void update_naval_battles(sys::state& state) {
 	auto isize = state.world.naval_battle_size();
 	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(isize);
@@ -7052,7 +7186,7 @@ void update_naval_battles(sys::state& state) {
 				*/
 
 				float speed = ship_stats.maximum_speed * 1000.0f * state.defines.naval_combat_speed_to_distance_factor *
-					(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
+				(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
 				auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
 				int32_t adjust = std::clamp(int32_t(std::ceil(speed)), 0, old_distance);
 				slots[j].flags &= ~ship_in_battle::distance_mask;
@@ -7123,6 +7257,12 @@ void update_naval_battles(sys::state& state) {
 				auto leader_exp_mod = (is_attacker ? atk_leader_exp_mod : def_leader_exp_mod);
 				adjust_ship_experience(state, aship_owner, aship, str_damage * 5.f * state.defines.exp_gain_div * leader_exp_mod);
 
+				if(!update_ship_in_naval_battle_after_hit(state, slots[slots[j].target_slot], b, defender_ships, attacker_ships)) {
+					// if the previus target is no longer targetable (eg sunk), then switch to seeking mode immediately
+					slots[j].flags &= ~ship_in_battle::mode_mask;
+					slots[j].flags |= ship_in_battle::mode_seeking;
+				}
+
 				break;
 			}
 			case ship_in_battle::mode_retreating:
@@ -7141,6 +7281,18 @@ void update_naval_battles(sys::state& state) {
 				slots[j].flags &= ~ship_in_battle::distance_mask;
 				slots[j].flags |= ship_in_battle::distance_mask & (new_distance);
 
+				// set to retreated if distance is far enough
+				if((slots[j].flags & ship_in_battle::distance_mask) >= 1000) {
+					slots[j].flags &= ~ship_in_battle::mode_mask;
+					slots[j].flags |= ship_in_battle::mode_retreated;
+					if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
+						attacker_ships--;
+					}
+					else {
+						defender_ships--;
+					}
+				}
+
 				break;
 			}
 			case ship_in_battle::mode_seeking:
@@ -7150,32 +7302,14 @@ void update_naval_battles(sys::state& state) {
 				combat-duration^define:NAVAL_COMBAT_SHIFT_BACK_DURATION_SCALE) / NAVAL_COMBAT_SHIFT_BACK_DURATION_SCALE) x
 				NAVAL_COMBAT_SHIFT_BACK_ON_NEXT_TARGET to a maximum of 1000, and the ship switches to approaching.
 				*/
+				uint16_t target_index = 0;
+				// get ship target, put into target_index variable
+				if(get_naval_battle_target(state, slots[j], b, defender_ships, attacker_ships, target_index)) {
 
-				if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
-					auto pick = rng::get_random(state, uint32_t(slots[j].ship.value)) % defender_ships;
-
-					[&]() {
-						for(uint32_t k = slots.size(); k-- > 0;) {
-							switch(slots[k].flags & ship_in_battle::mode_mask) {
-
-							case ship_in_battle::mode_seeking:
-							case ship_in_battle::mode_approaching:
-							case ship_in_battle::mode_retreating:
-							case ship_in_battle::mode_engaged:
-								if((slots[k].flags & ship_in_battle::is_attacking) == 0) {
-									if(pick == 0) {
-										slots[j].target_slot = uint16_t(k);
-										return;
-									} else {
-										--pick;
-									}
-								}
-								break;
-							default:
-								break;
-							}
-						}
-						}();
+					slots[slots[j].target_slot].ships_targeting_this--;
+					slots[j].target_slot = target_index;
+					// increment target count
+					slots[target_index].ships_targeting_this++;
 
 					auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
 					int32_t new_distance = std::min(old_distance + 400, 1000);
@@ -7184,120 +7318,88 @@ void update_naval_battles(sys::state& state) {
 					slots[j].flags |= ship_in_battle::mode_approaching;
 					slots[j].flags &= ~ship_in_battle::distance_mask;
 					slots[j].flags |= ship_in_battle::distance_mask & new_distance;
-				} else {
-					auto pick = rng::get_random(state, uint32_t(slots[j].ship.value)) % attacker_ships;
 
-					[&]() {
-						for(uint32_t k = slots.size(); k-- > 0;) {
-							switch(slots[k].flags & ship_in_battle::mode_mask) {
-
-							case ship_in_battle::mode_seeking:
-							case ship_in_battle::mode_approaching:
-							case ship_in_battle::mode_retreating:
-							case ship_in_battle::mode_engaged:
-								if((slots[k].flags & ship_in_battle::is_attacking) != 0) {
-									if(pick == 0) {
-										slots[j].target_slot = uint16_t(k);
-										return;
-									} else {
-										--pick;
-									}
-								}
-								break;
-							default:
-								break;
-							}
-						}
-						}();
-
-					auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-					int32_t new_distance = std::min(old_distance + 400, 1000);
-
-					slots[j].flags &= ~ship_in_battle::mode_mask;
-					slots[j].flags |= ship_in_battle::mode_approaching;
-					slots[j].flags &= ~ship_in_battle::distance_mask;
-					slots[j].flags |= ship_in_battle::distance_mask & new_distance;
+					break;
 				}
-
-				break;
+				
 			}
 			default:
 				break;
 			}
 		}
 
-		for(uint32_t j = slots.size(); j-- > 0;) { // test health, retreat and/or sink
-			auto ship_owner =
-				state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
-			auto type = state.world.ship_get_type(slots[j].ship);
+		//for(uint32_t j = slots.size(); j-- > 0;) { // test health, retreat and/or sink
+		//	auto ship_owner =
+		//		state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
+		//	auto type = state.world.ship_get_type(slots[j].ship);
 
-			switch(slots[j].flags & ship_in_battle::mode_mask) {
-			case ship_in_battle::mode_seeking:
-			case ship_in_battle::mode_approaching:
-			case ship_in_battle::mode_engaged:
-				if(state.world.ship_get_strength(slots[j].ship) <= 0) {
-					if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
-						if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-							state.world.naval_battle_get_attacker_big_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-							state.world.naval_battle_get_attacker_small_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-							state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
-						}
-						state.world.naval_battle_get_attacker_loss_value(b) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
-					} else {
-						if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-							state.world.naval_battle_get_defender_big_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-							state.world.naval_battle_get_defender_small_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-							state.world.naval_battle_get_defender_transport_ships_lost(b)++;
-						}
-						state.world.naval_battle_get_defender_loss_value(b) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
-					}
-					slots[j].flags &= ~ship_in_battle::mode_mask;
-					slots[j].flags |= ship_in_battle::mode_sunk;
-					break;
-				}
-				if(state.world.ship_get_strength(slots[j].ship) <= state.defines.naval_combat_retreat_str_org_level ||
-						state.world.ship_get_org(slots[j].ship) <= state.defines.naval_combat_retreat_str_org_level) {
+		//	switch(slots[j].flags & ship_in_battle::mode_mask) {
+		//	case ship_in_battle::mode_seeking:
+		//	case ship_in_battle::mode_approaching:
+		//	case ship_in_battle::mode_engaged:
+		//		if(state.world.ship_get_strength(slots[j].ship) <= 0) {
+		//			if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
+		//				if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+		//					state.world.naval_battle_get_attacker_big_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+		//					state.world.naval_battle_get_attacker_small_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+		//					state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
+		//				}
+		//				state.world.naval_battle_get_attacker_loss_value(b) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
+		//			} else {
+		//				if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+		//					state.world.naval_battle_get_defender_big_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+		//					state.world.naval_battle_get_defender_small_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+		//					state.world.naval_battle_get_defender_transport_ships_lost(b)++;
+		//				}
+		//				state.world.naval_battle_get_defender_loss_value(b) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
+		//			}
+		//			slots[j].flags &= ~ship_in_battle::mode_mask;
+		//			slots[j].flags |= ship_in_battle::mode_sunk;
+		//			break;
+		//		}
+		//		if(state.world.ship_get_strength(slots[j].ship) <= state.defines.naval_combat_retreat_str_org_level ||
+		//				state.world.ship_get_org(slots[j].ship) <= state.defines.naval_combat_retreat_str_org_level) {
 
-					slots[j].flags &= ~ship_in_battle::mode_mask;
-					slots[j].flags |= ship_in_battle::mode_retreating;
-				}
-				break;
-			case ship_in_battle::mode_retreating:
-				if(state.world.ship_get_strength(slots[j].ship) <= 0) {
-					if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
-						if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-							state.world.naval_battle_get_attacker_big_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-							state.world.naval_battle_get_attacker_small_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-							state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
-						}
-					} else {
-						if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-							state.world.naval_battle_get_defender_big_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-							state.world.naval_battle_get_defender_small_ships_lost(b)++;
-						} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-							state.world.naval_battle_get_defender_transport_ships_lost(b)++;
-						}
-					}
-					slots[j].flags &= ~ship_in_battle::mode_mask;
-					slots[j].flags |= ship_in_battle::mode_sunk;
-					break;
-				}
-				if((slots[j].flags & ship_in_battle::distance_mask) >= 1000) {
-					slots[j].flags &= ~ship_in_battle::mode_mask;
-					slots[j].flags |= ship_in_battle::mode_retreated;
-				}
-				break;
-			default:
-				break;
-			}
-		}
+		//			slots[j].flags &= ~ship_in_battle::mode_mask;
+		//			slots[j].flags |= ship_in_battle::mode_retreating;
+		//		}
+		//		break;
+		//	case ship_in_battle::mode_retreating:
+		//		if(state.world.ship_get_strength(slots[j].ship) <= 0) {
+		//			if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
+		//				if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+		//					state.world.naval_battle_get_attacker_big_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+		//					state.world.naval_battle_get_attacker_small_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+		//					state.world.naval_battle_get_attacker_transport_ships_lost(b)++;
+		//				}
+		//			} else {
+		//				if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
+		//					state.world.naval_battle_get_defender_big_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
+		//					state.world.naval_battle_get_defender_small_ships_lost(b)++;
+		//				} else if((slots[j].flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
+		//					state.world.naval_battle_get_defender_transport_ships_lost(b)++;
+		//				}
+		//			}
+		//			slots[j].flags &= ~ship_in_battle::mode_mask;
+		//			slots[j].flags |= ship_in_battle::mode_sunk;
+		//			break;
+		//		}
+		//		if((slots[j].flags & ship_in_battle::distance_mask) >= 1000) {
+		//			slots[j].flags &= ~ship_in_battle::mode_mask;
+		//			slots[j].flags |= ship_in_battle::mode_retreated;
+		//		}
+		//		break;
+		//	default:
+		//		break;
+		//	}
+		//}
 	});
 
 	for(auto i = isize; i-- > 0;) {

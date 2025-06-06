@@ -59,9 +59,11 @@ struct ship_in_battle {
 	dcon::ship_id ship;
 	uint16_t target_slot = 0;
 	uint16_t flags = 0;
+	uint16_t ships_targeting_this = 0;
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
+	+ sizeof(ship_in_battle::ships_targeting_this)
 	+ sizeof(ship_in_battle::target_slot)
 	+ sizeof(ship_in_battle::flags));
 
