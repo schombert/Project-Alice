@@ -6413,10 +6413,16 @@ int32_t get_combat_fort_level(sys::state& state, dcon::province_id location) {
 	}
 	return get_effective_fort_level(state, location, total_enemy_strength, strength_siege_units, max_siege_value);
 }
-// computes the coordination penalty (from 0.0 with no penalty, to 1.0 which is full penalty) based on how many friendly vs enemy ships are currently in the battle.
+// computes the coordination penalty (from 0.0 with no penalty, to 1.0 which is full penalty) based on how much we outnumber the enemy
 // The penalty is applied to the "friendly ships" side
 float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships) {
 	return std::clamp(1 - (float(enemy_ships) / float(friendly_ships)), 0.0f, 1.0f);
+
+}
+// computes the coordination bonus (from 0.0 with no bonus, to 1.0 which is full bonus) based on how much the enemy outnumbers our side
+// The bonus is applied to the "friendly ships" side
+float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships) {
+	return naval_battle_get_coordination_penalty(state, enemy_ships, friendly_ships);
 
 }
 
@@ -6432,7 +6438,7 @@ int16_t get_naval_battle_target(sys::state& state, const ship_in_battle& ship, d
 
 	uint32_t enemy_ships = is_attacker ? defender_ships : attacker_ships;
 
-	auto target_pick_chance = std::max(state.defines.naval_combat_seeking_chance_min, (state.defines.naval_combat_seeking_chance + admiral_recon) - (state.defines.naval_combat_stacking_target_select * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships)));
+	auto target_pick_chance = std::clamp((state.defines.naval_combat_seeking_chance + admiral_recon) + (state.defines.alice_naval_combat_enemy_stacking_target_select_bonus * naval_battle_get_coordination_bonus(state, friendly_ships, enemy_ships)) - (state.defines.naval_combat_stacking_target_select * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships)), state.defines.naval_combat_seeking_chance_min, 1.0f);
 
 	auto slots = state.world.naval_battle_get_slots(battle);
 
@@ -7143,12 +7149,16 @@ Damage to organization is (gun-power + torpedo-attack) * Modifier-Table\[modifie
 (1 / (1 + target-ship-exp)) * (if no org: define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG) * define:NAVAL_COMBAT_DAMAGE_STR_MULT
 
 Evasion reduces the chance for an attack to hit the target in vanilla V2, however here we just put it as an additional damage reduction modifier (20% evasion = 20% damage reduction) at the end.
+
+In addition, a custom define has been added which is not in base V2: alice_naval_combat_stacking_damage_penalty. This reduces the damage by that percentage multiplied with the coordination (stacking) penalty.
 */
 
 
 // returns the strength damage in percent (from 1.0 to 0.0) that the target would receive if it was attacked by the damage dealer. Has no side effects
-float get_ship_strength_damage(sys::state& state, const ship_in_battle& damage_dealer, const ship_in_battle& target, float battle_modifiers) {
+float get_ship_strength_damage(sys::state& state, const ship_in_battle& damage_dealer, const ship_in_battle& target, float battle_modifiers, int32_t attacker_ships, int32_t defender_ships) {
 	bool target_is_big = (target.flags & ship_in_battle::type_mask) == ship_in_battle::type_big;
+
+	bool is_attacker = (damage_dealer.flags & ship_in_battle::is_attacking) != 0;
 
 	auto dmg_dealer_owner =
 		state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(damage_dealer.ship));
@@ -7170,7 +7180,22 @@ float get_ship_strength_damage(sys::state& state, const ship_in_battle& damage_d
 
 	bool target_no_org = state.world.ship_get_org(target.ship) == 0.0f;
 
-	return (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (target_no_org ? state.defines.naval_combat_damage_mult_no_org : 1.0f) * (1.0f - target_stats.discipline_or_evasion) * state.defines.naval_combat_damage_str_mult;
+
+	int32_t friendly_ships;
+	int32_t enemy_ships;
+
+	if(is_attacker) {
+		friendly_ships = attacker_ships;
+		enemy_ships = defender_ships;
+	} else {
+		friendly_ships = defender_ships;
+		enemy_ships = attacker_ships;
+	}
+
+	auto stacking_dmg_penalty = (1.0f - state.defines.alice_naval_combat_stacking_damage_penalty * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships));
+
+
+	return (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (target_no_org ? state.defines.naval_combat_damage_mult_no_org : 1.0f) * (1.0f - target_stats.discipline_or_evasion) * stacking_dmg_penalty * state.defines.naval_combat_damage_str_mult;
 
 
 	// old formula:
@@ -7181,8 +7206,10 @@ float get_ship_strength_damage(sys::state& state, const ship_in_battle& damage_d
 
 
 // returns the org damage in percent (from 1.0 to 0.0) that the target would receive if it was attacked by the damage dealer. Has no side effects
-float get_ship_org_damage(sys::state& state, const ship_in_battle& damage_dealer, const ship_in_battle& target, float battle_modifiers) {
+float get_ship_org_damage(sys::state& state, const ship_in_battle& damage_dealer, const ship_in_battle& target, float battle_modifiers, int32_t attacker_ships, int32_t defender_ships ) {
 	bool target_is_big = (target.flags & ship_in_battle::type_mask) == ship_in_battle::type_big;
+
+	bool is_attacker = (damage_dealer.flags & ship_in_battle::is_attacking) != 0;
 
 	auto dmg_dealer_owner =
 		state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(damage_dealer.ship));
@@ -7202,8 +7229,22 @@ float get_ship_org_damage(sys::state& state, const ship_in_battle& damage_dealer
 
 	auto& targ_ship_exp = state.world.ship_get_experience(target.ship);
 
+	int32_t friendly_ships;
+	int32_t enemy_ships;
+
+	if(is_attacker) {
+		friendly_ships = attacker_ships;
+		enemy_ships = defender_ships;
+	}
+	else {
+		friendly_ships = defender_ships;
+		enemy_ships = attacker_ships;
+	}
+
+	auto stacking_dmg_penalty = (1.0f - state.defines.alice_naval_combat_stacking_damage_penalty * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships));
+
 	// this is the org damage in raw numbers instead of percentages, ie what needs to be effectively subtacted from the "default org" member of a given unit
-	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (1.0f - target_stats.discipline_or_evasion) * state.defines.naval_combat_damage_org_mult * 100;
+	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (1.0f - target_stats.discipline_or_evasion) * stacking_dmg_penalty * state.defines.naval_combat_damage_org_mult * 100;
 	// this calculates the percentages to be returned, and possibly subtracted from the percentage "org" dcon member later
 	float percentage_org_dmg = raw_org_dmg / unit_get_effective_default_org(state, target.ship);
 	return percentage_org_dmg;
@@ -7231,10 +7272,10 @@ void ship_do_damage(sys::state& state, dcon::naval_battle_id battle, ship_in_bat
 	auto dmg_dealer_owner = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(damage_dealer.ship));
 
 
-	float org_damage = get_ship_org_damage(state, damage_dealer, target, battle_modifiers);
+	float org_damage = get_ship_org_damage(state, damage_dealer, target, battle_modifiers, attacker_ships, defender_ships);
 
 
-	float str_damage = get_ship_strength_damage(state, damage_dealer, target, battle_modifiers);
+	float str_damage = get_ship_strength_damage(state, damage_dealer, target, battle_modifiers, attacker_ships, defender_ships);
 
 	auto& torg = state.world.ship_get_org(target.ship);
 	torg = std::max(0.0f, torg - org_damage);
