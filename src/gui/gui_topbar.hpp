@@ -2329,8 +2329,11 @@ public:
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods &&
 						sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_and_consumer_goods)
 					return;
-				exported.push_back(economy::export_volume_detailed(state, state.local_player_nation, cid));
-				imported.push_back(economy::import_volume_detailed(state, state.local_player_nation, cid));
+
+				std::array<economy::trade_volume_data_detailed, 2> trade_volume = economy::export_import_volume_detailed(state, state.local_player_nation, cid);
+
+				exported.push_back(trade_volume[0]);
+				imported.push_back(trade_volume[1]);
 			}
 
 			sys::merge_sort(exported.begin(), exported.end(), [&](auto& a, auto& b) {
