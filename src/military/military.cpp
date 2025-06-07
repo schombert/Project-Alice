@@ -1565,6 +1565,14 @@ ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<
 	return ve::min(ve::max(impact, 0.f), 1.f);
 }
 
+// calculates the "combat score" of a ship, mainly to be displayed on the battle progressbar to make more advanced ships count for more
+float get_ship_combat_score(sys::state& state, dcon::ship_id ship) {
+	auto owner = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(ship));
+	auto& stats = state.world.nation_get_unit_stats(owner, state.world.ship_get_type(ship));
+
+	return state.world.ship_get_strength(ship) * stats.defence_or_hull * stats.attack_or_gun_power * (1 + stats.discipline_or_evasion);
+}
+
 void update_cbs(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(state.current_date == n.get_reparations_until()) {
@@ -6405,67 +6413,89 @@ int32_t get_combat_fort_level(sys::state& state, dcon::province_id location) {
 	}
 	return get_effective_fort_level(state, location, total_enemy_strength, strength_siege_units, max_siege_value);
 }
+// computes the coordination penalty (from 0.0 with no penalty, to 1.0 which is full penalty) based on how many friendly vs enemy ships are currently in the battle.
+// The penalty is applied to the "friendly ships" side
+float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships) {
+	return std::clamp(1 - (float(enemy_ships) / float(friendly_ships)), 0.0f, 1.0f);
 
-// gets a target for a ship in a naval battle, returns the target index of the target if a valid target was found, otherwise returns -1 if no valid target was found
+}
+
+// gets a target for a ship in a naval battle, returns the target index of the target if a valid target was found, otherwise returns -1 if no valid target was found or the random chance roll failed
 int16_t get_naval_battle_target(sys::state& state, const ship_in_battle& ship, dcon::naval_battle_id battle, uint32_t defender_ships, uint32_t attacker_ships) {
 
+	bool is_attacker = (ship.flags & ship_in_battle::is_attacking) != 0;
+	dcon::leader_id navy_admiral = state.world.navy_get_admiral_from_navy_leadership(state.world.ship_get_navy_from_navy_membership(ship.ship));
+
+	auto admiral_recon = state.world.leader_trait_get_reconnaissance(get_leader_personality_wrapper(state, navy_admiral)) + state.world.leader_trait_get_reconnaissance(get_leader_background_wrapper(state, navy_admiral));
+
+	uint32_t friendly_ships = is_attacker ? attacker_ships : defender_ships;
+
+	uint32_t enemy_ships = is_attacker ? defender_ships : attacker_ships;
+
+	auto target_pick_chance = std::max(state.defines.naval_combat_seeking_chance_min, (state.defines.naval_combat_seeking_chance + admiral_recon) - (state.defines.naval_combat_stacking_target_select * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships)));
+
 	auto slots = state.world.naval_battle_get_slots(battle);
-	// if the ship is attacking
-	if((ship.flags & ship_in_battle::is_attacking) != 0) {
-		// if no ships left to target, return -1
-		if(defender_ships == 0) {
-			return -1;
-		}
-		auto pick = rng::get_random(state, uint32_t(ship.ship.value)) % defender_ships;
 
-		for(uint32_t k = slots.size(); k-- > 0;) {
-			auto ship_battle = slots[k];
-			switch(slots[k].flags & ship_in_battle::mode_mask) {
-
-			case ship_in_battle::mode_seeking:
-			case ship_in_battle::mode_approaching:
-			case ship_in_battle::mode_retreating:
-			case ship_in_battle::mode_engaged:
-				if((slots[k].flags & ship_in_battle::is_attacking) == 0 && slots[k].ships_targeting_this < state.defines.naval_combat_max_targets) {
-					if(pick == 0) {
-						return int16_t(k);
-					} else {
-						--pick;
-					}
-				}
-				break;
-			default:
-				break;
+	// comput the chance it is able to get a target
+	auto random = rng::get_random(state, ship.ship.value * state.current_date.to_raw_value());
+	if((random % 100000 + 1) <= target_pick_chance * 100000) {
+		// if the ship is attacking
+		if(is_attacker) {
+			// if no ships left to target, return -1
+			if(defender_ships == 0) {
+				return -1;
 			}
-		}	
-	}
-	else {
-		// if no ships left to target, return -1
-		if(attacker_ships == 0) {
-			return -1;
-		}
-		auto pick = rng::get_random(state, uint32_t(ship.ship.value)) % attacker_ships;
+			auto pick = rng::get_random(state, uint32_t(ship.ship.value)) % defender_ships;
 
-		for(uint32_t k = slots.size(); k-- > 0;) {
-			switch(slots[k].flags & ship_in_battle::mode_mask) {
+			for(uint32_t k = slots.size(); k-- > 0;) {
+				auto ship_battle = slots[k];
+				switch(slots[k].flags & ship_in_battle::mode_mask) {
 
-			case ship_in_battle::mode_seeking:
-			case ship_in_battle::mode_approaching:
-			case ship_in_battle::mode_retreating:
-			case ship_in_battle::mode_engaged:
-				if((slots[k].flags & ship_in_battle::is_attacking) != 0 && slots[k].ships_targeting_this < state.defines.naval_combat_max_targets) {
-					if(pick == 0) {
-						return int16_t(k);
-					} else {
-						--pick;
+				case ship_in_battle::mode_seeking:
+				case ship_in_battle::mode_approaching:
+				case ship_in_battle::mode_retreating:
+				case ship_in_battle::mode_engaged:
+					if((slots[k].flags & ship_in_battle::is_attacking) == 0 && slots[k].ships_targeting_this < state.defines.naval_combat_max_targets) {
+						if(pick == 0) {
+							return int16_t(k);
+						} else {
+							--pick;
+						}
 					}
+					break;
+				default:
+					break;
 				}
-				break;
-			default:
-				break;
+			}
+		} else {
+			// if no ships left to target, return -1
+			if(attacker_ships == 0) {
+				return -1;
+			}
+			auto pick = rng::get_random(state, uint32_t(ship.ship.value)) % attacker_ships;
+
+			for(uint32_t k = slots.size(); k-- > 0;) {
+				switch(slots[k].flags & ship_in_battle::mode_mask) {
+
+				case ship_in_battle::mode_seeking:
+				case ship_in_battle::mode_approaching:
+				case ship_in_battle::mode_retreating:
+				case ship_in_battle::mode_engaged:
+					if((slots[k].flags & ship_in_battle::is_attacking) != 0 && slots[k].ships_targeting_this < state.defines.naval_combat_max_targets) {
+						if(pick == 0) {
+							return int16_t(k);
+						} else {
+							--pick;
+						}
+					}
+					break;
+				default:
+					break;
+				}
 			}
 		}
 	}
+	
 	return -1;
 
 }
@@ -7105,10 +7135,14 @@ bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& sh
 
 /*
 Torpedo attack: is treated as 0 except against big ships
-Damage to organization is (gun-power + torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x target-strength x
-define:NAVAL_COMBAT_DAMAGE_ORG_MULT / (target-max-hull x target-experience x 0.1 + 1) Damage to strength is (gun-power +
-torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x attacker-strength x define:NAVAL_COMBAT_DAMAGE_STR_MULT x
-define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG (if target has no org) / (target-max-hull x target-experience x 0.1 + 1)
+Damage to organization is (gun-power + torpedo-attack) * Modifier-Table\[modifiers + 2\] (see above) * strength * ( 1 / target-hull) *
+(1 / (1 + target-ship-exp)) * define:NAVAL_COMBAT_DAMAGE_ORG_MULT
+
+Damage to strength is
+Damage to organization is (gun-power + torpedo-attack) * Modifier-Table\[modifiers + 2\] (see above) * strength * ( 1 / target-hull) *
+(1 / (1 + target-ship-exp)) * (if no org: define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG) * define:NAVAL_COMBAT_DAMAGE_STR_MULT
+
+Evasion reduces the chance for an attack to hit the target in vanilla V2, however here we just put it as an additional damage reduction modifier (20% evasion = 20% damage reduction) at the end.
 */
 
 
@@ -7136,7 +7170,7 @@ float get_ship_strength_damage(sys::state& state, const ship_in_battle& damage_d
 
 	bool target_no_org = state.world.ship_get_org(target.ship) == 0.0f;
 
-	return (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (target_no_org ? state.defines.naval_combat_damage_org_mult : 1.0f) * state.defines.naval_combat_damage_str_mult;
+	return (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (target_no_org ? state.defines.naval_combat_damage_mult_no_org : 1.0f) * (1.0f - target_stats.discipline_or_evasion) * state.defines.naval_combat_damage_str_mult;
 
 
 	// old formula:
@@ -7169,7 +7203,7 @@ float get_ship_org_damage(sys::state& state, const ship_in_battle& damage_dealer
 	auto& targ_ship_exp = state.world.ship_get_experience(target.ship);
 
 	// this is the org damage in raw numbers instead of percentages, ie what needs to be effectively subtacted from the "default org" member of a given unit
-	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * state.defines.naval_combat_damage_org_mult * 100;
+	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (1.0f - target_stats.discipline_or_evasion) * state.defines.naval_combat_damage_org_mult * 100;
 	// this calculates the percentages to be returned, and possibly subtracted from the percentage "org" dcon member later
 	float percentage_org_dmg = raw_org_dmg / unit_get_effective_default_org(state, target.ship);
 	return percentage_org_dmg;
@@ -7234,7 +7268,7 @@ bool should_ship_retreat(sys::state& state, const ship_in_battle& ship) {
 		state.world.ship_get_org(ship.ship) <= state.defines.naval_combat_retreat_str_org_level) {
 			// compute random chance for an early retreat
 			uint64_t random = rng::get_random(state, ship.ship.value * state.current_date.to_raw_value());
-			if(((random % 100) + 1) <= (state.defines.naval_combat_retreat_chance * 100)) {
+			if((random % 100000 + 1) <= (state.defines.naval_combat_retreat_chance * 100000)) {
 				return true;
 			}
 		}
@@ -7245,7 +7279,7 @@ bool should_ship_retreat(sys::state& state, const ship_in_battle& ship) {
 	return false;
 }
 
-// makes a single ship start retreating from the naval battle (not OUT of the naval battle)
+// makes a single ship start retreating to disengage
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle) {
 
 	auto slots = state.world.naval_battle_get_slots(battle);
@@ -7343,6 +7377,8 @@ void update_naval_battles(sys::state& state) {
 			auto aship_owner =
 				state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(aship));
 
+			bool is_attacker = (slots[j].flags & ship_in_battle::is_attacking) != 0;
+
 			switch(slots[j].flags & ship_in_battle::mode_mask) {
 			case ship_in_battle::mode_approaching:
 			{
@@ -7377,7 +7413,6 @@ void update_naval_battles(sys::state& state) {
 					slots[j].flags |= ship_in_battle::mode_engaged;
 
 					// do one round of attacking right after arriving at a new target, to reduce idle time while finding new targets
-					bool is_attacker = (slots[j].flags & ship_in_battle::is_attacking) != 0;
 					auto leader_exp_mod = (is_attacker ? atk_leader_exp_mod : def_leader_exp_mod);
 					ship_do_damage(state, b, slots[j], slots[slots[j].target_slot], is_attacker ? attacker_mod : defender_mod, leader_exp_mod, defender_ships, attacker_ships);
 				}
@@ -7393,10 +7428,7 @@ void update_naval_battles(sys::state& state) {
 					slots[j].flags |= ship_in_battle::mode_seeking;
 					break;
 				}
-				
-
-
-				bool is_attacker = (slots[j].flags & ship_in_battle::is_attacking) != 0;
+			
 
 				auto leader_exp_mod = (is_attacker ? atk_leader_exp_mod : def_leader_exp_mod);
 
