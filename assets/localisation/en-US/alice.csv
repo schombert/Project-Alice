@@ -853,12 +853,6 @@ embargo_explain_3;We don't have trade rights in their country
 embargo_explain_4;They don't have trade rights in our country
 embargo_explain_5;We aren't in a sphere
 embargo_explain_6;They aren't in a sphere
-msg_embargo_issued_title;Embargo issued
-msg_embargo_issued;Nation ?Y$y$?! has issued embargo to ban trade with ?Y$x$?!.
-msg_embargo_lifted_title;Embargo lifted
-msg_embargo_lifted;Nation ?Y$y$?! has lifted embargo on trade with ?Y$x$?!.
-msg_free_trade_agreement_signed_title;Free trade agreement signed.
-msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.
 fab_explain_1;You can't justify war against yourself
 fab_explain_2;You have at least $x$ diplomatic point(s)
 fab_explain_3;You are not currently fabricating a casus belli
