@@ -748,6 +748,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_build_time_mult, 0.1) \
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_combat_enemy_stacking_target_select_bonus, 0.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_combat_stacking_damage_penalty, 0.5) \
+	LUA_DEFINES_LIST_ELEMENT(alice_globe_mean_radius_km, 6371.0) \
+
+
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

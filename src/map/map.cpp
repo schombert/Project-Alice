@@ -2342,13 +2342,16 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 	return true;
 }
 
-glm::vec2 get_node(sys::state& state, glm::vec2 center, int i, int j) {
+glm::vec2 get_node(sys::state& state, glm::vec2 center, int i, int j, int size_x, int size_y) {
 	const auto rpx = rng::get_random(state, j ^ i ^ (uint32_t)center.x, i);
 	const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f)) - 0.5f;
 	const auto rpy = rng::get_random(state, j ^ i ^ (uint32_t)center.y ^ 5653, j);
 	const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f)) - 0.5f;
 
-	auto base_shift = glm::vec2{ (float)i + rx, (float)j + ry } * 0.4f / sqrt(sqrt((float) (i * i) + (float) (j * j) + 1));
+	auto scale_x = (float)size_x / 5600.f;
+	auto scale_y = (float)size_y / 2160.f;
+
+	auto base_shift = glm::vec2{ ((float)i + rx) * scale_x, ((float)j + ry) * scale_y} * 0.4f / sqrt(sqrt((float) (i * i) + (float) (j * j) + 1));
 	return center + base_shift;
 }
 
@@ -2362,25 +2365,29 @@ void display_data::update_sprawl(sys::state& state) {
 	std::vector<std::vector<glm::vec2>> connectors{};
 	connectors.resize(state.world.province_size());
 
+	auto minimal_population_per_visible_settlement = 2500.f;
+
 	// Populate paths with railroads - only account provinces that have been visited
 	// but not the adjacencies
 	for(const auto p : state.world.in_province) {
 
 		auto rural_population = 0.f;
-		for(auto wt : state.culture_definitions.rgo_workers) {
-			rural_population += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+		for(auto pt : state.world.in_pop_type) {
+			if(pt.get_is_paid_rgo_worker())
+				rural_population += state.world.province_get_demographics(p, demographics::to_key(state, pt));
 		}
-		rural_population += state.world.province_get_demographics(p, demographics::to_employment_key(state, state.culture_definitions.slaves));
-
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.clergy));
 
 		auto urban_pop = p.get_demographics(demographics::total) - rural_population;
 
-		if(urban_pop < 1000.f) {
+		if(urban_pop < minimal_population_per_visible_settlement) {
 			continue;
 		}
 
-		auto province_size = state.map_state.map_data.province_area[province::to_map_id(p)];
-		if(province_size < 1) {
+		auto province_size = state.map_state.map_data.province_area_km2[province::to_map_id(p)];
+		auto province_size_pixels = state.map_state.map_data.province_area[province::to_map_id(p)];
+		if(province_size_pixels < 1) {
 			continue;
 		}
 
@@ -2404,7 +2411,17 @@ void display_data::update_sprawl(sys::state& state) {
 
 		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
 
-		int potential_settlement_slots = std::min((unsigned)7, province_size / 200);
+		auto km2_per_potential_settlement = 2000.f;
+		
+
+		int potential_settlement_slots = std::min(
+			(int)7, std::min(
+				(int)(province_size / km2_per_potential_settlement),
+				(int)(urban_pop / minimal_population_per_visible_settlement)
+			)
+		);
+		potential_settlement_slots = std::max(1, potential_settlement_slots);
+
 		int settlement_slots = potential_settlement_slots;
 
 		if(p.get_port_to()) {
@@ -2421,7 +2438,7 @@ void display_data::update_sprawl(sys::state& state) {
 			}
 		}
 
-		auto side = sqrt(province_size);
+		auto side = sqrt(province_size_pixels);
 
 		// try to spawn random settlements in this area
 
@@ -2446,7 +2463,7 @@ void display_data::update_sprawl(sys::state& state) {
 						settlement_slots -= 1;
 						weighted_settlements.push_back({ pos, 0.5f / (potential_settlement_slots + 1) });
 						roads.push_back({ pos, central_settlement });
-						if(settlement_slots < 0) {
+						if(settlement_slots <= 0) {
 							break;
 						}
 					}
@@ -2527,10 +2544,10 @@ void display_data::update_sprawl(sys::state& state) {
 						continue;
 					}
 
-					auto node_1 = get_node(state, settlement.first, i, k);
-					auto node_2 = get_node(state, settlement.first, i + 1, k);
-					auto node_3 = get_node(state, settlement.first, i, k + 1);
-					auto node_4 = get_node(state, settlement.first, i + 1, k + 1);
+					auto node_1 = get_node(state, settlement.first, i, k, size_x, size_y);
+					auto node_2 = get_node(state, settlement.first, i + 1, k, size_x, size_y);
+					auto node_3 = get_node(state, settlement.first, i, k + 1, size_x, size_y);
+					auto node_4 = get_node(state, settlement.first, i + 1, k + 1, size_x, size_y);
 
 					auto node_center = (node_1 + node_2 + node_3 + node_4) / 4.f;
 

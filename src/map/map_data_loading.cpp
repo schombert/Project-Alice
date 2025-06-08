@@ -4,6 +4,7 @@
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
 #include "opengl_wrapper.hpp"
+#include "math_fns.hpp"
 
 #ifdef _WIN64
 
@@ -474,12 +475,24 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
 	province_area.resize(context.state.world.province_size() + 1);
+	province_area_km2.resize(context.state.world.province_size() + 1);
+
+	float R = context.state.defines.alice_globe_mean_radius_km;
+
 	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
 	for(int i = size_x * size_y - 1; i-- > 0;) {
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
 		if(terrain_id < 64)
 			terrain_histogram[prov_id][terrain_id] += 1;
+		auto x = i % size_x;
+		auto y = i / size_x;
+		// 0.5f is added to shift us to the center of the pixel;
+		// float s = (((float)x + 0.5f) / (float) size_x) * 2 * math::pi;
+		float t = (((float)y + 0.5f) / (float) size_y - 0.5f) * math::pi;
+		auto area_form = R * R * math::cos(t);
+		auto pixel_size = area_form * (1.f / (float)size_y * math::pi) * (1.f / (float)size_x * 2 * math::pi);
+		province_area_km2[prov_id] += pixel_size;
 	}
 
 	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
