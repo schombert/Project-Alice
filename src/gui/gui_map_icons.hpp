@@ -1493,8 +1493,8 @@ public:
 			display.top_left_org_value /= float(total_count);
 			display.top_right_org_value /= float(total_opp_count);
 
-			float attacker_str = 0;
-			float defender_str = 0;
+			float attacker_combat_score = 0;
+			float defender_combat_score = 0;
 
 			auto slots = state.world.naval_battle_get_slots(nbattle);
 
@@ -1505,9 +1505,9 @@ public:
 					case military::ship_in_battle::mode_retreating:
 					case military::ship_in_battle::mode_engaged:
 						if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
-							attacker_str += state.world.ship_get_strength(slots[j].ship);
+							attacker_combat_score += military::get_ship_combat_score(state, slots[j].ship);
 						else
-							defender_str += state.world.ship_get_strength(slots[j].ship);
+							defender_combat_score += military::get_ship_combat_score(state, slots[j].ship);
 						break;
 					default:
 						break;
@@ -1515,9 +1515,9 @@ public:
 			}
 
 			if(state.world.naval_battle_get_war_attacker_is_attacker(nbattle) == player_is_attacker) {
-				display.battle_progress = attacker_str / (attacker_str + defender_str);
+				display.battle_progress = attacker_combat_score / (attacker_combat_score + defender_combat_score);
 			} else {
-				display.battle_progress = defender_str / (attacker_str + defender_str);
+				display.battle_progress = defender_combat_score / (attacker_combat_score + defender_combat_score);
 			}
 
 			battle->set_visible(state, true);

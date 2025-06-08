@@ -1539,4 +1539,6 @@ alice_lobby_resync_players_loading;Cannot resync when players are loading
 alice_lobby_resync_no_oos;No one is OOS
 alice_lobby_resync_not_host;Only the host may resync
 alice_host_has_resync;Host has resynced the lobby
-
+alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
+alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
+alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.

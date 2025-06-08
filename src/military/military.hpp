@@ -57,11 +57,13 @@ struct ship_in_battle {
 	static constexpr uint16_t type_transport = 0x0000;
 
 	dcon::ship_id ship;
-	uint16_t target_slot = 0;
+	int16_t target_slot = -1;
 	uint16_t flags = 0;
+	uint16_t ships_targeting_this = 0;
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
+	+ sizeof(ship_in_battle::ships_targeting_this)
 	+ sizeof(ship_in_battle::target_slot)
 	+ sizeof(ship_in_battle::flags));
 
@@ -375,6 +377,8 @@ float mobilization_size(sys::state const& state, dcon::nation_id n);
 float mobilization_impact(sys::state const& state, dcon::nation_id n);
 ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<dcon::nation_id> nations);
 
+float get_ship_combat_score(sys::state& state, dcon::ship_id ship);
+
 uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
@@ -491,7 +495,10 @@ void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
 uint16_t unit_type_to_reserve_regiment_type(unit_type utype);
+float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
+float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
+float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
