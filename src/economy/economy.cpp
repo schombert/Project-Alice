@@ -745,7 +745,7 @@ void initialize(sys::state& state) {
 		province::for_each_land_province(state, [&](dcon::province_id p) {
 			auto fp = fatten(state.world, p);
 			//max size of exploitable land:
-			auto max_rgo_size = std::ceil(state.map_state.map_data.province_area_km2[province::to_map_id(p)]);
+			auto max_rgo_size = std::ceil(100.f * state.map_state.map_data.province_area_km2[province::to_map_id(p)]);
 			// currently exploited land
 			float pop_amount = 0.0f;
 			for(auto pt : state.world.in_pop_type) {
@@ -836,7 +836,7 @@ void initialize(sys::state& state) {
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
 				auto fc = fatten(state.world, c);
 				assert(std::isfinite(true_distribution[c.index()]));
-				auto proposed_size = (pop_amount * 10.f + state.defines.alice_base_rgo_employment_bonus) * true_distribution[c.index()];
+				auto proposed_size = (pop_amount * 20.f + state.defines.alice_base_rgo_employment_bonus) * true_distribution[c.index()];
 				if(proposed_size > state.defines.alice_secondary_rgos_min_employment) {
 					state.world.province_set_rgo_size(p, c,
 						state.world.province_get_rgo_size(p, c) + proposed_size
@@ -1695,6 +1695,9 @@ void update_pop_consumption(
 		auto savings = state.world.pop_get_savings(ids);
 		auto subsistence = ve_adjusted_subsistence_score(state, provs);
 
+		auto rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(pop_type);
+		subsistence = ve::select(rgo_worker, subsistence, 0.f);
+
 		auto available_subsistence = ve::min(subsistence_score_life, subsistence);
 		subsistence = subsistence - available_subsistence;
 		auto life_needs_satisfaction = available_subsistence / subsistence_score_life;
@@ -1735,7 +1738,8 @@ void update_pop_consumption(
 
 		// we want to focus on life needs first if we are poor AND our satisfaction is low
 		auto is_poor = ve::max(0.f, 1.f - 4.f * savings / (0.00001f + required_spendings_for_life_needs));
-		is_poor = ve::min(1.f, ve::max(0.f, is_poor + life_to_satisfy));
+		auto current_life = pop_demographics::get_life_needs(state, ids);
+		is_poor = ve::min(1.f, ve::max(0.f, is_poor + (1.f - current_life) * 2.f));
 
 		auto life_spending_mod = //ve::fp_vector{ 1.f };
 			(savings * state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
@@ -4336,14 +4340,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			/* adjust pop satisfaction based on consumption and subsistence */
 
-			float subsistence = adjusted_subsistence_score(state, p.get_province());
-			float subsistence_life = std::clamp(subsistence, 0.f, subsistence_score_life);
-			subsistence -= subsistence_life;
-
-			subsistence_life /= subsistence_score_life;
+			float subsistence = adjusted_subsistence_score(state, p.get_province());			
 
 			for(auto pl : p.get_province().get_pop_location()) {
 				auto t = pl.get_pop().get_poptype();
+
+				auto rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(t);
+				float subsistence_life = std::clamp(subsistence, 0.f, subsistence_score_life);
+				subsistence_life /= subsistence_score_life;
+				subsistence_life = ve::select(rgo_worker, subsistence_life, 0.f);
 
 				auto ln = pop_demographics::get_life_needs(state, pl.get_pop());
 				auto en = pop_demographics::get_everyday_needs(state, pl.get_pop());
