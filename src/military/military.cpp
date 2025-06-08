@@ -6426,6 +6426,17 @@ float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_s
 
 }
 
+// gets the stacking penalty depending on the ratio of friendly & enenmy ships. The stacking penalty is supposed to be from the perspective of the friendly ships
+float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships) {
+
+	// if the max targets per ship is only one, stacking penalties are effectively disabled anyway. Also avoid DBZ error later
+	if(state.defines.naval_combat_max_targets == 1.0f) {
+		return 1.0f;
+	}
+	float outnumber_ratio = std::clamp(float(friendly_ships) / float(enemy_ships), 1.0f, state.defines.naval_combat_max_targets);
+	return 1.0f - (state.defines.alice_naval_combat_stacking_damage_penalty * (outnumber_ratio - 1) / (state.defines.naval_combat_max_targets - 1));
+}
+
 // gets a target for a ship in a naval battle, returns the target index of the target if a valid target was found, otherwise returns -1 if no valid target was found or the random chance roll failed
 int16_t get_naval_battle_target(sys::state& state, const ship_in_battle& ship, dcon::naval_battle_id battle, uint32_t defender_ships, uint32_t attacker_ships) {
 
@@ -7072,62 +7083,37 @@ bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& sh
 	case ship_in_battle::mode_seeking:
 	case ship_in_battle::mode_approaching:
 	case ship_in_battle::mode_engaged:
+	case ship_in_battle::mode_retreating:
 		if(state.world.ship_get_strength(ship.ship) <= 0) {
 			if((ship.flags & ship_in_battle::is_attacking) != 0) {
 				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-					state.world.naval_battle_get_attacker_big_ships_lost(battle)++;
+					state.world.naval_battle_set_attacker_big_ships_lost(battle, state.world.naval_battle_get_attacker_big_ships_lost(battle) + 1);
 				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-					state.world.naval_battle_get_attacker_small_ships_lost(battle)++;
+					state.world.naval_battle_set_attacker_small_ships_lost(battle, state.world.naval_battle_get_attacker_small_ships_lost(battle) + 1);
 				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-					state.world.naval_battle_get_attacker_transport_ships_lost(battle)++;
+					state.world.naval_battle_set_attacker_transport_ships_lost(battle, state.world.naval_battle_get_attacker_transport_ships_lost(battle) + 1);
 				}
-				state.world.naval_battle_get_attacker_loss_value(battle) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
+				state.world.naval_battle_set_attacker_loss_value(battle, state.world.naval_battle_get_attacker_loss_value(battle) + state.military_definitions.unit_base_definitions[type].supply_consumption_score);
 				attacker_ships--;
 			} else {
 				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-					state.world.naval_battle_get_defender_big_ships_lost(battle)++;
+					state.world.naval_battle_set_defender_big_ships_lost(battle, state.world.naval_battle_get_defender_big_ships_lost(battle) + 1);
 				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-					state.world.naval_battle_get_defender_small_ships_lost(battle)++;
+					state.world.naval_battle_set_defender_small_ships_lost(battle, state.world.naval_battle_get_defender_small_ships_lost(battle) + 1);
 				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-					state.world.naval_battle_get_defender_transport_ships_lost(battle)++;
+					state.world.naval_battle_set_defender_transport_ships_lost(battle, state.world.naval_battle_get_defender_transport_ships_lost(battle) + 1);
 				}
-				state.world.naval_battle_get_defender_loss_value(battle) += state.military_definitions.unit_base_definitions[type].supply_consumption_score;
+				state.world.naval_battle_set_defender_loss_value(battle, state.world.naval_battle_get_defender_loss_value(battle) + state.military_definitions.unit_base_definitions[type].supply_consumption_score);
 				defender_ships--;
 			}
 			ship.flags &= ~ship_in_battle::mode_mask;
 			ship.flags |= ship_in_battle::mode_sunk;
 			// decrement the number of ships targeting this ships' target if the current target is valid, as it is now sunk.
 			if(naval_slot_index_valid(ship.target_slot)) {
-				assert(slots[ship.target_slot].ships_targeting_this!= 0);
+				assert(slots[ship.target_slot].ships_targeting_this != 0);
 				slots[ship.target_slot].ships_targeting_this--;
 			}
 			ship.target_slot = -1;
-			return false;
-		}
-		break;
-	case ship_in_battle::mode_retreating:
-		if(state.world.ship_get_strength(ship.ship) <= 0) {
-			if((ship.flags & ship_in_battle::is_attacking) != 0) {
-				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-					state.world.naval_battle_get_attacker_big_ships_lost(battle)++;
-				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-					state.world.naval_battle_get_attacker_small_ships_lost(battle)++;
-				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-					state.world.naval_battle_get_attacker_transport_ships_lost(battle)++;
-				}
-				attacker_ships--;
-			} else {
-				if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_big) {
-					state.world.naval_battle_get_defender_big_ships_lost(battle)++;
-				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_small) {
-					state.world.naval_battle_get_defender_small_ships_lost(battle)++;
-				} else if((ship.flags & ship_in_battle::type_mask) == ship_in_battle::type_transport) {
-					state.world.naval_battle_get_defender_transport_ships_lost(battle)++;
-				}
-				defender_ships--;
-			}
-			ship.flags &= ~ship_in_battle::mode_mask;
-			ship.flags |= ship_in_battle::mode_sunk;
 			return false;
 		}
 		break;
@@ -7150,7 +7136,7 @@ Damage to organization is (gun-power + torpedo-attack) * Modifier-Table\[modifie
 
 Evasion reduces the chance for an attack to hit the target in vanilla V2, however here we just put it as an additional damage reduction modifier (20% evasion = 20% damage reduction) at the end.
 
-In addition, a custom define has been added which is not in base V2: alice_naval_combat_stacking_damage_penalty. This reduces the damage by that percentage multiplied with the coordination (stacking) penalty.
+In addition, a custom define has been added which is not in base V2: alice_naval_combat_stacking_damage_penalty. This reduces damage done by the outnumbering side, maxed out at the amount in the define.
 */
 
 
@@ -7192,7 +7178,7 @@ float get_ship_strength_damage(sys::state& state, const ship_in_battle& damage_d
 		enemy_ships = attacker_ships;
 	}
 
-	auto stacking_dmg_penalty = (1.0f - state.defines.alice_naval_combat_stacking_damage_penalty * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships));
+	auto stacking_dmg_penalty = get_damage_reduction_stacking_penalty(state, friendly_ships, enemy_ships);
 
 
 	return (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (target_no_org ? state.defines.naval_combat_damage_mult_no_org : 1.0f) * (1.0f - target_stats.discipline_or_evasion) * stacking_dmg_penalty * state.defines.naval_combat_damage_str_mult;
@@ -7241,7 +7227,7 @@ float get_ship_org_damage(sys::state& state, const ship_in_battle& damage_dealer
 		enemy_ships = attacker_ships;
 	}
 
-	auto stacking_dmg_penalty = (1.0f - state.defines.alice_naval_combat_stacking_damage_penalty * naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships));
+	auto stacking_dmg_penalty = get_damage_reduction_stacking_penalty(state, friendly_ships, enemy_ships);
 
 	// this is the org damage in raw numbers instead of percentages, ie what needs to be effectively subtacted from the "default org" member of a given unit
 	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (1.0f - target_stats.discipline_or_evasion) * stacking_dmg_penalty * state.defines.naval_combat_damage_org_mult * 100;

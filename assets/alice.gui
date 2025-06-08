@@ -2827,7 +2827,14 @@ guiTypes = {
 				spriteType = "GFX_naval_combat_unit_normal_L"
 				position = { 118 138 }
 				Orientation = "UPPER_LEFT"
-				frame = 3
+				frame = 5
+			}
+			iconType = {
+				name ="stacking_penalty_icon"
+				spriteType = "GFX_alice_unit_status"
+				position = { 30 85 }
+				Orientation = "UPPER_LEFT"
+				frame = 5
 			}
 
 			instantTextBoxType = {
@@ -2977,6 +2984,13 @@ guiTypes = {
 				position = { 128 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 3
+			}
+			iconType = {
+				name ="stacking_penalty_icon"
+				spriteType = "GFX_alice_unit_status"
+				position = { 40 85 }
+				Orientation = "UPPER_LEFT"
+				frame = 5
 			}
 
 			instantTextBoxType = {
