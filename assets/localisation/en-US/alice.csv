@@ -530,6 +530,7 @@ factory_stats_desired_income;Desired raw profit
 speed;$val$ kph
 shift_to_hold_open;Hold ?YSHIFT?! to keep this window open, ?YSHIFT-Right-click?! to build this in every state (but not expand)
 factory_upgrade_shortcuts;?YSHIFT-Left-click?W upgrade ?Gall?!S factories in a state\n?YSHIFT-Right-click?W upgrade ?Gall profitable?W factories in a state\n?YCTRL-Left-click?W upgrade ?Gall?W factories in a nation\n?YCTRL-Right-click?W upgrade ?Gall profitable?W factories in a nation\n?YCTRL-SHIFT-Left-click?W upgrade ?Gall profitable with full employment?W factories in a state\n?YCTRL-SHIFT-Right-click?W upgrade ?Gall profitable with full employment?W factories in a state
+factory_total_size;Total factories: ?Y$val$?!
 factory_consumer_count;Consumer factories: ?Y$val$?!
 factory_heavy_count;Heavy industry factories: ?Y$val$?!
 factory_military_count;Military factories: ?Y$val$?!
@@ -847,8 +848,8 @@ free_trade_explain_4;They are embargoing us
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
 embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
-embargo_explain_1;?GWe embargo them.?!
-embargo_explain_2;?RThey embargo us.?!
+embargo_explain_1;?G$x$ embargoes $y$.?!
+embargo_explain_2;?R$x$ embargoes $y$.?!
 embargo_explain_3;We don't have trade rights in their country
 embargo_explain_4;They don't have trade rights in our country
 embargo_explain_5;We aren't in a sphere

@@ -5833,18 +5833,16 @@ guiTypes = {
 	iconType = {
         name = "industry_size_icon"
         spriteType = "GFX_budget_ind_sup_icon"
-        position = { x= 42 y = 233 }
+        position = { x= 32 y = 233 }
 		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
     }
 
-	instantTextBoxType = {
-		name = "industry_size_text"
-		position = { 75 236 }
-		font = "vic_18_black"
-		text = " "
-		maxWidth = 40
-		maxHeight = 20
+	iconType = {
+        name = "trade_size_icon"
+        spriteType = "GFX_budget_nat_stock_icon"
+        position = { x= 55 y = 233 }
+		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
-	}
+    }
 }
