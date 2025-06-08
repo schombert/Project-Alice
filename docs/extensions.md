@@ -525,6 +525,7 @@ Alice adds a handful of new defines:
 - `alice_allow_factories_in_colonies`: if set to 1, allows to build factories that have `can_be_built_in_colonies = yes` flag in colonies
 - `alice_naval_base_to_colonial_distance_factor` (default 0.04): multiplier in the formula for colonial distance unlocked by 1 lvl of naval base.
 - `alice_always_available_cbs_zero_infamy` - if set to 0, then CBs with `always = yes` will have infamy cost calculated as per `badboy_factor`.
+- `alice_economy_market_stockpile_spoilage` controls spoilage in market stockpiles (default: 0.05 = 5%)
 
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature

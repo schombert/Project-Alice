@@ -36,6 +36,7 @@ Assembled by SneakBug8
 - AI won't upgrade units if shortages
 - change_factory_limit effect for mods
 - Modding option to make always available wargoals cost infamy.
+- alice_economy_market_stockpile_spoilage define to control spoilage in market stockpiles (default: 0.05 = 5%)
 - Fixes to crisis mechanics
 - Fix lost localization for free trade & embargoes 
 - Hotfix to national stockpiles: do not use commodities until draw mode is selected
