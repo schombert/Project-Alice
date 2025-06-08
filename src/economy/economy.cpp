@@ -1873,7 +1873,7 @@ void update_pop_consumption(
 
 		auto base_shift = 1.f / 200.f;
 
-		auto shift_life = ve::select(
+		ve::fp_vector shift_life = ve::select(
 			satisfaction_life_money + qol_from_subsistence > 0.9f,
 			base_shift,
 			ve::select(
@@ -1882,7 +1882,7 @@ void update_pop_consumption(
 				0.f
 			)
 		);
-		auto shift_everyday = ve::select(
+		ve::fp_vector shift_everyday = ve::select(
 			satisfaction_everyday_money > 0.9f,
 			base_shift,
 			ve::select(
@@ -1891,7 +1891,7 @@ void update_pop_consumption(
 				0.f
 			)
 		);
-		auto shift_luxury = ve::select(
+		ve::fp_vector shift_luxury = ve::select(
 			satisfaction_luxury_money > 0.9f,
 			base_shift,
 			ve::select(
