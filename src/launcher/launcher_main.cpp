@@ -118,6 +118,10 @@ static std::string lobby_password = "";
 static sys::player_name player_name;
 static sys::player_name player_password;
 
+static std::string requestedScenarioFileName;
+static std::string enabledModsMask;
+static boolean autoBuild = false;
+
 enum class string_index : uint8_t {
 	create_scenario,
 	recreate_scenario,
@@ -1128,11 +1132,16 @@ void make_mod_file() {
 				int32_t append = 0;
 				auto time_stamp = uint64_t(std::time(0));
 				auto base_name = to_hex(time_stamp);
-				while(simple_fs::peek_file(sdir, base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin"))) {
+				auto generated_scenario_name = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
+				while(simple_fs::peek_file(sdir, generated_scenario_name)) {
 					++append;
 				}
+				// In this case we override the file
+				if(requestedScenarioFileName != "") {
+					generated_scenario_name = simple_fs::utf8_to_native(requestedScenarioFileName);
+				}
 				++max_scenario_count;
-				selected_scenario_file = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
+				selected_scenario_file = generated_scenario_name;
 				sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 				if(auto of = simple_fs::open_file(sdir, selected_scenario_file); of) {
 					auto content = view_contents(*of);
@@ -1172,7 +1181,13 @@ void make_mod_file() {
 			}
 		}
 		file_is_ready.store(true, std::memory_order::memory_order_release);
-		InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+
+		if(autoBuild) {
+			PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
+		}
+		else {
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
 	});
 
 	file_maker.detach();
@@ -2346,6 +2361,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			}
 		}
 
+		// Find all mods
 		auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
 		auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
 
@@ -2359,6 +2375,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			}
 		}
 
+		// Find all scenario files
 		auto sdir = simple_fs::get_or_create_scenario_directory();
 		auto s_files = simple_fs::list_files(sdir, NATIVE(".bin"));
 		for(auto& f : s_files) {
@@ -2376,6 +2393,45 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
 			return a.ident.count > b.ident.count;
 		});
+
+		// Process command line arguments
+		int num_params = 0;
+		auto parsed_cmd = CommandLineToArgvW(GetCommandLineW(), &num_params);
+		for(int i = 1; i < num_params; ++i) {
+			if(native_string(parsed_cmd[i]) == NATIVE("-outputScenario")) {
+				auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+				requestedScenarioFileName = str;
+			}
+			if(native_string(parsed_cmd[i]) == NATIVE("-modsMask")) {
+				auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+				enabledModsMask = str;
+			}
+			if(native_string(parsed_cmd[i]) == NATIVE("-autoBuild")) {
+				autoBuild = true;
+			}
+		}
+
+		find_scenario_file();
+
+		if(enabledModsMask != "") {
+			for(auto& mod : launcher::mod_list) {
+				if(mod.name_.find(enabledModsMask) != std::string::npos) {
+					mod.mod_selected = true;
+
+					recursively_add_to_list(mod);
+					enforce_list_order();
+					find_scenario_file();
+					InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+				}
+			}
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
+
+		if(autoBuild && file_is_ready.load(std::memory_order::memory_order_acquire)) {
+			make_mod_file();
+			find_scenario_file();
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
 
 		find_scenario_file();
 
