@@ -1981,6 +1981,16 @@ void update_colonization(sys::state& state) {
 
 			d.set_colonization_stage(uint8_t(3));
 			(*colonizers.begin()).set_last_investment(state.current_date);
+		} else if(num_colonizers == 1 && (*colonizers.begin()).get_colonizer().get_is_player_controlled() &&
+			command::can_finish_colonization(state, (*colonizers.begin()).get_colonizer(), d)) {
+			command::execute_finish_colonization(state, (*colonizers.begin()).get_colonizer(), d);
+			/* Since situations where you initiate a colony and don't want to colonize it completely are so rare,
+			* it makes sense to automatically invest points for players to reduce micromanagement. */
+		} else if(num_colonizers == 1 && (*colonizers.begin()).get_colonizer().get_is_player_controlled() &&
+		   can_invest_in_colony(state, (*colonizers.begin()).get_colonizer(), d)) {
+			increase_colonial_investment(state, (*colonizers.begin()).get_colonizer(), d);
+			/* Since situations where you initiate a colony and don't want to colonize it completely are so rare,
+			* it makes sense to automatically invest points for players to reduce micromanagement. */
 		} else if(d.get_colonization_stage() == uint8_t(3) && num_colonizers != 0) {
 			/*
 			If you leave a colony in phase 3 for define:COLONIZATION_MONTHS_TO_COLONIZE months, the colonization will reset to

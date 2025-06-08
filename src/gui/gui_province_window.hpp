@@ -2015,14 +2015,14 @@ class province_protectorate_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
-		command::finish_colonization(state, state.local_player_nation, content);
+		command::finish_colonization(state, state.local_player_nation, state.world.province_get_state_from_abstract_state_membership(content));
 		state.ui_state.province_window->set_visible(state, false);
 		state.map_state.set_selected_province(dcon::province_id{});
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
-		disabled = !command::can_finish_colonization(state, state.local_player_nation, content);
+		disabled = !command::can_finish_colonization(state, state.local_player_nation, state.world.province_get_state_from_abstract_state_membership(content));
 	}
 };
 
