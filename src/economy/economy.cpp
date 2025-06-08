@@ -3610,7 +3610,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.market_set_stockpile(
 				ids, c,
 				ve::max(0.f, (
-					state.world.market_get_stockpile(ids, c) * (1.f - stockpile_spoilage)
+					state.world.market_get_stockpile(ids, c) * (1.f - state.defines.alice_economy_market_stockpile_spoilage)
 					+ total_supply - merchants_supply
 					- total_demand * new_saturation
 					))
