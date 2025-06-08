@@ -6416,6 +6416,10 @@ int32_t get_combat_fort_level(sys::state& state, dcon::province_id location) {
 // computes the coordination penalty (from 0.0 with no penalty, to 1.0 which is full penalty) based on how much we outnumber the enemy
 // The penalty is applied to the "friendly ships" side
 float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships) {
+	// guard against dbz error, battle should end anyway before this, but incase it dosent it wont crash.
+	if(friendly_ships == 0) {
+		return 0.0f;
+	}
 	return std::clamp(1 - (float(enemy_ships) / float(friendly_ships)), 0.0f, 1.0f);
 
 }
