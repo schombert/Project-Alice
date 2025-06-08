@@ -745,7 +745,7 @@ void initialize(sys::state& state) {
 		province::for_each_land_province(state, [&](dcon::province_id p) {
 			auto fp = fatten(state.world, p);
 			//max size of exploitable land:
-			auto max_rgo_size = std::ceil(state.map_state.map_data.province_area_km2[province::to_map_id(p)]);
+			auto max_rgo_size = std::ceil(100.f * state.map_state.map_data.province_area_km2[province::to_map_id(p)]);
 			// currently exploited land
 			float pop_amount = 0.0f;
 			for(auto pt : state.world.in_pop_type) {
@@ -836,7 +836,7 @@ void initialize(sys::state& state) {
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
 				auto fc = fatten(state.world, c);
 				assert(std::isfinite(true_distribution[c.index()]));
-				auto proposed_size = (pop_amount * 10.f + state.defines.alice_base_rgo_employment_bonus) * true_distribution[c.index()];
+				auto proposed_size = (pop_amount * 20.f + state.defines.alice_base_rgo_employment_bonus) * true_distribution[c.index()];
 				if(proposed_size > state.defines.alice_secondary_rgos_min_employment) {
 					state.world.province_set_rgo_size(p, c,
 						state.world.province_get_rgo_size(p, c) + proposed_size
@@ -1691,37 +1691,47 @@ void update_pop_consumption(
 				return state.world.market_get_luxury_needs_costs(m, pt);
 			}, markets, pop_type
 		);
+
+		ve::fp_vector old_life = pop_demographics::get_life_needs(state, ids);
+		ve::fp_vector old_everyday = pop_demographics::get_everyday_needs(state, ids);
+		ve::fp_vector old_luxury = pop_demographics::get_luxury_needs(state, ids);
+
 		auto pop_size = state.world.pop_get_size(ids);
 		auto savings = state.world.pop_get_savings(ids);
 		auto subsistence = ve_adjusted_subsistence_score(state, provs);
 
+		auto rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(pop_type);
+		subsistence = ve::select(rgo_worker, subsistence, 0.f);
+
 		auto available_subsistence = ve::min(subsistence_score_life, subsistence);
 		subsistence = subsistence - available_subsistence;
-		auto life_needs_satisfaction = available_subsistence / subsistence_score_life;
+		auto qol_from_subsistence = available_subsistence / subsistence_score_life;
 
-		auto everyday_needs_satisfaction = ve::fp_vector{ 0.f };
-		auto luxury_needs_satisfaction = ve::fp_vector{ 0.f };
+		auto base_qol = 0.5f;
+
+		auto demand_scale_life = old_life / base_qol;
+		auto demand_scale_everyday = old_everyday / base_qol;
+		auto demand_scale_luxury = old_luxury / base_qol;
+
+		demand_scale_life = demand_scale_life * demand_scale_life;
+		demand_scale_everyday = demand_scale_everyday * demand_scale_everyday;
+		demand_scale_luxury = demand_scale_luxury * demand_scale_luxury;
 
 		// calculate market expenses
-
-		auto life_to_satisfy = ve::max(0.f, 1.f - life_needs_satisfaction);
-		auto everyday_to_satisfy = ve::max(0.f, 1.f - everyday_needs_satisfaction);
-		auto luxury_to_satisfy = ve::max(0.f, 1.f - luxury_needs_satisfaction);
-
 		auto required_spendings_for_life_needs =
-			life_to_satisfy
-			* life_costs
-			* pop_size / state.defines.alice_needs_scaling_factor;
+			demand_scale_life * life_costs
+			* pop_size
+			/ state.defines.alice_needs_scaling_factor;
 
 		auto required_spendings_for_everyday_needs =
-			everyday_to_satisfy
-			* everyday_costs
-			* pop_size / state.defines.alice_needs_scaling_factor;
+			demand_scale_everyday * everyday_costs
+			* pop_size
+			/ state.defines.alice_needs_scaling_factor;
 
 		auto required_spendings_for_luxury_needs =
-			luxury_to_satisfy
-			* luxury_costs
-			* pop_size / state.defines.alice_needs_scaling_factor;
+			demand_scale_luxury * luxury_costs
+			* pop_size
+			/ state.defines.alice_needs_scaling_factor;
 
 		// if goods are way too expensive:
 		// reduce spendings, possibly to zero
@@ -1735,7 +1745,8 @@ void update_pop_consumption(
 
 		// we want to focus on life needs first if we are poor AND our satisfaction is low
 		auto is_poor = ve::max(0.f, 1.f - 4.f * savings / (0.00001f + required_spendings_for_life_needs));
-		is_poor = ve::min(1.f, ve::max(0.f, is_poor + life_to_satisfy));
+		auto current_life = pop_demographics::get_life_needs(state, ids);
+		is_poor = ve::min(1.f, ve::max(0.f, is_poor + (1.f - current_life) * 2.f));
 
 		auto life_spending_mod = //ve::fp_vector{ 1.f };
 			(savings * state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
@@ -1791,10 +1802,10 @@ void update_pop_consumption(
 
 		// buy life needs
 
-		auto spend_on_life_needs = life_spending_mod * ve::min(savings, required_spendings_for_life_needs);
+		auto spend_on_life_needs = ve::min(life_spending_mod * savings, required_spendings_for_life_needs);
 		auto satisfaction_life_money = ve::select(
 			zero_life_costs,
-			life_to_satisfy,
+			1.f,
 			spend_on_life_needs / required_spendings_for_life_needs);
 
 		savings = savings - spend_on_life_needs;
@@ -1802,10 +1813,10 @@ void update_pop_consumption(
 
 		// buy everyday needs
 
-		auto spend_on_everyday_needs = everyday_spending_mod * ve::min(savings, required_spendings_for_everyday_needs);
+		auto spend_on_everyday_needs = ve::min(everyday_spending_mod * savings, required_spendings_for_everyday_needs);
 		auto satisfaction_everyday_money = ve::select(
 			zero_everyday_costs,
-			everyday_to_satisfy,
+			1.f,
 			spend_on_everyday_needs / required_spendings_for_everyday_needs);
 
 		savings = savings - spend_on_everyday_needs;
@@ -1842,18 +1853,14 @@ void update_pop_consumption(
 
 		// buy luxury needs
 
-		auto spend_on_luxury_needs = luxury_spending_mod * ve::min(savings, required_spendings_for_luxury_needs);
+		auto spend_on_luxury_needs = ve::min(luxury_spending_mod * savings, required_spendings_for_luxury_needs);
 		auto satisfaction_luxury_money = ve::select(
 			zero_luxury_costs,
-			luxury_to_satisfy,
+			1.f,
 			spend_on_luxury_needs / required_spendings_for_luxury_needs);
 
 		savings = savings - spend_on_luxury_needs;
 		total_spendings = total_spendings + spend_on_luxury_needs;
-
-		ve::fp_vector old_life = pop_demographics::get_life_needs(state, ids);
-		ve::fp_vector old_everyday = pop_demographics::get_everyday_needs(state, ids);
-		ve::fp_vector old_luxury = pop_demographics::get_luxury_needs(state, ids);
 
 		savings = savings * (
 			1.f
@@ -1862,29 +1869,42 @@ void update_pop_consumption(
 			- state.defines.alice_needs_lx_spend
 		);
 
-		// suppose that old satisfaction was calculated
-		// for the same local subsistence conditions and find "raw" satisfaction
-		// old = raw + sub ## first summand is "raw satisfaction"
-		// we assume that currently calculated satisfaction is caused only by subsistence
+		// subsistence gives free "level of consumption"
 
-		auto old_life_money =
-			ve::max(0.f, old_life - life_needs_satisfaction);
-		auto old_everyday_money =
-			ve::max(0.f, old_everyday - everyday_needs_satisfaction);
-		auto old_luxury_money =
-			ve::max(0.f, old_luxury - luxury_needs_satisfaction);
+		auto base_shift = ve::fp_vector{ 1.f / 200.f };
 
-		auto delayed_life_from_money =
-			(old_life_money * 0.5f) + (satisfaction_life_money * 0.5f);
-		auto delayed_everyday_from_money =
-			(old_everyday_money * 0.5f) + (satisfaction_everyday_money * 0.5f);
-		auto delayed_luxury_from_money =
-			(old_luxury_money * 0.5f) + (satisfaction_luxury_money * 0.5f);
+		ve::fp_vector shift_life = ve::select(
+			satisfaction_life_money + qol_from_subsistence > 0.9f,
+			base_shift,
+			ve::select(
+				satisfaction_life_money + qol_from_subsistence < 0.7f,
+				-base_shift,
+				ve::fp_vector{ 0.f }
+			)
+		);
+		ve::fp_vector shift_everyday = ve::select(
+			satisfaction_everyday_money > 0.9f,
+			base_shift,
+			ve::select(
+				satisfaction_everyday_money < 0.7f,
+				-base_shift,
+				ve::fp_vector{ 0.f }
+			)
+		);
+		ve::fp_vector shift_luxury = ve::select(
+			satisfaction_luxury_money > 0.9f,
+			base_shift,
+			ve::select(
+				satisfaction_luxury_money < 0.7f,
+				-base_shift,
+				ve::fp_vector{ 0.f }
+			)
+		);
 
 		// clamping for now
-		auto result_life = ve::max(0.f, ve::min(1.f, delayed_life_from_money + life_needs_satisfaction));
-		auto result_everyday = ve::max(0.f, ve::min(1.f, delayed_everyday_from_money + everyday_needs_satisfaction));
-		auto result_luxury = ve::max(0.f, ve::min(1.f, delayed_luxury_from_money + luxury_needs_satisfaction));
+		auto result_life = ve::max(0.f, ve::min(1.f, old_life + shift_life));
+		auto result_everyday = ve::max(0.f, ve::min(1.f, old_everyday + shift_everyday));
+		auto result_luxury = ve::max(0.f, ve::min(1.f, old_luxury + shift_luxury));
 
 		ve::apply([&](float life, float everyday, float luxury) {
 			assert(life >= 0.f && life <= 1.f);
@@ -1892,22 +1912,21 @@ void update_pop_consumption(
 			assert(luxury >= 0.f && luxury <= 1.f);
 		}, result_life, result_everyday, result_luxury);
 
-
 		pop_demographics::set_life_needs(state, ids, result_life);
 		pop_demographics::set_everyday_needs(state, ids, result_everyday);
 		pop_demographics::set_luxury_needs(state, ids, result_luxury);
 
 		auto final_demand_scale_life =
 			pop_size / state.defines.alice_needs_scaling_factor
-			* delayed_life_from_money;
+			* demand_scale_life;
 
 		auto final_demand_scale_everyday =
 			pop_size / state.defines.alice_needs_scaling_factor
-			* delayed_everyday_from_money;
+			* demand_scale_everyday;
 
 		auto final_demand_scale_luxury =
 			pop_size / state.defines.alice_needs_scaling_factor
-			* delayed_luxury_from_money;
+			* demand_scale_luxury;
 
 		ve::apply([&](
 			dcon::market_id m,
@@ -4334,13 +4353,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// rgo production
 			update_province_rgo_production(state, p.get_province(), market, n);
 
-			/* adjust pop satisfaction based on consumption and subsistence */
-
-			float subsistence = adjusted_subsistence_score(state, p.get_province());
-			float subsistence_life = std::clamp(subsistence, 0.f, subsistence_score_life);
-			subsistence -= subsistence_life;
-
-			subsistence_life /= subsistence_score_life;
+			// are pops actually able to maintain their lifestyle? check shortages:
 
 			for(auto pl : p.get_province().get_pop_location()) {
 				auto t = pl.get_pop().get_poptype();
@@ -4349,25 +4362,19 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto en = pop_demographics::get_everyday_needs(state, pl.get_pop());
 				auto lx = pop_demographics::get_luxury_needs(state, pl.get_pop());
 
-
-				// sat = raw + sub ## first summand is "raw satisfaction"
-				ln -= subsistence_life;
-
-				// as it a very rough estimation based on very rough values,
-				// we have to sanitise values:
-				ln = std::max(0.f, ln);
-				en = std::max(0.f, en);
-				lx = std::max(0.f, lx);
-
 				assert(std::isfinite(ln));
 				assert(std::isfinite(en));
 				assert(std::isfinite(lx));
+				
+				auto not_enough_life = state.world.market_get_max_life_needs_satisfaction(market, t) < 0.5f;
+				auto not_enough_everyday = state.world.market_get_max_everyday_needs_satisfaction(market, t) < 0.5f;
+				auto not_enough_luxury = state.world.market_get_max_luxury_needs_satisfaction(market, t) < 0.5f;
 
-				ln = std::min(1.f, ln) * state.world.market_get_max_life_needs_satisfaction(market, t);
-				en = std::min(1.f, en) * state.world.market_get_max_everyday_needs_satisfaction(market, t);
-				lx = std::min(1.f, lx) * state.world.market_get_max_luxury_needs_satisfaction(market, t);
+				auto shift = 1.f / 200.f;
 
-				ln = std::min(1.f, ln + subsistence_life);
+				ln = not_enough_life ? std::max(0.f, ln - shift) : ln;
+				en = not_enough_everyday ? std::max(0.f, en - shift) : en;
+				lx = not_enough_luxury ? std::max(0.f, lx - shift) : lx;
 
 				pop_demographics::set_life_needs(state, pl.get_pop(), ln);
 				pop_demographics::set_everyday_needs(state, pl.get_pop(), en);
