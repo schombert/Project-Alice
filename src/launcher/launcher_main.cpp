@@ -119,6 +119,8 @@ static sys::player_name player_name;
 static sys::player_name player_password;
 
 static std::string requestedScenarioFileName;
+static std::string enabledModsMask;
+static boolean autoBuild = false;
 
 enum class string_index : uint8_t {
 	create_scenario,
@@ -1131,11 +1133,12 @@ void make_mod_file() {
 				auto time_stamp = uint64_t(std::time(0));
 				auto base_name = to_hex(time_stamp);
 				auto generated_scenario_name = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
-				if(requestedScenarioFileName != "") {
-					generated_scenario_name = simple_fs::utf8_to_native(requestedScenarioFileName);
-				}
 				while(simple_fs::peek_file(sdir, generated_scenario_name)) {
 					++append;
+				}
+				// In this case we override the file
+				if(requestedScenarioFileName != "") {
+					generated_scenario_name = simple_fs::utf8_to_native(requestedScenarioFileName);
 				}
 				++max_scenario_count;
 				selected_scenario_file = generated_scenario_name;
@@ -1178,7 +1181,13 @@ void make_mod_file() {
 			}
 		}
 		file_is_ready.store(true, std::memory_order::memory_order_release);
-		InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+
+		if(autoBuild) {
+			PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
+		}
+		else {
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
 	});
 
 	file_maker.detach();
@@ -2393,9 +2402,36 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
 				requestedScenarioFileName = str;
 			}
+			if(native_string(parsed_cmd[i]) == NATIVE("-modsMask")) {
+				auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+				enabledModsMask = str;
+			}
+			if(native_string(parsed_cmd[i]) == NATIVE("-autoBuild")) {
+				autoBuild = true;
+			}
 		}
 
+		find_scenario_file();
 
+		if(enabledModsMask != "") {
+			for(auto& mod : launcher::mod_list) {
+				if(mod.name_.find(enabledModsMask) != std::string::npos) {
+					mod.mod_selected = true;
+
+					recursively_add_to_list(mod);
+					enforce_list_order();
+					find_scenario_file();
+					InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+				}
+			}
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
+
+		if(autoBuild && file_is_ready.load(std::memory_order::memory_order_acquire)) {
+			make_mod_file();
+			find_scenario_file();
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
 
 		find_scenario_file();
 
