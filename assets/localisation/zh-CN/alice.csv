@@ -1529,3 +1529,6 @@ province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
 factory_condition_8;殖民地允许的工厂类型
 alice_has_possible_units;可以建造一些单位。
 CANBUILD_FORCEDISARM;国家尚未解除武装。
+alice_naval_coordination_penalty;$x$ 因超过敌人数而受到 ?R$y$?W 的海军协调惩罚，使其目标选择减少了 ?R$val$?W 。
+alice_naval_coordination_bonus;$x$ 因低于敌人数而受到 ?R$y$?W 的海军协调加成，使其目标选择增加了 ?R$val$?W 。
+alice_naval_stacking_penalty;$x$ 因堆叠惩罚而受到 ?R$val$?W 的伤害倍增。
