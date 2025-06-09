@@ -16,9 +16,9 @@ void update_influence_priorities(sys::state& state) {
 			// nothing -- player GP
 		} else {
 			auto& status = gprl.get_status();
-			status &= ~nations::influence::priority_mask;
+			gprl.set_status(status & ~nations::influence::priority_mask);
 			if((status & nations::influence::level_mask) == nations::influence::level_in_sphere) {
-				status |= nations::influence::priority_one;
+				gprl.set_status(status | nations::influence::priority_one);
 			}
 		}
 	}
@@ -133,19 +133,22 @@ void update_influence_priorities(sys::state& state) {
 			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(targets[i].id, n.nation);
 			if(!rel)
 				rel = state.world.force_create_gp_relationship(targets[i].id, n.nation);
-			state.world.gp_relationship_get_status(rel) |= nations::influence::priority_three;
+			auto& cur_status = state.world.gp_relationship_get_status(rel);
+			state.world.gp_relationship_set_status(rel, cur_status | nations::influence::priority_three);
 		}
 		for(; i < 4 && i < targets.size(); ++i) {
 			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(targets[i].id, n.nation);
 			if(!rel)
 				rel = state.world.force_create_gp_relationship(targets[i].id, n.nation);
-			state.world.gp_relationship_get_status(rel) |= nations::influence::priority_two;
+			auto& cur_status = state.world.gp_relationship_get_status(rel);
+			state.world.gp_relationship_set_status(rel, cur_status | nations::influence::priority_two);
 		}
 		for(; i < 6 && i < targets.size(); ++i) {
 			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(targets[i].id, n.nation);
 			if(!rel)
 				rel = state.world.force_create_gp_relationship(targets[i].id, n.nation);
-			state.world.gp_relationship_get_status(rel) |= nations::influence::priority_one;
+			auto& cur_status = state.world.gp_relationship_get_status(rel);
+			state.world.gp_relationship_set_status(rel, cur_status | nations::influence::priority_one);
 		}
 	}
 }
