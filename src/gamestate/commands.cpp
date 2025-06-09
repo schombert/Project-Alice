@@ -973,7 +973,7 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 			}
 			if(subsidized && !f.get_factory().get_subsidized()) {
 				auto& scale = f.get_factory().get_primary_employment();
-				scale = std::max(scale, 0.5f);
+				f.get_factory().set_primary_employment(std::max(scale, 0.5f));
 			}
 			f.get_factory().set_subsidized(subsidized);
 			return;
@@ -999,12 +999,12 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 	if(state.world.nation_get_is_great_power(source)) {
 		auto sr = state.world.force_create_gp_relationship(holder, source);
 		auto& flags = state.world.gp_relationship_get_status(sr);
-		flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		state.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
 		state.world.nation_set_in_sphere_of(holder, source);
 	}
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 	auto& inf = state.world.nation_get_infamy(source);
-	inf = std::max(0.0f, inf + state.defines.release_nation_infamy);
+	state.world.nation_set_infamy(source, std::max(0.0f, inf + state.defines.release_nation_infamy));
 	nations::adjust_prestige(state, source, state.defines.release_nation_prestige);
 }
 
@@ -1146,16 +1146,16 @@ void execute_change_influence_priority(sys::state& state, dcon::nation_id source
 	auto& flags = state.world.gp_relationship_get_status(rel);
 	switch(priority) {
 	case 0:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_zero;
+		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_zero);
 		break;
 	case 1:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_one;
+		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_one);
 		break;
 	case 2:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_two;
+		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_two);
 		break;
 	case 3:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_three;
+		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_three);
 		break;
 	default:
 		break;
