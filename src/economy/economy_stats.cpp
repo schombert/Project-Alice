@@ -643,12 +643,49 @@ ve::fp_vector ve_market_speculation_budget(
 	return market_speculation_budget<ve::tagged_vector<dcon::market_id>>(state, m, c);
 }
 
+float stockpile_target_speculation(
+	sys::state const& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	return std::max(0.f, market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f) - 0.5f);
+}
+template<typename M>
+ve::fp_vector stockpile_target_speculation(
+	sys::state const& state,
+	M m,
+	dcon::commodity_id c
+) {
+	return ve::max(0.f, market_speculation_budget(state, m, c) / (ve_price(state, m, c) + 1.f) - 0.5f);
+}
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return stockpile_target_speculation<ve::contiguous_tags<dcon::market_id>>(state, m, c);
+}
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::partial_contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return stockpile_target_speculation<ve::partial_contiguous_tags<dcon::market_id>>(state, m, c);
+}
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::tagged_vector<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return stockpile_target_speculation<ve::tagged_vector<dcon::market_id>>(state, m, c);
+}
+
 float trade_supply(sys::state& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f);
+	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
@@ -658,7 +695,6 @@ float trade_supply(sys::state& state,
 	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
 	return result;
 }
-
 
 float trade_supply(sys::state& state,
 	dcon::nation_id n,
@@ -678,7 +714,7 @@ float trade_demand(sys::state& state,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f);
+	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);

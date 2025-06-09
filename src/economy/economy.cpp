@@ -2926,7 +2926,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 			change = ve::select(
 				change * current_volume > 0.f, // change and volume are collinear
-				change * ve::max(0.2f, (bought - 0.5f) * 2.f),
+				change * ve::max(0.01f, (bought - 0.5f) * 2.f),
 				change
 			);
 
@@ -3577,7 +3577,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// so they don't want spoiled goods to cost too much
 			// so naturally, they don't stockpile expensive goods as much:
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
-			auto stockpile_target_merchants = ve::max(0.f, ve_market_speculation_budget(state, ids, c)) / (ve_price(state, ids, c) + 1.f);
+			auto stockpile_target_merchants = ve_stockpile_target_speculation(state, ids, c);
 
 			// when good is expensive, we want to emulate competition between merhants to sell or buy it:
 			// wage rating: earnings of population unit during the day
@@ -4120,9 +4120,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto states = state.world.market_get_zone_from_local_market(markets);
 				auto capitals = state.world.state_instance_get_capital(states);
 				auto price = ve_price(state, markets, c);
-				auto stockpile_target_merchants = ve_market_speculation_budget(state, markets, c) / (price + 1.f);
+				auto stockpile_target_merchants = ve_stockpile_target_speculation(state, markets, c);
 				auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.province_get_labor_price(capitals, labor::no_education) + 0.00001f;
-				auto price_rating = (ve_price(state, markets, c)) / local_wage_rating;
+				auto price_rating = price / local_wage_rating;
 				auto actual_stockpile_to_supply = ve::min(1.f, stockpile_to_supply + price_rating);
 				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
 				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
