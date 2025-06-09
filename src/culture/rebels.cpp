@@ -342,9 +342,13 @@ void update_movements(sys::state& state) { // updates cached values and then pos
 void remove_pop_from_rebel_faction(sys::state& state, dcon::pop_id p) {
 	if(auto m = state.world.pop_get_pop_rebellion_membership(p); m) {
 		auto fac = state.world.pop_rebellion_membership_get_rebel_faction(m);
-		auto& cur_reg = state.world.rebel_faction_get_possible_regiments(fac);
-		state.world.rebel_faction_set_possible_regiments(fac, cur_reg - int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment));
+		// if the faction the pop is a member of is invalid, don't modify it.
+		if(fac) {
+			auto& cur_reg = state.world.rebel_faction_get_possible_regiments(fac);
+			state.world.rebel_faction_set_possible_regiments(fac, cur_reg - int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment));	
+		}
 		state.world.delete_pop_rebellion_membership(m);
+		
 	}
 }
 void add_pop_to_rebel_faction(sys::state& state, dcon::pop_id p, dcon::rebel_faction_id m) {

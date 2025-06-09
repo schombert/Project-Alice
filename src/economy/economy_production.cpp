@@ -1199,6 +1199,10 @@ void update_artisan_production(sys::state& state) {
 		state.world.for_each_province([&](auto ids) {
 			auto production = state.world.province_get_artisan_actual_production(ids, cid);
 			auto sid = state.world.province_get_state_membership(ids);
+			// if the province has no valid state instance (eg uncolonized) then skip
+			if(!sid) {
+				return;
+			}
 			auto mid = state.world.state_instance_get_market_from_local_market(sid);
 			register_domestic_supply(state, mid, cid, production, economy_reason::artisan);
 		});

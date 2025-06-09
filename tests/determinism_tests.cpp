@@ -1621,6 +1621,9 @@ TEST_CASE("sim_game", "[determinism]") {
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
 
+	// sleep for abit to make sure llvl has compiled
+	std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
 	game_state_1->network_mode = sys::network_mode_type::host;
 	game_state_2->network_mode = sys::network_mode_type::client;
@@ -1638,6 +1641,9 @@ TEST_CASE("sim_game_advanced", "[determinism]") {
 	// Test that the game states are equal after playing
 	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
 	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+
+	// sleep for abit to make sure llvl has compiled
+	std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
 	game_state_1->network_mode = sys::network_mode_type::host;
