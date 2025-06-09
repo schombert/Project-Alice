@@ -577,7 +577,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 				for(auto i : state.world.in_ideology) {
 					auto scaled = accumulated_in_state[i.id.index()] / total;
 					state_total += scaled;
-					state.world.nation_get_upper_house(n, i) += scaled;
+					auto& cur_upper_house = state.world.nation_get_upper_house(n, i);
+					state.world.nation_set_upper_house(n, i, cur_upper_house + scaled);
 				}
 			}
 		}
@@ -585,7 +586,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		if(state_total > 0) {
 			auto scale_factor = 100.0f / state_total;
 			for(auto i : state.world.in_ideology) {
-				state.world.nation_get_upper_house(n, i) *= scale_factor;
+				auto& cur_upper_house = state.world.nation_get_upper_house(n, i);
+				state.world.nation_set_upper_house(n, i, cur_upper_house * scale_factor);
 			}
 		} else {
 			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
@@ -608,8 +610,11 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 					auto weight = pop.get_pop().get_size(); // allegedly
 					if(weight > 0) {
 						for(auto i : state.world.in_ideology) {
-							if((allowed_ideo & culture::to_bits(i)) != 0)
-								state.world.nation_get_upper_house(n, i) += weight * pop_demographics::get_demo(state, pop.get_pop(), pop_demographics::to_key(state, i));
+							if((allowed_ideo & culture::to_bits(i)) != 0) {
+								auto& cur_upper_house = state.world.nation_get_upper_house(n, i);
+								state.world.nation_set_upper_house(n, i, cur_upper_house + weight * pop_demographics::get_demo(state, pop.get_pop(), pop_demographics::to_key(state, i)));
+							}
+								
 						}
 					}
 				}
@@ -622,7 +627,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		if(total > 0) {
 			auto scale_factor = 100.0f / total;
 			for(auto i : state.world.in_ideology) {
-				state.world.nation_get_upper_house(n, i) *= scale_factor;
+				auto& cur_upper_house = state.world.nation_get_upper_house(n, i);
+				state.world.nation_set_upper_house(n, i, cur_upper_house * scale_factor);
 			}
 		} else {
 			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
@@ -644,8 +650,11 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 				auto weight = pop_vote_weight(state, pop.get_pop(), n);
 				if(weight > 0) {
 					for(auto i : state.world.in_ideology) {
-						if((allowed_ideo & culture::to_bits(i)) != 0)
-							state.world.nation_get_upper_house(n, i) += weight * pop_demographics::get_demo(state, pop.get_pop(), pop_demographics::to_key(state, i));
+						if((allowed_ideo & culture::to_bits(i)) != 0) {
+							auto& cur_upper_house = state.world.nation_get_upper_house(n, i);
+							state.world.nation_set_upper_house(n, i, cur_upper_house + weight * pop_demographics::get_demo(state, pop.get_pop(), pop_demographics::to_key(state, i)));
+						}
+							
 					}
 				}
 			}
@@ -657,7 +666,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		if(total > 0) {
 			auto scale_factor = 100.0f / total;
 			for(auto i : state.world.in_ideology) {
-				state.world.nation_get_upper_house(n, i) *= scale_factor;
+				auto& cur_upper_house = state.world.nation_get_upper_house(n, i);
+				state.world.nation_set_upper_house(n, i, cur_upper_house * scale_factor);
 			}
 		} else {
 			auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
@@ -694,7 +704,7 @@ void daily_party_loyalty_update(sys::state& state) {
 		auto party = state.world.national_focus_get_ideology(nf);
 		if(party) {
 			auto& l = state.world.province_get_party_loyalty(p, party);
-			l = std::clamp(l + state.world.national_focus_get_loyalty_value(nf), -1.0f, 1.0f);
+			state.world.province_set_party_loyalty(p, party, std::clamp(l + state.world.national_focus_get_loyalty_value(nf), -1.0f, 1.0f));
 		}
 	});
 }
@@ -851,10 +861,11 @@ void update_elections(sys::state& state) {
 
 						auto pid = state.world.political_party_get_ideology(provincial_party_votes[winner].par);
 						auto& l = p.get_province().get_party_loyalty(pid);
-						l = std::clamp(l + state.defines.loyalty_boost_on_party_win *
-							(p.get_province().get_modifier_values(sys::provincial_mod_offsets::boost_strongest_party) + 1.0f)
-							* winner_amount / province_total,
-							-1.0f, 1.0f);
+						p.get_province().set_party_loyalty(pid,
+							std::clamp(l + state.defines.loyalty_boost_on_party_win *
+								(p.get_province().get_modifier_values(sys::provincial_mod_offsets::boost_strongest_party) + 1.0f)
+								* winner_amount / province_total,
+								-1.0f, 1.0f));
 						auto national_rule = n.get_combined_issue_rules();
 
 						if((national_rule & issue_rule::largest_share) != 0) {
