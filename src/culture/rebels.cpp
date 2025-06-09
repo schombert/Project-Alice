@@ -40,7 +40,8 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		if(auto m = state.world.pop_get_movement_from_pop_movement_membership(p); m) {
 			auto i = state.world.movement_get_associated_issue_option(m);
-			state.world.movement_get_pop_support(m) += state.world.pop_get_size(p) * (i ? pop_demographics::get_demo(state, p, pop_demographics::to_key(state, i)) : 1.0f);
+			auto& cur_pop_support = state.world.movement_get_pop_support(m);
+			state.world.movement_set_pop_support(m, cur_pop_support + state.world.pop_get_size(p) * (i ? pop_demographics::get_demo(state, p, pop_demographics::to_key(state, i)) : 1.0f));
 		}
 	});
 
@@ -114,14 +115,16 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 void add_pop_to_movement(sys::state& state, dcon::pop_id p, dcon::movement_id m) {
 	remove_pop_from_movement(state, p);
 	auto i = state.world.movement_get_associated_issue_option(m);
-	state.world.movement_get_pop_support(m) += state.world.pop_get_size(p) * (i ? pop_demographics::get_demo(state, p, pop_demographics::to_key(state, i)) : 1.0f);
+	auto& cur_pop_support = state.world.movement_get_pop_support(m);
+	state.world.movement_set_pop_support(m, cur_pop_support + state.world.pop_get_size(p) * (i ? pop_demographics::get_demo(state, p, pop_demographics::to_key(state, i)) : 1.0f));
 	state.world.try_create_pop_movement_membership(p, m);
 }
 void remove_pop_from_movement(sys::state& state, dcon::pop_id p) {
 	auto prior_movement = state.world.pop_get_movement_from_pop_movement_membership(p);
 	if(prior_movement) {
 		auto i = state.world.movement_get_associated_issue_option(prior_movement);
-		state.world.movement_get_pop_support(prior_movement) -= state.world.pop_get_size(p) * (i ? pop_demographics::get_demo(state, p, pop_demographics::to_key(state, i)) : 1.0f);
+		auto& cur_pop_support = state.world.movement_get_pop_support(prior_movement);
+		state.world.movement_set_pop_support(prior_movement, cur_pop_support - state.world.pop_get_size(p) * (i ? pop_demographics::get_demo(state, p, pop_demographics::to_key(state, i)) : 1.0f));
 		state.world.delete_pop_movement_membership(state.world.pop_get_pop_movement_membership(p));
 	}
 }
@@ -339,16 +342,16 @@ void update_movements(sys::state& state) { // updates cached values and then pos
 void remove_pop_from_rebel_faction(sys::state& state, dcon::pop_id p) {
 	if(auto m = state.world.pop_get_pop_rebellion_membership(p); m) {
 		auto fac = state.world.pop_rebellion_membership_get_rebel_faction(m);
-		state.world.rebel_faction_get_possible_regiments(fac) -=
-				int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment);
+		auto& cur_reg = state.world.rebel_faction_get_possible_regiments(fac);
+		state.world.rebel_faction_set_possible_regiments(fac, cur_reg - int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment));
 		state.world.delete_pop_rebellion_membership(m);
 	}
 }
 void add_pop_to_rebel_faction(sys::state& state, dcon::pop_id p, dcon::rebel_faction_id m) {
 	remove_pop_from_rebel_faction(state, p);
 	state.world.try_create_pop_rebellion_membership(p, m);
-	state.world.rebel_faction_get_possible_regiments(m) +=
-			int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment);
+	auto& cur_reg = state.world.rebel_faction_get_possible_regiments(m);
+	state.world.rebel_faction_set_possible_regiments(m, cur_reg + int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment));
 }
 
 bool rebel_faction_is_valid(sys::state& state, dcon::rebel_faction_id m) {
