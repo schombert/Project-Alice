@@ -172,13 +172,13 @@ public:
 		}
 		{
 			auto ptr = make_element_by_type<ledger_generic_sort_button>(state, button_def, ledger_sort_type::gdp);
-			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_ppp_gdp"));
+			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_inflation_adjusted_gdp"));
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		{
 			auto ptr = make_element_by_type<ledger_generic_sort_button>(state, button_def, ledger_sort_type::gdp_capita);
-			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_ppp_gdp_per_capita"));
+			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_inflation_adjusted_gdp_per_capita"));
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
@@ -253,14 +253,14 @@ public:
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
-		// GDP PPP
+		// GDP (inflation adjusted)
 		{
 			auto ptr = make_element_by_type<nation_ppp_gdp_text>(state,
 					state.ui_state.defs_by_name.find(state.lookup_key("ledger_default_textbox"))->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
-		// GDP PPP per capita
+		// GDP (inflation adjusted) per capita
 		{
 			auto ptr = make_element_by_type<nation_ppp_gdp_per_capita_text>(state,
 					state.ui_state.defs_by_name.find(state.lookup_key("ledger_default_textbox"))->second.definition);
@@ -356,18 +356,18 @@ public:
 					float b_population = state.world.nation_get_demographics(b, demographics::total);
 
 					if(lsort.reversed) {
-						return economy::gdp(state, a) / a_population < economy::gdp(state, b) / b_population;
+						return economy::gdp_adjusted(state, a) / a_population < economy::gdp_adjusted(state, b) / b_population;
 					} else {
-						return economy::gdp(state, a) / a_population > economy::gdp(state, b) / b_population;
+						return economy::gdp_adjusted(state, a) / a_population > economy::gdp_adjusted(state, b) / b_population;
 					}
 				});
 				break;
 			case ledger_sort_type::gdp:	
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 					if(lsort.reversed) {
-						return economy::gdp(state, a) < economy::gdp(state, b);
+						return economy::gdp_adjusted(state, a) < economy::gdp_adjusted(state, b);
 					} else {
-						return economy::gdp(state, a) > economy::gdp(state, b);
+						return economy::gdp_adjusted(state, a) > economy::gdp_adjusted(state, b);
 					}
 				});
 				break;
@@ -2165,8 +2165,12 @@ public:
 			if((*ptr).data[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
-					if(price > max) {
-						max = price;
+					auto log_price = log(price + 0.0001f);
+					if(log_price > max) {
+						max = log_price;
+					}
+					if (log_price < min) {
+						min = log_price;
 					}
 				}
 			}
@@ -2182,6 +2186,7 @@ public:
 
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
+					datapoints[i] = log(datapoints[i] + 0.0001f);
 				}
 				graph_per_price[commodity.index()]->set_data_points(state, datapoints, min, max);
 			}
