@@ -1224,7 +1224,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			if(infantry_def.build_cost.commodity_type[i]) {
 				auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time;
 				register_demand(state, market, infantry_def.build_cost.commodity_type[i], daily_amount * pairs_to_build, economy_reason::construction);
-				auto& current = state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i])
+				auto& current = state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i]);
 				state.world.market_set_stockpile(market, infantry_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
 			} else {
 				break;
@@ -1234,7 +1234,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			if(artillery_def.build_cost.commodity_type[i]) {
 				auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time;
 				register_demand(state, market, artillery_def.build_cost.commodity_type[i], daily_amount * pairs_to_build, economy_reason::construction);
-				auto& current = state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i])
+				auto& current = state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i]);
 				state.world.market_set_stockpile(market, artillery_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
 			} else {
 				break;
