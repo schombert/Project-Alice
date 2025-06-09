@@ -554,6 +554,7 @@ spriteTypes = {
     spriteType = {
         name = "button-economy-province"
         texturefile = "assets\\button-economy-province.png"
+        noOfFrames = 3
     }
     
     spriteType = {
