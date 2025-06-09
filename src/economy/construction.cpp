@@ -247,7 +247,8 @@ float factory_building_construction_time(
 
 // it's registered as demand separately, do not add actual demand here
 void register_construction_demand(sys::state& state, dcon::market_id s, dcon::commodity_id commodity_type, float amount) {
-	state.world.market_get_construction_demand(s, commodity_type) += amount;
+	auto& cur_demand = state.world.market_get_construction_demand(s, commodity_type);
+	state.world.market_set_construction_demand(s, commodity_type, cur_demand + amount);
 	assert(state.world.market_get_construction_demand(s, commodity_type) >= 0.f);
 }
 
@@ -296,6 +297,7 @@ void advance_land_unit_construction(
 ) {
 	auto details = explain_land_unit_construction(state, lc);
 	auto& base_cost = state.military_definitions.unit_base_definitions[details.unit_type].build_cost;
+	assert(state.world.province_land_construction_is_valid(lc) && "Invalid write incoming!");
 	auto& current_purchased = state.world.province_land_construction_get_purchased_goods(lc);
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -308,7 +310,7 @@ void advance_land_unit_construction(
 		auto& source = state.world.market_get_construction_demand(details.market, cid);
 		auto delta = std::clamp(required / details.construction_time, 0.f, source);
 		current_purchased.commodity_amounts[i] += delta;
-		source -= delta;
+		state.world.market_set_construction_demand(details.market, cid, source - delta);
 	}
 }
 
@@ -374,6 +376,7 @@ void advance_naval_unit_construction(
 ) {
 	auto details = explain_naval_unit_construction(state, construction);
 	auto& base_cost = state.military_definitions.unit_base_definitions[details.unit_type].build_cost;
+	assert(state.world.province_naval_construction_is_valid(construction) && "Invalid write incoming!");
 	auto& current_purchased = state.world.province_naval_construction_get_purchased_goods(construction);
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -385,7 +388,7 @@ void advance_naval_unit_construction(
 		auto& source = state.world.market_get_construction_demand(details.market, cid);
 		auto delta = std::clamp(required / details.construction_time, 0.f, source);
 		current_purchased.commodity_amounts[i] += delta;
-		source -= delta;
+		state.world.market_set_construction_demand(details.market, cid, source - delta);
 	}
 }
 
@@ -462,6 +465,7 @@ void advance_province_building_construction(
 	auto details = explain_province_building_construction(state, construction);
 	assert(0 <= int32_t(details.building_type) && int32_t(details.building_type) < int32_t(economy::max_building_types));
 	auto& base_cost = state.economy_definitions.building_definitions[int32_t(details.building_type)].cost;
+	assert(state.world.province_building_construction_is_valid(construction) && "Invalid write incoming!");
 	auto& current_purchased = state.world.province_building_construction_get_purchased_goods(construction);
 
 	// Rationale for not checking the building type:
@@ -482,12 +486,12 @@ void advance_province_building_construction(
 			auto& source_private = state.world.market_get_private_construction_demand(details.market, base_cost.commodity_type[i]);
 			auto delta = std::clamp(required / details.construction_time, 0.f, source_private);
 			current_purchased.commodity_amounts[i] += delta;
-			source_private -= delta;
+			state.world.market_set_private_construction_demand(details.market, base_cost.commodity_type[i], source_private - delta);
 		} else {
 			auto& source_national = state.world.market_get_construction_demand(details.market, base_cost.commodity_type[i]);
 			auto delta = std::clamp(required / details.construction_time, 0.f, source_national);
 			current_purchased.commodity_amounts[i] += delta;
-			source_national -= delta;
+			state.world.market_set_construction_demand(details.market, base_cost.commodity_type[i], source_national - delta);
 		}
 	}
 }
@@ -576,6 +580,7 @@ void advance_factory_construction(
 			state, details.owner, details.province, details.building_type, details.refit_target
 		)
 		: state.world.factory_type_get_construction_costs(details.building_type);
+	assert(state.world.factory_construction_is_valid(construction) && "Invalid write incoming!");
 	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -589,12 +594,12 @@ void advance_factory_construction(
 			auto& source_private = state.world.market_get_private_construction_demand(details.market, base_cost.commodity_type[i]);
 			auto delta = std::clamp(required / details.construction_time, 0.f, source_private);
 			current_purchased.commodity_amounts[i] += delta;
-			source_private -= delta;
+			state.world.market_set_private_construction_demand(details.market, base_cost.commodity_type[i], source_private - delta);
 		} else {
 			auto& source_national = state.world.market_get_construction_demand(details.market, base_cost.commodity_type[i]);
 			auto delta = std::clamp(required / details.construction_time, 0.f, source_national);
 			current_purchased.commodity_amounts[i] += delta;
-			source_national -= delta;
+			state.world.market_set_construction_demand(details.market, base_cost.commodity_type[i], source_national - delta);
 		}
 	}
 }
@@ -1063,7 +1068,8 @@ void populate_province_building_construction_private_demand(
 		auto current = current_purchased.commodity_amounts[i];
 		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
 		if(current >= required) continue;
-		state.world.market_get_private_construction_demand(details.market, cid) += required / details.construction_time;
+		auto& cur_demand = state.world.market_get_private_construction_demand(details.market, cid);
+		state.world.market_set_private_construction_demand(details.market, cid, cur_demand + required / details.construction_time);
 	}
 }
 
@@ -1085,7 +1091,8 @@ void populate_state_construction_private_demand(
 		auto current = current_purchased.commodity_amounts[i];
 		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
 		if(current >= required) continue;
-		state.world.market_get_private_construction_demand(details.market, cid) += required / details.construction_time;
+		auto& cur_demand = state.world.market_get_private_construction_demand(details.market, cid);
+		state.world.market_set_private_construction_demand(details.market, cid, cur_demand + required / details.construction_time);
 	}
 }
 
@@ -1125,12 +1132,17 @@ void refund_construction_demand(sys::state& state, dcon::nation_id n, float tota
 				* com_price;
 			assert(refund_amount >= 0.0f);
 
-			nat_demand *= d_sat;
-			state.world.market_get_private_construction_demand(market, c) *= p_spending * d_sat;
+			state.world.market_set_construction_demand(market, c, nat_demand * d_sat);
+
+			auto& private_demand = state.world.market_get_private_construction_demand(market, c);
+
+			state.world.market_set_private_construction_demand(market, c, private_demand * p_spending * d_sat);
 		}
 	});
 	assert(refund_amount >= 0.0f);
-	state.world.nation_get_stockpiles(n, economy::money) += std::min(refund_amount, total_spent_on_construction);
+
+	auto& cur_money = state.world.nation_get_stockpiles(n, economy::money);
+	state.world.nation_set_stockpiles(n, economy::money, cur_money + std::min(refund_amount, total_spent_on_construction));
 }
 
 void advance_construction(sys::state& state, dcon::nation_id n, float total_spent_on_construction) {
@@ -1212,7 +1224,8 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			if(infantry_def.build_cost.commodity_type[i]) {
 				auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time;
 				register_demand(state, market, infantry_def.build_cost.commodity_type[i], daily_amount * pairs_to_build, economy_reason::construction);
-				state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i]) += daily_amount * pairs_to_build * 0.05f;
+				auto& current = state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i])
+				state.world.market_set_stockpile(market, infantry_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
 			} else {
 				break;
 			}
@@ -1221,7 +1234,8 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			if(artillery_def.build_cost.commodity_type[i]) {
 				auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time;
 				register_demand(state, market, artillery_def.build_cost.commodity_type[i], daily_amount * pairs_to_build, economy_reason::construction);
-				state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i]) += daily_amount * pairs_to_build * 0.05f;
+				auto& current = state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i])
+				state.world.market_set_stockpile(market, artillery_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
 			} else {
 				break;
 			}
@@ -1284,7 +1298,8 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 						build_cost.commodity_type[i], amount / build_time * num_of_factory_sets,
 						economy_reason::construction
 					);
-					state.world.market_get_stockpile(market, build_cost.commodity_type[i]) += amount / build_time * num_of_factory_sets / 100.f;
+					auto& current = state.world.market_get_stockpile(market, build_cost.commodity_type[i]);
+					state.world.market_set_stockpile(market, build_cost.commodity_type[i], current + amount / build_time * num_of_factory_sets / 100.f);
 				} else {
 					break;
 				}
