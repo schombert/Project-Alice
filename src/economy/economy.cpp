@@ -2511,47 +2511,44 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	/* initialization parallel block */
 
-	concurrency::parallel_for(0, 10, [&](int32_t index) {
+	concurrency::parallel_for(0, 8, [&](int32_t index) {
 		switch(index) {
 		case 0:
-			populate_army_consumption(state);
-			break;
-		case 1:
 			populate_navy_consumption(state);
 			break;
-		case 2:
+		case 1:
 			populate_private_construction_consumption(state);
 			break;
-		case 3:
+		case 2:
 			update_factory_triggered_modifiers(state);
 			break;
-		case 4:
+		case 3:
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 				state.world.execute_serial_over_market([&](auto nids) {
 					state.world.market_set_everyday_needs_costs(nids, t, ve::fp_vector{});
 				});
 			});
 			break;
-		case 5:
+		case 4:
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 				state.world.execute_serial_over_market([&](auto nids) {
 					state.world.market_set_luxury_needs_costs(nids, t, ve::fp_vector{});
 				});
 			});
 			break;
-		case 6:
+		case 5:
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 				state.world.execute_serial_over_market([&](auto nids) {
 					state.world.market_set_life_needs_costs(nids, t, ve::fp_vector{});
 				});
 			});
 			break;
-		case 7:
+		case 6:
 			state.world.execute_serial_over_nation([&](auto ids) {
 				state.world.nation_set_subsidies_spending(ids, 0.0f);
 			});
 			break;
-		case 8:
+		case 7:
 			state.world.execute_serial_over_nation([&](auto ids) {
 				auto treasury = state.world.nation_get_stockpiles(ids, economy::money);
 				state.world.nation_set_last_treasury(ids, treasury);
@@ -2559,6 +2556,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			break;
 		}
 	});
+
+	populate_army_consumption(state);
 		
 	populate_construction_consumption(state);
 

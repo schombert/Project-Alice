@@ -3938,11 +3938,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	ai::update_ai_general_status(*this);
 	ai::refresh_home_ports(*this);
 
-	military_definitions.pending_blackflag_update = true;
-	military::update_blackflag_status(*this);
-
-
-
 #ifndef NDEBUG
 	/*for(auto p : world.in_pop) {
 		float total = 0.0f;
