@@ -167,7 +167,7 @@ bool will_have_shortages_building_unit(sys::state& state, dcon::nation_id n, dco
 
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(def.build_cost.commodity_type[i]) {
-			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.1f)
+			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.01f)
 				lacking_input = true;
 		} else {
 			break;

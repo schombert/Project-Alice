@@ -2232,8 +2232,7 @@ void update_land_constructions(sys::state& state) {
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
-								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(t);
+								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
 							}
@@ -2255,8 +2254,7 @@ void update_land_constructions(sys::state& state) {
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
-								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(t);
+								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
 							}
@@ -2278,8 +2276,7 @@ void update_land_constructions(sys::state& state) {
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
-								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(t);
+								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
 							}

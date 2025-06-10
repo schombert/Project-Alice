@@ -6015,7 +6015,10 @@ float unit_construction_progress(sys::state& state, dcon::province_land_construc
 		purchased += cgoods.commodity_amounts[i];
 	}
 
-	return total > 0.0f ? purchased / total : 0.0f;
+	auto construction_time = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].build_time;
+	auto time_progress = (float) sys::days_difference(state.world.province_land_construction_get_start_date(c).to_ymd(state.start_date), state.current_date.to_ymd(state.start_date)) / (float) construction_time;
+	
+	return std::min(time_progress, purchased / total);
 }
 
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c) {
@@ -6099,14 +6102,15 @@ void resolve_constructions(sys::state& state) {
 
 		auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
 		auto& current_purchased = c.get_purchased_goods();
-		float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+		auto construction_time = state.military_definitions.unit_base_definitions[c.get_type()].build_time;
 
-		bool all_finished = true;
+		// All goods costs must be built
+		bool ready_for_deployment = true;
 		if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_army)) {
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+			for(uint32_t j = 0; j < commodity_set::set_size && ready_for_deployment; ++j) {
 				if(base_cost.commodity_type[j]) {
 					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * cost_factor) {
-						all_finished = false;
+						ready_for_deployment = false;
 					}
 				} else {
 					break;
@@ -6114,7 +6118,14 @@ void resolve_constructions(sys::state& state) {
 			}
 		}
 
-		if(all_finished) {
+		// But no faster than construction_time
+		if(!state.cheat_data.instant_army) {
+			if(state.current_date < c.get_start_date() + construction_time) {
+				ready_for_deployment = false;
+			}
+		}
+
+		if(ready_for_deployment) {
 			auto pop_location = c.get_pop().get_province_from_pop_location();
 
 			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());

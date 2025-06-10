@@ -821,6 +821,7 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 	auto soldier = military::find_available_soldier(state, location, soldier_culture);
 
 	auto c = fatten(state.world, state.world.try_create_province_land_construction(soldier, source));
+	c.set_start_date(state.current_date);
 	c.set_type(type);
 	c.set_template_province(template_province);
 }
