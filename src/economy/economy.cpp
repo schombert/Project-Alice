@@ -480,7 +480,7 @@ void convert_commodities_into_ingredients(
 void presimulate(sys::state& state) {
 	// economic updates without construction
 #ifdef NDEBUG
-	uint32_t steps = 365;
+	uint32_t steps = 10;
 #else
 	uint32_t steps = 2;
 #endif
@@ -1767,11 +1767,11 @@ void update_pop_consumption(
 		is_poor = ve::min(1.f, ve::max(0.f, is_poor + (1.f - current_life) * 2.f));
 
 		auto life_spending_mod = //ve::fp_vector{ 1.f };
-			(savings * state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
+			(state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
 		auto everyday_spending_mod =
-			(savings * state.defines.alice_needs_ev_spend) * (1.f - is_poor);
+			(state.defines.alice_needs_ev_spend) * (1.f - is_poor);
 		auto luxury_spending_mod =
-			(savings * state.defines.alice_needs_lx_spend) * (1.f - is_poor);
+			(state.defines.alice_needs_lx_spend) * (1.f - is_poor);
 
 		// clamp
 		life_spending_mod = ve::max(0.f, ve::min(1.f, life_spending_mod));
@@ -2933,7 +2933,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 
 			decay = ve::max(decay, 0.95f);
-			
+
 			// expand the route slower if goods are not actually bought:
 			auto bought_A = state.world.market_get_demand_satisfaction(A, c);
 			auto bought_B = state.world.market_get_demand_satisfaction(B, c);
@@ -2943,11 +2943,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				bought_B
 			);
 			change = ve::select(
-				change * current_volume > 0.f, // change and volume are collinear
-				change * ve::max(0.01f, (bought - 0.5f) * 2.f),
+				change * current_volume >= 0.f, // change and volume are collinear
+				change * ve::max(0.0000001f, (bought - 0.5f) * 2.f),
 				change
 			);
-
 
 			change = ve::select(current_volume > 0.05f,
 				ve::min(ve::max(change, max_shrinking), max_expansion),

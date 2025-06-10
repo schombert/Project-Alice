@@ -618,7 +618,7 @@ ve::fp_vector market_speculation_budget(
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_speculation_budget = wage * population / 100.f;
+	auto local_speculation_budget = wage * population / 20.f;
 	return ve::max(0.f, local_speculation_budget);
 }
 ve::fp_vector ve_market_speculation_budget(
@@ -648,7 +648,7 @@ float stockpile_target_speculation(
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
-	return std::max(0.f, market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f) - 0.5f);
+	return std::max(0.f, market_speculation_budget(state, m, c) / (price(state, m, c) + 0.001f) - 0.5f);
 }
 template<typename M>
 ve::fp_vector stockpile_target_speculation(
@@ -656,7 +656,7 @@ ve::fp_vector stockpile_target_speculation(
 	M m,
 	dcon::commodity_id c
 ) {
-	return ve::max(0.f, market_speculation_budget(state, m, c) / (ve_price(state, m, c) + 1.f) - 0.5f);
+	return ve::max(0.f, market_speculation_budget(state, m, c) / (ve_price(state, m, c) + 0.001f) - 0.5f);
 }
 ve::fp_vector ve_stockpile_target_speculation(
 	sys::state const& state,
