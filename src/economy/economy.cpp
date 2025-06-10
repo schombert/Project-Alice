@@ -158,15 +158,22 @@ int32_t previous_gdp_record_index(sys::state& state) {
 	return ((date.year * 4 + date.month / 3) + gdp_history_length - 1) % gdp_history_length;
 }
 
-float ideal_pound_conversion_rate(sys::state& state, dcon::market_id n) {
-	return state.world.market_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
-		+ 0.1f * state.world.market_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker);
+float ideal_pound_to_real_pound(sys::state& state) {
+	auto cost_of_needs = 0.f;
+	uint32_t total_commodities = state.world.commodity_size();
+	auto worker = state.culture_definitions.primary_factory_worker;
+	for(uint32_t i = 1; i < total_commodities; ++i) {
+		dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+		auto price = state.world.commodity_get_median_price(c);
+		auto life_base = state.world.pop_type_get_life_needs(worker, c);
+		auto everyday_base = state.world.pop_type_get_everyday_needs(worker, c);
+		cost_of_needs += price * (life_base + 0.1f * everyday_base);
+	}
+	return cost_of_needs;
 }
 
 float gdp(sys::state& state, dcon::market_id n) {
-	float raw = state.world.market_get_gdp(n);
-	//float ideal_pound = ideal_pound_conversion_rate(state, n);
-	return raw; /// ideal_pound;
+	return state.world.market_get_gdp(n);
 }
 
 float gdp(sys::state& state, dcon::nation_id n) {
@@ -177,6 +184,17 @@ float gdp(sys::state& state, dcon::nation_id n) {
 		total = total + economy::gdp(state, market);
 	});
 	return total;
+}
+
+float gdp_adjusted(sys::state& state, dcon::nation_id n) {
+	auto conversion = ideal_pound_to_real_pound(state);
+	auto total = 0.f;
+	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
+		auto sid = state.world.state_ownership_get_state(soid);
+		auto market = state.world.state_instance_get_market_from_local_market(sid);
+		total = total + economy::gdp(state, market);
+	});
+	return total / conversion;
 }
 
 struct spending_cost {
@@ -462,7 +480,7 @@ void convert_commodities_into_ingredients(
 void presimulate(sys::state& state) {
 	// economic updates without construction
 #ifdef NDEBUG
-	uint32_t steps = 365;
+	uint32_t steps = 10;
 #else
 	uint32_t steps = 2;
 #endif
@@ -1749,11 +1767,11 @@ void update_pop_consumption(
 		is_poor = ve::min(1.f, ve::max(0.f, is_poor + (1.f - current_life) * 2.f));
 
 		auto life_spending_mod = //ve::fp_vector{ 1.f };
-			(savings * state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
+			(state.defines.alice_needs_lf_spend) * (1.f - is_poor) + is_poor;
 		auto everyday_spending_mod =
-			(savings * state.defines.alice_needs_ev_spend) * (1.f - is_poor);
+			(state.defines.alice_needs_ev_spend) * (1.f - is_poor);
 		auto luxury_spending_mod =
-			(savings * state.defines.alice_needs_lx_spend) * (1.f - is_poor);
+			(state.defines.alice_needs_lx_spend) * (1.f - is_poor);
 
 		// clamp
 		life_spending_mod = ve::max(0.f, ve::min(1.f, life_spending_mod));
@@ -2915,7 +2933,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 
 			decay = ve::max(decay, 0.95f);
-			
+
 			// expand the route slower if goods are not actually bought:
 			auto bought_A = state.world.market_get_demand_satisfaction(A, c);
 			auto bought_B = state.world.market_get_demand_satisfaction(B, c);
@@ -2925,11 +2943,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				bought_B
 			);
 			change = ve::select(
-				change * current_volume > 0.f, // change and volume are collinear
-				change * ve::max(0.2f, (bought - 0.5f) * 2.f),
+				change * current_volume >= 0.f, // change and volume are collinear
+				change * ve::max(0.0000001f, (bought - 0.5f) * 2.f),
 				change
 			);
-
 
 			change = ve::select(current_volume > 0.05f,
 				ve::min(ve::max(change, max_shrinking), max_expansion),
@@ -3577,7 +3594,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// so they don't want spoiled goods to cost too much
 			// so naturally, they don't stockpile expensive goods as much:
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
-			auto stockpile_target_merchants = ve::max(0.f, ve_market_speculation_budget(state, ids, c)) / (ve_price(state, ids, c) + 1.f);
+			auto stockpile_target_merchants = ve_stockpile_target_speculation(state, ids, c);
 
 			// when good is expensive, we want to emulate competition between merhants to sell or buy it:
 			// wage rating: earnings of population unit during the day
@@ -4120,9 +4137,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto states = state.world.market_get_zone_from_local_market(markets);
 				auto capitals = state.world.state_instance_get_capital(states);
 				auto price = ve_price(state, markets, c);
-				auto stockpile_target_merchants = ve_market_speculation_budget(state, markets, c) / (price + 1.f);
+				auto stockpile_target_merchants = ve_stockpile_target_speculation(state, markets, c);
 				auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.province_get_labor_price(capitals, labor::no_education) + 0.00001f;
-				auto price_rating = (ve_price(state, markets, c)) / local_wage_rating;
+				auto price_rating = price / local_wage_rating;
 				auto actual_stockpile_to_supply = ve::min(1.f, stockpile_to_supply + price_rating);
 				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
 				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
