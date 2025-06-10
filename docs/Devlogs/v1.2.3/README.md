@@ -37,7 +37,9 @@ Assembled by SneakBug8
 - Fixes to crisis mechanics
 - Fix lost localization for free trade & embargoes 
 - Hotfix to national stockpiles: do not use commodities until draw mode is selected
-- Expanded provid tooltip 
+- Expanded provid tooltip
+- AI embargoes.
+- Tooltip showing all embargoes by/targeting the country in the diplomacy window.
 
 ## by MeizhouWan
 
