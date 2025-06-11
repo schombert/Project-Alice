@@ -2970,15 +2970,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
 		if(prov_a.id.index() < province_definitions.first_sea_province.index() && prov_b.id.index() >= province_definitions.first_sea_province.index()) {
-			frel.set_type(frel.get_type() | province::border::coastal_bit);
+			frel.set_type(uint8_t(frel.get_type() | province::border::coastal_bit));
 		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() && prov_b.id.index() < province_definitions.first_sea_province.index()) {
-			frel.set_type(frel.get_type() | province::border::coastal_bit);
+			frel.set_type(uint8_t(frel.get_type() | province::border::coastal_bit));
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
-			frel.set_type(frel.get_type() | province::border::state_bit);
+			frel.set_type(uint8_t(frel.get_type() | province::border::state_bit));
 		}
 		if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
-			frel.set_type(frel.get_type() | province::border::national_bit);
+			frel.set_type(uint8_t(frel.get_type() | province::border::national_bit));
 		}
 	});
 
@@ -3059,7 +3059,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 						other.set_is_coast(false);
 						other.set_port_to(dcon::province_id{});
-						adj.set_type(adj.get_type() | province::border::impassible_bit);
+						adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 					}
 				}
 			}
@@ -3068,7 +3068,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	for(auto ip : context.special_impassible) {
 		for(auto adj : world.province_get_province_adjacency(ip)) {
-			adj.set_type(adj.get_type() | province::border::impassible_bit);
+			adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 		}
 	}
 

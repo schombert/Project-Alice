@@ -1641,7 +1641,7 @@ TEST_CASE("sim_game", "[determinism]") {
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
 
 	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 1000; i++) {
+	for(int i = 0; i <= 3650; i++) {
 		game_state_1->console_log(std::to_string(i));
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();
@@ -1673,7 +1673,7 @@ TEST_CASE("fill_unsaved_values_determinism", "[determinism]") {
 	game_state_1->game_seed = 808080;
 
 
-	for(int i = 0; i <= 600; i++) {
+	for(int i = 0; i <= 800; i++) {
 
 
 		game_state_1->console_log(std::to_string(i));
@@ -1722,7 +1722,7 @@ TEST_CASE("sim_game_with_saveload", "[determinism]") {
 	test_load_save(*game_state_2, buffer.get(), uint32_t(length));
 
 	// run both gamestates
-	for(int i = 0; i <= 1000; i++) {
+	for(int i = 0; i <= 3650; i++) {
 		game_state_1->console_log(std::to_string(i));
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();

@@ -1146,16 +1146,16 @@ void execute_change_influence_priority(sys::state& state, dcon::nation_id source
 	auto& flags = state.world.gp_relationship_get_status(rel);
 	switch(priority) {
 	case 0:
-		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_zero);
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_zero));
 		break;
 	case 1:
-		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_one);
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_one));
 		break;
 	case 2:
-		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_two);
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_two));
 		break;
 	case 3:
-		state.world.gp_relationship_set_status(rel, (flags & ~nations::influence::priority_mask) | nations::influence::priority_three);
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_three));
 		break;
 	default:
 		break;
