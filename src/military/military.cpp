@@ -1384,7 +1384,7 @@ void update_recruitable_regiments(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_recruitable_regiments(n, uint16_t(0));
 	auto& cur_regiments = state.world.nation_get_recruitable_regiments(n);
 	for(auto p : state.world.nation_get_province_ownership(n)) {
-		state.world.nation_set_recruitable_regiments(n, cur_regiments + uint16_t(regiments_max_possible_from_province(state, p.get_province())));
+		state.world.nation_set_recruitable_regiments(n, uint16_t(cur_regiments + uint16_t(regiments_max_possible_from_province(state, p.get_province()))));
 	}
 }
 void update_all_recruitable_regiments(sys::state& state) {
@@ -1393,7 +1393,7 @@ void update_all_recruitable_regiments(sys::state& state) {
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(owner) {
 			auto& cur_regiments = state.world.nation_get_recruitable_regiments(owner);
-			state.world.nation_set_recruitable_regiments(owner, cur_regiments + uint16_t(regiments_max_possible_from_province(state, p)));
+			state.world.nation_set_recruitable_regiments(owner, uint16_t(cur_regiments + uint16_t(regiments_max_possible_from_province(state, p))));
 		}
 	});
 }
@@ -1405,7 +1405,7 @@ void regenerate_total_regiment_counts(sys::state& state) {
 			auto regs_range = state.world.army_get_army_membership(a);
 			auto num_regs = regs_range.end() - regs_range.begin();
 			auto& cur_regiments = state.world.nation_get_active_regiments(owner);
-			state.world.nation_set_active_regiments(owner, cur_regiments + uint16_t(num_regs));
+			state.world.nation_set_active_regiments(owner, uint16_t(cur_regiments + uint16_t(num_regs)));
 		}
 	});
 }
@@ -3227,8 +3227,8 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 	if(existing_sphere_leader) {
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(member, existing_sphere_leader);
 		assert(rel);
-		state.world.gp_relationship_set_status(rel, state.world.gp_relationship_get_status(rel) & ~nations::influence::level_mask);
-		state.world.gp_relationship_set_status(rel, state.world.gp_relationship_get_status(rel) | nations::influence::level_hostile);
+		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) & ~nations::influence::level_mask));
+		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) | nations::influence::level_hostile));
 
 		state.world.nation_set_in_sphere_of(member, dcon::nation_id{});
 	}
@@ -3247,8 +3247,8 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 		nrel = state.world.force_create_gp_relationship(member, new_gp);
 	}
 
-	state.world.gp_relationship_set_status(nrel, state.world.gp_relationship_get_status(nrel) & ~nations::influence::level_mask);
-	state.world.gp_relationship_set_status(nrel, state.world.gp_relationship_get_status(nrel) | nations::influence::level_in_sphere);
+	state.world.gp_relationship_set_status(nrel, uint8_t(state.world.gp_relationship_get_status(nrel) & ~nations::influence::level_mask));
+	state.world.gp_relationship_set_status(nrel, uint8_t(state.world.gp_relationship_get_status(nrel) | nations::influence::level_in_sphere));
 
 	state.world.gp_relationship_set_influence(nrel, state.defines.max_influence);
 	state.world.nation_set_in_sphere_of(member, new_gp);
@@ -4750,8 +4750,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 		auto& def_bonus = state.world.land_battle_get_defender_bonus(b);
 		auto prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
 		auto new_dig_in = uint8_t(std::min(prev_dig_in, state.world.army_get_dig_in(a) & defender_bonus_dig_in_mask));
-		state.world.land_battle_set_defender_bonus(b, def_bonus & ~defender_bonus_dig_in_mask);
-		state.world.land_battle_set_defender_bonus(b, def_bonus | new_dig_in);
+		state.world.land_battle_set_defender_bonus(b, uint8_t(def_bonus & ~defender_bonus_dig_in_mask));
+		state.world.land_battle_set_defender_bonus(b, uint8_t(def_bonus | new_dig_in));
 
 		if(!state.world.land_battle_get_general_from_defending_general(b)) {
 			state.world.land_battle_set_general_from_defending_general(b, state.world.army_get_general_from_army_leadership(a));
@@ -5482,7 +5482,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 	if(result != battle_result::indecisive) {
 		if(war)
-			state.world.war_set_number_of_battles(war, state.world.war_get_number_of_battles(war) + 1);
+			state.world.war_set_number_of_battles(war, uint16_t(state.world.war_get_number_of_battles(war) + 1));
 
 		auto a_leader = state.world.land_battle_get_general_from_attacking_general(b);
 		auto b_leader = state.world.land_battle_get_general_from_defending_general(b);
@@ -5718,7 +5718,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 	*/
 
 	if(result != battle_result::indecisive) {
-		state.world.war_set_number_of_battles(war, state.world.war_get_number_of_battles(war) + 1);
+		state.world.war_set_number_of_battles(war, uint8_t(state.world.war_get_number_of_battles(war) + 1));
 
 		auto a_leader = state.world.naval_battle_get_admiral_from_attacking_admiral(b);
 		auto b_leader = state.world.naval_battle_get_admiral_from_defending_admiral(b);
@@ -6586,10 +6586,10 @@ void update_land_battles(sys::state& state) {
 			auto& def_bonus = state.world.land_battle_get_defender_bonus(b);
 			// if the attacker rolls higher than the defender and dig-in is higher than 0, remove 1 level of dig-in from the defender
 			if(attacker_dice > defender_dice && (def_bonus & defender_bonus_dig_in_mask) > 0) {
-				uint8_t prev_dig_in = def_bonus & defender_bonus_dig_in_mask;
-				uint8_t new_dig_in = prev_dig_in - 1;
-				state.world.land_battle_set_defender_bonus(b, def_bonus & ~defender_bonus_dig_in_mask);
-				state.world.land_battle_set_defender_bonus(b, def_bonus | new_dig_in);
+				uint8_t prev_dig_in = uint8_t(def_bonus & defender_bonus_dig_in_mask);
+				uint8_t new_dig_in = uint8_t(prev_dig_in - 1);
+				state.world.land_battle_set_defender_bonus(b, uint8_t(def_bonus & ~defender_bonus_dig_in_mask));
+				state.world.land_battle_set_defender_bonus(b, uint8_t(def_bonus | new_dig_in));
 			}
 			
 		}
@@ -8327,7 +8327,7 @@ void increase_dig_in(sys::state& state) {
 			auto& current_dig_in = ar.get_dig_in();
 			if(current_dig_in <
 					int32_t(ar.get_controller_from_army_control().get_modifier_values(sys::national_mod_offsets::dig_in_cap))) {
-				ar.set_dig_in(current_dig_in + 1);
+				ar.set_dig_in(uint8_t(current_dig_in + 1));
 			}
 		}
 	}
@@ -9023,7 +9023,7 @@ void advance_mobilizations(sys::state& state) {
 										state.world.try_create_regiment_source(new_reg, p);
 
 										--available;
-										n.set_mobilization_remaining(n.get_mobilization_remaining() - 1);
+										n.set_mobilization_remaining(uint16_t(n.get_mobilization_remaining() - 1));
 									}
 									if(army_is_new) {
 										military::army_arrives_in_province(state, a, back.where, military::crossing_type::none, dcon::land_battle_id{});
@@ -9038,7 +9038,7 @@ void advance_mobilizations(sys::state& state) {
 					}
 				}
 			} else {
-				n.set_mobilization_remaining(0);
+				n.set_mobilization_remaining(uint16_t(0));
 			}
 		}
 	}

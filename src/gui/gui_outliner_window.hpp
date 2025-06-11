@@ -93,6 +93,9 @@ public:
 				contents,
 				pncid
 			);
+		} else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
+			auto fcid = std::get<dcon::factory_construction_id>(content);
+			factory_construction_tooltip(state, contents, fcid);
 		}
 	}
 	void on_update(sys::state& state) noexcept override {

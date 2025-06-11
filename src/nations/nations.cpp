@@ -111,11 +111,11 @@ void restore_cached_values(sys::state& state) {
 		if(state.world.diplomatic_relation_get_are_allied(id)) {
 			auto related_nation_0 = state.world.diplomatic_relation_get_related_nations(id, 0);
 			auto& allies_count_0 = state.world.nation_get_allies_count(related_nation_0);
-			state.world.nation_set_allies_count(related_nation_0, allies_count_0 + uint16_t(1));
+			state.world.nation_set_allies_count(related_nation_0, uint16_t(allies_count_0 + uint16_t(1)));
 
 			auto related_nation_1 = state.world.diplomatic_relation_get_related_nations(id, 1);
 			auto& allies_count_1 = state.world.nation_get_allies_count(related_nation_1);
-			state.world.nation_set_allies_count(related_nation_1, allies_count_1 + uint16_t(1));
+			state.world.nation_set_allies_count(related_nation_1, uint16_t(allies_count_1 + uint16_t(1)));
 		}
 	});
 
@@ -3424,12 +3424,12 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
 
 			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, nations::influence::decrease_level(l));
+			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::decrease_level(l)));
 		} else {
 			state.world.gp_relationship_set_influence(rel, inf + state.defines.increaseopinion_influence_cost);
 
 			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, nations::influence::decrease_level(l));
+			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::decrease_level(l)));
 		}
 	}
 
@@ -3441,18 +3441,18 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 			{
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
 				auto& l = state.world.gp_relationship_get_status(orel);
-				state.world.gp_relationship_set_status(orel, nations::influence::decrease_level(l));
+				state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
 			}
 		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
 			state.world.nation_set_in_sphere_of(target, great_power);
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
 			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, nations::influence::increase_level(l));
+			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 		} else {
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.increaseopinion_influence_cost);
 
 			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, nations::influence::increase_level(l));
+			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 		}
 	}
 }

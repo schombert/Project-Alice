@@ -1182,7 +1182,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	// simulate spending on construction of units
 	// useful to help the game start with some production of artillery and small arms
 
-	float income_to_build_units = 10'000.f;
+	float income_to_build_units = 1'000.f;
 
 	if(state.world.nation_get_owned_province_count(n) == 0) {
 		return;
@@ -1246,7 +1246,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	// simulate spending on construction of factories
 	// helps with machine tools and cement
 
-	float income_to_build_factories = 100'000.f;
+	float income_to_build_factories = 1'000.f;
 
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);

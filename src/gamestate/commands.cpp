@@ -1226,7 +1226,7 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 
 	nations::adjust_relationship(state, source, affected_gp, state.defines.discredit_relation_on_accept);
 	auto& current_status = state.world.gp_relationship_get_status(orel);
-	state.world.gp_relationship_set_status(orel, current_status | nations::influence::is_discredited);
+	state.world.gp_relationship_set_status(orel, uint8_t(current_status | nations::influence::is_discredited));
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.discredit_days));
 
 	notification::post(state, notification::message{
@@ -1300,7 +1300,7 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 	if(orel) {
 		state.world.gp_relationship_set_influence(orel, 0.0f);
 		auto& current_status = state.world.gp_relationship_get_status(orel);
-		state.world.gp_relationship_set_status(orel, current_status & ~nations::influence::is_discredited);
+		state.world.gp_relationship_set_status(orel, uint8_t(current_status & ~nations::influence::is_discredited));
 	}
 
 	notification::post(state, notification::message{
@@ -1372,7 +1372,7 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.banembassy_influence_cost);
 	nations::adjust_relationship(state, source, affected_gp, state.defines.banembassy_relation_on_accept);
 	auto& current_status = state.world.gp_relationship_get_status(orel);
-	state.world.gp_relationship_set_status(orel, current_status | nations::influence::is_banned);
+	state.world.gp_relationship_set_status(orel, uint8_t(current_status | nations::influence::is_banned));
 	state.world.gp_relationship_set_influence(orel, 0.0f);
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.banembassy_days));
 
@@ -1434,7 +1434,7 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.increaseopinion_influence_cost);
 
 	auto& l = state.world.gp_relationship_get_status(rel);
-	state.world.gp_relationship_set_status(rel, nations::influence::increase_level(l));
+	state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 
 	notification::post(state, notification::message{
 		[source, influence_target](sys::state& state, text::layout_base& contents) {
@@ -1515,7 +1515,7 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	nations::adjust_relationship(state, source, affected_gp, state.defines.decreaseopinion_relation_on_accept);
 
 	auto& l = state.world.gp_relationship_get_status(orel);
-	state.world.gp_relationship_set_status(orel, nations::influence::decrease_level(l));
+	state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
 
 	notification::post(state, notification::message{
 		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
@@ -1573,7 +1573,7 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 	auto& current_influence = state.world.gp_relationship_get_influence(rel);
 	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.addtosphere_influence_cost);
 	auto& l = state.world.gp_relationship_get_status(rel);
-	state.world.gp_relationship_set_status(rel, nations::influence::increase_level(l));
+	state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 
 	state.world.nation_set_in_sphere_of(influence_target, source);
 
@@ -1642,7 +1642,7 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	auto& l = state.world.gp_relationship_get_status(orel);
-	state.world.gp_relationship_set_status(orel, nations::influence::decrease_level(l));
+	state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
 
 	if(source != affected_gp) {
 		auto& current_influence = state.world.gp_relationship_get_influence(rel);

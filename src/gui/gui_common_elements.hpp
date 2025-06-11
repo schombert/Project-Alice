@@ -5,6 +5,7 @@
 #include "economy.hpp"
 #include "economy_production.hpp"
 #include "economy_government.hpp"
+#include "construction.hpp"
 #include "economy_stats.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
@@ -645,7 +646,7 @@ public:
 class nation_ppp_gdp_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {		
-		return text::format_float(economy::gdp(state, nation_id));
+		return text::format_float(economy::gdp_adjusted(state, nation_id));
 	}
 };
 
@@ -653,7 +654,7 @@ class nation_ppp_gdp_per_capita_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		float population = state.world.nation_get_demographics(nation_id, demographics::total);
-		return text::format_float(economy::gdp(state, nation_id) / population * 1000000.f);
+		return text::format_float(economy::gdp_adjusted(state, nation_id) / population * 1000000.f);
 	}
 };
 
@@ -2782,6 +2783,48 @@ inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& cont
 	);
 
 	text::add_line(state, contents, "factory_stats_7", text::variable_type::val, text::fp_percentage{ fac.get_size() / fac.get_building_type().get_base_workforce() / 100.f });
+};
+
+
+inline void factory_construction_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_construction_id fcid) {
+	auto fat_fcid = dcon::fatten(state.world, fcid);
+	auto ftid = state.world.factory_construction_get_type(fcid);
+
+	float total = 0.0f;
+	float purchased = 0.0f;
+	auto& goods = state.world.factory_type_get_construction_costs(ftid);
+
+	float factory_mod = economy::factory_build_cost_multiplier(state, fat_fcid.get_nation(), fat_fcid.get_province(), fat_fcid.get_is_pop_project());
+	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
+	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
+
+	text::add_line(state, contents, "alice_factory_construction_cost");
+
+	// List factory type construction costs
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		if(goods.commodity_type[i] && goods.commodity_amounts[i] > 0.0f) {
+
+			auto commodity_price = state.world.market_get_price(market, goods.commodity_type[i]);
+			auto amount = goods.commodity_amounts[i] * factory_mod * refit_discount;
+			total += amount * commodity_price;
+			purchased += fat_fcid.get_purchased_goods().commodity_amounts[i] * commodity_price;
+
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(goods.commodity_type[i]));
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ commodity_price });
+			text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+			text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ commodity_price * amount });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
+			text::close_layout_box(contents, box);
+		}
+	}
+
+	text::add_line_break_to_layout(state, contents);
+	auto progress = total > 0.0f ? purchased / total : 0.0f;
+	text::add_line(state, contents, "alice_factory_construction_explain_3", text::variable_type::x, text::fp_currency{ purchased });
+	text::add_line(state, contents, "alice_factory_construction_explain_4", text::variable_type::x, text::fp_currency{ total });
+	text::add_line(state, contents, "alice_factory_construction_explain_5", text::variable_type::x, text::fp_percentage{ progress });
 };
 
 

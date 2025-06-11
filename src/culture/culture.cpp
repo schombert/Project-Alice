@@ -450,11 +450,11 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
 			auto& cur_max = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
-			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max + 1);
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), uint8_t(cur_max + 1));
 		}
 	}
 	auto& cur_colonial_pts = state.world.nation_get_permanent_colonial_points(target_nation);
-	state.world.nation_set_permanent_colonial_points(target_nation, cur_colonial_pts + tech_id.get_colonial_points());
+	state.world.nation_set_permanent_colonial_points(target_nation, uint16_t(cur_colonial_pts + tech_id.get_colonial_points()));
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
 			state.world.nation_set_active_building(target_nation, id, true);
@@ -530,11 +530,11 @@ void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::t
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(tech_id.get_increase_building(t)) {
 			auto& cur_max_size = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
-			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max_size - 1);
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), uint8_t(cur_max_size - 1));
 		}
 	}
 	auto& cur_colonial_pts = state.world.nation_get_permanent_colonial_points(target_nation);
-	state.world.nation_set_permanent_colonial_points(target_nation, cur_colonial_pts - tech_id.get_colonial_points());
+	state.world.nation_set_permanent_colonial_points(target_nation, uint16_t(cur_colonial_pts - tech_id.get_colonial_points()));
 	
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		if(tech_id.get_activate_building(id)) {
@@ -608,12 +608,12 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(inv_id.get_increase_building(t)) {
 			auto& cur_max_size = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
-			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max_size + 1);
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), uint8_t(cur_max_size + 1));
 		}
 	}
 
 	auto& cur_colonial_pts = state.world.nation_get_permanent_colonial_points(target_nation);
-	state.world.nation_set_permanent_colonial_points(target_nation, cur_colonial_pts + inv_id.get_colonial_points());
+	state.world.nation_set_permanent_colonial_points(target_nation, uint16_t(cur_colonial_pts + inv_id.get_colonial_points()));
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, true);
 	}
@@ -728,7 +728,7 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(inv_id.get_increase_building(t)) {
 			auto& cur_max_size = state.world.nation_get_max_building_level(target_nation, uint8_t(t));
-			state.world.nation_set_max_building_level(target_nation, uint8_t(t), cur_max_size - 1);
+			state.world.nation_set_max_building_level(target_nation, uint8_t(t), uint8_t(cur_max_size - 1));
 		}
 	}
 

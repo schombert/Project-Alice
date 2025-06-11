@@ -65,6 +65,34 @@ ve::fp_vector ve_market_speculation_budget(
 	ve::tagged_vector<dcon::market_id> m,
 	dcon::commodity_id c
 );
+
+float stockpile_target_speculation(
+	sys::state const& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+);
+template<typename M>
+ve::fp_vector stockpile_target_speculation(
+	sys::state const& state,
+	M m,
+	dcon::commodity_id c
+);
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+);
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::partial_contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+);
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::tagged_vector<dcon::market_id> m,
+	dcon::commodity_id c
+);
+
 ve::fp_vector ve_price(
 	sys::state const& state,
 	ve::contiguous_tags<dcon::market_id> s,
