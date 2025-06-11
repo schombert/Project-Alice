@@ -1210,7 +1210,7 @@ CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援�
 CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
 CANCEL_WARSUBSIDIES_BUTTON;取消援助
 ledger_standard_of_living;生活条件
-alice_ledger_header_gdp_history;购买力平价GDP历史
+alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
@@ -1536,3 +1536,5 @@ alice_factory_construction_cost;施工成本：
 alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;估计总价：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
+ledger_inflation_adjusted_gdp;GDP（通胀调整）添加注释 更多动作
+ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
