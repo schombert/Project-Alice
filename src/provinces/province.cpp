@@ -2091,7 +2091,7 @@ void remove_core(sys::state& state, dcon::province_id prov, dcon::national_ident
 void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 	auto old_rgo = state.world.province_get_rgo(prov);
 	state.world.province_set_rgo(prov, c);
-	auto next_size = state.world.province_get_rgo_base_size(prov) * 0.4f;
+	auto next_size = state.world.province_get_rgo_base_size(prov);
 	float pop_amount = 0.0f;
 	for(auto pt : state.world.in_pop_type) {
 		if(pt == state.culture_definitions.slaves) {

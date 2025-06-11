@@ -274,4 +274,32 @@ public:
 	}
 };
 
+class factory_construction_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("new");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 14;
+	}
+
+	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override {
+		auto c = target.factory_construction;
+		auto ft = state.world.factory_construction_get_type(c);
+		return state.world.factory_type_get_output(ft);
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		factory_construction_tooltip(state, contents, target.factory_construction);
+	}
+};
+
 } // namespace ui

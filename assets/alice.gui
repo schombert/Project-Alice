@@ -2827,7 +2827,14 @@ guiTypes = {
 				spriteType = "GFX_naval_combat_unit_normal_L"
 				position = { 118 138 }
 				Orientation = "UPPER_LEFT"
-				frame = 3
+				frame = 5
+			}
+			iconType = {
+				name ="stacking_penalty_icon"
+				spriteType = "GFX_alice_unit_status"
+				position = { 30 85 }
+				Orientation = "UPPER_LEFT"
+				frame = 5
 			}
 
 			instantTextBoxType = {
@@ -2977,6 +2984,13 @@ guiTypes = {
 				position = { 128 138 }
 				Orientation = "UPPER_LEFT"
 				frame = 3
+			}
+			iconType = {
+				name ="stacking_penalty_icon"
+				spriteType = "GFX_alice_unit_status"
+				position = { 40 85 }
+				Orientation = "UPPER_LEFT"
+				frame = 5
 			}
 
 			instantTextBoxType = {
@@ -4655,7 +4669,7 @@ guiTypes = {
     windowType = {
         name = "local_economy_view"
         extends = "province_view"
-        position = { 400 -505 }
+        position = { 435 -505 }
         size = { 700 528 }
         Orientation = "LOWER_LEFT"
         
@@ -4755,19 +4769,20 @@ guiTypes = {
                 size = { 660 487 }
             }
         }
-        
-        guiButtonType = {
-            name = "toggle-economy-province"
-            position = { x=0 y=50}
-            quadTextureSprite ="button-economy-province"
-            buttonText = ""
-            buttonFont = "vic_18_black"
-        }
+    }
+
+	guiButtonType = {
+        name = "toggle-economy-province"
+        position = { x=405 y=50}
+        quadTextureSprite ="button-economy-province"
+        buttonText = ""
+        buttonFont = "vic_18_black"
+		extends = "province_view"
     }
 
 	guiButtonType = {
         name = "toggle-tiles-province"
-        position = { x=400 y=100}
+        position = { x=405 y=100}
         quadTextureSprite ="button-economy-province"
         buttonText = ""
         buttonFont = "vic_18_black"
@@ -4776,7 +4791,7 @@ guiTypes = {
 
 	windowType = {
         name = "province_tiles_window"
-        position = { 422 0 }
+        position = { 445 0 }
         size = { 288 288 }
     }
 

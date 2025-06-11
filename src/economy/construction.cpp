@@ -184,12 +184,18 @@ float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, d
 	return total;
 }
 
-float global_non_factory_construction_time_modifier(sys::state& state) {
-	return 0.1f;
+float global_province_construction_time_modifier(sys::state& state) {
+	return state.defines.alice_province_building_build_time_mult;
+}
+float global_land_construction_time_modifier(sys::state& state) {
+	return state.defines.alice_land_unit_build_time_mult;
+}
+float global_naval_construction_time_modifier(sys::state& state) {
+	return state.defines.alice_naval_unit_build_time_mult;
 }
 
 float global_factory_construction_time_modifier(sys::state& state) {
-	return 0.1f;
+	return state.defines.alice_factory_build_time_mult;
 }
 
 float build_cost_multiplier(sys::state& state, dcon::province_id location, bool is_pop_project) {
@@ -204,12 +210,22 @@ float factory_build_cost_multiplier(sys::state& state, dcon::nation_id n, dcon::
 		* (std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost)));
 }
 
-float unit_construction_time(
+float land_unit_construction_time(
 	sys::state& state,
-	dcon::unit_type_id utid
+	dcon::unit_type_id utid,
+	dcon::nation_id builder
 ) {
-	return global_non_factory_construction_time_modifier(state)
-		* float(state.military_definitions.unit_base_definitions[utid].build_time);
+	return global_land_construction_time_modifier(state)
+		* state.world.nation_get_unit_stats(builder, utid).build_time;
+}
+
+float naval_unit_construction_time(
+	sys::state& state,
+	dcon::unit_type_id utid,
+	dcon::nation_id builder
+) {
+	return global_naval_construction_time_modifier(state)
+		* state.world.nation_get_unit_stats(builder, utid).build_time;
 }
 
 float province_building_construction_time(
@@ -217,7 +233,7 @@ float province_building_construction_time(
 	economy::province_building_type building_type
 ) {
 	assert(0 <= int32_t(building_type) && int32_t(building_type) < int32_t(economy::max_building_types));
-	return global_non_factory_construction_time_modifier(state)
+	return global_province_construction_time_modifier(state)
 		* float(state.economy_definitions.building_definitions[int32_t(building_type)].time);
 }
 
@@ -264,7 +280,7 @@ unit_construction_data explain_land_unit_construction(
 	auto unit_type = state.world.province_land_construction_get_type(construction);
 	unit_construction_data result = {
 		.can_be_advanced = (owner && state.world.province_get_nation_from_province_control(province) == owner),
-		.construction_time = unit_construction_time(state, unit_type),
+		.construction_time = land_unit_construction_time(state, unit_type, owner),
 		.cost_multiplier = build_cost_multiplier(state, province, false),
 		.owner = owner,
 		.market = state.world.state_instance_get_market_from_local_market(local_zone),
@@ -311,9 +327,10 @@ void populate_land_unit_construction_demand(
 			state.world.province_land_construction_get_type(lc)
 		].build_cost;
 	auto& current_purchased	= state.world.province_land_construction_get_purchased_goods(lc);
+	auto builder = state.world.province_land_construction_get_nation(lc);
 
 	auto unit_type = state.world.province_land_construction_get_type(lc);
-	float construction_time = unit_construction_time(state, unit_type);
+	float construction_time = land_unit_construction_time(state, unit_type, builder);
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 		auto cid = base_cost.commodity_type[i];
@@ -341,7 +358,7 @@ unit_construction_data explain_naval_unit_construction(
 	auto unit_type = state.world.province_naval_construction_get_type(construction);
 	unit_construction_data result = {
 		.can_be_advanced = (owner && state.world.province_get_nation_from_province_control(province) == owner),
-		.construction_time = unit_construction_time(state, unit_type),
+		.construction_time = naval_unit_construction_time(state, unit_type, owner),
 		.cost_multiplier = build_cost_multiplier(state, province, false),
 		.owner = owner,
 		.market = state.world.state_instance_get_market_from_local_market(local_zone),
@@ -983,7 +1000,7 @@ float estimate_private_construction_spendings(sys::state& state, dcon::nation_id
 			assert(0 <= int32_t(t) && int32_t(t) < int32_t(economy::max_building_types));
 			auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 			auto& current_purchased = c.get_purchased_goods();
-			float construction_time = global_non_factory_construction_time_modifier(state) *
+			float construction_time = global_province_construction_time_modifier(state) *
 				float(state.economy_definitions.building_definitions[int32_t(t)].time);
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
@@ -1153,7 +1170,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	// simulate spending on construction of units
 	// useful to help the game start with some production of artillery and small arms
 
-	float income_to_build_units = 10'000.f;
+	float income_to_build_units = 1'000.f;
 
 	if(state.world.nation_get_owned_province_count(n) == 0) {
 		return;
@@ -1215,7 +1232,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	// simulate spending on construction of factories
 	// helps with machine tools and cement
 
-	float income_to_build_factories = 100'000.f;
+	float income_to_build_factories = 1'000.f;
 
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);

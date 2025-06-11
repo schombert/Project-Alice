@@ -126,7 +126,7 @@ inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
-inline constexpr float price_rigging = 0.02f;
+inline constexpr float price_rigging = 0.001f;
 inline constexpr float production_throughput_multiplier = 2.5f; // for the sake of machine tools
 
 // stockpile related things:
@@ -134,7 +134,7 @@ inline constexpr float stockpile_to_supply = 0.1f;
 inline constexpr float stockpile_spoilage = 0.05f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
 inline constexpr float market_savings_target = 1'000'000.f;
-inline constexpr float trade_transaction_soft_limit = 10'000.f;
+inline constexpr float trade_transaction_soft_limit = 1'000.f;
 
 // trade related
 inline constexpr float merchant_cut_foreign = 0.05f;
@@ -147,8 +147,8 @@ inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_goo
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.1f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float labor_greed_life = 2.1f;
-inline constexpr float labor_greed_everyday = 0.2f;
+inline constexpr float labor_greed_life = 0.05f;
+inline constexpr float labor_greed_everyday = 0.f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 
 void presimulate(sys::state& state);
@@ -335,6 +335,7 @@ int32_t previous_gdp_record_index(sys::state& state);
 
 float gdp(sys::state& state, dcon::nation_id n);
 float gdp(sys::state& state, dcon::market_id n);
+float gdp_adjusted(sys::state& state, dcon::nation_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);
