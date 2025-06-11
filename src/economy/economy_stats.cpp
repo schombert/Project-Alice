@@ -193,9 +193,9 @@ void register_domestic_supply(
 	float amount,
 	economy_reason reason
 ) {
-	state.world.market_get_supply(s, commodity_type) += amount;
+	state.world.market_set_supply(s, commodity_type, state.world.market_get_supply(s, commodity_type) + amount);
 	auto median_price = state.world.commodity_get_median_price(commodity_type);
-	state.world.market_get_gdp(s) += amount * median_price;
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) + amount * median_price);
 }
 
 void register_foreign_supply(
@@ -205,7 +205,7 @@ void register_foreign_supply(
 	float amount,
 	economy_reason reason
 ) {
-	state.world.market_get_supply(s, commodity_type) += amount;
+	state.world.market_set_supply(s, commodity_type, state.world.market_get_supply(s, commodity_type) + amount);
 }
 
 template<typename T>

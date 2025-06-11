@@ -1199,6 +1199,10 @@ void update_artisan_production(sys::state& state) {
 		state.world.for_each_province([&](auto ids) {
 			auto production = state.world.province_get_artisan_actual_production(ids, cid);
 			auto sid = state.world.province_get_state_membership(ids);
+			// if the province has no valid state instance (eg uncolonized) then skip
+			if(!sid) {
+				return;
+			}
 			auto mid = state.world.state_instance_get_market_from_local_market(sid);
 			register_domestic_supply(state, mid, cid, production, economy_reason::artisan);
 		});
@@ -2071,7 +2075,9 @@ commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::na
 		efficiency_growth = efficiency_growth * e_inputs_data.min_available;
 	}
 	auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
-	state.world.province_set_rgo_efficiency(pid, c, new_efficiency);
+
+	// for some reason this was setting the rgo efficiency, even though this function is only called from the ui when creating a tooltip? Dosent make sense to me
+	/*state.world.province_set_rgo_efficiency(pid, c, new_efficiency);*/
 
 	auto workers = state.world.province_get_rgo_target_employment(pid, c)
 		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)

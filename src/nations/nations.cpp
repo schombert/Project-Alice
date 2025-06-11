@@ -1708,7 +1708,7 @@ void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nat
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
 	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, std::max(val, 100.0f));
+	state.world.diplomatic_relation_set_value(rel, std::clamp(val + delta, -200.0f, std::max(val, 100.0f)));
 }
 
 void update_revanchism(sys::state& state) {
@@ -1904,7 +1904,7 @@ void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
 	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, 200.0f);
+	state.world.diplomatic_relation_set_value(rel, std::clamp(val + delta, -200.0f, 200.0f));
 }
 
 void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon::nation_id base) {
