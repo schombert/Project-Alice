@@ -263,12 +263,6 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto wage_A = (state.world.province_get_labor_price(capital_A, labor::no_education) + 0.00001f);
 	auto wage_B = (state.world.province_get_labor_price(capital_B, labor::no_education) + 0.00001f);
 
-	auto scaler = (wage_A + wage_B) * state.defines.alice_needs_scaling_factor;
-	auto max_trade_transaction_volume = scaler * trade_transaction_soft_limit;
-
-	auto imports_aversion_A = std::min(1.f, std::max(0.f, 1.f + state.world.market_get_stockpile(A, economy::money) / wage_A / market_savings_target));
-	auto imports_aversion_B = std::min(1.f, std::max(0.f, 1.f + state.world.market_get_stockpile(B, economy::money) / wage_B / market_savings_target));
-
 	auto distance = invalid_trade_route_distance;
 	auto land_distance = state.world.trade_route_get_land_distance(route);
 	auto sea_distance = state.world.trade_route_get_sea_distance(route);
@@ -369,19 +363,6 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	if(current_profit_B_to_A < 0.f) {
 		result.base_change -= trade_route_min_shift;
 	}
-
-
-	float decay =
-		current_volume + result.base_change > 0.f
-		? imports_aversion_B
-		: imports_aversion_A;
-
-	// quite dirty trade limit but better than before
-	auto max_volume = ve::select(
-		current_volume + result.base_change > 0.f,
-		max_trade_transaction_volume / price_A_export,
-		max_trade_transaction_volume / price_B_export
-	);
 
 	result.decay = 1.f - trade_base_decay;
 
@@ -607,11 +588,6 @@ void update_trade_routes_volume(sys::state& state) {
 		}, overlord_B, controller_capital_A);
 		*/
 
-		// it created quite bad oscilation
-		// so i decided to transfer goods into stockpile directly
-		// and consider that all of them were sold at given price
-		//auto actually_bought_ratio_A = state.world.market_get_supply_sold_ratio(A, c);
-		//auto actually_bought_ratio_B = state.world.market_get_supply_sold_ratio(B, c);
 
 		auto merchant_cut = ve::select(same_nation, ve::fp_vector{ 1.f + economy::merchant_cut_domestic }, ve::fp_vector{ 1.f + economy::merchant_cut_foreign });
 
@@ -622,12 +598,6 @@ void update_trade_routes_volume(sys::state& state) {
 
 		auto wage_A = (state.world.province_get_labor_price(capital_A, labor::no_education) + 0.00001f);
 		auto wage_B = (state.world.province_get_labor_price(capital_B, labor::no_education) + 0.00001f);
-
-		auto scaler = (wage_A + wage_B) * state.defines.alice_needs_scaling_factor;
-		auto max_trade_transaction_volume = scaler * trade_transaction_soft_limit;
-
-		auto imports_aversion_A = ve::min(1.f, ve::max(0.f, 1.f + state.world.market_get_stockpile(A, economy::money) / wage_A / market_savings_target));
-		auto imports_aversion_B = ve::min(1.f, ve::max(0.f, 1.f + state.world.market_get_stockpile(B, economy::money) / wage_B / market_savings_target));
 
 		ve::fp_vector distance = invalid_trade_route_distance;
 		auto land_distance = state.world.trade_route_get_land_distance(trade_route);
@@ -740,22 +710,7 @@ void update_trade_routes_volume(sys::state& state) {
 
 			// modifier for trade to slowly decay to create soft limit on transportation
 			// essentially, regularisation of trade weights, but can lead to weird effects
-			ve::fp_vector decay = 1.f;
-
-			decay = ve::select(
-				current_volume + change > 0.f,
-				decay * imports_aversion_B,
-				decay * imports_aversion_A
-			);
-
-			// quite dirty trade limit but better than before
-			auto max_volume = ve::select(
-				current_volume + change > 0.f,
-				max_trade_transaction_volume / price_A_export,
-				max_trade_transaction_volume / price_B_export
-			);
-
-			decay = 1.f - trade_base_decay;
+			ve::fp_vector decay = 1.f - trade_base_decay;
 
 			// expand the route slower if goods are not actually bought:
 			auto bought_A = state.world.market_get_demand_satisfaction(A, c);
@@ -782,7 +737,6 @@ void update_trade_routes_volume(sys::state& state) {
 			// decay is unconditional safeguard against high weights
 			change = change - current_volume * (1.f - decay);
 
-			//auto new_volume = ve::select(reset_route_commodity, 0.f, ve::max(-max_volume, ve::min(max_volume, current_volume + change)));
 			auto new_volume = ve::select(reset_route_commodity, 0.f, current_volume + change);
 
 			state.world.trade_route_set_volume(trade_route, c, new_volume);
