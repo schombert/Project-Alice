@@ -731,8 +731,8 @@ void update_trade_routes_volume(sys::state& state) {
 				trade_route_min_shift,
 				ve::select(
 					current_profit_B_to_A > 0.f,
-					-trade_route_min_shift,
-					0.f
+					ve::fp_vector{ -trade_route_min_shift },
+					ve::fp_vector{ 0.f }
 				)
 			);
 
