@@ -1146,7 +1146,7 @@ void update_single_factory_consumption(
 	auto current_size = state.world.factory_get_size(f);
 	auto ftid = state.world.factory_get_building_type(f);
 	auto base_size = state.world.factory_type_get_base_workforce(ftid);
-	auto construction_units = current_size / base_size;
+	auto construction_units = 0.1f * current_size / base_size;
 	auto construction_units_per_day = construction_units / state.world.factory_type_get_construction_time(ftid);
 	auto maintenance_scale = construction_units_per_day * construction_units_to_maintenance_units;
 	auto& costs = state.world.factory_type_get_construction_costs(ftid);
@@ -1160,13 +1160,16 @@ void update_single_factory_consumption(
 	auto expansion_scale = base_expansion_scale / state.world.factory_type_get_construction_time(ftid);
 	if(actual_profit > 0 && total_employment >= current_size * expansion_trigger) {
 		auto base_expansion_cost = expansion_scale * costs_data.total_cost;
-		expansion_scale = expansion_scale * std::min(1.f, actual_profit * 0.1f / base_expansion_cost);
+		// do not expand factories when inputs are scarce
+		expansion_scale = expansion_scale
+			* std::min(1.f, actual_profit * 0.1f / base_expansion_cost)
+			* std::max(0.f, base_data.direct_inputs_data.min_available - 0.5f);
 		register_inputs_demand(state, m, costs, expansion_scale, economy_reason::construction);
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
 		assert(std::isfinite(state.world.factory_get_size(fac)));
 		assert(state.world.factory_get_size(fac) > 0.f);
 	} else if(actual_profit < 0) {
-		state.world.factory_set_size(fac, std::max(500.f, current_size - base_size * expansion_scale));
+		state.world.factory_set_size(fac, std::max(500.f, current_size - 0.01f * base_size * expansion_scale));
 		assert(std::isfinite(state.world.factory_get_size(fac)));
 		assert(state.world.factory_get_size(fac) > 0.f);
 	}
@@ -1457,14 +1460,10 @@ void update_employment(sys::state& state) {
 				auto gradient = gradient_employment_i(
 					output_per_worker * predicted_price,
 					1.f,
-					(
-						state.world.province_get_labor_price(pids, labor::no_education)
-						// assume that efficiency is free for now
-						//+ e_inputs_data.total_cost * efficiency * 0.9f // good enough approximation because i don't want to recalculate free efficiency again
-					) * (1.f + aristocrats_greed)
+					wage_per_worker * (1.f + aristocrats_greed)
 				);
 
-				auto new_employment = ve::max((current_employment_target + 100.f * gradient), 0.0f);
+				auto new_employment = ve::max((current_employment_target + 10.f * gradient / wage_per_worker), 0.0f);
 
 				// we don't want wages to rise way too high relatively to profits
 				// as we do not have actual budgets, we  consider that our workers budget is as follows
@@ -1541,28 +1540,28 @@ void update_employment(sys::state& state) {
 		);
 
 		auto unqualified_next = unqualified
-			+ ve::min(0.01f * state.world.factory_get_size(facids),
+			+ ve::min(0.01f * state.world.factory_get_size(facids) * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education),
 				ve::max(-0.04f * state.world.factory_get_size(facids),
-					1'000.f * gradient.primary[0]
+					gradient.primary[0] / wage_no_education
 				)
 			);
 		auto primary_next = primary
-			+ ve::min(0.01f * state.world.factory_get_size(facids),
+			+ ve::min(0.01f * state.world.factory_get_size(facids) * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education),
 				ve::max(-0.04f * state.world.factory_get_size(facids),
-					1'000.f * gradient.primary[1]
+					gradient.primary[1] / wage_basic_education
 				)
 			);
 		auto secondary_next = secondary
-			+ ve::min(0.01f * state.world.factory_get_size(facids),
+			+ ve::min(0.01f * state.world.factory_get_size(facids) * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
 				ve::max(-0.04f * state.world.factory_get_size(facids),
-					1'000.f * gradient.secondary
+					gradient.secondary / wage_high_education
 				)
 			);
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
 
-		auto budget = factory_profit_to_wage_bound * state.world.factory_get_size(facids) * profit_per_worker;
+		auto budget = factory_profit_to_wage_bound * state.world.factory_get_size(facids) * output_per_worker * price_prediction;
 
 		unqualified_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_no_education - 1.f, unqualified_next)));
 		primary_next = ve::max(0.f, ve::min(state.world.factory_get_size(facids), ve::min(budget / wage_basic_education - 1.f, primary_next)));
@@ -1679,7 +1678,7 @@ void update_employment(sys::state& state) {
 
 				// prevent artisans from expanding demand on missing goods too fast
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				gradient = ve::select(gradient > 0.f, gradient * (inputs_data.min_available + 0.01f), gradient);
+				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.f, inputs_data.min_available - 0.5f), gradient);
 
 				ve::fp_vector decay = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
 				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * gradient / state.world.commodity_get_artisan_output_amount(cid), 0.0f), 0.f);
