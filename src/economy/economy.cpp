@@ -6094,7 +6094,8 @@ void change_factory_type_in_province(sys::state& state, dcon::province_id p, dco
 }
 
 void resolve_constructions(sys::state& state) {
-	// Regiment construction
+	// US1. Regiment construction
+	// US1AC7.
 	for(auto c : state.world.in_province_land_construction) {
 		auto pop = state.world.province_land_construction_get_pop(c);
 		auto province = state.world.pop_get_province_from_pop_location(pop);
@@ -6104,7 +6105,7 @@ void resolve_constructions(sys::state& state) {
 		auto& current_purchased = c.get_purchased_goods();
 		auto construction_time = state.military_definitions.unit_base_definitions[c.get_type()].build_time;
 
-		// All goods costs must be built
+		// US1AC4. All goods costs must be built
 		bool ready_for_deployment = true;
 		if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_army)) {
 			for(uint32_t j = 0; j < commodity_set::set_size && ready_for_deployment; ++j) {
@@ -6118,7 +6119,7 @@ void resolve_constructions(sys::state& state) {
 			}
 		}
 
-		// But no faster than construction_time
+		// US1AC5. But no faster than construction_time
 		if(!state.cheat_data.instant_army) {
 			if(state.current_date < c.get_start_date() + construction_time) {
 				ready_for_deployment = false;
@@ -6151,7 +6152,8 @@ void resolve_constructions(sys::state& state) {
 		}
 	}
 
-	// Ships construction
+	// US2 Ships construction
+	// US2AC7
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto rng = state.world.province_get_province_naval_construction(p);
 		if(rng.begin() != rng.end()) {
@@ -6164,6 +6166,7 @@ void resolve_constructions(sys::state& state) {
 			auto& current_purchased = c.get_purchased_goods();
 			auto construction_time = state.military_definitions.unit_base_definitions[c.get_type()].build_time;
 
+			// US2AC4.
 			bool ready_for_deployment = true;
 			if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_navy)) {
 				for(uint32_t i = 0; i < commodity_set::set_size && ready_for_deployment; ++i) {
@@ -6177,7 +6180,7 @@ void resolve_constructions(sys::state& state) {
 				}
 			}
 
-			// But no faster than construction_time
+			// US2AC5. But no faster than construction_time
 			if(!state.cheat_data.instant_army) {
 				if(state.current_date < c.get_start_date() + construction_time) {
 					ready_for_deployment = false;
