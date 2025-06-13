@@ -39,6 +39,8 @@ public:
 		}
 		else if(tile.local_administration) {
 			tile_logic = &local_administration_tile_logic;
+		} else if(tile.no_administration_tile) {
+			tile_logic = &no_administration_tile_logic;
 		}
 		else if(tile.market) {
 			tile_logic = &market_tile_logic;
