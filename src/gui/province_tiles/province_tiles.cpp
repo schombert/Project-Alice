@@ -14,46 +14,48 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 
 	int curind = 0;
 
-	bool administration_found = false;
+	if(owner) {
+		bool administration_found = false;
 
-	// Capital administration is located in the nation capital
-	if(state.world.nation_get_capital(owner) == p) {
-		tiles[curind].capital_administration = true;
-		tiles[curind].empty = false;
-		tiles[curind].province = p;
-		curind++;
-
-		administration_found = true;
-	}
-
-	for(auto admin : state.world.nation_get_nation_administration(owner)) {
-		if(admin.get_administration().get_capital() == p) {
-			// There can be several administrations per state located in any province of the state
-			tiles[curind].local_administration = admin.get_administration();
+		// Capital administration is located in the nation capital
+		if(state.world.nation_get_capital(owner) == p) {
+			tiles[curind].capital_administration = true;
 			tiles[curind].empty = false;
 			tiles[curind].province = p;
 			curind++;
 
 			administration_found = true;
-			break;
 		}
-	}
 
-	// If there is no administration in the province, we display a tile with a small tax office.
-	if(!administration_found) {
-		tiles[curind].no_administration_tile = true;
-		tiles[curind].empty = false;
-		tiles[curind].province = p;
-		curind++;
-	}
+		for(auto admin : state.world.nation_get_nation_administration(owner)) {
+			if(admin.get_administration().get_capital() == p) {
+				// There can be several administrations per state located in any province of the state
+				tiles[curind].local_administration = admin.get_administration();
+				tiles[curind].empty = false;
+				tiles[curind].province = p;
+				curind++;
 
-	// Market is located in the capital of the state instabce
-	if(state.world.state_instance_get_capital(si) == p) {
-		auto market = state.world.state_instance_get_market_from_local_market(si);
-		tiles[curind].market = market;
-		tiles[curind].empty = false;
-		tiles[curind].province = p;
-		curind++;
+				administration_found = true;
+				break;
+			}
+		}
+
+		// If there is no administration in the province, we display a tile with a small tax office.
+		if(!administration_found) {
+			tiles[curind].no_administration_tile = true;
+			tiles[curind].empty = false;
+			tiles[curind].province = p;
+			curind++;
+		}
+
+		// Market is located in the capital of the state instabce
+		if(state.world.state_instance_get_capital(si) == p) {
+			auto market = state.world.state_instance_get_market_from_local_market(si);
+			tiles[curind].market = market;
+			tiles[curind].empty = false;
+			tiles[curind].province = p;
+			curind++;
+		}
 	}
 
 	// Main province RGOs
@@ -75,79 +77,82 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		}
 	}
 
-	for(auto f : state.world.in_factory) {
-		if(f.get_factory_location().get_province() == p) {
-			tiles[curind].factory = f;
-			tiles[curind].empty = false;
-			tiles[curind].province = p;
-			curind++;
-		}
-	}
+	if(owner) {
 
-	for(auto c : state.world.in_commodity) {
-		if(state.world.province_get_factory_max_size(p, c) > 0) {
-			bool foundcorrespondingfactory = false;
-			// If there is already a factory developing this resource - don't show it with a separate tile.
-			for(int i = 0; i < curind; i++) {
-				// Not a factory tile
-				if(!tiles[i].factory) {
+		for(auto f : state.world.in_factory) {
+			if(f.get_factory_location().get_province() == p) {
+				tiles[curind].factory = f;
+				tiles[curind].empty = false;
+				tiles[curind].province = p;
+				curind++;
+			}
+		}
+
+		for(auto c : state.world.in_commodity) {
+			if(state.world.province_get_factory_max_size(p, c) > 0) {
+				bool foundcorrespondingfactory = false;
+				// If there is already a factory developing this resource - don't show it with a separate tile.
+				for(int i = 0; i < curind; i++) {
+					// Not a factory tile
+					if(!tiles[i].factory) {
+						continue;
+					}
+					auto type = state.world.factory_get_building_type(tiles[i].factory);
+					if(state.world.factory_type_get_output(type) == c) {
+						foundcorrespondingfactory = true;
+						break;
+					}
+				}
+				if(foundcorrespondingfactory) {
 					continue;
 				}
-				auto type = state.world.factory_get_building_type(tiles[i].factory);
-				if(state.world.factory_type_get_output(type) == c) {
-					foundcorrespondingfactory = true;
-					break;
-				}
+				tiles[curind].potential_commodity = c;
+				tiles[curind].empty = false;
+				tiles[curind].province = p;
+				curind++;
 			}
-			if(foundcorrespondingfactory) {
-				continue;
+		}
+
+		for(auto r : state.world.in_regiment_source) {
+			if(r.get_pop().get_province_from_pop_location() == p) {
+				tiles[curind].regiment = r.get_regiment();
+				tiles[curind].empty = false;
+				tiles[curind].province = p;
+				curind++;
 			}
-			tiles[curind].potential_commodity = c;
+		}
+
+		for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)); i++) {
+			tiles[curind].province_building = economy::province_building_type::naval_base;
 			tiles[curind].empty = false;
+			tiles[curind].has_province_building = true;
 			tiles[curind].province = p;
 			curind++;
 		}
-	}
 
-	for(auto r : state.world.in_regiment_source) {
-		if(r.get_pop().get_province_from_pop_location() == p) {
-			tiles[curind].regiment = r.get_regiment();
+		for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad)); i++) {
+			tiles[curind].province_building = economy::province_building_type::railroad;
 			tiles[curind].empty = false;
+			tiles[curind].has_province_building = true;
 			tiles[curind].province = p;
 			curind++;
 		}
-	}
 
-	for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)); i++) {
-		tiles[curind].province_building = economy::province_building_type::naval_base;
-		tiles[curind].empty = false;
-		tiles[curind].has_province_building = true;
-		tiles[curind].province = p;
-		curind++;
-	}
-
-	for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad)); i++) {
-		tiles[curind].province_building = economy::province_building_type::railroad;
-		tiles[curind].empty = false;
-		tiles[curind].has_province_building = true;
-		tiles[curind].province = p;
-		curind++;
-	}
-
-	for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)); i++) {
-		tiles[curind].province_building = economy::province_building_type::fort;
-		tiles[curind].empty = false;
-		tiles[curind].has_province_building = true;
-		tiles[curind].province = p;
-		curind++;
-	}
-
-	for(auto fc : state.world.in_factory_construction) {
-		if(fc.get_province() == p) {
-			tiles[curind].factory_construction = fc;
+		for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)); i++) {
+			tiles[curind].province_building = economy::province_building_type::fort;
 			tiles[curind].empty = false;
+			tiles[curind].has_province_building = true;
 			tiles[curind].province = p;
 			curind++;
+		}
+
+		for(auto fc : state.world.in_factory_construction) {
+			if(fc.get_province() == p) {
+				tiles[curind].factory_construction = fc;
+				tiles[curind].empty = false;
+				tiles[curind].province = p;
+				curind++;
+			}
 		}
 	}
 
