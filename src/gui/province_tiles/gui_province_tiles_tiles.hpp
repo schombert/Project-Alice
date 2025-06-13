@@ -325,6 +325,9 @@ public:
 		auto budget_priority = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f;
 		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency { economy::estimate_spendings_administration(state, n, budget_priority) });
 
+		auto employment = economy::explain_administration_employment(state, target.province);
+		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment });
+
 		auto info = economy::explain_tax_income_local(state, n, target.province);
 
 		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });

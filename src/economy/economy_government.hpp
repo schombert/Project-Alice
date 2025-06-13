@@ -39,4 +39,5 @@ struct tax_information {
 // sums up all tax income all over the nation
 tax_information explain_tax_income(sys::state& state, dcon::nation_id n);
 tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id sid);
+float explain_administration_employment(sys::state& state, dcon::province_id p);
 }

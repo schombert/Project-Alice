@@ -268,4 +268,18 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
+float explain_administration_employment(sys::state& state, dcon::province_id p) {
+	// Administration workers are urban workers
+	auto res = state.world.province_get_administration_employment_target(p) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+	auto n = state.world.province_get_nation_from_province_ownership(p);
+
+	for(auto admin : state.world.nation_get_nation_administration(n)) {
+		if(admin.get_administration().get_capital() == p) {
+			res += admin.get_administration().get_desired_size() * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+		}
+	}
+
+	return res;
+}
+
 }
