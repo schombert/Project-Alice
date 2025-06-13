@@ -10,8 +10,29 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	std::vector<province_tile> tiles = std::vector<province_tile>(64);
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
+	auto si = state.world.province_get_state_membership(p);
 
 	int curind = 0;
+
+	for(auto admin : state.world.nation_get_nation_administration(owner)) {
+		if(admin.get_administration().get_capital() == p) {
+			// There can be several administrations per state located in any province of the state
+			tiles[curind].administration = admin.get_administration();
+			tiles[curind].empty = false;
+			tiles[curind].province = p;
+			curind++;
+			break;
+		}
+	}
+
+	// Market is located in the capital of the state instabce
+	if(state.world.state_instance_get_capital(si) == p) {
+		auto market = state.world.state_instance_get_market_from_local_market(si);
+		tiles[curind].market = market;
+		tiles[curind].empty = false;
+		tiles[curind].province = p;
+		curind++;
+	}
 
 	// Main province RGOs
 	tiles[curind].rgo_commodity = state.world.province_get_rgo(p);

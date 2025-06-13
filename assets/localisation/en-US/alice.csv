@@ -378,6 +378,14 @@ has_not_recently_lost_war;has not recently lost a war
 mobilized;mobilized
 mobilization_size;mobilization size
 admin_spending;administration spending
+local_admin_spending;Estimated cost: ?Y$value$?W
+tax_collection_rate;Tax collection rate: ?Y$value$?W
+poor_potential;Potential poor taxes: ?Y$value$?W
+mid_potential;Potential middle taxes: ?Y$value$?W
+rich_potential;Potential rich taxes: ?Y$value$?W
+poor_taxes;Actual poor taxes: ?Y$value$?W
+mid_taxes;Actual middle taxes: ?Y$value$?W
+rich_taxes;Actual rich taxes: ?Y$value$?W
 greater_than_edu_spending;greater than education spending
 support_for_rp;support for ruling party
 colonial;colonial
@@ -1545,6 +1553,8 @@ pop_migration_attraction_3;The migration target factor: $x$
 pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
+administration_tile;Local administration
+market_tile;Local market
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
