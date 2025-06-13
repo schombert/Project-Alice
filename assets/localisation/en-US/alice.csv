@@ -1311,8 +1311,10 @@ alice_pnt_dominant_religion;?YDominant religion:?! $x$
 alice_pnt_dominant_ideology;?YDominant Ideology:?! $x$
 ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
+ledger_inflation_adjusted_gdp;GDP(inflation-adjusted)
+ledger_inflation_adjusted_gdp_per_capita;GDP(inflation-adjusted) per 1m people
 ledger_standard_of_living;Standard of Living
-alice_ledger_header_gdp_history;GDP(PPP) over time
+alice_ledger_header_gdp_history;GDP(inflation-adjusted) over time
 alice_countryalert_colonialgood_start;You can colonize $region$
 alice_overseas_mil_description;Overseas militancy
 alice_armygroup_go_to_selection;Add/remove units
@@ -1405,10 +1407,15 @@ transportaion_loss;Goods lost in transportation: ?Y$val$
 payment_per_unit;Buyer paid per unit: ?Y$val$
 payment_received_per_unit;Seller got per unit: ?Y$val$
 merchants_received_per_unit;Seller merchants profit per unit: ?Y$val$
+trade_route_volume_profit_score;Profit score: ?Y$val$?W (Profit ?Y$x$?W divided by import price ?Y$y$?W)
+trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?Y$x$?W times profit score)
+trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
+trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
+trade_route_volume_final_change;Expected change: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
-investment_pool_income_2;Transfer from subject $country$: ?G$x$W
-investment_pool_income_3;Government domestic investment: ?G$x$W
+investment_pool_income_2;Transfer from subject $country$: ?G$x$?W
+investment_pool_income_3;Government domestic investment: ?G$x$?W
 investment_pool_spending_1;"Incentives" spending: ?R$x$?W
 investment_pool_spending_2;Construction spending: ?R$x$?W
 investment_pool_spending_3;Transfer to subjects: ?R$x$?W

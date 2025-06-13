@@ -2970,15 +2970,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
 		if(prov_a.id.index() < province_definitions.first_sea_province.index() && prov_b.id.index() >= province_definitions.first_sea_province.index()) {
-			frel.get_type() |= province::border::coastal_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::coastal_bit));
 		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() && prov_b.id.index() < province_definitions.first_sea_province.index()) {
-			frel.get_type() |= province::border::coastal_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::coastal_bit));
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
-			frel.get_type() |= province::border::state_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::state_bit));
 		}
 		if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
-			frel.get_type() |= province::border::national_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::national_bit));
 		}
 	});
 
@@ -3059,7 +3059,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 						other.set_is_coast(false);
 						other.set_port_to(dcon::province_id{});
-						adj.get_type() |= province::border::impassible_bit;
+						adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 					}
 				}
 			}
@@ -3068,7 +3068,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	for(auto ip : context.special_impassible) {
 		for(auto adj : world.province_get_province_adjacency(ip)) {
-			adj.get_type() |= province::border::impassible_bit;
+			adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 		}
 	}
 
@@ -3938,11 +3938,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	ai::update_ai_general_status(*this);
 	ai::refresh_home_ports(*this);
 
-	military_definitions.pending_blackflag_update = true;
-	military::update_blackflag_status(*this);
-
-
-
 #ifndef NDEBUG
 	/*for(auto p : world.in_pop) {
 		float total = 0.0f;
@@ -4540,7 +4535,7 @@ void state::single_game_tick() {
 	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
 		auto index = economy::most_recent_gdp_record_index(*this);
 		for(auto n : world.in_nation) {
-			n.set_gdp_record(index, economy::gdp(*this, n));
+			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
 		}
 	}
 

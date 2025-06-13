@@ -279,7 +279,8 @@ bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nat
 }
 void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	nations::adjust_relationship(state, source, target, state.defines.warsubsidy_relation_on_accept);
-	state.world.nation_get_diplomatic_points(source) -= state.defines.warsubsidy_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.warsubsidy_diplomatic_cost);
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(!rel)
 		rel = state.world.force_create_unilateral_relationship(target, source);
@@ -321,7 +322,8 @@ bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::n
 }
 void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	nations::adjust_relationship(state, source, target, state.defines.cancelwarsubsidy_relation_on_accept);
-	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelwarsubsidy_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.cancelwarsubsidy_diplomatic_cost);
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel)
 		state.world.unilateral_relationship_set_war_subsidies(rel, false);
@@ -367,7 +369,8 @@ bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nat
 }
 void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	nations::adjust_relationship(state, source, target, state.defines.increaserelation_relation_on_accept);
-	state.world.nation_get_diplomatic_points(source) -= state.defines.increaserelation_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.increaserelation_diplomatic_cost);
 
 	notification::post(state, notification::message{
 		[source, target](sys::state& state, text::layout_base& contents) {
@@ -403,7 +406,8 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 }
 void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
-	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.decreaserelation_diplomatic_cost);
 
 	notification::post(state, notification::message{
 		[source, target](sys::state& state, text::layout_base& contents) {
@@ -969,7 +973,7 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 			}
 			if(subsidized && !f.get_factory().get_subsidized()) {
 				auto& scale = f.get_factory().get_primary_employment();
-				scale = std::max(scale, 0.5f);
+				f.get_factory().set_primary_employment(std::max(scale, 0.5f));
 			}
 			f.get_factory().set_subsidized(subsidized);
 			return;
@@ -995,12 +999,12 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 	if(state.world.nation_get_is_great_power(source)) {
 		auto sr = state.world.force_create_gp_relationship(holder, source);
 		auto& flags = state.world.gp_relationship_get_status(sr);
-		flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		state.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
 		state.world.nation_set_in_sphere_of(holder, source);
 	}
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 	auto& inf = state.world.nation_get_infamy(source);
-	inf = std::max(0.0f, inf + state.defines.release_nation_infamy);
+	state.world.nation_set_infamy(source, std::max(0.0f, inf + state.defines.release_nation_infamy));
 	nations::adjust_prestige(state, source, state.defines.release_nation_prestige);
 }
 
@@ -1142,16 +1146,16 @@ void execute_change_influence_priority(sys::state& state, dcon::nation_id source
 	auto& flags = state.world.gp_relationship_get_status(rel);
 	switch(priority) {
 	case 0:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_zero;
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_zero));
 		break;
 	case 1:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_one;
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_one));
 		break;
 	case 2:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_two;
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_two));
 		break;
 	case 3:
-		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_three;
+		state.world.gp_relationship_set_status(rel, uint8_t((flags & ~nations::influence::priority_mask) | nations::influence::priority_three));
 		break;
 	default:
 		break;
@@ -1216,10 +1220,13 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	if(!orel)
 		orel = state.world.force_create_gp_relationship(influence_target, affected_gp);
+	
+	auto& current_influence = state.world.gp_relationship_get_influence(rel);
+	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.discredit_influence_cost);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.discredit_influence_cost;
 	nations::adjust_relationship(state, source, affected_gp, state.defines.discredit_relation_on_accept);
-	state.world.gp_relationship_get_status(orel) |= nations::influence::is_discredited;
+	auto& current_status = state.world.gp_relationship_get_status(orel);
+	state.world.gp_relationship_set_status(orel, uint8_t(current_status | nations::influence::is_discredited));
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.discredit_days));
 
 	notification::post(state, notification::message{
@@ -1285,12 +1292,15 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.expeladvisors_influence_cost;
+	auto& current_influence = state.world.gp_relationship_get_influence(rel);
+	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.expeladvisors_influence_cost);
+
 	nations::adjust_relationship(state, source, affected_gp, state.defines.expeladvisors_relation_on_accept);
 
 	if(orel) {
 		state.world.gp_relationship_set_influence(orel, 0.0f);
-		state.world.gp_relationship_get_status(orel) &= ~nations::influence::is_discredited;
+		auto& current_status = state.world.gp_relationship_get_status(orel);
+		state.world.gp_relationship_set_status(orel, uint8_t(current_status & ~nations::influence::is_discredited));
 	}
 
 	notification::post(state, notification::message{
@@ -1358,9 +1368,11 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 	if(!orel)
 		orel = state.world.force_create_gp_relationship(influence_target, affected_gp);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.banembassy_influence_cost;
+	auto& current_influence = state.world.gp_relationship_get_influence(rel);
+	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.banembassy_influence_cost);
 	nations::adjust_relationship(state, source, affected_gp, state.defines.banembassy_relation_on_accept);
-	state.world.gp_relationship_get_status(orel) |= nations::influence::is_banned;
+	auto& current_status = state.world.gp_relationship_get_status(orel);
+	state.world.gp_relationship_set_status(orel, uint8_t(current_status | nations::influence::is_banned));
 	state.world.gp_relationship_set_influence(orel, 0.0f);
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.banembassy_days));
 
@@ -1418,9 +1430,11 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.increaseopinion_influence_cost;
+	auto& current_influence = state.world.gp_relationship_get_influence(rel);
+	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.increaseopinion_influence_cost);
+
 	auto& l = state.world.gp_relationship_get_status(rel);
-	l = nations::influence::increase_level(l);
+	state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 
 	notification::post(state, notification::message{
 		[source, influence_target](sys::state& state, text::layout_base& contents) {
@@ -1496,11 +1510,12 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	if(!orel)
 		orel = state.world.force_create_gp_relationship(influence_target, affected_gp);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.decreaseopinion_influence_cost;
+	auto& current_influence = state.world.gp_relationship_get_influence(rel);
+	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.decreaseopinion_influence_cost);
 	nations::adjust_relationship(state, source, affected_gp, state.defines.decreaseopinion_relation_on_accept);
 
 	auto& l = state.world.gp_relationship_get_status(orel);
-	l = nations::influence::decrease_level(l);
+	state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
 
 	notification::post(state, notification::message{
 		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
@@ -1555,9 +1570,10 @@ bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_i
 void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.addtosphere_influence_cost;
+	auto& current_influence = state.world.gp_relationship_get_influence(rel);
+	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.addtosphere_influence_cost);
 	auto& l = state.world.gp_relationship_get_status(rel);
-	l = nations::influence::increase_level(l);
+	state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 
 	state.world.nation_set_in_sphere_of(influence_target, source);
 
@@ -1626,13 +1642,15 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	auto& l = state.world.gp_relationship_get_status(orel);
-	l = nations::influence::decrease_level(l);
+	state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
 
 	if(source != affected_gp) {
-		state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
+		auto& current_influence = state.world.gp_relationship_get_influence(rel);
+		state.world.gp_relationship_set_influence(rel, current_influence - state.defines.removefromsphere_influence_cost);
 		nations::adjust_relationship(state, source, affected_gp, state.defines.removefromsphere_relation_on_accept);
 	} else {
-		state.world.nation_get_infamy(source) += state.defines.removefromsphere_infamy_cost;
+		auto& current_infamy = state.world.nation_get_infamy(source);
+		state.world.nation_set_infamy(source, current_infamy + state.defines.removefromsphere_infamy_cost);
 		nations::adjust_prestige(state, source, -state.defines.removefromsphere_prestige_cost);
 	}
 
@@ -1906,7 +1924,8 @@ void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::
 	}
 	if(!m)
 		return;
-	state.world.nation_get_suppression_points(source) -= rebel::get_suppression_point_cost(state, m);
+	auto& cur_sup_points = state.world.nation_get_suppression_points(source);
+	state.world.nation_set_suppression_points(source, cur_sup_points - rebel::get_suppression_point_cost(state, m));
 	rebel::suppress_movement(state, source, m);
 }
 
@@ -2360,7 +2379,8 @@ void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::natio
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
 	state.world.nation_set_constructing_cb_target_state(source, target_state);
-	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.make_cb_diplomatic_cost);
 }
 
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
@@ -2411,7 +2431,8 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	return true;
 }
 void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
+	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.askmilaccess_diplomatic_cost);
 
 	diplomatic_message::message m;
 	memset(&m, 0, sizeof(diplomatic_message::message));
@@ -2447,7 +2468,8 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 	return true;
 }
 void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.givemilaccess_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
+	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.givemilaccess_diplomatic_cost);
 
 	auto urel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
 	if(!urel) {
@@ -2501,7 +2523,8 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	if(!can_ask_for_alliance(state, asker, target))
 		return;
 
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.alliance_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
+	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.alliance_diplomatic_cost);
 
 	diplomatic_message::message m;
 	memset(&m, 0, sizeof(diplomatic_message::message));
@@ -2580,7 +2603,8 @@ bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, 
 	return true;
 }
 void execute_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
+	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.askmilaccess_diplomatic_cost);
 
 	diplomatic_message::message m;
 	memset(&m, 0, sizeof(diplomatic_message::message));
@@ -2750,14 +2774,16 @@ bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::na
 	return true;
 }
 void execute_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(source) -= state.defines.askmilaccess_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.askmilaccess_diplomatic_cost);
 
 	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
 
 	if(!rights) {
 		return; // Nation doesn't give trade rights
 	}
-	state.world.unilateral_relationship_get_no_tariffs_until(rights) = sys::date{}; // Reset trade rights
+
+	state.world.unilateral_relationship_set_no_tariffs_until(rights, sys::date{}); // Reset trade rights
 
 	notification::post(state, notification::message{
 		[source = source, target = target](sys::state& state, text::layout_base& contents) {
@@ -2862,7 +2888,8 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	return true;
 }
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
-	state.world.nation_get_diplomatic_points(asker) -= state.defines.callally_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
+	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.callally_diplomatic_cost);
 
 	diplomatic_message::message m;
 	memset(&m, 0, sizeof(diplomatic_message::message));
@@ -2928,7 +2955,8 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 	if(rel)
 		state.world.unilateral_relationship_set_military_access(rel, false);
 
-	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelaskmilaccess_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.cancelaskmilaccess_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.cancelaskmilaccess_relation_on_accept);
 
 	notification::post(state, notification::message{
@@ -2965,7 +2993,8 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 	if(rel)
 		state.world.unilateral_relationship_set_military_access(rel, false);
 
-	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelgivemilaccess_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.cancelgivemilaccess_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.cancelgivemilaccess_relation_on_accept);
 
 	if(source != state.local_player_nation) {
@@ -3009,7 +3038,8 @@ bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation
 	return true;
 }
 void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelalliance_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.cancelalliance_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.cancelalliance_relation_on_accept);
 
 	nations::break_alliance(state, source, target);
@@ -3071,7 +3101,8 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
- 	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.declarewar_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.declarewar_relation_on_accept);
 
 	dcon::nation_id real_target = target;
@@ -3085,7 +3116,8 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 		auto cb_militancy = military::truce_break_cb_militancy(state, primary_cb);
 		auto cb_prestige_loss = military::truce_break_cb_prestige_cost(state, primary_cb);
 
-		state.world.nation_get_infamy(source) += cb_infamy;
+		auto& current_infamy = state.world.nation_get_infamy(source);
+		state.world.nation_set_infamy(source, current_infamy + cb_infamy);
 		nations::adjust_prestige(state, source, cb_prestige_loss);
 
 		for(auto prov : state.world.nation_get_province_ownership(source)) {
@@ -3236,11 +3268,13 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 	if(!can_add_war_goal(state, source, w, target, cb_type, cb_state, cb_tag, cb_secondary_nation))
 		return;
 
-	state.world.nation_get_diplomatic_points(source) -= state.defines.addwargoal_diplomatic_cost;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.addwargoal_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.addwargoal_relation_on_accept);
 
 	float infamy = military::cb_addition_infamy_cost(state, w, cb_type, source, target, cb_state);
-	state.world.nation_get_infamy(source) += infamy;
+	auto& current_infamy = state.world.nation_get_infamy(source);
+	state.world.nation_set_infamy(source, current_infamy + infamy);
 
 	military::add_wargoal(state, w, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation);
 }
@@ -4932,7 +4966,8 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
 		return;
 
-	state.world.nation_get_diplomatic_points(source) -= 1.0f;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - 1.0f);
 
 	diplomatic_message::message m;
 	memset(&m, 0, sizeof(diplomatic_message::message));
@@ -4977,7 +5012,8 @@ void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_w
 		data.cb_type // cb
 	});
 
-	state.world.nation_get_diplomatic_points(source) -= 1.0f;
+	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
+	state.world.nation_set_diplomatic_points(source, current_diplo - 1.0f);
 }
 
 bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
