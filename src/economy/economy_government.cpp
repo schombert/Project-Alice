@@ -289,7 +289,7 @@ float explain_capital_administration_employment(sys::state& state, dcon::nation_
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 
 	auto target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
-	auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+	auto satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education);
 
 	return target_employment * satisfaction;
 }

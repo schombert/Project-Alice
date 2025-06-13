@@ -315,7 +315,7 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override {
-		return 15;
+		return 17;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
