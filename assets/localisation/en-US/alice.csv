@@ -378,9 +378,12 @@ has_not_recently_lost_war;has not recently lost a war
 mobilized;mobilized
 mobilization_size;mobilization size
 admin_spending;administration spending
+local_admin;Local Administration
+capital_admin;Capital Administration
 local_admin_spending;Estimated cost: ?Y$value$?W
-local_admin_employment;Employees: ?Y$value$?W
+local_admin_employment;Administration Employees: ?Y$value$?W
 local_admin_wage;Wage: ?Y$value$?W
+local_admin_efficiency;Local administrations are ?Y$value$?W less efficient than the capital one.
 tax_collection_rate;Tax collection rate: ?Y$value$?W
 poor_potential;Potential poor taxes: ?Y$value$?W
 mid_potential;Potential middle taxes: ?Y$value$?W

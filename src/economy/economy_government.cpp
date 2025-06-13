@@ -137,7 +137,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto demand = budget_per_administration / wage;
 		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-		state.world.province_get_control_scale(capital) += std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * 0.5f);
+		state.world.province_get_control_scale(capital) += std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency);
 		state.world.province_set_administration_employment_target(capital_of_capital_state, demand);
 		state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted) += demand;
 	});
@@ -268,8 +268,8 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
+// Calculate employment of local administrations in the province
 float explain_administration_employment(sys::state& state, dcon::province_id p) {
-	// Administration workers are urban workers
 	auto res = state.world.province_get_administration_employment_target(p) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
 	auto n = state.world.province_get_nation_from_province_ownership(p);
 
@@ -280,6 +280,18 @@ float explain_administration_employment(sys::state& state, dcon::province_id p) 
 	}
 
 	return res;
+}
+
+// Calculate employment of the capital administration
+float explain_capital_administration_employment(sys::state& state, dcon::nation_id n) {
+	auto capital = state.world.nation_get_capital(n);
+	auto capital_state = state.world.province_get_state_membership(capital);
+	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+
+	auto target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
+	auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+
+	return target_employment * satisfaction;
 }
 
 }

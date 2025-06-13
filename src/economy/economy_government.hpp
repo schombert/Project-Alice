@@ -6,6 +6,9 @@ struct state;
 }
 
 namespace economy {
+
+inline constexpr float local_administration_efficiency = 0.5f;
+
 // see details about internal workings of the system in cpp file
 
 // ratio of taxes you can collect in a given province
@@ -40,4 +43,5 @@ struct tax_information {
 tax_information explain_tax_income(sys::state& state, dcon::nation_id n);
 tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id sid);
 float explain_administration_employment(sys::state& state, dcon::province_id p);
+float explain_capital_administration_employment(sys::state& state, dcon::nation_id n);
 }

@@ -14,10 +14,18 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 
 	int curind = 0;
 
+	// Capital administration is located in the nation capital
+	if(state.world.nation_get_capital(owner) == p) {
+		tiles[curind].capital_administration = true;
+		tiles[curind].empty = false;
+		tiles[curind].province = p;
+		curind++;
+	}
+
 	for(auto admin : state.world.nation_get_nation_administration(owner)) {
 		if(admin.get_administration().get_capital() == p) {
 			// There can be several administrations per state located in any province of the state
-			tiles[curind].administration = admin.get_administration();
+			tiles[curind].local_administration = admin.get_administration();
 			tiles[curind].empty = false;
 			tiles[curind].province = p;
 			curind++;

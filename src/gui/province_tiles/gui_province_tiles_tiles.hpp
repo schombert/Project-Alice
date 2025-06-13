@@ -304,7 +304,7 @@ public:
 };
 
 
-class administration_tile : public tile_type_logic {
+class local_administration_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
 		return state.lookup_key("administration_tile");
@@ -323,9 +323,60 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto n = state.world.province_get_nation_from_province_ownership(target.province);
 		auto budget_priority = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f;
-		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency { economy::estimate_spendings_administration(state, n, budget_priority) });
+
+		text::add_line(state, contents, "local_admin");
+
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration(state, n, budget_priority) });
 
 		auto employment = economy::explain_administration_employment(state, target.province);
+		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment }, 15);
+
+		auto wage = state.world.province_get_labor_price(target.province, economy::labor::high_education_and_accepted);
+		text::add_line(state, contents, "local_admin_wage", text::variable_type::value, text::fp_one_place{ employment }, 15);
+
+		text::add_line(state, contents, "local_admin_efficiency", text::variable_type::value, text::fp_percentage{ economy::local_administration_efficiency });
+
+		text::add_line_break_to_layout(state, contents);
+
+		auto info = economy::explain_tax_income_local(state, n, target.province);
+
+		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
+		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_percentage{ info.mid_potential });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_percentage{ info.rich_potential });
+		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_percentage{ info.poor });
+		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_percentage{ info.mid });
+		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_percentage{ info.rich });
+	}
+};
+
+
+class capital_administration_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("administration_tile");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		// Perhaps a separate frame would be appropriate for capital admins
+		return 15;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
+		auto budget_priority = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f;
+
+		text::add_line(state, contents, "capital_admin");
+
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital(state, n, budget_priority) });
+
+		auto employment = economy::explain_capital_administration_employment(state, n);
 		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment }, 15);
 
 		auto wage = state.world.province_get_labor_price(target.province, economy::labor::high_education_and_accepted);
