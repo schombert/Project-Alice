@@ -379,6 +379,8 @@ mobilized;mobilized
 mobilization_size;mobilization size
 admin_spending;administration spending
 local_admin_spending;Estimated cost: ?Y$value$?W
+local_admin_employment;Employees: ?Y$value$?W
+local_admin_wage;Wage: ?Y$value$?W
 tax_collection_rate;Tax collection rate: ?Y$value$?W
 poor_potential;Potential poor taxes: ?Y$value$?W
 mid_potential;Potential middle taxes: ?Y$value$?W
