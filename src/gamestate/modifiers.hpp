@@ -76,7 +76,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(11, research_points_on_conquer, true, modifier_display_type::percent, "modifier_research_points_on_conquer")  \
 	MOD_LIST_ELEMENT(12, import_cost, false, modifier_display_type::percent, "modifier_import_cost")                               \
 	MOD_LIST_ELEMENT(13, loan_interest, false, modifier_display_type::percent, "loan_interest_tech")                               \
-	MOD_LIST_ELEMENT(14, tax_efficiency, true, modifier_display_type::fp_two_places, "modifier_tax_efficiency")                          \
+	MOD_LIST_ELEMENT(14, tax_efficiency, true, modifier_display_type::percent, "modifier_tax_efficiency")                          \
 	MOD_LIST_ELEMENT(15, min_tax, true, modifier_display_type::percent, "modifier_min_tax")                                        \
 	MOD_LIST_ELEMENT(16, max_tax, true, modifier_display_type::percent, "modifier_max_tax")                                        \
 	MOD_LIST_ELEMENT(17, min_military_spending, true, modifier_display_type::percent, "modifier_min_military_spending")            \
