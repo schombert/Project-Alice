@@ -16,6 +16,37 @@
 
 namespace military {
 
+
+// this function should be used
+// only for provinces owned by a war participant
+bool does_province_count_for_war_occupation(sys::state& state, dcon::war_id w, dcon::province_id p) {
+	auto controller = state.world.province_get_nation_from_province_control(p);
+	auto owner = state.world.province_get_nation_from_province_ownership(p);
+	// province must be occupied
+	if(owner == controller) {
+		return false;
+	}
+	// rebels do not count
+	if(!controller) {
+		return false;
+	}
+	// count occupations only for wars declared after targetted war
+	auto date = state.world.war_get_start_date(w);
+	for(auto candidate_war : state.world.nation_get_war_participant(owner)) {
+		auto is_attacker = candidate_war.get_is_attacker();
+		for(auto o : candidate_war.get_war().get_war_participant()) {
+			if(o.get_nation() == controller) {
+				auto& candidate_date = candidate_war.get_war().get_start_date();
+				if(candidate_date < date) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
 template auto province_is_blockaded<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 template auto province_is_under_siege<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 template auto battle_is_ongoing_in_province<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
@@ -4250,7 +4281,7 @@ void update_ticking_war_score(sys::state& state) {
 				for(auto prv : wg.get_associated_state().get_abstract_state_membership()) {
 					if(prv.get_province().get_nation_from_province_ownership() == wg.get_target_nation()) {
 						++total_count;
-						if(get_role(state, war, prv.get_province().get_nation_from_province_control()) == role) {
+						if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
 							++occupied;
 						}
 					}
@@ -4258,7 +4289,7 @@ void update_ticking_war_score(sys::state& state) {
 			} else if((bits & cb_flag::po_annex) != 0) {
 				for(auto prv : wg.get_target_nation().get_province_ownership()) {
 					++total_count;
-					if(get_role(state, war, prv.get_province().get_nation_from_province_control()) == role) {
+					if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
 						++occupied;
 					}
 				}
@@ -4270,7 +4301,7 @@ void update_ticking_war_score(sys::state& state) {
 
 						province::for_each_province_in_state_instance(state, st.get_state(), [&](dcon::province_id prv) {
 							++total_count;
-							if(get_role(state, war, state.world.province_get_nation_from_province_control(prv)) == role) {
+							if(does_province_count_for_war_occupation(state, war, prv)) {
 								++occupied;
 							}
 						});
@@ -4407,7 +4438,7 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	for(auto prv : state.world.nation_get_province_ownership(pattacker)) {
 		auto v = province_point_cost(state, prv.get_province(), pattacker);
 		sum_attacker_prov_values += v;
-		if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
+		if(does_province_count_for_war_occupation(state, w, prv.get_province()))
 			sum_attacker_occupied_values += v;
 	}
 
@@ -4416,7 +4447,7 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	for(auto prv : state.world.nation_get_province_ownership(pdefender)) {
 		auto v = province_point_cost(state, prv.get_province(), pdefender);
 		sum_defender_prov_values += v;
-		if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::attacker)
+		if(does_province_count_for_war_occupation(state, w, prv.get_province()))
 			sum_defender_occupied_values += v;
 	}
 
@@ -4445,100 +4476,108 @@ float primary_warscore_from_war_goals(sys::state& state, dcon::war_id w) {
 	return total;
 }
 
-float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary) {
+float directed_warscore(
+	sys::state& state,
+	dcon::war_id w,
+	dcon::nation_id potential_beneficiary,
+	dcon::nation_id target
+) {
 	float total = 0.0f;
 
-	auto is_pattacker = state.world.war_get_primary_attacker(w) == primary;
-	auto is_pdefender = state.world.war_get_primary_defender(w) == primary;
+	auto beneficiary_is_primary_attacker = state.world.war_get_primary_attacker(w) == potential_beneficiary;
+	auto beneficiary_is_primary_defender = state.world.war_get_primary_defender(w) == potential_beneficiary;
 
-	auto is_tpattacker = state.world.war_get_primary_attacker(w) == secondary;
-	auto is_tpdefender = state.world.war_get_primary_defender(w) == secondary;
+	auto beneficiary_is_war_leader = beneficiary_is_primary_attacker || beneficiary_is_primary_defender;
 
-	if(is_pattacker && is_tpdefender)
+	auto target_is_primary_attacker = state.world.war_get_primary_attacker(w) == target;
+	auto target_is_primary_defender = state.world.war_get_primary_defender(w) == target;
+
+	auto target_is_war_leader = target_is_primary_attacker || target_is_primary_defender;
+
+	if(beneficiary_is_primary_attacker && target_is_primary_defender)
 		return primary_warscore(state, w);
-	if(is_pdefender && is_tpattacker)
+	if(target_is_primary_attacker && beneficiary_is_primary_defender)
 		return -primary_warscore(state, w);
 
-	int32_t sum_attacker_prov_values = 0;
-	int32_t sum_attacker_occupied_values = 0;
-	for(auto prv : state.world.nation_get_province_ownership(primary)) {
-		auto v = province_point_cost(state, prv.get_province(), primary);
-		sum_attacker_prov_values += v;
+	int32_t beneficiary_score_from_occupation = 0;
+	int32_t beneficiary_potential_score_from_occupation = 0;
+	for(auto prv : state.world.nation_get_province_ownership(target)) {
+		auto v = province_point_cost(state, prv.get_province(), target);
+		beneficiary_potential_score_from_occupation += v;
 
-		if(is_tpattacker) {
-			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::attacker)
-				sum_attacker_occupied_values += v;
-		} else if(is_tpdefender) {
-			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
-				sum_attacker_occupied_values += v;
+		if(beneficiary_is_primary_attacker || beneficiary_is_primary_defender) {
+			if(does_province_count_for_war_occupation(state, w, prv.get_province()))
+				beneficiary_score_from_occupation += v;
 		} else {
-			if(prv.get_province().get_nation_from_province_control() == secondary)
-				sum_attacker_occupied_values += v;
+			if(prv.get_province().get_nation_from_province_control() == potential_beneficiary)
+				beneficiary_score_from_occupation += v;
 		}
 	}
 
-	int32_t sum_defender_prov_values = 0;
-	int32_t sum_defender_occupied_values = 0;
-	for(auto prv : state.world.nation_get_province_ownership(secondary)) {
-		auto v = province_point_cost(state, prv.get_province(), secondary);
-		sum_defender_prov_values += v;
+	int32_t against_beneficiary_score_from_occupation = 0;
+	int32_t against_beneficiary_potential_score_from_occupation = 0;
+	for(auto prv : state.world.nation_get_province_ownership(potential_beneficiary)) {
+		auto v = province_point_cost(state, prv.get_province(), potential_beneficiary);
+		against_beneficiary_potential_score_from_occupation += v;
 
-		if(is_pattacker) {
-			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::attacker)
-				sum_defender_occupied_values += v;
-		} else if(is_pdefender) {
-			if(get_role(state, w, prv.get_province().get_nation_from_province_control()) == war_role::defender)
-				sum_defender_occupied_values += v;
-		} else {
-			if(prv.get_province().get_nation_from_province_control() == primary)
-				sum_defender_occupied_values += v;
-		}
+		if(does_province_count_for_war_occupation(state, w, prv.get_province()))
+			against_beneficiary_score_from_occupation += v;
 	}
 
-	if(sum_defender_prov_values > 0)
-		total += (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
-	if(sum_attacker_prov_values > 0)
-		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
+	if(beneficiary_potential_score_from_occupation > 0)
+		total +=
+			(float(beneficiary_score_from_occupation) * 100.0f)
+			/ float(beneficiary_potential_score_from_occupation);
+
+	if(against_beneficiary_potential_score_from_occupation > 0)
+		total -=
+			(float(against_beneficiary_score_from_occupation) * 100.0f)
+			/ float(against_beneficiary_potential_score_from_occupation);
 
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
-		if((wg.get_wargoal().get_added_by() == primary || is_pattacker || is_pdefender)
-			&& wg.get_wargoal().get_target_nation() == secondary) {
+		auto wargoal_is_added_by_beneficiary = wg.get_wargoal().get_added_by() == potential_beneficiary;
+		auto wargoal_is_added_by_target = wg.get_wargoal().get_added_by() == target;
+		auto wargoal_targets_beneficiary = wg.get_wargoal().get_target_nation() == potential_beneficiary;
+		auto wargoal_targets_target = wg.get_wargoal().get_target_nation() == target;
 
+		if(
+			(wargoal_is_added_by_beneficiary || beneficiary_is_war_leader) && wargoal_targets_target
+		) {
 			total += wg.get_wargoal().get_ticking_war_score();
-		} else if(wg.get_wargoal().get_added_by() == secondary
-			&& (wg.get_wargoal().get_target_nation() == primary || is_pattacker || is_pdefender)) {
-
+		} else if(
+			wargoal_is_added_by_target && (wargoal_targets_beneficiary || beneficiary_is_war_leader)
+		) {
 			total -= wg.get_wargoal().get_ticking_war_score();
-		} else if(wg.get_wargoal().get_added_by() == primary
-			&& (wg.get_wargoal().get_target_nation() == secondary || is_tpattacker || is_tpdefender)) {
-
+		} else if(
+			wargoal_is_added_by_beneficiary	&& (wargoal_targets_target || target_is_war_leader)
+		) {
 			total += wg.get_wargoal().get_ticking_war_score();
-		} else if((wg.get_wargoal().get_added_by() == secondary || is_tpattacker || is_tpdefender)
-			&& (wg.get_wargoal().get_target_nation() == primary)) {
-
+		} else if(
+			(wargoal_is_added_by_target || target_is_war_leader) && wargoal_targets_beneficiary
+		) {
 			total -= wg.get_wargoal().get_ticking_war_score();
 		}
 	}
 
-	auto d_cpc = state.world.nation_get_central_ports(secondary);
+	auto d_cpc = state.world.nation_get_central_ports(target);
 	int32_t d_blockaded_in_war = 0;
-	for(auto p : state.world.nation_get_province_ownership(secondary)) {
+	for(auto p : state.world.nation_get_province_ownership(target)) {
 		if(military::province_is_blockaded(state, p.get_province()) && !province::is_overseas(state, p.get_province().id)) {
 			for(auto v : state.world.province_get_navy_location(p.get_province().get_port_to())) {
 				if(!v.get_navy().get_is_retreating() && !v.get_navy().get_battle_from_navy_battle_participation()) {
 
-					if(is_pattacker) {
+					if(beneficiary_is_primary_attacker) {
 						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::attacker) {
 							++d_blockaded_in_war;
 							break; // out of inner loop
 						}
-					} else if(is_pdefender) {
+					} else if(beneficiary_is_primary_defender) {
 						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::defender) {
 							++d_blockaded_in_war;
 							break; // out of inner loop
 						}
 					} else {
-						if(v.get_navy().get_controller_from_navy_control() == primary) {
+						if(v.get_navy().get_controller_from_navy_control() == potential_beneficiary) {
 							++d_blockaded_in_war;
 							break; // out of inner loop
 						}
@@ -4550,22 +4589,22 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 	auto def_b_frac = std::clamp(d_cpc > 0 ? float(d_blockaded_in_war) / float(d_cpc) : 0.0f, 0.0f, 1.0f);
 
 	int32_t a_blockaded_in_war = 0;
-	for(auto p : state.world.nation_get_province_ownership(primary)) {
+	for(auto p : state.world.nation_get_province_ownership(potential_beneficiary)) {
 		if(military::province_is_blockaded(state, p.get_province()) && !province::is_overseas(state, p.get_province().id)) {
 			for(auto v : state.world.province_get_navy_location(p.get_province().get_port_to())) {
 				if(!v.get_navy().get_is_retreating() && !v.get_navy().get_battle_from_navy_battle_participation()) {
-					if(is_tpattacker) {
+					if(target_is_primary_attacker) {
 						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::attacker) {
 							++a_blockaded_in_war;
 							break; // out of inner loop
 						}
-					} else if(is_tpdefender) {
+					} else if(target_is_primary_defender) {
 						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::defender) {
 							++a_blockaded_in_war;
 							break; // out of inner loop
 						}
 					} else {
-						if(v.get_navy().get_controller_from_navy_control() == secondary) {
+						if(v.get_navy().get_controller_from_navy_control() == target) {
 							++a_blockaded_in_war;
 							break; // out of inner loop
 						}
@@ -4574,7 +4613,7 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 			}
 		}
 	}
-	auto a_cpc = state.world.nation_get_central_ports(primary);
+	auto a_cpc = state.world.nation_get_central_ports(potential_beneficiary);
 	auto att_b_frac = std::clamp(a_cpc > 0 ? float(a_blockaded_in_war) / float(a_cpc) : 0.0f, 0.0f, 1.0f);
 
 	total += 25.0f * (def_b_frac - att_b_frac);
