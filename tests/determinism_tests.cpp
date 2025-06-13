@@ -1570,6 +1570,22 @@ void checked_single_tick_advanced(sys::state& state1, sys::state& state2) {
 }
 
 
+void test_load_save(sys::state& state, uint8_t* ptr_in, uint32_t length) {
+
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	state.local_player_nation = dcon::nation_id{ };
+	// Then reload from network
+	state.reset_state();
+	read_save_section(ptr_in, ptr_in + length, state);
+	network::place_players_after_reload(state, players, old_local_player_nation);
+	state.fill_unsaved_data();
+}
+
+
 TEST_CASE("sim_none", "[determinism]") {
 	// Test that the game states are equal AFTER loading
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
@@ -1618,16 +1634,15 @@ TEST_CASE("sim_year", "[determinism]") {
 
 TEST_CASE("sim_game", "[determinism]") {
 	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
 
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
-	game_state_1->network_mode = sys::network_mode_type::host;
-	game_state_2->network_mode = sys::network_mode_type::client;
 
 	compare_game_states(*game_state_1, *game_state_2);
-
-	for(int i = 0; i <= 1000; i++) {
+	for(int i = 0; i <= 3650; i++) {
+		game_state_1->console_log(std::to_string(i));
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();
 		compare_game_states(*game_state_1, *game_state_2);
@@ -1636,31 +1651,32 @@ TEST_CASE("sim_game", "[determinism]") {
 // this one uses the slower, but more accurate checked tick
 TEST_CASE("sim_game_advanced", "[determinism]") {
 	// Test that the game states are equal after playing
-	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	static std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
 
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
-	game_state_1->network_mode = sys::network_mode_type::host;
-	game_state_2->network_mode = sys::network_mode_type::client;
+
 
 	compare_game_states(*game_state_1, *game_state_2);
 
 	for(int i = 0; i <= 400; i++) {
+		game_state_1->console_log(std::to_string(i));
 		checked_single_tick_advanced(*game_state_1, *game_state_2);
 		compare_game_states(*game_state_1, *game_state_2);
 	}
 }
 TEST_CASE("fill_unsaved_values_determinism", "[determinism]") {
 	// allocated statically untill crash fix is found
-	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
+	static std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
 
 	game_state_1->game_seed = 808080;
 
 
-	for(int i = 0; i <= 600; i++) {
+	for(int i = 0; i <= 800; i++) {
 
 
-
+		game_state_1->console_log(std::to_string(i));
 		game_state_1->single_game_tick();
 
 		auto before_key1 = game_state_1->get_save_checksum();
@@ -1672,4 +1688,45 @@ TEST_CASE("fill_unsaved_values_determinism", "[determinism]") {
 		REQUIRE(before_key1.to_string() == game_state_1->get_save_checksum().to_string());
 
 	}
+}
+
+TEST_CASE("sim_game_with_saveload", "[determinism]") {
+
+
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+	game_state_1->world.nation_set_is_player_controlled(dcon::nation_id{ 1 }, true);
+	game_state_1->world.nation_set_is_player_controlled(dcon::nation_id{ 2 }, true);
+	game_state_1->local_player_nation = dcon::nation_id{ 1 };
+
+	game_state_2->world.nation_set_is_player_controlled(dcon::nation_id{ 1 }, true);
+	game_state_2->world.nation_set_is_player_controlled(dcon::nation_id{ 2 }, true);
+	game_state_2->local_player_nation = dcon::nation_id{ 2 };
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+
+	// run the first gamestate for about a month
+	for(int i = 0; i <= 31; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+	}
+	// serialize the save and get both gamestates to reload it
+	auto length = sys::sizeof_save_section(*game_state_1);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	auto buffer_position = sys::write_save_section(buffer.get(), *game_state_1);
+
+	test_load_save(*game_state_1, buffer.get(), uint32_t(length));
+	test_load_save(*game_state_2, buffer.get(), uint32_t(length));
+
+	// run both gamestates
+	for(int i = 0; i <= 3650; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+
 }

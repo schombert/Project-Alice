@@ -14,6 +14,7 @@ struct province_tile {
 	dcon::commodity_id potential_commodity;
 	dcon::factory_id factory;
 	dcon::regiment_id regiment;
+	dcon::factory_construction_id factory_construction;
 	bool has_province_building = false;
 	economy::province_building_type province_building;
 };

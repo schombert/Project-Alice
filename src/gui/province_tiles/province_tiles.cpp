@@ -99,6 +99,15 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		curind++;
 	}
 
+	for(auto fc : state.world.in_factory_construction) {
+		if(fc.get_province() == p) {
+			tiles[curind].factory_construction = fc;
+			tiles[curind].empty = false;
+			tiles[curind].province = p;
+			curind++;
+		}
+	}
+
 	/*
 	* Since from province UI we can build factories, buildings, regiments, and ships. I don't think it'd be useful to duplicate them with "new" submenu.
 	if(curind < 64) {

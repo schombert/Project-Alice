@@ -293,6 +293,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 	}
 }
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
+	assert(e && "Potential invalid write incoming");
 	if(!state.world.provincial_event_get_name(e) && !state.world.provincial_event_get_immediate_effect(e) && !event_has_options(state, e))
 		return; // event without data
 	if(ft == slot_type::province)
@@ -363,6 +364,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 }
 void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi,
 		uint32_t r_lo) {
+	assert(e);
 	if(state.world.free_provincial_event_get_only_once(e) && state.world.free_provincial_event_get_has_been_triggered(e))
 		return;
 	if(!state.world.free_provincial_event_get_name(e) && !state.world.free_provincial_event_get_immediate_effect(e) && !event_has_options(state, e))

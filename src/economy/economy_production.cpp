@@ -379,9 +379,14 @@ float consume_labor(
 	assert(std::isfinite(target_workers_high_education));
 
 	// register demand for labor
-	state.world.province_get_labor_demand(labor_market, labor::no_education) += target_workers_no_education;
-	state.world.province_get_labor_demand(labor_market, labor::basic_education) += target_workers_basic_education;
-	state.world.province_get_labor_demand(labor_market, labor::high_education) += target_workers_high_education;
+	auto& no_edu_demand = state.world.province_get_labor_demand(labor_market, labor::no_education);
+	state.world.province_set_labor_demand(labor_market, labor::no_education, no_edu_demand + target_workers_no_education);
+
+	auto& basic_edu_demand = state.world.province_get_labor_demand(labor_market, labor::basic_education);
+	state.world.province_set_labor_demand(labor_market, labor::basic_education, basic_edu_demand + target_workers_basic_education);
+
+	auto& high_edu_demand = state.world.province_get_labor_demand(labor_market, labor::high_education);
+	state.world.province_set_labor_demand(labor_market, labor::high_education, high_edu_demand + target_workers_high_education);
 
 	assert(std::isfinite(state.world.province_get_labor_demand(labor_market, labor::no_education)));
 	assert(std::isfinite(state.world.province_get_labor_demand(labor_market, labor::basic_education)));
@@ -1197,6 +1202,10 @@ void update_artisan_production(sys::state& state) {
 		state.world.for_each_province([&](auto ids) {
 			auto production = state.world.province_get_artisan_actual_production(ids, cid);
 			auto sid = state.world.province_get_state_membership(ids);
+			// if the province has no valid state instance (eg uncolonized) then skip
+			if(!sid) {
+				return;
+			}
 			auto mid = state.world.state_instance_get_market_from_local_market(sid);
 			register_domestic_supply(state, mid, cid, production, economy_reason::artisan);
 		});
@@ -1277,7 +1286,8 @@ void update_rgo_consumption(
 		register_inputs_demand(state, m, e_inputs, demand_scale, economy_reason::rgo);
 		
 		auto target = state.world.province_get_rgo_target_employment(p, c);
-		state.world.province_get_labor_demand(p, labor::no_education) += target; //std::min(target, 100.f + workers * 1.1f);
+		auto& cur_labor_demand = state.world.province_get_labor_demand(p, labor::no_education);
+		state.world.province_set_labor_demand(p, labor::no_education, cur_labor_demand + target);
 		assert(std::isfinite(target));
 		assert(std::isfinite(state.world.province_get_labor_demand(p, labor::no_education)));
 
@@ -1291,12 +1301,12 @@ void update_rgo_consumption(
 			profit = amount * state.world.market_get_price(m, c);
 		}
 		assert(profit >= 0);
-		state.world.province_get_rgo_profit(p) += profit;
+		state.world.province_set_rgo_profit(p, state.world.province_get_rgo_profit(p) + profit);
 		auto wages = workers
 			* state.world.province_get_labor_price(p, labor::no_education);
 		auto spent_on_efficiency = demand_scale * e_inputs_data.total_cost * e_inputs_data.min_available;
 
-		state.world.province_get_rgo_profit(p) -= wages + spent_on_efficiency;
+		state.world.province_set_rgo_profit(p, state.world.province_get_rgo_profit(p) - wages + spent_on_efficiency);
 		state.world.province_set_rgo_output(p, c, amount);
 		state.world.province_set_rgo_output_per_worker(p, c, per_worker);
 	});
@@ -1323,10 +1333,10 @@ void update_province_rgo_production(
 				)
 				&& amount * state.defines.gold_to_cash_rate >= 0.0f
 			);
-			state.world.nation_get_stockpiles(n, money) +=
-				amount
+			auto& cur_money = state.world.nation_get_stockpiles(n, money);
+			state.world.nation_set_stockpiles(n, money, cur_money + amount
 				* state.defines.gold_to_cash_rate
-				* state.world.commodity_get_cost(c);
+				* state.world.commodity_get_cost(c));
 		}
 	});
 }
@@ -2064,7 +2074,9 @@ commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::na
 		efficiency_growth = efficiency_growth * e_inputs_data.min_available;
 	}
 	auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
-	state.world.province_set_rgo_efficiency(pid, c, new_efficiency);
+
+	// for some reason this was setting the rgo efficiency, even though this function is only called from the ui when creating a tooltip? Dosent make sense to me
+	/*state.world.province_set_rgo_efficiency(pid, c, new_efficiency);*/
 
 	auto workers = state.world.province_get_rgo_target_employment(pid, c)
 		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)
