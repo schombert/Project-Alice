@@ -2383,7 +2383,7 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 
 	text::add_line(state, contents, "provinceview_goodsincome", text::variable_type::goods, rgo_good.get_name(), text::variable_type::value,
 					text::fp_currency{ economy::rgo_income(state, c, prov_id) },
-		text::variable_type::x, text::fp_one_place{ economy::rgo_output(state, c, prov_id) });
+		text::variable_type::x, text::fp_two_places{ economy::rgo_output(state, c, prov_id) });
 
 	text::add_line(state, contents, "PROVINCEVIEW_EMPLOYMENT", text::variable_type::value, text::fp_two_places{ economy::rgo_employment(state, rgo_good, prov_id) });
 	text::add_line(state, contents, "provinceview_max_employment", text::variable_type::value, text::fp_two_places{ economy::rgo_max_employment(state, rgo_good, prov_id) });
