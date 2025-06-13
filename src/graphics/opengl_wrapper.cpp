@@ -1252,6 +1252,8 @@ GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_
 
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
 	glBindTexture(texture_type, texture_handle);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
 	if(filter == GL_LINEAR_MIPMAP_NEAREST || filter == GL_LINEAR_MIPMAP_LINEAR) {
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1260,12 +1262,12 @@ void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint fil
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
-	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
-	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
 	glBindTexture(texture_type, 0);
 }
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap_a, GLuint wrap_b) {
 	glBindTexture(texture_type, texture_handle);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap_a);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap_b);
 	if(filter == GL_LINEAR_MIPMAP_NEAREST || filter == GL_LINEAR_MIPMAP_LINEAR) {
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1274,8 +1276,6 @@ void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint fil
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
-	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap_a);
-	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap_b);
 	glBindTexture(texture_type, 0);
 }
 
