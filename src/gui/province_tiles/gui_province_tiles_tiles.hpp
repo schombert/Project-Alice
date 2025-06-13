@@ -387,7 +387,8 @@ public:
 		auto info = economy::explain_tax_income_local(state, n, target.province);
 
 		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
-		auto info = economy::explain_tax_income_local(state, n, target.province);
+		text::add_line_break_to_layout(state, contents);
+
 
 		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
 		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);
