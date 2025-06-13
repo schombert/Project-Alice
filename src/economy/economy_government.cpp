@@ -268,7 +268,8 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
-// Calculate employment of local administrations in the province
+// Calculate employment of local administrations in the province.
+// When using, check for capital administration separately
 float explain_administration_employment(sys::state& state, dcon::province_id p) {
 	auto n = state.world.province_get_nation_from_province_ownership(p);
 
