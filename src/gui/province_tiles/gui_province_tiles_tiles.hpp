@@ -245,7 +245,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto limit = state.world.province_get_factory_max_size(target.province, target.potential_commodity);
+		auto limit = state.world.province_get_factory_max_size(target.province, target.potential_commodity) / 10000.f;
 		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.potential_commodity),
 			text::variable_type::val, (int)limit);
 	}
@@ -387,12 +387,14 @@ public:
 		auto info = economy::explain_tax_income_local(state, n, target.province);
 
 		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
-		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential });
-		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential });
-		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential });
+		auto info = economy::explain_tax_income_local(state, n, target.province);
+
 		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
+		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);
 		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential }, 15);
 		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential }, 15);
 	}
 };
 

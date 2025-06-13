@@ -270,16 +270,15 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 
 // Calculate employment of local administrations in the province
 float explain_administration_employment(sys::state& state, dcon::province_id p) {
-	auto res = state.world.province_get_administration_employment_target(p) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
 	auto n = state.world.province_get_nation_from_province_ownership(p);
 
 	for(auto admin : state.world.nation_get_nation_administration(n)) {
 		if(admin.get_administration().get_capital() == p) {
-			res += admin.get_administration().get_desired_size() * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+			return state.world.province_get_administration_employment_target(p) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education_and_accepted);
 		}
 	}
 
-	return res;
+	return 0.f;
 }
 
 // Calculate employment of the capital administration
@@ -289,7 +288,7 @@ float explain_capital_administration_employment(sys::state& state, dcon::nation_
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 
 	auto target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
-	auto satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education);
+	auto satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education_and_accepted);
 
 	return target_employment * satisfaction;
 }
