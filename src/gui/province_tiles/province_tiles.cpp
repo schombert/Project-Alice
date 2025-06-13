@@ -14,12 +14,16 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 
 	int curind = 0;
 
+	bool administration_found = false;
+
 	// Capital administration is located in the nation capital
 	if(state.world.nation_get_capital(owner) == p) {
 		tiles[curind].capital_administration = true;
 		tiles[curind].empty = false;
 		tiles[curind].province = p;
 		curind++;
+
+		administration_found = true;
 	}
 
 	for(auto admin : state.world.nation_get_nation_administration(owner)) {
@@ -29,8 +33,18 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tiles[curind].empty = false;
 			tiles[curind].province = p;
 			curind++;
+
+			administration_found = true;
 			break;
 		}
+	}
+
+	// If there is no administration in the province, we display a tile with a small tax office.
+	if(!administration_found) {
+		tiles[curind].no_administration_tile = true;
+		tiles[curind].empty = false;
+		tiles[curind].province = p;
+		curind++;
 	}
 
 	// Market is located in the capital of the state instabce

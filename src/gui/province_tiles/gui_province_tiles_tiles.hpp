@@ -315,7 +315,7 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override {
-		return 17;
+		return 15;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
@@ -362,8 +362,7 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override {
-		// Perhaps a separate frame would be appropriate for capital admins
-		return 15;
+		return 17;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
@@ -383,6 +382,40 @@ public:
 		text::add_line(state, contents, "local_admin_wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 
 		text::add_line_break_to_layout(state, contents);
+
+		auto info = economy::explain_tax_income_local(state, n, target.province);
+
+		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
+		text::add_line_break_to_layout(state, contents);
+
+
+		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
+		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);
+		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential }, 15);
+		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential }, 15);
+	}
+};
+
+class no_administration_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("administration_tile");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 18;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
 
 		auto info = economy::explain_tax_income_local(state, n, target.province);
 
