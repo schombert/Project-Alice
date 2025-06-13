@@ -1178,6 +1178,10 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
+alice_factory_construction_cost;Construction cost:
+alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
+alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
+alice_factory_construction_explain_5;Progress: ?Y$x$?W
 alice_factory_input_item;?R$cost$?W - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce ?Y$x$?W
 alice_factory_total_bonus;This sums to about ?Y$x$?W

@@ -2943,6 +2943,10 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::tiles);
 	}
+
+	void on_create(sys::state& state) noexcept override {
+		frame = 1;
+	}
 };
 
 class province_economy_window : public window_element_base {
@@ -2955,9 +2959,7 @@ public:
 	window_element_base* rgo_headers = nullptr;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "toggle-economy-province") {
-			return make_element_by_type<economy_data_toggle>(state, id);
-		} else if(name == "table_rgo_data") {
+		if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
 				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_wages,
 				rgo_inputs, rgo_employment, rgo_max_employment, rgo_saturation
@@ -3074,27 +3076,6 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<province_subtab_toggle_signal>()) {
-			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
-
-			if(enum_val == province_subtab_toggle_signal::economy) {
-				if(rgo_bg->is_visible()) {
-					trade_table->set_visible(state, false);
-					trade_routes_bg->set_visible(state, false);
-					rgo_table->set_visible(state, false);
-					rgo_bg->set_visible(state, false);
-					rgo_headers->set_visible(state, false);
-				} else {
-					rgo_table->set_visible(state, true);
-					rgo_bg->set_visible(state, true);
-					rgo_headers->set_visible(state, true);
-				}
-			}
-			else if(enum_val == province_subtab_toggle_signal::tiles) {
-
-			}
-			return message_result::consumed;
-		}
 		return message_result::unseen;
 	}
 };
@@ -3165,6 +3146,8 @@ public:
 			auto ptr = make_element_by_type<province_economy_window>(state, id);
 			economy_window = ptr.get();
 			return ptr;
+		} if(name == "toggle-economy-province") {
+			return make_element_by_type<economy_data_toggle>(state, id);
 		} else if(name == "toggle-tiles-province") {
 			return make_element_by_type<province_tiles_toggle>(state, id);
 		} else {
@@ -3197,6 +3180,10 @@ public:
 			if(enum_val == province_subtab_toggle_signal::tiles) {
 				tiles_window->set_visible(state, !tiles_window->is_visible());
 			}
+			else if(enum_val == province_subtab_toggle_signal::economy) {
+				economy_window->set_visible(state, !economy_window->is_visible());
+			}
+
 			return message_result::consumed;
 		}
 		return message_result::unseen;

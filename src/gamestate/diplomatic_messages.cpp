@@ -210,7 +210,7 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 	}
 
 	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.cb, to, offer.target_nation, offer.state);
-	state.world.nation_get_infamy(from) += infamy;
+	state.world.nation_set_infamy(from, state.world.nation_get_infamy(from) + infamy);
 }
 
 bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace) {
