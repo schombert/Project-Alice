@@ -2386,6 +2386,14 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 		text::variable_type::x, text::fp_two_places{ economy::rgo_output(state, c, prov_id) });
 
 	text::add_line(state, contents, "PROVINCEVIEW_EMPLOYMENT", text::variable_type::value, text::fp_two_places{ economy::rgo_employment(state, rgo_good, prov_id) });
+	auto target_employment = state.world.province_get_rgo_target_employment(prov_id, rgo_good);
+	auto satisfaction = state.world.province_get_labor_demand_satisfaction(prov_id, economy::labor::no_education);
+	text::add_line(state, contents, "employment_type_no_education", 15);
+	text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+	text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
+	auto wage = state.world.province_get_labor_price(prov_id, economy::labor::no_education);
+	text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
+
 	text::add_line(state, contents, "provinceview_max_employment", text::variable_type::value, text::fp_two_places{ economy::rgo_max_employment(state, rgo_good, prov_id) });
 	{
 		auto box = text::open_layout_box(contents, 0);
@@ -2505,7 +2513,6 @@ inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& cont
 		);
 
 	float effective_production_scale = economy::factory_total_employment_score(state, fid);
-
 	auto amount = (0.75f + 0.25f * e_inputs_data.min_available) * inputs_data.min_available * effective_production_scale;
 
 	text::add_line(state, contents, state.world.factory_type_get_name(type));
@@ -2513,47 +2520,69 @@ inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& cont
 	text::add_line_break_to_layout(state, contents);
 
 	text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{ amount });
+	text::add_line(state, contents, "factory_stats_2", text::variable_type::val, text::fp_percentage{ effective_production_scale });
 
-	text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
-			text::fp_percentage{ economy::factory_total_employment_score(state, fid) });
+	auto employment = economy::factory_total_employment(state, fid);
+	auto target_employment = economy::factory_total_desired_employment(state, fid);
+	auto profit_explanation = economy::explain_last_factory_profit(state, fid);
 
-	text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
-			text::fp_one_place{ state.world.factory_get_output(fid) }, text::variable_type::x, type.get_output().get_name());
+	text::add_line(state, contents, "factory_employment", text::variable_type::value, text::fp_one_place{ employment });
+	text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+	text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ -profit_explanation.wages }, 15);
 
-	auto profit_explantion = economy::explain_last_factory_profit(state, fid);
+	{
+		auto ftte = state.world.factory_get_unqualified_employment(fid);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::no_education);
+		auto wage = state.world.province_get_labor_price(p, economy::labor::no_education);
+
+		text::add_line(state, contents, "employment_type_no_education", 30);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
+	}
+	{
+		auto ftte = state.world.factory_get_primary_employment(fid);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::basic_education);
+		auto wage = state.world.province_get_labor_price(p, economy::labor::basic_education);
+
+		text::add_line(state, contents, "employment_type_basic_education", 30);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
+	}
+	{
+		auto ftte = state.world.factory_get_secondary_employment(fid);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+		auto wage = state.world.province_get_labor_price(p, economy::labor::high_education);
+
+		text::add_line(state, contents, "employment_type_high_education", 30);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
+	}
+	
+	{
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.inputs }, text::text_color::red);
+		text::close_layout_box(contents, box);
+	}
+	{
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.maintenance }, text::text_color::red);
+		text::close_layout_box(contents, box);
+	}
+	{
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.expansion }, text::text_color::red);
+		text::close_layout_box(contents, box);
+	}
+	text::add_line(state, contents, "factory_stats_3",
+		text::variable_type::val, text::fp_one_place{ state.world.factory_get_output(fid) },
+		text::variable_type::good, type.get_output().get_name(),
+	text::variable_type::x, text::fp_currency{ profit_explanation.output });
 
 	text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
 		text::fp_currency{
-			profit_explantion.profit
+			profit_explanation.profit
 		}
 	);
-
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.inputs }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.maintenance }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.expansion }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.wages }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ profit_explantion.output }, text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
-
 
 	text::add_line_break_to_layout(state, contents);
 

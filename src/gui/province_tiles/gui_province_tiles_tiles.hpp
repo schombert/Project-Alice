@@ -328,11 +328,15 @@ public:
 
 		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration(state, n, budget_priority) });
 
-		auto employment = economy::explain_administration_employment(state, target.province);
-		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment }, 15);
-
+		auto employment = economy::explain_capital_administration_employment(state, n);
+		auto target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(target.province, economy::labor::high_education_and_accepted);
 		auto wage = state.world.province_get_labor_price(target.province, economy::labor::high_education_and_accepted);
-		text::add_line(state, contents, "local_admin_wage", text::variable_type::value, text::fp_one_place{ employment }, 15);
+		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment });
+		text::add_line(state, contents, "employment_type_high_education_and_accepted", 15);
+		text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 
 		text::add_line(state, contents, "local_admin_efficiency", text::variable_type::value, text::fp_percentage{ economy::local_administration_efficiency });
 
@@ -375,11 +379,18 @@ public:
 
 		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital(state, n, budget_priority) });
 
+		text::add_line_break_to_layout(state, contents);
+
 		auto employment = economy::explain_capital_administration_employment(state, n);
-		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment }, 15);
+		auto target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(target.province, economy::labor::high_education_and_accepted);
+		text::add_line(state, contents, "local_admin_employment", text::variable_type::value, text::fp_one_place{ employment });
+		text::add_line(state, contents, "employment_type_high_education_and_accepted", 15);
+		text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
 
 		auto wage = state.world.province_get_labor_price(target.province, economy::labor::high_education_and_accepted);
-		text::add_line(state, contents, "local_admin_wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 
 		text::add_line_break_to_layout(state, contents);
 

@@ -164,6 +164,7 @@ bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon:
 
 // abstract modifiers
 float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
+float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
