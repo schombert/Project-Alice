@@ -750,8 +750,6 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_combat_stacking_damage_penalty, 0.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_globe_mean_radius_km, 6371.0) \
 
-
-
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3
 // of the nominal life needs value for themselves. If we assume that there is supposed to be enough grain in the world
