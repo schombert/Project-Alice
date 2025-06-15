@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "construction.hpp"
 
 namespace ui {
 
@@ -48,63 +49,20 @@ public:
 		auto container = retrieve<military_unit_info<T>>(state, parent);
 		if(std::holds_alternative<dcon::province_land_construction_id>(container)) {
 			auto c = std::get<dcon::province_land_construction_id>(container);
-
-			auto pop = state.world.province_land_construction_get_pop(c);
-			auto pid = state.world.pop_get_province_from_pop_location(pop);
-			float factor = economy::build_cost_multiplier(state, pid, false);
-
-			auto& goods = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].build_cost;
-			auto& cgoods = state.world.province_land_construction_get_purchased_goods(c);
-
-			float total = 0.0f;
-			float purchased = 0.0f;
-
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				if(goods.commodity_type[i]) {
-					auto box = text::open_layout_box(contents, 0);
-
-					auto cid = goods.commodity_type[i];
-					std::string padding = cid.index() < 10 ? "0" : "";
-					std::string description = "@$" + padding + std::to_string(cid.index());
-					text::add_unparsed_text_to_layout_box(state, contents, box, description);
-
-					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
-					text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
-					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factor });
-					text::close_layout_box(contents, box);
-				}
-			}
+			economy::build_land_unit_construction_tooltip(
+				state,
+				contents,
+				c
+			);
 		} else if(std::holds_alternative<dcon::province_naval_construction_id>(container)) {
 			auto c = std::get<dcon::province_naval_construction_id>(container);
 
 			auto pid = state.world.province_naval_construction_get_province(c);
-			float factor = economy::build_cost_multiplier(state, pid, false);
-
-			auto& goods = state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].build_cost;
-			auto& cgoods = state.world.province_naval_construction_get_purchased_goods(c);
-
-			float total = 0.0f;
-			float purchased = 0.0f;
-
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				if(goods.commodity_type[i]) {
-					auto box = text::open_layout_box(contents, 0);
-
-					auto cid = goods.commodity_type[i];
-					std::string padding = cid.index() < 10 ? "0" : "";
-					std::string description = "@$" + padding + std::to_string(cid.index());
-					text::add_unparsed_text_to_layout_box(state, contents, box, description);
-
-					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
-					text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-					text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
-					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-					text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factor });
-					text::close_layout_box(contents, box);
-				}
-			}
+			economy::build_naval_unit_construction_tooltip(
+				state,
+				contents,
+				c
+			);
 		}
 
 	}

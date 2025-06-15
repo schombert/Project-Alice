@@ -978,7 +978,7 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(state.network_mode == sys::network_mode_type::host) {
-			for(auto pl : state.network_state.clients) {
+			for(auto& pl : state.network_state.clients) {
 				if(!pl.is_active()) {
 					continue;
 				}

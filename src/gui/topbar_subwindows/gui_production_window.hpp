@@ -624,7 +624,11 @@ public:
 				float factory_mod = economy::factory_build_cost_multiplier(state, p.get_nation(), pid, p.get_is_pop_project());
 				auto owner = state.world.province_get_nation_from_province_ownership(pid);
 
-				auto goods = economy::calculate_factory_refit_goods_cost(state, owner, pid, nf.type, nf.target_type);
+				auto goods = economy::calculate_factory_upgrade_goods_cost(state, owner, pid, nf.type, p.get_is_pop_project());
+				if(nf.target_type) {
+					goods = economy::calculate_factory_refit_goods_cost(state, owner, pid, nf.type, nf.target_type);
+				}
+
 				auto& cgoods = p.get_purchased_goods();
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -1291,9 +1295,6 @@ public:
 			} else if(payload.holds_type<dcon::commodity_id>()) {
 				payload.emplace<dcon::commodity_id>(output_commodity);
 				return message_result::consumed;
-			} else if(payload.holds_type<dcon::province_id>()) {
-				payload.emplace<dcon::province_id>(state.world.factory_get_province_from_factory_location(content.id));
-				return message_result::consumed;
 			}
 		}
 		return message_result::unseen;
@@ -1439,7 +1440,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
 		// Disallow building in colonies unless define flag is set
 		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
-			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_in_colony(state, sid));
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
 		}
 
 		if(n == state.local_player_nation) {
@@ -1508,7 +1509,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
 		// Disallow building in colonies unless define flag is set
 		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
-			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_in_colony(state, sid));
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
 		}
 
 		if(n == state.local_player_nation) {

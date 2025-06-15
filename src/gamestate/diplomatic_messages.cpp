@@ -2,7 +2,11 @@
 #include "system_state.hpp"
 #include "commands.hpp"
 #include "nations.hpp"
-#include "ai.hpp"
+#include "ai_campaign.hpp"
+#include "ai_war.hpp"
+#include "ai_types.hpp"
+#include "ai_campaign_values.hpp"
+#include "ai_alliances.hpp"
 
 namespace diplomatic_message {
 
@@ -206,7 +210,7 @@ void add_to_crisis_with_offer(sys::state& state, dcon::nation_id from, dcon::nat
 	}
 
 	auto infamy = military::crisis_cb_addition_infamy_cost(state, offer.cb, to, offer.target_nation, offer.state);
-	state.world.nation_get_infamy(from) += infamy;
+	state.world.nation_set_infamy(from, state.world.nation_get_infamy(from) + infamy);
 }
 
 bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace) {
@@ -447,11 +451,11 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			if(overlord == m.from) {
 				return true; // Always accept overlord reorganizing states
 			}
-			static std::vector<dcon::state_instance_id> target_states;
-			ai::state_target_list(target_states, state, m.to, m.from);
-
+			auto target_states = ai::prepare_and_sort_list_of_desired_states(state, m.to, m.from);
 			for(auto sid : target_states) {
-				if(state.world.state_instance_get_definition(sid) == m.data.state) {
+				if(
+					state.world.state_instance_get_definition(sid.target) == m.data.state
+				) {
 					return true; // AI wants this state
 				}
 			}

@@ -2,7 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_production_enum.hpp"
-#include "ai.hpp"
+#include "ai_economy.hpp"
 #include "triggers.hpp"
 #include "construction.hpp"
 
@@ -185,12 +185,35 @@ public:
 		auto n = state.world.state_ownership_get_nation(state.world.state_instance_get_state_ownership(sid));
 		//
 		text::add_line(state, contents, "alice_factory_base_workforce", text::variable_type::x, state.world.factory_type_get_base_workforce(content));
-		//
+
+		// List factory type inputs
 		text::add_line(state, contents, "alice_factory_inputs");
 
 		auto s = retrieve<dcon::state_instance_id>(state, parent);
 
-		auto const& cset = state.world.factory_type_get_inputs(content);
+		auto const& iset = state.world.factory_type_get_inputs(content);
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+			if(iset.commodity_type[i] && iset.commodity_amounts[i] > 0.0f) {
+				auto amount = iset.commodity_amounts[i];
+				auto cid = iset.commodity_type[i];
+				auto price = economy::price(state, s, cid);
+
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ price });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ price * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		// List factory type construction costs
+		text::add_line(state, contents, "alice_factory_construction_cost");
+		auto const& cset = state.world.factory_type_get_construction_costs(content);
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 			if(cset.commodity_type[i] && cset.commodity_amounts[i] > 0.0f) {
 				auto amount = cset.commodity_amounts[i];
@@ -207,6 +230,7 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
+		text::add_line_break_to_layout(state, contents);
 		//
 		float sum = 0.f;
 		if(auto b1 = state.world.factory_type_get_bonus_1_trigger(content); b1) {

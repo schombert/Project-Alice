@@ -21,8 +21,10 @@
 #define NATIVE_SEP "/"
 #endif
 
-std::unique_ptr<sys::state> load_testing_scenario_file() {
+std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mode = sys::network_mode_type::single_player) {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
+
+	game_state->network_mode = mode;
 
 	add_root(game_state->common_fs, NATIVE("."));        // for the moment this lets us find the shader files
 
@@ -51,6 +53,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 #include "defines_tests.cpp"
 #include "triggers_tests.cpp"
 #include "dcon_tests.cpp"
+#include "network_tests.cpp"
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
 	REQUIRE(1 + 1 == 2);

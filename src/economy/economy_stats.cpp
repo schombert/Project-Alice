@@ -1,5 +1,6 @@
 #include "demographics.hpp"
 #include "economy_stats.hpp"
+#include "economy_trade_routes.hpp"
 
 namespace economy {
 
@@ -33,8 +34,34 @@ void register_demand(
 	economy_reason reason
 ) {
 	assert(amount >= 0.f);
-	state.world.market_get_demand(s, commodity_type) += amount;
+	auto current = state.world.market_get_demand(s, commodity_type);
+	state.world.market_set_demand(s, commodity_type, current + amount);
 	assert(std::isfinite(state.world.market_get_demand(s, commodity_type)));
+}
+
+template<typename MARKETS>
+void t_register_demand(
+	sys::state& state,
+	MARKETS s,
+	dcon::commodity_id commodity_type,
+	ve::fp_vector amount,
+	economy_reason reason
+) {
+	ve::apply(
+		[](float amount) {
+			assert(std::isfinite(amount) && amount >= 0.f);
+		}, amount
+	);
+	state.world.market_set_demand(
+		s,
+		commodity_type,
+		state.world.market_get_demand(s, commodity_type) + amount
+	);
+	ve::apply(
+		[](float demand) {
+			assert(std::isfinite(demand) && demand >= 0.f);
+		}, state.world.market_get_demand(s, commodity_type)
+	);
 }
 
 void register_demand(
@@ -44,21 +71,7 @@ void register_demand(
 	ve::fp_vector amount,
 	economy_reason reason
 ) {
-	ve::apply(
-		[](float amount) {
-			assert(std::isfinite(amount) && amount >= 0.f);
-		}, amount
-	);
-	state.world.market_set_demand(
-		s,
-		commodity_type,
-		state.world.market_get_demand(s, commodity_type) + amount
-	);
-	ve::apply(
-		[](float demand) {
-			assert(std::isfinite(demand) && demand >= 0.f);
-		}, state.world.market_get_demand(s, commodity_type)
-			);
+	t_register_demand(state, s, commodity_type, amount, reason);
 }
 void register_demand(
 	sys::state& state,
@@ -67,21 +80,7 @@ void register_demand(
 	ve::fp_vector amount,
 	economy_reason reason
 ) {
-	ve::apply(
-		[](float amount) {
-			assert(std::isfinite(amount) && amount >= 0.f);
-		}, amount
-	);
-	state.world.market_set_demand(
-		s,
-		commodity_type,
-		state.world.market_get_demand(s, commodity_type) + amount
-	);
-	ve::apply(
-		[](float demand) {
-			assert(std::isfinite(demand) && demand >= 0.f);
-		}, state.world.market_get_demand(s, commodity_type)
-			);
+	t_register_demand(state, s, commodity_type, amount, reason);
 }
 void register_demand(
 	sys::state& state,
@@ -90,21 +89,7 @@ void register_demand(
 	ve::fp_vector amount,
 	economy_reason reason
 ) {
-	ve::apply(
-		[](float amount) {
-			assert(std::isfinite(amount) && amount >= 0.f);
-		}, amount
-	);
-	state.world.market_set_demand(
-		s,
-		commodity_type,
-		state.world.market_get_demand(s, commodity_type) + amount
-	);
-	ve::apply(
-		[](float demand) {
-			assert(std::isfinite(demand) && demand >= 0.f);
-		}, state.world.market_get_demand(s, commodity_type)
-			);
+	t_register_demand(state, s, commodity_type, amount, reason);
 }
 
 void register_intermediate_demand(
@@ -169,16 +154,20 @@ void register_intermediate_demand(
 	float amount,
 	economy_reason reason
 ) {
-	register_demand(state, s, c, amount, reason);
-	state.world.market_set_intermediate_demand(
-		s,
-		c,
-		state.world.market_get_intermediate_demand(s, c) + amount
-	);
-	auto local_price = price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
+	// check for market validity before writing data to it
+	if(s) {
+			register_demand(state, s, c, amount, reason);
+		state.world.market_set_intermediate_demand(
+			s,
+			c,
+			state.world.market_get_intermediate_demand(s, c) + amount
+		);
+		auto local_price = price(state, s, c);
+		auto median_price = state.world.commodity_get_median_price(c);
+		auto sat = state.world.market_get_demand_satisfaction(s, c);
+		state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
+	}
+	
 }
 
 void register_domestic_supply(
@@ -188,9 +177,9 @@ void register_domestic_supply(
 	float amount,
 	economy_reason reason
 ) {
-	state.world.market_get_supply(s, commodity_type) += amount;
+	state.world.market_set_supply(s, commodity_type, state.world.market_get_supply(s, commodity_type) + amount);
 	auto median_price = state.world.commodity_get_median_price(commodity_type);
-	state.world.market_get_gdp(s) += amount * median_price;
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) + amount * median_price);
 }
 
 void register_foreign_supply(
@@ -200,7 +189,7 @@ void register_foreign_supply(
 	float amount,
 	economy_reason reason
 ) {
-	state.world.market_get_supply(s, commodity_type) += amount;
+	state.world.market_set_supply(s, commodity_type, state.world.market_get_supply(s, commodity_type) + amount);
 }
 
 template<typename T>
@@ -638,12 +627,49 @@ ve::fp_vector ve_market_speculation_budget(
 	return market_speculation_budget<ve::tagged_vector<dcon::market_id>>(state, m, c);
 }
 
+float stockpile_target_speculation(
+	sys::state const& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+) {
+	return std::max(0.f, market_speculation_budget(state, m, c) / (price(state, m, c) + 0.001f) - 0.5f);
+}
+template<typename M>
+ve::fp_vector stockpile_target_speculation(
+	sys::state const& state,
+	M m,
+	dcon::commodity_id c
+) {
+	return ve::max(0.f, market_speculation_budget(state, m, c) / (ve_price(state, m, c) + 0.001f) - 0.5f);
+}
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return stockpile_target_speculation<ve::contiguous_tags<dcon::market_id>>(state, m, c);
+}
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::partial_contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return stockpile_target_speculation<ve::partial_contiguous_tags<dcon::market_id>>(state, m, c);
+}
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::tagged_vector<dcon::market_id> m,
+	dcon::commodity_id c
+) {
+	return stockpile_target_speculation<ve::tagged_vector<dcon::market_id>>(state, m, c);
+}
+
 float trade_supply(sys::state& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f);
+	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
@@ -653,7 +679,6 @@ float trade_supply(sys::state& state,
 	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
 	return result;
 }
-
 
 float trade_supply(sys::state& state,
 	dcon::nation_id n,
@@ -673,7 +698,7 @@ float trade_demand(sys::state& state,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = market_speculation_budget(state, m, c) / (price(state, m, c) + 1.f);
+	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
@@ -1071,6 +1096,17 @@ bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_typ
 		}
 	}
 	return false;
+}
+
+float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m) {
+	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n, m));
+	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_import(n)) / 100.0f;
+	return std::max(r, 0.0f);
+}
+float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m) {
+	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n, m));
+	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_export(n)) / 100.0f;
+	return std::max(r, 0.0f);
 }
 
 }

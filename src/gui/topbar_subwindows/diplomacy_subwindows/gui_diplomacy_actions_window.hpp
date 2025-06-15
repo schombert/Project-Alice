@@ -2,7 +2,8 @@
 
 #include "gui_element_types.hpp"
 #include "military.hpp"
-#include "ai.hpp"
+#include "ai_campaign_values.hpp"
+#include "ai_alliances.hpp"
 
 namespace ui {
 

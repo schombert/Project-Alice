@@ -14,9 +14,11 @@
 #include "gui_build_unit_large_window.hpp"
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
+#include "gui_province_tiles_window.hpp"
+#include "construction.hpp"
+#include "economy_trade_routes.hpp"
 
 namespace ui {
-
 
 class land_rally_point : public button_element_base {
 public:
@@ -1692,6 +1694,10 @@ public:
 
 class province_army_progress : public progress_bar {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		progress = 0.f;
 		float amount = 0.f;
@@ -1701,12 +1707,13 @@ public:
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 				auto lcs = pop.get_pop().get_province_land_construction();
 				for(const auto lc : lcs) {
+					auto details = economy::explain_land_unit_construction(state, lc);
 					auto& base_cost = state.military_definitions.unit_base_definitions[lc.get_type()].build_cost;
 					auto& current_purchased = lc.get_purchased_goods();
 					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 						if(base_cost.commodity_type[i]) {
 							amount += current_purchased.commodity_amounts[i];
-							total += base_cost.commodity_amounts[i];
+							total += base_cost.commodity_amounts[i] * details.cost_multiplier;
 						} else {
 							break;
 						}
@@ -1718,9 +1725,25 @@ public:
 			progress = amount / total;
 		}
 	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(auto pop : dcon::fatten(state.world, p).get_pop_location()) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				auto lcs = pop.get_pop().get_province_land_construction();
+				for(const auto lc : lcs) {
+					economy::build_land_unit_construction_tooltip(state, contents, lc.id);
+				}
+			}
+		}
+	}
 };
 class province_navy_progress : public progress_bar {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		progress = 0.f;
 		float amount = 0.f;
@@ -1731,9 +1754,10 @@ public:
 			auto& base_cost = state.military_definitions.unit_base_definitions[nc.get_type()].build_cost;
 			auto& current_purchased = nc.get_purchased_goods();
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				auto details = economy::explain_naval_unit_construction(state, nc);
 				if(base_cost.commodity_type[i]) {
 					amount += current_purchased.commodity_amounts[i];
-					total += base_cost.commodity_amounts[i];
+					total += base_cost.commodity_amounts[i] * details.cost_multiplier;
 				} else {
 					break;
 				}
@@ -1741,6 +1765,14 @@ public:
 		}
 		if(total > 0.f) {
 			progress = amount / total;
+		}
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto ncs = state.world.province_get_province_naval_construction(p);
+		for(auto nc : ncs) {
+			economy::build_naval_unit_construction_tooltip(state, contents, nc.id);
 		}
 	}
 };
@@ -2571,7 +2603,19 @@ inline table::column<dcon::trade_route_id> trade_route_5 = {
 		}
 
 		return text::format_float(dcon::fatten(state.world, item).get_volume(retrieve<dcon::commodity_id>(state, container)) * (float(index) - 0.5f) * 2.f);
-	}
+	},
+	.update_tooltip = [](
+		sys::state& state,
+		element_base* container,
+		text::columnar_layout& contents,
+		const dcon::trade_route_id& a,
+		std::string fallback
+	) {
+		auto c = retrieve<dcon::commodity_id>(state, container);
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		economy::make_trade_volume_tooltip(state, contents, a, c, local_market);
+	},
+	.has_tooltip = true,
 };
 
 inline table::column<dcon::trade_route_id> trade_route_6 = {
@@ -2881,12 +2925,27 @@ inline table::column<dcon::commodity_id> rgo_saturation = {
 	}
 };
 
-struct province_economy_toggle_signal { };
+enum province_subtab_toggle_signal {
+	economy = 1,
+	tiles = 2
+};
+
 
 class economy_data_toggle : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		send<province_economy_toggle_signal>(state, parent, { });
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::economy);
+	}
+};
+
+class province_tiles_toggle : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::tiles);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		frame = 1;
 	}
 };
 
@@ -2900,9 +2959,7 @@ public:
 	window_element_base* rgo_headers = nullptr;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "toggle-economy-province") {
-			return make_element_by_type<economy_data_toggle>(state, id);
-		}else if(name == "table_rgo_data") {
+		if(name == "table_rgo_data") {
 			std::vector<table::column<dcon::commodity_id>> columns = {
 				rgo_name, rgo_price, rgo_amount, rgo_profit, rgo_wages,
 				rgo_inputs, rgo_employment, rgo_max_employment, rgo_saturation
@@ -3019,20 +3076,6 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<province_economy_toggle_signal>()) {
-			if(rgo_bg->is_visible()) {
-				trade_table->set_visible(state, false);
-				trade_routes_bg->set_visible(state, false);
-				rgo_table->set_visible(state, false);
-				rgo_bg->set_visible(state, false);
-				rgo_headers->set_visible(state, false);
-			} else {
-				rgo_table->set_visible(state, true);
-				rgo_bg->set_visible(state, true);
-				rgo_headers->set_visible(state, true);
-			}
-			return message_result::consumed;
-		}
 		return message_result::unseen;
 	}
 };
@@ -3047,6 +3090,7 @@ private:
 	province_window_colony* colony_window = nullptr;
 	province_economy_window* economy_window = nullptr;
 	element_base* nf_win = nullptr;
+	element_base* tiles_window = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -3057,6 +3101,11 @@ public:
 		auto ptr = make_element_by_type<build_unit_province_window>(state, "build_unit_view");
 		state.ui_state.build_province_unit_window = ptr.get();
 		add_child_to_front(std::move(ptr));
+
+		auto ptr2 = make_element_by_type<province_tiles_window>(state, "province_tiles_window");
+		tiles_window = ptr2.get();
+		tiles_window->set_visible(state, false);
+		add_child_to_front(std::move(ptr2));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -3097,6 +3146,10 @@ public:
 			auto ptr = make_element_by_type<province_economy_window>(state, id);
 			economy_window = ptr.get();
 			return ptr;
+		} if(name == "toggle-economy-province") {
+			return make_element_by_type<economy_data_toggle>(state, id);
+		} else if(name == "toggle-tiles-province") {
+			return make_element_by_type<province_tiles_toggle>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -3121,10 +3174,21 @@ public:
 			dcon::market_id mid = dcon::fatten(state.world, active_province).get_state_membership().get_market_from_local_market();
 			payload.emplace<dcon::market_id>(mid);
 			return message_result::consumed;
+		} else if (payload.holds_type<province_subtab_toggle_signal>()) {
+			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
+
+			if(enum_val == province_subtab_toggle_signal::tiles) {
+				tiles_window->set_visible(state, !tiles_window->is_visible());
+			}
+			else if(enum_val == province_subtab_toggle_signal::economy) {
+				economy_window->set_visible(state, !economy_window->is_visible());
+			}
+
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
-
+	
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;

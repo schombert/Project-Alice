@@ -307,6 +307,12 @@ a_railroad;a railroad
 a_fort;a fort
 a_naval_base;a naval base
 a_factory;a factory
+build_factory;Build factory
+upgrade_factory;Upgrade factory
+build_province_building;Build province building
+resource_potential;Resource potential
+available_potential;Local resources allow ?Y$val$?W levels of buildings producing $what$
+factory_level;Factory level ?Y$val$
 empty;unowned
 blockaded;blockaded
 national_modifier;national modifier
@@ -1029,6 +1035,7 @@ tech_year_tt;?G$x$?! from the current year
 disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
 alice_play_save_stream;Host is streaming a save to you, wait until it completes
+alice_no_start_game_player_loading;Cannot start the game while players are loading
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
@@ -1171,6 +1178,10 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
+alice_factory_construction_cost;Construction cost:
+alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
+alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
+alice_factory_construction_explain_5;Progress: ?Y$x$?W
 alice_factory_input_item;?R$cost$?W - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce ?Y$x$?W
 alice_factory_total_bonus;This sums to about ?Y$x$?W
@@ -1180,6 +1191,7 @@ explain_colonial_points;Secondary and Great Powers accumulate colonial points.
 alice_lobby_back;Back to lobby
 alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
+alice_lobby_back_player_loading;You may not go back to the lobby while players are loading
 reopen_with_tab;You can reopen this window with ?YTAB?W
 alice_topbar_tab_1;Open or close this tab
 alice_topbar_tab_2;Open or close the population tab
@@ -1299,8 +1311,10 @@ alice_pnt_dominant_religion;?YDominant religion:?! $x$
 alice_pnt_dominant_ideology;?YDominant Ideology:?! $x$
 ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
+ledger_inflation_adjusted_gdp;GDP(inflation-adjusted)
+ledger_inflation_adjusted_gdp_per_capita;GDP(inflation-adjusted) per 1m people
 ledger_standard_of_living;Standard of Living
-alice_ledger_header_gdp_history;GDP(PPP) over time
+alice_ledger_header_gdp_history;GDP(inflation-adjusted) over time
 alice_countryalert_colonialgood_start;You can colonize $region$
 alice_overseas_mil_description;Overseas militancy
 alice_armygroup_go_to_selection;Add/remove units
@@ -1358,6 +1372,10 @@ rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
 topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
+provinceview_goodsprofit;With Profit of: ?Y$value$
+provinceview_max_employment;Potential max employment: ?Y$value$
+province_rgo_efficiency_inputs;Efficiency inputs:
+province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
 rgo_output;Output
 rgo_profit;Total
 rgo_expected_profit;Actual
@@ -1389,10 +1407,15 @@ transportaion_loss;Goods lost in transportation: ?Y$val$
 payment_per_unit;Buyer paid per unit: ?Y$val$
 payment_received_per_unit;Seller got per unit: ?Y$val$
 merchants_received_per_unit;Seller merchants profit per unit: ?Y$val$
+trade_route_volume_profit_score;Profit score: ?Y$val$?W (Profit ?Y$x$?W divided by import price ?Y$y$?W)
+trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?Y$x$?W times profit score)
+trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
+trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
+trade_route_volume_final_change;Expected change: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
-investment_pool_income_2;Transfer from subject $country$: ?G$x$W
-investment_pool_income_3;Government domestic investment: ?G$x$W
+investment_pool_income_2;Transfer from subject $country$: ?G$x$?W
+investment_pool_income_3;Government domestic investment: ?G$x$?W
 investment_pool_spending_1;"Incentives" spending: ?R$x$?W
 investment_pool_spending_2;Construction spending: ?R$x$?W
 investment_pool_spending_3;Transfer to subjects: ?R$x$?W
@@ -1522,3 +1545,11 @@ pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
 alice_unit_target;===> $x$
+alice_lobby_resync;Resync lobby
+alice_lobby_resync_players_loading;Cannot resync when players are loading
+alice_lobby_resync_no_oos;No one is OOS
+alice_lobby_resync_not_host;Only the host may resync
+alice_host_has_resync;Host has resynced the lobby
+alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
+alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
+alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.

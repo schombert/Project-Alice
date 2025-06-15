@@ -1040,7 +1040,7 @@ alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
 alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去?Y列强?W地位！
 alice_mil_decay_description;自然衰减?G-$x$
 alice_con_decay_description;自然衰减?R-$x$
-x_from_y;$culture$ $x$来自$y$
+x_from_y;?Y$culture$?W $x$ 来自 ?Y$y$?W
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
 alice_domestic_investment_button;不推荐投资单个项目，请改用预算屏幕上的国内投资滑块
@@ -1210,7 +1210,7 @@ CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援�
 CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
 CANCEL_WARSUBSIDIES_BUTTON;取消援助
 ledger_standard_of_living;生活条件
-alice_ledger_header_gdp_history;购买力平价GDP历史
+alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
@@ -1516,3 +1516,25 @@ nation_id;爱丽丝 国家 ID
 province_colonisation_temperature;地区移民热度：?R$val$?W
 alice_unit_target;===> $x$
 change_factory_limit_by;将 $good$ 工厂 潜力 改为 $value$
+build_factory;建造工厂
+upgrade_factory;升级工厂
+build_province_building;建造省份工厂
+resource_potential;潜在资源
+available_potential;本地资源允许 ?Y$val$?W 生产等级于 $what$ 建筑
+factory_level;工厂等级 ?Y$val$
+provinceview_goodsprofit;利润：?Y$value$
+provinceview_max_employment;可能最多雇工数：?Y$value$
+province_rgo_efficiency_inputs;效率输入：
+province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
+factory_condition_8;殖民地允许的工厂类型
+alice_has_possible_units;可以建造一些单位。
+CANBUILD_FORCEDISARM;国家尚未解除武装。
+alice_naval_coordination_penalty;$x$ 因超过敌舰规模而受到 ?R$y$?W 的海军协调惩罚，使其目标选择减少了 ?R$val$?W 。
+alice_naval_coordination_bonus;$x$ 因低于敌舰规模而受到 ?R$y$?W 的海军协调加成，使其目标选择增加了 ?R$val$?W 。
+alice_naval_stacking_penalty;$x$ 因堆叠惩罚而受到 ?R$val$?W 的伤害倍增。
+alice_factory_construction_cost;施工成本：
+alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
+alice_factory_construction_explain_4;估计总价：?Y$x$?W
+alice_factory_construction_explain_5;进展：?Y$x$?W
+ledger_inflation_adjusted_gdp;GDP（通胀调整）添加注释 更多动作
+ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）

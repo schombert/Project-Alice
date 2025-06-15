@@ -427,6 +427,7 @@ public:
 		if(!utid)
 			return;
 		auto const& udef = state.military_definitions.unit_base_definitions[utid];
+		auto build_time_days = state.world.nation_get_unit_stats(state.local_player_nation, utid).build_time;
 		if(!content.continent) {
 			if(build_button) build_button->set_visible(state, true);
 			if(pop_size) pop_size->set_visible(state, true);
@@ -454,7 +455,7 @@ public:
 			if(unit_icon) unit_icon->frame = int32_t(udef.icon - 1);
 			//time_to_build
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::x, udef.build_time);
+			text::add_to_substitution_map(m, text::variable_type::x, build_time_days);
 			if(build_time) build_time->set_text(state, text::resolve_string_substitution(state, "unit_build_time", m));
 			//popsize
 			if(content.is_navy) {

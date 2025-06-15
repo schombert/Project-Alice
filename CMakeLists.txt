@@ -29,6 +29,13 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	${ALICE_CORE_SOURCES_LIST}
 	"src/ai/ai.cpp"
+	"src/ai/ai_campaign.cpp"
+	"src/ai/ai_campaign_values.cpp"
+	"src/ai/ai_focuses.cpp"
+	"src/ai/ai_influence.cpp"
+	"src/ai/ai_alliances.cpp"
+	"src/ai/ai_economy.cpp"
+	"src/ai/ai_war.cpp"
 	"src/common_types/blake2.cpp"
 	"src/common_types/date_interface.cpp"
 	"src/common_types/prng.cpp"
@@ -38,6 +45,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/economy/demographics.cpp"
 	"src/economy/economy_stats.cpp"
 	"src/economy/economy.cpp"
+	"src/economy/economy_trade_routes.cpp"
 	"src/economy/economy_government.cpp"
 	"src/economy/economy_production.cpp"
 	"src/economy/construction.cpp"
@@ -55,6 +63,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_leader_select.cpp"
 	"src/gui/gui_leader_tooltip.cpp"
 	"src/gui/gui_modifier_tooltips.cpp"
+	"src/gui/province_tiles/province_tiles.cpp"
 	"src/gui/gui_province_window.cpp"
 	"src/gui/gui_trigger_tooltips.cpp"
 	"src/gui/gui_error_window.cpp"
@@ -65,6 +74,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/immediate_mode.cpp"
 	"src/gui/economy_viewer.cpp"
 	"src/gui/unit_tooltip.cpp"
+	"src/gui/gui_context_window.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
 	"src/nations/nations.cpp"
@@ -212,6 +222,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/filesystem
 	${PROJECT_SOURCE_DIR}/src/gamestate
 	${PROJECT_SOURCE_DIR}/src/gui
+	${PROJECT_SOURCE_DIR}/src/gui/province_tiles
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/diplomacy_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows

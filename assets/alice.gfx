@@ -554,6 +554,7 @@ spriteTypes = {
     spriteType = {
         name = "button-economy-province"
         texturefile = "assets\\button-economy-province.png"
+        noOfFrames = 3
     }
     
     spriteType = {
@@ -625,5 +626,16 @@ spriteTypes = {
         name = "map-label"
         texturefile = "assets\\map-label.png"
         noOfFrames = 1
+	}
+
+	spriteType = {
+        name = "provincetilesbg"
+        texturefile = "assets\\provincetilesbg.png"
+        noOfFrames = 1
+	}
+	spriteType = {
+        name = "provincetiles"
+        texturefile = "assets\\provincetiles.png"
+        noOfFrames = 15
 	}
 }
