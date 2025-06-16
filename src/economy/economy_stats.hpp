@@ -381,6 +381,45 @@ trade_volume_data_detailed export_volume_detailed(
 	dcon::commodity_id c
 );
 
+struct tariff_data {
+	std::array<bool, 2> applies_tariff;
+	std::array<float, 2> export_tariff;
+	std::array<float, 2> import_tariff;
+
+	float distance;
+	float loss;
+	float base_distance_cost;
+	float workers_satisfaction;
+};
+
+struct trade_and_tariff {
+	dcon::market_id origin;
+	dcon::market_id target;
+
+	dcon::nation_id origin_nation;
+	dcon::nation_id target_nation;
+
+	float amount_origin;
+	float amount_target;
+
+	float tariff_origin;
+	float tariff_target;
+
+	float tariff_rate_origin;
+	float tariff_rate_target;
+
+	float price_origin;
+	float price_target;
+
+	float transport_cost;
+	float transportaion_loss;
+	float distance;
+
+	float payment_per_unit;
+	float payment_received_per_unit;
+};
+
+
 float import_volume(
 	sys::state& state,
 	dcon::market_id s,
@@ -417,4 +456,9 @@ bool has_factory(sys::state const&, dcon::state_instance_id);
 bool has_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 // checks existence of factory of given type in state (could be under construction)
 bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
+
+
+float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
+float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
+
 }

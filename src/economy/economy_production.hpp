@@ -16,8 +16,8 @@ inline constexpr float artisans_per_employment_unit = 10'000.f;
 inline constexpr float construction_units_to_maintenance_units = 0.0001f;
 inline constexpr float expansion_trigger = 0.8f;
 
-inline constexpr float rgo_profit_to_wage_bound = 0.1f;
-inline constexpr float factory_profit_to_wage_bound = 0.1f;
+inline constexpr float rgo_profit_to_wage_bound = 0.8f;
+inline constexpr float factory_profit_to_wage_bound = 2.f;
 
 struct ve_inputs_data {
 	ve::fp_vector min_available = 0.f;

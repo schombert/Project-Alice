@@ -16,6 +16,7 @@
 #include "nations_templates.hpp"
 #include "gui_province_tiles_window.hpp"
 #include "construction.hpp"
+#include "economy_trade_routes.hpp"
 
 namespace ui {
 
@@ -2602,7 +2603,19 @@ inline table::column<dcon::trade_route_id> trade_route_5 = {
 		}
 
 		return text::format_float(dcon::fatten(state.world, item).get_volume(retrieve<dcon::commodity_id>(state, container)) * (float(index) - 0.5f) * 2.f);
-	}
+	},
+	.update_tooltip = [](
+		sys::state& state,
+		element_base* container,
+		text::columnar_layout& contents,
+		const dcon::trade_route_id& a,
+		std::string fallback
+	) {
+		auto c = retrieve<dcon::commodity_id>(state, container);
+		auto local_market = retrieve<dcon::market_id>(state, container);
+		economy::make_trade_volume_tooltip(state, contents, a, c, local_market);
+	},
+	.has_tooltip = true,
 };
 
 inline table::column<dcon::trade_route_id> trade_route_6 = {
