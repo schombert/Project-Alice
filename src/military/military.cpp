@@ -2075,12 +2075,16 @@ float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_
 	return total * state.world.cb_type_get_break_truce_infamy_factor(t);
 }
 
+// Calculate victory points that a province P is worth in the nation N. Used for warscore, occupation rate.
+// This logic is duplicated in province_victory_points_text UI component
 int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	/*
-	All provinces have a base value of 1. For non colonial provinces: each level of naval base increases its value by 1. If it is
-	a state capital, its value increases by 1 for every factory in the state (factory level does not matter). Provinces get 1
-	point per fort level. This value is the doubled for non-overseas provinces where the owner has a core. It is then tripled for
-	the nation's capital province.
+	All provinces have a base value of 1.
+	For non colonial provinces: each level of naval base increases its value by 1.
+	Every fort level increases its value by 1.
+	If it is a state capital, its value increases by 1 for every factory in the state (factory level does not matter).
+	This value is the doubled for non-overseas provinces where the owner has a core.
+	It is then tripled for the nation's capital province.
 	*/
 	int32_t total = 1;
 	if(!state.world.province_get_is_colonial(p)) {
@@ -4288,6 +4292,8 @@ void update_ticking_war_score(sys::state& state) {
 		/*
 		#### Occupation score
 
+		Percentage occupied is the share of victory points in the country under occupation.
+
 		Increases by occupation-percentage x define:TWS_FULFILLED_SPEED (up to define:TWS_CB_LIMIT_DEFAULT) when the percentage
 		occupied is >= define:TWS_FULFILLED_IDLE_SPACE or when the occupation percentage is > 0 and the current occupation score
 		is negative. If there is no occupation, the score decreases by define:TWS_NOT_FULFILLED_SPEED. This can only take the
@@ -4295,24 +4301,27 @@ void update_ticking_war_score(sys::state& state) {
 		*/
 
 		auto bits = wg.get_type().get_type_bits();
+		static float score = 0;
 		if((bits & (cb_flag::po_annex | cb_flag::po_transfer_provinces | cb_flag::po_demand_state)) != 0) {
 			// Calculate occupations
-			float total_count = 0.0f;
+			float total_points = 0.0f;
 			float occupied = 0.0f;
 			if(wg.get_associated_state()) {
 				for(auto prv : wg.get_associated_state().get_abstract_state_membership()) {
 					if(prv.get_province().get_nation_from_province_ownership() == wg.get_target_nation()) {
-						++total_count;
+						score = (float) province_point_cost(state, prv.get_province(), wg.get_target_nation());
+						total_points += score;
 						if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
-							++occupied;
+							occupied += score;
 						}
 					}
 				}
 			} else if((bits & cb_flag::po_annex) != 0) {
 				for(auto prv : wg.get_target_nation().get_province_ownership()) {
-					++total_count;
+					score = (float)province_point_cost(state, prv.get_province(), wg.get_target_nation());
+					total_points += score;
 					if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
-						++occupied;
+						occupied += score;
 					}
 				}
 			} else if(auto allowed_states = wg.get_type().get_allowed_states(); allowed_states) {
@@ -4320,11 +4329,11 @@ void update_ticking_war_score(sys::state& state) {
 				bool is_lib = (bits & cb_flag::po_transfer_provinces) != 0;
 				for(auto st : wg.get_target_nation().get_state_ownership()) {
 					if(trigger::evaluate(state, allowed_states, trigger::to_generic(st.get_state().id), trigger::to_generic(wg.get_added_by().id), is_lib ? trigger::to_generic(from_slot) : trigger::to_generic(wg.get_added_by().id))) {
-
 						province::for_each_province_in_state_instance(state, st.get_state(), [&](dcon::province_id prv) {
-							++total_count;
+							score = (float)province_point_cost(state, prv, wg.get_target_nation());
+							total_points += score;
 							if(does_province_count_for_war_occupation(state, war, prv)) {
-								++occupied;
+								occupied += score;
 							}
 						});
 					}
@@ -4332,8 +4341,8 @@ void update_ticking_war_score(sys::state& state) {
 			}
 
 			// Adjust warscore based on occupation rates
-			if(total_count > 0.0f) {
-				float fraction = occupied / total_count;
+			if(total_points > 0.0f) {
+				float fraction = occupied / total_points;
 				if(fraction >= state.defines.tws_fulfilled_idle_space || (wg.get_ticking_war_score() < 0 && occupied > 0.0f)) {
 					wg.set_ticking_war_score(wg.get_ticking_war_score() + state.defines.tws_fulfilled_speed * fraction);
 				} else if(occupied == 0.0f) {

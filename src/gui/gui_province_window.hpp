@@ -631,6 +631,58 @@ public:
 	}
 };
 
+class province_victory_points_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		auto vp = military::province_point_cost(state, p, n);
+		set_text(state, text::format_wholenum(vp));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "province_victory_points");
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		text::add_line(state, contents, "province_victory_points_base");
+
+		if(!state.world.province_get_is_colonial(p)) {
+			auto nbsize = state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base));
+
+			if (nbsize > 0)
+				text::add_line(state, contents, "province_victory_points_nb", text::variable_type::x, nbsize);
+		}
+
+		auto fac_range = state.world.province_get_factory_location(p);
+		auto fcount = int32_t(fac_range.end() - fac_range.begin());
+
+		if (fcount > 0)
+			text::add_line(state, contents, "province_victory_points_fcount", text::variable_type::x, fcount);
+
+		auto fortsize = state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort));
+
+		if (fortsize > 0)
+			text::add_line(state, contents, "province_victory_points_fortsize", text::variable_type::x, fortsize);
+
+		auto owner_cap = state.world.nation_get_capital(n);
+		auto overseas = (state.world.province_get_continent(p) != state.world.province_get_continent(owner_cap)) &&
+			(state.world.province_get_connected_region_id(p) != state.world.province_get_connected_region_id(owner_cap));
+
+		if(state.world.province_get_is_owner_core(p) && !overseas) {
+			text::add_line(state, contents, "province_victory_points_mainlandcore");
+		}
+		if(state.world.nation_get_capital(n) == p) {
+			text::add_line(state, contents, "province_victory_points_capital");
+		}
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -677,6 +729,10 @@ public:
 			return make_element_by_type<province_move_capital_button>(state, id);
 		} else if(name == "alice_toggle_administration") {
 			return make_element_by_type<province_toggle_administration_button>(state, id);
+		} else if(name == "province_victory_points_icon") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "province_victory_points") {
+		return make_element_by_type<province_victory_points_text>(state, id);
 		} else if(name == "alice_take_province") {
 			return make_element_by_type<province_take_province_button>(state, id);
 		} else if(name == "alice_grant_province") {

@@ -4631,6 +4631,23 @@ guiTypes = {
 		quadTextureSprite = "GFX_take_province"	
 	}
 
+	iconType = {
+		name ="province_victory_points_icon"
+		extends = "province_view_header"
+		spriteType = "GFX_prestige_icon_2"
+		position = { x=125 y=43 }
+		Orientation = "UPPER_LEFT"
+	}
+	instantTextBoxType = {
+			name = "province_victory_points"
+			extends = "province_view_header"
+			position = { x=140 y =45}
+			borderSize = { 0 0}
+			maxsize = { 50 20 }
+			textureFile = ""
+			font = "vic_18"
+	}
+
 	instantTextBoxType = {
 			name = "ready_state"
 			extends = "ingame_multiplayer_entry"
