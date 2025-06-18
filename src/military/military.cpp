@@ -2367,7 +2367,7 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 	}
 
 	// Always available CBs cost zero infamy
-	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0) {
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
 		return 0.0f;
 	}
 
@@ -2381,6 +2381,27 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 		return cb_infamy(state, type, target, cb_state) * state.defines.gw_justify_cb_badboy_impact;
 	else
 		return cb_infamy(state, type, target, cb_state);
+}
+
+float war_declaration_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from,
+		dcon::nation_id target, dcon::state_definition_id cb_state) {
+	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::is_not_constructing_cb)) != 0) {
+		// not a constructible CB
+		return 0.0f;
+	}
+
+	// Always available CBs cost zero infamy
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
+		return 0.0f;
+	}
+
+	auto other_cbs = state.world.nation_get_available_cbs(from);
+	for(auto& cb : other_cbs) {
+		if(cb.target == target && cb.cb_type == type && cb_conditions_satisfied(state, from, target, cb.cb_type))
+			return 0.0f;
+	}
+
+	return cb_infamy(state, type, target, cb_state);
 }
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t) {
@@ -4275,6 +4296,7 @@ void update_ticking_war_score(sys::state& state) {
 
 		auto bits = wg.get_type().get_type_bits();
 		if((bits & (cb_flag::po_annex | cb_flag::po_transfer_provinces | cb_flag::po_demand_state)) != 0) {
+			// Calculate occupations
 			float total_count = 0.0f;
 			float occupied = 0.0f;
 			if(wg.get_associated_state()) {
@@ -4309,23 +4331,27 @@ void update_ticking_war_score(sys::state& state) {
 				}
 			}
 
+			// Adjust warscore based on occupation rates
 			if(total_count > 0.0f) {
 				float fraction = occupied / total_count;
 				if(fraction >= state.defines.tws_fulfilled_idle_space || (wg.get_ticking_war_score() < 0 && occupied > 0.0f)) {
 					wg.set_ticking_war_score(wg.get_ticking_war_score() + state.defines.tws_fulfilled_speed * fraction);
 				} else if(occupied == 0.0f) {
+					// Ticking warscore may go into negative only after grace period ends
+					// Ticking warscore may drop to zero before grace period ends
 					if(wg.get_ticking_war_score() > 0.0f || war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
 						wg.set_ticking_war_score(wg.get_ticking_war_score() - state.defines.tws_not_fulfilled_speed);
 					}
+					}
 				}
 			}
-		}
 
 		// Ticking warscope for make_puppet war
+		// If capital of the target nation is occupied - increase ticking warscore
+		// If any province of the target nation is occupied - no changes
+		// Otherwise, after grace period, decrease ticking warscore
 		if((bits & cb_flag::po_make_puppet) != 0 || (bits & cb_flag::po_make_substate) != 0) {
-
 			auto target = wg.get_target_nation().get_capital();
-
 			bool any_occupied = false;
 			for(auto prv : wg.get_target_nation().get_province_ownership()) {
 				if(!prv.get_province().get_is_colonial() && get_role(state, war, prv.get_province().get_nation_from_province_control()) == role) {
@@ -4337,7 +4363,10 @@ void update_ticking_war_score(sys::state& state) {
 				wg.set_ticking_war_score(wg.get_ticking_war_score() + state.defines.tws_fulfilled_speed);
 			} else if(any_occupied) {
 				// We hold some non-colonial province of the target, stay at zero
-			} else if(wg.get_ticking_war_score() > 0.0f || war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
+			}
+			// Ticking warscore may go into negative only after grace period ends
+			// Ticking warscore may drop to zero before grace period ends
+			else if(wg.get_ticking_war_score() > 0.0f || war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
 				wg.set_ticking_war_score(wg.get_ticking_war_score() - state.defines.tws_not_fulfilled_speed);
 			}
 		}
@@ -4374,8 +4403,9 @@ void update_ticking_war_score(sys::state& state) {
 				}
 			}
 		}
-		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag()) * 2.f;
 
+		// Ticking warscore may not be bigger than 2x the wargoal enforcement cost
+		auto max_score = peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag()) * 2.f;
 		wg.set_ticking_war_score(std::clamp(wg.get_ticking_war_score(), -float(max_score), float(max_score)));
 	}
 }
