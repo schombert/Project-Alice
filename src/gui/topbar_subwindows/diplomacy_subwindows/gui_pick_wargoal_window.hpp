@@ -221,16 +221,8 @@ public:
 				if(can_use) {
 					row_contents.push_back(cb);
 				}
-				else {
-					return a.id.index() < b.id.index();
-				}
-			});
-
-			for(auto el : cb_types) {
-				// Only constructable CBs
-				if (el.get_type_bits() && military::cb_flag::is_not_constructing_cb != 0)
-					row_contents.push_back(el);
 			}
+
 		}
 
 		update(state);

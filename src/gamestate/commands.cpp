@@ -3128,7 +3128,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 	}
 	// Infamy for war declaration when applicable
 	else {
-		auto cb_infamy = military::war_declaration_infamy_cost(state, primary_cb, target);
+		auto cb_infamy = military::war_declaration_infamy_cost(state, primary_cb, source, target, cb_state);
 		auto& current_infamy = state.world.nation_get_infamy(source);
 		state.world.nation_set_infamy(source, current_infamy + cb_infamy);
 	}
