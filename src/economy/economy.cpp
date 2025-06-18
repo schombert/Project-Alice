@@ -3100,14 +3100,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			total_demand = total_demand - new_saturation * total_demand;
 			total_supply = total_supply - new_saturation * total_demand;
 
-			if(c.value == 48) {
-				ve::apply(
-					[](float amount) {
-						assert(std::isfinite(amount) && amount == 0.f);
-					}, merchants_demand
-				);
-			}
-
 			// register demand from stockpiles to use in pricing
 			state.world.market_set_demand(ids, c, merchants_demand + state.world.market_get_demand(ids, c));
 #ifndef NDEBUG
