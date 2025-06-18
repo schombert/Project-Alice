@@ -30,8 +30,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 
 	switch(p.type) {
 		
-	case command_type::notify_start_game:
-	case command_type::notify_stop_game:
+	
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
 	case command_type::notify_player_picks_nation:
@@ -46,6 +45,15 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
+	case command_type::notify_start_game:
+	case command_type::notify_stop_game:
+		// do not allow starting or stopping the game whilst clients are loading!
+		if(state.network_state.num_client_loading == 0) {
+			break;
+		}
+		else {
+			return;
+		}
 	default:
 		// Normal commands are discarded iff we are not in the game, or if any other client is loading
 		if(!state.current_scene.game_in_progress || state.network_state.num_client_loading != 0)
@@ -5668,9 +5676,8 @@ void notify_reload(sys::state& state, dcon::nation_id source) {
 }
 void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
 	state.session_host_checksum = k;
-	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
-	   Additionally we will clear the new client sending queue, since the state is no longer
-	   "replayable" without heavy bandwidth costs */
+	// reload the save *locally* to ensure synch with the rest of the lobby. Primarily to update unsaved data.
+	// this only happens when a new player joins, or when a manual resync is initiated, and only for the clients which are already "in sync". If a new or oos'd client needs a fresh save, it will be provided as a save stream elsewhere.
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
@@ -5705,16 +5712,6 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + encodedchecksum);
 #endif
 	 
-	ui::chat_message m{};
-	m.source = source;
-	text::substitution_map sub{};
-
-	auto p = network::find_country_player(state, source);
-	auto nickname = state.world.mp_player_get_nickname(p);
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_player_reload", sub);
-	post_chat_message(state, m);
-
 	network::log_player_nations(state);
 }
 
