@@ -647,7 +647,39 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "province_victory_points");
-		// text::add_line(state, contents, "reform_movement_desc", text::variable_type::reform, state.world.issue_option_get_name(issue));
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		text::add_line(state, contents, "province_victory_points_base");
+
+		if(!state.world.province_get_is_colonial(p)) {
+			auto nbsize = state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base));
+
+			if (nbsize > 0)
+				text::add_line(state, contents, "province_victory_points_nb", text::variable_type::x, nbsize);
+		}
+
+		auto fac_range = state.world.province_get_factory_location(p);
+		auto fcount = int32_t(fac_range.end() - fac_range.begin());
+
+		if (fcount > 0)
+			text::add_line(state, contents, "province_victory_points_fcount", text::variable_type::x, fcount);
+
+		auto fortsize = state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort));
+
+		if (fortsize > 0)
+			text::add_line(state, contents, "province_victory_points_fortsize", text::variable_type::x, fortsize);
+
+		auto owner_cap = state.world.nation_get_capital(n);
+		auto overseas = (state.world.province_get_continent(p) != state.world.province_get_continent(owner_cap)) &&
+			(state.world.province_get_connected_region_id(p) != state.world.province_get_connected_region_id(owner_cap));
+
+		if(state.world.province_get_is_owner_core(p) && !overseas) {
+			text::add_line(state, contents, "province_victory_points_mainlandcore");
+		}
+		if(state.world.nation_get_capital(n) == p) {
+			text::add_line(state, contents, "province_victory_points_capital");
+		}
 	}
 };
 
