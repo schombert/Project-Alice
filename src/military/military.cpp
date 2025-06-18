@@ -2387,6 +2387,27 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 		return cb_infamy(state, type, target, cb_state);
 }
 
+float war_declaration_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from,
+		dcon::nation_id target, dcon::state_definition_id cb_state) {
+	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::is_not_constructing_cb)) != 0) {
+		// not a constructible CB
+		return 0.0f;
+	}
+
+	// Always available CBs cost zero infamy
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
+		return 0.0f;
+	}
+
+	auto other_cbs = state.world.nation_get_available_cbs(from);
+	for(auto& cb : other_cbs) {
+		if(cb.target == target && cb.cb_type == type && cb_conditions_satisfied(state, from, target, cb.cb_type))
+			return 0.0f;
+	}
+
+	return cb_infamy(state, type, target, cb_state);
+}
+
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t) {
 	auto allowed_nation = state.world.cb_type_get_allowed_countries(t);
 	return bool(allowed_nation);
