@@ -30,8 +30,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 
 	switch(p.type) {
 		
-	case command_type::notify_start_game:
-	case command_type::notify_stop_game:
+	
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
 	case command_type::notify_player_picks_nation:
@@ -46,6 +45,15 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
+	case command_type::notify_start_game:
+	case command_type::notify_stop_game:
+		// do not allow starting or stopping the game whilst clients are loading!
+		if(state.network_state.num_client_loading == 0) {
+			break;
+		}
+		else {
+			return;
+		}
 	default:
 		// Normal commands are discarded iff we are not in the game, or if any other client is loading
 		if(!state.current_scene.game_in_progress || state.network_state.num_client_loading != 0)

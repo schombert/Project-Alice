@@ -1632,9 +1632,9 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 				window::change_cursor(state, window::cursor_type::busy);
 				load_network_save(state, state.network_state.save_data.data());
+				auto mp_state_checksum = state.get_mp_state_checksum();
 
 #ifndef NDEBUG
-				auto mp_state_checksum = state.get_mp_state_checksum();
 				assert(mp_state_checksum.is_equal(state.session_host_checksum));
 				const auto noww = std::chrono::system_clock::now();
 				state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(mp_state_checksum.to_char()));
@@ -1646,7 +1646,12 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 				window::change_cursor(state, window::cursor_type::normal);
+				// check that the gamestates are equal after loading, otherwise out of sync.
+				if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
+					state.network_state.out_of_sync = true;
+				}
 				command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify that we are loaded and ready to start
+				
 			});
 			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_last_error_msg());
