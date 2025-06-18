@@ -3109,6 +3109,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 	if(state.world.overlord_get_ruler(target_ol_rel) && state.world.overlord_get_ruler(target_ol_rel) != source)
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
 
+	// Infamy, militancy and prestige loss for truce break
 	if(military::has_truce_with(state, source, real_target)) {
 		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb, target);
 		auto cb_militancy = military::truce_break_cb_militancy(state, primary_cb);
@@ -3124,6 +3125,12 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 				pop_demographics::set_militancy(state, pop.get_pop().id, std::min(mil + cb_militancy, 10.0f));
 			}
 		}
+	}
+	// Infamy for war declaration when applicable
+	else {
+		auto cb_infamy = military::war_declaration_infamy_cost(state, primary_cb, target);
+		auto& current_infamy = state.world.nation_get_infamy(source);
+		state.world.nation_set_infamy(source, current_infamy + cb_infamy);
 	}
 
 	// remove used cb

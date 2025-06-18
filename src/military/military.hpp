@@ -419,6 +419,8 @@ int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
 float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{}); // the fabrication cost in infamy
 
+float war_declaration_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from,
+		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of starting a war with a CB -- does NOT check if the CB is valid to add
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
 		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
 float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
