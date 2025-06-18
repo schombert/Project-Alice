@@ -1646,7 +1646,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 				window::change_cursor(state, window::cursor_type::normal);
-				// check that the gamestates are equal after loading, otherwise out of sync.
+				// check that the client gamestate is equal to the gamestate of the host, otherwise oos
 				if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
 					state.network_state.out_of_sync = true;
 				}

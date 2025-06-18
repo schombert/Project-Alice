@@ -629,10 +629,6 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
-			} else {
-				if(state.network_state.out_of_sync) { //can't start if oos
-					disabled = true;
-				}
 			}
 		}
 	}
@@ -668,9 +664,6 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
-			}
-			else if(state.network_state.out_of_sync) {
-				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
 			}
 			for(auto const& client : state.network_state.clients) {
 				if(client.is_active()) {
