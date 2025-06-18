@@ -49,6 +49,20 @@ public:
 
 		auto fat_id = dcon::fatten(state.world, content);
 		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
+
+		auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
+		bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, target, content) && [&]() {
+			if((state.world.cb_type_get_type_bits(content) & military::cb_flag::always) != 0) {
+				return true;
+			}
+			for(auto& fabbed : other_cbs) {
+				if(fabbed.cb_type == content && fabbed.target == target)
+					return true;
+			}
+			return false;
+			}();
+
+		disabled = !can_use;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -187,22 +201,50 @@ public:
 				}
 			}
 		} else { // this is a declare war action
+			// Display all CB types sorting available ones first
+			// Buttons for unavailable CB types will be disabled
 			auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
+			
+			std::vector<dcon::cb_type_fat_id> cb_types;
+
 			for(auto cb : state.world.in_cb_type) {
-				bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) && [&]() {
-					if((cb.get_type_bits() & military::cb_flag::always) != 0) {
+				cb_types.push_back(cb);
+			}
+
+			std::sort(cb_types.begin(), cb_types.end(), [&](dcon::cb_type_fat_id& a, dcon::cb_type_fat_id& b) {
+
+				bool can_use_a = military::cb_conditions_satisfied(state, state.local_player_nation, content, a) && [&]() {
+					if((a.get_type_bits() & military::cb_flag::always) != 0) {
 						return true;
 					}
 					for(auto& fabbed : other_cbs) {
-						if(fabbed.cb_type == cb && fabbed.target == content)
+						if(fabbed.cb_type == a && fabbed.target == content)
 							return true;
 					}
 					return false;
-				}();
+					}();
 
-				if(can_use) {
-					row_contents.push_back(cb);
+				bool can_use_b = military::cb_conditions_satisfied(state, state.local_player_nation, content, b) && [&]() {
+					if((b.get_type_bits() & military::cb_flag::always) != 0) {
+						return true;
+					}
+					for(auto& fabbed : other_cbs) {
+						if(fabbed.cb_type == b && fabbed.target == content)
+							return true;
+					}
+					return false;
+					}();
+
+				if(can_use_a != can_use_b) {
+					return can_use_a;
 				}
+				else {
+					return a.id.index() < b.id.index();
+				}
+			});
+
+			for(auto el : cb_types) {
+				row_contents.push_back(el);
 			}
 		}
 
