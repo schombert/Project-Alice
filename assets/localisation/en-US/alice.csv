@@ -955,6 +955,7 @@ alice_province_selector_on;ON
 alice_province_selector_off;OFF
 province_selector;Selector
 province_immigrator;Immigrator
+province_victory_points;Victory points represent relative worth of the province to other provinces in the country when calculating occupation score in wars.
 tt_a_bank;a bank
 tt_a_university;a university
 et_add_selector;enable province selector
