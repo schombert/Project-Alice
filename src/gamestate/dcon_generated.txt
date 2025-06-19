@@ -5775,7 +5775,7 @@ relationship{
 	link{
 		object{nation}
 		name{nation}
-		type{unique}
+		type{many}
 	}
 	link{
 		object{mp_player}

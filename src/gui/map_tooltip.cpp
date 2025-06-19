@@ -1212,23 +1212,33 @@ void players_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		auto n = state.world.province_get_nation_from_province_ownership(prov);
 		if(n) {
 			auto box = text::open_layout_box(contents);
+			
+			auto players = network::find_country_players(state, n);
 			text::substitution_map sub;
-
-			auto p = network::find_country_player(state, n);
-			auto nickname = state.world.mp_player_get_nickname(p);
-			text::add_to_substitution_map(sub, text::variable_type::x, sys::player_name{nickname }.to_string_view());
-			if(n == state.local_player_nation) {
-				if(state.network_mode == sys::network_mode_type::single_player) {
-					text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_you_sp"), sub);
+			for(auto player : players) {
+				sub.clear();
+				auto player_name = sys::player_name{ state.world.mp_player_get_nickname(player) }.to_string_view();
+				text::add_to_substitution_map(sub, text::variable_type::x, player_name);
+				if(state.world.mp_player_get_nickname(player) == state.network_state.nickname.data) {
+					if(state.network_mode == sys::network_mode_type::single_player) {
+						text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_you_sp"), sub);
+					} else {
+						text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_you"), sub);
+					}
 				} else {
-					text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_you"), sub);
+					text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34"), sub);
 				}
-			} else if(state.world.nation_get_is_player_controlled(n)) {
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
 			}
-			if(!state.world.nation_get_is_player_controlled(n)) {
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_ai"), sub);
+			if(players.empty()) {
+				if(state.world.nation_get_is_player_controlled(n)) {
+					text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_no_ai"), sub);
+				}
+				else {
+					text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_ai"), sub);
+				}			
 			}
+			
 			text::close_layout_box(contents, box);
 		}
 	}

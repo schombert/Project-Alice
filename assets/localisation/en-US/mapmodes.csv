@@ -95,6 +95,7 @@ mapmode_tooltip_34;Player: $x$
 mapmode_tooltip_34_you_sp;This is you! 
 mapmode_tooltip_34_you;Player: $x$ (This is you!) 
 mapmode_tooltip_34_ai;AI controlled
+mapmode_tooltip_35_no_ai;Not AI controlled
 mapmode_tooltip_35;Life needs satisfied: $x$
 mapmode_tooltip_36;Everyday needs satisfied: $x$
 mapmode_tooltip_37;Luxury needs satisfied: $x$

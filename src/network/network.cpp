@@ -513,8 +513,8 @@ void clear_socket(sys::state& state, client_data& client) {
 }
 
 static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
-	if(command::can_notify_player_leaves(state, client.playing_as, graceful)) {
-		command::notify_player_leaves(state, client.playing_as, graceful);
+	if(command::can_notify_player_leaves(state, client.playing_as, graceful, client.hshake_buffer.nickname)) {
+		command::notify_player_leaves(state, client.playing_as, graceful, client.hshake_buffer.nickname);
 	}
 #ifndef NDEBUG
 	state.console_log("server:disconnectclient | country:" + std::to_string(client.playing_as.index()));
@@ -668,7 +668,56 @@ static std::map<int, std::string> readableCommandTypes = {
 { 255,"console_command" },
 };
 
-dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos) {
+
+void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bool fully_loaded) {
+		state.world.mp_player_set_fully_loaded(player, fully_loaded);
+		state.network_state.clients_loading_state_changed.store(true);
+	
+}
+
+bool nation_has_any_players_on_it(sys::state& state, dcon::nation_id nation) {
+	auto iterator = state.world.nation_get_player_nation(nation);
+	if(iterator.begin() == iterator.end()) {
+		return false;
+	}
+	else {
+		return true;
+	}
+
+}
+
+bool check_any_players_loading(sys::state& state) {
+	if(state.network_state.clients_loading_state_changed.exchange(false)) {
+		for(auto player : state.world.in_mp_player) {
+			if(player && !player.get_fully_loaded()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	else {
+		return false;
+	}
+}
+
+void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai) {
+	auto current_nation = state.world.mp_player_get_nation_from_player_nation(player);
+	if(!state.world.mp_player_get_fully_loaded(player)) {
+		state.network_state.clients_loading_state_changed.store(true);
+	}
+	auto rel = state.world.mp_player_get_player_nation(player);
+	if(rel) {
+		state.world.delete_player_nation(rel);
+		// check if there are any other players on the nation, if so don't set it to ai
+		if(make_ai && !nation_has_any_players_on_it(state, current_nation)) {
+			state.world.nation_set_is_player_controlled(current_nation, false);
+		}
+	}
+	state.world.delete_mp_player(player);
+}
+
+
+dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos, dcon::nation_id nation_to_play) {
 	auto p = state.world.create_mp_player();
 	state.world.mp_player_set_nickname(p, name.data);
 
@@ -676,8 +725,12 @@ dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, s
 	auto hash = sys::player_password_hash{}.from_string_view(sha512.hash(password.to_string() + salt.to_string()));
 	state.world.mp_player_set_password_hash(p, hash.data);
 	state.world.mp_player_set_password_salt(p, salt.data);
-	state.world.mp_player_set_fully_loaded(p, fully_loaded);
+	mp_player_set_fully_loaded(state, p, fully_loaded);
 	state.world.mp_player_set_is_oos(p, is_oos);
+	if(nation_to_play) {
+		state.world.force_create_player_nation(nation_to_play, p);
+		state.world.nation_set_is_player_controlled(nation_to_play, true);
+	}
 
 	return p;
 }
@@ -710,8 +763,12 @@ dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name) {
 	return dcon::mp_player_id{};
 }
 
-dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation) {
-	return state.world.nation_get_mp_player_from_player_nation(nation);
+std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::nation_id nation) {
+	std::vector<dcon::mp_player_id> players;
+	for(auto p : state.world.nation_get_player_nation(nation)) {
+		players.push_back(p.get_mp_player());
+	}
+	return players;
 }
 
 // Reassign player to his previous nation if any
@@ -1006,26 +1063,39 @@ void notify_player_joins(sys::state& state, network::client_data& client, bool n
 }
 
 void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
-	for(const auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled()) {
+	for(const auto player : state.world.in_mp_player) {
 			// Tell new client about all other clients
-
+		if(!player) {
+			continue;
+		}
+		command::payload c;
+		memset(&c, 0, sizeof(c));
+		c.type = command::command_type::notify_player_joins;
+		c.source = state.world.mp_player_get_nation_from_player_nation(player);
+		auto nickname = state.world.mp_player_get_nickname(player);
+		c.data.notify_join.player_name = sys::player_name{ nickname };
+		// if the player in question is not fully loaded, tell the other clients they have to load first
+		c.data.notify_join.needs_loading = !state.world.mp_player_get_fully_loaded(player);
+		socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+#ifndef NDEBUG
+		const auto now = std::chrono::system_clock::now();
+		state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(state.world.mp_player_get_nation_from_player_nation(player).index())
+		+ " | nickname: " + c.data.notify_join.player_name.to_string());
+#endif
+		
+	}
+	// tell the new client about all no-ai countries which arent players
+	for(auto nation : state.world.in_nation) {
+		if(!nation) {
+			continue;
+		}
+		if(nation.get_is_player_controlled()) {
 			command::payload c;
 			memset(&c, 0, sizeof(c));
-			c.type = command::command_type::notify_player_joins;
-			c.source = n;
-			auto p = find_country_player(state, n);
-			assert(p);
-			auto nickname = state.world.mp_player_get_nickname(p);
-			c.data.notify_join.player_name = sys::player_name{ nickname };
-			// if the player in question is not fully loaded, tell the other clients they have to load first
-			c.data.notify_join.needs_loading = !state.world.mp_player_get_fully_loaded(p);
+			c.type = command::command_type::change_ai_nation_state;
+			c.source = nation;
+			c.data.change_ai_nation_state.no_ai = true;
 			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-#ifndef NDEBUG
-			const auto now = std::chrono::system_clock::now();
-			state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(n.id.index())
-			+ " | nickname: " + c.data.notify_join.player_name.to_string());
-#endif
 		}
 	}
 }
@@ -1338,13 +1408,14 @@ int server_process_commands(sys::state& state, network::client_data& client) {
 		case command::command_type::notify_pause_game:
 		case command::command_type::notify_player_joins:
 		case command::command_type::save_game:
+		case command::command_type::change_ai_nation_state:
 			break; // has to be valid/sendable by client
 		default:
 			/* Has to be from the nation of the client proper - and early
 			discard invalid commands, and no clients must be currently loading */
 			if(client.recv_buffer.source == client.playing_as
 			&& command::can_perform_command(state, client.recv_buffer)
-			&& state.network_state.num_client_loading == 0  ) {
+			&& !network::check_any_players_loading(state)) {
 				state.network_state.outgoing_commands.push(client.recv_buffer);
 			}
 			break;
@@ -1718,7 +1789,7 @@ void send_and_receive_commands(sys::state& state) {
 
 	if(command_executed) {
 		if(state.network_state.out_of_sync && !state.network_state.reported_oos) {
-			command::notify_player_oos(state, state.local_player_nation);
+			command::notify_player_oos(state, state.local_player_nation, state.network_state.nickname);
 			state.network_state.reported_oos = true;
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
@@ -1750,6 +1821,7 @@ void finish(sys::state& state, bool notify_host) {
 			c.type = command::command_type::notify_player_leaves;
 			c.source = state.local_player_nation;
 			c.data.notify_leave.make_ai = (state.host_settings.alice_place_ai_upon_disconnection == 1);
+			c.data.notify_leave.player_name = state.network_state.nickname;
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 			state.console_log("client:send:cmd | type:notify_player_leaves");
@@ -1773,20 +1845,13 @@ void finish(sys::state& state, bool notify_host) {
 void remove_player(sys::state& state, sys::player_name name) {
 	auto p = find_mp_player(state, name);
 	if(p) {
-
-		auto c = state.world.mp_player_get_nation_from_player_nation(p);
-
-		if(c) {
-			state.world.nation_set_is_player_controlled(c, false);
-		}
-		auto rel = state.world.mp_player_get_player_nation(p);
-		state.world.delete_player_nation(rel);
-		state.world.delete_mp_player(p);
+		delete_mp_player(state, p, true);
 	}
 }
 
 void kick_player(sys::state& state, client_data& client) {
 	socket_shutdown(client.socket_fd);
+
 
 	clear_socket(state, client);
 }
@@ -1794,7 +1859,6 @@ void kick_player(sys::state& state, client_data& client) {
 void ban_player(sys::state& state, client_data& client) {
 	socket_shutdown(client.socket_fd);
 
-	remove_player(state, client.hshake_buffer.nickname);
 
 	clear_socket(state, client);
 
@@ -1808,8 +1872,11 @@ void ban_player(sys::state& state, client_data& client) {
 }
 
 void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
-	auto p = find_country_player(state, old_n);
-	state.world.force_create_player_nation(new_n, p);
+	auto p = find_country_players(state, old_n);
+	// move ALL players which are on the current nation, to the new nation
+	for(auto player : p) {
+		state.world.force_create_player_nation(new_n, player);
+	}
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
@@ -1823,6 +1890,31 @@ void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old
 		write_player_nations(state);
 	}
 }
+void switch_mp_player_country(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player) {
+	assert(old_n == state.world.mp_player_get_nation_from_player_nation(player));
+	state.world.force_create_player_nation(new_n, player);
+	state.world.nation_set_is_player_controlled(new_n, true);
+	if(!nation_has_any_players_on_it(state, old_n)) {
+		state.world.nation_set_is_player_controlled(old_n, false);
+	}
+
+	if(state.network_mode == sys::network_mode_type::host) {
+		if(state.network_state.nickname.data != state.world.mp_player_get_nickname(player)) {
+			for(auto& client : state.network_state.clients) {
+				if(!client.is_active())
+					continue;
+				if(client.hshake_buffer.nickname.data == state.world.mp_player_get_nickname(player)) {
+					client.playing_as = new_n;
+					break;
+				}
+			}
+		}
+		
+
+		write_player_nations(state);
+	}
+}
+
 
 void place_host_player_after_saveload(sys::state& state) {
 	load_player_nations(state);
