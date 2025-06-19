@@ -178,10 +178,10 @@ public:
 		ui::clear_event_windows(state);
 
 		state.network_state.save_slock.lock();
-		std::vector<dcon::nation_id> players;
+		std::vector<dcon::nation_id> no_ai_nations;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
-				players.push_back(n);
+				no_ai_nations.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		/*state.preload();*/
 		/*state.render_semaphore.acquire();*/
@@ -230,7 +230,7 @@ public:
 				//network::place_host_player_after_saveload(state);
 
 				network::write_network_save(state);
-				network::place_players_after_reload(state, players, old_local_player_nation);
+				network::place_players_after_reload(state, no_ai_nations, old_local_player_nation);
 				state.fill_unsaved_data();
 				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 

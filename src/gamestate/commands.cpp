@@ -5702,10 +5702,10 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 
 	window::change_cursor(state, window::cursor_type::busy);
 	state.ui_lock.lock();
-	std::vector<dcon::nation_id> players;
+	std::vector<dcon::nation_id> no_ai_nations;
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
-			players.push_back(n);
+			no_ai_nations.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	/* Save the buffer before we fill the unsaved data */
 	size_t length = sizeof_save_section(state);
@@ -5715,7 +5715,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	/* Then reload as if we loaded the save data */
 	state.reset_state();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-	network::place_players_after_reload(state, players, old_local_player_nation);
+	network::place_players_after_reload(state, no_ai_nations, old_local_player_nation);
 	state.fill_unsaved_data();
 	state.ui_lock.unlock();
 	window::change_cursor(state, window::cursor_type::normal);

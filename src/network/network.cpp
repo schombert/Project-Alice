@@ -1102,10 +1102,10 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	state.ui_lock.lock();
-	std::vector<dcon::nation_id> players;
+	std::vector<dcon::nation_id> no_ai_nations;
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
-			players.push_back(n);
+			no_ai_nations.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{ };
 	// Then reload from network
@@ -1113,7 +1113,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
 	});
-	network::place_players_after_reload(state, players, old_local_player_nation);
+	network::place_players_after_reload(state, no_ai_nations, old_local_player_nation);
 	state.fill_unsaved_data();
 	state.ui_lock.unlock();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
