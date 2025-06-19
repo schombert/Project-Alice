@@ -1538,3 +1538,10 @@ alice_factory_construction_explain_4;估计总价：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
 ledger_inflation_adjusted_gdp;GDP（通胀调整）添加注释 更多动作
 ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
+province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
+province_victory_points_base;?G+1 基本分?W 添加注释 更多动作
+province_victory_points_nb;?G+$X$ 海军基地等级积分?W
+province_victory_points_fcount;?G+$X$ 工厂积分?W
+province_victory_points_fortsize;?G+$X$ 要塞积分?W
+province_victory_points_mainlandcore;?Gx2 非海外积分?W
+province_victory_points_capital;?Gx3 首都积分?W
