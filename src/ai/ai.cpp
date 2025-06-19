@@ -537,8 +537,7 @@ void build_ships(sys::state& state) {
 						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
 							&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 							assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_transport));
-							auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
-							c.set_type(best_transport);
+							command::execute_start_naval_unit_construction(state, n, owned_ports[j], best_transport);
 							constructing_fleet_cap += supply_pts;
 						}
 					}
@@ -551,8 +550,7 @@ void build_ships(sys::state& state) {
 						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
 							&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 							assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_transport));
-							auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
-							c.set_type(best_transport);
+							command::execute_start_naval_unit_construction(state, n, owned_ports[j], best_transport);
 							++num_transports;
 							constructing_fleet_cap += supply_pts;
 						}
@@ -577,8 +575,7 @@ void build_ships(sys::state& state) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
 						&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 						assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_light));
-						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
-						c.set_type(best_light);
+						command::execute_start_naval_unit_construction(state, n, owned_ports[j], best_light);
 						free_small_points -= supply_pts;
 					}
 				}
@@ -592,8 +589,7 @@ void build_ships(sys::state& state) {
 					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
 						&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 						assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_big));
-						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
-						c.set_type(best_big);
+						command::execute_start_naval_unit_construction(state, n, owned_ports[j], best_big);
 						free_big_points -= supply_pts;
 					}
 				}
@@ -2232,8 +2228,7 @@ void update_land_constructions(sys::state& state) {
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
-								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(t);
+								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
 							}
@@ -2255,8 +2250,7 @@ void update_land_constructions(sys::state& state) {
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
-								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(t);
+								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
 							}
@@ -2278,8 +2272,7 @@ void update_land_constructions(sys::state& state) {
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
-								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(t);
+								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
 							}

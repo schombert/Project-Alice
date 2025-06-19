@@ -5087,7 +5087,10 @@ float unit_construction_progress(sys::state& state, dcon::province_land_construc
 		purchased += cgoods.commodity_amounts[i];
 	}
 
-	return total > 0.0f ? purchased / total : 0.0f;
+	auto construction_time = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].build_time;
+	auto time_progress = (float) sys::days_difference(state.world.province_land_construction_get_start_date(c).to_ymd(state.start_date), state.current_date.to_ymd(state.start_date)) / (float) construction_time;
+	
+	return std::min(time_progress, purchased / total);
 }
 
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c) {
@@ -5163,7 +5166,8 @@ void change_factory_type_in_province(sys::state& state, dcon::province_id p, dco
 }
 
 void resolve_constructions(sys::state& state) {
-
+	// US1. Regiment construction
+	// US1AC7.
 	for(auto c : state.world.in_province_land_construction) {
 		auto pop = state.world.province_land_construction_get_pop(c);
 		auto province = state.world.pop_get_province_from_pop_location(pop);
@@ -5171,14 +5175,15 @@ void resolve_constructions(sys::state& state) {
 
 		auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
 		auto& current_purchased = c.get_purchased_goods();
-		float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+		auto construction_time = state.military_definitions.unit_base_definitions[c.get_type()].build_time;
 
-		bool all_finished = true;
+		// US1AC4. All goods costs must be built
+		bool ready_for_deployment = true;
 		if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_army)) {
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+			for(uint32_t j = 0; j < commodity_set::set_size && ready_for_deployment; ++j) {
 				if(base_cost.commodity_type[j]) {
 					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * cost_factor) {
-						all_finished = false;
+						ready_for_deployment = false;
 					}
 				} else {
 					break;
@@ -5186,7 +5191,14 @@ void resolve_constructions(sys::state& state) {
 			}
 		}
 
-		if(all_finished) {
+		// US1AC5. But no faster than construction_time
+		if(!state.cheat_data.instant_army) {
+			if(state.current_date < c.get_start_date() + construction_time) {
+				ready_for_deployment = false;
+			}
+		}
+
+		if(ready_for_deployment) {
 			auto pop_location = c.get_pop().get_province_from_pop_location();
 
 			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
@@ -5212,6 +5224,8 @@ void resolve_constructions(sys::state& state) {
 		}
 	}
 
+	// US2 Ships construction
+	// US2AC7
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto rng = state.world.province_get_province_naval_construction(p);
 		if(rng.begin() != rng.end()) {
@@ -5222,14 +5236,15 @@ void resolve_constructions(sys::state& state) {
 
 			auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
 			auto& current_purchased = c.get_purchased_goods();
-			float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+			auto construction_time = state.military_definitions.unit_base_definitions[c.get_type()].build_time;
 
-			bool all_finished = true;
+			// US2AC4.
+			bool ready_for_deployment = true;
 			if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_navy)) {
-				for(uint32_t i = 0; i < commodity_set::set_size && all_finished; ++i) {
+				for(uint32_t i = 0; i < commodity_set::set_size && ready_for_deployment; ++i) {
 					if(base_cost.commodity_type[i]) {
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * cost_factor) {
-							all_finished = false;
+							ready_for_deployment = false;
 						}
 					} else {
 						break;
@@ -5237,7 +5252,14 @@ void resolve_constructions(sys::state& state) {
 				}
 			}
 
-			if(all_finished) {
+			// US2AC5. But no faster than construction_time
+			if(!state.cheat_data.instant_army) {
+				if(state.current_date < c.get_start_date() + construction_time) {
+					ready_for_deployment = false;
+				}
+			}
+
+			if(ready_for_deployment) {
 				auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
 				auto a = fatten(state.world, state.world.create_navy());
 				a.set_controller_from_navy_control(c.get_nation());
@@ -5260,6 +5282,7 @@ void resolve_constructions(sys::state& state) {
 		}
 	});
 
+	// Construction of province buildings
 	for(auto c : state.world.in_province_building_construction) {
 		auto for_province = c.get_province();
 		float cost_factor = economy::build_cost_multiplier(state, for_province, c.get_is_pop_project());
@@ -5327,6 +5350,7 @@ void resolve_constructions(sys::state& state) {
 		}
 	}
 
+	// Construction of factories
 	for(auto c : state.world.in_factory_construction) {
 		auto n = state.world.factory_construction_get_nation(c);
 		auto type = state.world.factory_construction_get_type(c);
