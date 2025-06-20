@@ -690,13 +690,15 @@ bool check_any_players_loading(sys::state& state) {
 	if(state.network_state.clients_loading_state_changed.exchange(false)) {
 		for(auto player : state.world.in_mp_player) {
 			if(player && !player.get_fully_loaded()) {
+				state.network_state.any_client_loading_flag.store(true);
 				return true;
 			}
 		}
+		state.network_state.any_client_loading_flag.store(false);
 		return false;
 	}
 	else {
-		return false;
+		return state.network_state.any_client_loading_flag.load();
 	}
 }
 
