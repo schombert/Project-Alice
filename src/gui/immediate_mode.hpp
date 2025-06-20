@@ -82,6 +82,28 @@ std::string inline localize_labor_info_mode(labor_info_mode mode) {
 	}
 };
 
+enum class trade_volume_info_mode : uint8_t {
+	exported_volume, imported_volume, total_volume, trade_balance, embargo,
+	total
+};
+
+std::string inline localize_trade_volume_info_mode(trade_volume_info_mode mode) {
+	switch(mode) {
+	case trade_volume_info_mode::exported_volume:
+		return "export";
+	case trade_volume_info_mode::imported_volume:
+		return "import";
+	case trade_volume_info_mode::total_volume:
+		return "total_volume";
+	case trade_volume_info_mode::trade_balance:
+		return "trade_balance";
+	case trade_volume_info_mode::embargo:
+		return "embargo";
+	default:
+		return "alice_invalid_value";
+	}
+};
+
 struct rect {
 	float x, y, w, h;
 };
@@ -118,6 +140,8 @@ struct iui_state {
 
 	int32_t selected_labor_type = 0;
 	labor_info_mode selected_labor_info = labor_info_mode::price;
+
+	trade_volume_info_mode selected_trade_info = trade_volume_info_mode::total_volume;
 
 	std::vector<float> per_province_data;
 	std::vector<float> per_market_data;

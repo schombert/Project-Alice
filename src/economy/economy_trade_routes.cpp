@@ -130,6 +130,72 @@ void make_trade_volume_tooltip(
 	);
 }
 
+embargo_explanation embargo_exists(
+	sys::state& state, dcon::nation_id n_A, dcon::nation_id n_B
+) {
+	auto sphere_A = state.world.nation_get_in_sphere_of(n_A);
+	auto sphere_B = state.world.nation_get_in_sphere_of(n_B);
+	auto overlord_A = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(n_A)
+	);
+	auto overlord_B = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(n_B)
+	);
+	auto has_overlord_mask_A = overlord_A != dcon::nation_id{};
+	auto has_overlord_mask_B = overlord_B != dcon::nation_id{};
+	auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
+	auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
+	// Subjects have embargo of overlords propagated onto them
+	auto market_leader_A = has_overlord_mask_A ? overlord_A : (has_sphere_mask_A ? sphere_A : n_A);
+	auto market_leader_B = has_overlord_mask_B ? overlord_B : (has_sphere_mask_B ? sphere_B : n_B);
+
+	// if market capital controllers are at war then we will break the link
+	auto at_war = military::are_at_war(state, n_A, n_B);
+
+	auto is_A_civ = state.world.nation_get_is_civilized(n_A);
+	auto is_B_civ = state.world.nation_get_is_civilized(n_B);
+
+	// sphere joins embargo
+	// subject joins embargo
+	// diplomatic embargos
+	auto A_joins_sphere_wide_embargo = military::are_at_war(state, sphere_A, n_B);
+	auto B_joins_sphere_wide_embargo = military::are_at_war(state, sphere_B, n_A);
+
+	auto A_has_embargo =
+		state.world.unilateral_relationship_get_embargo(
+			state.world.get_unilateral_relationship_by_unilateral_pair(n_B, market_leader_A)
+		)
+		||
+		state.world.unilateral_relationship_get_embargo(
+			state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_A, n_B)
+		);
+
+	auto B_has_embargo =
+		state.world.unilateral_relationship_get_embargo(
+			state.world.get_unilateral_relationship_by_unilateral_pair(n_A, market_leader_B)
+		)
+		||
+		state.world.unilateral_relationship_get_embargo(
+			state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_B, n_A)
+		);
+
+	embargo_explanation result;
+
+	result.war = at_war;
+	result.origin_embargo = A_has_embargo;
+	result.target_embargo = B_has_embargo;
+	result.origin_join_embargo = A_joins_sphere_wide_embargo;
+	result.target_join_embargo = B_joins_sphere_wide_embargo;
+
+	result.combined = at_war
+		|| A_has_embargo
+		|| B_has_embargo
+		|| A_joins_sphere_wide_embargo
+		|| B_joins_sphere_wide_embargo;
+
+	return result;
+}
+
 trade_route_volume_change_reasons predict_trade_route_volume_change(
 	sys::state& state, dcon::trade_route_id route, dcon::commodity_id cid
 ) {

@@ -3,6 +3,7 @@
 #include "economy_viewer.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
+#include "economy_trade_routes.hpp"
 #include "color.hpp"
 
 
@@ -102,6 +103,7 @@ void update(sys::state& state) {
 	bool cut_away_negative = false;
 	bool start_min_at_zero = false;
 	bool balance_color = false;
+	bool do_not_cut_away_values = false;
 
 	auto scaling = scaling_mode::linear;
 	int bins = 30;
@@ -213,6 +215,155 @@ void update(sys::state& state) {
 					state.iui_state.per_province_data[pid.index()] =
 						(state.world.province_get_labor_supply(pid, state.iui_state.selected_labor_type) + 0.0001f)
 						/ (state.world.province_get_labor_demand(pid, state.iui_state.selected_labor_type) + 0.0001f);
+					break;
+				default:
+					break;
+				}
+			});
+		}
+	} else if(state.iui_state.tab == iui::iui_tab::trade_volume) {
+		
+		if(state.iui_state.national_data) {
+			dcon::nation_id origin{ };
+			if(state.map_state.selected_province) {
+				origin = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
+			}
+
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				auto exists = (state.world.nation_get_owned_province_count(n) != 0);
+				if(!exists) {
+					return;
+				}
+				switch(state.iui_state.selected_trade_info) {
+				case iui::trade_volume_info_mode::exported_volume:
+					do_not_cut_away_values = true;
+					if(origin) {
+						state.iui_state.per_nation_data[n.index()] = economy::trade_value_flow(state, origin, n);
+					} else {
+						state.iui_state.per_nation_data[n.index()] = economy::export_value(state, n);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::imported_volume:
+					do_not_cut_away_values = true;
+					if(origin) {
+						state.iui_state.per_nation_data[n.index()] = economy::trade_value_flow(state, n, origin);
+					} else {
+						state.iui_state.per_nation_data[n.index()] = economy::import_value(state, n);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::total_volume:
+					do_not_cut_away_values = true;
+					if(origin) {
+						state.iui_state.per_nation_data[n.index()] =
+							economy::trade_value_flow(state, n, origin) + economy::trade_value_flow(state, origin, n);
+					} else {
+						state.iui_state.per_nation_data[n.index()] =
+							economy::import_value(state, n) + economy::export_value(state, n);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::trade_balance:
+					do_not_cut_away_values = true;
+					balance_color = true;
+					if(origin) {
+						state.iui_state.per_nation_data[n.index()] =
+							-economy::trade_value_flow(state, n, origin) + economy::trade_value_flow(state, origin, n);
+					} else {
+						state.iui_state.per_nation_data[n.index()] =
+							-economy::import_value(state, n) + economy::export_value(state, n);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::embargo:
+					do_not_cut_away_values = true;
+					balance_color = true;
+					if(origin) {
+						if(origin == n) {
+							state.iui_state.per_nation_data[n.index()] = -1.f;
+						} else if(economy::embargo_exists(state, origin, n).combined) {
+							state.iui_state.per_nation_data[n.index()] = 1.f;
+						} else {
+							state.iui_state.per_nation_data[n.index()] = 0.f;
+						}
+					} else {
+						state.iui_state.per_nation_data[n.index()] = 0.f;
+					}
+					break;
+
+				default:
+					break;
+				}
+			});
+		} else {
+			dcon::market_id origin{ };
+			dcon::nation_id origin_n{ };
+			if(state.map_state.selected_province) {
+				auto sid = state.world.province_get_state_membership(state.map_state.selected_province);
+				origin = state.world.state_instance_get_market_from_local_market(sid);
+				origin_n = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
+			}
+
+			state.world.for_each_market([&](dcon::market_id target) {
+				auto target_s = state.world.market_get_zone_from_local_market(target);
+				auto target_n = state.world.state_instance_get_nation_from_state_ownership(target_s);
+				switch(state.iui_state.selected_trade_info) {
+				case iui::trade_volume_info_mode::exported_volume:
+					do_not_cut_away_values = true;
+					if(origin) {
+						state.iui_state.per_market_data[target.index()] = economy::trade_value_flow(state, origin, target);
+					} else {
+						state.iui_state.per_market_data[target.index()] = economy::export_value(state, target);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::imported_volume:
+					do_not_cut_away_values = true;
+					if(origin) {
+						state.iui_state.per_market_data[target.index()] = economy::trade_value_flow(state, target, origin);
+					} else {
+						state.iui_state.per_market_data[target.index()] = economy::import_value(state, target);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::total_volume:
+					do_not_cut_away_values = true;
+					if(origin) {
+						state.iui_state.per_market_data[target.index()] =
+							economy::trade_value_flow(state, target, origin) + economy::trade_value_flow(state, origin, target);
+					} else {
+						state.iui_state.per_market_data[target.index()] =
+							economy::import_value(state, target) + economy::export_value(state, target);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::trade_balance:
+					do_not_cut_away_values = true;
+					balance_color = true;
+					if(origin) {
+						state.iui_state.per_market_data[target.index()] =
+							-economy::trade_value_flow(state, target, origin) + economy::trade_value_flow(state, origin, target);
+					} else {
+						state.iui_state.per_market_data[target.index()] =
+							-economy::import_value(state, target) + economy::export_value(state, target);
+					}
+					break;
+
+				case iui::trade_volume_info_mode::embargo:
+					do_not_cut_away_values = true;
+					balance_color = true;
+					if(origin) {
+						if(origin_n == target_n) {
+							state.iui_state.per_market_data[target.index()] = -1.f;
+						} else if(economy::embargo_exists(state, origin_n, target_n).combined) {
+							state.iui_state.per_market_data[target.index()] = 1.f;
+						} else {
+							state.iui_state.per_market_data[target.index()] = 0.f;
+						}
+					} else {
+						state.iui_state.per_market_data[target.index()] = 0.f;
+					}
 					break;
 				default:
 					break;
@@ -412,11 +563,21 @@ void update(sys::state& state) {
 	std::sort(sample.begin(), sample.end());
 	auto N = sample.size();
 	auto upper_decile = sample[9 * N / 10];
-	auto botton_decile = sample[N / 10];
-	auto main_range = upper_decile - botton_decile;
+	auto bottom_decile = sample[N / 10];
+	if(do_not_cut_away_values) {
+		upper_decile = sample[N - 1];
+		bottom_decile = sample[0];
+	}
+	auto main_range = upper_decile - bottom_decile;
 
-	state.iui_state.bins_start = botton_decile - main_range * 2.f;
+	state.iui_state.bins_start = bottom_decile - main_range * 2.f;
 	state.iui_state.bins_end = upper_decile + main_range * 2.f;
+
+	if(do_not_cut_away_values) {
+		state.iui_state.bins_start = bottom_decile;
+		state.iui_state.bins_end = upper_decile;
+	}
+
 	auto bin_range = (state.iui_state.bins_end - state.iui_state.bins_start) / float(bins);
 
 	// fill histogram
@@ -429,13 +590,18 @@ void update(sys::state& state) {
 	}
 
 	auto market_data_max = upper_decile * 2.f;
-	auto market_data_min = botton_decile;
+	auto market_data_min = bottom_decile;
 
 	if(balance_color) {
 		uint32_t split = 0;
 		while(split < N && sample[split] < 0.f) split++;
 
-		market_data_max = sample[(split + 9 * N) / 10];
+		auto max_index = std::min((split + 9 * N) / 10, sample.size() - 1);
+		if(max_index < 0) {
+			max_index = 0;
+		}
+
+		market_data_max = sample[max_index];
 		market_data_min = sample[split / 10];
 	}
 
@@ -443,9 +609,14 @@ void update(sys::state& state) {
 		market_data_min = 0.f;
 	}
 
-	if(cut_away_negative) {
+	if(cut_away_negative && !do_not_cut_away_values) {
 		market_data_max = std::max(0.f, market_data_max);
 		market_data_min = std::max(0.f, market_data_min);
+	}
+
+	if(do_not_cut_away_values) {
+		market_data_min = bottom_decile;
+		market_data_max = upper_decile;
 	}
 
 	uint32_t province_size = state.world.province_size();
@@ -575,10 +746,14 @@ void render(sys::state& state) {
 	// render market data
 	if(zoom > map::zoom_close || (zoom > map::zoom_close / 2.f && state.iui_state.national_data && state.iui_state.tab == iui::iui_tab::commodities_markets)) {
 		iui::rect market_label_rect{ 0.f, 0.f, state.iui_state.map_label.w, state.iui_state.map_label.h };
+		if(state.iui_state.tab == iui::iui_tab::trade_volume) {
+			if(state.iui_state.selected_trade_info == iui::trade_volume_info_mode::embargo) {
+				market_label_rect = { 0.f, 0.f, state.iui_state.map_label.w * 2, state.iui_state.map_label.h * 2 };
+			}
+		}
 		iui::rect market_label_rect_text = market_label_rect;
 		iui::shrink(market_label_rect_text, 2.f);
 		market_label_rect_text.w -= 5.f;
-
 
 
 		state.world.for_each_province([&](dcon::province_id pid) {
@@ -619,7 +794,7 @@ void render(sys::state& state) {
 				screen_pos.x - market_label_rect.w / 2.f + 5.f, screen_pos.y - market_label_rect.h / 2.f + 2.f
 			);
 
-			state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
+			
 
 			float value = 0.f;
 			if(mid) {
@@ -632,6 +807,20 @@ void render(sys::state& state) {
 				if(state.iui_state.tab == iui::iui_tab::wages) {
 					value = state.iui_state.per_province_data[pid.index()];
 				}
+			}
+
+			bool draw_panel = true;
+
+			if(state.iui_state.tab == iui::iui_tab::trade_volume) {
+				if(state.iui_state.selected_trade_info == iui::trade_volume_info_mode::embargo) {
+					if(value < 1.f) {
+						draw_panel = false;
+					}
+				}
+			}
+
+			if (draw_panel) {
+				state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
 			}
 
 			if(state.iui_state.tab == iui::iui_tab::factory_types) {
@@ -669,6 +858,69 @@ void render(sys::state& state) {
 						market_label_rect_text,
 						value
 					);
+				}
+			} else if(state.iui_state.tab == iui::iui_tab::trade_volume) {
+				if(state.iui_state.selected_trade_info != iui::trade_volume_info_mode::embargo) {
+					state.iui_state.price(
+						state, pid.index(),
+						market_label_rect_text,
+						value
+					);
+				} else {
+					if(value == 1.f) {
+						state.iui_state.localized_string(
+							state, pid.index(), market_label_rect_text, "economy_scene_embargo"
+						);
+
+						dcon::nation_id origin{ };
+						if(state.map_state.selected_province) {
+							origin = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
+						}
+
+						auto embargo_details = economy::embargo_exists(state, origin, owner);
+
+						// add explanation:
+						if (embargo_details.war) {
+							market_label_rect.y += market_label_rect.h;
+							market_label_rect_text.y += market_label_rect.h;
+							state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
+							state.iui_state.localized_string(
+								state, pid.index(), market_label_rect_text, "embargo_reason_war"
+							);
+						}
+						if(embargo_details.origin_embargo) {
+							market_label_rect.y += market_label_rect.h;
+							market_label_rect_text.y += market_label_rect.h;
+							state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
+							state.iui_state.localized_string(
+								state, pid.index(), market_label_rect_text, "embargo_reason_origin_embargo"
+							);
+						}
+						if(embargo_details.origin_join_embargo) {
+							market_label_rect.y += market_label_rect.h;
+							market_label_rect_text.y += market_label_rect.h;
+							state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
+							state.iui_state.localized_string(
+								state, pid.index(), market_label_rect_text, "embargo_reason_origin_join_embargo"
+							);
+						}
+						if(embargo_details.target_embargo) {
+							market_label_rect.y += market_label_rect.h;
+							market_label_rect_text.y += market_label_rect.h;
+							state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
+							state.iui_state.localized_string(
+								state, pid.index(), market_label_rect_text, "embargo_reason_target_embargo"
+							);
+						}
+						if(embargo_details.target_join_embargo) {
+							market_label_rect.y += market_label_rect.h;
+							market_label_rect_text.y += market_label_rect.h;
+							state.iui_state.panel_textured(state, market_label_rect, state.iui_state.map_label.texture_handle);
+							state.iui_state.localized_string(
+								state, pid.index(), market_label_rect_text, "embargo_reason_target_join_embargo"
+							);
+						}
+					}
 				}
 			}
 		});
@@ -1399,6 +1651,30 @@ void render(sys::state& state) {
 				(int32_t)static_elements::wages_tab_stats_selector_button_label + i,
 				button_rect,
 				iui::localize_labor_info_mode((iui::labor_info_mode)i),
+				ui::get_text_color(state, text::text_color::gold)
+			);
+		}
+	} else if(state.iui_state.tab == iui::iui_tab::trade_volume) {
+		float view_mode_height = 25.f;
+		float view_mode_width = 150.f;
+		float shift_y = 0.f;
+
+		for(int32_t i = 0; i < (int32_t)iui::trade_volume_info_mode::total; i++) {
+			iui::rect button_rect = { 10.f, screen_size.y - 350.f + i * view_mode_height, view_mode_width, view_mode_height };
+			if(state.iui_state.button_textured(
+				state, (int32_t)(static_elements::wages_tab_stats_selector_button)+i,
+				button_rect, 3, state.iui_state.top_bar_button.texture_handle,
+				state.iui_state.selected_trade_info == (iui::trade_volume_info_mode)i
+			)) {
+				state.iui_state.selected_trade_info = (iui::trade_volume_info_mode)i;
+				update(state);
+			}
+
+			state.iui_state.localized_string(
+				state,
+				(int32_t)static_elements::wages_tab_stats_selector_button_label + i,
+				button_rect,
+				iui::localize_trade_volume_info_mode((iui::trade_volume_info_mode)i),
 				ui::get_text_color(state, text::text_color::gold)
 			);
 		}

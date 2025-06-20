@@ -1572,3 +1572,9 @@ alice_labor_high_education_and_accepted;Expert(accepted)
 alice_invalid_value;Invalid value
 alice_wages_tab;Wages
 alice_trade_volume_tab;Trade volume
+economy_scene_embargo;Embargo!
+embargo_reason_war;War
+embargo_reason_origin_embargo;Origin declared embargo
+embargo_reason_origin_join_embargo;Origin joined embargo
+embargo_reason_target_embargo;Target declared embargo
+embargo_reason_target_join_embargo;Target joined embargo

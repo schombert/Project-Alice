@@ -363,6 +363,34 @@ float market_pool(
 	dcon::commodity_id c
 );
 
+float trade_value_flow(
+	sys::state& state,
+	dcon::market_id origin,
+	dcon::market_id target
+);
+float trade_value_flow(
+	sys::state& state,
+	dcon::nation_id origin,
+	dcon::nation_id target
+);
+float export_value(
+	sys::state& state,
+	dcon::market_id s
+);
+float export_value(
+	sys::state& state,
+	dcon::nation_id s
+);
+float import_value(
+	sys::state& state,
+	dcon::market_id s
+);
+float import_value(
+	sys::state& state,
+	dcon::nation_id s
+);
+
+
 float export_volume(
 	sys::state& state,
 	dcon::market_id s,
