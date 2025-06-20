@@ -125,7 +125,7 @@ void broadcast_to_clients(sys::state& state, command::payload& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
-
+bool any_player_on_invalid_nation(sys::state& state);
 bool check_any_players_loading(sys::state& state); // returns true if any players are loading. If the loading state has not changed, it will not iterate though the players and simply return false
 void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai);
 void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bool fully_loaded); // wrapper for setting a mp player to being fully loaded or not

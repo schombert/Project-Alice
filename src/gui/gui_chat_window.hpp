@@ -301,11 +301,16 @@ public:
 		set_button_text(state, text::produce_simple_string(state, "alice_lobby_back"));
 	}
 	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode == sys::network_mode_type::client) || (state.current_scene.is_lobby) || (network::check_any_players_loading(state));
+		disabled = (state.network_mode == sys::network_mode_type::client) || !command::can_notify_stop_game(state, state.local_player_nation);
 	}
 	void button_action(sys::state& state) noexcept override {
-		map_mode::set_map_mode(state, map_mode::mode::political);
-		command::notify_stop_game(state, state.local_player_nation);
+		if(state.network_mode == sys::network_mode_type::client) {
+			return;
+		}
+		if(command::can_notify_stop_game(state, state.local_player_nation)) {
+			map_mode::set_map_mode(state, map_mode::mode::political);
+			command::notify_stop_game(state, state.local_player_nation);
+		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

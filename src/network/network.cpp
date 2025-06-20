@@ -675,6 +675,17 @@ void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bo
 	
 }
 
+bool any_player_on_invalid_nation(sys::state& state) {
+	assert(state.network_mode == sys::network_mode_type::host);
+	for(auto player : state.world.in_mp_player) {
+		auto nation = state.world.mp_player_get_nation_from_player_nation(player);
+		if(bool(player) && (!nation || state.world.nation_get_owned_province_count(nation) == 0)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool nation_has_any_players_on_it(sys::state& state, dcon::nation_id nation) {
 	auto iterator = state.world.nation_get_player_nation(nation);
 	if(iterator.begin() == iterator.end()) {

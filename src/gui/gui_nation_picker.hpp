@@ -609,22 +609,20 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
-			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
-				if(state.map_state.get_zoom() < map::zoom_very_close)
-					state.map_state.zoom = map::zoom_very_close;
-				state.map_state.center_map_on_province(state, cap);
+			if(command::can_notify_start_game(state, state.local_player_nation)) {
+				if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+					if(state.map_state.get_zoom() < map::zoom_very_close)
+						state.map_state.zoom = map::zoom_very_close;
+					state.map_state.center_map_on_province(state, cap);
+				}
+				command::notify_start_game(state, state.local_player_nation);
 			}
-			command::notify_start_game(state, state.local_player_nation);
+			
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = !bool(state.local_player_nation);
-		// disable if there are any players loading
-		if(network::check_any_players_loading(state)) {
-			disabled = true;
-			return;
-		}
+		disabled = !command::can_notify_start_game(state, state.local_player_nation);
 
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
@@ -678,6 +676,9 @@ public:
 		else if(state.network_mode == sys::network_mode_type::host) {
 			if(network::check_any_players_loading(state)) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_player_loading"));
+			}
+			if(network::any_player_on_invalid_nation(state)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_invalid_nations"));
 			}
 		}
 		text::close_layout_box(contents, box);

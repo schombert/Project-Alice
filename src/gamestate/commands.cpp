@@ -44,17 +44,10 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_is_loading:
 	case command_type::chat_message:
 	case command_type::change_ai_nation_state:
-		// Notifications can be sent because it's an-always do thing
-		break;
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
-		// do not allow starting or stopping the game whilst clients are loading!
-		if(!network::check_any_players_loading(state)) {
-			break;
-		}
-		else {
-			return;
-		}
+		// Notifications can be sent because it's an-always do thing
+		break;
 	default:
 		// Normal commands are discarded iff we are not in the game, or if any other client is loading
 		if(!state.current_scene.game_in_progress || network::check_any_players_loading(state))
@@ -5742,6 +5735,21 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	network::log_player_nations(state);
 }
 
+bool can_notify_start_game(sys::state& state, dcon::nation_id source) {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		return bool(state.local_player_nation);
+	}
+	else if(state.network_mode == sys::network_mode_type::client) {
+		return true;
+	}
+	else {
+		if(network::any_player_on_invalid_nation(state)) {
+			return false;
+		}
+		return !network::check_any_players_loading(state);
+	}
+}
+
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	state.selected_armies.clear();
@@ -5809,6 +5817,19 @@ void execute_notify_player_fully_loaded(sys::state& state, dcon::nation_id sourc
 		network::mp_player_set_fully_loaded(state, player, true);
 		state.world.mp_player_set_is_oos(player, false);
 	};
+}
+
+bool can_notify_stop_game(sys::state& state, dcon::nation_id source) {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		return true;
+	} else if(state.network_mode == sys::network_mode_type::client) {
+		return true;
+	} else {
+		if(state.current_scene.is_lobby) {
+			return false;
+		}
+		return !network::check_any_players_loading(state);
+	}
 }
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
@@ -6229,9 +6250,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::notify_reload:
 		return true;
 	case command_type::notify_start_game:
-		return true; //return can_notify_start_game(state, c.source);
+		return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
-		return true; //return can_notify_stop_game(state, c.source);
+		return can_notify_stop_game(state, c.source);
 	case command_type::notify_pause_game:
 		return true; //return can_notify_pause_game(state, c.source);
 	case command_type::release_subject:

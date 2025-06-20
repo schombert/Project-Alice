@@ -1036,6 +1036,7 @@ disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
 alice_play_save_stream;Host is streaming a save to you, wait until it completes
 alice_no_start_game_player_loading;Cannot start the game while players are loading
+alice_no_start_game_invalid_nations;Cannot start the game while players are on non-existant nations
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory

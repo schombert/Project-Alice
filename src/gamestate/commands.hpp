@@ -965,10 +965,12 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 void notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
 void notify_reload(sys::state& state, dcon::nation_id source);
+bool can_notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name);
 void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name);
+bool can_notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
 // returns true if the command was performed, false if not
