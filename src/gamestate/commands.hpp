@@ -458,6 +458,7 @@ struct set_factory_priority_data {
 struct chat_message_data {
 	char body[ui::max_chat_message_len];
 	dcon::nation_id target;
+	sys::player_name sender;
 };
 
 struct nation_pick_data {
@@ -941,8 +942,8 @@ void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon:
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
 void post_chat_message(sys::state& state, ui::chat_message& m);
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
-bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender);
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender);
 
 void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);

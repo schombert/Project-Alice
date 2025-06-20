@@ -5313,7 +5313,7 @@ void post_chat_message(sys::state& state, ui::chat_message& m) {
 	}
 }
 
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::chat_message;
@@ -5321,17 +5321,19 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 	p.data.chat_message.target = target;
 	memcpy(p.data.chat_message.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
 	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
+	p.data.chat_message.sender = sender;
 	add_to_command_queue(state, p);
 }
-bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
 	// TODO: bans, kicks, mutes?
 	return true;
 }
-void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
+void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
 	ui::chat_message m{};
 	m.source = source;
 	m.target = target;
 	m.body = std::string(body);
+	m.set_sender_name(sender.data);
 	post_chat_message(state, m);
 }
 
@@ -5391,6 +5393,7 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	text::substitution_map sub{};
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
+	m.set_sender_name(name.data);
 	post_chat_message(state, m);
 
 	/* Hotjoin */
@@ -5414,8 +5417,8 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool ma
 }
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& player_name) {
 
-
 	auto p = network::find_mp_player(state, player_name);
+	auto nickname = state.world.mp_player_get_nickname(p);
 	if(p) {
 
 		network::delete_mp_player(state, p, make_ai);
@@ -5442,9 +5445,9 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
-	auto nickname = state.world.mp_player_get_nickname(p);
 	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
+	m.set_sender_name(player_name.data);
 	post_chat_message(state, m);
 }
 
@@ -5493,6 +5496,8 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	text::substitution_map sub{};
 	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
+	// it should look like a message SENT by the host, and the host is always the first mp player id, so use that.
+	m.set_sender_name(state.world.mp_player_get_nickname(dcon::mp_player_id{ 0 }));
 	post_chat_message(state, m);
 }
 
@@ -5536,6 +5541,8 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 
 	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
+	// it should look like a message SENT by the host, and the host is always the first mp player id, so use that.
+	m.set_sender_name(state.world.mp_player_get_nickname(dcon::mp_player_id{ 0 }));
 	post_chat_message(state, m);
 }
 
@@ -5569,7 +5576,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 		}
 		// We will also re-assign all chat messages from this nation to the new one
 		for(auto& msg : state.ui_state.chat_messages)
-			if(bool(msg.source) && msg.source == source)
+			if(bool(msg.source) && msg.source == source && name.data == msg.get_sender_name())
 				msg.source = target;
 	}
 	
@@ -5592,6 +5599,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_na
 	text::substitution_map sub{};
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos_source", sub);
+	m.set_sender_name(name.data);
 	post_chat_message(state, m);
 
 	network::log_player_nations(state);
@@ -5614,6 +5622,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, sys::p
 	auto nickname = state.world.mp_player_get_nickname(player);
 	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
+	m.set_sender_name(name.data);
 	post_chat_message(state, m);
 
 #ifndef NDEBUG
@@ -6193,7 +6202,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 			if(c.data.chat_message.body[count] == '\0')
 
 				std::string_view sv(c.data.chat_message.body, c.data.chat_message.body + count);
-		return can_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target);
+		return can_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target, c.data.chat_message.sender);
 
 	}
 	case command_type::notify_player_ban:
@@ -6590,7 +6599,7 @@ bool execute_command(sys::state& state, payload& c) {
 			if(c.data.chat_message.body[count] == '\0')
 				break;
 		std::string_view sv(c.data.chat_message.body, c.data.chat_message.body + count);
-		execute_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target);
+		execute_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target, c.data.chat_message.sender);
 		break;
 	}
 	case command_type::notify_player_ban:

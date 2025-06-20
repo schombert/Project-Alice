@@ -1330,7 +1330,7 @@ void full_reset_after_oos(sys::state& state) {
 		broadcast_to_clients(state, c);
 
 		// send message to everyone letting them know that the lobby has been resync'd
-		command::chat_message(state, state.local_player_nation, text::produce_simple_string(state, "alice_host_has_resync"), dcon::nation_id{ });
+		command::chat_message(state, state.local_player_nation, text::produce_simple_string(state, "alice_host_has_resync"), dcon::nation_id{ }, state.network_state.nickname);
 #ifndef NDEBUG
 		state.console_log("host:broadcast:cmd | (new->start_game)");
 #endif

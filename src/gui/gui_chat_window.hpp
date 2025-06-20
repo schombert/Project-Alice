@@ -24,17 +24,17 @@ public:
 				color,
 				false });
 
-		std::array<uint8_t, 24> nickname;
-		std::vector<dcon::mp_player_id> players = network::find_country_players(state, content.source);
-		// display the first player on the nation's name in text messages, if there are any players on it
-		if(!players.empty()) {
-			nickname = state.world.mp_player_get_nickname(players.front());
-		}
-		else {
-			nickname.fill(0);
-		}
+		//std::array<uint8_t, 24> nickname;
+		//std::vector<dcon::mp_player_id> players = network::find_country_players(state, content.source);
+		//// display the first player on the nation's name in text messages, if there are any players on it
+		//if(!players.empty()) {
+		//	nickname = state.world.mp_player_get_nickname(players.front());
+		//}
+		//else {
+		//	nickname.fill(0);
+		//}
 
-		std::string sender_name = sys::player_name{nickname }.to_string() + ": ";
+		std::string sender_name = sys::player_name{content.get_sender_name() }.to_string() + ": ";
 		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
 		text::add_to_layout_box(state, container, box, sender_name, IsShadow ? text::text_color::black : text::text_color::orange);
@@ -285,7 +285,7 @@ public:
 		memcpy(body, s.data(), len);
 		body[len] = '\0';
 
-		command::chat_message(state, state.local_player_nation, body, target);
+		command::chat_message(state, state.local_player_nation, body, target, state.network_state.nickname);
 
 		Cyto::Any payload = this;
 		impl_get(state, payload);
