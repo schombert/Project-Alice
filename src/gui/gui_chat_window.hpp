@@ -24,11 +24,15 @@ public:
 				color,
 				false });
 
-
+		std::array<uint8_t, 24> nickname;
 		std::vector<dcon::mp_player_id> players = network::find_country_players(state, content.source);
-		assert(!players.empty());
-		// display the first player on the nation in text messages
-		auto nickname = state.world.mp_player_get_nickname(players.front());
+		// display the first player on the nation's name in text messages, if there are any players on it
+		if(!players.empty()) {
+			nickname = state.world.mp_player_get_nickname(players.front());
+		}
+		else {
+			nickname.fill(0);
+		}
 
 		std::string sender_name = sys::player_name{nickname }.to_string() + ": ";
 		std::string text_form_msg = std::string(content.body);
