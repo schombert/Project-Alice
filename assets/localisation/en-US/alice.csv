@@ -1345,9 +1345,13 @@ trade_nation_data;Domestic
 trade_good_stats_global;Nations
 trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
+per_nation;Per nation
 price;Price
+labour_price;Wage
+labour_price_10k;Wage(10k people)
 supply;Supply
 demand;Demand
+supply_demand_ratio;Supply-demand ratio
 balance;Balance
 market_stockpiles;In stock
 national_stockpile;Government Stockpile
@@ -1560,3 +1564,11 @@ alice_host_has_resync;Host has resynced the lobby
 alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
 alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
 alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.
+alice_labor_no_education;Unskilled
+alice_labor_basic_education;Skilled
+alice_labor_high_education;Expert
+alice_labor_guild;Guilds
+alice_labor_high_education_and_accepted;Expert(accepted)
+alice_invalid_value;Invalid value
+alice_wages_tab;Wages
+alice_trade_volume_tab;Trade volume

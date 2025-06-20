@@ -17,6 +17,23 @@ inline constexpr int32_t high_education_and_accepted = 4; // clerks, clergy and 
 inline constexpr int32_t total = 5;
 }
 
+std::string inline labor_string(int32_t labor_type) {
+	switch(labor_type) {
+	case labor::no_education:
+		return "alice_labor_no_education";
+	case labor::basic_education:
+		return "alice_labor_basic_education";
+	case labor::high_education:
+		return "alice_labor_high_education";
+	case labor::guild_education:
+		return "alice_labor_guild";
+	case labor::high_education_and_accepted:
+		return "alice_labor_high_education_and_accepted";
+	default:
+		return "alice_invalid_value";
+	}
+};
+
 namespace pop_labor {
 inline constexpr int32_t rgo_worker_no_education = 0;
 inline constexpr int32_t primary_no_education = 1;

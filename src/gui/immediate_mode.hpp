@@ -57,10 +57,28 @@ std::string inline localize_commodity_info_mode(commodity_info_mode mode) {
 		return "trade_balance";
 	case commodity_info_mode::potentials:
 		return "potentials";
-	case commodity_info_mode::total:
-		return "INVALID";
 	default:
-		return "INVALID";
+		return "alice_invalid_value";
+	}
+};
+
+enum class labor_info_mode : uint8_t {
+	price, supply, demand, supply_demand_ratio,
+	total
+};
+
+std::string inline localize_labor_info_mode(labor_info_mode mode) {
+	switch(mode) {
+	case labor_info_mode::price:
+		return "labour_price_10k";
+	case labor_info_mode::supply:
+		return "supply";
+	case labor_info_mode::demand:
+		return "demand";
+	case labor_info_mode::supply_demand_ratio:
+		return "supply_demand_ratio";
+	default:
+		return "alice_invalid_value";
 	}
 };
 
@@ -79,7 +97,7 @@ void move_to(rect& rectangle, float x, float y);
 rect subrect(rect& rectangle, float w, float h, alignment_horizontal align_hor, alignment_vertical align_vert);
 
 enum iui_tab {
-	none, factory_types, markets, commodities_markets, wages
+	none, factory_types, markets, commodities_markets, wages, trade_volume
 };
 
 struct iui_state {
@@ -96,7 +114,10 @@ struct iui_state {
 	int page_production_methods = 0;
 	int page_commodities = 0;
 
-	commodity_info_mode selected_commodity_info;
+	commodity_info_mode selected_commodity_info = commodity_info_mode::price;
+
+	int32_t selected_labor_type = 0;
+	labor_info_mode selected_labor_info = labor_info_mode::price;
 
 	std::vector<float> per_province_data;
 	std::vector<float> per_market_data;
