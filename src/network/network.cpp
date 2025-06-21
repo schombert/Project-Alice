@@ -957,7 +957,7 @@ void init(sys::state& state) {
 		load_player_nations(state);
 
 		auto nid = get_player_nation(state, state.network_state.nickname);
-		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		state.local_player_nation = nid ? nid : choose_nation_for_player(state);
 
 		assert(bool(state.local_player_nation));
 

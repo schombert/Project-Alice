@@ -5808,14 +5808,14 @@ void execute_notify_player_fully_loaded(sys::state& state, dcon::nation_id sourc
 }
 
 bool can_notify_stop_game(sys::state& state, dcon::nation_id source) {
+	if(state.current_scene.is_lobby) {
+		return false;
+	}
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		return true;
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		return true;
 	} else {
-		if(state.current_scene.is_lobby) {
-			return false;
-		}
 		return !network::check_any_players_loading(state);
 	}
 }

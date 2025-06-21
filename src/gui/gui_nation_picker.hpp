@@ -712,7 +712,12 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
-		disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			disabled = state.local_player_nation == observer_nation;
+		}
+		else {
+			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
+		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -783,9 +788,14 @@ public:
 class lobby_player_flag_button : public flag_button {
 	public:
 		dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-			auto player = retrieve<dcon::mp_player_id>(state, parent);
-			auto nation = state.world.mp_player_get_nation_from_player_nation(player);
-			return state.world.nation_get_identity_from_identity_holder(nation);
+			if(state.network_mode == sys::network_mode_type::single_player) {
+				return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+			}
+			else {
+				auto player = retrieve<dcon::mp_player_id>(state, parent);
+				auto nation = state.world.mp_player_get_nation_from_player_nation(player);
+				return state.world.nation_get_identity_from_identity_holder(nation);
+			}
 		}
 
 };

@@ -211,9 +211,14 @@ class chat_player_ready_state : public color_text_element {
 class chat_player_flag_button : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto player = retrieve<dcon::mp_player_id>(state, parent);
-		auto nation = state.world.mp_player_get_nation_from_player_nation(player);
-		return state.world.nation_get_identity_from_identity_holder(nation);
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		}
+		else {
+			auto player = retrieve<dcon::mp_player_id>(state, parent);
+			auto nation = state.world.mp_player_get_nation_from_player_nation(player);
+			return state.world.nation_get_identity_from_identity_holder(nation);
+		}
 	}
 
 };
@@ -251,9 +256,15 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			row_contents.push_back(dcon::mp_player_id{ });
+		}
+		else {
+			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
 				row_contents.push_back(p);
-		});
+			});
+		}
+		
 		update(state);
 	}
 };
