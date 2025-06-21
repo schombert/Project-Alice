@@ -5468,11 +5468,6 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	if(player) {
 		network::delete_mp_player(state, player, make_ai);
 	}
-	// if the leaving player was loading, decrement num of loading clients
-	/*if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
-		state.network_state.num_client_loading--;
-		state.world.mp_player_set_is_oos(player, false);
-	}*/
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
@@ -5481,7 +5476,6 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 			}
 		}
 	}
-	/*state.world.nation_set_is_player_controlled(target, false);*/
 
 
 	ui::chat_message m{};
@@ -5514,11 +5508,6 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	if(player) {
 		network::delete_mp_player(state, player, make_ai);
 	}
-	// if the leaving player was loading, decrement num of loading clients
-	/*if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
-		state.network_state.num_client_loading--;
-		state.world.mp_player_set_is_oos(player, false);
-	}*/
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.hshake_buffer.nickname.is_equal(name)) {
@@ -5526,7 +5515,6 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 			}
 		}
 	}
-	/*state.world.nation_set_is_player_controlled(target, false);*/
 
 	ui::chat_message m{};
 	m.source = source;
