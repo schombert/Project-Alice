@@ -1010,43 +1010,36 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 	nations::adjust_prestige(state, source, state.defines.release_nation_prestige);
 }
 
-void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::release_and_play_nation;
 	p.source = source;
 	p.data.tag_target.ident = t;
+	p.data.tag_target.player_name = player_name;
 	add_to_command_queue(state, p);
 }
-bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name) {
 	return nations::can_release_as_vassal(state, source, t);
 }
-void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name) {
 	nations::liberate_nation_from(state, t, source);
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 
-	if(state.world.nation_get_is_player_controlled(source)) {
-		network::switch_player(state, holder, source);
-	} else if(state.world.nation_get_is_player_controlled(holder)) {
-		network::switch_player(state, source, holder);
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		network::switch_all_players(state, holder, source);
+	}
+	else {
+		auto player = network::find_mp_player(state, player_name);
+		network::switch_one_player(state, holder, source, player);
 	}
 
-	auto old_controller = state.world.nation_get_is_player_controlled(holder);
-	state.world.nation_set_is_player_controlled(holder, state.world.nation_get_is_player_controlled(source));
-	state.world.nation_set_is_player_controlled(source, old_controller);
-
+	
 	if(state.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(state, holder);
 	if(state.world.nation_get_is_player_controlled(source))
 		ai::remove_ai_data(state, source);
-
-	if(state.local_player_nation == source) {
-		state.local_player_nation = holder;
-	} else if(state.local_player_nation == holder) {
-		state.local_player_nation = source;
-	}
-
 
 	for(auto p : state.world.nation_get_province_ownership(holder)) {
 		auto pid = p.get_province();
@@ -5550,15 +5543,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	auto player = network::find_mp_player(state, name);
 	assert(player);
 	if(player) {
-		network::switch_mp_player_country(state, target, source, player);
-
-		if(state.network_state.nickname.is_equal(name)) {
-			state.local_player_nation = target;
-		}
-		// We will also re-assign all chat messages from this nation to the new one
-		for(auto& msg : state.ui_state.chat_messages)
-			if(bool(msg.source) && msg.source == source && name.data == msg.get_sender_name())
-				msg.source = target;
+		network::switch_one_player(state, target, source, player);
 	}
 	
 }
@@ -5932,7 +5917,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_make_vassal(state, c.source, c.data.tag_target.ident);
 
 	case command_type::release_and_play_nation:
-		return can_release_and_play_as(state, c.source, c.data.tag_target.ident);
+		return can_release_and_play_as(state, c.source, c.data.tag_target.ident, c.data.tag_target.player_name);
 
 	case command_type::change_budget:
 		return can_change_budget_settings(state, c.source, c.data.budget_data);
@@ -6329,7 +6314,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_make_vassal(state, c.source, c.data.tag_target.ident);
 		break;
 	case command_type::release_and_play_nation:
-		execute_release_and_play_as(state, c.source, c.data.tag_target.ident);
+		execute_release_and_play_as(state, c.source, c.data.tag_target.ident, c.data.tag_target.player_name);
 		break;
 	case command_type::change_budget:
 		execute_change_budget_settings(state, c.source, c.data.budget_data);

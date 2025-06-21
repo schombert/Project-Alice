@@ -210,6 +210,7 @@ struct factory_data {
 
 struct tag_target_data {
 	dcon::national_identity_id ident;
+	sys::player_name player_name;
 };
 
 struct influence_action_data {
@@ -641,8 +642,8 @@ bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon
 void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 
-void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
-bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name);
+bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name);
 
 void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);

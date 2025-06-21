@@ -1860,27 +1860,53 @@ void ban_player(sys::state& state, client_data& client) {
 	}
 }
 
-void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
-	auto p = find_country_players(state, old_n);
-	// move ALL players which are on the current nation, to the new nation
-	for(auto player : p) {
-		state.world.force_create_player_nation(new_n, player);
+void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		state.world.nation_set_is_player_controlled(new_n, true);
+		state.world.nation_set_is_player_controlled(old_n, false);
+		state.local_player_nation = new_n;
 	}
-
-	if(state.network_mode == sys::network_mode_type::host) {
-		for(auto& client : state.network_state.clients) {
-			if(!client.is_active())
-				continue;
-			if(client.playing_as == old_n) {
-				client.playing_as = new_n;
-			}
+	else {
+		auto p = find_country_players(state, old_n);
+		// move ALL players which are on the current nation, to the new nation
+		for(auto player : p) {
+			state.world.force_create_player_nation(new_n, player);
+		}
+		if(!p.empty()) {
+			state.world.nation_set_is_player_controlled(new_n, true);
+			state.world.nation_set_is_player_controlled(old_n, false);
 		}
 
-		write_player_nations(state);
+		if(state.network_mode == sys::network_mode_type::host) {
+			for(auto& client : state.network_state.clients) {
+				if(!client.is_active())
+					continue;
+				if(client.playing_as == old_n) {
+					client.playing_as = new_n;
+				}
+			}
+
+			write_player_nations(state);
+		}
+		if(state.local_player_nation == old_n) {
+			state.local_player_nation = new_n;
+		}
+		// We will also re-assign all chat messages from this nation to the new one
+		for(auto& msg : state.ui_state.chat_messages)
+			if(bool(msg.source) && msg.source == old_n)
+				msg.source = new_n;
 	}
+	
 }
-void switch_mp_player_country(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player) {
+void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player) {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		state.world.nation_set_is_player_controlled(new_n, true);
+		state.world.nation_set_is_player_controlled(old_n, false);
+		state.local_player_nation = new_n;
+		return;
+	}
 	assert(old_n == state.world.mp_player_get_nation_from_player_nation(player));
+	assert(player);
 	state.world.force_create_player_nation(new_n, player);
 	state.world.nation_set_is_player_controlled(new_n, true);
 	if(!nation_has_any_players_on_it(state, old_n)) {
@@ -1902,6 +1928,15 @@ void switch_mp_player_country(sys::state& state, dcon::nation_id new_n, dcon::na
 
 		write_player_nations(state);
 	}
+
+	if(state.network_state.nickname.data == state.world.mp_player_get_nickname(player)) {
+		state.local_player_nation = new_n;
+	}
+
+	// We will also re-assign all chat messages from this nation to the new one
+	for(auto& msg : state.ui_state.chat_messages)
+		if(bool(msg.source) && msg.source == old_n && state.world.mp_player_get_nickname(player) == msg.get_sender_name())
+			msg.source = new_n;
 }
 
 
