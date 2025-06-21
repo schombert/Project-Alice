@@ -5552,13 +5552,13 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 	auto player = network::find_mp_player(state, name);
 	if(source == target || !player) //redundant
 		return false;
-	if(!bool(target) || target == state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id)) //Invalid OR rebel nation
+	if(!bool(target)) //Invalid nation
 		return false;
 	// Should support co-op now. Make sure the source nation for the player is the same as the one being sent
 	return state.world.mp_player_get_nation_from_player_nation(player) == source;
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, sys::player_name& name) {
-	assert(source && source != state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
+	assert(source);
 	auto player = network::find_mp_player(state, name);
 	assert(player);
 	if(player) {
@@ -5717,7 +5717,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	/* Then reload as if we loaded the save data */
 	state.reset_state();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-	network::place_players_after_reload(state, no_ai_nations, old_local_player_nation);
+	network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
 	state.fill_unsaved_data();
 	state.ui_lock.unlock();
 	window::change_cursor(state, window::cursor_type::normal);

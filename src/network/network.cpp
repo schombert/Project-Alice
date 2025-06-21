@@ -678,8 +678,12 @@ void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bo
 bool any_player_on_invalid_nation(sys::state& state) {
 	assert(state.network_mode == sys::network_mode_type::host);
 	for(auto player : state.world.in_mp_player) {
+		if(!bool(player)) {
+			continue;
+		}
 		auto nation = state.world.mp_player_get_nation_from_player_nation(player);
-		if(bool(player) && (!nation || state.world.nation_get_owned_province_count(nation) == 0)) {
+		// the nation must not be invalid, and the nation must exist, but if its the rebel tag, it is allowed to have 0 provinces.
+		if(!nation || (state.world.nation_get_owned_province_count(nation) == 0 && state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id) != nation)) {
 			return true;
 		}
 	}
@@ -812,43 +816,15 @@ static dcon::nation_id choose_nation_for_player(sys::state& state) {
 				return n;
 			}
 		}
-	return dcon::nation_id{ };
+	// if no nation available, set to rebels (observer basically)
+	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 }
 
-dcon::nation_id get_first_available_ai_nation(sys::state& state) {
-	for(auto nation : state.world.in_nation) {
-		if(nation && !nation.get_is_player_controlled()) {
-			return nation;
-		}
+void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation) {
+	for(auto no_ai_nation : no_ai_nations) {
+		state.world.nation_set_is_player_controlled(no_ai_nation, true);
 	}
-
-	// if there are no nations available
-	return dcon::nation_id{ };
-}
-
-
-void place_players_after_reload(sys::state& state, std::vector<dcon::nation_id>& players, dcon::nation_id old_local_player_nation) {
-	for(auto playernation : players) {
-		if(state.world.nation_is_valid(playernation)) {
-			state.world.nation_set_is_player_controlled(playernation, true);
-			if(playernation == old_local_player_nation) {
-				state.local_player_nation = playernation;
-			}
-		}
-		else {
-			auto new_nation = network::get_first_available_ai_nation(state);
-			if(new_nation) {
-				state.world.nation_set_is_player_controlled(new_nation, true);
-				if(playernation == old_local_player_nation) {
-					state.local_player_nation = playernation;
-				}
-			}
-			else {
-				// refactor this when co-op becomes possible
-				ui::popup_error_window(state, "Too many players", "There are not enough nations for the amount of players");
-			}
-		}
-	}
+	state.local_player_nation = old_local_player_nation;
 }
 
 bool any_player_oos(sys::state& state) {
@@ -981,7 +957,7 @@ void init(sys::state& state) {
 		load_player_nations(state);
 
 		auto nid = get_player_nation(state, state.network_state.nickname);
-		state.local_player_nation = nid ? nid : choose_nation_for_player(state);
+		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 
 		assert(bool(state.local_player_nation));
 
@@ -1126,7 +1102,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
 	});
-	network::place_players_after_reload(state, no_ai_nations, old_local_player_nation);
+	network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
 	state.fill_unsaved_data();
 	state.ui_lock.unlock();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));

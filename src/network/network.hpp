@@ -135,8 +135,7 @@ dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
 std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::nation_id nation);
-dcon::nation_id get_first_available_ai_nation(sys::state& state); // returns the first available nation from dcon which is ai controlled, should be deterministic with saves to use on client+host and not break synch
-void place_players_after_reload(sys::state& state, std::vector<dcon::nation_id>& players, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
+void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
 bool any_player_oos(sys::state& state);
 void log_player_nations(sys::state& state);
 

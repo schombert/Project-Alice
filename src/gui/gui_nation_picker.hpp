@@ -230,7 +230,7 @@ public:
 				//network::place_host_player_after_saveload(state);
 
 				network::write_network_save(state);
-				network::place_players_after_reload(state, no_ai_nations, old_local_player_nation);
+				network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
 				state.fill_unsaved_data();
 				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
@@ -692,6 +692,42 @@ public:
 	}
 };
 
+class observer_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			auto previous_nation = state.local_player_nation;
+			state.local_player_nation = observer_nation;
+			state.world.nation_set_is_player_controlled(observer_nation, true);
+			if(previous_nation) {
+				state.world.nation_set_is_player_controlled(previous_nation, false);
+			}
+			state.ui_state.nation_picker->impl_on_update(state);
+		} else {
+			if(command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname)) {
+				command::notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
+			}
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(state.local_player_nation == observer_nation) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_observer_already_observer_tooltip"));
+		}
+		text::close_layout_box(contents, box);
+	}
+
+};
+
 class multiplayer_status_text : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -897,6 +933,9 @@ public:
 			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
 			add_child_to_front(std::move(ptr));
 			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "observer_button") {
+			return make_element_by_type<observer_button>(state, id);
+
 		}
 		return nullptr;
 	}
