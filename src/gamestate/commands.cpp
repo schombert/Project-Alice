@@ -5588,6 +5588,10 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, sys::player_name& name) {
+	// cannot pick a new nation whilst not in the looby
+	if(!state.current_scene.is_lobby) {
+		return false;
+	}
 	auto player = network::find_mp_player(state, name);
 	if(source == target || !player) //redundant
 		return false;

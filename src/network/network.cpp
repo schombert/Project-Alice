@@ -1703,6 +1703,8 @@ void send_and_receive_commands(sys::state& state) {
 
 				state.railroad_built.store(true, std::memory_order::release);
 				state.game_state_updated.store(true, std::memory_order::release);
+				state.map_state.unhandled_province_selection = true;
+				state.sprawl_update_requested.store(true, std::memory_order::release);
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 				window::change_cursor(state, window::cursor_type::normal);
