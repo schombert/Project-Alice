@@ -2823,12 +2823,14 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
 		ai::add_free_ai_cbs_to_war(state, n, w);
 	}
-
+	// update flag black status before we check for collitions with enemy armies
+	state.military_definitions.pending_blackflag_update = true;
+	military::update_blackflag_status(state);
 	for(auto o : state.world.nation_get_army_control(n)) {
 		if(o.get_army().get_is_retreating() || o.get_army().get_black_flag() || o.get_army().get_navy_from_army_transport() || o.get_army().get_battle_from_army_battle_participation())
 			continue;
-
-		army_arrives_in_province(state, o.get_army(), o.get_army().get_location_from_army_location(), crossing_type::none);
+		auto ce = o.get_army().get_location_from_army_location();
+		army_arrives_in_province(state, o.get_army(), ce, crossing_type::none);
 	}
 	for(auto o : state.world.nation_get_navy_control(n)) {
 		if(o.get_navy().get_is_retreating() || o.get_navy().get_battle_from_navy_battle_participation())
@@ -5347,6 +5349,52 @@ void update_battle_leaders(sys::state& state, dcon::naval_battle_id b) {
 	state.world.attacking_admiral_set_admiral(aa, a_lid);
 	auto ab = state.world.naval_battle_get_defending_admiral(b);
 	state.world.defending_admiral_set_admiral(ab, d_lid);
+}
+
+void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg) {
+	if(state.world.regiment_is_valid(reg)) {
+		auto army = state.world.regiment_get_army_from_army_membership(reg);
+		auto battle = state.world.army_get_battle_from_army_battle_participation(army);
+		if(battle) {
+			auto& att_back = state.world.land_battle_get_attacker_back_line(battle);
+			auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
+			auto& def_back = state.world.land_battle_get_defender_back_line(battle);
+			auto& def_front = state.world.land_battle_get_attacker_front_line(battle);
+			auto reserves = state.world.land_battle_get_reserves(battle);
+			bool found = false;
+			for(uint32_t j = reserves.size(); j-- > 0;) {
+				if(reserves[j].regiment == reg) {
+					std::swap(reserves[j], reserves[reserves.size() - 1]);
+					reserves.pop_back();
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				for(uint32_t i = 0; i < state.world.land_battle_get_combat_width(battle); i++) {
+					if(att_back[i] == reg) {
+						att_back[i] = dcon::regiment_id{ };
+						break;
+					}
+					if(att_front[i] == reg) {
+						att_front[i] = dcon::regiment_id{ };
+						break;
+					}
+					;
+					if(def_back[i] == reg) {
+						def_back[i] = dcon::regiment_id{ };
+						break;
+					}
+					if(def_front[i] == reg) {
+						def_front[i] = dcon::regiment_id{ };
+						break;
+					}
+				}
+			}
+			
+		}
+		state.world.delete_regiment(reg);
+	}
 }
 
 void cleanup_army(sys::state& state, dcon::army_id n) {

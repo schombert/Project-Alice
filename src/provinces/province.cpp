@@ -1265,13 +1265,20 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
 				&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
 					auto loc = src.get_regiment().get_army_from_army_membership().get_location_from_army_location();
+					auto old_army = src.get_regiment().get_army_from_army_membership();
 					auto new_u = fatten(state.world, state.world.create_army());
 					new_u.set_controller_from_army_control(new_owner);
 					src.get_regiment().set_army_from_army_membership(new_u);
-					src.get_regiment().set_org(0.01f);
+					// if the previous army is now empty, clean it up early so incoming collitions with enemy armies on the same day can be handled properly
+					if(old_army.get_army_membership().begin() == old_army.get_army_membership().end()) {
+						military::cleanup_army(state, old_army);
+					}
+					//src.get_regiment().set_org(0.01f); // remove this so regiments keeps the same org as previously, otherwise civil wars/seceding nations have no chance as they start on 0 org.
 					military::army_arrives_in_province(state, new_u, loc, military::crossing_type::none);
 				} else {
-					src.get_regiment().set_strength(0.f);
+					// if the army is in a battle, is retreating, is on a transport, or is controlled by rebels, safely delete the regiment instead of transferring it to the new owner
+					military::delete_regiment_safe_wrapper(state, src.get_regiment());
+					/*src.get_regiment().set_strength(0.f);*/
 				}
 			}
 			auto lc = p.get_pop().get_province_land_construction();
