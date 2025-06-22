@@ -629,10 +629,6 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
-			} else {
-				if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) { //can't start if checksum doesn't match
-					disabled = true;
-				}
 			}
 		}
 	}
@@ -668,9 +664,6 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
-			}
-			else if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) {
-				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
 			}
 			for(auto const& client : state.network_state.clients) {
 				if(client.is_active()) {

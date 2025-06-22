@@ -976,6 +976,13 @@ alice_province_selector_on;ON
 alice_province_selector_off;OFF
 province_selector;Selector
 province_immigrator;Immigrator
+province_victory_points;Victory points represent relative worth of the province to other provinces in the country when calculating occupation score in wars.
+province_victory_points_base;?G+1 point base?W
+province_victory_points_nb;?G+$X$ points for naval base level?W
+province_victory_points_fcount;?G+$X$ points for factories?W
+province_victory_points_fortsize;?G+$X$ points for fort level?W
+province_victory_points_mainlandcore;?Gx2 for non-overseas core?W
+province_victory_points_capital;?Gx3 for nation capital?W
 tt_a_bank;a bank
 tt_a_university;a university
 et_add_selector;enable province selector
