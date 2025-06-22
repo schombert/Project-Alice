@@ -2182,6 +2182,64 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 	});
 }
 
+bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
+	for(auto i = state.pending_n_event.size(); i-- > 0;) {
+		if(event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.date, e.e, source, e.pt, e.ft} == state.pending_n_event[i]) {
+			if(e.opt_choice > state.world.national_event_get_options(e.e).size() || !event::is_valid_option(state.world.national_event_get_options(e.e)[e.opt_choice])) {
+				return false; // invalid option
+			}
+			else {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
+	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
+		if(event::pending_human_f_n_event{e.r_lo, e.r_hi, e.date, e.e, source } == state.pending_f_n_event[i]) {
+			if(e.opt_choice > state.world.free_national_event_get_options(e.e).size() || !event::is_valid_option(state.world.free_national_event_get_options(e.e)[e.opt_choice])) {
+				return false;
+			}
+			else {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
+	for(auto i = state.pending_p_event.size(); i-- > 0;) {
+		if(event::pending_human_p_event{e.r_lo, e.r_hi, e.from_slot, e.date, e.e, e.p, e.ft } == state.pending_p_event[i]) {
+			if(e.opt_choice > state.world.provincial_event_get_options(e.e).size() || !event::is_valid_option(state.world.provincial_event_get_options(e.e)[e.opt_choice])) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
+	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
+		if(event::pending_human_f_p_event{e.r_lo, e.r_hi, e.date, e.e, e.p } == state.pending_f_p_event[i]) {
+			if(e.opt_choice > state.world.free_provincial_event_get_options(e.e).size() || !event::is_valid_option(state.world.free_provincial_event_get_options(e.e)[e.opt_choice])) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+
+
 void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -5994,16 +6052,16 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_take_decision(state, c.source, c.data.decision.d);
 
 	case command_type::make_n_event_choice:
-		return true; //can_make_event_choice(state, c.source, c.data.pending_human_n_event);
+		return can_make_event_choice(state, c.source, c.data.pending_human_n_event);
 
 	case command_type::make_f_n_event_choice:
-		return true; // can_make_event_choice(state, c.source, c.data.pending_human_f_n_event);
+		return can_make_event_choice(state, c.source, c.data.pending_human_f_n_event);
 
 	case command_type::make_p_event_choice:
-		return true; // can_make_event_choice(state, c.source, c.data.pending_human_p_event);
+		return can_make_event_choice(state, c.source, c.data.pending_human_p_event);
 
 	case command_type::make_f_p_event_choice:
-		return true; // can_make_event_choice(state, c.source, c.data.pending_human_f_p_event);
+		return can_make_event_choice(state, c.source, c.data.pending_human_f_p_event);
 
 	case command_type::cancel_cb_fabrication:
 		return can_cancel_cb_fabrication(state, c.source);
