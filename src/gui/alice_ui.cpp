@@ -1864,7 +1864,7 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
 	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 
-	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+	auto total_factor = demographics::get_monthly_pop_growth_factor(state, ids);
 
 	if(type == state.culture_definitions.slaves)
 		total_factor = 0.0f;

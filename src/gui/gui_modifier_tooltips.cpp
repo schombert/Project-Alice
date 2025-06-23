@@ -14,7 +14,8 @@ enum class modifier_display_type : uint8_t {
 	percent,
 	fp_two_places,
 	fp_three_places,
-	yesno
+	yesno,
+	percent_two_places
 };
 struct modifier_display_info {
 	bool positive_is_green;
@@ -41,6 +42,8 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
 		return (value >= 0.f ? "+" : "") + text::prettify(int64_t(value));
 	case modifier_display_type::percent:
 		return (value >= 0.f ? "+" : "") + text::format_percentage(value, 1);
+	case modifier_display_type::percent_two_places:
+		return (value >= 0.f ? "+" : "") + text::format_percentage(value, 2);
 	case modifier_display_type::fp_two_places:
 		return(value >= 0.f ? "+" : "") + text::format_float(value, 2);
 	case modifier_display_type::fp_three_places:

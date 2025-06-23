@@ -2616,26 +2616,29 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 				40.0f);
 		auto lr_factor =
 				ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-		auto province_factor = lr_factor + state.defines.base_popgrowth;
+		ve::fp_vector positive_modifiers = lr_factor + state.defines.base_popgrowth +
+			ve::select(state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) >= 0.0f, state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth), 0.0f) +
+			ve::select(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth) >= 0.0f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth), 0.0f);
+	
 
-		auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+		positive_modifiers = ve::select(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves, positive_modifiers / state.defines.slave_growth_divisor, positive_modifiers);
 
-		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+		ve::fp_vector negative_modifiers = ve::select(state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) < 0.0f, state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth), 0.0f) +
+			ve::select(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth) < 0.0f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth), 0.0f);
+
+		ve::fp_vector ln_factor = ve::min((pop_demographics::get_life_needs(state, ids) * 2.0f) / state.defines.life_need_starvation_limit - 1.0f, 1.0f);
+
+		auto total_factor = ln_factor * positive_modifiers + negative_modifiers;
 		auto old_size = state.world.pop_get_size(ids);
 		auto new_size = old_size * total_factor + old_size;
 
-		auto type = state.world.pop_get_poptype(ids);
-
 		state.world.pop_set_size(ids,
-				ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size));
+				ve::select((owner != dcon::nation_id{}), new_size, old_size));
 	});
 }
 
-float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
+float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
 	auto type = state.world.pop_get_poptype(ids);
-	if(type == state.culture_definitions.slaves)
-		return 0.0f;
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
@@ -2644,24 +2647,25 @@ float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
 	auto mod_life_rating = std::min(
 			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
 	auto lr_factor =
-			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+		std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
 
 	float negative_modifiers = 0.0f;
 	float positive_modifiers = lr_factor + state.defines.base_popgrowth;
 
 	if(state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) >= 0.0f) {
 		positive_modifiers += state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth);
-	}
-	else {
+	} else {
 		negative_modifiers += state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth);
 	}
 
 	if(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth) >= 0.0f) {
+
 		positive_modifiers += state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
-	}
-	else {
+	} else {
 		negative_modifiers += state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 	}
+	if(type == state.culture_definitions.slaves)
+		positive_modifiers /= state.defines.slave_growth_divisor;
 
 
 	auto ln_factor = 1.0f;
@@ -2669,12 +2673,15 @@ float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
 		ln_factor = (pop_demographics::get_life_needs(state, ids) * 2) / state.defines.life_need_starvation_limit - 1;
 	}
 
-	auto total_factor = positive_modifiers * ln_factor + negative_modifiers;
-	if(type == state.culture_definitions.slaves && total_factor > 0.0f)
-		total_factor /= state.defines.slave_growth_divisor;
+	return positive_modifiers * ln_factor + negative_modifiers;
+}
+
+float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
+	
+
 	auto old_size = state.world.pop_get_size(ids);
 
-	return old_size * total_factor;
+	return old_size * get_monthly_pop_growth_factor(state, ids);
 }
 int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
 	float t = 0.0f;

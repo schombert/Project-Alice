@@ -848,7 +848,8 @@ public:
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
-			constructed_definition_n.values[next_to_add_n] = v * 10.0f;
+			// previously it multiplied the value by 10.0f, but it caused pop growth effects to be much more powerfull than they should be
+			constructed_definition_n.values[next_to_add_n] = v;
 			++next_to_add_n;
 		}
 	}

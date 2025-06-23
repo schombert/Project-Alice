@@ -184,7 +184,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, false, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
 	MOD_LIST_ELEMENT(112, naval_attrition, false, modifier_display_type::percent, "naval_attrition_tech")                           \
 	MOD_LIST_ELEMENT(113, land_attrition, false, modifier_display_type::percent, "land_attrition_tech")                             \
-	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
+	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::percent_two_places, "tech_pop_growth")                                     \
 	MOD_LIST_ELEMENT(115, colonial_life_rating, false, modifier_display_type::integer, "modifier_life_rating")                      \
 	MOD_LIST_ELEMENT(116, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
 	MOD_LIST_ELEMENT(117, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
