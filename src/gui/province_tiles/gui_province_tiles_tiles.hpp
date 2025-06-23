@@ -3,6 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_context_window.hpp"
 #include "gui_province_window.hpp"
+#include "economy_trade_routes.hpp"
 #include "military.hpp"
 #include "ai.hpp"
 
@@ -462,6 +463,26 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
+
+		text::add_line(state, contents, "trade_center");
+		text::add_line(state, contents, "trade_center_desc");
+
+		text::add_line_break_to_layout(state, contents);
+		economy::make_trade_center_tooltip(state, contents, target.market);
+		text::add_line_break_to_layout(state, contents);
+
+		auto target_employment = economy::market_labour_demand(state, target.market);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(target.province, economy::labor::no_education);
+		auto employment = target_employment * satisfaction;
+		text::add_line(state, contents, "trade_center_employment", text::variable_type::value, text::fp_one_place{ employment });
+		text::add_line(state, contents, "employment_type_no_education", 15);
+		text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
+
+		auto wage = (state.world.province_get_labor_price(target.province, economy::labor::no_education) + 0.00001f);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
+
 	}
 };
 

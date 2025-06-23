@@ -382,6 +382,9 @@ employment_type_no_education;Employment type: ?YNo education?W
 employment_type_basic_education;Employment type: ?YBasic education?W
 employment_type_high_education_and_accepted;Employment type: ?YHigh Education and Accepted?W
 employment_type_high_education;Employment type: ?YHigh Education?W
+trade_center;Trade Center
+trade_center_desc;Trade Centers manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
+trade_center_employment;Trade Center Employees: ?Y$value$?W
 local_admin;Local Administration
 capital_admin;Capital Administration
 local_admin_spending;Estimated cost: ?Y$value$?W
@@ -1440,6 +1443,13 @@ trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?
 trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
 trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
 trade_route_volume_final_change;Expected change: ?Y$val$
+trade_centre_trade_volume;Trade volume: ?Y$val$
+trade_centre_trade_value;Trade value: ?Y$val$
+trade_centre_imports_volume;Imports volume: ?Y$val$
+trade_centre_imports_value;Imports value: ?Y$val$
+trade_centre_exports_volume;Exports volume: ?Y$val$
+trade_centre_exports_value;Exports value: ?Y$val$
+trade_centre_profit;Profit: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
 investment_pool_income_2;Transfer from subject $country$: ?G$x$?W

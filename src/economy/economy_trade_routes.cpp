@@ -8,6 +8,52 @@
 
 namespace economy {
 
+// Labour demand for a single trade route
+float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_fat_id A_capital, dcon::province_fat_id B_capital) {
+	auto total_demanded_labor = 0.f;
+	auto available_labor = std::min(
+		state.world.province_get_labor_demand_satisfaction(A_capital, labor::no_education),
+		state.world.province_get_labor_demand_satisfaction(B_capital, labor::no_education)
+	);
+
+	state.world.for_each_commodity([&](auto cid) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+		if(current_volume == 0.f) {
+			return;
+		}
+		current_volume = current_volume * std::max(0.999999f, available_labor);
+		state.world.trade_route_set_volume(trade_route, cid, current_volume);
+		auto effect_of_scale = std::max(
+			trade_effect_of_scale_lower_bound,
+			1.f - std::abs(current_volume) * effect_of_transportation_scale
+		);
+		total_demanded_labor += std::abs(current_volume)
+			* state.world.trade_route_get_distance(trade_route)
+			/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
+			* effect_of_scale;
+		assert(std::isfinite(total_demanded_labor));
+	});
+
+	return total_demanded_labor;
+}
+
+// Calculate labour demand for trade routes between markets
+float market_labour_demand(sys::state& state, dcon::market_id market) {
+
+	auto total_demanded_labour = 0.f;
+
+	for(auto route : state.world.market_get_trade_route(market)) {
+		auto A = state.world.trade_route_get_connected_markets(route, 0);
+		auto B = state.world.trade_route_get_connected_markets(route, 1);
+
+		auto A_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(A));
+		auto B_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(B));
+
+		total_demanded_labour += trade_route_labour_demand(state, route, A_capital, B_capital);
+	}
+
+	return total_demanded_labour;
+}
 
 tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route) {
 	auto m0 = state.world.trade_route_get_connected_markets(trade_route, 0);
@@ -74,6 +120,54 @@ tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_ro
 			state.world.province_get_labor_demand_satisfaction(capital_1, labor::no_education)
 		)
 	};
+}
+
+void make_trade_center_tooltip(sys::state& state, text::columnar_layout& contents, dcon::market_id market) {
+	auto trade_volume = 0.f;
+	auto trade_value = 0.f;
+	auto imports_volume = 0.f;
+	auto imports_value = 0.f;
+	auto exports_volume = 0.f;
+	auto exports_value = 0.f;
+	auto profit = 0.f;
+
+	auto labour_demand = 0.f;
+
+	for(auto commodity : state.world.in_commodity) {
+		for(auto route : state.world.market_get_trade_route(market)) {
+			auto prediction = predict_trade_route_volume_change(state, route, commodity);
+
+			auto B = state.world.trade_route_get_connected_markets(route, 1);
+			if(B == market) {
+				auto multiplier = -1.f;
+				imports_volume += prediction.current_volume;
+				imports_value += multiplier * prediction.current_volume * prediction.import_price[1];
+				trade_value += multiplier * prediction.current_volume * prediction.import_price[1];
+			}
+			else {
+				exports_volume += prediction.current_volume;
+				exports_value += prediction.current_volume * prediction.export_price[0];
+				trade_value += prediction.current_volume * prediction.export_price[0];
+			}
+			trade_volume += prediction.current_volume;
+			profit += prediction.profit;
+
+			if(prediction.trade_blocked) {
+				text::add_line(state, contents, "trade_is_blocked");
+				return;
+			}
+		}
+	}
+
+	text::add_line(state, contents, "trade_centre_trade_volume", text::variable_type::val, text::fp_two_places{ trade_volume });
+	text::add_line(state, contents, "trade_centre_imports_volume", text::variable_type::val, text::fp_two_places{ imports_volume }, 15);
+	text::add_line(state, contents, "trade_centre_exports_volume", text::variable_type::val, text::fp_two_places{ exports_volume }, 15);
+
+	text::add_line(state, contents, "trade_centre_trade_value", text::variable_type::val, text::fp_currency{ trade_value });
+	text::add_line(state, contents, "trade_centre_imports_value", text::variable_type::val, text::fp_currency{ imports_value }, 15);
+	text::add_line(state, contents, "trade_centre_exports_value", text::variable_type::val, text::fp_currency{ exports_value }, 15);
+
+	text::add_line(state, contents, "trade_centre_profit", text::variable_type::val, text::fp_currency{ profit });
 }
 
 void make_trade_volume_tooltip(
@@ -793,35 +887,14 @@ void update_trade_routes_consumption(sys::state& state) {
 	// register trade demand on transportation labor:
 	// money are paid during calculation of trade route profits and actual movement of goods
 	state.world.for_each_trade_route([&](auto trade_route) {
+
 		auto A = state.world.trade_route_get_connected_markets(trade_route, 0);
 		auto B = state.world.trade_route_get_connected_markets(trade_route, 1);
 
 		auto A_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(A));
 		auto B_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(B));
-
-		auto total_demanded_labor = 0.f;
-		auto available_labor = std::min(
-			state.world.province_get_labor_demand_satisfaction(A_capital, labor::no_education),
-			state.world.province_get_labor_demand_satisfaction(B_capital, labor::no_education)
-		);
-
-		state.world.for_each_commodity([&](auto cid) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-			if(current_volume == 0.f) {
-				return;
-			}
-			current_volume = current_volume * std::max(0.999999f, available_labor);
-			state.world.trade_route_set_volume(trade_route, cid, current_volume);
-			auto effect_of_scale = std::max(
-				trade_effect_of_scale_lower_bound,
-				1.f - std::abs(current_volume) * effect_of_transportation_scale
-			);
-			total_demanded_labor += std::abs(current_volume)
-				* state.world.trade_route_get_distance(trade_route)
-				/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
-				* effect_of_scale;
-			assert(std::isfinite(total_demanded_labor));
-		});
+		
+		auto total_demanded_labor = trade_route_labour_demand(state, trade_route, A_capital, B_capital);
 
 		state.world.province_get_labor_demand(A_capital, labor::no_education) += total_demanded_labor;
 		state.world.province_get_labor_demand(B_capital, labor::no_education) += total_demanded_labor;
@@ -843,7 +916,7 @@ void update_trade_routes_consumption(sys::state& state) {
 		state.world.for_each_commodity([&](auto commodity) {
 			state.world.market_for_each_trade_route(market, [&](auto trade_route) {
 				auto current_volume = state.world.trade_route_get_volume(trade_route, commodity);
-				auto origin =
+				auto origin =ny
 					current_volume > 0.f
 					? state.world.trade_route_get_connected_markets(trade_route, 0)
 					: state.world.trade_route_get_connected_markets(trade_route, 1);
