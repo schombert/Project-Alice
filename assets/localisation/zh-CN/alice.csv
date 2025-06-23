@@ -1536,5 +1536,30 @@ alice_factory_construction_cost;施工成本：
 alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;估计总价：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
-ledger_inflation_adjusted_gdp;GDP（通胀调整）添加注释 更多动作
+ledger_inflation_adjusted_gdp;GDP（通胀调整）
 ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
+province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
+province_victory_points_base;?G+1 基本分?W
+province_victory_points_nb;?G+$X$ 海军基地等级积分?W
+province_victory_points_fcount;?G+$X$ 工厂积分?W
+province_victory_points_fortsize;?G+$X$ 要塞积分?W
+province_victory_points_mainlandcore;?Gx2 非海外积分?W
+province_victory_points_capital;?Gx3 首都积分?W
+per_nation;每个国家
+labour_price;工资
+labour_price_10k;一万人平均工资
+supply_demand_ratio;供需比
+alice_labor_no_education;新手
+alice_labor_basic_education;熟练
+alice_labor_high_education;专家
+alice_labor_guild;行会
+alice_labor_high_education_and_accepted;专家（已接受）
+alice_invalid_value;值 无效
+alice_wages_tab;工资
+alice_trade_volume_tab;贸易量
+economy_scene_embargo;禁运！
+embargo_reason_war;战争
+embargo_reason_origin_embargo;来源宣布禁运
+embargo_reason_origin_join_embargo;来源加入禁运
+embargo_reason_target_embargo;目标宣布禁运
+embargo_reason_target_join_embargo;目标加入禁运
