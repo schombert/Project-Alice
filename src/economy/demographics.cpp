@@ -2645,12 +2645,31 @@ float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
 			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
 	auto lr_factor =
 			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-	auto province_factor = lr_factor + state.defines.base_popgrowth;
 
-	auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	float negative_modifiers = 0.0f;
+	float positive_modifiers = lr_factor + state.defines.base_popgrowth;
 
-	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+	if(state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) >= 0.0f) {
+		positive_modifiers += state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth);
+	}
+	else {
+		negative_modifiers += state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth);
+	}
+
+	if(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth) >= 0.0f) {
+		positive_modifiers += state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	}
+	else {
+		negative_modifiers += state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	}
+
+
+	auto ln_factor = 1.0f;
+	if(pop_demographics::get_life_needs(state, ids) < state.defines.life_need_starvation_limit && state.defines.life_need_starvation_limit != 0.0f) {
+		ln_factor = (pop_demographics::get_life_needs(state, ids) * 2) / state.defines.life_need_starvation_limit - 1;
+	}
+
+	auto total_factor = positive_modifiers * ln_factor + negative_modifiers;
 	auto old_size = state.world.pop_get_size(ids);
 
 	return old_size * total_factor;
