@@ -2823,7 +2823,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
 		ai::add_free_ai_cbs_to_war(state, n, w);
 	}
-	// update flag black status before we check for collitions with enemy armies
+	// update flag black status before we check for collisions with enemy armies
 	state.military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(state);
 	for(auto o : state.world.nation_get_army_control(n)) {

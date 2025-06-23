@@ -1028,18 +1028,13 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 
 	if(state.network_mode == sys::network_mode_type::single_player) {
-		network::switch_all_players(state, holder, source);
+		nations::switch_all_players(state, holder, source);
 	}
 	else {
 		auto player = network::find_mp_player(state, player_name);
 		network::switch_one_player(state, holder, source, player);
 	}
 
-	
-	if(state.world.nation_get_is_player_controlled(holder))
-		ai::remove_ai_data(state, holder);
-	if(state.world.nation_get_is_player_controlled(source))
-		ai::remove_ai_data(state, source);
 
 	for(auto p : state.world.nation_get_province_ownership(holder)) {
 		auto pid = p.get_province();
@@ -5401,28 +5396,6 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 
 	network::create_mp_player(state, name, password, !needs_loading, false, source);
 
-	//auto p = network::find_mp_player(state, name);
-	//if(p) {
-	//	auto oldnation = state.world.mp_player_get_nation_from_player_nation(p);
-
-	//	if (oldnation != source && oldnation) // check for old nation validity before setting it to be not player controlled
-	//		state.world.nation_set_is_player_controlled(oldnation, false);
-
-	//	// Server already validated password by this point
-	//	// Client always receives empty passwords
-	//	if(!password.empty()) {
-	//		network::update_mp_player_password(state, p, password);
-	//	}
-	//	// update mp player with the joining players loading state
-	//	state.world.mp_player_set_fully_loaded(p, !needs_loading);
-	//	state.world.mp_player_set_is_oos(p, false);
-	//}
-	//else {
-	//	p = network::create_mp_player(state, name, password, !needs_loading, false);
-	//}
- //	state.world.nation_set_is_player_controlled(source, true);
-	//state.world.force_create_player_nation(source, p);
-
 	if(needs_loading) {
 		payload cmd;
 		memset(&cmd, 0, sizeof(cmd));
@@ -5467,16 +5440,6 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 
 		network::delete_mp_player(state, p, make_ai);
 	}
-
-	//if(make_ai) {
-	//	state.world.nation_set_is_player_controlled(source, false);
-	//}
-	//auto player = network::find_country_player(state, source);
-	//// if the leaving player was loading, decrement num of loading clients
-	//if(player && !state.world.mp_player_get_fully_loaded(player) && state.network_state.num_client_loading != 0) {
-	//	state.network_state.num_client_loading--;
-	//	state.world.mp_player_set_is_oos(player, false);
-	//}
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {

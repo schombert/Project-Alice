@@ -2000,9 +2000,9 @@ uint32_t ef_change_tag_no_core_switch(EFFECT_PARAMTERS) {
 		return 0;
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
-		network::switch_all_players(ws, holder, trigger::to_nation(primary_slot));
+		nations::switch_all_players(ws, holder, trigger::to_nation(primary_slot));
 	} else if(ws.world.nation_get_is_player_controlled(holder)) {
-		network::switch_all_players(ws, trigger::to_nation(primary_slot), holder);
+		nations::switch_all_players(ws, trigger::to_nation(primary_slot), holder);
 	}
 
 	/*auto old_controller = ws.world.nation_get_is_player_controlled(holder);
@@ -2025,9 +2025,9 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_PARAMTERS) {
 		return 0;
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
-		network::switch_all_players(ws, holder, trigger::to_nation(primary_slot));
+		nations::switch_all_players(ws, holder, trigger::to_nation(primary_slot));
 	} else if(ws.world.nation_get_is_player_controlled(holder)) {
-		network::switch_all_players(ws, trigger::to_nation(primary_slot), holder);
+		nations::switch_all_players(ws, trigger::to_nation(primary_slot), holder);
 	}
 
 	/*auto old_controller = ws.world.nation_get_is_player_controlled(holder);

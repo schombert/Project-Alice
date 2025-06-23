@@ -110,14 +110,13 @@ struct network_state {
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
 };
-
+inline void write_player_nations(sys::state& state) noexcept;
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
 void finish(sys::state& state, bool notify_host);
 void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
-void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n); // switches all players who are on one country to another. Can be called in either SP or MP
-void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can be called in SP or MP, but when called in SP, it does the same as "switch_all_players"
+void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
 void broadcast_save_to_single_client(sys::state& state, command::payload& c, client_data& client, uint8_t const* buffer, uint32_t length);
