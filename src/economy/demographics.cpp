@@ -2670,6 +2670,8 @@ float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
 	}
 
 	auto total_factor = positive_modifiers * ln_factor + negative_modifiers;
+	if(type == state.culture_definitions.slaves && total_factor > 0.0f)
+		total_factor /= state.defines.slave_growth_divisor;
 	auto old_size = state.world.pop_get_size(ids);
 
 	return old_size * total_factor;
