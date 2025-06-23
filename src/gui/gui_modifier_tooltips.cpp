@@ -61,11 +61,24 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 		auto data = province_modifier_names[prov_def.offsets[i].index()];
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, data.name), text::text_color::white);
-		text::add_to_layout_box(state, layout, box, std::string_view{":"}, text::text_color::white);
+		text::add_to_layout_box(state, layout, box, std::string_view{ ":" }, text::text_color::white);
 		text::add_space_to_layout_box(state, layout, box);
 		auto color = data.positive_is_green ? (prov_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
-																				: (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
+			: (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(state, layout, box, format_modifier_value(state, prov_def.values[i], data.type), color);
+		
+		// Special case since movement_cost is to show two modifiers: movement cost and trade attraction
+		if(prov_def.offsets[i] == sys::provincial_mod_offsets::movement_cost) {
+			text::close_layout_box(layout, box);
+			box = text::open_layout_box(layout, indentation);
+
+			text::add_to_layout_box(state, layout, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
+			text::add_to_layout_box(state, layout, box, std::string_view{ ":" }, text::text_color::white);
+			text::add_space_to_layout_box(state, layout, box);
+			auto color2 = (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
+			text::add_to_layout_box(state, layout, box, format_modifier_value(state, -1 * prov_def.values[i], data.type), color2);
+		}
+
 		text::close_layout_box(layout, box);
 	}
 

@@ -835,6 +835,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto id = retrieve<dcon::province_id>(state, parent);
 
+		text::add_line(state, contents, "alice_building_conditions");
 		int32_t current_lvl = state.world.province_get_building_level(id, uint8_t(Value));
 		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, uint8_t(Value));
 		if constexpr(Value == economy::province_building_type::fort) {
@@ -873,8 +874,25 @@ public:
 			}
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "alice_building_modifier");
 		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(Value)].province_modifier);
+		// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
+		if constexpr(Value == economy::province_building_type::naval_base) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness }, text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
+
+		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "alice_province_building_build");
+
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "alice_construction_cost");
 
 		// Construction cost goods breakdown
 		float factor = economy::build_cost_multiplier(state, id, false);

@@ -382,6 +382,7 @@ employment_type_no_education;Employment type: ?YNo education?W
 employment_type_basic_education;Employment type: ?YBasic education?W
 employment_type_high_education_and_accepted;Employment type: ?YHigh Education and Accepted?W
 employment_type_high_education;Employment type: ?YHigh Education?W
+alice_trade_attractiveness;Trade Route Attraction
 trade_center;Trade Centre
 trade_center_desc;Trade Centres manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
 trade_center_employment;Trade Center Employees: ?Y$value$?W
@@ -1210,7 +1211,9 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
-alice_factory_construction_cost;Construction cost:
+alice_construction_cost;Construction cost:
+alice_building_modifier;Building will have the following effect:
+alice_building_conditions;To build, the following must be true:
 alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
 alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
 alice_factory_construction_explain_5;Progress: ?Y$x$?W

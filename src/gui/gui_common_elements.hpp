@@ -2828,7 +2828,7 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
 
-	text::add_line(state, contents, "alice_factory_construction_cost");
+	text::add_line(state, contents, "alice_construction_cost");
 
 	// List factory type construction costs
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
