@@ -38,7 +38,7 @@ float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_ro
 }
 
 // Calculate labour demand for trade routes between markets
-float market_labour_demand(sys::state& state, dcon::market_id market) {
+float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market) {
 
 	auto total_demanded_labour = 0.f;
 
@@ -53,6 +53,36 @@ float market_labour_demand(sys::state& state, dcon::market_id market) {
 	}
 
 	return total_demanded_labour;
+}
+
+
+// Calculate labour demand for trade inside the market
+float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital) {
+	auto base_cargo_transport_demand = 0.f;
+
+	state.world.for_each_commodity([&](auto commodity) {
+		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, commodity);
+			auto origin = 
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, commodity);
+			base_cargo_transport_demand += std::abs(current_volume);
+		});
+	});
+
+	// auto soft_transport_demand_limit = state.world.market_get_max_throughput(market);
+	//if(base_cargo_transport_demand > soft_transport_demand_limit) {
+	//	base_cargo_transport_demand = base_cargo_transport_demand * base_cargo_transport_demand / soft_transport_demand_limit;
+	//}
+
+	return base_cargo_transport_demand;
 }
 
 tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route) {
@@ -163,11 +193,14 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	text::add_line(state, contents, "trade_centre_imports_volume", text::variable_type::val, text::fp_two_places{ imports_volume }, 15);
 	text::add_line(state, contents, "trade_centre_exports_volume", text::variable_type::val, text::fp_two_places{ exports_volume }, 15);
 
+	text::add_line(state, contents, "trade_centre_max_throughput", text::variable_type::val, text::fp_two_places{ state.world.market_get_max_throughput(market) });
+
 	text::add_line(state, contents, "trade_centre_trade_value", text::variable_type::val, text::fp_currency{ trade_value });
 	text::add_line(state, contents, "trade_centre_imports_value", text::variable_type::val, text::fp_currency{ imports_value }, 15);
 	text::add_line(state, contents, "trade_centre_exports_value", text::variable_type::val, text::fp_currency{ exports_value }, 15);
 
 	text::add_line(state, contents, "trade_centre_profit", text::variable_type::val, text::fp_currency{ profit });
+	text::add_line(state, contents, "trade_centre_money", text::variable_type::val, text::fp_currency{ state.world.market_get_stockpile(market, money) });
 }
 
 void make_trade_volume_tooltip(
@@ -910,26 +943,9 @@ void update_trade_routes_consumption(sys::state& state) {
 
 	state.world.for_each_market([&](auto market) {
 		auto capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(market));
-		auto base_cargo_transport_demand = 0.f;
-		auto soft_transport_demand_limit = state.world.market_get_max_throughput(market);
+		auto base_cargo_transport_demand = transportation_inside_market_labor_demand(state, market, capital);
 
-		state.world.for_each_commodity([&](auto commodity) {
-			state.world.market_for_each_trade_route(market, [&](auto trade_route) {
-				auto current_volume = state.world.trade_route_get_volume(trade_route, commodity);
-				auto origin =ny
-					current_volume > 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				auto target =
-					current_volume <= 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-
-				//auto sat = state.world.market_get_direct_demand_satisfaction(origin, commodity);
-				base_cargo_transport_demand += std::abs(current_volume);
-			});
-		});
-
+		// auto soft_transport_demand_limit = state.world.market_get_max_throughput(market);
 		//if(base_cargo_transport_demand > soft_transport_demand_limit) {
 		//	base_cargo_transport_demand = base_cargo_transport_demand * base_cargo_transport_demand / soft_transport_demand_limit;
 		//}

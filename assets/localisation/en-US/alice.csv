@@ -382,9 +382,10 @@ employment_type_no_education;Employment type: ?YNo education?W
 employment_type_basic_education;Employment type: ?YBasic education?W
 employment_type_high_education_and_accepted;Employment type: ?YHigh Education and Accepted?W
 employment_type_high_education;Employment type: ?YHigh Education?W
-trade_center;Trade Center
-trade_center_desc;Trade Centers manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
+trade_center;Trade Centre
+trade_center_desc;Trade Centres manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
 trade_center_employment;Trade Center Employees: ?Y$value$?W
+trade_centre_max_throughput;Max throughput: ?Y$value$?W
 local_admin;Local Administration
 capital_admin;Capital Administration
 local_admin_spending;Estimated cost: ?Y$value$?W
@@ -1450,6 +1451,7 @@ trade_centre_imports_value;Imports value: ?Y$val$
 trade_centre_exports_volume;Exports volume: ?Y$val$
 trade_centre_exports_value;Exports value: ?Y$val$
 trade_centre_profit;Profit: ?Y$val$
+trade_centre_money;Money stockpile: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
 investment_pool_income_2;Transfer from subject $country$: ?G$x$?W

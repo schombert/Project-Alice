@@ -50,7 +50,8 @@ struct trade_route_volume_change_reasons {
 };
 
 float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_fat_id A_capital, dcon::province_fat_id B_capital);
-float market_labour_demand(sys::state& state, dcon::market_id market);
+float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market);
+float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital);
 
 void make_trade_center_tooltip(
 	sys::state& state,
