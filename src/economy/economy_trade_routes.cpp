@@ -175,8 +175,8 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 				profit += explain.amount_origin * explain.payment_received_per_unit;
 			}
 			else if(market == explain.target && explain.amount_target > 0) {
-				exports_volume += explain.amount_target;
-				exports_value += explain.amount_target * explain.price_target;
+				imports_volume += explain.amount_target;
+				imports_value += explain.amount_target * explain.price_target;
 				trade_value += explain.amount_target * explain.price_target;
 				trade_volume += explain.amount_target;
 				profit -= explain.amount_target * explain.payment_per_unit;
@@ -187,8 +187,6 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	text::add_line(state, contents, "trade_centre_trade_volume", text::variable_type::val, text::fp_two_places{ trade_volume });
 	text::add_line(state, contents, "trade_centre_imports_volume", text::variable_type::val, text::fp_two_places{ imports_volume }, 15);
 	text::add_line(state, contents, "trade_centre_exports_volume", text::variable_type::val, text::fp_two_places{ exports_volume }, 15);
-
-	text::add_line(state, contents, "trade_centre_max_throughput", text::variable_type::val, text::fp_two_places{ state.world.market_get_max_throughput(market) });
 
 	text::add_line(state, contents, "trade_centre_trade_value", text::variable_type::val, text::fp_currency{ trade_value });
 	text::add_line(state, contents, "trade_centre_imports_value", text::variable_type::val, text::fp_currency{ imports_value }, 15);
