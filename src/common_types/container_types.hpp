@@ -302,6 +302,10 @@ struct player_value {
 		return *this;
 	}
 
+	bool is_equal(player_value<_Size> other) {
+		return other.data == data;
+	}
+
 	std::string to_string() noexcept {
 		return std::string(to_string_view());
 	}

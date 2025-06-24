@@ -13,7 +13,7 @@ TEST_CASE("run_fresh_lobby", "[determinism]") {
 	host_game_state->cheat_data.daily_oos_check = true;
 	network::init(*host_game_state);
 	std::thread update_thread_host([&]() { host_game_state->game_loop(); });
-	command::notify_player_picks_nation(*host_game_state, host_game_state->local_player_nation, dcon::nation_id{ 1 });
+	command::notify_player_picks_nation(*host_game_state, host_game_state->local_player_nation, dcon::nation_id{ 1 }, host_game_state->network_state.nickname);
 
 
 
@@ -27,7 +27,7 @@ TEST_CASE("run_fresh_lobby", "[determinism]") {
 	network::init(*client_game_state);
 	std::thread update_thread_client([&]() { client_game_state->game_loop(); });
 	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-	command::notify_player_picks_nation(*client_game_state, client_game_state->local_player_nation, dcon::nation_id{5 });
+	command::notify_player_picks_nation(*client_game_state, client_game_state->local_player_nation, dcon::nation_id{5 }, client_game_state->network_state.nickname);
 	command::notify_start_game(*host_game_state, host_game_state->local_player_nation);
 	
 	while(true) {

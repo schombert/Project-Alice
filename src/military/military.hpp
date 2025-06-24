@@ -547,6 +547,7 @@ dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::le
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
+void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg); // safely deletes the regiment even if the army is currently in a battle
 bool rebel_army_in_province(sys::state& state, dcon::province_id p);
 dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);

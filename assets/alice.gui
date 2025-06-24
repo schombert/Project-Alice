@@ -1,4 +1,14 @@
 guiTypes = {
+	guiButtonType = {
+		name = "observer_button"
+		extends = "lobby"
+		position = { x = 17 y = -200 }
+		quadTextureSprite ="GFX_frontend_play_button"	
+		buttonText = "alice_observer_btn_text"
+		buttonFont = "vic_32_black"
+		Orientation = "LOWER_LEFT"
+	}
+			
 	iconType = {
         name = "gfx_storage_unit_types"
         spriteType = "GFX_unit_strip"

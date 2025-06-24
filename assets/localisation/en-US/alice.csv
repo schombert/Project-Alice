@@ -1043,6 +1043,7 @@ disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
 alice_play_save_stream;Host is streaming a save to you, wait until it completes
 alice_no_start_game_player_loading;Cannot start the game while players are loading
+alice_no_start_game_invalid_nations;Cannot start the game while players are on non-existant nations
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
@@ -1564,6 +1565,8 @@ alice_host_has_resync;Host has resynced the lobby
 alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
 alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
 alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.
+alice_observer_btn_text;Play as observer
+alice_observer_already_observer_tooltip;You are already on the observer tag.
 alice_labor_no_education;Unskilled
 alice_labor_basic_education;Skilled
 alice_labor_high_education;Expert
