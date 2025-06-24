@@ -2857,6 +2857,36 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	text::add_line(state, contents, "alice_factory_construction_explain_5", text::variable_type::x, text::fp_percentage{ progress });
 };
 
+inline void province_building_effect_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt, float level = 1.f) {
+	auto def = state.economy_definitions.building_definitions[uint8_t(bt)];
+	modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(bt)].province_modifier, 0, level);
+	// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
+	if(bt == economy::province_building_type::naval_base) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness * level }, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+	else if(bt == economy::province_building_type::railroad) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "infrastructure"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{ def.infrastructure }, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+	else if(bt == economy::province_building_type::fort) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "FORT_LEVEL"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, 1, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+}
+
 inline void province_building_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt) {
 	auto level = state.world.province_get_building_level(p, uint8_t(bt));
 
@@ -2866,16 +2896,7 @@ inline void province_building_tooltip(sys::state& state, text::columnar_layout& 
 
 	if(level > 0) {
 		text::add_line(state, contents, "alice_building_modifier");
-		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(bt)].province_modifier, 0, level);
-		// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
-		if(bt == economy::province_building_type::naval_base) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness * level }, text::text_color::green);
-			text::close_layout_box(contents, box);
-		}
+		province_building_effect_tooltip(state, contents, p, bt, level);
 	}
 };
 
@@ -2884,16 +2905,7 @@ inline void province_building_construction_tooltip(sys::state& state, text::colu
 	text::add_line_break_to_layout(state, contents);
 
 	text::add_line(state, contents, "alice_new_building_modifier");
-	modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(bt)].province_modifier);
-	// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
-	if(bt == economy::province_building_type::naval_base) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness }, text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
+	province_building_effect_tooltip(state, contents, p, bt);
 
 	text::add_line_break_to_layout(state, contents);
 	text::add_line(state, contents, "alice_building_conditions");
