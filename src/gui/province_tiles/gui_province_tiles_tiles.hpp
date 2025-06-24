@@ -475,7 +475,9 @@ public:
 		economy::make_trade_center_tooltip(state, contents, target.market);
 		text::add_line_break_to_layout(state, contents);
 
+		// US3AC2
 		auto external_trade_employment = economy::transportation_between_markets_labor_demand(state, target.market);
+		// US3AC3
 		// Since the tile is rendered only for state capitals, we assume that target.province = market capital
 		auto internal_trade_employment = economy::transportation_inside_market_labor_demand(state, target.market, target.province);
 		auto target_employment = external_trade_employment + internal_trade_employment;
