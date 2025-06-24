@@ -165,26 +165,21 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 
 	for(auto commodity : state.world.in_commodity) {
 		for(auto route : state.world.market_get_trade_route(market)) {
-			auto prediction = predict_trade_route_volume_change(state, route, commodity);
+			auto explain = explain_trade_route_commodity(state, route, commodity);
 
-			auto B = state.world.trade_route_get_connected_markets(route, 1);
-			if(B == market) {
-				auto multiplier = -1.f;
-				imports_volume += prediction.current_volume;
-				imports_value += multiplier * prediction.current_volume * prediction.import_price[1];
-				trade_value += multiplier * prediction.current_volume * prediction.import_price[1];
+			if(market == explain.origin && explain.amount_origin > 0) {
+				exports_volume += explain.amount_origin;
+				exports_value += explain.amount_origin * explain.price_origin;
+				trade_value += explain.amount_origin * explain.price_origin;
+				trade_volume += explain.amount_origin;
+				profit += explain.amount_origin * explain.payment_received_per_unit;
 			}
-			else {
-				exports_volume += prediction.current_volume;
-				exports_value += prediction.current_volume * prediction.export_price[0];
-				trade_value += prediction.current_volume * prediction.export_price[0];
-			}
-			trade_volume += prediction.current_volume;
-			profit += prediction.profit;
-
-			if(prediction.trade_blocked) {
-				text::add_line(state, contents, "trade_is_blocked");
-				return;
+			else if(market == explain.target && explain.amount_target > 0) {
+				exports_volume += explain.amount_target;
+				exports_value += explain.amount_target * explain.price_target;
+				trade_value += explain.amount_target * explain.price_target;
+				trade_volume += explain.amount_target;
+				profit -= explain.amount_target * explain.payment_per_unit;
 			}
 		}
 	}
@@ -199,7 +194,7 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	text::add_line(state, contents, "trade_centre_imports_value", text::variable_type::val, text::fp_currency{ imports_value }, 15);
 	text::add_line(state, contents, "trade_centre_exports_value", text::variable_type::val, text::fp_currency{ exports_value }, 15);
 
-	text::add_line(state, contents, "trade_centre_profit", text::variable_type::val, text::fp_currency{ profit });
+	text::add_line(state, contents, "trade_centre_trade_routes_profit", text::variable_type::val, text::fp_currency{ profit });
 	text::add_line(state, contents, "trade_centre_money", text::variable_type::val, text::fp_currency{ state.world.market_get_stockpile(market, money) });
 }
 

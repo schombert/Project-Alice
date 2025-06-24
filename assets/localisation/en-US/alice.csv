@@ -1455,7 +1455,7 @@ trade_centre_imports_volume;Imports volume: ?Y$val$
 trade_centre_imports_value;Imports value: ?Y$val$
 trade_centre_exports_volume;Exports volume: ?Y$val$
 trade_centre_exports_value;Exports value: ?Y$val$
-trade_centre_profit;Profit: ?Y$val$
+trade_centre_trade_routes_profit;Profit from trade routes: ?Y$val$
 trade_centre_money;Money stockpile: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
