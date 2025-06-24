@@ -205,7 +205,11 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override {
-		if(target.province_building == economy::province_building_type::railroad) {
+		auto level = state.world.province_get_building_level(target.province, uint8_t(target.province_building));
+
+		if(target.province_building == economy::province_building_type::railroad && level == 0) {
+			return 21;
+		} else if(target.province_building == economy::province_building_type::railroad && level > 0) {
 			return 8;
 		} else if(target.province_building == economy::province_building_type::naval_base) {
 			return 9;
@@ -217,9 +221,8 @@ public:
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
 
-	// Done
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(target.province_building)));
+		province_building_tooltip(state, contents, target.province, target.province_building);
 	}
 };
 

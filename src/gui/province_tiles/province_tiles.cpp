@@ -78,7 +78,6 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	}
 
 	if(owner) {
-
 		for(auto f : state.world.in_factory) {
 			if(f.get_factory_location().get_province() == p) {
 				tiles[curind].factory = f;
@@ -97,7 +96,7 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			}
 		}
 
-		for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)); i++) {
+		if (state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
 			tiles[curind].province_building = economy::province_building_type::naval_base;
 			tiles[curind].empty = false;
 			tiles[curind].has_province_building = true;
@@ -105,7 +104,8 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			curind++;
 		}
 
-		for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad)); i++) {
+		// if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad) > 0) {
+		{
 			tiles[curind].province_building = economy::province_building_type::railroad;
 			tiles[curind].empty = false;
 			tiles[curind].has_province_building = true;
@@ -113,7 +113,7 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			curind++;
 		}
 
-		for(int i = 0; i < state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)); i++) {
+		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
 			tiles[curind].province_building = economy::province_building_type::fort;
 			tiles[curind].empty = false;
 			tiles[curind].has_province_building = true;

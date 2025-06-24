@@ -2857,5 +2857,111 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	text::add_line(state, contents, "alice_factory_construction_explain_5", text::variable_type::x, text::fp_percentage{ progress });
 };
 
+inline void province_building_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt) {
+	auto level = state.world.province_get_building_level(p, uint8_t(bt));
+
+	text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(bt)));
+	text::add_line(state, contents, "alice_building_level", text::variable_type::val, level);
+	text::add_line_break_to_layout(state, contents);
+
+	if(level > 0) {
+		text::add_line(state, contents, "alice_building_modifier");
+		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(bt)].province_modifier, 0, level);
+		// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
+		if(bt == economy::province_building_type::naval_base) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness * level }, text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+inline void province_building_construction_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt) {
+	text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(bt)));
+	text::add_line_break_to_layout(state, contents);
+
+	text::add_line(state, contents, "alice_new_building_modifier");
+	modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(bt)].province_modifier);
+	// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
+	if(bt == economy::province_building_type::naval_base) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness }, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "alice_building_conditions");
+	int32_t current_lvl = state.world.province_get_building_level(p, uint8_t(bt));
+	int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, uint8_t(bt));
+	if (bt == economy::province_building_type::fort) {
+		text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(p) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, p));
+
+		int32_t min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_fort));
+		text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+
+	} else if (bt == economy::province_building_type::naval_base) {
+		text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(p) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, p));
+		text::add_line_with_condition(state, contents, "nb_build_tt_1", state.world.province_get_is_coast(p));
+
+		int32_t min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_naval_base));
+
+		auto si = state.world.province_get_state_membership(p);
+		text::add_line_with_condition(state, contents, "nb_build_tt_2", current_lvl > 0 || !si.get_naval_base_is_taken());
+
+		text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+
+	} else {
+		text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(p) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, p));
+
+		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "rr_build_tt_1", (rules & issue_rule::build_railway) != 0);
+
+		int32_t min_build = 0;
+		if (bt == economy::province_building_type::railroad) {
+			min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad));
+		} else if (bt == economy::province_building_type::bank) {
+			min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_bank));
+		} else if (bt == economy::province_building_type::university) {
+			min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_university));
+		}
+		text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+	}
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "alice_province_building_build");
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "alice_construction_cost");
+
+	// Construction cost goods breakdown
+	float factor = economy::build_cost_multiplier(state, p, false);
+	auto constr_cost = state.economy_definitions.building_definitions[uint8_t(bt)].cost;
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		auto box = text::open_layout_box(contents, 0);
+		auto cid = constr_cost.commodity_type[i];
+
+		if(!cid) {
+			break;
+		}
+		std::string padding = cid.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(cid.index());
+		text::add_unparsed_text_to_layout_box(state, contents, box, description);
+		text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(constr_cost.commodity_type[i]));
+		text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+		text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] * factor });
+		text::close_layout_box(contents, box);
+	}
+};
+
 
 } // namespace ui

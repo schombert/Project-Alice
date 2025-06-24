@@ -2049,7 +2049,7 @@ uint32_t ef_tech_school(EFFECT_DISPLAY_PARAMS) {
 	text::localised_format_box(ws, layout, box, "change_tech_school", m);
 	text::close_layout_box(layout, box);
 	if(ws.user_settings.spoilers) {
-		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount, 1);
 	}
 	return 0;
 }

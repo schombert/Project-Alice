@@ -1212,7 +1212,9 @@ alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
 alice_construction_cost;Construction cost:
-alice_building_modifier;Building will have the following effect:
+alice_building_modifier;Building gives the following effect:
+alice_new_building_modifier;Building will give the following effect:
+alice_building_level;Building Level: ?Y$val$?W
 alice_building_conditions;To build, the following must be true:
 alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
 alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
