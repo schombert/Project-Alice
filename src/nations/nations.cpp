@@ -1894,6 +1894,46 @@ bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
 	}
 	return false;
 }
+void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		state.world.nation_set_is_player_controlled(new_n, true);
+		state.world.nation_set_is_player_controlled(old_n, false);
+		state.local_player_nation = new_n;
+	} else {
+		auto p = network::find_country_players(state, old_n);
+		// move ALL players which are on the current nation, to the new nation
+		for(auto player : p) {
+			state.world.force_create_player_nation(new_n, player);
+		}
+		if(!p.empty()) {
+			state.world.nation_set_is_player_controlled(new_n, true);
+			state.world.nation_set_is_player_controlled(old_n, false);
+		}
+
+		if(state.network_mode == sys::network_mode_type::host) {
+			for(auto& client : state.network_state.clients) {
+				if(!client.is_active())
+					continue;
+				if(client.playing_as == old_n) {
+					client.playing_as = new_n;
+				}
+			}
+
+			network::write_player_nations(state);
+		}
+		if(state.local_player_nation == old_n) {
+			state.local_player_nation = new_n;
+		}
+		// We will also re-assign all chat messages from this nation to the new one
+		for(auto& msg : state.ui_state.chat_messages)
+			if(bool(msg.source) && msg.source == old_n)
+				msg.source = new_n;
+	}
+
+}
+
+
+
 
 void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
 	if(state.world.nation_get_owned_province_count(a) == 0 || state.world.nation_get_owned_province_count(a) == 0)

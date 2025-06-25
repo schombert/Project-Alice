@@ -26,6 +26,9 @@ struct pending_human_n_event {
 			primary_slot == other.primary_slot && r_hi == other.r_hi &&
 			r_lo == other.r_lo;
 	}
+	bool operator !=(const pending_human_n_event& other) const {
+		return !((*this) == other);
+	}
 };
 static_assert(sizeof(pending_human_n_event) ==
 	sizeof(pending_human_n_event::r_lo)
@@ -47,6 +50,9 @@ struct pending_human_f_n_event {
 
 	bool operator ==(const pending_human_f_n_event& other) const {
 		return r_lo == other.r_lo && r_hi == other.r_hi && date == other.date && e == other.e && n == other.n;
+	}
+	bool operator !=(const pending_human_f_n_event& other) const {
+		return !((*this) == other);
 	}
 
 
@@ -73,6 +79,9 @@ struct pending_human_p_event {
 	bool operator ==(const pending_human_p_event& other) const {
 		return r_lo == other.r_lo && r_hi == other.r_hi && from_slot == other.from_slot && date == other.date && e == other.e && p == other.p;
 	}
+	bool operator !=(const pending_human_p_event& other) const {
+		return !((*this) == other);
+	}
 
 
 };
@@ -95,6 +104,9 @@ struct pending_human_f_p_event {
 
 	bool operator ==(const pending_human_f_p_event& other) const {
 		return date == other.date && e == other.e && p == other.p && r_hi == other.r_hi && r_lo == other.r_lo;
+	}
+	bool operator !=(const pending_human_f_p_event& other) const {
+		return !((*this) == other);
 	}
 
 

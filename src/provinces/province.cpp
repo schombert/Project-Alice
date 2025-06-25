@@ -1284,7 +1284,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				} else {
 					// if the army is in a battle, is retreating, is on a transport, or is controlled by rebels, safely delete the regiment instead of transferring it to the new owner
 					military::delete_regiment_safe_wrapper(state, src.get_regiment());
-					/*src.get_regiment().set_strength(0.f);*/
 				}
 			}
 			auto lc = p.get_pop().get_province_land_construction();
