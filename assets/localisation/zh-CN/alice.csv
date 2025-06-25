@@ -1563,3 +1563,6 @@ embargo_reason_origin_embargo;来源宣布禁运
 embargo_reason_origin_join_embargo;来源加入禁运
 embargo_reason_target_embargo;目标宣布禁运
 embargo_reason_target_join_embargo;目标加入禁运
+alice_no_start_game_invalid_nations;在玩家游玩不存在的国家时无法开始游戏
+alice_observer_btn_text;作为观察者游玩
+alice_observer_already_observer_tooltip;你已是观察者。
