@@ -626,14 +626,14 @@ pop_growth_topbar_2;population changed by ?G$x$?W in the last ?Y30?W days.
 pop_growth_topbar_3;Our Adult male population is ?Y$curr$?W. Our adult male
 pop_growth_topbar_4;Our total population is ?Y$val$?W.
 pop_growth_1;Monthly pop growth: 
-pop_growth_2;Slaves do not grow
+pop_growth_2;As this pop is a slave, its growth is divided by ?Y$val$?W.
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:
-pop_growth_4;The quality-of-life factor $x$, which is the product of:
-pop_growth_5;The province factor $x$, which is itself the sum of:
-pop_growth_6;The life rating of the province $x$ minus the minimum life rating $y$, all times $val$
-pop_growth_7;And the base pop growth value $x$
-pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the starvation limit $val$)
-pop_growth_9;And 4
+pop_growth_4;The growth factor ?Y$x$?W, which is the sum of:
+pop_growth_5;The life rating of the province ?Y$x$?W minus the minimum life rating ?Y$y$?W, all times ?Y$val$?W, giving a total ?Y$value$?W popgrowth
+pop_growth_6;The base pop growth value ?Y$x$?W
+pop_growth_7;The local population-growth modifier ?Y$x$?W
+pop_growth_8;The national population-growth modifier ?Y$x$?W
+pop_growth_9;All above positive modifiers are multiplied by the starvation factor ?Y$x$?W, which will decrease from 1 to a minimim of -1 if the pops life needs (currently ?Y$y$?W) is below ?Y$val$?W fufillment
 pop_growth_10;The local population-growth modifier $x$
 pop_growth_11;The national population-growth modifier $x$
 pop_assim_1;Monthly pop assimilation: $x$

@@ -673,7 +673,9 @@ public:
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
-			constructed_definition_n.values[next_to_add_n] = v * 1.0f;
+			//for some reason the global_population_growth effect is not parsed as a "pure" float in vic2's files unlike the "pop_growth" tech&invention effects or the "population_growth" effect in local modifiers
+			// instead, the decimal place is moved up one digit, ie "global_population_growth = 0.002" gives the same effect as "pop_growth = 0.0002" so we have to multiply the parsed value with 0.1 to get the actual pop growth float
+			constructed_definition_n.values[next_to_add_n] = v * 0.1f;
 			++next_to_add_n;
 		}
 	}

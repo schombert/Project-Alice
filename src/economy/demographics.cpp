@@ -2598,11 +2598,13 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than
 	define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by
 	define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value
-	and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+	and add it to define:BASE_POPGROWTH and add to all pop growth modifiers. This gives us the growth factor for the province.
 
-	The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs -
-	define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier +
-	national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
+	Then compute the starvation modifier:
+	MIN((pop_life_needs * 2) / define:LIFE_NEED_STARVATION_LIMIT - 1, 1.0) which is multiplied to all *postitive* pop growth modifiers in the pop growth factor.
+
+
+	Then divide all postitive pop grwoth modifiers by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
 	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 	*/
 
@@ -2626,7 +2628,12 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 		ve::fp_vector negative_modifiers = ve::select(state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) < 0.0f, state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth), 0.0f) +
 			ve::select(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth) < 0.0f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth), 0.0f);
 
-		ve::fp_vector ln_factor = ve::min((pop_demographics::get_life_needs(state, ids) * 2.0f) / state.defines.life_need_starvation_limit - 1.0f, 1.0f);
+		ve::fp_vector ln_factor = 1.0f;
+
+		if(state.defines.life_need_starvation_limit != 0) {
+			ln_factor = ve::min((pop_demographics::get_life_needs(state, ids) * 2.0f) / state.defines.life_need_starvation_limit - 1.0f, 1.0f);
+		}
+		
 
 		auto total_factor = ln_factor * positive_modifiers + negative_modifiers;
 		auto old_size = state.world.pop_get_size(ids);
@@ -2637,17 +2644,45 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
+float get_pop_starvation_factor(sys::state& state, dcon::pop_id ids) {
+	auto ln_factor = 1.0f;
+	if(pop_demographics::get_life_needs(state, ids) < state.defines.life_need_starvation_limit && state.defines.life_need_starvation_limit != 0.0f) {
+		ln_factor = (pop_demographics::get_life_needs(state, ids) * 2) / state.defines.life_need_starvation_limit - 1;
+	}
+	return ln_factor;
+}
+
+float popgrowth_from_life_rating(sys::state& state, float life_rating) {
+	return std::max((life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+}
+
 float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
+
+	/*
+	Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the
+	modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the
+	provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than
+	define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by
+	define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value
+	and add it to define:BASE_POPGROWTH and add to all pop growth modifiers. This gives us the growth factor for the province.
+
+	Then compute the starvation modifier:
+	MIN((pop_life_needs * 2) / define:LIFE_NEED_STARVATION_LIMIT - 1, 1.0) which is multiplied to all *postitive* pop growth modifiers in the pop growth factor.
+
+
+	Then divide all postitive pop grwoth modifiers by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
+	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	*/
+
+
+
 	auto type = state.world.pop_get_poptype(ids);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 
-	auto base_life_rating = float(state.world.province_get_life_rating(loc));
-	auto mod_life_rating = std::min(
-			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
-	auto lr_factor =
-		std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+	auto mod_life_rating = province::effective_life_rating_growth(state, loc);
+	auto lr_factor = popgrowth_from_life_rating(state, mod_life_rating);
 
 	float negative_modifiers = 0.0f;
 	float positive_modifiers = lr_factor + state.defines.base_popgrowth;
@@ -2668,10 +2703,7 @@ float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
 		positive_modifiers /= state.defines.slave_growth_divisor;
 
 
-	auto ln_factor = 1.0f;
-	if(pop_demographics::get_life_needs(state, ids) < state.defines.life_need_starvation_limit && state.defines.life_need_starvation_limit != 0.0f) {
-		ln_factor = (pop_demographics::get_life_needs(state, ids) * 2) / state.defines.life_need_starvation_limit - 1;
-	}
+	auto ln_factor = get_pop_starvation_factor(state, ids);
 
 	return positive_modifiers * ln_factor + negative_modifiers;
 }
