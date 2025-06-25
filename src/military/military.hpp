@@ -409,6 +409,7 @@ float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{});
 
 
+int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation_id n);
 int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
 		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer);
@@ -546,6 +547,7 @@ dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::le
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
+void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg); // safely deletes the regiment even if the army is currently in a battle
 bool rebel_army_in_province(sys::state& state, dcon::province_id p);
 dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);

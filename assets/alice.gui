@@ -1,4 +1,14 @@
 guiTypes = {
+	guiButtonType = {
+		name = "observer_button"
+		extends = "lobby"
+		position = { x = 17 y = -200 }
+		quadTextureSprite ="GFX_frontend_play_button"	
+		buttonText = "alice_observer_btn_text"
+		buttonFont = "vic_32_black"
+		Orientation = "LOWER_LEFT"
+	}
+			
 	iconType = {
         name = "gfx_storage_unit_types"
         spriteType = "GFX_unit_strip"
@@ -4629,6 +4639,23 @@ guiTypes = {
 		extends = "province_view_header"
 		position = { x= 148 y = 3 }
 		quadTextureSprite = "GFX_take_province"	
+	}
+
+	iconType = {
+		name ="province_victory_points_icon"
+		extends = "province_view_header"
+		spriteType = "GFX_prestige_icon_2"
+		position = { x=125 y=43 }
+		Orientation = "UPPER_LEFT"
+	}
+	instantTextBoxType = {
+			name = "province_victory_points"
+			extends = "province_view_header"
+			position = { x=140 y =45}
+			borderSize = { 0 0}
+			maxsize = { 50 20 }
+			textureFile = ""
+			font = "vic_18"
 	}
 
 	instantTextBoxType = {

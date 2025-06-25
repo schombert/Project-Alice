@@ -1581,7 +1581,7 @@ void test_load_save(sys::state& state, uint8_t* ptr_in, uint32_t length) {
 	// Then reload from network
 	state.reset_state();
 	read_save_section(ptr_in, ptr_in + length, state);
-	network::place_players_after_reload(state, players, old_local_player_nation);
+	network::set_no_ai_nations_after_reload(state, players, old_local_player_nation);
 	state.fill_unsaved_data();
 }
 

@@ -4909,6 +4909,11 @@ relationship{
 		type{ province_id }
 		tag{ save }
 	}
+	property{
+		name{ start_date }
+		type{ sys::date }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -4943,6 +4948,11 @@ relationship{
 	property{
 		name{ template_province }
 		type{ province_id }
+		tag{ save }
+	}
+	property{
+		name{ start_date }
+		type{ sys::date }
 		tag{ save }
 	}
 }
@@ -5775,7 +5785,7 @@ relationship{
 	link{
 		object{nation}
 		name{nation}
-		type{unique}
+		type{many}
 	}
 	link{
 		object{mp_player}

@@ -61,6 +61,18 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	sys::state& state, dcon::trade_route_id route, dcon::commodity_id cid
 );
 
+struct embargo_explanation {
+	bool combined = false;
+	bool war = false;
+	bool origin_embargo = false;
+	bool target_embargo = false;
+	bool origin_join_embargo = false;
+	bool target_join_embargo = false;
+};
+
+embargo_explanation embargo_exists(
+	sys::state& state, dcon::nation_id n_A, dcon::nation_id n_B
+);
 tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route);
 trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, tariff_data& additional_data, dcon::commodity_id cid);
 trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);

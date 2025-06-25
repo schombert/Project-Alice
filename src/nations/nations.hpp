@@ -329,6 +329,7 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n);
+void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n); // switches all players who are on one country to another. Can be called in either SP or MP
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);

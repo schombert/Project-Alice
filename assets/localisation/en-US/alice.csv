@@ -955,6 +955,13 @@ alice_province_selector_on;ON
 alice_province_selector_off;OFF
 province_selector;Selector
 province_immigrator;Immigrator
+province_victory_points;Victory points represent relative worth of the province to other provinces in the country when calculating occupation score in wars.
+province_victory_points_base;?G+1 point base?W
+province_victory_points_nb;?G+$X$ points for naval base level?W
+province_victory_points_fcount;?G+$X$ points for factories?W
+province_victory_points_fortsize;?G+$X$ points for fort level?W
+province_victory_points_mainlandcore;?Gx2 for non-overseas core?W
+province_victory_points_capital;?Gx3 for nation capital?W
 tt_a_bank;a bank
 tt_a_university;a university
 et_add_selector;enable province selector
@@ -1036,6 +1043,7 @@ disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
 alice_play_save_stream;Host is streaming a save to you, wait until it completes
 alice_no_start_game_player_loading;Cannot start the game while players are loading
+alice_no_start_game_invalid_nations;Cannot start the game while players are on non-existant nations
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
@@ -1338,9 +1346,13 @@ trade_nation_data;Domestic
 trade_good_stats_global;Nations
 trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
+per_nation;Per nation
 price;Price
+labour_price;Wage
+labour_price_10k;Wage(10k people)
 supply;Supply
 demand;Demand
+supply_demand_ratio;Supply-demand ratio
 balance;Balance
 market_stockpiles;In stock
 national_stockpile;Government Stockpile
@@ -1553,3 +1565,19 @@ alice_host_has_resync;Host has resynced the lobby
 alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
 alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
 alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.
+alice_observer_btn_text;Play as observer
+alice_observer_already_observer_tooltip;You are already on the observer tag.
+alice_labor_no_education;Unskilled
+alice_labor_basic_education;Skilled
+alice_labor_high_education;Expert
+alice_labor_guild;Guilds
+alice_labor_high_education_and_accepted;Expert(accepted)
+alice_invalid_value;Invalid value
+alice_wages_tab;Wages
+alice_trade_volume_tab;Trade volume
+economy_scene_embargo;Embargo!
+embargo_reason_war;War
+embargo_reason_origin_embargo;Origin declared embargo
+embargo_reason_origin_join_embargo;Origin joined embargo
+embargo_reason_target_embargo;Target declared embargo
+embargo_reason_target_join_embargo;Target joined embargo

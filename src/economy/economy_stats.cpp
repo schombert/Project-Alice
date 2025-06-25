@@ -785,6 +785,176 @@ float trade_outflux(sys::state& state,
 	return result;
 }
 
+float trade_value_flow(
+	sys::state& state,
+	dcon::market_id origin,
+	dcon::market_id target
+) {
+	if(origin == target) {
+		return 0.f;
+	}
+	float result = 0.f;
+	auto trade_route = state.world.get_trade_route_by_province_pair(origin, target);
+	state.world.for_each_commodity([&](auto c) {
+		auto median_price = state.world.commodity_get_median_price(c);
+		auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+		auto m_origin =
+			current_volume > 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto m_target =
+			current_volume <= 0.f
+			? state.world.trade_route_get_connected_markets(trade_route, 0)
+			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto sat = state.world.market_get_direct_demand_satisfaction(m_origin, c);
+		auto absolute_volume = std::abs(current_volume);
+		auto s_origin = state.world.market_get_zone_from_local_market(m_origin);
+		auto s_target = state.world.market_get_zone_from_local_market(m_target);
+		auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+		auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+
+		if(m_origin == origin && m_target == target) {
+			result += sat * absolute_volume * median_price;
+		}
+	});
+	return result;
+}
+float trade_value_flow(
+	sys::state& state,
+	dcon::nation_id origin,
+	dcon::nation_id target
+) {
+	if(origin == target) {
+		return 0.f;
+	}
+	float result = 0.f;
+	state.world.for_each_commodity([&](auto c) {
+		auto median_price = state.world.commodity_get_median_price(c);
+		auto total_volume = 0.f;
+		state.world.nation_for_each_state_ownership(origin, [&](auto soid) {
+			auto sid = state.world.state_ownership_get_state(soid);
+			auto market = state.world.state_instance_get_market_from_local_market(sid);
+			state.world.market_for_each_trade_route(market, [&](auto trade_route) {
+				auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+				auto m_origin =
+					current_volume > 0.f
+					? state.world.trade_route_get_connected_markets(trade_route, 0)
+					: state.world.trade_route_get_connected_markets(trade_route, 1);
+				auto m_target =
+					current_volume <= 0.f
+					? state.world.trade_route_get_connected_markets(trade_route, 0)
+					: state.world.trade_route_get_connected_markets(trade_route, 1);
+				auto sat = state.world.market_get_direct_demand_satisfaction(m_origin, c);
+				auto absolute_volume = std::abs(current_volume);
+				auto s_origin = state.world.market_get_zone_from_local_market(m_origin);
+				auto s_target = state.world.market_get_zone_from_local_market(m_target);
+				auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+				auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+
+				if(n_origin == origin && n_target == target) {
+					total_volume += sat * absolute_volume;
+				}
+			});
+		});
+
+		result += total_volume * median_price;
+	});
+	return result;
+}
+
+
+float export_value(
+	sys::state& state,
+	dcon::market_id s
+) {
+	float result = 0.f;
+	state.world.for_each_commodity([&](auto c) {
+		auto median_price = state.world.commodity_get_median_price(c);
+		auto total_volume = 0.f;
+	
+		state.world.market_for_each_trade_route(s, [&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+			auto origin =
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			if(origin != s) return;
+			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto absolute_volume = std::abs(current_volume);
+			auto s_origin = state.world.market_get_zone_from_local_market(origin);
+			auto s_target = state.world.market_get_zone_from_local_market(target);
+			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+			total_volume += sat * absolute_volume;
+		});
+
+		result += total_volume * median_price;
+	});
+	return result;
+}
+float export_value(
+	sys::state& state,
+	dcon::nation_id s
+) {
+	float result = 0.f;
+	state.world.for_each_commodity([&](auto c) {
+		auto median_price = state.world.commodity_get_median_price(c);
+		result += export_volume(state, s, c) * median_price;
+	});
+	return result;
+}
+float import_value(
+	sys::state& state,
+	dcon::market_id s
+) {
+	float result = 0.f;
+	state.world.for_each_commodity([&](auto c) {
+		auto median_price = state.world.commodity_get_median_price(c);
+		auto total_volume = 0.f;
+
+		state.world.market_for_each_trade_route(s, [&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
+			auto origin =
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			if(target != s) return;
+
+			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto absolute_volume = std::abs(current_volume);
+			auto s_origin = state.world.market_get_zone_from_local_market(origin);
+			auto s_target = state.world.market_get_zone_from_local_market(target);
+			auto n_origin = state.world.state_instance_get_nation_from_state_ownership(s_origin);
+			auto n_target = state.world.state_instance_get_nation_from_state_ownership(s_target);
+			total_volume += sat * absolute_volume;
+		});
+
+		result += total_volume * median_price;
+	});
+	return result;
+}
+float import_value(
+	sys::state& state,
+	dcon::nation_id s
+) {
+	float result = 0.f;
+	state.world.for_each_commodity([&](auto c) {
+		auto median_price = state.world.commodity_get_median_price(c);
+		result += import_volume(state, s, c) * median_price;
+	});
+	return result;
+}
+
 float export_volume(
 	sys::state& state,
 	dcon::market_id s,
