@@ -4475,26 +4475,26 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	auto pattacker = state.world.war_get_primary_attacker(w);
 	auto pdefender = state.world.war_get_primary_defender(w);
 
-	float sum_attacker_prov_values = 0;
-	float sum_attacker_occupied_values = 0;
+	int32_t sum_attacker_prov_values = 0;
+	int32_t sum_attacker_occupied_values = 0;
 	for(auto prv : state.world.nation_get_province_ownership(pattacker)) {
-		auto v = (float) province_point_cost(state, prv.get_province(), pattacker);
+		auto v = province_point_cost(state, prv.get_province(), pattacker);
 		sum_attacker_prov_values += v;
 		sum_attacker_occupied_values += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
-	float sum_defender_prov_values = 0;
-	float sum_defender_occupied_values = 0;
+	int32_t sum_defender_prov_values = 0;
+	int32_t sum_defender_occupied_values = 0;
 	for(auto prv : state.world.nation_get_province_ownership(pdefender)) {
-		auto v = (float) province_point_cost(state, prv.get_province(), pdefender);
+		auto v = province_point_cost(state, prv.get_province(), pdefender);
 		sum_defender_prov_values += v;
 		sum_defender_occupied_values += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
 	if(sum_defender_prov_values > 0)
-		total += (sum_defender_occupied_values * 100.0f) / sum_defender_prov_values;
+		total += (float(sum_defender_occupied_values) * 100.0f) / float(sum_defender_prov_values);
 	if(sum_attacker_prov_values > 0)
-		total -= (sum_attacker_occupied_values * 100.0f) / sum_attacker_prov_values;
+		total -= (float(sum_attacker_occupied_values) * 100.0f) / float(sum_attacker_prov_values);
 
 	return total;
 }
@@ -4539,10 +4539,10 @@ float directed_warscore(
 	if(target_is_primary_attacker && beneficiary_is_primary_defender)
 		return -primary_warscore(state, w);
 
-	float beneficiary_score_from_occupation = 0;
-	float beneficiary_potential_score_from_occupation = 0;
+	int32_t beneficiary_score_from_occupation = 0;
+	int32_t beneficiary_potential_score_from_occupation = 0;
 	for(auto prv : state.world.nation_get_province_ownership(target)) {
-		auto v = (float) province_point_cost(state, prv.get_province(), target);
+		auto v = province_point_cost(state, prv.get_province(), target);
 		beneficiary_potential_score_from_occupation += v;
 
 		if(beneficiary_is_primary_attacker || beneficiary_is_primary_defender) {
@@ -4553,23 +4553,23 @@ float directed_warscore(
 		}
 	}
 
-	float against_beneficiary_score_from_occupation = 0;
-	float against_beneficiary_potential_score_from_occupation = 0;
+	int32_t against_beneficiary_score_from_occupation = 0;
+	int32_t against_beneficiary_potential_score_from_occupation = 0;
 	for(auto prv : state.world.nation_get_province_ownership(potential_beneficiary)) {
-		auto v = (float) province_point_cost(state, prv.get_province(), potential_beneficiary);
+		auto v = province_point_cost(state, prv.get_province(), potential_beneficiary);
 		against_beneficiary_potential_score_from_occupation += v;
 		against_beneficiary_score_from_occupation += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
 	if(beneficiary_potential_score_from_occupation > 0)
 		total +=
-			(beneficiary_score_from_occupation * 100.0f
-			/ beneficiary_potential_score_from_occupation);
+			(float(beneficiary_score_from_occupation) * 100.0f)
+			/ float(beneficiary_potential_score_from_occupation);
 
 	if(against_beneficiary_potential_score_from_occupation > 0)
 		total -=
-			(against_beneficiary_score_from_occupation * 100.0f
-			/ against_beneficiary_potential_score_from_occupation);
+			(float(against_beneficiary_score_from_occupation) * 100.0f)
+			/ float(against_beneficiary_potential_score_from_occupation);
 
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		auto wargoal_is_added_by_beneficiary = wg.get_wargoal().get_added_by() == potential_beneficiary;
