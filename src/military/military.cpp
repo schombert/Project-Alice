@@ -19,18 +19,19 @@ namespace military {
 
 // this function should be used
 // only for provinces owned by a war participant
-bool does_province_count_for_war_occupation(sys::state& state, dcon::war_id w, dcon::province_id p) {
+// US5AC4. What % of the province score should be counted towards occupation. [0.0f;1.0f].
+float share_province_score_for_war_occupation(sys::state& state, dcon::war_id w, dcon::province_id p) {
 	auto controller = state.world.province_get_nation_from_province_control(p);
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	// province must be occupied
 	if(owner == controller) {
-		return false;
+		return 0.f;
 	}
 	// rebels do not count
 	if(!controller) {
-		return false;
+		return 0.f;
 	}
-	// count occupations only for wars declared after targetted war
+	// US5AC5. count 50% of occupation score for wars declared after targetted war
 	auto date = state.world.war_get_start_date(w);
 	for(auto candidate_war : state.world.nation_get_war_participant(owner)) {
 		auto is_attacker = candidate_war.get_is_attacker();
@@ -38,14 +39,16 @@ bool does_province_count_for_war_occupation(sys::state& state, dcon::war_id w, d
 			if(o.get_nation() == controller) {
 				auto& candidate_date = candidate_war.get_war().get_start_date();
 				if(candidate_date < date) {
-					return false;
+					return 0.f;
+				}
+				else {
+					return 0.5f;
 				}
 			}
 		}
 	}
-	return true;
+	return 1.f;
 }
-
 
 template auto province_is_blockaded<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 template auto province_is_under_siege<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
@@ -4313,18 +4316,14 @@ void update_ticking_war_score(sys::state& state) {
 					if(prv.get_province().get_nation_from_province_ownership() == wg.get_target_nation()) {
 						score = (float) province_point_cost(state, prv.get_province(), wg.get_target_nation());
 						total_points += score;
-						if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
-							occupied += score;
-						}
+						occupied += share_province_score_for_war_occupation(state, war, prv.get_province()) * score;
 					}
 				}
 			} else if((bits & cb_flag::po_annex) != 0) {
 				for(auto prv : wg.get_target_nation().get_province_ownership()) {
 					score = (float)province_point_cost(state, prv.get_province(), wg.get_target_nation());
 					total_points += score;
-					if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
-						occupied += score;
-					}
+					occupied += share_province_score_for_war_occupation(state, war, prv.get_province()) * score;
 				}
 			} else if(auto allowed_states = wg.get_type().get_allowed_states(); allowed_states) {
 				auto from_slot = wg.get_secondary_nation().id ? wg.get_secondary_nation().id : wg.get_associated_tag().get_nation_from_identity_holder().id;
@@ -4334,9 +4333,7 @@ void update_ticking_war_score(sys::state& state) {
 						province::for_each_province_in_state_instance(state, st.get_state(), [&](dcon::province_id prv) {
 							score = (float)province_point_cost(state, prv, wg.get_target_nation());
 							total_points += score;
-							if(does_province_count_for_war_occupation(state, war, prv)) {
-								occupied += score;
-							}
+							occupied += share_province_score_for_war_occupation(state, war, prv) * score;
 						});
 					}
 				}
@@ -4462,9 +4459,13 @@ float primary_warscore_from_blockades(sys::state& state, dcon::war_id w) {
 
 float primary_warscore(sys::state& state, dcon::war_id w) {
 	return std::clamp(
+		// US5AC4
 		primary_warscore_from_occupation(state, w)
+		// US5AC1
 		+ primary_warscore_from_battles(state, w)
+		// US5AC2
 		+ primary_warscore_from_blockades(state, w)
+		// US5AC3
 		+ primary_warscore_from_war_goals(state, w), -100.0f, 100.0f);
 }
 
@@ -4479,8 +4480,7 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	for(auto prv : state.world.nation_get_province_ownership(pattacker)) {
 		auto v = province_point_cost(state, prv.get_province(), pattacker);
 		sum_attacker_prov_values += v;
-		if(does_province_count_for_war_occupation(state, w, prv.get_province()))
-			sum_attacker_occupied_values += v;
+		sum_attacker_occupied_values += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
 	int32_t sum_defender_prov_values = 0;
@@ -4488,8 +4488,7 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 	for(auto prv : state.world.nation_get_province_ownership(pdefender)) {
 		auto v = province_point_cost(state, prv.get_province(), pdefender);
 		sum_defender_prov_values += v;
-		if(does_province_count_for_war_occupation(state, w, prv.get_province()))
-			sum_defender_occupied_values += v;
+		sum_defender_occupied_values += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
 	if(sum_defender_prov_values > 0)
@@ -4547,8 +4546,7 @@ float directed_warscore(
 		beneficiary_potential_score_from_occupation += v;
 
 		if(beneficiary_is_primary_attacker || beneficiary_is_primary_defender) {
-			if(does_province_count_for_war_occupation(state, w, prv.get_province()))
-				beneficiary_score_from_occupation += v;
+			beneficiary_score_from_occupation += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 		} else {
 			if(prv.get_province().get_nation_from_province_control() == potential_beneficiary)
 				beneficiary_score_from_occupation += v;
@@ -4560,9 +4558,7 @@ float directed_warscore(
 	for(auto prv : state.world.nation_get_province_ownership(potential_beneficiary)) {
 		auto v = province_point_cost(state, prv.get_province(), potential_beneficiary);
 		against_beneficiary_potential_score_from_occupation += v;
-
-		if(does_province_count_for_war_occupation(state, w, prv.get_province()))
-			against_beneficiary_score_from_occupation += v;
+		against_beneficiary_score_from_occupation += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
 	if(beneficiary_potential_score_from_occupation > 0)
