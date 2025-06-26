@@ -2604,7 +2604,7 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	MIN((pop_life_needs * 2) / define:LIFE_NEED_STARVATION_LIMIT - 1, 1.0) which is multiplied to all *postitive* pop growth modifiers in the pop growth factor.
 
 
-	Then divide all postitive pop grwoth modifiers by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
+	Then divide all postitive pop growth modifiers in the pop growth factor by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
 	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 	*/
 
@@ -2670,7 +2670,7 @@ float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
 	MIN((pop_life_needs * 2) / define:LIFE_NEED_STARVATION_LIMIT - 1, 1.0) which is multiplied to all *postitive* pop growth modifiers in the pop growth factor.
 
 
-	Then divide all postitive pop grwoth modifiers by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
+	Then divide all postitive pop growth modifiers in the pop growth factor by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
 	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 	*/
 
