@@ -17,6 +17,23 @@ inline constexpr int32_t high_education_and_accepted = 4; // clerks, clergy and 
 inline constexpr int32_t total = 5;
 }
 
+std::string inline labor_string(int32_t labor_type) {
+	switch(labor_type) {
+	case labor::no_education:
+		return "alice_labor_no_education";
+	case labor::basic_education:
+		return "alice_labor_basic_education";
+	case labor::high_education:
+		return "alice_labor_high_education";
+	case labor::guild_education:
+		return "alice_labor_guild";
+	case labor::high_education_and_accepted:
+		return "alice_labor_high_education_and_accepted";
+	default:
+		return "alice_invalid_value";
+	}
+};
+
 namespace pop_labor {
 inline constexpr int32_t rgo_worker_no_education = 0;
 inline constexpr int32_t primary_no_education = 1;
@@ -65,6 +82,34 @@ ve::fp_vector ve_market_speculation_budget(
 	ve::tagged_vector<dcon::market_id> m,
 	dcon::commodity_id c
 );
+
+float stockpile_target_speculation(
+	sys::state const& state,
+	dcon::market_id m,
+	dcon::commodity_id c
+);
+template<typename M>
+ve::fp_vector stockpile_target_speculation(
+	sys::state const& state,
+	M m,
+	dcon::commodity_id c
+);
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+);
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::partial_contiguous_tags<dcon::market_id> m,
+	dcon::commodity_id c
+);
+ve::fp_vector ve_stockpile_target_speculation(
+	sys::state const& state,
+	ve::tagged_vector<dcon::market_id> m,
+	dcon::commodity_id c
+);
+
 ve::fp_vector ve_price(
 	sys::state const& state,
 	ve::contiguous_tags<dcon::market_id> s,
@@ -318,6 +363,34 @@ float market_pool(
 	dcon::commodity_id c
 );
 
+float trade_value_flow(
+	sys::state& state,
+	dcon::market_id origin,
+	dcon::market_id target
+);
+float trade_value_flow(
+	sys::state& state,
+	dcon::nation_id origin,
+	dcon::nation_id target
+);
+float export_value(
+	sys::state& state,
+	dcon::market_id s
+);
+float export_value(
+	sys::state& state,
+	dcon::nation_id s
+);
+float import_value(
+	sys::state& state,
+	dcon::market_id s
+);
+float import_value(
+	sys::state& state,
+	dcon::nation_id s
+);
+
+
 float export_volume(
 	sys::state& state,
 	dcon::market_id s,
@@ -352,6 +425,45 @@ trade_volume_data_detailed export_volume_detailed(
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
+
+struct tariff_data {
+	std::array<bool, 2> applies_tariff;
+	std::array<float, 2> export_tariff;
+	std::array<float, 2> import_tariff;
+
+	float distance;
+	float loss;
+	float base_distance_cost;
+	float workers_satisfaction;
+};
+
+struct trade_and_tariff {
+	dcon::market_id origin;
+	dcon::market_id target;
+
+	dcon::nation_id origin_nation;
+	dcon::nation_id target_nation;
+
+	float amount_origin;
+	float amount_target;
+
+	float tariff_origin;
+	float tariff_target;
+
+	float tariff_rate_origin;
+	float tariff_rate_target;
+
+	float price_origin;
+	float price_target;
+
+	float transport_cost;
+	float transportaion_loss;
+	float distance;
+
+	float payment_per_unit;
+	float payment_received_per_unit;
+};
+
 
 float import_volume(
 	sys::state& state,
@@ -389,4 +501,9 @@ bool has_factory(sys::state const&, dcon::state_instance_id);
 bool has_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 // checks existence of factory of given type in state (could be under construction)
 bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
+
+
+float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
+float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
+
 }

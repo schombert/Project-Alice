@@ -14,6 +14,8 @@ inline static regiment_tile regiment_tile_logic;
 inline static province_building_tile province_building_tile_logic;
 inline static province_resource_potential_tile province_resource_potential_tile_logic;
 inline static province_build_new_tile province_build_new_tile_logic;
+inline static factory_construction_tile factory_construction_tile_logic;
+
 
 class province_tile_button : public button_element_base {
 public:
@@ -43,6 +45,9 @@ public:
 		}
 		else if(tile.has_province_building) {
 			tile_logic = &province_building_tile_logic;
+		}
+		else if(tile.factory_construction) {
+			tile_logic = &factory_construction_tile_logic;
 		}
 		else if(tile.build_new) {
 			tile_logic = &province_build_new_tile_logic;

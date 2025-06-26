@@ -22,6 +22,7 @@
 #include "effects.cpp"
 #include "economy_stats.cpp"
 #include "economy.cpp"
+#include "economy_trade_routes.cpp"
 #include "economy_government.cpp"
 #include "economy_production.cpp"
 #include "construction.cpp"

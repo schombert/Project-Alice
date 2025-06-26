@@ -35,6 +35,27 @@ public:
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
 		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
 
+		auto fat_id = dcon::fatten(state.world, content);
+		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
+
+		auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
+		bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, target, content) && [&]() {
+			if((state.world.cb_type_get_type_bits(content) & military::cb_flag::always) != 0) {
+				return true;
+			}
+			for(auto& fabbed : other_cbs) {
+				if(fabbed.cb_type == content && fabbed.target == target)
+					return true;
+			}
+			return false;
+			}();
+
+		disabled = !can_use;
+		if(disabled) {
+			color = sys::pack_color(255, 255, 255);
+			return;
+		}
+
 		auto war = retrieve<dcon::war_id>(state, parent);
 		auto cb_infamy = !war
 			? (military::has_truce_with(state, state.local_player_nation, target)
@@ -46,9 +67,6 @@ public:
 		} else {
 			color = sys::pack_color(255, 255, 255);
 		}
-
-		auto fat_id = dcon::fatten(state.world, content);
-		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -187,23 +205,52 @@ public:
 				}
 			}
 		} else { // this is a declare war action
+			// Display all CB types sorting available ones first
+			// Buttons for unavailable CB types will be disabled
 			auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
+			
+			std::vector<dcon::cb_type_fat_id> cb_types;
+
 			for(auto cb : state.world.in_cb_type) {
-				bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) && [&]() {
-					if((cb.get_type_bits() & military::cb_flag::always) != 0) {
+				cb_types.push_back(cb);
+			}
+
+			std::sort(cb_types.begin(), cb_types.end(), [&](dcon::cb_type_fat_id& a, dcon::cb_type_fat_id& b) {
+
+				bool can_use_a = military::cb_conditions_satisfied(state, state.local_player_nation, content, a) && [&]() {
+					if((a.get_type_bits() & military::cb_flag::always) != 0) {
 						return true;
 					}
 					for(auto& fabbed : other_cbs) {
-						if(fabbed.cb_type == cb && fabbed.target == content)
+						if(fabbed.cb_type == a && fabbed.target == content)
 							return true;
 					}
 					return false;
-				}();
+					}();
 
-				if(can_use) {
-					row_contents.push_back(cb);
+				bool can_use_b = military::cb_conditions_satisfied(state, state.local_player_nation, content, b) && [&]() {
+					if((b.get_type_bits() & military::cb_flag::always) != 0) {
+						return true;
+					}
+					for(auto& fabbed : other_cbs) {
+						if(fabbed.cb_type == b && fabbed.target == content)
+							return true;
+					}
+					return false;
+					}();
+
+				if(can_use_a != can_use_b) {
+					return can_use_a;
 				}
+				else {
+					return a.id.index() < b.id.index();
+				}
+			});
+
+			for(auto el : cb_types) {
+				row_contents.push_back(el);
 			}
+
 		}
 
 		update(state);
@@ -385,8 +432,15 @@ public:
 				color = text::text_color::red;
 				set_text(state, text::format_float(cb_infamy, 1));
 			} else {
-				color = text::text_color::white;
-				set_text(state, "0.0");
+				auto cb_infamy = military::war_declaration_infamy_cost(state, cb, source, target, target_state);
+
+				if(cb_infamy > 0.f) {
+					color = text::text_color::red;
+				}
+				else {
+					color = text::text_color::white;
+				}
+				set_text(state, text::format_float(cb_infamy, 1));
 			}
 		} else {
 			color = text::text_color::white;
