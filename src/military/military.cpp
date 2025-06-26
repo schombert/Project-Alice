@@ -34,6 +34,8 @@ float share_province_score_for_war_occupation(sys::state& state, dcon::war_id w,
 	// US5AC5. count 50% of occupation score for wars declared after targetted war
 	auto date = state.world.war_get_start_date(w);
 	for(auto candidate_war : state.world.nation_get_war_participant(owner)) {
+		if(candidate_war.get_war() == w)
+			continue;
 		auto is_attacker = candidate_war.get_is_attacker();
 		for(auto o : candidate_war.get_war().get_war_participant()) {
 			if(o.get_nation() == controller) {
