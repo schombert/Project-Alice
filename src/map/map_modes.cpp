@@ -1009,6 +1009,10 @@ void update_map_mode(sys::state& state) {
 	if(state.map_state.active_map_mode == mode::terrain || state.map_state.active_map_mode == mode::region) {
 		return;
 	}
+	if(state.current_scene.id == game_scene::scene_id::in_game_economy_viewer) {
+		economy_viewer::update(state);
+		return;
+	}
 	set_map_mode(state, state.map_state.active_map_mode);
 }
 } // namespace map_mode

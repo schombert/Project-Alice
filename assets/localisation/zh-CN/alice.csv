@@ -1210,7 +1210,7 @@ CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援�
 CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
 CANCEL_WARSUBSIDIES_BUTTON;取消援助
 ledger_standard_of_living;生活条件
-alice_ledger_header_gdp_history;购买力平价GDP历史
+alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
@@ -1529,3 +1529,40 @@ province_rgo_efficiency_input;?Y$good$?W : ?Y$value$
 factory_condition_8;殖民地允许的工厂类型
 alice_has_possible_units;可以建造一些单位。
 CANBUILD_FORCEDISARM;国家尚未解除武装。
+alice_naval_coordination_penalty;$x$ 因超过敌舰规模而受到 ?R$y$?W 的海军协调惩罚，使其目标选择减少了 ?R$val$?W 。
+alice_naval_coordination_bonus;$x$ 因低于敌舰规模而受到 ?R$y$?W 的海军协调加成，使其目标选择增加了 ?R$val$?W 。
+alice_naval_stacking_penalty;$x$ 因堆叠惩罚而受到 ?R$val$?W 的伤害倍增。
+alice_factory_construction_cost;施工成本：
+alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
+alice_factory_construction_explain_4;估计总价：?Y$x$?W
+alice_factory_construction_explain_5;进展：?Y$x$?W
+ledger_inflation_adjusted_gdp;GDP（通胀调整）
+ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
+province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
+province_victory_points_base;?G+1 基本分?W
+province_victory_points_nb;?G+$X$ 海军基地等级积分?W
+province_victory_points_fcount;?G+$X$ 工厂积分?W
+province_victory_points_fortsize;?G+$X$ 要塞积分?W
+province_victory_points_mainlandcore;?Gx2 非海外积分?W
+province_victory_points_capital;?Gx3 首都积分?W
+per_nation;每个国家
+labour_price;工资
+labour_price_10k;一万人平均工资
+supply_demand_ratio;供需比
+alice_labor_no_education;新手
+alice_labor_basic_education;熟练
+alice_labor_high_education;专家
+alice_labor_guild;行会
+alice_labor_high_education_and_accepted;专家（已接受）
+alice_invalid_value;值 无效
+alice_wages_tab;工资
+alice_trade_volume_tab;贸易量
+economy_scene_embargo;禁运！
+embargo_reason_war;战争
+embargo_reason_origin_embargo;来源宣布禁运
+embargo_reason_origin_join_embargo;来源加入禁运
+embargo_reason_target_embargo;目标宣布禁运
+embargo_reason_target_join_embargo;目标加入禁运
+alice_no_start_game_invalid_nations;在玩家游玩不存在的国家时无法开始游戏
+alice_observer_btn_text;作为观察者游玩
+alice_observer_already_observer_tooltip;你已是观察者。

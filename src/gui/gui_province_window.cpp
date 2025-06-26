@@ -124,7 +124,7 @@ float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::co
 		export_tariff_B = 0.f;
 	}
 
-	auto distance = 999999.f;
+	auto distance = economy::invalid_trade_route_distance;
 
 	if(is_land_route) {
 		distance = std::min(distance, state.world.trade_route_get_land_distance(route));
@@ -133,7 +133,7 @@ float trade_route_profit(sys::state& state, dcon::trade_route_id route, dcon::co
 		distance = std::min(distance, state.world.trade_route_get_sea_distance(route));
 	}
 
-	auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
+	auto trade_good_loss_mult = std::max(0.f, 1.f - economy::trade_loss_per_distance_unit * distance);
 
 	auto transport_cost = distance / economy::trade_distance_covered_by_pair_of_workers_per_unit_of_good
 	* (

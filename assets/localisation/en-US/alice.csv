@@ -955,6 +955,13 @@ alice_province_selector_on;ON
 alice_province_selector_off;OFF
 province_selector;Selector
 province_immigrator;Immigrator
+province_victory_points;Victory points represent relative worth of the province to other provinces in the country when calculating occupation score in wars.
+province_victory_points_base;?G+1 point base?W
+province_victory_points_nb;?G+$X$ points for naval base level?W
+province_victory_points_fcount;?G+$X$ points for factories?W
+province_victory_points_fortsize;?G+$X$ points for fort level?W
+province_victory_points_mainlandcore;?Gx2 for non-overseas core?W
+province_victory_points_capital;?Gx3 for nation capital?W
 tt_a_bank;a bank
 tt_a_university;a university
 et_add_selector;enable province selector
@@ -1036,6 +1043,7 @@ disband_all;Disband all selected units
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles
 alice_play_save_stream;Host is streaming a save to you, wait until it completes
 alice_no_start_game_player_loading;Cannot start the game while players are loading
+alice_no_start_game_invalid_nations;Cannot start the game while players are on non-existant nations
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
@@ -1178,6 +1186,10 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
+alice_factory_construction_cost;Construction cost:
+alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
+alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
+alice_factory_construction_explain_5;Progress: ?Y$x$?W
 alice_factory_input_item;?R$cost$?W - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce ?Y$x$?W
 alice_factory_total_bonus;This sums to about ?Y$x$?W
@@ -1307,8 +1319,10 @@ alice_pnt_dominant_religion;?YDominant religion:?! $x$
 alice_pnt_dominant_ideology;?YDominant Ideology:?! $x$
 ledger_ppp_gdp;GDP(PPP)
 ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
+ledger_inflation_adjusted_gdp;GDP(inflation-adjusted)
+ledger_inflation_adjusted_gdp_per_capita;GDP(inflation-adjusted) per 1m people
 ledger_standard_of_living;Standard of Living
-alice_ledger_header_gdp_history;GDP(PPP) over time
+alice_ledger_header_gdp_history;GDP(inflation-adjusted) over time
 alice_countryalert_colonialgood_start;You can colonize $region$
 alice_overseas_mil_description;Overseas militancy
 alice_armygroup_go_to_selection;Add/remove units
@@ -1332,9 +1346,13 @@ trade_nation_data;Domestic
 trade_good_stats_global;Nations
 trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
+per_nation;Per nation
 price;Price
+labour_price;Wage
+labour_price_10k;Wage(10k people)
 supply;Supply
 demand;Demand
+supply_demand_ratio;Supply-demand ratio
 balance;Balance
 market_stockpiles;In stock
 national_stockpile;Government Stockpile
@@ -1401,10 +1419,15 @@ transportaion_loss;Goods lost in transportation: ?Y$val$
 payment_per_unit;Buyer paid per unit: ?Y$val$
 payment_received_per_unit;Seller got per unit: ?Y$val$
 merchants_received_per_unit;Seller merchants profit per unit: ?Y$val$
+trade_route_volume_profit_score;Profit score: ?Y$val$?W (Profit ?Y$x$?W divided by import price ?Y$y$?W)
+trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?Y$x$?W times profit score)
+trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
+trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
+trade_route_volume_final_change;Expected change: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
-investment_pool_income_2;Transfer from subject $country$: ?G$x$W
-investment_pool_income_3;Government domestic investment: ?G$x$W
+investment_pool_income_2;Transfer from subject $country$: ?G$x$?W
+investment_pool_income_3;Government domestic investment: ?G$x$?W
 investment_pool_spending_1;"Incentives" spending: ?R$x$?W
 investment_pool_spending_2;Construction spending: ?R$x$?W
 investment_pool_spending_3;Transfer to subjects: ?R$x$?W
@@ -1539,4 +1562,22 @@ alice_lobby_resync_players_loading;Cannot resync when players are loading
 alice_lobby_resync_no_oos;No one is OOS
 alice_lobby_resync_not_host;Only the host may resync
 alice_host_has_resync;Host has resynced the lobby
-
+alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
+alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
+alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.
+alice_observer_btn_text;Play as observer
+alice_observer_already_observer_tooltip;You are already on the observer tag.
+alice_labor_no_education;Unskilled
+alice_labor_basic_education;Skilled
+alice_labor_high_education;Expert
+alice_labor_guild;Guilds
+alice_labor_high_education_and_accepted;Expert(accepted)
+alice_invalid_value;Invalid value
+alice_wages_tab;Wages
+alice_trade_volume_tab;Trade volume
+economy_scene_embargo;Embargo!
+embargo_reason_war;War
+embargo_reason_origin_embargo;Origin declared embargo
+embargo_reason_origin_join_embargo;Origin joined embargo
+embargo_reason_target_embargo;Target declared embargo
+embargo_reason_target_join_embargo;Target joined embargo

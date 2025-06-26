@@ -984,10 +984,7 @@ public:
 				}
 				text::substitution_map sub{};
 
-				auto mppl = dcon::fatten(state.world, network::find_country_player(state, pl.playing_as));
-				auto pln = sys::player_name{ mppl.get_nickname() };
-
-				text::add_to_substitution_map(sub, text::variable_type::name, pln.to_string_view());
+				text::add_to_substitution_map(sub, text::variable_type::name, pl.hshake_buffer.nickname.to_string_view());
 				text::add_to_substitution_map(sub, text::variable_type::country, pl.playing_as);
 				text::add_to_substitution_map(sub, text::variable_type::date, pl.last_seen);
 

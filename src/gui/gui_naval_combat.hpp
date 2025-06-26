@@ -529,6 +529,69 @@ class nc_attacker_combat_modifiers : public overlapping_listbox_element_base<lc_
 	}
 };
 
+template<bool attacker>
+class nc_stacking_penalty_icon : public image_element_base {
+	dcon::gfx_object_id def;
+
+	void on_update(sys::state& state) noexcept override {
+
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto b = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(b);
+
+		int32_t attacker_ships = 0;
+		int32_t defender_ships = 0;
+
+		for(uint32_t j = slots.size(); j-- > 0;) {
+			switch(slots[j].flags & military::ship_in_battle::mode_mask) {
+			case military::ship_in_battle::mode_seeking:
+			case military::ship_in_battle::mode_approaching:
+			case military::ship_in_battle::mode_retreating:
+			case military::ship_in_battle::mode_engaged:
+				if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
+					++attacker_ships;
+				else
+					++defender_ships;
+				break;
+			default:
+				break;
+			}
+		}
+		int32_t friendly_ships;
+		int32_t enemy_ships;
+		std::string atk_or_def_string;
+		if(attacker) {
+			atk_or_def_string = "attackers";
+			friendly_ships = attacker_ships;
+			enemy_ships = defender_ships;
+		}
+		else {
+			atk_or_def_string = "defenders";
+			friendly_ships = defender_ships;
+			enemy_ships = attacker_ships;
+		}
+		float coordination_penalty = military::naval_battle_get_coordination_penalty(state, friendly_ships, enemy_ships);
+		float coordination_bonus = military::naval_battle_get_coordination_bonus(state, friendly_ships, enemy_ships);
+		float stacking_penalty = military::get_damage_reduction_stacking_penalty(state, friendly_ships, enemy_ships);
+		if(coordination_penalty > 0.0f) {
+			text::add_line(state, contents, "alice_naval_coordination_penalty", text::variable_type::x, atk_or_def_string, text::variable_type::y, text::format_percentage(coordination_penalty), text::variable_type::val, text::format_percentage(coordination_penalty * state.defines.naval_combat_stacking_target_select));
+		}
+		else {
+			text::add_line(state, contents, "alice_naval_coordination_bonus", text::variable_type::x, atk_or_def_string, text::variable_type::y, text::format_percentage(coordination_bonus), text::variable_type::val, text::format_percentage(coordination_bonus * state.defines.alice_naval_combat_enemy_stacking_target_select_bonus));
+		}
+		if(stacking_penalty < 1.0f) {
+			text::add_line(state, contents, "alice_naval_stacking_penalty", text::variable_type::x, atk_or_def_string, text::variable_type::y, text::format_percentage(stacking_penalty));
+		}
+		
+	}
+};
+
 
 class naval_combat_attacker_window : public window_element_base {
 public:
@@ -561,7 +624,11 @@ public:
 			return make_element_by_type<nc_attacker_ts_txt>(state, id);
 		} else if(name == "modifiers") {
 			return make_element_by_type<nc_attacker_combat_modifiers>(state, id);
-		} else {
+		} else if(name == "stacking_penalty_icon") {
+			return make_element_by_type<nc_stacking_penalty_icon<true>>(state, id);
+		}
+
+		else {
 			return nullptr;
 		}
 	}
@@ -598,7 +665,10 @@ public:
 			return make_element_by_type<nc_defender_ts_txt>(state, id);
 		} else if(name == "modifiers") {
 			return make_element_by_type<nc_defender_combat_modifiers>(state, id);
-		} else {
+		} else if(name == "stacking_penalty_icon") {
+			return make_element_by_type<nc_stacking_penalty_icon<false>>(state, id);
+		}
+		else {
 			return nullptr;
 		}
 	}

@@ -193,7 +193,7 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto location = state.world.pop_get_province_from_pop_location(p);
-		auto current = state.world.province_get_demographics(location, key);
+		auto& current = state.world.province_get_demographics(location, key);
 		state.world.province_set_demographics(location, key, current + source(state, p));
 	});
 	// clear state
@@ -202,9 +202,10 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
+		auto& current = state.world.state_instance_get_demographics(location, key);
 		// check if province is uncolonized, as uncolonized provinces do not have valid state membership
 		if(location) {
-			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(p, key);
+			state.world.state_instance_set_demographics(location, key, current + state.world.province_get_demographics(p, key));
 		}
 	});
 	// clear nation
@@ -212,9 +213,10 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto& current = state.world.nation_get_demographics(location, key);
 		// check if state is not owned by a nation
 		if(location) {
-			state.world.nation_get_demographics(location, key) += state.world.state_instance_get_demographics(s, key);
+			state.world.nation_set_demographics(location, key, current + state.world.state_instance_get_demographics(s, key));
 		}
 		
 	});
@@ -227,7 +229,7 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto location = state.world.pop_get_province_from_pop_location(p);
-		auto current = state.world.province_get_demographics_alt(location, key);
+		auto& current = state.world.province_get_demographics_alt(location, key);
 		state.world.province_set_demographics_alt(location, key, current + source(state, p));
 	});
 	// clear state
@@ -236,9 +238,10 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
+		auto& current = state.world.state_instance_get_demographics_alt(location, key);
 		// check if province is uncolonized, as uncolonized provinces do not have valid state membership
 		if(location) {
-			state.world.state_instance_get_demographics_alt(location, key) += state.world.province_get_demographics_alt(p, key);
+			state.world.state_instance_set_demographics_alt(location, key, current + state.world.province_get_demographics_alt(p, key));
 		}
 		
 	});
@@ -247,9 +250,10 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto& current = state.world.nation_get_demographics_alt(location, key);
 		// check if state is not owned by a nation
 		if(location) {
-			state.world.nation_get_demographics_alt(location, key) += state.world.state_instance_get_demographics_alt(s, key);
+			state.world.nation_set_demographics_alt(location, key, current + state.world.state_instance_get_demographics_alt(s, key));
 		}
 		
 	});
@@ -274,22 +278,25 @@ void sum_over_single_nation_demographics(sys::state& state, dcon::demographics_k
 	// clear province
 	for(auto pc : state.world.nation_get_province_control_as_nation(n)) {
 		auto location = pc.get_province();
+		auto& current = state.world.province_get_demographics(location, key);
 		state.world.province_set_demographics(location, key, 0.f);
 		for(auto pl : pc.get_province().get_pop_location_as_province()) {
-			state.world.province_get_demographics(location, key) += source(state, pl.get_pop());
+			state.world.province_set_demographics(location, key, current + source(state, pl.get_pop()));
 		}
 	}
 	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
 		auto location = sc.get_state();
+		auto& current = state.world.state_instance_get_demographics(location, key);
 		state.world.state_instance_set_demographics(location, key, 0.f);
 		for(auto sm : sc.get_state().get_definition().get_abstract_state_membership()) {
-			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(sm.get_province(), key);
+			state.world.state_instance_set_demographics(location, key, current + state.world.province_get_demographics(sm.get_province(), key));
 		}
 
 	}
 	state.world.nation_set_demographics(n, key, 0.f);
+	auto& current = state.world.nation_get_demographics(n, key);
 	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
-		state.world.nation_get_demographics(n, key) += state.world.state_instance_get_demographics(sc.get_state(), key);
+		state.world.nation_set_demographics(n, key, current + state.world.state_instance_get_demographics(sc.get_state(), key));
 	}
 }
 
@@ -829,8 +836,8 @@ void regenerate_from_pop_data(sys::state& state) {
 			state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 				if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 					auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-					state.world.nation_get_non_colonial_population(location) +=
-							state.world.state_instance_get_demographics(s, demographics::total);
+					auto& current_pop = state.world.nation_get_non_colonial_population(location);
+					state.world.nation_set_non_colonial_population(location, current_pop + state.world.state_instance_get_demographics(s, demographics::total));
 				}
 			});
 			break;
@@ -844,7 +851,8 @@ void regenerate_from_pop_data(sys::state& state) {
 					[&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
 						if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 							auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-							state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
+							auto& current_pop = state.world.nation_get_non_colonial_bureaucrats(location);
+							state.world.nation_set_non_colonial_bureaucrats(location, current_pop + state.world.state_instance_get_demographics(s, k));
 						}
 					});
 			break;
@@ -1905,8 +1913,8 @@ void alt_demographics_update_extras(sys::state& state) {
 			state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 				if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 					auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-					state.world.nation_get_non_colonial_population(location) +=
-						state.world.state_instance_get_demographics(s, demographics::total);
+					auto& current = state.world.nation_get_non_colonial_population(location);
+					state.world.nation_set_non_colonial_population(location, current + state.world.state_instance_get_demographics(s, demographics::total));
 				}
 			});
 			break;
@@ -1921,7 +1929,8 @@ void alt_demographics_update_extras(sys::state& state) {
 					[&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
 						if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 							auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-							state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
+							auto& current = state.world.nation_get_non_colonial_bureaucrats(location);
+							state.world.nation_set_non_colonial_bureaucrats(location, current + state.world.state_instance_get_demographics(s, k));
 						}
 					});
 			break;
@@ -4082,8 +4091,8 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 					if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
 						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p),
 								state.world.pop_get_culture(p), state.world.pop_get_religion(p), pbuf.types.get(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4102,8 +4111,8 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 					: state.world.province_get_dominant_religion(l);
 				assert(state.world.pop_get_poptype(p));
 				auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+				state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
 			}
 		},
 		ids, locs, state.world.province_get_dominant_accepted_culture(locs));
@@ -4119,11 +4128,15 @@ void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divis
 						assert(state.world.pop_get_poptype(p));
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -=
-								pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+
+						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
+						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - pbuf.amounts.get(p));
+
+						auto dest_pop_location = pbuf.destinations.get(p);
+						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + pbuf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4138,11 +4151,15 @@ void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divis
 						assert(state.world.pop_get_poptype(p));
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -=
-								pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+
+						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
+						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - pbuf.amounts.get(p));
+
+						auto dest_pop_location = pbuf.destinations.get(p);
+						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + pbuf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4159,11 +4176,16 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
 
-						state.world.pop_get_size(p) -= amount;
-						state.world.pop_get_size(target_pop) += amount;
-						state.world.province_get_daily_net_immigration(state.world.pop_get_province_from_pop_location(p)) -= amount;
-						state.world.province_get_daily_net_immigration(pbuf.destinations.get(p)) += amount;
-						state.world.province_set_last_immigration(pbuf.destinations.get(p), state.current_date);
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - amount);
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + amount);
+
+						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
+						state.world.province_set_daily_net_immigration(cur_pop_location, state.world.province_get_daily_net_immigration(cur_pop_location) - amount);
+
+						auto dest_pop_location = pbuf.destinations.get(p);
+						state.world.province_set_daily_net_immigration(dest_pop_location, state.world.province_get_daily_net_immigration(dest_pop_location) + amount);
+
+						state.world.province_set_last_immigration(dest_pop_location, state.current_date);
 					}
 				},
 				ids);
@@ -4219,9 +4241,9 @@ float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id) {
 
 void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount) {
 	if(state.world.pop_get_size(pop_id) >= amount) {
-		state.world.pop_get_size(pop_id) -= amount;
+		state.world.pop_set_size(pop_id, state.world.pop_get_size(pop_id) - amount);
 	} else {
-		state.world.pop_get_size(pop_id) = 0;
+		state.world.pop_set_size(pop_id, 0);
 	}
 }
 

@@ -102,20 +102,21 @@ struct network_state {
 	bool reported_oos = false; // has oos been reported to host yet?
 	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
-	uint16_t num_client_loading = 0; // the number of clients loading
 	sys::checksum_key last_save_checksum; // the last save checksum which was written to the network
 	bool full_reload_needed = true; // whether or not a full host&lobby reload is needed when a new client connects, or a partial reload. Generally after an ingame command is issued a full reload becomes needed
+	std::atomic<bool> clients_loading_state_changed; // flag to indicate if any client loading state has changed (client has started loading, finished loading, or left the game)
+	std::atomic<bool> any_client_loading_flag; // flag to signal if any clients are currently loading. If "clients_loading_state_changed" is false, it will use this instead, otherwise compute it manually by iterating over the players.
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
 };
-
+inline void write_player_nations(sys::state& state) noexcept;
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
 void finish(sys::state& state, bool notify_host);
 void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
-void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n);
+void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
 void broadcast_save_to_single_client(sys::state& state, command::payload& c, client_data& client, uint8_t const* buffer, uint32_t length);
@@ -123,14 +124,17 @@ void broadcast_to_clients(sys::state& state, command::payload& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
-dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos);
+bool any_player_on_invalid_nation(sys::state& state);
+bool check_any_players_loading(sys::state& state); // returns true if any players are loading. If the loading state has not changed, it will not iterate though the players and simply return false
+void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai);
+void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bool fully_loaded); // wrapper for setting a mp player to being fully loaded or not
+dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos, dcon::nation_id nation_to_play = dcon::nation_id{} );
 void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::nation_id nation, bool execute_self); // wrapper for notiying clients are loading
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
-dcon::mp_player_id find_country_player(sys::state& state, dcon::nation_id nation);
-dcon::nation_id get_first_available_ai_nation(sys::state& state); // returns the first available nation from dcon which is ai controlled, should be deterministic with saves to use on client+host and not break synch
-void place_players_after_reload(sys::state& state, std::vector<dcon::nation_id>& players, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
+std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::nation_id nation);
+void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
 bool any_player_oos(sys::state& state);
 void log_player_nations(sys::state& state);
 

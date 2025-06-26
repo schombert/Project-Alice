@@ -171,7 +171,7 @@ void select_player_nation_from_selected_province(sys::state& state) {
 		// on multiplayer we wait until we get a confirmation that we are
 		// allowed to pick the specified nation as no two players can get on
 		// a nation, at the moment
-		// TODO: Allow Co-op
+		// Co-op should work
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			if(state.local_player_nation) {
 				state.world.nation_set_is_player_controlled(state.local_player_nation, false);
@@ -181,8 +181,8 @@ void select_player_nation_from_selected_province(sys::state& state) {
 			if(state.ui_state.nation_picker) {
 				state.ui_state.nation_picker->impl_on_update(state);
 			}
-		} else if(command::can_notify_player_picks_nation(state, state.local_player_nation, owner)) {
-			command::notify_player_picks_nation(state, state.local_player_nation, owner);
+		} else if(command::can_notify_player_picks_nation(state, state.local_player_nation, owner, state.network_state.nickname)) {
+			command::notify_player_picks_nation(state, state.local_player_nation, owner, state.network_state.nickname);
 		}
 	}
 }
