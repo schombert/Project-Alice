@@ -1876,8 +1876,7 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	text::add_line_break_to_layout(state, contents);
 
 	if(type == state.culture_definitions.slaves) {
-		text::add_line(state, contents, "pop_growth_2", text::variable_type::x, text::fp_one_place {state.defines.slave_growth_divisor });
-		return;
+		text::add_line(state, contents, "pop_growth_2", text::variable_type::val, text::fp_one_place {state.defines.slave_growth_divisor });
 	}
 	text::add_line(state, contents, "pop_growth_3");
 	text::add_line(state, contents, "pop_growth_4", text::variable_type::x, text::fp_percentage_two_places{ total_factor });
@@ -1897,8 +1896,8 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	ui::active_modifiers_description(state, contents, owner, 45, sys::national_mod_offsets::pop_growth, false);
 
 	text::add_line(state, contents, "pop_growth_9", text::variable_type::x, text::fp_two_places{ ln_factor },
-			text::variable_type::y, text::fp_two_places{ pop_demographics::get_life_needs(state, ids) }, text::variable_type::val,
-			text::fp_two_places{ state.defines.life_need_starvation_limit });
+			text::variable_type::y, text::fp_percentage{ pop_demographics::get_life_needs(state, ids) }, text::variable_type::val,
+			text::fp_percentage{ state.defines.life_need_starvation_limit });
 }
 
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
