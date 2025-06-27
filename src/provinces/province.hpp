@@ -57,6 +57,7 @@ bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_
 bool has_province_building_being_built(sys::state& state, dcon::province_id id, economy::province_building_type t);
 bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::nation_id n, economy::province_building_type t);
 bool has_an_owner(sys::state& state, dcon::province_id id);
+float effective_life_rating_growth(sys::state& state, dcon::province_id prov); // returns the effective life rating for popgrowth for a province
 dcon::province_id state_get_coastal_capital(sys::state& state, dcon::state_instance_id s);
 bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s);
