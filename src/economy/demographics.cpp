@@ -2598,12 +2598,19 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than
 	define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by
 	define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value
-	and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+	and add it to define:BASE_POPGROWTH and add to all pop growth modifiers. This gives us the growth factor for the province.
 
-	The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs -
-	define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier +
-	national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
-	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	If the pop is a slave and the growth rate is positive, divide the growth modifiers by define:SLAVE_GROWTH_DIVISOR.
+
+	Then compute the starvation scale:
+	pop_growth_factor + define:ALICE_MAX_STARVATION_DEGROWTH, with a min possible result of define:ALICE_MAX_STARVATION_DEGROWTH
+
+	then compute the starvation factor:
+	(pop_life_need_fufillment - define:LIFE_NEED_STARVATION_LIMIT) / define:LIFE_NEED_STARVATION_LIMIT, with a max possible result of 0
+
+	Then multiply the starvation scale and starvation factor to get the net pop growth penalty, which is then added to the rest of the modifiers
+
+	Then multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 	*/
 
 	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
@@ -2616,44 +2623,109 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 				40.0f);
 		auto lr_factor =
 				ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-		auto province_factor = lr_factor + state.defines.base_popgrowth;
+		ve::fp_vector modifiers = lr_factor + state.defines.base_popgrowth +
+			state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) +
+			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	
 
-		auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+		modifiers = ve::select(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves && modifiers > 0.0f, modifiers / state.defines.slave_growth_divisor, modifiers);
 
-		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+		
+		ve::fp_vector ln_penalty_scale = ve::max(modifiers + (state.defines.alice_max_starvation_degrowth), state.defines.alice_max_starvation_degrowth);
+
+		ve::fp_vector ln_factor = 0.0f;
+
+		if(state.defines.life_need_starvation_limit != 0) {
+			ln_factor = ve::min( (pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit) / state.defines.life_need_starvation_limit, 0.0f);
+		}
+		
+
+		auto total_factor = ln_factor * ln_penalty_scale + modifiers;
 		auto old_size = state.world.pop_get_size(ids);
 		auto new_size = old_size * total_factor + old_size;
 
-		auto type = state.world.pop_get_poptype(ids);
-
 		state.world.pop_set_size(ids,
-				ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size));
+				ve::select((owner != dcon::nation_id{}), new_size, old_size));
 	});
 }
 
-float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
-	auto type = state.world.pop_get_poptype(ids);
-	if(type == state.culture_definitions.slaves)
-		return 0.0f;
 
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
+float get_pop_starvation_factor(sys::state& state, dcon::pop_id ids) {
+	auto ln_factor = 0.0f;
+	if(state.defines.life_need_starvation_limit != 0) {
+		ln_factor = std::min((pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit) / state.defines.life_need_starvation_limit, 0.0f);
+	}
+	return ln_factor;
+}
+
+float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers) {
+	return std::max(growth_modifiers + (state.defines.alice_max_starvation_degrowth), state.defines.alice_max_starvation_degrowth);
+}
+
+float get_net_pop_starvation_penalty(sys::state& state, dcon::pop_id pop, float growth_modifiers) {
+	float ln_penalty_scale = get_pop_starvation_penalty_scale(state, pop, growth_modifiers);
+	return ln_penalty_scale * get_pop_starvation_factor(state, pop);
+}
+
+float popgrowth_from_life_rating(sys::state& state, float life_rating) {
+	return std::max((life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+}
+
+
+float get_pop_growth_modifiers(sys::state& state, dcon::pop_id pop) {
+	auto type = state.world.pop_get_poptype(pop);
+
+	auto loc = state.world.pop_get_province_from_pop_location(pop);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 
-	auto base_life_rating = float(state.world.province_get_life_rating(loc));
-	auto mod_life_rating = std::min(
-			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
-	auto lr_factor =
-			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-	auto province_factor = lr_factor + state.defines.base_popgrowth;
+	auto mod_life_rating = province::effective_life_rating_growth(state, loc);
+	auto lr_factor = popgrowth_from_life_rating(state, mod_life_rating);
 
-	auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	float modifiers = lr_factor + state.defines.base_popgrowth + state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 
-	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+	if(type == state.culture_definitions.slaves && modifiers > 0.0f)
+		modifiers /= state.defines.slave_growth_divisor;
+
+	return modifiers;
+}
+
+float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
+
+	/*
+	Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the
+	modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the
+	provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than
+	define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by
+	define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value
+	and add it to define:BASE_POPGROWTH and add to all pop growth modifiers. This gives us the growth factor for the province.
+
+	If the pop is a slave and the growth rate is positive, divide the growth modifiers by define:SLAVE_GROWTH_DIVISOR.
+
+	Then compute the starvation scale:
+	pop_growth_factor + define:ALICE_MAX_STARVATION_DEGROWTH, with a min possible result of define:ALICE_MAX_STARVATION_DEGROWTH
+
+	then compute the starvation factor:
+	(pop_life_need_fufillment - define:LIFE_NEED_STARVATION_LIMIT) / define:LIFE_NEED_STARVATION_LIMIT, with a max possible result of 0
+
+	Then multiply the starvation scale and starvation factor to get the net pop growth penalty, which is then added to the rest of the modifiers
+
+	Then multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	*/
+
+
+
+	auto modifiers = get_pop_growth_modifiers(state, ids);
+
+
+	return get_net_pop_starvation_penalty(state, ids, modifiers) + modifiers;
+}
+
+float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
+	
+
 	auto old_size = state.world.pop_get_size(ids);
 
-	return old_size * total_factor;
+	return old_size * get_monthly_pop_growth_factor(state, ids);
 }
 int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
 	float t = 0.0f;

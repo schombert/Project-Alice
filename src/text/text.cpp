@@ -1585,7 +1585,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub, substit
 	} else if(std::holds_alternative<fp_three_places>(sub)) {
 		return text::format_float(std::get<fp_three_places>(sub).value, 3);
 	} else if(std::holds_alternative<fp_four_places>(sub)) {
-		return text::format_float(std::get<fp_four_places>(sub).value, 4);
+ 		return text::format_float(std::get<fp_four_places>(sub).value, 4);
 	} else if(std::holds_alternative<sys::date>(sub)) {
 		return date_to_string(state, std::get<sys::date>(sub));
 	} else if(std::holds_alternative<fp_currency>(sub)) {
@@ -1596,6 +1596,8 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub, substit
 		return text::format_percentage(std::get<fp_percentage>(sub).value, 0);
 	} else if(std::holds_alternative<fp_percentage_one_place>(sub)) {
 		return text::format_percentage(std::get<fp_percentage_one_place>(sub).value, 1);
+	} else if(std::holds_alternative<fp_percentage_two_places>(sub)) {
+		return text::format_percentage(std::get<fp_percentage_two_places>(sub).value, 2);
 	} else if(std::holds_alternative<int_percentage>(sub)) {
 		return std::to_string(std::get<int_percentage>(sub).value) + "%";
 	} else if(std::holds_alternative<int_wholenum>(sub)) {
