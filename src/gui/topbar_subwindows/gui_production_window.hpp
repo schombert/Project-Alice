@@ -1544,19 +1544,21 @@ public:
 
 class production_national_focus_button : public right_click_button_element_base {
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		return bool(state.world.state_instance_get_owner_focus(content).id)
-								? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto state_instance = state.world.province_get_state_membership(prov);
+		return bool(state.world.state_instance_get_owner_focus(state_instance).id)
+								? state.world.state_instance_get_owner_focus(state_instance).get_icon() - 1
 								: 0;
 	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto state_instance = state.world.province_get_state_membership(prov);
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		disabled = true;
 		for(auto nfid : state.world.in_national_focus) {
-			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
+			disabled = command::can_set_national_focus(state, state.local_player_nation, state_instance, nfid) ? false : disabled;
 		}
 		frame = get_icon_frame(state);
 	}
@@ -1567,8 +1569,9 @@ public:
 	}
 
 	void button_right_action(sys::state& state) noexcept override {
-		auto sid = retrieve<dcon::state_instance_id>(state, parent);
-		command::set_national_focus(state, state.local_player_nation, sid, dcon::national_focus_id{});
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto state_instance = state.world.province_get_state_membership(prov);
+		command::set_national_focus(state, state.local_player_nation, state_instance, dcon::national_focus_id{});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1577,8 +1580,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-
-		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto sid = state.world.province_get_state_membership(prov);
 		auto fat_si = dcon::fatten(state.world, sid);
 		text::add_to_layout_box(state, contents, box, sid);
 		text::add_line_break_to_layout_box(state, contents, box);
