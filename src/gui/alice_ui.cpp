@@ -1857,9 +1857,16 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	auto mod_life_rating = province::effective_life_rating_growth(state, loc);
 	auto lr_factor = demographics::popgrowth_from_life_rating(state, mod_life_rating);
 
+	auto modifiers = demographics::get_pop_growth_modifiers(state, ids);
+
 	auto ln_factor = demographics::get_pop_starvation_factor(state, ids);
 
+
 	auto total_factor = demographics::get_monthly_pop_growth_factor(state, ids);
+
+	auto ln_penalty_scale = demographics::get_pop_starvation_penalty_scale(state, ids, modifiers);
+
+	auto ln_penalty = ln_penalty_scale * ln_factor;
 
 	{
 		auto box = text::open_layout_box(contents);
@@ -1895,9 +1902,13 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 			text::fp_percentage_two_places{ state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth) }, 30);
 	ui::active_modifiers_description(state, contents, owner, 45, sys::national_mod_offsets::pop_growth, false);
 
-	text::add_line(state, contents, "pop_growth_9", text::variable_type::x, text::fp_two_places{ ln_factor },
+	text::add_line(state, contents, "pop_growth_9", text::variable_type::x, text::fp_percentage_two_places{ ln_penalty },
 			text::variable_type::y, text::fp_percentage{ pop_demographics::get_life_needs(state, ids) }, text::variable_type::val,
 			text::fp_percentage{ state.defines.life_need_starvation_limit });
+
+	text::add_line(state, contents, "pop_growth_10", text::variable_type::x, text::fp_percentage_two_places{ state.defines.alice_max_starvation_degrowth }, text::variable_type::y, text::fp_percentage_two_places{ ln_penalty_scale }, text::variable_type::val, text::fp_percentage_two_places{modifiers });
+	text::add_line(state, contents, "pop_growth_11", text::variable_type::x, text::fp_percentage{ state.defines.life_need_starvation_limit }, text::variable_type::y, text::fp_one_place{ ln_factor });
+	text::add_line(state, contents, "pop_growth_12", text::variable_type::x, text::fp_one_place{ ln_factor }, text::variable_type::y, text::fp_percentage_two_places{ln_penalty_scale }, text::variable_type::val, text::fp_percentage_two_places{ln_penalty });
 }
 
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
