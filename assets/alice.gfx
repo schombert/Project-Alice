@@ -651,6 +651,6 @@ spriteTypes = {
 	spriteType = {
         name = "provincetiles"
         texturefile = "assets\\provincetiles.png"
-        noOfFrames = 15
+        noOfFrames = 22
 	}
 }

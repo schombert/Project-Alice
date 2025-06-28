@@ -164,6 +164,7 @@ bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon:
 
 // abstract modifiers
 float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
+float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
@@ -267,6 +268,14 @@ struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 	dcon::factory_type_id target_type;
+};
+
+// Represents one type of employment of a building
+struct employment_record {
+	int32_t employment_type;
+	float target_employment;
+	float satisfaction;
+	float actual_employment;
 };
 
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);

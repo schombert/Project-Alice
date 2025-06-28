@@ -2720,12 +2720,14 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 	return true;
 }
 void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
-	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.askmilaccess_diplomatic_cost);
+	if(state.world.nation_get_is_player_controlled(asker)) {
+		auto& points = state.world.nation_get_diplomatic_points(asker);
+		state.world.nation_set_diplomatic_points(asker, points - state.defines.askmilaccess_diplomatic_cost);
+	}
 
-	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
 	if(!rel_1) {
-		rel_1 = state.world.force_create_unilateral_relationship(target, asker);
+		rel_1 = state.world.force_create_unilateral_relationship(asker, target);
 	}
 	state.world.unilateral_relationship_set_embargo(rel_1, !state.world.unilateral_relationship_get_embargo(rel_1));
 

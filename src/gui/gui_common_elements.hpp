@@ -64,6 +64,8 @@ void open_foreign_investment(sys::state& state, dcon::nation_id n);
 
 std::string get_status_text(sys::state& state, dcon::nation_id nation_id);
 
+std::string labour_type_to_text_key(int32_t type);
+
 template<country_list_sort Sort>
 class country_sort_button : public button_element_base {
 public:
@@ -2382,9 +2384,18 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 	auto mobilization_impact = (state.world.nation_get_is_mobilized(nat_id) ? military::mobilization_impact(state, nat_id) : 1.f);
 
 	text::add_line(state, contents, "provinceview_goodsincome", text::variable_type::goods, rgo_good.get_name(), text::variable_type::value,
-					text::fp_currency{ economy::rgo_income(state, prov_id) });
+					text::fp_currency{ economy::rgo_income(state, c, prov_id) },
+		text::variable_type::x, text::fp_two_places{ economy::rgo_output(state, c, prov_id) });
 
 	text::add_line(state, contents, "PROVINCEVIEW_EMPLOYMENT", text::variable_type::value, text::fp_two_places{ economy::rgo_employment(state, rgo_good, prov_id) });
+	auto target_employment = state.world.province_get_rgo_target_employment(prov_id, rgo_good);
+	auto satisfaction = state.world.province_get_labor_demand_satisfaction(prov_id, economy::labor::no_education);
+	text::add_line(state, contents, "employment_type_no_education", 15);
+	text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+	text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
+	auto wage = state.world.province_get_labor_price(prov_id, economy::labor::no_education);
+	text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
+
 	text::add_line(state, contents, "provinceview_max_employment", text::variable_type::value, text::fp_two_places{ economy::rgo_max_employment(state, rgo_good, prov_id) });
 	{
 		auto box = text::open_layout_box(contents, 0);
@@ -2504,7 +2515,6 @@ inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& cont
 		);
 
 	float effective_production_scale = economy::factory_total_employment_score(state, fid);
-
 	auto amount = (0.75f + 0.25f * e_inputs_data.min_available) * inputs_data.min_available * effective_production_scale;
 
 	text::add_line(state, contents, state.world.factory_type_get_name(type));
@@ -2512,47 +2522,69 @@ inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& cont
 	text::add_line_break_to_layout(state, contents);
 
 	text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{ amount });
+	text::add_line(state, contents, "factory_stats_2", text::variable_type::val, text::fp_percentage{ effective_production_scale });
 
-	text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
-			text::fp_percentage{ economy::factory_total_employment_score(state, fid) });
+	auto employment = economy::factory_total_employment(state, fid);
+	auto target_employment = economy::factory_total_desired_employment(state, fid);
+	auto profit_explanation = economy::explain_last_factory_profit(state, fid);
 
-	text::add_line(state, contents, "factory_stats_3", text::variable_type::val,
-			text::fp_one_place{ state.world.factory_get_output(fid) }, text::variable_type::x, type.get_output().get_name());
+	text::add_line(state, contents, "factory_employment", text::variable_type::value, text::fp_one_place{ employment });
+	text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+	text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ -profit_explanation.wages }, 15);
 
-	auto profit_explantion = economy::explain_last_factory_profit(state, fid);
+	{
+		auto ftte = state.world.factory_get_unqualified_employment(fid);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::no_education);
+		auto wage = state.world.province_get_labor_price(p, economy::labor::no_education);
+
+		text::add_line(state, contents, "employment_type_no_education", 30);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
+	}
+	{
+		auto ftte = state.world.factory_get_primary_employment(fid);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::basic_education);
+		auto wage = state.world.province_get_labor_price(p, economy::labor::basic_education);
+
+		text::add_line(state, contents, "employment_type_basic_education", 30);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
+	}
+	{
+		auto ftte = state.world.factory_get_secondary_employment(fid);
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+		auto wage = state.world.province_get_labor_price(p, economy::labor::high_education);
+
+		text::add_line(state, contents, "employment_type_high_education", 30);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
+	}
+	
+	{
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.inputs }, text::text_color::red);
+		text::close_layout_box(contents, box);
+	}
+	{
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.maintenance }, text::text_color::red);
+		text::close_layout_box(contents, box);
+	}
+	{
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.expansion }, text::text_color::red);
+		text::close_layout_box(contents, box);
+	}
+	text::add_line(state, contents, "factory_stats_3",
+		text::variable_type::val, text::fp_one_place{ state.world.factory_get_output(fid) },
+		text::variable_type::good, type.get_output().get_name(),
+	text::variable_type::x, text::fp_currency{ profit_explanation.output });
 
 	text::add_line(state, contents, "factory_stats_4", text::variable_type::val,
 		text::fp_currency{
-			profit_explantion.profit
+			profit_explanation.profit
 		}
 	);
-
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.inputs }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.maintenance }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.expansion }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explantion.wages }, text::text_color::red);
-		text::close_layout_box(contents, box);
-	}
-	{
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ profit_explantion.output }, text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
-
 
 	text::add_line_break_to_layout(state, contents);
 
@@ -2798,7 +2830,7 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
 
-	text::add_line(state, contents, "alice_factory_construction_cost");
+	text::add_line(state, contents, "alice_construction_cost");
 
 	// List factory type construction costs
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -2825,6 +2857,124 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	text::add_line(state, contents, "alice_factory_construction_explain_3", text::variable_type::x, text::fp_currency{ purchased });
 	text::add_line(state, contents, "alice_factory_construction_explain_4", text::variable_type::x, text::fp_currency{ total });
 	text::add_line(state, contents, "alice_factory_construction_explain_5", text::variable_type::x, text::fp_percentage{ progress });
+};
+
+inline void province_building_effect_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt, float level = 1.f) {
+	auto def = state.economy_definitions.building_definitions[uint8_t(bt)];
+	modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(bt)].province_modifier, 0, level);
+	// Since trade accounts for naval bases level separately, show special case for trade attractiveness for them
+	if(bt == economy::province_building_type::naval_base) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "alice_trade_attractiveness"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{ nations::naval_base_level_to_market_attractiveness * level }, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+	else if(bt == economy::province_building_type::railroad) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "infrastructure"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{ def.infrastructure }, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+	else if(bt == economy::province_building_type::fort) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "FORT_LEVEL"), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, 1, text::text_color::green);
+		text::close_layout_box(contents, box);
+	}
+}
+
+inline void province_building_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt) {
+	auto level = state.world.province_get_building_level(p, uint8_t(bt));
+
+	text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(bt)));
+	text::add_line(state, contents, "alice_building_level", text::variable_type::val, level);
+	text::add_line_break_to_layout(state, contents);
+
+	if(level > 0) {
+		text::add_line(state, contents, "alice_building_modifier");
+		province_building_effect_tooltip(state, contents, p, bt, level);
+	}
+};
+
+inline void province_building_construction_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt) {
+	text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(bt)));
+	text::add_line_break_to_layout(state, contents);
+
+	text::add_line(state, contents, "alice_new_building_modifier");
+	province_building_effect_tooltip(state, contents, p, bt);
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "alice_building_conditions");
+	int32_t current_lvl = state.world.province_get_building_level(p, uint8_t(bt));
+	int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, uint8_t(bt));
+	if (bt == economy::province_building_type::fort) {
+		text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(p) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, p));
+
+		int32_t min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_fort));
+		text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+
+	} else if (bt == economy::province_building_type::naval_base) {
+		text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(p) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, p));
+		text::add_line_with_condition(state, contents, "nb_build_tt_1", state.world.province_get_is_coast(p));
+
+		int32_t min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_naval_base));
+
+		auto si = state.world.province_get_state_membership(p);
+		text::add_line_with_condition(state, contents, "nb_build_tt_2", current_lvl > 0 || !si.get_naval_base_is_taken());
+
+		text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+
+	} else {
+		text::add_line_with_condition(state, contents, "fort_build_tt_1", state.world.province_get_nation_from_province_control(p) == state.local_player_nation);
+		text::add_line_with_condition(state, contents, "fort_build_tt_2", !military::province_is_under_siege(state, p));
+
+		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
+		text::add_line_with_condition(state, contents, "rr_build_tt_1", (rules & issue_rule::build_railway) != 0);
+
+		int32_t min_build = 0;
+		if (bt == economy::province_building_type::railroad) {
+			min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad));
+		} else if (bt == economy::province_building_type::bank) {
+			min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_bank));
+		} else if (bt == economy::province_building_type::university) {
+			min_build = int32_t(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_university));
+		}
+		text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
+	}
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "alice_province_building_build");
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "alice_construction_cost");
+
+	// Construction cost goods breakdown
+	float factor = economy::build_cost_multiplier(state, p, false);
+	auto constr_cost = state.economy_definitions.building_definitions[uint8_t(bt)].cost;
+
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		auto box = text::open_layout_box(contents, 0);
+		auto cid = constr_cost.commodity_type[i];
+
+		if(!cid) {
+			break;
+		}
+		std::string padding = cid.index() < 10 ? "0" : "";
+		std::string description = "@$" + padding + std::to_string(cid.index());
+		text::add_unparsed_text_to_layout_box(state, contents, box, description);
+		text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(constr_cost.commodity_type[i]));
+		text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+		text::add_to_layout_box(state, contents, box, text::fp_one_place{ constr_cost.commodity_amounts[i] * factor });
+		text::close_layout_box(contents, box);
+	}
 };
 
 
