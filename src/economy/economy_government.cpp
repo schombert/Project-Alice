@@ -291,7 +291,7 @@ std::vector<employment_record> explain_capital_administration_employment(sys::st
 	auto capital = state.world.nation_get_capital(n);
 	auto capital_state = state.world.province_get_state_membership(capital);
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
-	auto record = employment_record{ economy::labor::high_education_and_accepted };
+	auto record = employment_record{ economy::labor::high_education_and_accepted, 0.f, 0.f, 0.f };
 
 	record.target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
 	record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education_and_accepted);

@@ -475,6 +475,7 @@ public:
 		economy::make_trade_center_tooltip(state, contents, target.market);
 		text::add_line_break_to_layout(state, contents);
 
+		// TODO: Organize abstract "explain market labour demand" for the two
 		// US3AC2
 		auto external_trade_employment = economy::transportation_between_markets_labor_demand(state, target.market);
 		// US3AC3
