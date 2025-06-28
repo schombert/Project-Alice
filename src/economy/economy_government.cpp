@@ -268,30 +268,36 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
-// Calculate employment of local administrations in the province.
+// Calculate employment of local administrations in the province for the UI.
 // When using, check for capital administration separately
-float explain_administration_employment(sys::state& state, dcon::province_id p) {
+std::vector<employment_record> explain_local_administration_employment(sys::state& state, dcon::province_id p) {
 	auto n = state.world.province_get_nation_from_province_ownership(p);
+	auto record = employment_record{ economy::labor::high_education_and_accepted, 0.f, 0.f, 0.f };
 
 	for(auto admin : state.world.nation_get_nation_administration(n)) {
 		if(admin.get_administration().get_capital() == p) {
-			return state.world.province_get_administration_employment_target(p) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education_and_accepted);
+			record.target_employment = state.world.province_get_administration_employment_target(p);
+			record.satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education_and_accepted);
+			record.actual_employment = record.target_employment * record.satisfaction;
+			return std::vector<employment_record> {record};
 		}
 	}
 
-	return 0.f;
+	return std::vector<employment_record> { record };
 }
 
-// Calculate employment of the capital administration
-float explain_capital_administration_employment(sys::state& state, dcon::nation_id n) {
+// Calculate employment of the capital administration for the UI
+std::vector<employment_record> explain_capital_administration_employment(sys::state& state, dcon::nation_id n) {
 	auto capital = state.world.nation_get_capital(n);
 	auto capital_state = state.world.province_get_state_membership(capital);
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+	auto record = employment_record{ economy::labor::high_education_and_accepted };
 
-	auto target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
-	auto satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education_and_accepted);
-
-	return target_employment * satisfaction;
+	record.target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
+	record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education_and_accepted);
+	record.actual_employment = record.target_employment * record.satisfaction;
+	
+	return std::vector<employment_record> {record};
 }
 
 }

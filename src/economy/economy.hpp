@@ -270,6 +270,14 @@ struct upgraded_factory {
 	dcon::factory_type_id target_type;
 };
 
+// Represents one type of employment of a building
+struct employment_record {
+	int32_t employment_type;
+	float target_employment;
+	float satisfaction;
+	float actual_employment;
+};
+
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);

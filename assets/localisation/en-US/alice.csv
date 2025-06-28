@@ -390,7 +390,7 @@ trade_centre_max_throughput;Max throughput: ?Y$value$?W
 local_admin;Local Administration
 capital_admin;Capital Administration
 local_admin_spending;Estimated cost: ?Y$value$?W
-local_admin_employment;Administration Employees: ?Y$value$?W
+admin_employment;Administration Employees: ?Y$value$?W
 target_employment;Target employment: ?Y$value$?W
 employment_satisfaction;Employment satisfaction: ?Y$value$?W
 wage;Wage: ?Y$value$?W

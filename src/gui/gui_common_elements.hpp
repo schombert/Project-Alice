@@ -64,6 +64,8 @@ void open_foreign_investment(sys::state& state, dcon::nation_id n);
 
 std::string get_status_text(sys::state& state, dcon::nation_id nation_id);
 
+std::string labour_type_to_text_key(int32_t type);
+
 template<country_list_sort Sort>
 class country_sort_button : public button_element_base {
 public:
