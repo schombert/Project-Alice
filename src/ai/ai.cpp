@@ -2443,11 +2443,6 @@ bool ai_will_issue_embargo(sys::state& state, dcon::nation_id from, dcon::nation
 		return true;
 	}
 
-	// Embargo rival nations
-	if(state.world.nation_get_ai_rival(from) == to) {
-		return true;
-	}
-
 	// If a player has embargoed us - embargo him back
 	if (state.world.nation_get_is_player_controlled(to) && economy::has_active_embargo(state, to, from)) {
 		return true;
