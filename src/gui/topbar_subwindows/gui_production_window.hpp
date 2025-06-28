@@ -1711,7 +1711,11 @@ public:
 		if(name == "state_focus") {
 			return make_element_by_type<production_national_focus_button>(state, id);
 		} else if(name == "state_name") {
-			return make_element_by_type<province_name_text>(state, id);
+			auto ptr = make_element_by_type<province_name_text>(state, id);
+			ptr->base_data.size.x -= 140; // reduce max size to fit with the state name to the right of it
+			return ptr;
+		} else if(name == "state_location_name") {
+			return make_element_by_type<province_state_name_text>(state, id);
 		} else if(name == "factory_count") {
 			auto temp = make_element_by_type<province_factory_count_text>(state, id);
 			memcpy(&factory_number_def, &(temp->base_data), sizeof(ui::element_data));

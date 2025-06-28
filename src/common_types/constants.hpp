@@ -588,7 +588,7 @@ constexpr inline int32_t max_building_types = 5;
 
 namespace ui {
 
-enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
+enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure, state_name };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
 constexpr inline uint32_t max_chat_message_len = 64;
 
