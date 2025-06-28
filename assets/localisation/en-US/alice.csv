@@ -1581,3 +1581,4 @@ embargo_reason_origin_embargo;Origin declared embargo
 embargo_reason_origin_join_embargo;Origin joined embargo
 embargo_reason_target_embargo;Target declared embargo
 embargo_reason_target_join_embargo;Target joined embargo
+open_economy_scene;Open economy viewer

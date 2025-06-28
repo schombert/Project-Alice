@@ -1,4 +1,5 @@
 in vec2 tex_coord;
+in vec3 space_coords;
 out vec4 frag_color;
 
 uniform sampler2D provinces_texture_sampler;
@@ -24,6 +25,8 @@ uniform vec2 map_size;
 uniform vec2 screen_size;
 uniform float time;
 uniform float gamma;
+uniform vec3 light_direction;
+uniform float ignore_light;
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
 }
@@ -82,8 +85,14 @@ vec4 get_water_terrain()
 	coordD += vec2(0.02, -0.01) * time;
 	vec4 vBumpD = texture(water_normal, coordD);
 
-	vec3 vBumpTex = normalize(WaveModOne * (vBumpA.xyz + vBumpB.xyz +
-	vBumpC.xyz + vBumpD.xyz) - WaveModTwo);
+	vec3 vBumpTex = normalize(
+		WaveModOne * (
+			vBumpA.xyz
+			+ vBumpB.xyz
+			+ vBumpC.xyz
+			+ vBumpD.xyz
+		) - WaveModTwo
+	);
 
 	vec3 eyeDir = normalize(eyeDirection);
 	float NdotL = max(dot(eyeDir, (vBumpTex / 2)), 0);
@@ -323,13 +332,22 @@ void main() {
 		water = get_water();
 	}
 
+	float light = max(0.f, dot(light_direction, space_coords));
+	float darkness = max(0.f, -dot(light_direction, space_coords));
+
 	if (int(graphics_mode) == 2) {
 		vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
 		float to_national_border = sample.z;
+		//light += (1.f - to_national_border) * 1.5f * darkness;
 		water.rgb = mix(water.rgb, vec3(0.0f, 0.0f, 0.0f), (1.f - to_national_border) * 0.5f);
 	}
 
 	frag_color.rgb = mix(water.rgb, terrain.rgb, terrain.a);
+	if (ignore_light == 0.f) {
+		float darkness = max(0.f, -dot(light_direction, space_coords));
+		frag_color *= light;
+		frag_color.xyz += vec3(0.05f, 0.05f, 0.2f);
+	}
 	frag_color.a = 1.f;
 	frag_color = gamma_correct(frag_color);
 }
