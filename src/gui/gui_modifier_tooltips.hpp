@@ -4,7 +4,7 @@
 
 namespace ui {
 
-void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation);
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation, float scale);
 void active_single_modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation,
 		bool& header, dcon::national_modifier_value nmid, float scaled = 1.f);
 void active_single_modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation,

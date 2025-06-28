@@ -825,6 +825,12 @@ bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
 
+float effective_life_rating_growth(sys::state& state, dcon::province_id prov) {
+	auto base_life_rating = float(state.world.province_get_life_rating(prov));
+	return std::min(
+			base_life_rating * (state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
+}
+
 float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id id) {
 	float bsum = 0.f;
 	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {

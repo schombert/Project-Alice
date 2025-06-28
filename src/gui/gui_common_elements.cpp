@@ -192,4 +192,16 @@ std::string get_status_text(sys::state& state, dcon::nation_id nation_id) {
 		return text::produce_simple_string(state, "diplomacy_greatnation_status");
 	}
 }
+
+// Return text key for tooltips on the provided labour type
+std::string labour_type_to_text_key(int32_t type) {
+	// TODO: implement the rest of labour types
+	if(type == economy::labor::high_education_and_accepted) {
+		return "employment_type_high_education_and_accepted";
+	} else if(type == economy::labor::no_education) {
+		return "employment_type_no_education";
+	}
+	return "";
+}
+
 } // namespace ui

@@ -2721,9 +2721,9 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 }
 void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
 	if (state.world.nation_get_is_player_controlled(from)) {
-    auto& current_diplo = state.world.nation_get_diplomatic_points(from);
-	  state.world.nation_set_diplomatic_points(from, current_diplo - state.defines.askmilaccess_diplomatic_cost);
-  }
+    	auto& current_diplo = state.world.nation_get_diplomatic_points(from);
+		state.world.nation_set_diplomatic_points(from, current_diplo - state.defines.askmilaccess_diplomatic_cost);
+	}
 
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {
