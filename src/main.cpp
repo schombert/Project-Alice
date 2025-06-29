@@ -42,6 +42,7 @@
 #include "gui_production_window.cpp"
 #include "gui_province_window.cpp"
 #include "gui_population_window.cpp"
+#include "labour_details.cpp"
 #include "immediate_mode.cpp"
 #include "economy_viewer.cpp"
 #include "gui_technology_window.cpp"

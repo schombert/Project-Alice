@@ -64,8 +64,6 @@ void open_foreign_investment(sys::state& state, dcon::nation_id n);
 
 std::string get_status_text(sys::state& state, dcon::nation_id nation_id);
 
-std::string labour_type_to_text_key(int32_t type);
-
 template<country_list_sort Sort>
 class country_sort_button : public button_element_base {
 public:
@@ -2390,7 +2388,7 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 	text::add_line(state, contents, "PROVINCEVIEW_EMPLOYMENT", text::variable_type::value, text::fp_two_places{ economy::rgo_employment(state, rgo_good, prov_id) });
 	auto target_employment = state.world.province_get_rgo_target_employment(prov_id, rgo_good);
 	auto satisfaction = state.world.province_get_labor_demand_satisfaction(prov_id, economy::labor::no_education);
-	text::add_line(state, contents, "employment_type_no_education", 15);
+	text::add_line(state, contents, labour_type_to_employment_type_text_key(economy::labor::no_education), 15);
 	text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
 	text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
 	auto wage = state.world.province_get_labor_price(prov_id, economy::labor::no_education);
