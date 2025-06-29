@@ -5887,4 +5887,12 @@ guiTypes = {
 		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
     }
+	guiButtonType = {
+        name = "move_siege_order"
+        position = { 0 335 }
+        quadTextureSprite ="button-40-40-tower"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+		extends="sup_buttons_window"
+    }
 }

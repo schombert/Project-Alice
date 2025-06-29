@@ -133,7 +133,7 @@ enum class command_type : uint8_t {
 		network_inactivity_ping = 123,
 		notify_player_fully_loaded = 124, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
 		notify_player_is_loading = 125, // host sends this to all clients to notify that a specific client has begun loading
-		change_ai_nation_state = 126, // host sends this to new clients to inform them of no-ai nations, which arent players. 
+		change_ai_nation_state = 126, // host sends this to new clients to inform them of no-ai nations, which arent players.
 
 	// console cheats
 	network_populate = 254,

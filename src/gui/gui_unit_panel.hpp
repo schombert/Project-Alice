@@ -1697,12 +1697,45 @@ public:
 class apply_template_container : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "composition") {
+			// Macro builder template label on unit panel window
 			return make_element_by_type<main_template_composition_label>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type< apply_template_to_army_location_button>(state, id);
 		} else {
 			return nullptr;
 		}
+	}
+};
+
+class move_siege_order_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		bool move_to_siege = state.ui_state.ctrl_held_down || state.ui_state.move_to_siege_order_selected;
+
+		if(move_to_siege) {
+			frame = 1;
+		}
+		else {
+			frame = 0;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.move_to_siege_order_selected = ! state.ui_state.move_to_siege_order_selected;
+		impl_on_update(state);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		on_update(state);
+		button_element_base::render(state, x, y);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "move_to_siege");
+		text::add_line(state, contents, "move_to_siege_desc");
 	}
 };
 
@@ -1758,6 +1791,12 @@ public:
 		} else if(name == "alice_build_up_to_template_window") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				return make_element_by_type<apply_template_container>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
+		} else if(name == "move_siege_order") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<move_siege_order_button>(state, id);
 			} else {
 				return make_element_by_type<invisible_element>(state, id);
 			}

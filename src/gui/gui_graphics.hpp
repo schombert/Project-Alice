@@ -552,6 +552,7 @@ struct state {
 	uint16_t default_body_font = 0;
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
+	bool move_to_siege_order_selected = false;
 
 	float last_tick_investment_pool_change;
 
