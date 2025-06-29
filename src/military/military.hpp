@@ -557,4 +557,10 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 
+enum special_army_order {
+	none,
+	move_to_siege,
+	strategic_redeployment
+};
+
 } // namespace military

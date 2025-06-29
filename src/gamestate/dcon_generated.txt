@@ -2093,8 +2093,8 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ moving_to_siege }
-		type{ bitfield }
+		name{ special_order }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property {

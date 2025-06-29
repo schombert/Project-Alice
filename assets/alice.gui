@@ -5889,8 +5889,17 @@ guiTypes = {
     }
 	guiButtonType = {
         name = "move_siege_order"
-        position = { 0 335 }
-        quadTextureSprite ="button-40-40-tower"
+        position = { 0 340 }
+        quadTextureSprite ="army_orders_strip"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+		extends="sup_buttons_window"
+    }
+
+	guiButtonType = {
+        name = "strategic_redeployment_order"
+        position = { 40 340 }
+        quadTextureSprite ="army_orders_strip"
         buttonText = ""
         buttonFont = "vic_22_black"
 		extends="sup_buttons_window"

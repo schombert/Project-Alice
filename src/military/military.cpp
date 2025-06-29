@@ -7850,7 +7850,7 @@ void update_movement(sys::state& state) {
 		assert(!arrival || arrival >= state.current_date);
 
 		// Handle "move to siege" chained order
-		if (path.size() > 0 && army_owner && a.get_moving_to_siege()) {
+		if (path.size() > 0 && army_owner && a.get_special_order() == military::special_army_order::move_to_siege) {
 			// Army was ordered to chain siege and it has not yet finished siege
 			auto province_controller = state.world.province_get_nation_from_province_control(from);
 

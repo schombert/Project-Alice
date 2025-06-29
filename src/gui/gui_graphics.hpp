@@ -9,6 +9,7 @@
 #include "constants.hpp"
 #include "parsers.hpp"
 #include "cyto_any.hpp"
+#include "military.hpp"
 
 namespace parsers {
 struct building_gfx_context;
@@ -552,7 +553,7 @@ struct state {
 	uint16_t default_body_font = 0;
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
-	bool move_to_siege_order_selected = false;
+	military::special_army_order selected_army_order;
 
 	float last_tick_investment_pool_change;
 

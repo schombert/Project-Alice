@@ -1709,9 +1709,9 @@ class apply_template_container : public window_element_base {
 
 class move_siege_order_button : public button_element_base {
 	void on_update(sys::state& state) noexcept override {
-		bool move_to_siege = state.ui_state.ctrl_held_down || state.ui_state.move_to_siege_order_selected;
+		bool order_selected = state.ui_state.ctrl_held_down || state.ui_state.selected_army_order == military::special_army_order::move_to_siege;
 
-		if(move_to_siege) {
+		if(order_selected) {
 			frame = 1;
 		}
 		else {
@@ -1720,7 +1720,14 @@ class move_siege_order_button : public button_element_base {
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		state.ui_state.move_to_siege_order_selected = ! state.ui_state.move_to_siege_order_selected;
+		// First click selects the order
+		if(state.ui_state.selected_army_order != military::special_army_order::move_to_siege) {
+			state.ui_state.selected_army_order = military::special_army_order::move_to_siege;
+		}
+		// Second click deselects it
+		else {
+			state.ui_state.selected_army_order = military::special_army_order::none;
+		}
 		impl_on_update(state);
 	}
 
@@ -1736,6 +1743,44 @@ class move_siege_order_button : public button_element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "move_to_siege");
 		text::add_line(state, contents, "move_to_siege_desc");
+	}
+};
+
+class strategic_redeployment_order_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::strategic_redeployment;
+
+		if(order_selected) {
+			frame = 2;
+		} else {
+			frame = 3;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		// First click selects the order
+		if(state.ui_state.selected_army_order != military::special_army_order::strategic_redeployment) {
+			state.ui_state.selected_army_order = military::special_army_order::strategic_redeployment;
+		}
+		// Second click deselects it
+		else {
+			state.ui_state.selected_army_order = military::special_army_order::none;
+		}
+		impl_on_update(state);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		on_update(state);
+		button_element_base::render(state, x, y);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "strategic_redeployment");
+		text::add_line(state, contents, "strategic_redeployment_desc");
 	}
 };
 
@@ -1797,6 +1842,12 @@ public:
 		} else if(name == "move_siege_order") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				return make_element_by_type<move_siege_order_button>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
+		} else if(name == "strategic_redeployment_order") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<strategic_redeployment_order_button>(state, id);
 			} else {
 				return make_element_by_type<invisible_element>(state, id);
 			}

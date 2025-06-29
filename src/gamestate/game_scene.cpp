@@ -121,7 +121,6 @@ void selected_units_control(
 	bool army_play = false;
 	//as opposed to queueing
 	bool reset_orders = (uint8_t(mod) & uint8_t(sys::key_modifiers::modifiers_shift)) == 0;
-	bool move_to_siege = (uint8_t(mod) & uint8_t(sys::key_modifiers::modifiers_ctrl)) != 0 || state.ui_state.move_to_siege_order_selected;
 
 	float volume = get_effects_volume(state);
 
@@ -129,7 +128,7 @@ void selected_units_control(
 		if(command::can_move_army(state, nation, a, target, reset_orders).empty()) {
 			fail = true;
 		} else {
-			command::move_army(state, nation, a, target, reset_orders, move_to_siege);
+			command::move_army(state, nation, a, target, reset_orders, state.ui_state.selected_army_order);
 			army_play = true;
 		}
 	}
@@ -1050,7 +1049,7 @@ void update_army_group_selection_ui(sys::state& state) {
 
 void update_unit_selection_ui(sys::state& state) {
 	// Reset selected army orders
-	state.ui_state.move_to_siege_order_selected = false;
+	state.ui_state.selected_army_order = military::special_army_order::none;
 
 	// Change window visibility and pass unit ids down.
 	if(state.selected_armies.size() + state.selected_navies.size() > 1) {

@@ -3678,7 +3678,7 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 	diplomatic_message::post(state, m);
 }
 
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, bool move_to_siege) {
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order order) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::move_army;
@@ -3686,7 +3686,7 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 	p.data.army_movement.a = a;
 	p.data.army_movement.dest = dest;
 	p.data.army_movement.reset = reset;
-	p.data.army_movement.move_to_siege = move_to_siege;
+	p.data.army_movement.special_order = order;
 
 	add_to_command_queue(state, p);
 }
@@ -3843,7 +3843,7 @@ std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nati
 	}
 }
 
-void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, bool move_to_siege) {
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return;
 	if(state.world.army_get_is_retreating(a))
@@ -3901,7 +3901,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
-		state.world.army_set_moving_to_siege(a, move_to_siege);
+		state.world.army_set_special_order(a, (uint8_t) special_order);
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
 	}
@@ -6496,7 +6496,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_send_peace_offer(state, c.source);
 		break;
 	case command_type::move_army:
-		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset, c.data.army_movement.move_to_siege);
+		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset, c.data.army_movement.special_order);
 		break;
 	case command_type::move_navy:
 		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset);
