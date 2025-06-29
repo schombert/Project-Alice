@@ -385,6 +385,7 @@ struct army_movement_data {
 	dcon::army_id a;
 	dcon::province_id dest;
 	bool reset;
+	bool move_to_siege;
 };
 
 struct navy_movement_data {
@@ -806,7 +807,7 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 // Thus, if you want to move the unit to a new location from its current location,
 //     first stop its current movement and then send the new destination as a second command
 // ALSO: can returns an empty vector if no path could be made
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset);
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, bool move_to_siege = false);
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest);
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset = true);

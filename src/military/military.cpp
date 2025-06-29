@@ -7844,13 +7844,33 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 void update_movement(sys::state& state) {
 	for(auto a : state.world.in_army) {
 		auto arrival = a.get_arrival_time();
+		auto path = a.get_path();
+		auto from = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		assert(!arrival || arrival >= state.current_date);
-		if(auto path = a.get_path(); arrival == state.current_date) {
+
+		// Handle "move to siege" chained order
+		if (path.size() > 0 && army_owner && a.get_moving_to_siege()) {
+			// Army was ordered to chain siege and it has not yet finished siege
+			auto province_controller = state.world.province_get_nation_from_province_control(from);
+
+			// Must be able to siege the province the army is in
+			if(siege_potential(state, army_owner, province_controller) && state.world.province_get_nation_from_province_control(from) != army_owner) {
+				// Delay the army until it finishes siege
+				a.set_arrival_time(sys::date{});
+			}
+			else if (arrival == sys::date{}) {
+				auto next_dest = path.at(path.size() - 1);
+				a.set_arrival_time(arrival_time_to(state, a, next_dest));
+			}
+		}
+		// Army arrives to province
+		if(arrival == state.current_date) {
 			assert(path.size() > 0);
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
-			auto from = state.world.army_get_location_from_army_location(a);
 
+			// Can the army reach the target
 			if(dest.index() >= state.province_definitions.first_sea_province.index()) { // sea province
 				// check for embarkation possibility, then embark
 				auto to_navy = find_embark_target(state, a.get_controller_from_army_control(), dest, a);
@@ -7906,6 +7926,7 @@ void update_movement(sys::state& state) {
 			if(a.get_battle_from_army_battle_participation()) {
 				// nothing -- movement paused
 			} else if(path.size() > 0) {
+				// Army was ordered chain move
 				auto next_dest = path.at(path.size() - 1);
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));
 			} else {

@@ -121,13 +121,15 @@ void selected_units_control(
 	bool army_play = false;
 	//as opposed to queueing
 	bool reset_orders = (uint8_t(mod) & uint8_t(sys::key_modifiers::modifiers_shift)) == 0;
+	bool move_to_siege = (uint8_t(mod) & uint8_t(sys::key_modifiers::modifiers_ctrl)) != 0;
+
 	float volume = get_effects_volume(state);
 
 	for(auto a : state.selected_armies) {
 		if(command::can_move_army(state, nation, a, target, reset_orders).empty()) {
 			fail = true;
 		} else {
-			command::move_army(state, nation, a, target, reset_orders);
+			command::move_army(state, nation, a, target, reset_orders, move_to_siege);
 			army_play = true;
 		}
 	}
