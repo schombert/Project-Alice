@@ -3864,12 +3864,14 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 	auto existing_path = state.world.army_get_path(a);
 
+	// Invalid destination province: reset existing path
 	if(!dest) {
 		existing_path.clear();
 		state.world.army_set_arrival_time(a, sys::date{});
 		return;
 	}
 
+	// Reset existing path
 	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 	if(reset) {
 		existing_path.clear();
@@ -3881,8 +3883,10 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	}
 
+	// Build new path
 	auto path = can_move_army(state, source, a, dest, reset);
 
+	// Path is valid
 	if(path.size() > 0) {
 		auto append_size = uint32_t(path.size());
 		auto old_size = existing_path.size();
@@ -3907,6 +3911,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	}
 	state.world.army_set_moving_to_merge(a, false);
 
+	// Move away FROM battle
 	if(battle) {
 		state.world.army_set_is_retreating(a, true);
 		state.world.army_set_battle_from_army_battle_participation(a, dcon::land_battle_id{});

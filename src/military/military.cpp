@@ -4708,10 +4708,11 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
+	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? 3.f : 1.f;
 	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
 		(1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
 								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) *
-		(leader_move + 1.0f);
+		(leader_move + 1.0f) * special_order_mod;
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
@@ -7863,6 +7864,17 @@ void update_movement(sys::state& state) {
 				auto next_dest = path.at(path.size() - 1);
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));
 			}
+		}
+		// Handle "strategic redeployment" order
+		else if(path.size() > 0 && army_owner && a.get_special_order() == military::special_army_order::strategic_redeployment) {
+			// While moving - limit the org
+			for(auto r : state.world.army_get_army_membership(a)) {
+				r.get_regiment().set_org(0.1f);
+			}
+		}
+		// Movement finished - reset the order
+		else if(path.size() == 0 && a.get_special_order() == military::special_army_order::strategic_redeployment) {
+			a.set_special_order(military::special_army_order::none);
 		}
 		// Army arrives to province
 		if(arrival == state.current_date) {
