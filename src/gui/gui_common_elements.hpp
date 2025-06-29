@@ -19,6 +19,7 @@
 #include "triggers.hpp"
 #include <unordered_map>
 #include <vector>
+#include "labour_details.hpp"
 
 namespace ui {
 
