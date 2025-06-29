@@ -4295,6 +4295,8 @@ void state::single_game_tick() {
 			ai::update_ships(*this);
 		}
 
+		ai::take_ai_decisions(*this);
+
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
 		case 1:
