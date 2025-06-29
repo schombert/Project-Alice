@@ -5204,14 +5204,14 @@ guiTypes = {
     
     instantTextBoxType = {
         name = "thin_cell_name"
-        size = { 100 20 }
+        size = { 100 16 }
         font = "vic_18_black"
         format = left
     }
     
     instantTextBoxType = {
         name = "thin_cell_number"
-        size = { 60 20 }
+        size = { 60 16 }
         font = "vic_18_black"
         format = right
     }
