@@ -235,7 +235,7 @@ public:
 
 		auto content = retrieve<T>(state, parent);
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(state, 
+		auto container = text::create_endless_layout(state,
 			internal_layout,
 			text::layout_parameters{
 				border.x,
@@ -576,7 +576,7 @@ public:
 
 				name_entry.x_size /= 10;
 				text::add_to_layout_box(state, contents, name_entry, text::get_short_state_name(state, si.get_state()).substr(0, 20), text::text_color::yellow);
-				
+
 				workers_entry.x_position += 150;
 				text::add_to_layout_box(state, contents, workers_entry, text::int_wholenum{ int32_t(workers) });
 
@@ -647,7 +647,7 @@ public:
 
 class nation_ppp_gdp_text : public standard_nation_text {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {		
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return text::format_float(economy::gdp_adjusted(state, nation_id));
 	}
 };
@@ -1331,7 +1331,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto province = retrieve<dcon::province_id>(state, parent);
 		auto nation = retrieve<dcon::nation_id>(state, parent);
-		
+
 		if(province) {
 			auto fat_id = dcon::fatten(state.world, province);
 			if(fat_id.get_province_ownership().get_nation().get_is_mobilized()) {
@@ -1347,7 +1347,7 @@ public:
 				frame = 0;
 			}
 		}
-		
+
 	}
 };
 
@@ -1656,7 +1656,7 @@ public:
 
 			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
 
-			
+
 			text::add_to_layout_box(state, contents, employment_box, current_employment);
 			text::add_to_layout_box(state, contents, max_employment_box, max_employment);
 
@@ -1666,7 +1666,7 @@ public:
 
 		auto rgo_employment = state.world.province_get_subsistence_employment(p);
 		auto current_employment = int64_t(rgo_employment);
-		auto max_employment = int64_t(economy::subsistence_max_pseudoemployment(state, n, p));
+		auto max_employment = int64_t(economy::subsistence_max_pseudoemployment(state, p));
 		auto expected_profit = 0.f;
 
 		auto base_box = text::open_layout_box(contents);
@@ -1757,7 +1757,7 @@ public:
 		base_data.size.x += int16_t(20);
 	}
 	void on_update(sys::state& state) noexcept override {
-		auto factory_id = retrieve<dcon::factory_id>(state, parent);		
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);
 		set_text(state, text::format_float(economy::get_factory_level(state, factory_id)));
 	}
 };
@@ -2559,7 +2559,7 @@ inline void factory_stats_tooltip(sys::state& state, text::columnar_layout& cont
 		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 30);
 		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 30);
 	}
-	
+
 	{
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, text::fp_currency{ -profit_explanation.inputs }, text::text_color::red);
