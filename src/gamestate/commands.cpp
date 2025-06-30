@@ -3907,6 +3907,20 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
+
+		// US9AC1 Command army to pursue the target
+		if(special_order == military::special_army_order::pursue_to_engage) {
+			auto dest_armies = state.world.province_get_army_location(dest);
+			for(auto al : dest_armies) {
+				// Target the first regiment of the first army in the target province
+				// Targeting regiments allows more stable pursuit that can't be easily reset by nullifying army id
+				auto army = al.get_army();
+				for(auto membership : army.get_army_membership()) {
+					state.world.army_set_pursuit_target(a, membership.get_regiment());
+					break;
+				}
+			}
+		}
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
 	}

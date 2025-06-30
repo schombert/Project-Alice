@@ -42,3 +42,16 @@
 | AC1 | Army can be commanded to "Strategic Redeployment" increasing its speed but limiting org to 10% |
 | AC2 | "Strategic Redeployment" can be toggled with an order button |
 | AC3 | "Strategic Redeployment" can be toggled with a "B" hotkey |
+
+# US9 Pursue and engage army order
+
+**As a Player,**
+**I want to send my army to pursue and engage the enemy,**
+**So that there is less timey micromanagement if it tries to run away.**
+
+**Acceptance Criteria:**
+
+| AC1 | Army can be commanded to "Pursue and engage" another army |
+| AC2 | When commanded to "Pursue and engage", the army will pursue the targeted army and engage it when possible |
+| AC3 | "Pursue and engage" can be toggled with an order button |
+| AC4 | "Pursue and engage" can be toggled with a "N" hotkey |

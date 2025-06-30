@@ -557,7 +557,7 @@ spriteTypes = {
 	spriteType = {
         name = "army_orders_strip"
         texturefile = "assets\\army_orders_strip.png"
-        noOfFrames = 6
+        noOfFrames = 8
     }
 
     spriteType = {

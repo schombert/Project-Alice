@@ -560,7 +560,8 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 enum special_army_order {
 	none,
 	move_to_siege,
-	strategic_redeployment
+	strategic_redeployment,
+	pursue_to_engage
 };
 
 } // namespace military

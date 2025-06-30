@@ -7939,7 +7939,28 @@ void update_movement(sys::state& state) {
 
 			if(a.get_battle_from_army_battle_participation()) {
 				// nothing -- movement paused
-			} else if(path.size() > 0) {
+			}
+			else if(a.get_special_order() == military::special_army_order::pursue_to_engage && a.get_pursuit_target()) {
+				auto reg = a.get_pursuit_target();
+				dcon::army_id target_army;
+				// Find the current army of the target regiment
+				for(auto am : state.world.in_army_membership) {
+					if(am.get_regiment() == reg) {
+						target_army = am.get_army();
+					}
+				}
+				// Update the path
+				auto npath = command::can_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true);
+				// Has valid path
+				if(npath.size() > 0) {
+					command::execute_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true, military::special_army_order::pursue_to_engage);
+				}
+				else {
+					// Continue moving to the last known location
+					state.world.army_set_special_order(a, military::special_army_order::none);
+				}
+			}
+			else if(path.size() > 0) {
 				// Army was ordered chain move
 				auto next_dest = path.at(path.size() - 1);
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));

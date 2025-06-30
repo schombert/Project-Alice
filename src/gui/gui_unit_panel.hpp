@@ -1808,6 +1808,56 @@ class strategic_redeployment_order_button : public button_element_base {
 	}
 };
 
+class pursue_to_engage_order_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::pursue_to_engage;
+
+		if(order_selected) {
+			frame = 5;
+		} else {
+			frame = 4;
+		}
+	}
+
+	// US9AC3 Button to order pursue_to_engage
+	void button_action(sys::state& state) noexcept override {
+		// First click selects the order
+		if(state.ui_state.selected_army_order != military::special_army_order::pursue_to_engage) {
+			state.ui_state.selected_army_order = military::special_army_order::pursue_to_engage;
+		}
+		// Second click deselects it
+		else {
+			state.ui_state.selected_army_order = military::special_army_order::none;
+		}
+		impl_on_update(state);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		on_update(state);
+		button_element_base::render(state, x, y);
+	}
+
+	// US9AC4 Toggle pursue order on N.
+	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		message_result res = message_result::unseen;
+
+		if(key == sys::virtual_key::N) {
+			button_action(state);
+		}
+
+		return res;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "pursue_to_engage");
+		text::add_line(state, contents, "pursue_to_engage_desc");
+	}
+};
+
 template<class T>
 class unit_details_buttons : public window_element_base {
 private:
@@ -1872,6 +1922,12 @@ public:
 		} else if(name == "strategic_redeployment_order") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				return make_element_by_type<strategic_redeployment_order_button>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
+		} else if(name == "pursue_order") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<pursue_to_engage_order_button>(state, id);
 			} else {
 				return make_element_by_type<invisible_element>(state, id);
 			}

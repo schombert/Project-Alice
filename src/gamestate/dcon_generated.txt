@@ -2097,6 +2097,11 @@ object {
 		type{ uint8_t }
 		tag{ save }
 	}
+	property{
+		name{ pursuit_target }
+		type{ dcon::regiment_id }
+		tag{ save }
+	}
 	property {
 		name{ dig_in }
 		type{ uint8_t }

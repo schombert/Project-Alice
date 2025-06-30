@@ -5904,4 +5904,13 @@ guiTypes = {
         buttonFont = "vic_22_black"
 		extends="sup_buttons_window"
     }
+
+	guiButtonType = {
+        name = "pursue_order"
+        position = { 80 340 }
+        quadTextureSprite ="army_orders_strip"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+		extends="sup_buttons_window"
+    }
 }

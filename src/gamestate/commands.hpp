@@ -811,6 +811,7 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest);
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset = true);
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order);
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
