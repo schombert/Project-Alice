@@ -4708,6 +4708,7 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
+	// US8AC1 Army can be commanded to "Strategic Redeployment" increasing its speed but limiting org to 10%
 	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? 3.f : 1.f;
 	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
 		(1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
@@ -7843,6 +7844,7 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 }
 
 void update_movement(sys::state& state) {
+	// Army movement
 	for(auto a : state.world.in_army) {
 		auto arrival = a.get_arrival_time();
 		auto path = a.get_path();
@@ -7850,7 +7852,7 @@ void update_movement(sys::state& state) {
 		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		assert(!arrival || arrival >= state.current_date);
 
-		// Handle "move to siege" chained order
+		// US7AC1 Handle "move to siege" order
 		if (path.size() > 0 && army_owner && a.get_special_order() == military::special_army_order::move_to_siege) {
 			// Army was ordered to chain siege and it has not yet finished siege
 			auto province_controller = state.world.province_get_nation_from_province_control(from);
@@ -7865,18 +7867,18 @@ void update_movement(sys::state& state) {
 				a.set_arrival_time(arrival_time_to(state, a, next_dest));
 			}
 		}
-		// Handle "strategic redeployment" order
+		// US8AC1 Handle "strategic redeployment" order
 		else if(path.size() > 0 && army_owner && a.get_special_order() == military::special_army_order::strategic_redeployment) {
 			// While moving - limit the org
 			for(auto r : state.world.army_get_army_membership(a)) {
 				r.get_regiment().set_org(0.1f);
 			}
 		}
-		// Movement finished - reset the order
+		// US8AC1 Movement finished - reset the order to let army reorg
 		else if(path.size() == 0 && a.get_special_order() == military::special_army_order::strategic_redeployment) {
 			a.set_special_order(military::special_army_order::none);
 		}
-		// Army arrives to province
+		// US5AC1 Army arrives to province
 		if(arrival == state.current_date) {
 			assert(path.size() > 0);
 			auto dest = path.at(path.size() - 1);
@@ -7977,6 +7979,7 @@ void update_movement(sys::state& state) {
 		}
 	}
 
+	// Navy movement
 	for(auto n : state.world.in_navy) {
 		auto arrival = n.get_arrival_time();
 		assert(!arrival || arrival >= state.current_date);
@@ -8208,6 +8211,7 @@ bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::n
 	return will_siege;
 }
 
+// US5AC2 Army siege
 void update_siege_progress(sys::state& state) {
 	static auto new_nation_controller = ve::vectorizable_buffer<dcon::nation_id, dcon::province_id>(state.world.province_size());
 	static auto new_rebel_controller = ve::vectorizable_buffer<dcon::rebel_faction_id, dcon::province_id>(state.world.province_size());

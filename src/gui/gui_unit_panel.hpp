@@ -1709,7 +1709,7 @@ class apply_template_container : public window_element_base {
 
 class move_siege_order_button : public button_element_base {
 	void on_update(sys::state& state) noexcept override {
-		bool order_selected = state.ui_state.ctrl_held_down || state.ui_state.selected_army_order == military::special_army_order::move_to_siege;
+		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::move_to_siege;
 
 		if(order_selected) {
 			frame = 1;
@@ -1719,6 +1719,7 @@ class move_siege_order_button : public button_element_base {
 		}
 	}
 
+	// US7AC2 Enable "Move and Siege" with a button
 	void button_action(sys::state& state) noexcept override {
 		// First click selects the order
 		if(state.ui_state.selected_army_order != military::special_army_order::move_to_siege) {
@@ -1740,6 +1741,17 @@ class move_siege_order_button : public button_element_base {
 		return tooltip_behavior::tooltip;
 	}
 
+	// US8AC3 Toggle move and siege order on V.
+	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		message_result res = message_result::unseen;
+
+		if(key == sys::virtual_key::V) {
+			button_action(state);
+		}
+
+		return res;
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "move_to_siege");
 		text::add_line(state, contents, "move_to_siege_desc");
@@ -1751,12 +1763,13 @@ class strategic_redeployment_order_button : public button_element_base {
 		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::strategic_redeployment;
 
 		if(order_selected) {
-			frame = 2;
-		} else {
 			frame = 3;
+		} else {
+			frame = 2;
 		}
 	}
 
+	// US8AC2 Button to order Strategic Redeployment
 	void button_action(sys::state& state) noexcept override {
 		// First click selects the order
 		if(state.ui_state.selected_army_order != military::special_army_order::strategic_redeployment) {
@@ -1772,6 +1785,17 @@ class strategic_redeployment_order_button : public button_element_base {
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		on_update(state);
 		button_element_base::render(state, x, y);
+	}
+
+	// US8AC3 Toggle strategic redeployment order on B.
+	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		message_result res = message_result::unseen;
+
+		if(key == sys::virtual_key::B) {
+			button_action(state);
+		}
+
+		return res;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

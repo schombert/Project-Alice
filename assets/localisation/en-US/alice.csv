@@ -1106,9 +1106,9 @@ macro_warn_unlocked;?RUsing units not unlocked yet!?!
 macro_select_province;Please select a province on the map
 macro_warn_insuff;?RCan't build $x$ $name$ (only $y$)?!
 macro_warn_invalid_province;?RProvince not part of a region?!
-move_to_siege;Move to Siege order
+move_to_siege;Move to Siege order (hotkey: V)
 move_to_siege_desc;With Move to Siege order army moves to the next province only after full occupation of the current one.
-strategic_redeployment;Strategic redeployment
+strategic_redeployment;Strategic redeployment (hotkey: B)
 strategic_redeployment_desc;Strategic redeployment allows to move troops at increased speed, but with zero organisation.
 shortcut_tooltip;Shortcut: ?Y$x$?!
 filter_all;Show ?Yall?! relevant nations.

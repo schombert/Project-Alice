@@ -648,6 +648,7 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 		} else if(keycode == sys::virtual_key::TAB) {
 			ui::open_chat_window(state);
 		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
+			// Battleplanner scene hotkey
 			switch_scene(state, scene_id::in_game_military);
 		} else if(keycode == sys::virtual_key::N && state.ui_state.ctrl_held_down) {
 			// Economy scene hotkey
@@ -1048,7 +1049,7 @@ void update_army_group_selection_ui(sys::state& state) {
 }
 
 void update_unit_selection_ui(sys::state& state) {
-	// Reset selected army orders
+	// US6AC3 Reset selected army orders
 	state.ui_state.selected_army_order = military::special_army_order::none;
 
 	// Change window visibility and pass unit ids down.

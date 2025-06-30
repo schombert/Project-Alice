@@ -3883,6 +3883,8 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	}
 
+	state.world.army_set_special_order(a, (uint8_t)special_order);
+
 	// Build new path
 	auto path = can_move_army(state, source, a, dest, reset);
 
@@ -3905,7 +3907,6 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
-		state.world.army_set_special_order(a, (uint8_t) special_order);
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
 	}
