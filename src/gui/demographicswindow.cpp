@@ -243,48 +243,6 @@ struct demographicswindow_main_reset_filters_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-
-struct demographicswindow_checkbox_btn : public ui::element_base {
-
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f;
-	bool text_is_header = false;
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	virtual void set_text(sys::state& state, std::string const& new_text);
-	void on_reset_text(sys::state& state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-};
-
-
-struct demographicswindow_main_sort_pops_toggle_t : public demographicswindow_checkbox_btn {
-	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-
 struct demographicswindow_main_only_pops_toggle_t : public ui::element_base {
 // BEGIN main::only_pops_toggle::variables
 // END
@@ -4688,68 +4646,6 @@ void demographicswindow_main_reset_filters_t::on_create(sys::state& state) noexc
 // BEGIN main::reset_filters::create
 // END
 }
-
-
-void demographicswindow_checkbox_btn::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	else
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh);
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true);
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)), fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-
-void demographicswindow_checkbox_btn::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-
-
-void demographicswindow_checkbox_btn::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-
-void demographicswindow_checkbox_btn::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-}
-
-
-ui::message_result demographicswindow_main_sort_pops_toggle_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-	popwindow::sort_pops = !popwindow::sort_pops;
-	state.game_state_updated.store(true, std::memory_order::release);
-	return ui::message_result::consumed;
-}
-ui::message_result demographicswindow_main_sort_pops_toggle_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-
-void demographicswindow_main_sort_pops_toggle_t::on_update(sys::state& state) noexcept {
-	is_active = popwindow::sort_pops;
-}
-
-
-
-
-
-
-
 ui::message_result demographicswindow_main_only_pops_toggle_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);

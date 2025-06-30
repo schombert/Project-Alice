@@ -220,8 +220,6 @@ inline static ankerl::unordered_dense::set<int32_t> excluded_religions;
 inline static bool show_non_colonial = true;
 inline static bool show_colonial = true;
 inline static bool show_only_pops = false;
-inline static bool sort_pops = true;
-inline static bool sort_states = true;
 }
 
 bool pop_passes_filter(sys::state& state, dcon::pop_id p);
