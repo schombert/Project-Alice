@@ -2386,14 +2386,14 @@ bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id 
 
 float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n) {
 	auto literacy = state.world.nation_get_demographics(n, demographics::non_colonial_literacy);
-	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::non_colonial_total));
-	return literacy / total_pop;
+	auto total_pop = state.world.nation_get_demographics(n, demographics::non_colonial_total);
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
 }
 
 float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
 	auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
 	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
-	return literacy / total_pop;
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
 }
 
 void update_influence(sys::state& state) {
