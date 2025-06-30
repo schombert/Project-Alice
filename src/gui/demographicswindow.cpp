@@ -282,9 +282,9 @@ struct demographicswindow_main_only_pops_toggle_t : public ui::element_base {
 };
 struct demographicswindow_main_table_t : public layout_generator {
 // BEGIN main::table::variables
-// END
 
 	void sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, layout_window_element* parent);
+// END
 
 	struct nation_row_option { dcon::nation_id content; };
 	std::vector<std::unique_ptr<ui::element_base>> nation_row_pool;
@@ -3859,7 +3859,7 @@ void  demographicswindow_main_table_t::on_create(sys::state& state, layout_windo
 // BEGIN main::table::on_create
 // END
 }
-
+// BEGIN
 void demographicswindow_main_table_t::sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, layout_window_element* parent) {
 	bool work_to_do = false;
 	auto table_source = (demographicswindow_main_t*)(parent);
@@ -4080,7 +4080,7 @@ void demographicswindow_main_table_t::sort_state_rows(sys::state& state, std::ve
 		});
 	}
 }
-
+// END
 void  demographicswindow_main_table_t::update(sys::state& state, layout_window_element* parent) {
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
 // BEGIN main::table::update
