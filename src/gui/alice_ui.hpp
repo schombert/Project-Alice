@@ -229,6 +229,8 @@ std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
 
+void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
+
 inline int8_t cmp3(std::string_view a, std::string_view b) {
 	return int8_t(std::clamp(a.compare(b), -1, 1));
 }

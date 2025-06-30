@@ -2006,3 +2006,218 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 }
 
 }
+
+void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent) {
+	bool work_to_do = false;
+	auto table_source = (alice_ui::demographicswindow_main_t*)(parent);
+	if(table_source->table_location_sort_direction != 0) work_to_do = true;
+	if(table_source->table_size_sort_direction != 0) work_to_do = true;
+	if(table_source->table_culture_sort_direction != 0) work_to_do = true;
+	if(table_source->table_job_sort_direction != 0) work_to_do = true;
+	if(table_source->table_religion_sort_direction != 0) work_to_do = true;
+	if(table_source->table_militancy_sort_direction != 0) work_to_do = true;
+	if(table_source->table_consciousness_sort_direction != 0) work_to_do = true;
+	if(table_source->table_employment_sort_direction != 0) work_to_do = true;
+	if(table_source->table_literacy_sort_direction != 0) work_to_do = true;
+	if(table_source->table_money_sort_direction != 0) work_to_do = true;
+	if(table_source->table_needs_sort_direction != 0) work_to_do = true;
+	if(work_to_do) {
+		if(table_source->table_location_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, std::string>>sort_values;
+			for(auto si : state_instances) {
+				sort_values.push_back(std::make_pair(si, text::get_dynamic_state_name(state, si)));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, std::string> a, std::pair<dcon::state_instance_id, std::string> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_location_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		}
+		// only sorts by float values at this point, so declare the vector early
+		else if(table_source->table_size_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float total_size = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id prov) {
+					for(auto p : state.world.province_get_pop_location(prov)) {
+						if(alice_ui::pop_passes_filter(state, p.get_pop())) {
+							total_size += p.get_pop().get_size();
+						}
+					}
+				});
+				sort_values.push_back(std::make_pair(si, total_size));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_size_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		}
+		// no sorting for state-level culture yet
+		// no sorting for state-level jobs yet
+		// no sorting for state-level religion yet
+		else if(table_source->table_militancy_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float total = 0.0f;
+				float sz = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+					for(auto o : state.world.province_get_pop_location(p)) {
+						if(alice_ui::pop_passes_filter(state, o.get_pop())) {
+							sz += o.get_pop().get_size();
+							total += pop_demographics::from_pmc(o.get_pop().get_umilitancy()) * o.get_pop().get_size();
+						}
+					}
+				});
+				sort_values.push_back(std::make_pair(si, sz > 0 ? total / sz : 0.0f));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_militancy_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		} else if(table_source->table_consciousness_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float total = 0.0f;
+				float sz = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+					for(auto o : state.world.province_get_pop_location(p)) {
+						if(alice_ui::pop_passes_filter(state, o.get_pop())) {
+							sz += o.get_pop().get_size();
+							total += pop_demographics::from_pmc(o.get_pop().get_uconsciousness()) * o.get_pop().get_size();
+						}
+					}
+				});
+				sort_values.push_back(std::make_pair(si, sz > 0 ? total / sz : 0.0f));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_consciousness_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		} else if(table_source->table_employment_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float total = 0.0f;
+				float sz = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+					for(auto o : state.world.province_get_pop_location(p)) {
+						if(alice_ui::pop_passes_filter(state, o.get_pop())) {
+							if(o.get_pop().get_poptype().get_has_unemployment()) {
+								sz += o.get_pop().get_size();
+								total += pop_demographics::get_employment(state, o.get_pop());
+							} else {
+								sz += o.get_pop().get_size();
+								total += o.get_pop().get_size();
+							}
+						}
+					}
+				});
+				auto employment_rate = sz > 0 ? total / sz : 0.0f;
+				sort_values.push_back(std::make_pair(si, employment_rate));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_employment_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		} else if(table_source->table_literacy_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float literacy = 0.0f;
+				float sz = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id prov) {
+					for(auto p : state.world.province_get_pop_location(prov)) {
+						if(alice_ui::pop_passes_filter(state, p.get_pop())) {
+							sz += p.get_pop().get_size();
+							literacy += pop_demographics::get_literacy(state, p.get_pop()) * p.get_pop().get_size();
+						}
+					}
+				});
+				sort_values.push_back(std::make_pair(si, sz > 0 ? literacy / sz : 0.0f));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_literacy_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		} else if(table_source->table_money_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float cash = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id prov) {
+					for(auto p : state.world.province_get_pop_location(prov)) {
+						if(alice_ui::pop_passes_filter(state, p.get_pop())) {
+							cash += p.get_pop().get_savings();
+						}
+					}
+
+				});
+				sort_values.push_back(std::make_pair(si, cash));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_money_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		} else if(table_source->table_needs_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float needs = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id prov) {
+					for(auto p : state.world.province_get_pop_location(prov)) {
+						if(alice_ui::pop_passes_filter(state, p.get_pop())) {
+							needs += (pop_demographics::get_life_needs(state, p.get_pop()) + pop_demographics::get_everyday_needs(state, p.get_pop()) + pop_demographics::get_luxury_needs(state, p.get_pop())) * p.get_pop().get_size();
+						}
+					}
+
+				});
+				sort_values.push_back(std::make_pair(si, needs));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_needs_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+
+		}
+
+
+	} else {
+		sys::merge_sort(state_instances.begin(), state_instances.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+			if(!state.world.state_instance_get_capital(a).get_is_colonial() && state.world.state_instance_get_capital(b).get_is_colonial()) {
+				return true;
+			}
+			if(state.world.state_instance_get_capital(a).get_is_colonial() && !state.world.state_instance_get_capital(b).get_is_colonial()) {
+				return false;
+			}
+			// return state.world.state_instance_get_demographics(a, demographics::total) > state.world.state_instance_get_demographics(b, demographics::total);
+			return text::get_short_state_name(state, a) < text::get_short_state_name(state, b);
+		});
+	}
+}
