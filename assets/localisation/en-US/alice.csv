@@ -1584,3 +1584,5 @@ embargo_reason_target_embargo;Target declared embargo
 embargo_reason_target_join_embargo;Target joined embargo
 alice_production_name_sort_tip_province;?YLeft Click?W to sort by province names
 alice_production_name_sort_tip_state;?YShift-Left Click?W to sort by state names
+alice_sort_pops;Sort Pops
+alice_sort_states;Sort States

@@ -2005,7 +2005,6 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 			trigger::to_generic(ids), 0);
 }
 
-}
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent) {
 	bool work_to_do = false;
@@ -2036,7 +2035,6 @@ void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_insta
 				state_instances.push_back(pair.first);
 			}
 		}
-		// only sorts by float values at this point, so declare the vector early
 		else if(table_source->table_size_sort_direction != 0) {
 			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
 			for(auto si : state_instances) {
@@ -2059,9 +2057,59 @@ void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_insta
 				state_instances.push_back(pair.first);
 			}
 		}
-		// no sorting for state-level culture yet
+		else if(table_source->table_culture_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float total_size = 0.0f;
+				float accepted_size = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id prov) {
+					for(auto p : state.world.province_get_pop_location(prov)) {
+						if(alice_ui::pop_passes_filter(state, p.get_pop())) {
+							total_size += p.get_pop().get_size();
+							if(p.get_pop().get_is_primary_or_accepted_culture()) {
+								accepted_size += p.get_pop().get_size();
+							}
+						}
+					}
+				});
+				sort_values.push_back(std::make_pair(si, total_size > 0 ? accepted_size / total_size : 0.0f));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_culture_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		}
+		else if(table_source->table_religion_sort_direction != 0) {
+			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
+			for(auto si : state_instances) {
+				float total_size = 0.0f;
+				float accepted_size = 0.0f;
+				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id prov) {
+					for(auto p : state.world.province_get_pop_location(prov)) {
+						if(alice_ui::pop_passes_filter(state, p.get_pop())) {
+							total_size += p.get_pop().get_size();
+							if(p.get_pop().get_religion() == state.world.nation_get_religion(state.local_player_nation)) {
+								accepted_size += p.get_pop().get_size();
+							}
+						}
+					}
+				});
+				sort_values.push_back(std::make_pair(si, total_size > 0 ? accepted_size / total_size : 0.0f));
+			}
+			sys::merge_sort(sort_values.begin(), sort_values.end(), [&](std::pair<dcon::state_instance_id, float> a, std::pair<dcon::state_instance_id, float> b) {
+				int8_t result = alice_ui::cmp3(a.second, b.second);
+				return -result == table_source->table_religion_sort_direction;
+			});
+			state_instances.clear();
+			for(auto pair : sort_values) {
+				state_instances.push_back(pair.first);
+			}
+		}
 		// no sorting for state-level jobs yet
-		// no sorting for state-level religion yet
 		else if(table_source->table_militancy_sort_direction != 0) {
 			std::vector<std::pair<dcon::state_instance_id, float>> sort_values;
 			for(auto si : state_instances) {
@@ -2220,4 +2268,7 @@ void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_insta
 			return text::get_short_state_name(state, a) < text::get_short_state_name(state, b);
 		});
 	}
+}
+
+
 }
