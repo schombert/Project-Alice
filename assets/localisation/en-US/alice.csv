@@ -382,6 +382,9 @@ employment_type_no_education;Employment type: ?YNo education?W
 employment_type_basic_education;Employment type: ?YBasic education?W
 employment_type_high_education_and_accepted;Employment type: ?YHigh Education and Accepted?W
 employment_type_high_education;Employment type: ?YHigh Education?W
+employment_type_guild_education;Employment type: ?YGuild Education?W
+employment_type_basic_education;Employment type: ?YBasic Education?W
+employment_type_no_education;Employment type: ?YNo Education?W
 alice_trade_attractiveness;Trade Route Attraction
 trade_center;Trade Centre
 trade_center_desc;Trade Centres manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
