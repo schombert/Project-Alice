@@ -42,6 +42,8 @@ struct tax_information {
 // sums up all tax income all over the nation
 tax_information explain_tax_income(sys::state& state, dcon::nation_id n);
 tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id sid);
+
+bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to);
 std::vector<employment_record> explain_local_administration_employment(sys::state& state, dcon::province_id p);
 std::vector<employment_record> explain_capital_administration_employment(sys::state& state, dcon::nation_id n);
 }
