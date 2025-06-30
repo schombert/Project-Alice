@@ -1049,9 +1049,6 @@ void update_army_group_selection_ui(sys::state& state) {
 }
 
 void update_unit_selection_ui(sys::state& state) {
-	// US6AC3 Reset selected army orders
-	state.ui_state.selected_army_order = military::special_army_order::none;
-
 	// Change window visibility and pass unit ids down.
 	if(state.selected_armies.size() + state.selected_navies.size() > 1) {
 		state.ui_state.multi_unit_selection_window->set_visible(state, true);
