@@ -1586,3 +1586,4 @@ alice_production_name_sort_tip_province;?YLeft Click?W to sort by province names
 alice_production_name_sort_tip_state;?YShift-Left Click?W to sort by state names
 alice_sort_pops;Sort Pops
 alice_sort_states;Sort States
+alice_topbar_avg_literacy_in_states;The average ?Yliteracy?W of our non-colonial population is ?Y$x$?W

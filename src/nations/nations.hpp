@@ -366,6 +366,9 @@ float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n);
 float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares);
 bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n);
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n);
+
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
 void update_revanchism(sys::state& state);

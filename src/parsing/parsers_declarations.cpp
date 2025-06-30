@@ -433,6 +433,8 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 	new_pop.set_religion(def.rel_id);
 	new_pop.set_size(float(def.size));
 	new_pop.set_poptype(ptype);
+	// set the default literacy as 10% if it is not overriden later by "literacy" or "on_state_culture_literacy" in the country history file.
+	pop_demographics::set_literacy(context.outer_context.state, new_pop, 0.1f);
 	pop_demographics::set_militancy(context.outer_context.state, new_pop, def.militancy);
 	// new_pop.set_rebel_group(def.reb_id);
 
@@ -2813,9 +2815,19 @@ void country_history_file::literacy(association_type, float value, error_handler
 		country_history_context& context) {
 	if(!context.holder_id)
 		return;
+	auto fh = fatten(context.outer_context.state.world, context.holder_id);
 	for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
 		for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
-			pop_demographics::set_literacy(context.outer_context.state, prov_pop.get_pop(), std::clamp(value, 0.0f, 1.0f));
+			bool accepted = [&]() {
+				if(prov_pop.get_pop().get_culture() == fh.get_primary_culture())
+					return true;
+				if(fh.get_accepted_cultures(prov_pop.get_pop().get_culture()))
+					return true;
+				return false;
+			}();
+			if(accepted) {
+				pop_demographics::set_literacy(context.outer_context.state, prov_pop.get_pop(), std::clamp(value, 0.0f, 1.0f));
+			}
 		}
 	}
 }

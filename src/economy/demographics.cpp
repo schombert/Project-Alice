@@ -491,6 +491,24 @@ void regenerate_from_pop_data(sys::state& state) {
 										 : 0.0f;
 				});
 				break;
+			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
 			}
 		// common - pop type - employment - culture - ideology - issue option - religion
 		} else if(key.index() < to_employment_key(state, dcon::pop_type_id(0)).index()) { // pop type
@@ -1069,6 +1087,24 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 					return state.world.pop_type_get_strata(state.world.pop_get_poptype(p)) == uint8_t(culture::pop_strata::rich)
 						? state.world.pop_get_size(p)
 						: 0.0f;
+				});
+				break;
+			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
 				});
 				break;
 			}

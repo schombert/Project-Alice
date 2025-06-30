@@ -2384,6 +2384,18 @@ bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id 
 	return false;
 }
 
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::non_colonial_literacy);
+	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::non_colonial_total));
+	return literacy / total_pop;
+}
+
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
+	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
+	return literacy / total_pop;
+}
+
 void update_influence(sys::state& state) {
 	for(auto rel : state.world.in_gp_relationship) {
 		if(rel.get_penalty_expires_date() == state.current_date) {

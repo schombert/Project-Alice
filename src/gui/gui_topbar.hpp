@@ -184,9 +184,8 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
-		auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
-		set_text(state, text::format_percentage(literacy / total_pop, 1));
+		auto literacy = nations::get_avg_non_colonial_literacy(state, n);
+		set_text(state, text::format_percentage(literacy, 1));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -200,9 +199,15 @@ public:
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_percentage_two_places{literacy_change});
-		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
-		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
-		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
+		auto avg_non_colonial_literacy = nations::get_avg_non_colonial_literacy(state, nation_id);
+		text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{avg_non_colonial_literacy });
+
+		auto avg_literacy = nations::get_avg_total_literacy(state, nation_id);
+		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_percentage_one_place{ avg_literacy });
+
+		text::localised_format_box(state, contents, box, std::string_view("alice_topbar_avg_literacy_in_states"), sub);
+		text::add_line_break_to_layout_box(state, contents, box);
+
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
