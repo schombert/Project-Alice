@@ -5975,6 +5975,21 @@ inline constexpr float combat_modifier_table[] = { 0.0f, 0.02f, 0.04f, 0.06f, 0.
 		0.35f, 0.40f, 0.45f, 0.50f, 0.60f, 0.70f, 0.80f, 0.90f };
 
 
+void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value) {
+	if(state.world.regiment_get_strength(reg) >= value) {
+		state.world.regiment_set_strength(reg, state.world.regiment_get_strength(reg) - value);
+	} else {
+		state.world.regiment_set_strength(reg, 0.0f);
+	}
+}
+void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value) {
+	if(state.world.ship_get_strength(reg) >= value) {
+		state.world.ship_set_strength(reg, state.world.ship_get_strength(reg) - value);
+	} else {
+		state.world.ship_set_strength(reg, 0.0f);
+	}
+}
+
 dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r) {
 	auto army = state.world.regiment_get_army_from_army_membership(r);
 	auto nation = state.world.army_get_controller_from_army_control(army);
@@ -6189,7 +6204,7 @@ void apply_attrition(sys::state& state) {
 					auto& cur_pending_dmg = rg.get_regiment().get_pending_damage();
 					rg.get_regiment().set_pending_damage(cur_pending_dmg + attrition_value * 0.01f);
 					auto& cur_strength = rg.get_regiment().get_strength();
-					rg.get_regiment().set_strength(cur_strength - attrition_value * 0.01f);
+					military::reduce_regiment_strength_safe(state, rg.get_regiment(), attrition_value * 0.01f);
 				}
 			}
 		}
@@ -6804,7 +6819,7 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_set_pending_damage(att_back_target, state.world.regiment_get_pending_damage(att_back_target) + str_damage);
 
-					state.world.regiment_set_strength(att_back_target, cstr - str_damage);
+					military::reduce_regiment_strength_safe(state, att_back_target, str_damage);
 
 					defender_casualties += str_damage;
 
@@ -6855,7 +6870,7 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_set_pending_damage(def_back_target, state.world.regiment_get_pending_damage(def_back_target) + str_damage);
 
-					state.world.regiment_set_strength(def_back_target, cstr - str_damage);
+					military::reduce_regiment_strength_safe(state, def_back_target, str_damage);
 
 					attacker_casualties += str_damage;
 
@@ -6907,7 +6922,8 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_set_pending_damage(att_front_target, state.world.regiment_get_pending_damage(att_front_target) + str_damage);
 
-					state.world.regiment_set_strength(att_front_target, cstr - str_damage);
+
+					military::reduce_regiment_strength_safe(state, att_front_target, str_damage);
 					defender_casualties += str_damage;
 
 					adjust_regiment_experience(state, attacking_nation, att_front[i], str_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
@@ -6959,7 +6975,7 @@ void update_land_battles(sys::state& state) {
 					auto& cstr = state.world.regiment_get_strength(def_front_target);
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_set_pending_damage(def_front_target, state.world.regiment_get_pending_damage(def_front_target) + str_damage);
-					state.world.regiment_set_strength(def_front_target, cstr - str_damage);
+					military::reduce_regiment_strength_safe(state, def_front_target, str_damage);
 
 					attacker_casualties += str_damage;
 
@@ -7434,9 +7450,8 @@ void ship_do_damage(sys::state& state, dcon::naval_battle_id battle, ship_in_bat
 	float str_damage = get_ship_strength_damage(state, damage_dealer, target, battle_modifiers, attacker_ships, defender_ships);
 
 	auto& torg = state.world.ship_get_org(target.ship);
-	torg = std::max(0.0f, torg - org_damage);
-	auto& tstr = state.world.ship_get_strength(target.ship);
-	tstr = std::max(0.0f, tstr - str_damage);
+	state.world.ship_set_org(target.ship, std::max(0.0f, torg - org_damage));
+	military::reduce_ship_strength_safe(state, target.ship, str_damage);
 
 
 	adjust_ship_experience(state, dmg_dealer_owner, damage_dealer.ship, str_damage * 5.f * state.defines.exp_gain_div * leader_exp_mod);
