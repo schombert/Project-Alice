@@ -1229,7 +1229,7 @@ class province_supply_limit_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		auto supply = int32_t(military::peacetime_attrition_limit(state, state.local_player_nation, province_id));
+		auto supply = int32_t(military::supply_limit_in_province(state, state.local_player_nation, province_id));
 		set_text(state, std::to_string(supply));
 	}
 
