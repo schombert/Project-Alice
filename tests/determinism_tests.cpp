@@ -1632,6 +1632,23 @@ TEST_CASE("sim_year", "[determinism]") {
 	}
 }
 
+
+TEST_CASE("sim_game_solo", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+
+
+	game_state_1->game_seed = 808080;
+
+	for(int i = 0; i <= 3650; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+	}
+}
+
+
+
+
 TEST_CASE("sim_game", "[determinism]") {
 	// Test that the game states are equal after playing
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);

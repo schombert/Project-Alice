@@ -5398,7 +5398,7 @@ void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg) {
 			auto& att_back = state.world.land_battle_get_attacker_back_line(battle);
 			auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
 			auto& def_back = state.world.land_battle_get_defender_back_line(battle);
-			auto& def_front = state.world.land_battle_get_attacker_front_line(battle);
+			auto& def_front = state.world.land_battle_get_defender_front_line(battle);
 			auto reserves = state.world.land_battle_get_reserves(battle);
 			bool found = false;
 			for(uint32_t j = reserves.size(); j-- > 0;) {
@@ -5441,7 +5441,7 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 
 	auto regs = state.world.army_get_army_membership(n);
 	while(regs.begin() != regs.end()) {
-		state.world.delete_regiment((*regs.begin()).get_regiment().id);
+		military::delete_regiment_safe_wrapper(state, (*regs.begin()).get_regiment().id);
 	}
 
 	auto b = state.world.army_get_battle_from_army_battle_participation(n);
@@ -6202,9 +6202,9 @@ void apply_regiment_damage(sys::state& state) {
 		if(state.world.regiment_is_valid(s)) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
 			auto& current_strength = state.world.regiment_get_strength(s);
+			auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
 
 			if(pending_damage > 0) {
-				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
 				auto tech_nation = tech_nation_for_regiment(state, s);
 
 				if(backing_pop) {
@@ -6212,10 +6212,6 @@ void apply_regiment_damage(sys::state& state) {
 					state.world.pop_set_size(backing_pop, psize - state.defines.pop_size_per_regiment * pending_damage * state.defines.soldier_to_pop_damage /
 						(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
 						sys::national_mod_offsets::soldier_to_pop_loss))));
-
-					if(psize <= 1.0f) {
-						state.world.delete_pop(backing_pop);
-					}
 				}
 				state.world.regiment_set_pending_damage(s, 0.0f);
 			}
@@ -6238,50 +6234,15 @@ void apply_regiment_damage(sys::state& state) {
 					}
 				}
 
-				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
-					for(auto& e : state.world.land_battle_get_attacker_back_line(b)) {
-						if(e == s) {
-							e = dcon::regiment_id{};
-						}
-					}
-					for(auto& e : state.world.land_battle_get_attacker_front_line(b)) {
-						if(e == s) {
-							e = dcon::regiment_id{};
-						}
-					}
-					for(auto& e : state.world.land_battle_get_defender_back_line(b)) {
-						if(e == s) {
-							e = dcon::regiment_id{};
-						}
-					}
-					for(auto& e : state.world.land_battle_get_defender_front_line(b)) {
-						if(e == s) {
-							e = dcon::regiment_id{};
-						}
-					}
-
-					auto reserves = state.world.land_battle_get_reserves(b);
-					// if the dead brigade with not enough supporting pop is in the reserves, remove it from the reserves first before deletion
-					if(!controller || state.world.pop_get_size(pop_backer) < state.defines.pop_min_size_for_regiment) {
-						for(uint32_t j = reserves.size(); j-- > 0;) {
-							if(reserves[j].regiment == s) {
-								std::swap(reserves[j], reserves[reserves.size() - 1]);
-								reserves.pop_back();
-								break;
-							}
-						}
-						state.world.delete_regiment(s);
-					} else {
-						state.world.regiment_set_strength(s, 0.0f);
-					}
-
-				} else {
-					if(!controller || state.world.pop_get_size(pop_backer) < state.defines.pop_min_size_for_regiment)
-						state.world.delete_regiment(s);
-					else
-						state.world.regiment_set_strength(s, 0.0f);
+			}
+			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
+			auto psize = state.world.pop_get_size(backing_pop);
+			if(psize <= 1.0f) {
+				//safely delete any regiment which has this pop as its source
+				for(auto reg : state.world.pop_get_regiment_source(backing_pop)) {
+					military::delete_regiment_safe_wrapper(state, reg.get_regiment());
 				}
-
+				state.world.delete_pop(backing_pop);
 			}
 		}
 	}
@@ -9432,7 +9393,7 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
-	state.world.delete_regiment(reg_id);
+	military::delete_regiment_safe_wrapper(state, reg_id);
 }
 
 } // namespace military
