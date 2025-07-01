@@ -1896,41 +1896,48 @@ object {
 	storage_type{ erasable }
 	size { 50 }
 	tag { local_save }
+	tag { mp_checksum_excluded }
 
 	property {
 		name { owner }
 		type { nation_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { hq }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { provinces_defend }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { provinces_enforce_control }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { provinces_ferry_origin }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 }
 
 relationship{
 	name{ automated_army_group_membership_regiment }
 	tag{ local_save }
+	tag { mp_checksum_excluded }
 
 	link{
 		object{ regiment_automation_data }
@@ -1948,6 +1955,7 @@ relationship{
 relationship{
 	name{ automated_army_group_membership_navy }
 	tag{ local_save }
+	tag { mp_checksum_excluded }
 
 	link{
 		object{ navy }
@@ -1967,38 +1975,45 @@ object {
 	storage_type{ erasable }
 	size { 4000 }
 	tag { local_save }
+	tag { mp_checksum_excluded }
 
 	property {
 		name { status }
 		type { sys::army_group_regiment_status }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 	property {
 		name { task }
 		type { sys::army_group_regiment_task }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 	property {
 		name { await_command_execution_flag }
 		type { bitfield }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 	property {
 		name { target }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { ferry_target }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { ferry_origin }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -2006,6 +2021,7 @@ object {
 relationship{
 	name{ automation }
 	tag{ local_save }
+	tag { mp_checksum_excluded }
 
 	link{
 		object{ regiment_automation_data }

@@ -1617,4 +1617,9 @@ embargo_reason_origin_embargo;Origin declared embargo
 embargo_reason_origin_join_embargo;Origin joined embargo
 embargo_reason_target_embargo;Target declared embargo
 embargo_reason_target_join_embargo;Target joined embargo
+alice_production_name_sort_tip_province;?YLeft Click?W to sort by province names
+alice_production_name_sort_tip_state;?YShift-Left Click?W to sort by state names
+alice_sort_pops;Sort Pops
+alice_sort_states;Sort States
+alice_topbar_avg_literacy_in_states;The average ?Yliteracy?W of our non-colonial population is ?Y$x$?W
 open_economy_scene;Open economy viewer

@@ -8,6 +8,17 @@ guiTypes = {
 		buttonFont = "vic_32_black"
 		Orientation = "LOWER_LEFT"
 	}
+
+	instantTextBoxType = { 
+			name = "state_location_name"
+			extends = "state_info"
+			position = { x = 175 y = 4 }
+			font = "vic_22"
+			maxWidth = 140
+			maxHeight = 16	
+			format = left
+			fixedsize = yes
+		}
 			
 	iconType = {
         name = "gfx_storage_unit_types"

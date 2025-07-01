@@ -165,8 +165,10 @@ constexpr inline dcon::demographics_key rich_luxury_needs(19);
 constexpr inline dcon::demographics_key poor_total(20);
 constexpr inline dcon::demographics_key middle_total(21);
 constexpr inline dcon::demographics_key rich_total(22);
+constexpr inline dcon::demographics_key non_colonial_literacy(23);
+constexpr inline dcon::demographics_key non_colonial_total(24);
 
-constexpr inline uint32_t count_special_keys = 23;
+constexpr inline uint32_t count_special_keys = 25;
 
 dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
