@@ -327,6 +327,8 @@ enum class message_setting_type : uint8_t {
 	bankruptcy = 100,
 	entered_automatic_alliance = 101,
 	chat_message = 102,
+	embargo_by_nation = 103,
+	embargo_on_nation = 104,
 	count = 128
 };
 
@@ -405,8 +407,8 @@ enum class message_base_type : uint8_t {
 	bankruptcy = 71,
 	entered_automatic_alliance = 72,
 	chat_message = 73,
-	free_trade_agreement = 74,
-	embargo = 75,
+	embargo = 74,
+	free_trade_agreement = 75,
 	trade_rights_revoked = 76,
 	count = 77,
 };
@@ -417,6 +419,7 @@ struct msg_setting_entry {
 	message_setting_type third;
 };
 
+// Setting matches message_base_type of the posted message based on index
 constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type::count)] = {
 						// source									target										third
 	msg_setting_entry{ message_setting_type::revolt,					message_setting_type::count,				message_setting_type:: count}, //revolt
@@ -531,6 +534,9 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
 	msg_setting_entry{ message_setting_type::entered_automatic_alliance, message_setting_type::count, message_setting_type::count },//entered_automatic_alliance = 72,
 	msg_setting_entry{ message_setting_type::chat_message, message_setting_type::count, message_setting_type::count },//chat_message = 73,
+	msg_setting_entry{ message_setting_type::embargo_by_nation, message_setting_type::embargo_on_nation, message_setting_type::count },//embargo = 74,
+
+
 };
 
 namespace  message_response {

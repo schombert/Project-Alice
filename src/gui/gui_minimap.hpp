@@ -909,6 +909,26 @@ public:
 		set_visible(state, false);
 	}
 };
+class minimap_open_economy_scene : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_economy_viewer);
+	}
+};
+class minimap_toggle_sun : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.map_state.light_on = !state.map_state.light_on;
+		frame = state.map_state.light_on ? 0 : 1;
+	}
+};
+class minimap_toggle_sun_pause : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.map_state.light_rotate = !state.map_state.light_rotate;
+		frame = state.map_state.light_rotate ? 1 : 0;
+	}
+};
 class minimap_zoom_in_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -954,6 +974,12 @@ public:
 			ptr->base_data.position.y += 1; //nudge
 			open_btn = ptr.get();
 			return ptr;
+		} else if(name == "economy-scene-enter-button") {
+			return make_element_by_type<minimap_open_economy_scene>(state, id);
+		} else if(name == "sun-pause-button") {
+			return make_element_by_type<minimap_toggle_sun_pause>(state, id);
+		} else if(name == "sun-button") {
+			return make_element_by_type<minimap_toggle_sun>(state, id);
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
 		} else if(name == "button_macro") {

@@ -1,6 +1,7 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
 out vec2 tex_coord;
+out vec3 space_coords;
 
 // Camera position
 uniform vec2 offset;
@@ -93,5 +94,15 @@ default: break;
 
 void main() {
 	gl_Position = calc_gl_position();
+
+	float angle_x = 2 * vertex_position.x * PI;
+	float x = cos(angle_x);
+	float y = sin(angle_x);
+	float angle_y = vertex_position.y * PI;
+	x *= sin(angle_y);
+	y *= sin(angle_y);
+	float z = cos(angle_y);
+	space_coords = vec3(x, y, z);
+
 	tex_coord = vertex_position;
 }

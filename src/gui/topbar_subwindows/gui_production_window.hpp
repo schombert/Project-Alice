@@ -382,7 +382,7 @@ public:
 		auto output = state.world.factory_type_get_output(type);
 		if(state.world.commodity_get_uses_potentials(output)) {
 			auto limit = economy::calculate_province_factory_limit(state, fat.get_factory_location().get_province(), output);
-			
+
 			// Will upgrade put us over the limit?
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_11", fat.get_size() + fat.get_building_type().get_base_workforce() <= limit);
 		}
@@ -805,7 +805,7 @@ class normal_factory_background : public opaque_element_base {
 			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
 
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
-			
+
 			auto sat = state.world.market_get_demand_satisfaction(market, cid);
 			text::add_to_layout_box(state, contents,
 				demand_satisfaction,
@@ -825,7 +825,7 @@ class normal_factory_background : public opaque_element_base {
 				* amount;
 
 			total_expenses += cost;
-			
+
 			text::add_to_layout_box(state, contents, amount_box, text::fp_two_places{ amount });
 			text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ -cost }, text::text_color::red);
 
@@ -1369,7 +1369,7 @@ public:
 				++index;
 			}
 		});
-		
+
 		// Finally, factories "doing nothing" are accounted for
 		dcon::fatten(state.world, province_id).for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
 			dcon::factory_id fid = state.world.factory_location_get_factory(flid);

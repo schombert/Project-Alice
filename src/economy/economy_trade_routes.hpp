@@ -49,6 +49,16 @@ struct trade_route_volume_change_reasons {
 	bool commodity_is_not_discovered;
 };
 
+float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_fat_id A_capital, dcon::province_fat_id B_capital);
+float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market);
+float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital);
+
+void make_trade_center_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	dcon::market_id market
+);
+
 void make_trade_volume_tooltip(
 	sys::state& state,
 	text::columnar_layout& contents,

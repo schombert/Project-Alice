@@ -212,7 +212,7 @@ public:
 		text::add_line_break_to_layout(state, contents);
 
 		// List factory type construction costs
-		text::add_line(state, contents, "alice_factory_construction_cost");
+		text::add_line(state, contents, "alice_construction_cost");
 		auto const& cset = state.world.factory_type_get_construction_costs(content);
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 			if(cset.commodity_type[i] && cset.commodity_amounts[i] > 0.0f) {

@@ -8,6 +8,7 @@ layout (location = 4) in float width;
 out float tex_coord;
 out float o_dist;
 out vec2 map_coord;
+out vec3 space_coords;
 
 uniform vec2 offset;
 uniform float aspect_ratio;
@@ -106,6 +107,15 @@ void main() {
     vec4 temp = calc_gl_position(world_pos);
     
     //temp.z = 1.f - (zoom * width * 0.0001f - 0.0000001f);
+
+	float angle_x = 2 * vertex_position.x * PI;
+	float x = cos(angle_x);
+	float y = sin(angle_x);
+	float angle_y = vertex_position.y * PI;
+	x *= sin(angle_y);
+	y *= sin(angle_y);
+	float z = cos(angle_y);
+	space_coords = vec3(x, y, z);
     
 	gl_Position = temp;
 	tex_coord = texture_coord;

@@ -445,9 +445,8 @@ void generate_sea_trade_routes(sys::state& state) {
 			auto continent_origin = state.world.province_get_continent(state_owner_capital);
 
 			float mult = 1.f;
-			mult += std::min(naval_base_origin, naval_base_target) * 0.25f;
+			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness;
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
-
 			
 			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
 

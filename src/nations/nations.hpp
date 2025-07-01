@@ -8,6 +8,9 @@ enum class crisis_state : uint32_t;
 }
 
 namespace nations {
+
+inline float naval_base_level_to_market_attractiveness = 0.25f;
+
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
 }

@@ -172,7 +172,8 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		int32_t primary, int32_t this_slot, int32_t from_slot);
 void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
 		int32_t primary, int32_t this_slot, int32_t from_slot);
-void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
+
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0, float scale = 1.f);
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
 		dcon::national_modifier_value nmid, bool header);
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,

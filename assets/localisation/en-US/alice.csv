@@ -1,3 +1,4 @@
+PROVINCEVIEW_GOODSINCOME;Sold ?Y$x$?W ?Y$GOODS$?W for ?Y$VALUE$?W yesterday
 support_for_blank;support for $text$
 uh_support_for_blank;upper house support for $text$
 up_to;up to 
@@ -377,6 +378,30 @@ has_not_recently_lost_war;has not recently lost a war
 mobilized;mobilized
 mobilization_size;mobilization size
 admin_spending;administration spending
+employment_type_no_education;Employment type: ?YNo education?W
+employment_type_basic_education;Employment type: ?YBasic education?W
+employment_type_high_education_and_accepted;Employment type: ?YHigh Education and Accepted?W
+employment_type_high_education;Employment type: ?YHigh Education?W
+alice_trade_attractiveness;Trade Route Attraction
+trade_center;Trade Centre
+trade_center_desc;Trade Centres manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
+trade_center_employment;Trade Center Employees: ?Y$value$?W
+trade_centre_max_throughput;Max throughput: ?Y$value$?W
+local_admin;Local Administration
+capital_admin;Capital Administration
+local_admin_spending;Estimated cost: ?Y$value$?W
+admin_employment;Administration Employees: ?Y$value$?W
+target_employment;Target employment: ?Y$value$?W
+employment_satisfaction;Employment satisfaction: ?Y$value$?W
+wage;Wage: ?Y$value$?W
+local_admin_efficiency;Local administrations are ?Y$value$?W less efficient than the capital one.
+tax_collection_rate;Tax collection rate: ?Y$value$?W
+poor_potential;Potential poor taxes: ?Y$value$?W
+mid_potential;Potential middle taxes: ?Y$value$?W
+rich_potential;Potential rich taxes: ?Y$value$?W
+poor_taxes;Actual poor taxes: ?Y$value$?W
+mid_taxes;Actual middle taxes: ?Y$value$?W
+rich_taxes;Actual rich taxes: ?Y$value$?W
 greater_than_edu_spending;greater than education spending
 support_for_rp;support for ruling party
 colonial;colonial
@@ -517,9 +542,10 @@ factory_upgrade_condition_11;State has available resource potentials
 factory_delete_header;Delete factory
 factory_delete_not_allowed;The ruling party does not allow us to delete factories
 factory_level;Factory level ?Y$val$
-factory_stats_1;This factory is currently operating at $val$ capacity
-factory_stats_2;This factory is targeting $val$ capacity
-factory_stats_3;It produced $val$ units of $x$ in the previous day
+factory_employment;Factory employees: ?Y$val$
+factory_stats_1;Current production scale: ?Y$val$?W
+factory_stats_2;Target production scale: ?Y$val$?W
+factory_stats_3;Yesterday it produced ?Y$val$ $good$?W sold for ?Y$x$?W
 factory_stats_4;It made a profit of $val$ in the previous day
 factory_stats_5;Inputs availability:
 factory_stats_6;Efficiency inputs availability:
@@ -530,6 +556,7 @@ factory_stats_desired_income;Desired raw profit
 speed;$val$ kph
 shift_to_hold_open;Hold ?YSHIFT?! to keep this window open, ?YSHIFT-Right-click?! to build this in every state (but not expand)
 factory_upgrade_shortcuts;?YSHIFT-Left-click?W upgrade ?Gall?!S factories in a state\n?YSHIFT-Right-click?W upgrade ?Gall profitable?W factories in a state\n?YCTRL-Left-click?W upgrade ?Gall?W factories in a nation\n?YCTRL-Right-click?W upgrade ?Gall profitable?W factories in a nation\n?YCTRL-SHIFT-Left-click?W upgrade ?Gall profitable with full employment?W factories in a state\n?YCTRL-SHIFT-Right-click?W upgrade ?Gall profitable with full employment?W factories in a state
+factory_total_size;Total factories: ?Y$val$?!
 factory_consumer_count;Consumer factories: ?Y$val$?!
 factory_heavy_count;Heavy industry factories: ?Y$val$?!
 factory_military_count;Military factories: ?Y$val$?!
@@ -848,18 +875,12 @@ free_trade_explain_4;They are embargoing us
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
 embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
-embargo_explain_1;?GWe embargo them.?!
-embargo_explain_2;?RThey embargo us.?!
+embargo_explain_1;?G$x$ embargoes $y$.?!
+embargo_explain_2;?R$x$ embargoes $y$.?!
 embargo_explain_3;We don't have trade rights in their country
 embargo_explain_4;They don't have trade rights in our country
 embargo_explain_5;We aren't in a sphere
 embargo_explain_6;They aren't in a sphere
-msg_embargo_issued_title;Embargo issued
-msg_embargo_issued;Nation ?Y$y$?! has issued embargo to ban trade with ?Y$x$?!.
-msg_embargo_lifted_title;Embargo lifted
-msg_embargo_lifted;Nation ?Y$y$?! has lifted embargo on trade with ?Y$x$?!.
-msg_free_trade_agreement_signed_title;Free trade agreement signed.
-msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.
 fab_explain_1;You can't justify war against yourself
 fab_explain_2;You have at least $x$ diplomatic point(s)
 fab_explain_3;You are not currently fabricating a casus belli
@@ -1187,7 +1208,11 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
-alice_factory_construction_cost;Construction cost:
+alice_construction_cost;Construction cost:
+alice_building_modifier;Building gives the following effect:
+alice_new_building_modifier;Building will give the following effect:
+alice_building_level;Building Level: ?Y$val$?W
+alice_building_conditions;To build, the following must be true:
 alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
 alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
 alice_factory_construction_explain_5;Progress: ?Y$x$?W
@@ -1425,6 +1450,14 @@ trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?
 trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
 trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
 trade_route_volume_final_change;Expected change: ?Y$val$
+trade_centre_trade_volume;Trade volume: ?Y$val$
+trade_centre_trade_value;Trade value: ?Y$val$
+trade_centre_imports_volume;Imports volume: ?Y$val$
+trade_centre_imports_value;Imports value: ?Y$val$
+trade_centre_exports_volume;Exports volume: ?Y$val$
+trade_centre_exports_value;Exports value: ?Y$val$
+trade_centre_trade_routes_profit;Profit from trade routes: ?Y$val$
+trade_centre_money;Money stockpile: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
 investment_pool_income_2;Transfer from subject $country$: ?G$x$?W
@@ -1557,6 +1590,8 @@ pop_migration_attraction_3;The migration target factor: $x$
 pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
+administration_tile;Local administration
+market_tile;Local market
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
@@ -1587,3 +1622,4 @@ alice_production_name_sort_tip_state;?YShift-Left Click?W to sort by state names
 alice_sort_pops;Sort Pops
 alice_sort_states;Sort States
 alice_topbar_avg_literacy_in_states;The average ?Yliteracy?W of our non-colonial population is ?Y$x$?W
+open_economy_scene;Open economy viewer
