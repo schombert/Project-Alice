@@ -584,15 +584,18 @@ public:
 };
 
 template<class T>
-class unit_selection_attrition_amount : public simple_text_element_base {
+class unit_selection_attrition_amount : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		auto amount = military::attrition_amount(state, content);
-		if(amount > 0)
+		if(amount > 0) {
 			set_text(state, text::format_percentage(amount, 1));
-		else
+			color = text::text_color::red;
+		}
+		else {
 			set_text(state, "");
+		}
 	}
 };
 
