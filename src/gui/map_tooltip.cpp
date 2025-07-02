@@ -123,6 +123,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				if(army.get_path().size() > 0 && *(army.get_path().end() - 1) == path.back()) {
 					dt += (army.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
 
+					curprov = path.front();
 					for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
 						dt += military::movement_time_from_to(state, a, curprov, *provonpath);
 						curprov = *provonpath;;
@@ -185,9 +186,9 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 				// Navy arrival time tooltip
 				// Zero arrival time to current province
-				if(prov == curprov) {
+				if(prov == curprov || path.empty()) {
 				}
-				else if(navy.get_arrival_time() && *(navy.get_path().end()) == prov) {
+				else if(navy.get_arrival_time() && navy.get_path().size() > 0 && *(navy.get_path().end() - 1) == prov) {
 					sub = text::substitution_map{};
 					text::add_to_substitution_map(sub, text::variable_type::date, navy.get_arrival_time());
 					auto resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
@@ -195,10 +196,25 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				} else {
 					auto dt = state.current_date;
 
-					for(const auto provonpath : path) {
-						dt += military::movement_time_from_to(state, n, curprov, provonpath);
-						curprov = provonpath;
+					// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
+					if(navy.get_path().size() > 0 && *(navy.get_path().end() - 1) == path.back()) {
+						dt += (navy.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
+
+						curprov = path.front();
+						for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
+							dt += military::movement_time_from_to(state, n, curprov, *provonpath);
+							curprov = *provonpath;;
+						}
+
 					}
+					else {
+						for(const auto provonpath : path) {
+							dt += military::movement_time_from_to(state, n, curprov, provonpath);
+							curprov = provonpath;
+						}
+					}
+
+					
 
 					sub = text::substitution_map{};
 					text::add_to_substitution_map(sub, text::variable_type::date, dt);
