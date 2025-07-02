@@ -1302,6 +1302,21 @@ guiTypes = {
 			position = { 245  42 }
 			Orientation = "UPPER_LEFT"
 		}
+
+		instantTextBoxType = {
+			name = "unitattrition"
+			position = { x = 260  y = 43 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = "17"	
+			maxWidth = 40
+			maxHeight = 17	
+			format = right
+		}
+
+
+
 		iconType = {
 			name = "org_bar"
 			spriteType = "GFX_morale_progress"

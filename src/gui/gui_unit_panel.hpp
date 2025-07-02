@@ -2373,6 +2373,25 @@ public:
 		}
 	}
 };
+class u_row_attrition_text : public color_text_element {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<unit_var>(state, parent);
+		float amount = 0.0;
+		if(std::holds_alternative<dcon::army_id>(content)) {
+			amount = military::attrition_amount(state, std::get<dcon::army_id>(content));
+		}
+		else if(std::holds_alternative<dcon::navy_id>(content)) {
+			amount = military::attrition_amount(state, std::get<dcon::navy_id>(content));
+		}
+		if(amount > 0.0f) {
+			set_text(state, text::format_percentage(amount, 1));
+			color = text::text_color::red;
+		} else {
+			set_text(state, "");
+		}
+	}
+};
 
 class u_row_attrit_icon : public image_element_base {
 	bool visible = false;
@@ -2761,6 +2780,8 @@ public:
 			return make_element_by_type <u_row_strength> (state, id);
 		} else if(name == "unitattrition_icon") {
 			return make_element_by_type<u_row_attrit_icon>(state, id);
+		} else if(name == "unitattrition") {
+			return make_element_by_type<u_row_attrition_text>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<u_row_org_bar>(state, id);
 		} else if(name == "str_bar") {
