@@ -106,10 +106,11 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			auto army = dcon::fatten(state.world, a);
 			auto path = command::calculate_army_path(state, state.local_player_nation, a, army.get_location_from_army_location(), prov);
 			auto curprov = army.get_army_location().get_location().id;
+			auto current_path = army.get_path();
 
-			if (path.size() == 0) { /* No available route */ }
+			if (path.empty()) { /* No available route */ }
 
-			else if(army.get_arrival_time() && *(army.get_path().end()) == prov) {
+			else if(army.get_arrival_time() && army.get_path().size() > 0 && *(army.get_path().end() - 1) == prov) {
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
 				resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
@@ -117,11 +118,25 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			}
 			else {
 				auto dt = state.current_date;
+				auto army_path = army.get_path();
+				// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
+				if(army.get_path().size() > 0 && *(army.get_path().end() - 1) == path.back()) {
+					dt += (army.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
 
-				for(const auto provonpath : path) {
-					dt += military::movement_time_from_to(state, a, curprov, provonpath);
-					curprov = provonpath;
+					for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
+						dt += military::movement_time_from_to(state, a, curprov, *provonpath);
+						curprov = *provonpath;;
+					}
+
 				}
+				else {
+					for(const auto provonpath : path) {
+						dt += military::movement_time_from_to(state, a, curprov, provonpath);
+						curprov = provonpath;
+					}
+				}
+
+				
 
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, dt);
