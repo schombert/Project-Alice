@@ -113,8 +113,6 @@ railroad_in_capital;首都铁路等级?G+1?!
 railroad_in_capital_state;首府铁路等级?G+1?!
 fort_in_capital;首都要塞等级?G+1?!
 fort_in_capital_state;首府要塞等级?G+1?!
-fort_in_capital;首都要塞等级?G+1?!
-fort_in_capital_state;首府要塞等级?G+1?!
 university_in_capital;首都大学等级?G+1?!
 university_in_capital_state;首府大学等级?G+1?!
 bank_in_capital;首都银行等级?G+1?!
@@ -259,7 +257,6 @@ rebel_religion;叛军宗教
 this_nation_religion;国教
 from_nation_religion;国教来自
 province_terrain;省份地形
-rgo_production;产地生产
 a_secondary_power;殖民大国
 owner;所有者
 an_active_rebel;活跃叛军集团
@@ -1206,7 +1203,6 @@ CANCEL_WARSUBSIDIES_THEY_ACCEPT_LOG;我们现在已停止给与$RECIPIENT$战争
 CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$已停止给与我们战争援助
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援助
 CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
-CANCEL_WARSUBSIDIES_BUTTON;取消援助
 ledger_standard_of_living;生活条件
 alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
@@ -1478,7 +1474,6 @@ merchants_received_per_unit;每单位卖方利润 ?Y$val$
 disallow_naval_trade;海上禁运
 disallow_land_trade;陆上禁运
 pop_migration_bureaucracy;流动官僚管理地方：$x$
-pop_migration_attraction_3;迁移目标因子：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
 pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
@@ -1579,7 +1574,6 @@ trade_centre_max_throughput;最大量：?Y$value$?W
 local_admin;本地行政
 capital_admin;首都行政
 local_admin_spending;估计成本：?Y$value$?W
-admin_employment;行政雇员：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
 employment_satisfaction;就业满足度：?Y$value$?W
 wage;工资：?Y$value$?W
@@ -1609,3 +1603,6 @@ trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
 trade_centre_money;资金储备：?Y$val$
 administration_tile;本地行政
 market_tile;本地市场
+alice_sort_pops;种族
+alice_sort_states;地区
+alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W
