@@ -4878,7 +4878,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 	update_battle_leaders(state, b);
 }
 
-void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
+void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from, bool attrition_tick) {
 	assert(state.world.army_is_valid(a));
 	assert(!state.world.army_get_battle_from_army_battle_participation(a));
 
@@ -5004,6 +5004,10 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				ai::gather_to_battle(state, owner_nation, p);
 			}
 		}
+	}
+	// if the army has not joined a battle, by the end of the function, apply an attrition tick if the flag is set. In vic2, armies take one attrition tick immediately upon arriving in a new province
+	if(attrition_tick && !bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+		apply_attrition_to_army(state, a);
 	}
 }
 
@@ -6037,6 +6041,18 @@ float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::provin
 	return 0.0f;
 }
 
+float sum_army_weight(sys::state& state, const std::vector<dcon::army_id>& armies) {
+	float total_army_weight = 0;
+	for(auto ar : armies) {
+		if(!state.world.army_get_black_flag(ar) && !state.world.army_get_is_retreating(ar) && !bool(state.world.army_get_navy_from_army_transport(ar)) && !bool(state.world.army_get_battle_from_army_battle_participation(ar))) {
+			for(auto rg : state.world.army_get_army_membership(ar)) {
+				total_army_weight += (state.defines.pop_size_per_regiment / 1000.0f) * rg.get_regiment().get_strength();
+			}
+		}
+	}
+	return total_army_weight;
+}
+
 float local_army_weight(sys::state& state, dcon::province_id prov) {
 	float total_army_weight = 0;
 	for(auto ar : state.world.province_get_army_location(prov)) {
@@ -6078,9 +6094,13 @@ float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dco
 	return total_army_weight;
 }
 
-float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov) {
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::optional<std::vector<dcon::army_id>>& extra_army_weight) {
 
+	// an army cannot take attriiton if it is blackflagged, retreated, in a transport, or in a battle
 
+	if(state.world.army_get_black_flag(a) || state.world.army_get_is_retreating(a) || bool(state.world.army_get_navy_from_army_transport(a)) || bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+		return 0.0f;
+	}
 
 	/*
 	First we calculate (total-strength + leader-attrition-trait) x (attrition-modifier-from-technology + 1) -
@@ -6092,6 +6112,9 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 	*/
 
 	float total_army_weight = local_army_weight(state, prov);
+	if(extra_army_weight.has_value()) {
+		total_army_weight += sum_army_weight(state, extra_army_weight.value());
+	}
 
 	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
 
@@ -6127,24 +6150,27 @@ float attrition_amount(sys::state& state, dcon::army_id a) {
 	return relative_attrition_amount(state, a, state.world.army_get_location_from_army_location(a));
 }
 
+void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
+	auto prov = state.world.army_get_location_from_army_location(army);
+	float attrition_value = relative_attrition_amount(state, army, prov);
+	if(attrition_value == 0.0f) {
+		return;
+	}
+	for(auto rg : state.world.army_get_army_membership(army)) {
+		auto& cur_pending_dmg = rg.get_regiment().get_pending_damage();
+		rg.get_regiment().set_pending_damage(cur_pending_dmg + attrition_value);
+		auto& cur_strength = rg.get_regiment().get_strength();
+		military::reduce_regiment_strength_safe(state, rg.get_regiment(), attrition_value);
+	}
+}
+
 void apply_attrition(sys::state& state) {
 	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t i) {
 		dcon::province_id prov{ dcon::province_id::value_base_t(i) };
 		float total_army_weight = local_army_weight(state, prov);
 
 		for(auto ar : state.world.province_get_army_location(prov)) {
-			if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
-					!bool(ar.get_army().get_navy_from_army_transport()) && !bool(ar.get_army().get_battle_from_army_battle_participation())) {
-
-				float attrition_value = relative_attrition_amount(state, ar.get_army(), prov);
-
-				for(auto rg : ar.get_army().get_army_membership()) {
-					auto& cur_pending_dmg = rg.get_regiment().get_pending_damage();
-					rg.get_regiment().set_pending_damage(cur_pending_dmg + attrition_value);
-					auto& cur_strength = rg.get_regiment().get_strength();
-					military::reduce_regiment_strength_safe(state, rg.get_regiment(), attrition_value);
-				}
-			}
+			apply_attrition_to_army(state, ar.get_army());
 		}
 	});
 }
@@ -7787,12 +7813,12 @@ void update_movement(sys::state& state) {
 							(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
 								province::border::river_crossing_bit) != 0
 									? military::crossing_type::river
-									: military::crossing_type::none, dcon::land_battle_id{});
+									: military::crossing_type::none, dcon::land_battle_id{}, true);
 					a.set_navy_from_army_transport(dcon::navy_id{});
 				} else if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
 					if(auto n = a.get_navy_from_army_transport()) {
 						if(!n.get_battle_from_navy_battle_participation()) {
-							army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
+							army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{}, true);
 							a.set_navy_from_army_transport(dcon::navy_id{});
 						} else {
 							path.clear();
@@ -7803,13 +7829,13 @@ void update_movement(sys::state& state) {
 							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
 								path.clear();
 							} else {
-								army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
+								army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{}, true);
 							}
 						} else {
 							army_arrives_in_province(state, a, dest,
 									(path_bits & province::border::river_crossing_bit) != 0
 											? military::crossing_type::river
-											: military::crossing_type::none, dcon::land_battle_id{});
+											: military::crossing_type::none, dcon::land_battle_id{}, true);
 						}
 					}
 				} else {
@@ -7909,7 +7935,7 @@ void update_movement(sys::state& state) {
 								a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
 							}
 						}
-						army_arrives_in_province(state, a, dest, military::crossing_type::none, dcon::land_battle_id{});
+						army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 					}
 				} else {
 					path.clear();
