@@ -684,7 +684,7 @@ consumption_data consume(
 	assert(throughput_multiplier > 0.f);
 	assert(output_multiplier >= 0.f);
 	assert(efficiency_inputs_multiplier >= 0.f);
-	
+
 	float production_units = employment_units * throughput_multiplier;
 	assert(production_units >= 0.f);
 
@@ -954,7 +954,7 @@ profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_
 	auto last_inputs = state.world.factory_get_input_cost(f);
 
 	auto wages = get_total_wage(state, f);
-	
+
 	auto current_size = state.world.factory_get_size(f);
 	auto base_size = state.world.factory_type_get_base_workforce(ftid);
 	auto construction_units = current_size / base_size;
@@ -1284,7 +1284,7 @@ void update_rgo_consumption(
 		auto demand_scale = workers * std::max(new_efficiency - free_efficiency, 0.f);
 
 		register_inputs_demand(state, m, e_inputs, demand_scale, economy_reason::rgo);
-		
+
 		auto target = state.world.province_get_rgo_target_employment(p, c);
 		auto& cur_labor_demand = state.world.province_get_labor_demand(p, labor::no_education);
 		state.world.province_set_labor_demand(p, labor::no_education, cur_labor_demand + target);
@@ -1442,7 +1442,7 @@ void update_employment(sys::state& state) {
 				auto current_size = state.world.province_get_rgo_size(pids, c);
 				auto efficiency = state.world.province_get_rgo_efficiency(pids, c);
 				auto current_employment_target = state.world.province_get_rgo_target_employment(pids, c);
-				auto current_employment = current_employment_target					
+				auto current_employment = current_employment_target
 					* state.world.province_get_labor_demand_satisfaction(pids, labor::no_education);
 				auto output_per_worker = rgo_output * efficiency / state.defines.alice_rgo_per_size_employment;
 				auto current_price = ve_price(state, m, c);
@@ -1638,7 +1638,7 @@ void update_employment(sys::state& state) {
 	// artisans do not have natural max production size, so we use total population as a limit
 	// they also don't have secondary workers
 
-	state.world.execute_parallel_over_commodity([&](auto cids) { 
+	state.world.execute_parallel_over_commodity([&](auto cids) {
 		ve::apply([&](dcon::commodity_id cid) {
 			if(state.world.commodity_get_artisan_output_amount(cid) == 0.f)
 				return;
@@ -1651,7 +1651,7 @@ void update_employment(sys::state& state) {
 				auto local_population = state.world.province_get_demographics(ids, demographics::total);
 
 				auto min_wage = ve_artisan_min_wage(state, markets) / state.defines.alice_needs_scaling_factor;
-				auto actual_wage = state.world.province_get_labor_price(ids, labor::guild_education);				
+				auto actual_wage = state.world.province_get_labor_price(ids, labor::guild_education);
 				auto mask = ve_valid_artisan_good(state, nations, cid);
 
 				auto price_today = ve_price(state, markets, cid);
@@ -1983,8 +1983,7 @@ float rgo_max_employment(sys::state& state, dcon::province_id p) {
 
 
 float land_maximum_employment(sys::state& state, dcon::province_id id) {
-	auto owner = state.world.province_get_nation_from_province_ownership(id);
-	return rgo_max_employment(state, id) + economy::subsistence_max_pseudoemployment(state, owner, id);
+	return rgo_max_employment(state, id) + economy::subsistence_max_pseudoemployment(state, id);
 }
 float land_employment(sys::state& state, dcon::province_id id) {
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
@@ -2104,7 +2103,7 @@ float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::s
 	});
 	return result;
 }
-float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::market_id id) {	
+float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::market_id id) {
 	return artisan_employment_target(state, c, state.world.market_get_zone_from_local_market(id));
 }
 
@@ -2209,6 +2208,20 @@ bool labor_surplus(sys::state& state, int32_t c, dcon::province_id id){
 }
 bool labor_shortage(sys::state& state, int32_t c, dcon::province_id id){
 	return state.world.province_get_labor_demand_satisfaction(id, c) < 1.f;
+}
+
+float factory_total_desired_employment(sys::state const& state, dcon::factory_id f) {
+	return (
+		state.world.factory_get_unqualified_employment(f)
+		+ state.world.factory_get_primary_employment(f)
+		+ state.world.factory_get_secondary_employment(f)
+	);
+}
+float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f) {
+	return factory_total_desired_employment(state, f) / state.world.factory_get_size(f);
+}
+float factory_total_employment_score(sys::state const& state, dcon::factory_id f) {
+	return factory_total_employment (state, f) / state.world.factory_get_size(f);
 }
 
 }

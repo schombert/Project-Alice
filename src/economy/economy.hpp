@@ -111,7 +111,7 @@ static_assert(sizeof(global_economy_state) ==
 enum class worker_effect : uint8_t { none = 0, input, output, throughput };
 
 template<typename T>
-auto desired_needs_spending(sys::state const& state, T pop_indices) {
+auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_unused]] T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc
 	return 0.0f;
 }
@@ -150,28 +150,14 @@ inline constexpr float labor_greed_everyday = 0.f;
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
 
-float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
-
-
-float subsistence_max_pseudoemployment(sys::state& state, dcon::nation_id n, dcon::province_id p);
+float subsistence_max_pseudoemployment(sys::state& state, dcon::province_id p);
 float factory_total_employment_score(sys::state const& state, dcon::factory_id f);
 
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
-//factories
-
-// abstract modifiers
-float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
-float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
-float factory_total_employment(sys::state const& state, dcon::factory_id f);
-float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
-float factory_primary_employment(sys::state const& state, dcon::factory_id f);
-float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
-
 // misc
-
 int32_t factory_priority(sys::state const& state, dcon::factory_id f);
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
 bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
@@ -193,8 +179,6 @@ void resolve_constructions(sys::state& state);
 
 std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good);
 
-float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
-float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_total_imports(sys::state& state, dcon::nation_id n);

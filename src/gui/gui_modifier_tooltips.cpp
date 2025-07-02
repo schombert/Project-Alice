@@ -287,9 +287,8 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 				state.world.nation_get_war_exhaustion(n));
 	}
 	if(state.national_definitions.average_literacy) {
-		auto total = state.world.nation_get_demographics(n, demographics::total);
-		active_single_modifier_description(state, layout, state.national_definitions.average_literacy, identation, header, nmid,
-				total > 0 ? state.world.nation_get_demographics(n, demographics::literacy) / total : 0.0f);
+		auto literacy = nations::get_avg_non_colonial_literacy(state, n);
+		active_single_modifier_description(state, layout, state.national_definitions.average_literacy, identation, header, nmid, literacy);
 	}
 	if(state.national_definitions.total_blockaded) {
 		auto bc = ve::to_float(state.world.nation_get_central_blockaded(n));
