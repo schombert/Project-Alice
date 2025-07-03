@@ -113,8 +113,6 @@ railroad_in_capital;首都铁路等级?G+1?!
 railroad_in_capital_state;首府铁路等级?G+1?!
 fort_in_capital;首都要塞等级?G+1?!
 fort_in_capital_state;首府要塞等级?G+1?!
-fort_in_capital;首都要塞等级?G+1?!
-fort_in_capital_state;首府要塞等级?G+1?!
 university_in_capital;首都大学等级?G+1?!
 university_in_capital_state;首府大学等级?G+1?!
 bank_in_capital;首都银行等级?G+1?!
@@ -259,7 +257,6 @@ rebel_religion;叛军宗教
 this_nation_religion;国教
 from_nation_religion;国教来自
 province_terrain;省份地形
-rgo_production;产地生产
 a_secondary_power;殖民大国
 owner;所有者
 an_active_rebel;活跃叛军集团
@@ -498,9 +495,6 @@ factory_upgrade_condition_9;工厂未处于升级过程
 factory_upgrade_condition_10;工厂不处于最大等级
 factory_delete_header;移除工厂
 factory_delete_not_allowed;执政党不允许我们移除工厂
-factory_stats_1;此工厂产值为$val$
-factory_stats_2;此工厂目标产值$val$
-factory_stats_3;它在昨天生产$val$单位$x$
 factory_stats_4;它在昨天获利$val$
 factory_stats_5;投入有效性
 factory_stats_6;修正后的可用投入：
@@ -607,9 +601,10 @@ pop_growth_5;当地因子 $x$（总和）：
 pop_growth_6;当地生活条件 $x$ 减去 最低生活条件 $y$，总乘数为 $val$
 pop_growth_7;和 基础人群增长值$x$
 pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 最低饱腹 $val$）
-pop_growth_9;和 4
-pop_growth_10;当地人口增长修正：$x$
-pop_growth_11;国内人口增长修正：$x$
+pop_growth_9;由于饥饿，人口增长受到?Y$x$?W的惩罚。饥饿是由人口的生活需求满足度（当前为?Y$y$?W）低于?Y$val$?W的饥饿限制引起的。
+pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为?Y$x$?W。
+pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其除以饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子?W（?Y$y$?W）。
+pop_growth_12;最后，将?Y饥饿因子?W（?Y$x$?W）和?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的净惩罚值（?Y$val$?W），然后将其与其余的修正值相加。
 pop_assim_1;每月人群同化：$x$
 pop_assim_2;奴隶不被同化
 pop_assim_3;可接受民族人群不被同化
@@ -1208,7 +1203,6 @@ CANCEL_WARSUBSIDIES_THEY_ACCEPT_LOG;我们现在已停止给与$RECIPIENT$战争
 CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$已停止给与我们战争援助
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援助
 CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
-CANCEL_WARSUBSIDIES_BUTTON;取消援助
 ledger_standard_of_living;生活条件
 alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
 alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
@@ -1480,7 +1474,6 @@ merchants_received_per_unit;每单位卖方利润 ?Y$val$
 disallow_naval_trade;海上禁运
 disallow_land_trade;陆上禁运
 pop_migration_bureaucracy;流动官僚管理地方：$x$
-pop_migration_attraction_3;迁移目标因子：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
 pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
@@ -1532,9 +1525,84 @@ CANBUILD_FORCEDISARM;国家尚未解除武装。
 alice_naval_coordination_penalty;$x$ 因超过敌舰规模而受到 ?R$y$?W 的海军协调惩罚，使其目标选择减少了 ?R$val$?W 。
 alice_naval_coordination_bonus;$x$ 因低于敌舰规模而受到 ?R$y$?W 的海军协调加成，使其目标选择增加了 ?R$val$?W 。
 alice_naval_stacking_penalty;$x$ 因堆叠惩罚而受到 ?R$val$?W 的伤害倍增。
-alice_factory_construction_cost;施工成本：
+alice_construction_cost;施工成本：
 alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;估计总价：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
-ledger_inflation_adjusted_gdp;GDP（通胀调整）添加注释 更多动作
+ledger_inflation_adjusted_gdp;GDP（通胀调整）
 ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
+province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
+province_victory_points_base;?G+1 基本分?W
+province_victory_points_nb;?G+$X$ 海军基地等级积分?W
+province_victory_points_fcount;?G+$X$ 工厂积分?W
+province_victory_points_fortsize;?G+$X$ 要塞积分?W
+province_victory_points_mainlandcore;?Gx2 非海外积分?W
+province_victory_points_capital;?Gx3 首都积分?W
+per_nation;每个国家
+labour_price;工资
+labour_price_10k;一万人平均工资
+supply_demand_ratio;供需比
+alice_labor_no_education;新手
+alice_labor_basic_education;熟练
+alice_labor_high_education;专家
+alice_labor_guild;行会
+alice_labor_high_education_and_accepted;专家（已接受）
+alice_invalid_value;值 无效
+alice_wages_tab;工资
+alice_trade_volume_tab;贸易量
+economy_scene_embargo;禁运！
+embargo_reason_war;战争
+embargo_reason_origin_embargo;来源宣布禁运
+embargo_reason_origin_join_embargo;来源加入禁运
+embargo_reason_target_embargo;目标宣布禁运
+embargo_reason_target_join_embargo;目标加入禁运
+alice_no_start_game_invalid_nations;在玩家游玩不存在的国家时无法开始游戏
+alice_observer_btn_text;作为观察者游玩
+alice_observer_already_observer_tooltip;你已是观察者。
+open_economy_scene;查看经济指示器
+admin_employment;行政雇员：?Y$value$?W
+PROVINCEVIEW_GOODSINCOME;售出 ?Y$x$?W ?Y$GOODS$?W 为 ?Y$VALUE$?W 昨天
+employment_type_no_education;雇佣类型：?Y无教育?W
+employment_type_basic_education;雇佣类型：?Y基本教育?W
+employment_type_high_education_and_accepted;雇佣类型：?Y公认高等教育?W
+employment_type_high_education;雇佣类型?Y高等教育?W
+alice_trade_attractiveness;贸易路线吸引
+trade_center;贸易中心
+trade_center_desc;贸易中心管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
+trade_center_employment;贸易中心雇员：?Y$value$?W
+trade_centre_max_throughput;最大量：?Y$value$?W
+local_admin;本地行政
+capital_admin;首都行政
+local_admin_spending;估计成本：?Y$value$?W
+target_employment;目标雇佣：?Y$value$?W
+employment_satisfaction;就业满足度：?Y$value$?W
+wage;工资：?Y$value$?W
+local_admin_efficiency;地方行政部是低于首都的?Y$value$?W。
+tax_collection_rate;征税率：?Y$value$?W
+poor_potential;贫困阶级潜在税收：?Y$value$?W
+mid_potential;中产阶级潜在税收：?Y$value$?W
+rich_potential;富裕阶级潜在税收：?Y$value$?W
+poor_taxes;贫困阶级实际税率：?Y$value$?W
+mid_taxes;中产阶级实际税率：?Y$value$?W
+rich_taxes;富裕阶级实际税率：?Y$value$?W
+factory_employment;工厂雇员：?Y$val$
+factory_stats_1;当前生产规模：?Y$val$?W
+factory_stats_2;目标生产规模：?Y$val$?W
+factory_stats_3;昨天它生产了 ?Y$val$ $good$?W，卖了 ?Y$x$?W
+alice_building_modifier;建筑产生以下效果：
+alice_new_building_modifier;建造将产生以下效果：
+alice_building_level;建筑等级：?Y$val$?W
+alice_building_conditions;建筑所需以下条件：
+trade_centre_trade_volume;贸易量：?Y$val$
+trade_centre_trade_value;贸易价值：?Y$val$
+trade_centre_imports_volume;进口量：?Y$val$
+trade_centre_imports_value;进口价值：?Y$val$
+trade_centre_exports_volume;出口量：?Y$val$
+trade_centre_exports_value;出口价值：?Y$val$
+trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
+trade_centre_money;资金储备：?Y$val$
+administration_tile;本地行政
+market_tile;本地市场
+alice_sort_pops;种族
+alice_sort_states;地区
+alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W

@@ -1109,11 +1109,11 @@ public:
 		// Show existing embargoes
 		// We embargo them
 		if(economy::has_active_embargo(state, asker, target)) {
-			text::add_line(state, contents, "embargo_explain_1");
+			text::add_line(state, contents, "embargo_explain_1", text::variable_type::x, asker, text::variable_type::y, target);
 		}
 		// They embargo us
 		if(economy::has_active_embargo(state, target, asker)) {
-				text::add_line(state, contents, "embargo_explain_2");
+				text::add_line(state, contents, "embargo_explain_2", text::variable_type::x, target, text::variable_type::y, asker);
 		}
 
 		text::add_line_break_to_layout(state, contents);

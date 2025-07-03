@@ -1170,6 +1170,7 @@ object {
 		name{ migration_target_fn }
 		type{ uint64_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ country_migration_target }
@@ -1180,6 +1181,7 @@ object {
 		name{ country_migration_target_fn }
 		type{ uint64_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ issues }
@@ -1190,6 +1192,7 @@ object {
 		name{ issues_fns }
 		type{array{issue_option_id}{uint64_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ ideology }
@@ -1200,6 +1203,7 @@ object {
 		name{ ideology_fns }
 		type{array{ideology_id}{uint64_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ promotion }
@@ -1210,6 +1214,7 @@ object {
 		name{ promotion_fns }
 		type{array{pop_type_id}{uint64_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ life_needs }
@@ -1891,41 +1896,48 @@ object {
 	storage_type{ erasable }
 	size { 50 }
 	tag { local_save }
+	tag { mp_checksum_excluded }
 
 	property {
 		name { owner }
 		type { nation_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { hq }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { provinces_defend }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { provinces_enforce_control }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { provinces_ferry_origin }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 }
 
 relationship{
 	name{ automated_army_group_membership_regiment }
 	tag{ local_save }
+	tag { mp_checksum_excluded }
 
 	link{
 		object{ regiment_automation_data }
@@ -1943,6 +1955,7 @@ relationship{
 relationship{
 	name{ automated_army_group_membership_navy }
 	tag{ local_save }
+	tag { mp_checksum_excluded }
 
 	link{
 		object{ navy }
@@ -1962,38 +1975,45 @@ object {
 	storage_type{ erasable }
 	size { 4000 }
 	tag { local_save }
+	tag { mp_checksum_excluded }
 
 	property {
 		name { status }
 		type { sys::army_group_regiment_status }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 	property {
 		name { task }
 		type { sys::army_group_regiment_task }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 	property {
 		name { await_command_execution_flag }
 		type { bitfield }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 	property {
 		name { target }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { ferry_target }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name { ferry_origin }
 		type { province_id }
 		tag { local_save }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -2001,6 +2021,7 @@ object {
 relationship{
 	name{ automation }
 	tag{ local_save }
+	tag { mp_checksum_excluded }
 
 	link{
 		object{ regiment_automation_data }
@@ -3815,18 +3836,21 @@ object {
 	property {
 		name{ industrial_rank }
 		type{ uint16_t }
+		tag { mp_checksum_excluded }
 		
 		
 	}
 	property {
 		name{ military_rank }
 		type{ uint16_t }
+		tag { mp_checksum_excluded }
 		
 		
 	}
 	property {
 		name{ prestige_rank }
 		type{ uint16_t }
+		tag { mp_checksum_excluded }
 		
 	}
 	property {
@@ -4909,6 +4933,11 @@ relationship{
 		type{ province_id }
 		tag{ save }
 	}
+	property{
+		name{ start_date }
+		type{ sys::date }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -4943,6 +4972,11 @@ relationship{
 	property{
 		name{ template_province }
 		type{ province_id }
+		tag{ save }
+	}
+	property{
+		name{ start_date }
+		type{ sys::date }
 		tag{ save }
 	}
 }
@@ -5351,6 +5385,7 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ allow_multiple_instances }
@@ -5390,6 +5425,7 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5460,6 +5496,7 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5515,6 +5552,7 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5653,86 +5691,103 @@ object {
 	storage_type{ contiguous }
 	size{ 2000 }
 	tag{ keep_after_state_reload }
+	tag { mp_checksum_excluded }
 
 	property{
 		name{ native_rtl }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ prevent_letterspace }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ display_name }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ locale_name }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ fallback }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ resolved_language }
 		type{ hb_language_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ hb_script }
 		type{ uint32_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ resolved_body_font }
 		type{ uint16_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ resolved_header_font }
 		type{ uint16_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ resolved_map_font }
 		type{ uint16_t }
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ body_font }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ header_font }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ map_font }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ body_font_features }
 		type{vector_pool{1000}{uint32_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ header_font_features }
 		type{vector_pool{1000}{uint32_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ map_font_features }
 		type{vector_pool{1000}{uint32_t}}
 		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5741,41 +5796,48 @@ object{
 	storage_type{ erasable }
 	size{ 200 }
 	tag { keep_after_state_reload }
+	tag { mp_checksum_excluded }
 
 	property{
 		name{ nickname }
 		type{ std::array<uint8_t,24> }
 		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ password_salt }
 		type{ std::array<uint8_t,24> }
 		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ password_hash }
 		type{ std::array<uint8_t,64> }
 		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ fully_loaded }
 		type{ bitfield }
 		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ is_oos }
 		type{ bitfield }
 		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
 relationship{
 	name{ player_nation }
 	tag { keep_after_state_reload }
+	tag { mp_checksum_excluded }
 	link{
 		object{nation}
 		name{nation}
-		type{unique}
+		type{many}
 	}
 	link{
 		object{mp_player}
@@ -5805,6 +5867,12 @@ load_save{
 	name{store_reload_protected_state}
 	only_objects{keep_after_state_reload}
 	only_properties{keep_after_state_reload}
+}
+
+load_save{
+	name{store_mp_checksum_excluded}
+	exclude_objects{mp_checksum_excluded}
+	exclude_properties{mp_checksum_excluded}
 }
 
 

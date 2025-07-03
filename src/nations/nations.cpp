@@ -445,9 +445,8 @@ void generate_sea_trade_routes(sys::state& state) {
 			auto continent_origin = state.world.province_get_continent(state_owner_capital);
 
 			float mult = 1.f;
-			mult += std::min(naval_base_origin, naval_base_target) * 0.25f;
+			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness;
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
-
 			
 			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
 
@@ -1894,6 +1893,46 @@ bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
 	}
 	return false;
 }
+void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		state.world.nation_set_is_player_controlled(new_n, true);
+		state.world.nation_set_is_player_controlled(old_n, false);
+		state.local_player_nation = new_n;
+	} else {
+		auto p = network::find_country_players(state, old_n);
+		// move ALL players which are on the current nation, to the new nation
+		for(auto player : p) {
+			state.world.force_create_player_nation(new_n, player);
+		}
+		if(!p.empty()) {
+			state.world.nation_set_is_player_controlled(new_n, true);
+			state.world.nation_set_is_player_controlled(old_n, false);
+		}
+
+		if(state.network_mode == sys::network_mode_type::host) {
+			for(auto& client : state.network_state.clients) {
+				if(!client.is_active())
+					continue;
+				if(client.playing_as == old_n) {
+					client.playing_as = new_n;
+				}
+			}
+
+			network::write_player_nations(state);
+		}
+		if(state.local_player_nation == old_n) {
+			state.local_player_nation = new_n;
+		}
+		// We will also re-assign all chat messages from this nation to the new one
+		for(auto& msg : state.ui_state.chat_messages)
+			if(bool(msg.source) && msg.source == old_n)
+				msg.source = new_n;
+	}
+
+}
+
+
+
 
 void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
 	if(state.world.nation_get_owned_province_count(a) == 0 || state.world.nation_get_owned_province_count(a) == 0)
@@ -2342,6 +2381,18 @@ bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id 
 			return true;
 	}
 	return false;
+}
+
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::non_colonial_literacy);
+	auto total_pop = state.world.nation_get_demographics(n, demographics::non_colonial_total);
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
+}
+
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
+	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
 }
 
 void update_influence(sys::state& state) {

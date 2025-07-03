@@ -198,7 +198,7 @@ bool will_have_shortages_building_unit(sys::state& state, dcon::nation_id n, dco
 
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(def.build_cost.commodity_type[i]) {
-			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.1f)
+			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.01f)
 				lacking_input = true;
 		} else {
 			break;
@@ -2075,12 +2075,16 @@ float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_
 	return total * state.world.cb_type_get_break_truce_infamy_factor(t);
 }
 
+// Calculate victory points that a province P is worth in the nation N. Used for warscore, occupation rate.
+// This logic is duplicated in province_victory_points_text UI component
 int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	/*
-	All provinces have a base value of 1. For non colonial provinces: each level of naval base increases its value by 1. If it is
-	a state capital, its value increases by 1 for every factory in the state (factory level does not matter). Provinces get 1
-	point per fort level. This value is the doubled for non-overseas provinces where the owner has a core. It is then tripled for
-	the nation's capital province.
+	All provinces have a base value of 1.
+	For non colonial provinces: each level of naval base increases its value by 1.
+	Every fort level increases its value by 1.
+	If it is a state capital, its value increases by 1 for every factory in the state (factory level does not matter).
+	This value is the doubled for non-overseas provinces where the owner has a core.
+	It is then tripled for the nation's capital province.
 	*/
 	int32_t total = 1;
 	if(!state.world.province_get_is_colonial(p)) {
@@ -2381,6 +2385,27 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 		return cb_infamy(state, type, target, cb_state) * state.defines.gw_justify_cb_badboy_impact;
 	else
 		return cb_infamy(state, type, target, cb_state);
+}
+
+float war_declaration_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from,
+		dcon::nation_id target, dcon::state_definition_id cb_state) {
+	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::is_not_constructing_cb)) != 0) {
+		// not a constructible CB
+		return 0.0f;
+	}
+
+	// Always available CBs cost zero infamy
+	if((state.world.cb_type_get_type_bits(type) & military::cb_flag::always) != 0 && state.defines.alice_always_available_cbs_zero_infamy != 0.f) {
+		return 0.0f;
+	}
+
+	auto other_cbs = state.world.nation_get_available_cbs(from);
+	for(auto& cb : other_cbs) {
+		if(cb.target == target && cb.cb_type == type && cb_conditions_satisfied(state, from, target, cb.cb_type))
+			return 0.0f;
+	}
+
+	return cb_infamy(state, type, target, cb_state);
 }
 
 bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t) {
@@ -2823,12 +2848,14 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
 		ai::add_free_ai_cbs_to_war(state, n, w);
 	}
-
+	// update flag black status before we check for collisions with enemy armies
+	state.military_definitions.pending_blackflag_update = true;
+	military::update_blackflag_status(state);
 	for(auto o : state.world.nation_get_army_control(n)) {
 		if(o.get_army().get_is_retreating() || o.get_army().get_black_flag() || o.get_army().get_navy_from_army_transport() || o.get_army().get_battle_from_army_battle_participation())
 			continue;
-
-		army_arrives_in_province(state, o.get_army(), o.get_army().get_location_from_army_location(), crossing_type::none);
+		auto ce = o.get_army().get_location_from_army_location();
+		army_arrives_in_province(state, o.get_army(), ce, crossing_type::none);
 	}
 	for(auto o : state.world.nation_get_navy_control(n)) {
 		if(o.get_navy().get_is_retreating() || o.get_navy().get_battle_from_navy_battle_participation())
@@ -4267,6 +4294,8 @@ void update_ticking_war_score(sys::state& state) {
 		/*
 		#### Occupation score
 
+		Percentage occupied is the share of victory points in the country under occupation.
+
 		Increases by occupation-percentage x define:TWS_FULFILLED_SPEED (up to define:TWS_CB_LIMIT_DEFAULT) when the percentage
 		occupied is >= define:TWS_FULFILLED_IDLE_SPACE or when the occupation percentage is > 0 and the current occupation score
 		is negative. If there is no occupation, the score decreases by define:TWS_NOT_FULFILLED_SPEED. This can only take the
@@ -4274,24 +4303,27 @@ void update_ticking_war_score(sys::state& state) {
 		*/
 
 		auto bits = wg.get_type().get_type_bits();
+		static float score = 0;
 		if((bits & (cb_flag::po_annex | cb_flag::po_transfer_provinces | cb_flag::po_demand_state)) != 0) {
 			// Calculate occupations
-			float total_count = 0.0f;
+			float total_points = 0.0f;
 			float occupied = 0.0f;
 			if(wg.get_associated_state()) {
 				for(auto prv : wg.get_associated_state().get_abstract_state_membership()) {
 					if(prv.get_province().get_nation_from_province_ownership() == wg.get_target_nation()) {
-						++total_count;
+						score = (float) province_point_cost(state, prv.get_province(), wg.get_target_nation());
+						total_points += score;
 						if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
-							++occupied;
+							occupied += score;
 						}
 					}
 				}
 			} else if((bits & cb_flag::po_annex) != 0) {
 				for(auto prv : wg.get_target_nation().get_province_ownership()) {
-					++total_count;
+					score = (float)province_point_cost(state, prv.get_province(), wg.get_target_nation());
+					total_points += score;
 					if(does_province_count_for_war_occupation(state, war, prv.get_province())) {
-						++occupied;
+						occupied += score;
 					}
 				}
 			} else if(auto allowed_states = wg.get_type().get_allowed_states(); allowed_states) {
@@ -4299,11 +4331,11 @@ void update_ticking_war_score(sys::state& state) {
 				bool is_lib = (bits & cb_flag::po_transfer_provinces) != 0;
 				for(auto st : wg.get_target_nation().get_state_ownership()) {
 					if(trigger::evaluate(state, allowed_states, trigger::to_generic(st.get_state().id), trigger::to_generic(wg.get_added_by().id), is_lib ? trigger::to_generic(from_slot) : trigger::to_generic(wg.get_added_by().id))) {
-
 						province::for_each_province_in_state_instance(state, st.get_state(), [&](dcon::province_id prv) {
-							++total_count;
+							score = (float)province_point_cost(state, prv, wg.get_target_nation());
+							total_points += score;
 							if(does_province_count_for_war_occupation(state, war, prv)) {
-								++occupied;
+								occupied += score;
 							}
 						});
 					}
@@ -4311,8 +4343,8 @@ void update_ticking_war_score(sys::state& state) {
 			}
 
 			// Adjust warscore based on occupation rates
-			if(total_count > 0.0f) {
-				float fraction = occupied / total_count;
+			if(total_points > 0.0f) {
+				float fraction = occupied / total_points;
 				if(fraction >= state.defines.tws_fulfilled_idle_space || (wg.get_ticking_war_score() < 0 && occupied > 0.0f)) {
 					wg.set_ticking_war_score(wg.get_ticking_war_score() + state.defines.tws_fulfilled_speed * fraction);
 				} else if(occupied == 0.0f) {
@@ -5356,6 +5388,52 @@ void update_battle_leaders(sys::state& state, dcon::naval_battle_id b) {
 	state.world.attacking_admiral_set_admiral(aa, a_lid);
 	auto ab = state.world.naval_battle_get_defending_admiral(b);
 	state.world.defending_admiral_set_admiral(ab, d_lid);
+}
+
+void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg) {
+	if(state.world.regiment_is_valid(reg)) {
+		auto army = state.world.regiment_get_army_from_army_membership(reg);
+		auto battle = state.world.army_get_battle_from_army_battle_participation(army);
+		if(battle) {
+			auto& att_back = state.world.land_battle_get_attacker_back_line(battle);
+			auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
+			auto& def_back = state.world.land_battle_get_defender_back_line(battle);
+			auto& def_front = state.world.land_battle_get_attacker_front_line(battle);
+			auto reserves = state.world.land_battle_get_reserves(battle);
+			bool found = false;
+			for(uint32_t j = reserves.size(); j-- > 0;) {
+				if(reserves[j].regiment == reg) {
+					std::swap(reserves[j], reserves[reserves.size() - 1]);
+					reserves.pop_back();
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				for(uint32_t i = 0; i < state.world.land_battle_get_combat_width(battle); i++) {
+					if(att_back[i] == reg) {
+						att_back[i] = dcon::regiment_id{ };
+						break;
+					}
+					if(att_front[i] == reg) {
+						att_front[i] = dcon::regiment_id{ };
+						break;
+					}
+					;
+					if(def_back[i] == reg) {
+						def_back[i] = dcon::regiment_id{ };
+						break;
+					}
+					if(def_front[i] == reg) {
+						def_front[i] = dcon::regiment_id{ };
+						break;
+					}
+				}
+			}
+			
+		}
+		state.world.delete_regiment(reg);
+	}
 }
 
 void cleanup_army(sys::state& state, dcon::army_id n) {

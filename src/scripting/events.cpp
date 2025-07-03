@@ -13,10 +13,7 @@ bool is_valid_option(sys::event_option const& opt) {
 
 void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt) {
 	for(auto i = state.pending_n_event.size(); i-- > 0;) {
-		if(state.pending_n_event[i].date == e.date && state.pending_n_event[i].e == e.e &&
-				state.pending_n_event[i].from_slot == e.from_slot && state.pending_n_event[i].n == e.n &&
-				state.pending_n_event[i].primary_slot == e.primary_slot && state.pending_n_event[i].r_hi == e.r_hi &&
-				state.pending_n_event[i].r_lo == e.r_lo) {
+		if(state.pending_n_event[i] == e) {
 
 			if(opt > state.world.national_event_get_options(e.e).size() || !is_valid_option(state.world.national_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -35,8 +32,7 @@ void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt)
 
 void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
-		if(state.pending_f_n_event[i].date == e.date && state.pending_f_n_event[i].e == e.e && state.pending_f_n_event[i].n == e.n &&
-				state.pending_f_n_event[i].r_hi == e.r_hi && state.pending_f_n_event[i].r_lo == e.r_lo) {
+		if(state.pending_f_n_event[i] == e) {
 
 			if(opt > state.world.free_national_event_get_options(e.e).size() || !is_valid_option(state.world.free_national_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -55,9 +51,7 @@ void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t op
 
 void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_p_event.size(); i-- > 0;) {
-		if(state.pending_p_event[i].date == e.date && state.pending_p_event[i].e == e.e &&
-				state.pending_p_event[i].from_slot == e.from_slot && state.pending_p_event[i].p == e.p &&
-				state.pending_p_event[i].r_hi == e.r_hi && state.pending_p_event[i].r_lo == e.r_lo) {
+		if(state.pending_p_event[i] == e) {
 
 			if(opt > state.world.provincial_event_get_options(e.e).size() || !is_valid_option(state.world.provincial_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -76,8 +70,7 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 }
 void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
-		if(state.pending_f_p_event[i].date == e.date && state.pending_f_p_event[i].e == e.e && state.pending_f_p_event[i].p == e.p &&
-				state.pending_f_p_event[i].r_hi == e.r_hi && state.pending_f_p_event[i].r_lo == e.r_lo) {
+		if(state.pending_f_p_event[i] == e) {
 
 			if(opt > state.world.free_provincial_event_get_options(e.e).size() || !is_valid_option(state.world.free_provincial_event_get_options(e.e)[opt]))
 				return; // invalid option

@@ -470,6 +470,21 @@ spriteTypes = {
 	}
 
 	spriteType = {
+		name = "GFX_alice_sun"
+		texturefile = "assets\\sun-button.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_alice_sun_pause"
+		texturefile = "assets\\sun-pause-button.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_alice_economy_scene_button"
+		texturefile = "assets\\economy-scene-button.png"
+	}
+
+	spriteType = {
 		name = "GFX_move_capital"
 		texturefile = "assets\\move_cap.png"
 	}
@@ -636,6 +651,6 @@ spriteTypes = {
 	spriteType = {
         name = "provincetiles"
         texturefile = "assets\\provincetiles.png"
-        noOfFrames = 15
+        noOfFrames = 22
 	}
 }

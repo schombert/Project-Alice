@@ -8,6 +8,9 @@ enum class crisis_state : uint32_t;
 }
 
 namespace nations {
+
+inline float naval_base_level_to_market_attractiveness = 0.25f;
+
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
 }
@@ -329,6 +332,7 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n);
+void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n); // switches all players who are on one country to another. Can be called in either SP or MP
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
@@ -364,6 +368,9 @@ float get_foreign_investment(sys::state& state, dcon::nation_id n);
 float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n);
 float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares);
 bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target);
+
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n);
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);

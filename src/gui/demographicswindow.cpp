@@ -4,6 +4,8 @@ struct demographicswindow_main_title_t;
 struct demographicswindow_main_show_filters_t;
 struct demographicswindow_main_reset_filters_t;
 struct demographicswindow_main_only_pops_toggle_t;
+struct demographicswindow_main_sort_pops_toggle_t;
+struct demographicswindow_main_sort_states_toggle_t;
 struct demographicswindow_main_t;
 struct demographicswindow_nation_row_location_t;
 struct demographicswindow_nation_row_size_t;
@@ -280,8 +282,83 @@ struct demographicswindow_main_only_pops_toggle_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct demographicswindow_main_sort_pops_toggle_t : public ui::element_base {
+// BEGIN main::sort_pops_toggle::variables
+// END
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct demographicswindow_main_sort_states_toggle_t : public ui::element_base {
+// BEGIN main::sort_states_toggle::variables
+// END
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::gold;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct demographicswindow_main_table_t : public layout_generator {
 // BEGIN main::table::variables
+// 
 // END
 	struct nation_row_option { dcon::nation_id content; };
 	std::vector<std::unique_ptr<ui::element_base>> nation_row_pool;
@@ -3340,6 +3417,8 @@ struct demographicswindow_main_t : public layout_window_element {
 	std::unique_ptr<demographicswindow_main_show_filters_t> show_filters;
 	std::unique_ptr<demographicswindow_main_reset_filters_t> reset_filters;
 	std::unique_ptr<demographicswindow_main_only_pops_toggle_t> only_pops_toggle;
+	std::unique_ptr<demographicswindow_main_sort_pops_toggle_t> sort_pops_toggle;
+	std::unique_ptr<demographicswindow_main_sort_states_toggle_t> sort_states_toggle;
 	demographicswindow_main_table_t table;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	int16_t table_spacer_column_start = 0;
@@ -3867,16 +3946,9 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 		for(auto so : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			si.push_back(so.get_state().id);
 		}
-		sys::merge_sort(si.begin(), si.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-			if(!state.world.state_instance_get_capital(a).get_is_colonial() && state.world.state_instance_get_capital(b).get_is_colonial()) {
-				return true;
-			}
-			if(state.world.state_instance_get_capital(a).get_is_colonial() && !state.world.state_instance_get_capital(b).get_is_colonial()) {
-				return false;
-			}
-			// return state.world.state_instance_get_demographics(a, demographics::total) > state.world.state_instance_get_demographics(b, demographics::total);
-			return text::get_short_state_name(state, a) < text::get_short_state_name(state, b);
-		});
+		if(popwindow::sort_states) {
+			pop_screen_sort_state_rows(state, si, parent);
+		}
 		for(auto s : si) {
 			bool added_header = false;
 			bool state_is_open = popwindow::open_states.contains(s.index());
@@ -3920,6 +3992,9 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				}
 			}
 		}
+	}
+	if(!popwindow::sort_pops) {
+		return;
 	}
 // END
 	{
@@ -4484,6 +4559,114 @@ void demographicswindow_main_only_pops_toggle_t::on_create(sys::state& state) no
 // BEGIN main::only_pops_toggle::create
 // END
 }
+ui::message_result demographicswindow_main_sort_pops_toggle_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN main::sort_pops_toggle::lbutton_action
+	popwindow::sort_pops = !popwindow::sort_pops;
+	state.game_state_updated.store(true, std::memory_order::release);
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result demographicswindow_main_sort_pops_toggle_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void demographicswindow_main_sort_pops_toggle_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void demographicswindow_main_sort_pops_toggle_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void demographicswindow_main_sort_pops_toggle_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	else
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void demographicswindow_main_sort_pops_toggle_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
+// BEGIN main::sort_pops_toggle::update
+	is_active = popwindow::sort_pops;
+// END
+}
+void demographicswindow_main_sort_pops_toggle_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::sort_pops_toggle::create
+// END
+}
+ui::message_result demographicswindow_main_sort_states_toggle_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN main::sort_states_toggle::lbutton_action
+	popwindow::sort_states = !popwindow::sort_states;
+	state.game_state_updated.store(true, std::memory_order::release);
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result demographicswindow_main_sort_states_toggle_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void demographicswindow_main_sort_states_toggle_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void demographicswindow_main_sort_states_toggle_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void demographicswindow_main_sort_states_toggle_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	else
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void demographicswindow_main_sort_states_toggle_t::on_update(sys::state& state) noexcept {
+	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent)); 
+// BEGIN main::sort_states_toggle::update
+	is_active = popwindow::sort_states;
+// END
+}
+void demographicswindow_main_sort_states_toggle_t::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+// BEGIN main::sort_states_toggle::create
+// END
+}
 ui::message_result demographicswindow_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -4548,6 +4731,12 @@ void demographicswindow_main_t::create_layout_level(sys::state& state, layout_le
 				}
 				if(cname == "only_pops_toggle") {
 					temp.ptr = only_pops_toggle.get();
+				}
+				if(cname == "sort_pops_toggle") {
+					temp.ptr = sort_pops_toggle.get();
+				}
+				if(cname == "sort_states_toggle") {
+					temp.ptr = sort_states_toggle.get();
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4720,6 +4909,46 @@ void demographicswindow_main_t::on_create(sys::state& state) noexcept {
 			only_pops_toggle = std::make_unique<demographicswindow_main_only_pops_toggle_t>();
 			only_pops_toggle->parent = this;
 			auto cptr = only_pops_toggle.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "sort_pops_toggle") {
+			sort_pops_toggle = std::make_unique<demographicswindow_main_sort_pops_toggle_t>();
+			sort_pops_toggle->parent = this;
+			auto cptr = sort_pops_toggle.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->alt_texture_key = child_data.alt_texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "sort_states_toggle") {
+			sort_states_toggle = std::make_unique<demographicswindow_main_sort_states_toggle_t>();
+			sort_states_toggle->parent = this;
+			auto cptr = sort_states_toggle.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -14534,25 +14763,25 @@ std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state
 }
 // LOST-CODE
 // BEGIN filters_window::culture_list::create
-//////////////////////////////////////	for(auto c : state.world.in_culture) {
-//////////////////////////////////////		values.push_back(c.id);
-//////////////////////////////////////	}
-//////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
-//////////////////////////////////////	});
+//////////////////////////////////////////	for(auto c : state.world.in_culture) {
+//////////////////////////////////////////		values.push_back(c.id);
+//////////////////////////////////////////	}
+//////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
+//////////////////////////////////////////	});
 // END
 // BEGIN filters_window::religion_list::create
-//////////////////////////////////////	for(auto r : state.world.in_religion)
-//////////////////////////////////////		values.push_back(r.id);
-//////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
-//////////////////////////////////////	});
+//////////////////////////////////////////	for(auto r : state.world.in_religion)
+//////////////////////////////////////////		values.push_back(r.id);
+//////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
+//////////////////////////////////////////	});
 // END
 // BEGIN filters_window::job_list::create
-//////////////////////////////////////	for(auto j : state.world.in_pop_type)
-//////////////////////////////////////		values.push_back(j.id);
-//////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
-//////////////////////////////////////	});
+//////////////////////////////////////////	for(auto j : state.world.in_pop_type)
+//////////////////////////////////////////		values.push_back(j.id);
+//////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+//////////////////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
+//////////////////////////////////////////	});
 // END
 }

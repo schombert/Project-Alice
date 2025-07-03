@@ -49,6 +49,16 @@ struct trade_route_volume_change_reasons {
 	bool commodity_is_not_discovered;
 };
 
+float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_fat_id A_capital, dcon::province_fat_id B_capital);
+float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market);
+float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital);
+
+void make_trade_center_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	dcon::market_id market
+);
+
 void make_trade_volume_tooltip(
 	sys::state& state,
 	text::columnar_layout& contents,
@@ -61,6 +71,18 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	sys::state& state, dcon::trade_route_id route, dcon::commodity_id cid
 );
 
+struct embargo_explanation {
+	bool combined = false;
+	bool war = false;
+	bool origin_embargo = false;
+	bool target_embargo = false;
+	bool origin_join_embargo = false;
+	bool target_join_embargo = false;
+};
+
+embargo_explanation embargo_exists(
+	sys::state& state, dcon::nation_id n_A, dcon::nation_id n_B
+);
 tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route);
 trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, tariff_data& additional_data, dcon::commodity_id cid);
 trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);

@@ -330,8 +330,8 @@ void recreate_national_modifiers(sys::state& state) {
 	}
 	if(state.national_definitions.average_literacy) {
 		bulk_apply_scaled_modifier_to_nations(state, state.national_definitions.average_literacy, [&](auto ids) {
-			auto total = state.world.nation_get_demographics(ids, demographics::total);
-			return ve::select(total > 0, state.world.nation_get_demographics(ids, demographics::literacy) / total, 0.0f);
+			auto total = state.world.nation_get_demographics(ids, demographics::non_colonial_total);
+			return ve::select(total > 0, state.world.nation_get_demographics(ids, demographics::non_colonial_literacy) / total, 0.0f);
 		});
 	}
 	if(state.national_definitions.total_blockaded) {
@@ -489,9 +489,8 @@ void update_single_nation_modifiers(sys::state& state, dcon::nation_id n) {
 				state.world.nation_get_war_exhaustion(n));
 	}
 	if(state.national_definitions.average_literacy) {
-		auto total = state.world.nation_get_demographics(n, demographics::total);
-		apply_scaled_modifier_values_to_nation(state, n, state.national_definitions.average_literacy,
-				total > 0 ? state.world.nation_get_demographics(n, demographics::literacy) / total : 0.0f);
+		auto literacy = nations::get_avg_non_colonial_literacy(state, n);
+		apply_scaled_modifier_values_to_nation(state, n, state.national_definitions.average_literacy, literacy);
 	}
 	if(state.national_definitions.total_blockaded) {
 		auto bc = ve::to_float(state.world.nation_get_central_blockaded(n));

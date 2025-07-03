@@ -409,6 +409,7 @@ float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{});
 
 
+int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation_id n);
 int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
 		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer);
@@ -419,6 +420,8 @@ int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
 float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{}); // the fabrication cost in infamy
 
+float war_declaration_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from,
+		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of starting a war with a CB -- does NOT check if the CB is valid to add
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
 		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
 float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
@@ -544,6 +547,7 @@ dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::le
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
+void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg); // safely deletes the regiment even if the army is currently in a battle
 bool rebel_army_in_province(sys::state& state, dcon::province_id p);
 dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);

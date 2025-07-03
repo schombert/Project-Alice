@@ -1,4 +1,25 @@
 guiTypes = {
+	guiButtonType = {
+		name = "observer_button"
+		extends = "lobby"
+		position = { x = 17 y = -200 }
+		quadTextureSprite ="GFX_frontend_play_button"	
+		buttonText = "alice_observer_btn_text"
+		buttonFont = "vic_32_black"
+		Orientation = "LOWER_LEFT"
+	}
+
+	instantTextBoxType = { 
+			name = "state_location_name"
+			extends = "state_info"
+			position = { x = 175 y = 4 }
+			font = "vic_22"
+			maxWidth = 140
+			maxHeight = 16	
+			format = left
+			fixedsize = yes
+		}
+			
 	iconType = {
         name = "gfx_storage_unit_types"
         spriteType = "GFX_unit_strip"
@@ -4631,6 +4652,23 @@ guiTypes = {
 		quadTextureSprite = "GFX_take_province"	
 	}
 
+	iconType = {
+		name ="province_victory_points_icon"
+		extends = "province_view_header"
+		spriteType = "GFX_prestige_icon_2"
+		position = { x=125 y=43 }
+		Orientation = "UPPER_LEFT"
+	}
+	instantTextBoxType = {
+			name = "province_victory_points"
+			extends = "province_view_header"
+			position = { x=140 y =45}
+			borderSize = { 0 0}
+			maxsize = { 50 20 }
+			textureFile = ""
+			font = "vic_18"
+	}
+
 	instantTextBoxType = {
 			name = "ready_state"
 			extends = "ingame_multiplayer_entry"
@@ -5177,14 +5215,14 @@ guiTypes = {
     
     instantTextBoxType = {
         name = "thin_cell_name"
-        size = { 100 20 }
+        size = { 100 16 }
         font = "vic_18_black"
         format = left
     }
     
     instantTextBoxType = {
         name = "thin_cell_number"
-        size = { 60 20 }
+        size = { 60 16 }
         font = "vic_18_black"
         format = right
     }
@@ -5848,18 +5886,16 @@ guiTypes = {
 	iconType = {
         name = "industry_size_icon"
         spriteType = "GFX_budget_ind_sup_icon"
-        position = { x= 42 y = 233 }
+        position = { x= 32 y = 233 }
 		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
     }
 
-	instantTextBoxType = {
-		name = "industry_size_text"
-		position = { 75 236 }
-		font = "vic_18_black"
-		text = " "
-		maxWidth = 40
-		maxHeight = 20
+	iconType = {
+        name = "trade_size_icon"
+        spriteType = "GFX_budget_nat_stock_icon"
+        position = { x= 55 y = 233 }
+		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
-	}
+    }
 }

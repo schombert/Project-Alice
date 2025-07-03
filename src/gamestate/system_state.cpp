@@ -4296,6 +4296,8 @@ void state::single_game_tick() {
 			ai::update_ships(*this);
 		}
 
+		ai::take_ai_decisions(*this);
+
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
 		case 1:
@@ -4617,54 +4619,8 @@ sys::checksum_key state::get_scenario_checksum() {
 }
 
 sys::checksum_key state::get_mp_state_checksum() {
-	// TODO later refactor this to use datacontainer directly somehow
-	// seralizes everything except for the "keep_after_state_reload" tagged items
-	dcon::load_record loaded = world.serialize_entire_container_record();
-	loaded.player_nation = false;
-	loaded.player_nation_mp_player = false;
-	loaded.player_nation_nation = false;
 
-
-	loaded.mp_player = false;
-	loaded.mp_player__index = false;
-	loaded.mp_player_nickname = false;
-	loaded.mp_player_password_salt = false;
-	loaded.mp_player_password_hash = false;
-	loaded.mp_player_fully_loaded = false;
-	loaded.mp_player_is_oos = false;
-
-	loaded.locale = false;
-	loaded.locale_native_rtl = false;
-	loaded.locale_prevent_letterspace = false;
-	loaded.locale_display_name = false;
-	loaded.locale_locale_name = false;
-	loaded.locale_fallback = false;
-	loaded.locale_resolved_language = false;
-	loaded.locale_hb_script = false;
-	loaded.locale_resolved_body_font = false;
-	loaded.locale_resolved_header_font = false;
-	loaded.locale_resolved_map_font = false;
-	loaded.locale_body_font = false;
-	loaded.locale_header_font = false;
-	loaded.locale_map_font = false;
-	loaded.locale_body_font_features = false;
-	loaded.locale_header_font_features = false;
-	loaded.locale_map_font_features = false;
-
-
-	loaded.pop_type_migration_target_fn = false;
-	loaded.pop_type_country_migration_target_fn = false;
-	loaded.pop_type_issues_fns = false;
-	loaded.pop_type_ideology_fns = false;
-	loaded.pop_type_promotion_fns = false;
-
-	loaded.national_event_auto_choice = false;
-	loaded.provincial_event_auto_choice = false;
-
-	loaded.free_national_event_auto_choice = false;
-	loaded.free_provincial_event_auto_choice = false;
-
-
+	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
 
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
