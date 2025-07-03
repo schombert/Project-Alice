@@ -163,41 +163,38 @@ struct disband_unit_wrapper {
 	std::vector<T> to_be_deleted;
 };
 
-template<typename T>
 class disband_agree_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		const auto units = retrieve<std::vector<T>>(state, parent);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			for(auto unit : units) {
-				if(!command::can_delete_army(state, state.local_player_nation, unit)) {
-					disabled = true;
-				}
+		const auto& armies = retrieve<std::vector<dcon::army_id>>(state, parent);
+		const auto& navies = retrieve<std::vector<dcon::navy_id>>(state, parent);
+		for(auto unit : armies) {
+			if(!command::can_delete_army(state, state.local_player_nation, unit)) {
+				disabled = true;
 			}
-			disabled = false;
 		}
-		else {
-			for(auto unit : units) {
-				if(!command::can_delete_navy(state, state.local_player_nation, unit)) {
-					disabled = true;
-				}
+		disabled = false;
+
+		for(auto unit : navies) {
+			if(!command::can_delete_navy(state, state.local_player_nation, unit)) {
+				disabled = true;
 			}
-			disabled = false;
 		}
+		disabled = false;
+		
 	}
 
 	void button_action(sys::state& state) noexcept override {
 
-		const auto& units = retrieve<std::vector<T>>(state, parent);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			for(auto unit : units) {
-				command::delete_army(state, state.local_player_nation, unit);
-			}
-		} else {
-			for(auto unit : units) {
-				command::delete_navy(state, state.local_player_nation, unit);
-			}
+		const auto& armies = retrieve<std::vector<dcon::army_id>>(state, parent);
+		const auto& navies = retrieve<std::vector<dcon::navy_id>>(state, parent);
+		for(auto unit : armies) {
+			command::delete_army(state, state.local_player_nation, unit);
 		}
+		for(auto unit : navies) {
+			command::delete_navy(state, state.local_player_nation, unit);
+		}
+		
 		parent->set_visible(state, false); // Close parent window automatically
 		//send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 
@@ -208,10 +205,11 @@ public:
 
 
 
-template<typename T>
+
 class disband_unit_confirmation : public window_element_base {
 
-	std::vector<T> units;
+	std::vector<dcon::army_id> armies;
+	std::vector<dcon::navy_id> navies;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -220,10 +218,18 @@ public:
 		base_data.position.x = base_data.position.y = 0;
 	}
 
-	void set_units_to_be_disbanded(sys::state& state, const std::vector<T>& units_to_be_deleted) {
-		units.clear();
+	void set_units_to_be_disbanded(sys::state& state, const std::vector<dcon::army_id>& units_to_be_deleted) {
+		armies.clear();
+		navies.clear();
 		for(auto unit : units_to_be_deleted) {
-			units.push_back(unit);
+			armies.push_back(unit);
+		}
+	}
+	void set_units_to_be_disbanded(sys::state& state, const std::vector<dcon::navy_id>& units_to_be_deleted) {
+		armies.clear();
+		navies.clear();
+		for(auto unit : units_to_be_deleted) {
+			navies.push_back(unit);
 		}
 	}
 
@@ -239,7 +245,7 @@ public:
 		else if(name == "description")
 			return make_element_by_type<disband_units_desc>(state, id);
 		else if(name == "agreebutton")
-			return make_element_by_type<disband_agree_button<T>>(state, id);
+			return make_element_by_type<disband_agree_button>(state, id);
 		else if(name == "declinebutton")
 			return make_element_by_type<generic_close_button>(state, id);
 		else
@@ -247,16 +253,36 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<std::vector<T>>()) {
-			payload = units;
+		if(payload.holds_type<std::vector<dcon::army_id>>()) {
+			payload = armies;
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<std::vector<dcon::navy_id>>()) {
+			payload = navies;
 			return message_result::consumed;
 		}
 		else if(payload.holds_type<size_t>()) {
-			payload = units.size();
+			payload = armies.size() + navies.size();
 			return message_result::consumed;
 		}
+		else if(payload.holds_type<disband_unit_wrapper<dcon::army_id>>()) {
+			disband_unit_wrapper<dcon::army_id> item = any_cast<disband_unit_wrapper<dcon::army_id>>(payload);
+			set_units_to_be_disbanded(state, item.to_be_deleted);
+			set_visible(state, true);
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<disband_unit_wrapper<dcon::navy_id>>()) {
+			disband_unit_wrapper<dcon::navy_id> item = any_cast<disband_unit_wrapper<dcon::navy_id>>(payload);
+			set_units_to_be_disbanded(state, item.to_be_deleted);
+			set_visible(state, true);
+			return message_result::consumed;
+		}
+
+
+
 		return message_result::unseen;
 	}
+
 };
 
 
@@ -267,11 +293,13 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			std::vector<dcon::army_id> units = state.selected_armies;
-			send(state, parent, disband_unit_wrapper<dcon::army_id> {units});
+			std::vector<dcon::army_id> units;
+			units.push_back(content);
+			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
 		} else {
-			std::vector<dcon::navy_id> units = state.selected_navies;
-			send(state, parent, disband_unit_wrapper<dcon::navy_id> {units});
+			std::vector<dcon::navy_id> units;
+			units.push_back(content);
+			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
 		}
 		
 	}
@@ -791,7 +819,6 @@ template<class T>
 class unit_selection_panel : public window_element_base {
 	dcon::gfx_object_id disband_gfx{};
 	unit_selection_disband_too_small_button* disband_too_small_btn = nullptr;
-	/*disband_unit_confirmation<T>* disband_window = nullptr;*/
 public:
 	window_element_base* reorg_window = nullptr;
 	window_element_base* combat_window = nullptr;
@@ -811,10 +838,6 @@ public:
 				reorg_window = win2.get();
 				add_child_to_front(std::move(win2));
 			}
-			/*auto disband_win = make_element_by_type<disband_unit_confirmation<T>>(state, "disband_window");
-			disband_win->set_visible(state, false);
-			disband_window = disband_win.get();
-			add_child_to_front(std::move(disband_win));*/
 		}
 		window_element_base::on_create(state);
 		if(disband_too_small_btn && disband_gfx) {
@@ -913,16 +936,6 @@ public:
 				}
 			}
 			return message_result::consumed;
-		}
-		if(payload.holds_type<disband_unit_wrapper<T>>()) {
-
-			// send to parent
-			return parent->impl_get(state, payload);
-
-			/*disband_unit_wrapper<T> item = any_cast<disband_unit_wrapper<T>>(payload);
-			disband_window->set_units_to_be_disbanded(state, item.to_be_deleted);
-			disband_window->set_visible(state, true);*/
-
 		}
 		return message_result::unseen;
 	}
@@ -2218,7 +2231,6 @@ class unit_details_window : public window_element_base {
 	progress_bar* unitsupply_bar = nullptr;
 	dug_in_icon* unitdugin_icon = nullptr;
 	unit_selection_panel<T>* unit_selection_win = nullptr;
-	disband_unit_confirmation<T>* disband_window = nullptr;
 
 	unit_upgrade_window<T>* unit_upgrade_win = nullptr;
 
@@ -2291,14 +2303,6 @@ public:
 			unit_upgrade_win = ptr.get();
 			add_child_to_front(std::move(ptr));
 			unit_upgrade_win->set_visible(state, false);
-		}
-		{
-
-			auto disband_win = make_element_by_type<disband_unit_confirmation<T>>(state, "disband_window");
-			disband_win->set_visible(state, false);
-			disband_window = disband_win.get();
-			add_child_to_front(std::move(disband_win));
-
 		}
 	}
 
@@ -2405,12 +2409,6 @@ public:
 			};
 			return message_result::consumed;
 		}
-		else if(payload.holds_type<disband_unit_wrapper<T>>()) {
-			disband_unit_wrapper<T> item = any_cast<disband_unit_wrapper<T>>(payload);
-			disband_window->set_units_to_be_disbanded(state, item.to_be_deleted);
-			disband_window->set_visible(state, true);
-			return message_result::consumed;
-		}
 		return message_result::unseen;
 	}
 };
@@ -2482,10 +2480,10 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if (!state.selected_armies.empty()) {
 			std::vector<dcon::army_id> units = state.selected_armies;
-			send(state, parent, disband_unit_wrapper<dcon::army_id> {units});
+			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
 		} else if(!state.selected_navies.empty()) {
 			std::vector<dcon::navy_id> units = state.selected_navies;
-			send(state, parent, disband_unit_wrapper<dcon::navy_id> {units});
+			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
 		}
 
 	}
@@ -2660,11 +2658,11 @@ public:
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			std::vector<dcon::army_id> units;
 			units.push_back(std::get<dcon::army_id>(foru));
-			send(state, parent, disband_unit_wrapper<dcon::army_id> {units});
+			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			std::vector<dcon::navy_id> units;
 			units.push_back(std::get<dcon::navy_id>(foru));
-			send(state, parent, disband_unit_wrapper<dcon::navy_id> {units});
+			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -3049,31 +3047,13 @@ public:
 
 class mulit_unit_selection_panel : public window_element_base {
 
-	disband_unit_confirmation<dcon::army_id>* disband_window_army = nullptr;
-	disband_unit_confirmation<dcon::navy_id>* disband_window_navy = nullptr;
+
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto ptr = make_element_by_type<multi_unit_details_ai_controlled>(state, "alice_enable_ai_controlled_multi");
 		add_child_to_front(std::move(ptr));
-
-
-		{
-			auto disband_win = make_element_by_type<disband_unit_confirmation<dcon::army_id>>(state, "disband_window");
-			disband_win->set_visible(state, false);
-			disband_window_army = disband_win.get();
-			add_child_to_front(std::move(disband_win));
-
-		}
-		{
-			auto disband_win = make_element_by_type<disband_unit_confirmation<dcon::navy_id>>(state, "disband_window");
-			disband_win->set_visible(state, false);
-			disband_window_navy = disband_win.get();
-			add_child_to_front(std::move(disband_win));
-
-		}
-
 
 
 	}
@@ -3093,26 +3073,6 @@ public:
 			return nullptr;
 		}
 	}
-
-
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<disband_unit_wrapper<dcon::army_id>>()) {
-			disband_unit_wrapper<dcon::army_id> item = any_cast<disband_unit_wrapper<dcon::army_id>>(payload);
-			disband_window_army->set_units_to_be_disbanded(state, item.to_be_deleted);
-			disband_window_army->set_visible(state, true);
-			return message_result::consumed;
-		}
-		else if(payload.holds_type<disband_unit_wrapper<dcon::navy_id>>()) {
-			disband_unit_wrapper<dcon::navy_id> item = any_cast<disband_unit_wrapper<dcon::navy_id>>(payload);
-			disband_window_navy->set_units_to_be_disbanded(state, item.to_be_deleted);
-			disband_window_navy->set_visible(state, true);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-
-
 
 
 };

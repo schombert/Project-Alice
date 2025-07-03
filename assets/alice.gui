@@ -29,6 +29,7 @@ guiTypes = {
 		position = { x=-250 y=-140 }	
 		size = { x=500 y=280 }
 		orientation="CENTER"
+		moveable = 1
 		dontRender = ""
 		horizontalBorder= ""
 		verticalBorder= ""

@@ -240,6 +240,15 @@ void create_in_game_windows(sys::state& state) {
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
+		auto new_elem = make_element_by_type<disband_unit_confirmation>(state, "disband_window");
+		// set window to be movable
+		new_elem->base_data.data.window.flags |= new_elem->base_data.data.window.is_moveable_mask;
+		new_elem->set_visible(state, false);
+		state.ui_state.disband_unit_window = new_elem.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elem));
+
+	}
+	{
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
 		new_elm->impl_on_update(state);
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
