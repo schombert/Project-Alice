@@ -19,6 +19,92 @@ guiTypes = {
 			format = left
 			fixedsize = yes
 		}
+
+
+
+
+		windowType = {
+		name = "disband_window"
+		backGround="Background"
+		position = { x=-250 y=-140 }	
+		size = { x=500 y=280 }
+		orientation="CENTER"
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no
+		
+		guiButtonType = {
+			name = "Background"	
+			quadTextureSprite ="SandboxFloaterBackground"
+			tooltip = ""	
+			tooltipText =""
+			delayedTooltipText = ""
+		}
+		
+		iconType =
+		{
+			name ="default_popup_banner"
+			spriteType = "GFX_default_popup_banner"
+			position = { x= -7 y = 42 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+				name = "Title"
+				position = { x = 0 y = 50 }
+				textureFile = ""
+				font = "vic_22_bl"
+				borderSize = {x = 4 y = 8}
+				maxWidth = 500
+				maxHeight = 32
+
+				format = centre
+			}
+		
+		instantTextBoxType = {
+				name = "Description"
+				position = { x = 70 y = 90 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 4 y = 8}	
+				maxWidth = 360
+				maxHeight = 200	
+				fixedsize = yes
+	
+				format = centre
+			}
+		
+		
+		
+		guiButtonType = {
+			name = "AgreeButton"
+			position = { x=328 y =220}
+			quadTextureSprite ="GFX_button_standard_144"
+			tooltip = ""
+			tooltipText =""
+			delayedTooltipText = ""
+			buttonText = "OK"
+			buttonFont = "vic_18_black"
+			shortcut = "ENTER"
+		}
+
+
+		guiButtonType = {
+			name = "DeclineButton"
+			position = { x=25 y =220}
+			quadTextureSprite ="GFX_button_standard_144"
+			tooltip = ""
+			tooltipText =""
+			delayedTooltipText = ""
+			buttonText = "CANCEL"
+			buttonFont = "vic_18_black"
+			shortcut = "ESCAPE"
+		}
+		
+	}
+
+
 			
 	iconType = {
         name = "gfx_storage_unit_types"
