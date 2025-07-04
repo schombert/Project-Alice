@@ -489,7 +489,6 @@ void province_script_button::effect(bool, error_handler& err, int32_t line, buil
 	added_effect = int32_t(context.province_buttons_effect.size()) - 1;
 }
 
-
 bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
 	context.province_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
 	gen.discard_group();
@@ -829,18 +828,18 @@ void window::textboxtype(textbox const& v, error_handler& err, int32_t line, bui
 }
 void window::provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
-	sc.push_back(window::scripted_children{ uint32_t(children.size() - 1), v.added_visible, v.added_allow, v.added_effect, -1, -1, -1 });
+	window_scripted_children.push_back(window::scripted_children{ uint32_t(children.size() - 1), v.added_visible, v.added_allow, v.added_effect, -1, -1, -1 });
 }
 void window::nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
-	sc.push_back(window::scripted_children{ uint32_t(children.size() - 1), -1, -1, -1, v.added_visible, v.added_allow, v.added_effect});
+	window_scripted_children.push_back(window::scripted_children{ uint32_t(children.size() - 1), -1, -1, -1, v.added_visible, v.added_allow, v.added_effect});
 }
 void window::finish(building_gfx_context& context) {
 	auto first_child = context.full_state.ui_defs.gui.size();
 	for(auto& ch : children) {
 		context.full_state.ui_defs.gui.push_back(ch);
 	}
-	for(auto& s : sc) {
+	for(auto& s : window_scripted_children) {
 		auto child_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(first_child + s.child_number));
 		if(s.pvisible != -1) {
 			context.province_buttons_visible[s.pvisible].button_element = child_id;

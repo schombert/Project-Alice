@@ -594,6 +594,11 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		flags |= ui::element_base::wants_update_when_hidden_mask;
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible) {
 			button_element_base::render(state, x, y);
@@ -612,6 +617,10 @@ public:
 	void on_update(sys::state& state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		flags |= ui::element_base::wants_update_when_hidden_mask;
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible) {

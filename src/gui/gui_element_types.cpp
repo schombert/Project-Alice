@@ -1921,7 +1921,12 @@ void province_script_button::on_update(sys::state& state) noexcept {
 		return;
 	}
 	disabled = !command::can_use_province_button(state, state.local_player_nation, base_definition, p);
-	visible = command::can_see_province_button(state, state.local_player_nation, base_definition, p);
+	auto new_visible = command::can_see_province_button(state, state.local_player_nation, base_definition, p);
+
+	if(visible != new_visible) {
+		visible = new_visible;
+		set_visible(state, visible);
+	}
 }
 void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto& def = state.ui_defs.gui[base_definition];
@@ -1978,7 +1983,12 @@ void nation_script_button::on_update(sys::state& state) noexcept {
 		return;
 	}
 	disabled = !command::can_use_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
-	visible = command::can_see_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
+	auto new_visible = command::can_see_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
+
+	if(visible != new_visible) {
+		visible = new_visible;
+		set_visible(state, visible);
+	}
 }
 void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto& def = state.ui_defs.gui[base_definition];
@@ -2032,6 +2042,8 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 	} else if(def.get_element_type() == ui::element_type::button) {
 		if(def.data.button.get_button_scripting() == ui::button_scripting::province) {
 			auto res = std::make_unique<province_script_button>(id);
+			auto txtkey = state.ui_defs.gui[id].data.button.txt;
+
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);

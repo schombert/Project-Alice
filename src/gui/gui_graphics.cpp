@@ -95,6 +95,16 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 				}
 			}
 		}
+
+		// Validate GUI definitions.
+		// Very thorough validation that doesn't pass for a bunch of buttons in vanilla, so do it only in debug.
+#ifndef NDEBUG
+		for(auto& def : state.ui_defs.gui) {
+			if(def.data.button.txt && !def.data.button.font_handle) {
+				err.accumulated_warnings += "[GUI Parsing] Button " + std::to_string(def.name.index()) + " has buttonText, but no buttonFont. Text will not be rendered.\n";
+			}
+		}
+#endif // !NDEBUG
 	}
 }
 

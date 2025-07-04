@@ -238,7 +238,7 @@ struct window : public gui_element_common {
 		int32_t neffect = -1;
 	};
 	std::vector<ui::element_data> children;
-	std::vector<scripted_children> sc;
+	std::vector<scripted_children> window_scripted_children;
 	window();
 	void fullscreen(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
 	void moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
