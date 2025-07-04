@@ -4862,8 +4862,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 	state.world.army_set_arrival_time(a, sys::date{}); // pause movement
 	update_battle_leaders(state, b);
 }
-
-void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from, bool attrition_tick) {
+template <apply_attrition_on_arrival attrition_tick>
+void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
 	assert(state.world.army_is_valid(a));
 	assert(!state.world.army_get_battle_from_army_battle_participation(a));
 
@@ -4990,9 +4990,10 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 			}
 		}
 	}
-	// if the army has not joined a battle, by the end of the function, apply an attrition tick if the flag is set. In vic2, armies take one attrition tick immediately upon arriving in a new province
-	if(attrition_tick && !bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+	// apply an attrition tick if the flag is set. In vic2, armies take one attrition tick immediately upon arriving in a new province. The apply_attrition_to_army functon will check if it is eligible to take attrition
+	if constexpr(attrition_tick == apply_attrition_on_arrival::yes) {
 		apply_attrition_to_army(state, a);
+		
 	}
 }
 
@@ -7778,16 +7779,16 @@ void update_movement(sys::state& state) {
 					if(n == a.get_controller_from_army_control().id) {
 						a.set_black_flag(false);
 					}
-					army_arrives_in_province(state, a, dest,
+					army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest,
 							(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
 								province::border::river_crossing_bit) != 0
 									? military::crossing_type::river
-									: military::crossing_type::none, dcon::land_battle_id{}, true);
+									: military::crossing_type::none, dcon::land_battle_id{});
 					a.set_navy_from_army_transport(dcon::navy_id{});
 				} else if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
 					if(auto n = a.get_navy_from_army_transport()) {
 						if(!n.get_battle_from_navy_battle_participation()) {
-							army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{}, true);
+							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							a.set_navy_from_army_transport(dcon::navy_id{});
 						} else {
 							path.clear();
@@ -7798,13 +7799,13 @@ void update_movement(sys::state& state) {
 							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
 								path.clear();
 							} else {
-								army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{}, true);
+								army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							}
 						} else {
-							army_arrives_in_province(state, a, dest,
+							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest,
 									(path_bits & province::border::river_crossing_bit) != 0
 											? military::crossing_type::river
-											: military::crossing_type::none, dcon::land_battle_id{}, true);
+											: military::crossing_type::none, dcon::land_battle_id{});
 						}
 					}
 				} else {
