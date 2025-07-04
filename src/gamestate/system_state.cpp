@@ -1582,6 +1582,7 @@ void state::save_user_settings() const {
 	US_SAVE(UNUSED_UINT32_T);
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
+	US_SAVE(unit_disband_confirmation);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1651,6 +1652,7 @@ void state::load_user_settings() {
 			US_LOAD(UNUSED_UINT32_T);
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
+			US_LOAD(unit_disband_confirmation);
 #undef US_LOAD
 		} while(false);
 
