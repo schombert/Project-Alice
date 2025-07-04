@@ -5884,6 +5884,14 @@ guiTypes = {
 	}
 
 	iconType = {
+			name = "nation_icon_religion"
+			spriteType = "GFX_icon_religion"
+			position = { x = 300 y = 195 }
+			Orientation = "UPPER_LEFT"
+			extends = "diplomacy_country_facts"
+	}
+
+	iconType = {
         name = "industry_size_icon"
         spriteType = "GFX_budget_ind_sup_icon"
         position = { x= 32 y = 233 }

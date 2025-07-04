@@ -1093,10 +1093,7 @@ class nation_primary_culture : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto pc = state.world.nation_get_primary_culture(retrieve<dcon::nation_id>(state, parent));
-		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
 		std::string t = text::produce_simple_string(state, pc.get_name());
-		t += ", ";
-		t += text::produce_simple_string(state, pr.get_name());
 		set_text(state, t);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1105,6 +1102,20 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
 		text::add_line(state, contents, "is_primary_culture", text::variable_type::name, state.world.culture_get_name(state.world.nation_get_primary_culture(content)));
+	}
+};
+
+class nation_state_religion : public religion_type_icon {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
+		frame = int32_t(state.world.religion_get_icon(pr) - 1);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
 		auto rel = state.world.nation_get_religion(content);
 		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(rel));
 		auto mod_id = state.world.religion_get_nation_modifier(rel);
@@ -1412,6 +1423,8 @@ public:
 			return make_element_by_type<nation_population_text>(state, id);
 		} else if(name == "country_primary_cultures") {
 			return make_element_by_type<nation_primary_culture>(state, id);
+		} else if(name == "nation_icon_religion") {
+			return make_element_by_type<nation_state_religion>(state, id);
 		} else if(name == "country_accepted_cultures") {
 			return make_element_by_type<nation_accepted_cultures>(state, id);
 		} else if(name == "war_extra_info_bg") {
