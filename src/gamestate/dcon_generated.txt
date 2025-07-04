@@ -219,6 +219,11 @@ object{
 		type{ bitfield }
 		tag{ scenario }
 	}
+	property{
+		name{ nation_modifier }
+		type{ modifier_id }
+		tag{ scenario }
+	}
 }
 
 object {
