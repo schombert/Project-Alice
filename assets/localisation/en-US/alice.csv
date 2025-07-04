@@ -23,8 +23,8 @@ make_accepted_culture;$text$ becomes an accepted culture
 primary_culture_changes_to;Primary culture changes to ?Y$text$?W
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
-increase_national_variable_by;Increase ?Y$text$?W by ?Y$value$?W
-decrease_national_variable_by;Decrease ?Y$text$?W by ?Y$value$?W
+increase_national_variable_by;Increase nation ?Y$text$?W by ?Y$value$?W
+decrease_national_variable_by;Decrease nation ?Y$text$?W by ?Y$value$?W
 life_rating;Life rating
 make_national_religion;?Y$text$?W becomes the national religion
 giving_modifier;This will give the following modifier:
@@ -111,7 +111,7 @@ add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in sc
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
 remove_cb_reversed;Loses any $name$ casus bellis against $text$
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
-set_national_variable_to;Set national variable $text$ to $value$
+set_national_variable_to;Set nation ?Y$text$?W to ?Y$value$?W
 event_fires;Event $text$ is triggered
 event_fires_in_days;Event $text$ is triggered in $value$ days
 railroad_in_capital;?G+1?! railroad level in capital
