@@ -77,13 +77,15 @@ float get_literacy(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uliteracy(p);
 	return from_pu16(ival);
 }
-template<typename T>
-void set_literacy(sys::state& state, T p, ve::fp_vector v) {
+template<typename P, typename V>
+void set_literacy(sys::state& state, P p, V v) {
 	state.world.pop_set_uliteracy(p, to_pu16(v));
 }
-void set_literacy(sys::state& state, dcon::pop_id p, float v) {
-	state.world.pop_set_uliteracy(p, to_pu16(v));
-}
+template void set_literacy<dcon::pop_id, float>(sys::state&, dcon::pop_id, float);
+template void set_literacy<dcon::pop_fat_id, float>(sys::state&, dcon::pop_fat_id, float);
+template void set_literacy<ve::contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::contiguous_tags<dcon::pop_id>, ve::fp_vector);
+template void set_literacy<ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector);
+
 float get_employment(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uemployment(p);
 	return from_pu8(ival) * state.world.pop_get_size(p);
@@ -504,6 +506,20 @@ void regenerate_from_pop_data(sys::state& state) {
 				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
 					auto prov = state.world.pop_get_province_from_pop_location(p);
 					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 25: //constexpr inline dcon::demographics_key primary_or_accepted(25);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					auto owner = state.world.province_get_nation_from_province_ownership(prov);
+					auto culture = state.world.pop_get_culture(p);
+					if(state.world.nation_get_primary_culture(owner) == culture) {
+						return state.world.pop_get_size(p);
+					}
+					if(state.world.nation_get_accepted_cultures(owner, culture)) {
 						return state.world.pop_get_size(p);
 					}
 					return 0.0f;
@@ -1090,7 +1106,7 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 				});
 				break;
 			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
-				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
 					auto prov = state.world.pop_get_province_from_pop_location(p);
 					if(!state.world.province_get_is_colonial(prov)) {
 						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
@@ -1099,9 +1115,23 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 				});
 				break;
 			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
-				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
 					auto prov = state.world.pop_get_province_from_pop_location(p);
 					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 25: //constexpr inline dcon::demographics_key primary_or_accepted(25);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					auto owner = state.world.province_get_nation_from_province_ownership(prov);
+					auto culture = state.world.pop_get_culture(p);
+					if(state.world.nation_get_primary_culture(owner) == culture) {
+						return state.world.pop_get_size(p);
+					}
+					if(state.world.nation_get_accepted_cultures(owner, culture)) {
 						return state.world.pop_get_size(p);
 					}
 					return 0.0f;
@@ -1598,6 +1628,38 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 					return state.world.pop_type_get_strata(state.world.pop_get_poptype(p)) == uint8_t(culture::pop_strata::rich)
 						? state.world.pop_get_size(p)
 						: 0.0f;
+				});
+				break;
+			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 25: //constexpr inline dcon::demographics_key primary_or_accepted(25);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					auto owner = state.world.province_get_nation_from_province_ownership(prov);
+					auto culture = state.world.pop_get_culture(p);
+					if(state.world.nation_get_primary_culture(owner) == culture) {
+						return state.world.pop_get_size(p);
+					}
+					if(state.world.nation_get_accepted_cultures(owner, culture)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
 				});
 				break;
 			}

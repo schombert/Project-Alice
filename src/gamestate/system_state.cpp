@@ -45,6 +45,7 @@
 #include "blake2.h"
 #include "fif_common.hpp"
 #include "gui_deserialize.hpp"
+#include "advanced_province_buildings.hpp"
 
 namespace ui {
 
@@ -2926,6 +2927,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_labor_demand_satisfaction(economy::labor::total);
 	world.province_resize_labor_supply_sold(economy::labor::total);
 	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
+
+	services::initialize_size_of_dcon_arrays(*this);
+	advanced_province_buildings::initialize_size_of_dcon_arrays(*this);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());

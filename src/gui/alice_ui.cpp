@@ -4,6 +4,7 @@
 #include "gui_deserialize.hpp"
 #include "alice_ui.hpp"
 #include "demographics.hpp"
+#include "advanced_province_buildings.hpp"
 
 #include "macrobuilder2.cpp"
 #include "budgetwindow.cpp"
