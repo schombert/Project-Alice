@@ -4306,8 +4306,10 @@ void remove_size_zero_pops(sys::state& state) {
 		dcon::pop_id m{dcon::pop_id::value_base_t(last)};
 		if(state.world.pop_get_size(m) < 1.0f) {
 			//safely delete any regiment which has this pop as its source
-			for(auto reg : state.world.pop_get_regiment_source(m)) {
+			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
+				auto reg = *(state.world.pop_get_regiment_source(m).begin());
 				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
 			}
 			state.world.delete_pop(m);
 		}
@@ -4320,8 +4322,10 @@ void remove_small_pops(sys::state& state) {
 		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
 		if(state.world.pop_get_size(m) < 20.0f) {
 			//safely delete any regiment which has this pop as its source
-			for(auto reg : state.world.pop_get_regiment_source(m)) {
+			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
+				auto reg = *(state.world.pop_get_regiment_source(m).begin());
 				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
 			}
 			state.world.delete_pop(m);
 		}

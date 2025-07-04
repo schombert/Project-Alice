@@ -6199,8 +6199,10 @@ void apply_regiment_damage(sys::state& state) {
 			auto psize = state.world.pop_get_size(backing_pop);
 			if(psize <= 1.0f) {
 				//safely delete any regiment which has this pop as its source
-				for(auto reg : state.world.pop_get_regiment_source(backing_pop)) {
+				while(state.world.pop_get_regiment_source(backing_pop).begin() != state.world.pop_get_regiment_source(backing_pop).end()) {
+					auto reg = *(state.world.pop_get_regiment_source(backing_pop).begin());
 					military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
 				}
 				state.world.delete_pop(backing_pop);
 			}
