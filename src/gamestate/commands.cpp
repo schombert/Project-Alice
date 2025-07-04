@@ -2720,10 +2720,10 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 	return true;
 }
 
-void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	if (state.world.nation_get_is_player_controlled(asker)) {
-		auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
-		state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.askmilaccess_diplomatic_cost);
+void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	if (state.world.nation_get_is_player_controlled(from)) {
+		auto& current_diplo = state.world.nation_get_diplomatic_points(from);
+		state.world.nation_set_diplomatic_points(from, current_diplo - state.defines.askmilaccess_diplomatic_cost);
 	}
 
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
@@ -5301,6 +5301,16 @@ void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_de
 	p.data.pbutton.id = i;
 	add_to_command_queue(state, p);
 }
+bool can_see_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
+	auto& def = state.ui_defs.gui[d];
+	if(def.get_element_type() != ui::element_type::button)
+		return false;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::province)
+		return false;
+	if(!def.data.button.scriptable_visible)
+		return true;
+	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
+}
 bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
 	auto& def = state.ui_defs.gui[d];
 	if(def.get_element_type() != ui::element_type::button)
@@ -5309,7 +5319,9 @@ bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gu
 		return false;
 	if(!def.data.button.scriptable_enable)
 		return true;
-	return trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
+	// Button must be visible and enabled
+	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source)) &&
+	trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
 }
 void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
 	auto & def = state.ui_defs.gui[d];
@@ -5326,6 +5338,16 @@ void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_
 	p.data.nbutton.id = n;
 	add_to_command_queue(state, p);
 }
+bool can_see_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
+	auto& def = state.ui_defs.gui[d];
+	if(def.get_element_type() != ui::element_type::button)
+		return false;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
+		return false;
+	if(!def.data.button.scriptable_visible)
+		return true;
+	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
+}
 bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
 	auto& def = state.ui_defs.gui[d];
 	if(def.get_element_type() != ui::element_type::button)
@@ -5334,7 +5356,9 @@ bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_
 		return false;
 	if(!def.data.button.scriptable_enable)
 		return true;
-	return trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
+	// Button must be visible and enabled
+	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source)) &&
+	trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
 }
 void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
 	auto& def = state.ui_defs.gui[d];

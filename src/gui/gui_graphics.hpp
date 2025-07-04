@@ -148,8 +148,9 @@ struct button_data : public text_base_data {
 	//8bytes
 	dcon::gfx_object_id button_image; // 8+2bytes
 	dcon::trigger_key scriptable_enable; // 8 + 4 bytes
-	dcon::effect_key scriptable_effect; // 8 + 6 bytes
-	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+7 bytes
+	dcon::trigger_key scriptable_visible; // 8 + 6 bytes
+	dcon::effect_key scriptable_effect; // 8 + 8 bytes
+	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+9 bytes
 
 	clicksound get_clicksound() const {
 		return clicksound(text_base_data::flags & clicksound_mask);
@@ -161,7 +162,7 @@ struct button_data : public text_base_data {
 		return button_scripting(text_base_data::flags & button_scripting_mask);
 	}
 };
-static_assert(sizeof(button_data) == sizeof(text_base_data) + 8);
+static_assert(sizeof(button_data) == sizeof(text_base_data) + 12);
 
 inline constexpr int32_t text_background_bit_offset = 2;
 enum class text_background : uint8_t { // 2 bits
@@ -307,7 +308,7 @@ struct element_data {
 			position = position_data{};
 		}
 	} data; // +16 = 28
-	static_assert(sizeof(internal_data) == 16);
+	static_assert(sizeof(internal_data) == 20);
 
 	uint8_t flags = 0; // 29
 	uint8_t ex_flags = 0; // 30
@@ -330,7 +331,7 @@ struct element_data {
 		return (ex_flags & ex_is_top_level) != 0;
 	}
 };
-static_assert(sizeof(element_data) == 32);
+static_assert(sizeof(element_data) == 36);
 
 struct window_extension {
 	dcon::text_key window;

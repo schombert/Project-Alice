@@ -3126,6 +3126,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	//
 	// make ui scripts
 	//
+	for(auto& s : context.gfx_context.nation_buttons_visible) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			ui_defs.gui[s.button_element].data.button.scriptable_visible = make_trigger(s.generator_state, err, t_context);
+			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
 	for(auto& s : context.gfx_context.nation_buttons_allow) {
 		if(s.button_element) {
 			err.file_name = s.original_file;
@@ -3140,6 +3148,19 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::effect_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
 			ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
 			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_visible) {
+		if(s.button_element) {
+			err.file_name = s.original_file;
+			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				ui_defs.gui[s.button_element].data.button.scriptable_visible = make_trigger(s.generator_state, err, t_context);
+				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
 		}
 	}
 	for(auto& s : context.gfx_context.province_buttons_allow) {

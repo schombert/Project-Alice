@@ -36,6 +36,8 @@ struct building_gfx_context {
 	std::vector<simple_fs::file> gui_files;
 	ankerl::unordered_dense::map<std::string, dcon::gfx_object_id> map_of_names;
 	ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_texture_names;
+	std::vector<pending_button_script> province_buttons_visible;
+	std::vector<pending_button_script> nation_buttons_visible;
 	std::vector<pending_button_script> province_buttons_allow;
 	std::vector<pending_button_script> nation_buttons_allow;
 	std::vector<pending_button_script> province_buttons_effect;
@@ -143,21 +145,27 @@ struct button : public gui_element_common {
 };
 
 struct nation_script_button : public button {
+	int32_t added_visible = -1;
 	int32_t added_allow = -1;
 	int32_t added_effect = -1;
+	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
 struct province_script_button : public button {
+	int32_t added_visible = -1;
 	int32_t added_allow = -1;
 	int32_t added_effect = -1;
+	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
+bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool province_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool province_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool nation_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
 
@@ -222,8 +230,10 @@ struct scrollbar : public gui_element_common {
 struct window : public gui_element_common {
 	struct scripted_children {
 		uint32_t child_number;
+		int32_t pvisible = -1;
 		int32_t pallow = -1;
 		int32_t peffect = -1;
+		int32_t nvisible = -1;
 		int32_t nallow = -1;
 		int32_t neffect = -1;
 	};

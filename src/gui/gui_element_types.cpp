@@ -1921,6 +1921,7 @@ void province_script_button::on_update(sys::state& state) noexcept {
 		return;
 	}
 	disabled = !command::can_use_province_button(state, state.local_player_nation, base_definition, p);
+	visible = command::can_see_province_button(state, state.local_player_nation, base_definition, p);
 }
 void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto& def = state.ui_defs.gui[base_definition];
@@ -1943,7 +1944,7 @@ void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_
 	}
 
 	if(def.data.button.scriptable_enable) {
-		text::add_line(state, contents, "allow_reform_cond");
+		text::add_line(state, contents, "allow_reform_cond"); // Requirements:
 		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation));
 		text::add_line_break_to_layout(state, contents);
 	}
@@ -1977,6 +1978,7 @@ void nation_script_button::on_update(sys::state& state) noexcept {
 		return;
 	}
 	disabled = !command::can_use_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
+	visible = command::can_see_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
 }
 void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto& def = state.ui_defs.gui[base_definition];
