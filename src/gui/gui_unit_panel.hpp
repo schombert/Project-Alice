@@ -292,14 +292,23 @@ class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			std::vector<dcon::army_id> units;
-			units.push_back(content);
-			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
-		} else {
-			std::vector<dcon::navy_id> units;
-			units.push_back(content);
-			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+		if(state.user_settings.unit_disband_confirmation) {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				std::vector<dcon::army_id> units;
+				units.push_back(content);
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else {
+				std::vector<dcon::navy_id> units;
+				units.push_back(content);
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
+		}
+		else {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				command::delete_army(state, state.local_player_nation, content);
+			} else {
+				command::delete_navy(state, state.local_player_nation, content);
+			}
 		}
 		
 	}
@@ -2478,12 +2487,22 @@ public:
 class disband_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if (!state.selected_armies.empty()) {
-			std::vector<dcon::army_id> units = state.selected_armies;
-			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
-		} else if(!state.selected_navies.empty()) {
-			std::vector<dcon::navy_id> units = state.selected_navies;
-			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+		if(state.user_settings.unit_disband_confirmation) {
+			if(!state.selected_armies.empty()) {
+				std::vector<dcon::army_id> units = state.selected_armies;
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else if(!state.selected_navies.empty()) {
+				std::vector<dcon::navy_id> units = state.selected_navies;
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
+		}
+		else {
+			for(auto army : state.selected_armies) {
+				command::delete_army(state, state.local_player_nation, army);
+			}
+			for(auto navy : state.selected_navies) {
+				command::delete_navy(state, state.local_player_nation, navy);
+			}
 		}
 
 	}
@@ -2655,15 +2674,25 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		if(std::holds_alternative<dcon::army_id>(foru)) {
-			std::vector<dcon::army_id> units;
-			units.push_back(std::get<dcon::army_id>(foru));
-			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
-		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
-			std::vector<dcon::navy_id> units;
-			units.push_back(std::get<dcon::navy_id>(foru));
-			send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+		if(state.user_settings.unit_disband_confirmation) {
+			if(std::holds_alternative<dcon::army_id>(foru)) {
+				std::vector<dcon::army_id> units;
+				units.push_back(std::get<dcon::army_id>(foru));
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+				std::vector<dcon::navy_id> units;
+				units.push_back(std::get<dcon::navy_id>(foru));
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
+		else {
+			if(std::holds_alternative<dcon::army_id>(foru)) {
+				command::delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+			} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+				command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+			}
+		}
+		
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;

@@ -647,6 +647,22 @@ guiTypes = {
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
 			}
+			# unit disband confirmation setting
+			instantTextBoxType = {
+				name = "disband_confirmation_label"
+				position = { 78 96 }
+				text = "disband_confirmation_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "disband_confirmation_checkbox"
+				position = { 51 95 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Tooltip hovering style
 			instantTextBoxType = {
 				name = "tooltip_mode_label"
