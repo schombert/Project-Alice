@@ -3,7 +3,7 @@
 namespace ui {
 
 // Return text key for tooltips on the provided labour type
-std::string labour_type_to_employment_type_text_key(int32_t type) {
+std::string_view labour_type_to_employment_type_text_key(int32_t type) {
 	// TODO: implement the rest of labour types
 	if(type == economy::labor::high_education_and_accepted) {
 		return "employment_type_high_education_and_accepted";
@@ -19,7 +19,7 @@ std::string labour_type_to_employment_type_text_key(int32_t type) {
 	return "alice_invalid_value";
 }
 
-std::string labour_type_to_employment_name_text_key(int32_t labor_type) {
+std::string_view labour_type_to_employment_name_text_key(int32_t labor_type) {
 	switch(labor_type) {
 	case economy::labor::no_education:
 		return "alice_labor_no_education";

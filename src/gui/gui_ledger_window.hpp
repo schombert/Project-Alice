@@ -81,7 +81,7 @@ public:
 		send(state, parent, current_sort);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
+		return tooltip_behavior::tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		if(std::holds_alternative<dcon::pop_type_id>(type)) {
