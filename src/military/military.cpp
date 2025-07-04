@@ -5964,6 +5964,13 @@ inline constexpr float combat_modifier_table[] = { 0.0f, 0.02f, 0.04f, 0.06f, 0.
 		0.35f, 0.40f, 0.45f, 0.50f, 0.60f, 0.70f, 0.80f, 0.90f };
 
 
+
+void regiment_add_pending_damage_safe(sys::state& state, dcon::regiment_id reg, float value) {
+	float new_pending_dmg = std::min(state.world.regiment_get_strength(reg), value);
+	state.world.regiment_set_pending_damage(reg, state.world.regiment_get_pending_damage(reg) + new_pending_dmg);
+}
+
+
 void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value) {
 	if(state.world.regiment_get_strength(reg) >= value) {
 		state.world.regiment_set_strength(reg, state.world.regiment_get_strength(reg) - value);
@@ -5977,6 +5984,12 @@ void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value
 	} else {
 		state.world.ship_set_strength(reg, 0.0f);
 	}
+}
+
+
+void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value) {
+	regiment_add_pending_damage_safe(state, reg, value);
+	reduce_regiment_strength_safe(state, reg, value);
 }
 
 dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r) {
@@ -6129,10 +6142,7 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 		return;
 	}
 	for(auto rg : state.world.army_get_army_membership(army)) {
-		auto& cur_pending_dmg = rg.get_regiment().get_pending_damage();
-		rg.get_regiment().set_pending_damage(cur_pending_dmg + attrition_value);
-		auto& cur_strength = rg.get_regiment().get_strength();
-		military::reduce_regiment_strength_safe(state, rg.get_regiment(), attrition_value);
+		military::regiment_take_damage(state, rg.get_regiment(), attrition_value);
 	}
 }
 
@@ -6160,9 +6170,8 @@ void apply_regiment_damage(sys::state& state) {
 
 				if(backing_pop) {
 					auto& psize = state.world.pop_get_size(backing_pop);
-					state.world.pop_set_size(backing_pop, psize - state.defines.pop_size_per_regiment * pending_damage * state.defines.soldier_to_pop_damage /
-						(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
-						sys::national_mod_offsets::soldier_to_pop_loss))));
+					float damage_modifier = std::max(state.defines.soldier_to_pop_damage - state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss), 0.0f);
+					state.world.pop_set_size(backing_pop, psize - state.defines.pop_size_per_regiment * pending_damage * damage_modifier);
 				}
 				state.world.regiment_set_pending_damage(s, 0.0f);
 			}
@@ -6751,11 +6760,8 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = get_reg_str_damage(state, att_back[i], att_back_target, attacker_mod, true, true, defender_fort);
 					auto org_damage = get_reg_org_damage(state, att_back[i], att_back_target, attacker_mod, true, true, defender_fort);
 
-					auto& cstr = state.world.regiment_get_strength(att_back_target);
-					str_damage = std::min(str_damage, cstr);
-					state.world.regiment_set_pending_damage(att_back_target, state.world.regiment_get_pending_damage(att_back_target) + str_damage);
 
-					military::reduce_regiment_strength_safe(state, att_back_target, str_damage);
+					military::regiment_take_damage(state, att_back_target, str_damage);
 
 					defender_casualties += str_damage;
 
@@ -6802,11 +6808,7 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = get_reg_str_damage(state, def_back[i], def_back_target, defender_mod, true, false);
 					auto org_damage = get_reg_org_damage(state, def_back[i], def_back_target, defender_mod, true, false);
 
-					auto& cstr = state.world.regiment_get_strength(def_back_target);
-					str_damage = std::min(str_damage, cstr);
-					state.world.regiment_set_pending_damage(def_back_target, state.world.regiment_get_pending_damage(def_back_target) + str_damage);
-
-					military::reduce_regiment_strength_safe(state, def_back_target, str_damage);
+					military::regiment_take_damage(state, def_back_target, str_damage);
 
 					attacker_casualties += str_damage;
 
@@ -6854,12 +6856,8 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = get_reg_str_damage(state, att_front[i], att_front_target, attacker_mod, false, true, defender_fort);
 					auto org_damage = get_reg_org_damage(state, att_front[i], att_front_target, attacker_mod, false, true, defender_fort);
 
-					auto& cstr = state.world.regiment_get_strength(att_front_target);
-					str_damage = std::min(str_damage, cstr);
-					state.world.regiment_set_pending_damage(att_front_target, state.world.regiment_get_pending_damage(att_front_target) + str_damage);
 
-
-					military::reduce_regiment_strength_safe(state, att_front_target, str_damage);
+					military::regiment_take_damage(state, att_front_target, str_damage);
 					defender_casualties += str_damage;
 
 					adjust_regiment_experience(state, attacking_nation, att_front[i], str_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
@@ -6908,11 +6906,7 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = get_reg_str_damage(state, def_front[i], def_front_target, defender_mod, false, false);
 					auto org_damage = get_reg_org_damage(state, def_front[i], def_front_target, defender_mod, false, false);
 
-					auto& cstr = state.world.regiment_get_strength(def_front_target);
-					str_damage = std::min(str_damage, cstr);
-					state.world.regiment_set_pending_damage(def_front_target, state.world.regiment_get_pending_damage(def_front_target) + str_damage);
-					military::reduce_regiment_strength_safe(state, def_front_target, str_damage);
-
+					military::regiment_take_damage(state, def_front_target, str_damage);
 					attacker_casualties += str_damage;
 
 					adjust_regiment_experience(state, defending_nation, def_front[i], str_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);

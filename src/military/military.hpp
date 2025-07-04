@@ -474,6 +474,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
 void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
 void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
+void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
