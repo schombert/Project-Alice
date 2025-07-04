@@ -6089,7 +6089,11 @@ float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dco
 	return total_army_weight;
 }
 
-float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::optional<std::vector<dcon::army_id>>& extra_army_weight) {
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::vector<dcon::army_id>& extra_armies) {
+	return relative_attrition_amount(state, a, prov, sum_army_weight(state, extra_armies));
+}
+
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, float additional_army_weight) {
 	// an army cannot take attrition if it is blackflagged, retreating, or in a battle
 	if(state.world.army_get_black_flag(a) || state.world.army_get_is_retreating(a) || bool(state.world.army_get_battle_from_army_battle_participation(a))) {
 		return 0.0f;
@@ -6109,10 +6113,7 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 	taken in combat, meaning that it will reduce the size of the backing pop.
 	*/
 
-	float total_army_weight = local_army_weight(state, prov);
-	if(extra_army_weight.has_value()) {
-		total_army_weight += sum_army_weight(state, extra_army_weight.value());
-	}
+	float total_army_weight = local_army_weight(state, prov) + additional_army_weight;
 
 	auto supply_limit = supply_limit_in_province(state, army_controller, prov);
 	auto attrition_mods = std::max( 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition) + state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition), 0.0f);

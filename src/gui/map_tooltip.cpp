@@ -9,7 +9,7 @@
 namespace ui {
 
 float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, dcon::army_id current_army, const std::vector<dcon::army_id>& list, dcon::province_id prov) {
-	return military::relative_attrition_amount(state, current_army, prov, std::make_optional(list));
+	return military::relative_attrition_amount(state, current_army, prov, list);
 }
 
 void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
