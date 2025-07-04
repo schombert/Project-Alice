@@ -6103,7 +6103,8 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 	auto army_controller = ar.get_controller_from_army_control();
 	// if sea province, use the sea transport attrition, and apply national attrition modifiers
 	if(prov.index() >= state.province_definitions.first_sea_province.index()) {
-		return state.defines.alice_army_sea_transport_attrition * (1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition));
+		auto value = state.defines.alice_army_sea_transport_attrition * (1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition));
+		return value * 0.01f;
 	}
 
 	/*
