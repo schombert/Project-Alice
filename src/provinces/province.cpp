@@ -1262,6 +1262,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 
 	
 	if(new_owner) {
+		std::vector<dcon::regiment_id> to_be_deleted;
 		for(auto p : state.world.province_get_pop_location(id)) {
 			rebel::remove_pop_from_movement(state, p.get_pop());
 			rebel::remove_pop_from_rebel_faction(state, p.get_pop());
@@ -1282,14 +1283,18 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					//src.get_regiment().set_org(0.01f); // remove this so regiments keeps the same org as previously, otherwise civil wars/seceding nations have no chance as they start on 0 org.
 					military::army_arrives_in_province(state, new_u, loc, military::crossing_type::none);
 				} else {
-					// if the army is in a battle, is retreating, is on a transport, or is controlled by rebels, safely delete the regiment instead of transferring it to the new owner
-					military::delete_regiment_safe_wrapper(state, src.get_regiment());
+					// if the army is in a battle, is retreating, is on a transport, or is controlled by rebels,add to the delete list
+					to_be_deleted.push_back(src.get_regiment());
 				}
 			}
 			auto lc = p.get_pop().get_province_land_construction();
 			while(lc.begin() != lc.end()) {
 				state.world.delete_province_land_construction(*(lc.begin()));
 			}
+		}
+		//  safely delete the regiment instead of transferring it to the new owner
+		for(auto reg : to_be_deleted) {
+			military::delete_regiment_safe_wrapper(state, reg);
 		}
 	}
 

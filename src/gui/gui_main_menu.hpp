@@ -136,6 +136,13 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+
+class disband_confirmation_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
+
 class spoilers_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -326,6 +333,8 @@ class options_menu_window : public window_element_base {
 			return make_element_by_type<map_zoom_mode_right>(state, id);
 		} else if(name == "tooltip_mode_checkbox") {
 			return make_element_by_type<tooltip_mode_checkbox>(state, id);
+		} else if(name == "disband_confirmation_checkbox") {
+			return make_element_by_type<disband_confirmation_checkbox>(state, id);
 		} else if(name == "spoilers_checkbox") {
 			return make_element_by_type<spoilers_checkbox>(state, id);
 		} else if(name == "dm_popup_checkbox") {

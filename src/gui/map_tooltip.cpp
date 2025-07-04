@@ -8,39 +8,8 @@
 
 namespace ui {
 
-float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, std::vector<dcon::army_id>& list, dcon::province_id prov) {
-	float total_army_weight = 0.f;
-	for(auto army : list) {
-		auto ar = dcon::fatten(state.world, army);
-		if(ar.get_black_flag() == false && ar.get_is_retreating() == false && !bool(ar.get_navy_from_army_transport())) {
-			for(auto rg : ar.get_army_membership()) {
-				total_army_weight += 3.0f * rg.get_regiment().get_strength();
-			}
-		}
-	}
-	for(auto ar : state.world.province_get_army_location(prov)) {
-		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport())) {
-			for(auto rg : ar.get_army().get_army_membership()) {
-				total_army_weight += 3.0f * rg.get_regiment().get_strength();
-			}
-		}
-	}
-	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
-	auto army_controller = dcon::fatten(state.world, n);
-	auto supply_limit = military::supply_limit_in_province(state, army_controller, prov);
-	auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
-	float greatest_hostile_fort = 0.0f;
-	for(auto adj : state.world.province_get_province_adjacency(prov)) {
-		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
-			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
-			if(other.get_building_level(uint8_t(economy::province_building_type::fort)) > 0) {
-				if(military::are_at_war(state, army_controller, other.get_nation_from_province_control())) {
-					greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_building_level(uint8_t(economy::province_building_type::fort))));
-				}
-			}
-		}
-	}
-	return total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort) > 0;
+float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, dcon::army_id current_army, const std::vector<dcon::army_id>& list, dcon::province_id prov) {
+	return military::relative_attrition_amount(state, current_army, prov, list);
 }
 
 void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
@@ -128,7 +97,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ selected_relative_attrition_amount(state, state.local_player_nation, state.selected_armies, prov) });
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_percentage_two_places{ selected_relative_attrition_amount(state, state.local_player_nation, a , state.selected_armies, prov) });
 			auto resolved = text::resolve_string_substitution(state, "alice_unit_relative_attrition", sub);
 			box = text::open_layout_box(contents);
 			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
@@ -137,10 +106,11 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			auto army = dcon::fatten(state.world, a);
 			auto path = command::calculate_army_path(state, state.local_player_nation, a, army.get_location_from_army_location(), prov);
 			auto curprov = army.get_army_location().get_location().id;
+			auto current_path = army.get_path();
 
-			if (path.size() == 0) { /* No available route */ }
+			if (path.empty()) { /* No available route */ }
 
-			else if(army.get_arrival_time() && *(army.get_path().end()) == prov) {
+			else if(army.get_arrival_time() && army.get_path().size() > 0 && *(army.get_path().end() - 1) == prov) {
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
 				resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
@@ -148,11 +118,26 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			}
 			else {
 				auto dt = state.current_date;
+				auto army_path = army.get_path();
+				// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
+				if(army.get_path().size() > 0 && *(army.get_path().end() - 1) == path.back()) {
+					dt += (army.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
 
-				for(const auto provonpath : path) {
-					dt += military::movement_time_from_to(state, a, curprov, provonpath);
-					curprov = provonpath;
+					curprov = path.front();
+					for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
+						dt += military::movement_time_from_to(state, a, curprov, *provonpath);
+						curprov = *provonpath;;
+					}
+
 				}
+				else {
+					for(const auto provonpath : path) {
+						dt += military::movement_time_from_to(state, a, curprov, provonpath);
+						curprov = provonpath;
+					}
+				}
+
+				
 
 				sub = text::substitution_map{};
 				text::add_to_substitution_map(sub, text::variable_type::date, dt);
@@ -201,9 +186,9 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 				// Navy arrival time tooltip
 				// Zero arrival time to current province
-				if(prov == curprov) {
+				if(prov == curprov || path.empty()) {
 				}
-				else if(navy.get_arrival_time() && *(navy.get_path().end()) == prov) {
+				else if(navy.get_arrival_time() && navy.get_path().size() > 0 && *(navy.get_path().end() - 1) == prov) {
 					sub = text::substitution_map{};
 					text::add_to_substitution_map(sub, text::variable_type::date, navy.get_arrival_time());
 					auto resolved = " " + text::resolve_string_substitution(state, "unit_arrival_time_text", sub);
@@ -211,10 +196,25 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				} else {
 					auto dt = state.current_date;
 
-					for(const auto provonpath : path) {
-						dt += military::movement_time_from_to(state, n, curprov, provonpath);
-						curprov = provonpath;
+					// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
+					if(navy.get_path().size() > 0 && *(navy.get_path().end() - 1) == path.back()) {
+						dt += (navy.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
+
+						curprov = path.front();
+						for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
+							dt += military::movement_time_from_to(state, n, curprov, *provonpath);
+							curprov = *provonpath;;
+						}
+
 					}
+					else {
+						for(const auto provonpath : path) {
+							dt += military::movement_time_from_to(state, n, curprov, provonpath);
+							curprov = provonpath;
+						}
+					}
+
+					
 
 					sub = text::substitution_map{};
 					text::add_to_substitution_map(sub, text::variable_type::date, dt);

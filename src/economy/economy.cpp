@@ -1690,7 +1690,9 @@ void update_pop_consumption(
 
 		ve::apply(
 			[&](float transfer, dcon::nation_id n) {
-				state.world.nation_set_national_bank(n, state.world.nation_get_national_bank(n) + transfer);
+				if(state.world.nation_is_valid(n)) {
+					state.world.nation_set_national_bank(n, state.world.nation_get_national_bank(n) + transfer);
+				}
 				return 0;
 			}, bank_deposits, nations
 		);
@@ -1790,16 +1792,18 @@ void update_pop_consumption(
 				assert(!isinf(scale_life));
 				assert(!isinf(scale_everyday));
 				assert(!isinf(scale_luxury));
-
-				state.world.market_set_life_needs_scale(m, pop_type, state.world.market_get_life_needs_scale(m, pop_type) + scale_life);
-				state.world.market_set_everyday_needs_scale(m, pop_type, state.world.market_get_everyday_needs_scale(m, pop_type) + scale_everyday);
-				state.world.market_set_luxury_needs_scale(m, pop_type, state.world.market_get_luxury_needs_scale(m, pop_type) + scale_luxury);
-				auto zone = state.world.market_get_zone_from_local_market(m);
-				auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
-				state.world.nation_set_private_investment(nation, state.world.nation_get_private_investment(nation) + investment);
-				if(nation == state.local_player_nation) {
-					state.ui_state.last_tick_investment_pool_change += investment;
+				if(state.world.market_is_valid(m)) {
+					state.world.market_set_life_needs_scale(m, pop_type, state.world.market_get_life_needs_scale(m, pop_type) + scale_life);
+					state.world.market_set_everyday_needs_scale(m, pop_type, state.world.market_get_everyday_needs_scale(m, pop_type) + scale_everyday);
+					state.world.market_set_luxury_needs_scale(m, pop_type, state.world.market_get_luxury_needs_scale(m, pop_type) + scale_luxury);
+					auto zone = state.world.market_get_zone_from_local_market(m);
+					auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
+					state.world.nation_set_private_investment(nation, state.world.nation_get_private_investment(nation) + investment);
+					if(nation == state.local_player_nation) {
+						state.ui_state.last_tick_investment_pool_change += investment;
+					}
 				}
+				
 		},
 			markets,
 			final_demand_scale_life,
