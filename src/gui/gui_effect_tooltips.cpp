@@ -1975,11 +1975,17 @@ uint32_t ef_life_rating(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t ef_religion(EFFECT_DISPLAY_PARAMS) {
 	{
+		auto rel = trigger::payload(tval[1]).rel_id;
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(rel));
 		text::localised_format_box(ws, layout, box, "make_national_religion", m);
 		text::close_layout_box(layout, box);
+		auto mod_id = ws.world.religion_get_nation_modifier(rel);
+		if(bool(mod_id)) {
+			text::add_line(ws, layout, "giving_modifier");
+			modifier_description(ws, layout, mod_id, 15);
+		}
 	}
 	return 0;
 }

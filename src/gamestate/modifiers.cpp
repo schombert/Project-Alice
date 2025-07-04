@@ -269,6 +269,10 @@ void recreate_national_modifiers(sys::state& state) {
 			apply_modifier_values_to_nation(state, n, nv);
 	}
 	for(auto n : state.world.in_nation) {
+		if(auto rgmd = n.get_religion().get_nation_modifier(); rgmd)
+			apply_modifier_values_to_nation(state, n, rgmd);
+	}
+	for(auto n : state.world.in_nation) {
 		for(auto mpr : state.world.nation_get_current_modifiers(n)) {
 			apply_modifier_values_to_nation(state, n, mpr.mod_id);
 		}
