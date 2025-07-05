@@ -5314,7 +5314,8 @@ bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::sc
 	if(!allow)
 		return true;
 	// Button must be visible and enabled
-	return trigger::evaluate(state, visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source)) &&
+
+	return (!visible || trigger::evaluate(state, visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source))) &&
 	trigger::evaluate(state, allow, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
 }
 void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p) {
@@ -5345,7 +5346,7 @@ bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scri
 	if(!allow)
 		return true;
 	// Button must be visible and enabled
-	return trigger::evaluate(state, visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source)) &&
+	return (!visible || trigger::evaluate(state, visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source))) &&
 	trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
 }
 void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
