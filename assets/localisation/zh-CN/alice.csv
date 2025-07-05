@@ -1565,7 +1565,7 @@ PROVINCEVIEW_GOODSINCOME;售出 ?Y$x$?W ?Y$GOODS$?W 为 ?Y$VALUE$?W 昨天
 employment_type_no_education;雇佣类型：?Y无教育?W
 employment_type_basic_education;雇佣类型：?Y基本教育?W
 employment_type_high_education_and_accepted;雇佣类型：?Y公认高等教育?W
-employment_type_high_education;雇佣类型?Y高等教育?W
+employment_type_high_education;雇佣类型：?Y高等教育?W
 alice_trade_attractiveness;贸易路线吸引
 trade_center;贸易中心
 trade_center_desc;贸易中心管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
@@ -1606,3 +1606,6 @@ market_tile;本地市场
 alice_sort_pops;种族
 alice_sort_states;地区
 alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W
+employment_type_guild_education;雇佣类型：?Y行会教育?W
+employment_type_basic_education;雇佣类型：?Y基本教育?W
+employment_type_no_education;雇佣类型：?Y无教育?W
