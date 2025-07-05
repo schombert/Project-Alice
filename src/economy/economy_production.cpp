@@ -148,6 +148,12 @@ float max_rgo_efficiency(sys::state& state, dcon::nation_id n, dcon::province_id
 
 	float result = base_amount
 		* main_rgo
+		*
+			(
+				(state.world.province_get_demographics(p, demographics::literacy) + 1.f)
+				/ (state.world.province_get_demographics(p, demographics::total) + 1.f)
+				+ 0.05f
+			)
 		* std::max(0.5f, throughput)
 		* state.defines.alice_rgo_boost // sizable compensation for efficiency being not free
 		* std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
@@ -1535,7 +1541,7 @@ void update_employment(sys::state& state) {
 		auto price_prediction = (price_output + price_speed);
 		auto size = state.world.factory_get_size(facids);
 
-		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids);
+		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids) * (1.f + capitalists_greed);
 
 		auto gradient = get_profit_gradient(
 			profit_per_worker,

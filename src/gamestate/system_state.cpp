@@ -4088,7 +4088,7 @@ void state::single_game_tick() {
 	});
 
 	// apply in parallel where we can
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
 		case 0:
 		{
@@ -4124,25 +4124,17 @@ void state::single_game_tick() {
 		}
 		case 4:
 		{
-			auto o = uint32_t(ymd_date.day + 4);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_literacy(*this, o, days_in_month);
-			break;
-		}
-		case 5:
-		{
 			auto o = uint32_t(ymd_date.day + 5);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_growth(*this, o, days_in_month);
 			break;
 		}
-		case 6:
+		case 5:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
 			break;
-		case 7:
+		case 6:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
 			break;

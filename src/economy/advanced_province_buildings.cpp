@@ -94,7 +94,7 @@ const advanced_building_definition definitions[services::list::total] = {
 	{
 		.throughput_labour_type = economy::labor::high_education,
 		.output = services::list::education,
-		.output_amount = 10.f,
+		.output_amount = 30.f,
 	}
 };
 

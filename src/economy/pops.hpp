@@ -2,23 +2,14 @@
 
 #include "system_state.hpp"
 #include "commodities.hpp"
+#include "advanced_province_buildings.hpp"
 
 namespace economy {
 
-
-float adjusted_subsistence_score(
+template<typename VALUE, typename POPS>
+VALUE adjusted_subsistence_score(
 	const sys::state& state,
-	dcon::province_id p
-) {
-	return state.world.province_get_subsistence_score(p)
-		* state.world.province_get_subsistence_employment(p)
-		/ (state.world.province_get_demographics(p, demographics::total) + 1.f);
-}
-
-template<typename T>
-ve::fp_vector ve_adjusted_subsistence_score(
-	const sys::state& state,
-	T p
+	POPS p
 ) {
 	return state.world.province_get_subsistence_score(p)
 		* state.world.province_get_subsistence_employment(p)
@@ -65,7 +56,7 @@ VALUE inline investment_rate(const sys::state& state, POPS ids) {
 	auto nation_rules = state.world.nation_get_combined_issue_rules(nations);
 	auto is_civilised = state.world.nation_get_is_civilized(nations);
 	auto allows_investment_mask = (nation_rules & can_invest) != 0;
-	ve::mask_vector nation_allows_investment = is_civilised && allows_investment_mask;
+	auto nation_allows_investment = is_civilised && allows_investment_mask;
 
 	auto capitalists_mask = pop_type == state.culture_definitions.capitalists;
 	auto middle_class_investors_mask = pop_type == state.culture_definitions.artisans || pop_type == state.culture_definitions.secondary_factory_worker;
@@ -149,9 +140,30 @@ VALUE inline bank_saving_rate(const sys::state& state, POPS ids) {
 	return bank_saving_ratio;
 }
 
+namespace adaptive_ve {
+template<typename VALUE>
+VALUE min(VALUE a, VALUE b) {
+	if constexpr(std::same_as<VALUE, float>) {
+		return std::min(a, b);
+	} else {
+		return ve::min(a, b);
+	}
+}
+template<typename VALUE>
+VALUE max(VALUE a, VALUE b) {
+	if constexpr(std::same_as<VALUE, float>) {
+		return std::max(a, b);
+	} else {
+		return ve::max(a, b);
+	}
+}
+}
 
-template<typename VALUE, typename POPS>
-vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS ids) {
+template<typename POPS>
+auto inline prepare_pop_budget(
+	const sys::state& state, POPS ids
+) {
+	using VALUE = std::conditional<std::same_as<POPS, dcon::pop_id>, float, ve::fp_vector>::type;
 	vectorized_pops_budget<VALUE> result{ };
 
 	auto pop_size = state.world.pop_get_size(ids);
@@ -163,17 +175,17 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 	auto pop_type = state.world.pop_get_poptype(ids);
 	auto strata = state.world.pop_type_get_strata(pop_type);
 
-	auto life_costs = ve::apply(
+	VALUE life_costs = ve::apply(
 		[&](dcon::market_id m, dcon::pop_type_id pt) {
 			return state.world.market_get_life_needs_costs(m, pt);
 		}, markets, pop_type
 	);
-	auto everyday_costs = ve::apply(
+	VALUE everyday_costs = ve::apply(
 		[&](dcon::market_id m, dcon::pop_type_id pt) {
 			return state.world.market_get_everyday_needs_costs(m, pt);
 		}, markets, pop_type
 	);
-	auto luxury_costs = ve::apply(
+	VALUE luxury_costs = ve::apply(
 		[&](dcon::market_id m, dcon::pop_type_id pt) {
 			return state.world.market_get_luxury_needs_costs(m, pt);
 		}, markets, pop_type
@@ -190,21 +202,21 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
 
-	auto base_life_costs = (0.00001f + life_costs * pop_size / state.defines.alice_needs_scaling_factor);
-	auto is_poor = ve::max(0.f, 1.f - 4.f * savings / base_life_costs);
-	auto current_life = pop_demographics::get_life_needs(state, ids);
-	is_poor = ve::min(1.f, ve::max(0.f, is_poor + (1.f - current_life) * 2.f));
+	VALUE base_life_costs = (0.00001f + life_costs * pop_size / state.defines.alice_needs_scaling_factor);
+	VALUE is_poor = adaptive_ve::max<VALUE>(0.f, 1.f - 4.f * savings / base_life_costs);
+	VALUE current_life = pop_demographics::get_life_needs(state, ids);
+	is_poor = adaptive_ve::min<VALUE>(1.f, adaptive_ve::max<VALUE>(0.f, is_poor + (1.f - current_life) * 2.f));
 
 	// prepare desired spending rate for every category
 
-	auto life_spending_ratio = state.defines.alice_needs_lf_spend * (1.f - is_poor) + is_poor;
-	auto everyday_spending_ratio = state.defines.alice_needs_ev_spend * (1.f - is_poor);	
-	auto luxury_spending_ratio = state.defines.alice_needs_lx_spend * (1.f - is_poor);
-	auto education_spending_ratio = (0.2f) * (1.f - is_poor);
-	auto investment_ratio = ve::max(investment_rate<decltype(pop_size)>(state, ids), 0.0f);
-	auto banking_ratio = ve::max(bank_saving_rate<decltype(pop_size)>(state, ids), 0.0f);
+	VALUE life_spending_ratio = state.defines.alice_needs_lf_spend * (1.f - is_poor) + is_poor;
+	VALUE everyday_spending_ratio = state.defines.alice_needs_ev_spend * (1.f - is_poor);
+	VALUE luxury_spending_ratio = state.defines.alice_needs_lx_spend * (1.f - is_poor);
+	VALUE education_spending_ratio = (0.2f) * (1.f - is_poor);
+	VALUE investment_ratio = adaptive_ve::max<VALUE>(investment_rate<VALUE>(state, ids), 0.0f);
+	VALUE banking_ratio = adaptive_ve::max<VALUE>(bank_saving_rate<VALUE>(state, ids), 0.0f);
 
-	auto total_spending_ratio =
+	VALUE total_spending_ratio =
 		life_spending_ratio
 		+ everyday_spending_ratio
 		+ luxury_spending_ratio
@@ -224,12 +236,12 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 
 	// set actual budgets
 
-	auto spend_on_life_needs		= life_spending_ratio		* savings;
-	auto spend_on_everyday_needs	= everyday_spending_ratio	* savings;
-	auto spend_on_luxury_needs		= luxury_spending_ratio		* savings;
-	auto spend_on_education			= education_spending_ratio	* savings;
-	auto spend_on_investments		= investment_ratio			* savings;
-	auto spend_on_bank_savings		= banking_ratio				* savings;
+	VALUE spend_on_life_needs		= life_spending_ratio		* savings;
+	VALUE spend_on_everyday_needs	= everyday_spending_ratio	* savings;
+	VALUE spend_on_luxury_needs		= luxury_spending_ratio		* savings;
+	VALUE spend_on_education		= education_spending_ratio	* savings;
+	VALUE spend_on_investments		= investment_ratio			* savings;
+	VALUE spend_on_bank_savings		= banking_ratio				* savings;
 
 	// upload data to structure
 	// here we do logic which can't be made uniform
@@ -239,21 +251,21 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 	// life needs
 	// ##########
 
-	ve::fp_vector old_life = pop_demographics::get_life_needs(state, ids);
-	auto subsistence = ve_adjusted_subsistence_score(state, provs);
+	VALUE old_life = pop_demographics::get_life_needs(state, ids);
+	VALUE subsistence = adjusted_subsistence_score<VALUE, decltype(provs)>(state, provs);
 	auto rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(pop_type);
 	subsistence = ve::select(rgo_worker, subsistence, 0.f);
-	auto available_subsistence = ve::min(subsistence_score_life, subsistence);
+	VALUE available_subsistence = adaptive_ve::min<VALUE>(subsistence_score_life, subsistence);
 	subsistence = subsistence - available_subsistence;
-	auto qol_from_subsistence = available_subsistence / subsistence_score_life;
-	auto demand_scale_life = old_life / base_qol;
+	VALUE qol_from_subsistence = available_subsistence / subsistence_score_life;
+	VALUE demand_scale_life = old_life / base_qol;
 	result.life_needs.demand_scale = demand_scale_life * demand_scale_life;
 	result.life_needs.required =
 		result.life_needs.demand_scale
 		* life_costs
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
-	result.life_needs.spent = ve::min(spend_on_life_needs, result.life_needs.required);
+	result.life_needs.spent = adaptive_ve::min<VALUE>(spend_on_life_needs, result.life_needs.required);
 	auto zero_life_costs = result.life_needs.required == 0;
 	result.life_needs.satisfied_with_money_ratio = ve::select(
 		zero_life_costs,
@@ -271,7 +283,7 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 	// everyday needs
 	// ##############
 
-	ve::fp_vector old_everyday = pop_demographics::get_everyday_needs(state, ids);
+	auto old_everyday = pop_demographics::get_everyday_needs(state, ids);
 	auto demand_scale_everyday = old_everyday / base_qol;
 	result.everyday_needs.demand_scale = demand_scale_everyday * demand_scale_everyday;
 	result.everyday_needs.required =
@@ -279,7 +291,7 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 		* everyday_costs
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
-	result.everyday_needs.spent = ve::min(spend_on_everyday_needs, result.everyday_needs.required);
+	result.everyday_needs.spent = adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required);
 	auto zero_everyday_costs = result.everyday_needs.required == 0;
 	result.everyday_needs.satisfied_with_money_ratio = ve::select(
 		zero_everyday_costs,
@@ -297,7 +309,7 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 	// luxury needs
 	// ############
 
-	ve::fp_vector old_luxury = pop_demographics::get_luxury_needs(state, ids);
+	auto old_luxury = pop_demographics::get_luxury_needs(state, ids);
 	auto demand_scale_luxury = old_luxury / base_qol;
 	result.luxury_needs.demand_scale = demand_scale_luxury * demand_scale_luxury;
 	result.luxury_needs.required =
@@ -305,7 +317,7 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 		* luxury_costs
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
-	result.luxury_needs.spent = ve::min(spend_on_luxury_needs, result.luxury_needs.required);
+	result.luxury_needs.spent = adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required);
 	auto zero_luxury_costs = result.luxury_needs.required == 0;
 	result.luxury_needs.satisfied_for_free_ratio = 0.f;
 	result.luxury_needs.satisfied_with_money_ratio = ve::select(
@@ -324,10 +336,10 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 	// #########
 
 	auto literacy = pop_demographics::get_literacy(state, ids);
-	result.education.demand_scale = (0.0000001f + literacy * literacy) * 2.f;
+	result.education.demand_scale = literacy;
 	auto required_education = result.education.demand_scale * pop_size;
 	result.education.required = required_education * state.world.province_get_service_price(provs, services::list::education);
-	auto supposed_to_spend = ve::min(spend_on_education, result.education.required);
+	auto supposed_to_spend = adaptive_ve::min<VALUE>(spend_on_education, result.education.required);
 
 	auto potentially_free_ratio = state.world.province_get_service_satisfaction_for_free(provs, services::list::education);
 	auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);	
@@ -374,7 +386,8 @@ vectorized_pops_budget<VALUE> prepare_pop_budget(const sys::state& state, POPS i
 	return result;
 }
 
-void update_consumption(
+// MOVE TO CPP FILE!!!
+void inline update_consumption(
 	sys::state& state,
 	ve::vectorizable_buffer<float, dcon::nation_id>& invention_count
 ) {
@@ -396,10 +409,10 @@ void update_consumption(
 		auto pop_size = state.world.pop_get_size(ids);
 
 		// get all data into vectors
-		vectorized_pops_budget<ve::fp_vector> data = prepare_pop_budget<ve::fp_vector, decltype(ids)>(state, ids);
+		vectorized_pops_budget<ve::fp_vector> data = prepare_pop_budget(state, ids);
 
 		auto base_shift = ve::fp_vector{ 1.f / 200.f };
-		auto small_shift = ve::fp_vector{ 1.f / 5000.f };
+		auto small_shift = pop_demographics::pop_u16_scaling;
 
 		ve::fp_vector shift_life = ve::select(
 			data.life_needs.satisfied_with_money_ratio + data.life_needs.satisfied_for_free_ratio > 0.9f,

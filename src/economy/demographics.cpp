@@ -9,6 +9,7 @@
 #include "ve_scalar_extensions.hpp"
 #include "container_types.hpp"
 #include "economy_stats.hpp"
+#include "pops.hpp"
 
 // #define CHECK_LLVM_RESULTS
 
@@ -2331,83 +2332,19 @@ float get_estimated_con_change(sys::state& state, dcon::nation_id n) {
 	return t != 0.f ? sum / t : 0.f;
 }
 
-
-void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
-	/*
-	the literacy of each pop changes by:
-	0.01
-	x define:LITERACY_CHANGE_SPEED
-	x (0.5 + 0.5 * education-spending)
-	x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) /
-	(define:MAX_CLERGY_FOR_LITERACY
-	- define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0).
-
-	(by peter) additional multiplier to make getting/losing high literacy harder:
-	change = change * (1 - current-literacy)
-
-	Literacy cannot drop below 0.01.
-	*/
-
-	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
-
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
-		auto loc = state.world.pop_get_province_from_pop_location(ids);
-		auto owner = state.world.province_get_nation_from_province_ownership(loc);
-		auto cfrac =
-				state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
-
-		auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-		auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
-		auto espending = 0.5f + 
-				(ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner) * 0.5f;
-		auto cmod = ve::max(
-			0.0f,
-			ve::min(
-				1.0f,
-				(cfrac - state.defines.base_clergy_for_literacy)
-				/ (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)
-			)
-		);
-
-		auto old_lit = pop_demographics::get_literacy(state, ids);
-		auto new_lit = ve::min(
-				ve::max(
-					old_lit
-					+ (0.01f * state.defines.literacy_change_speed)
-					* (
-						(
-							(espending * cmod)
-							* (tmod * nmod)
-						) *
-						(
-							1.f - old_lit
-						)
-					), 0.01f
-				), 1.0f);
-
-		pop_demographics::set_literacy(state, ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
-	});
-}
-
 float get_estimated_literacy_change(sys::state& state, dcon::pop_id ids) {
-	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
-
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
-	auto owner = state.world.province_get_nation_from_province_ownership(loc);
-	auto cfrac =
-		state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
-
-	auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-	auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
-	auto espending =
-		(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
-	auto cmod = std::max(0.0f, std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
-		(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
-
-	auto old_lit = pop_demographics::get_literacy(state, ids);
-	auto new_lit = std::min(std::max(old_lit + (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod)), 0.01f), 1.0f);
-
-	return new_lit - old_lit;
+	auto pop_budget = economy::pops::prepare_pop_budget(state, ids);
+	
+	auto shift_literacy = ve::select(
+		pop_budget.education.satisfied_with_money_ratio + pop_budget.education.satisfied_for_free_ratio > 0.9f,
+		pop_demographics::pop_u16_scaling,
+		ve::select(
+			pop_budget.education.satisfied_with_money_ratio + pop_budget.education.satisfied_for_free_ratio < 0.7f,
+			-pop_demographics::pop_u16_scaling,
+			0.f
+		)
+	);
+	return shift_literacy;
 }
 
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {

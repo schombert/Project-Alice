@@ -2789,7 +2789,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// update needs satisfaction depending on actually available goods and services:
 
 	auto base_shift_satisfaction = ve::fp_vector{ 1.f / 200.f };
-	auto base_shift_literacy = ve::fp_vector{ 1.f / 10000.f };
+	auto base_shift_literacy = pop_demographics::pop_u16_scaling;
 	state.world.execute_serial_over_pop([&](auto ids) {
 		auto province = state.world.pop_get_province_from_pop_location(ids);
 		auto local_state = state.world.province_get_state_membership(province);
@@ -3284,11 +3284,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto market = si.get_state().get_market_from_local_market();
 
 				// we forgive some debt to avoid death spirals:
-				// it generates a bit of money to keep the economy running
-				if(market.get_stockpile(economy::money) < 0.f) {
-					market.set_stockpile(economy::money, market.get_stockpile(economy::money) * 0.9f);
-				}
-
+				market.set_stockpile(economy::money, market.get_stockpile(economy::money) * state.inflation);
+				
 				auto trade_income = market.get_stockpile(economy::money) * 0.3f;
 				if(trade_income > 0.f) {
 					market.set_stockpile(economy::money, market.get_stockpile(economy::money) * 0.7f);
