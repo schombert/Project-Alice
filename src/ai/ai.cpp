@@ -42,6 +42,7 @@ void take_ai_decisions(sys::state& state) {
 					&& state.world.nation_get_owned_province_count(ids) != 0;
 				if(ve::compress_mask(filter_a).v != 0) {
 					// empty allow assumed to be an "always = yes"
+					// empty potential assumed to be an "always = yes"
 					ve::mask_vector filter_b = potential
 						? filter_a && (trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0))
 						: filter_a;
@@ -83,6 +84,7 @@ void take_ai_decisions(sys::state& state) {
 		auto n = v.second;
 		auto d = v.first;
 		auto e = state.world.decision_get_effect(d);
+		// The effect of a prior decision once taken may invalidate the conditions that enabled another copy of the decision in the simultaneous evaluation to be taken
 		if(trigger::evaluate(state, state.world.decision_get_potential(d), trigger::to_generic(n), trigger::to_generic(n), 0)
 		&& trigger::evaluate(state, state.world.decision_get_allow(d), trigger::to_generic(n), trigger::to_generic(n), 0)) {
 			effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t(n.index() << 4 ^ d.index()));
@@ -123,6 +125,7 @@ void take_ai_scripted_interactions(sys::state& state) {
 					&& state.world.nation_get_owned_province_count(ids) != 0;
 				if(ve::compress_mask(filter_a).v != 0) {
 					// empty allow assumed to be an "always = yes"
+					// empty visible assumed to be an "always = yes"
 					ve::mask_vector filter_b = potential
 						? filter_a && (trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0))
 						: filter_a;
@@ -165,6 +168,7 @@ void take_ai_scripted_interactions(sys::state& state) {
 		auto d = v.first;
 		auto potential = state.world.scripted_interaction_get_visible(d);
 		auto e = state.world.scripted_interaction_get_effect(d);
+		// The effect of a prior interaction once taken may invalidate the conditions that enabled another copy of the interaction in the simultaneous evaluation to be taken
 		if((!potential || trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0))
 		&& trigger::evaluate(state, state.world.scripted_interaction_get_allow(d), trigger::to_generic(n), trigger::to_generic(n), 0)) {
 			effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t(n.index() << 4 ^ d.index()));
