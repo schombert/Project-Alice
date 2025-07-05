@@ -141,11 +141,11 @@ enum class command_type : uint8_t {
 };
 
 struct pbutton_data {
-	dcon::gui_def_id button;
+	dcon::scripted_interaction_id interaction;
 	dcon::province_id id;
 };
 struct nbutton_data {
-	dcon::gui_def_id button;
+	dcon::scripted_interaction_id interaction;
 	dcon::nation_id id;
 };
 
@@ -898,14 +898,13 @@ void take_province(sys::state& state, dcon::nation_id source, dcon::province_id 
 bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
 void execute_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);
-bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);
-bool can_see_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p);
+void use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p);
+bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p);
+bool can_see_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p);
 
-
-void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
-bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
-bool can_see_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
+void use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n);
+bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n);
+bool can_see_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n);
 
 
 /*

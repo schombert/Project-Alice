@@ -5846,6 +5846,39 @@ relationship{
 	}
 }
 
+object {
+	name{ scripted_interaction }
+	storage_type{ contiguous }
+	size{ 127 }
+	tag{ scenario }
+
+	property{
+		name{ gui_element }
+		type{ gui_def_id }
+		tag{ scenario }
+	}
+	property{
+		name{ visible }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ allow }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ ai_will_do }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+}
+
 load_save{
 	name{store_scenario}
 	only_objects{scenario}

@@ -27,7 +27,7 @@ std::string lowercase_str(std::string_view sv);
 struct pending_button_script {
 	std::string original_file;
 	token_generator generator_state;
-	dcon::gui_def_id button_element;
+	dcon::scripted_interaction_id scripted_element;
 };
 
 struct building_gfx_context {

@@ -5292,78 +5292,67 @@ void execute_take_province(sys::state& state, dcon::nation_id source, dcon::prov
 	fid.get_province_control_as_province().set_nation(source);
 }
 
-void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id i) {
+void use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id i) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::pbutton_script;
 	p.source = source;
-	p.data.pbutton.button = d;
+	p.data.pbutton.interaction = sel;
 	p.data.pbutton.id = i;
 	add_to_command_queue(state, p);
 }
-bool can_see_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
-	auto& def = state.ui_defs.gui[d];
-	if(def.get_element_type() != ui::element_type::button)
-		return false;
-	if(def.data.button.get_button_scripting() != ui::button_scripting::province)
-		return false;
-	if(!def.data.button.scriptable_visible)
+bool can_see_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p) {
+	auto visible = state.world.scripted_interaction_get_visible(sel);
+	if(!visible)
 		return true;
-	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
+	return trigger::evaluate(state, visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
 }
-bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
-	auto& def = state.ui_defs.gui[d];
-	if(def.get_element_type() != ui::element_type::button)
-		return false;
-	if(def.data.button.get_button_scripting() != ui::button_scripting::province)
-		return false;
-	if(!def.data.button.scriptable_enable)
+bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p) {
+	auto allow = state.world.scripted_interaction_get_allow(sel);
+	auto visible = state.world.scripted_interaction_get_visible(sel);
+
+	if(!allow)
 		return true;
 	// Button must be visible and enabled
-	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source)) &&
-	trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
+	return trigger::evaluate(state, visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source)) &&
+	trigger::evaluate(state, allow, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
 }
-void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
-	auto & def = state.ui_defs.gui[d];
-	if(def.data.button.scriptable_effect)
-		effect::execute(state, def.data.button.scriptable_effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(p.index() ^ (d.index() << 4)));
+void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p) {
+	auto effect = state.world.scripted_interaction_get_effect(sel);
+	if(effect)
+		effect::execute(state, effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(p.index() ^ (sel.index() << 4)));
 }
 
-void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
+void use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::nbutton_script;
 	p.source = source;
-	p.data.nbutton.button = d;
+	p.data.nbutton.interaction = sel;
 	p.data.nbutton.id = n;
 	add_to_command_queue(state, p);
 }
-bool can_see_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
-	auto& def = state.ui_defs.gui[d];
-	if(def.get_element_type() != ui::element_type::button)
-		return false;
-	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
-		return false;
-	if(!def.data.button.scriptable_visible)
+bool can_see_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
+	auto visible = state.world.scripted_interaction_get_visible(sel);
+	if(!visible)
 		return true;
-	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
+	return trigger::evaluate(state, visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
 }
-bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
-	auto& def = state.ui_defs.gui[d];
-	if(def.get_element_type() != ui::element_type::button)
-		return false;
-	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
-		return false;
-	if(!def.data.button.scriptable_enable)
+bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
+	auto allow = state.world.scripted_interaction_get_allow(sel);
+	auto visible = state.world.scripted_interaction_get_visible(sel);
+
+	if(!allow)
 		return true;
 	// Button must be visible and enabled
-	return trigger::evaluate(state, def.data.button.scriptable_visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source)) &&
-	trigger::evaluate(state, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
+	return trigger::evaluate(state, visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source)) &&
+	trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
 }
-void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
-	auto& def = state.ui_defs.gui[d];
-	if(def.data.button.scriptable_effect)
-		effect::execute(state, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(n.index() ^ (d.index() << 4)));
+void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
+	auto effect = state.world.scripted_interaction_get_effect(sel);
+
+	if(effect)
+		effect::execute(state, effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source), uint32_t(state.current_date.value), uint32_t(n.index() ^ (sel.index() << 4)));
 }
 
 void post_chat_message(sys::state& state, ui::chat_message& m) {
@@ -6245,9 +6234,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::toggle_interested_in_alliance:
 		return can_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
 	case command_type::pbutton_script:
-		return can_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
+		return can_use_province_button(state, c.source, c.data.pbutton.interaction, c.data.pbutton.id);
 	case command_type::nbutton_script:
-		return can_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
+		return can_use_nation_button(state, c.source, c.data.nbutton.interaction, c.data.nbutton.id);
 
 		// common mp commands
 	case command_type::chat_message:
@@ -6641,10 +6630,10 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
 		break;
 	case command_type::pbutton_script:
-		execute_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
+		execute_use_province_button(state, c.source, c.data.pbutton.interaction, c.data.pbutton.id);
 		break;
 	case command_type::nbutton_script:
-		execute_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
+		execute_use_nation_button(state, c.source, c.data.nbutton.interaction, c.data.nbutton.id);
 		break;
 		// common mp commands
 	case command_type::chat_message:
