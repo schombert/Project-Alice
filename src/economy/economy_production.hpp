@@ -31,19 +31,8 @@ struct inputs_data {
 template<typename SET>
 inputs_data get_inputs_data(sys::state& state, dcon::market_id markets, SET const& inputs);
 
-void update_single_factory_production(
-	sys::state& state,
-	dcon::factory_id f,
-	dcon::market_id m,
-	dcon::nation_id n
-);
-
-void update_province_rgo_production(
-	sys::state& state,
-	dcon::province_id p,
-	dcon::market_id m,
-	dcon::nation_id n
-);
+void update_factories_production(sys::state& state);
+void update_rgo_production(sys::state& state);
 
 float base_artisan_profit(
 	sys::state& state,

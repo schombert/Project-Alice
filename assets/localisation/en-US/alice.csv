@@ -651,6 +651,12 @@ pop_lit_5;The national education-efficiency modifier: $x$
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$
 pop_lit_7;The base literacy change rate: $x$
 pop_lit_8;And 0.01
+pop_literacy_spending;Pop is planning to spend ?Y$val$?W on education.
+pop_literacy_spending_required;Max education spendings: ?Y$val$?W.
+pop_literacy_spending_public;?Y$val$?W of expenses will be covered by public education budget.
+pop_literacy_spending_ratio;Satisfied ratio: ?Y$x$?W.
+pop_literacy_spending_result_success;As ?Y$x$?W is higher than ?Y$y$?W, literacy was increased by ?Y$val$?W
+pop_literacy_spending_result_failure;As ?Y$x$?W is lower than ?Y$y$?W, literacy was decreased by ?Y$val$?W
 pop_growth_topbar;It's expected to grow by ?G$x$?W within the next month.
 pop_growth_topbar_2;population changed by ?G$x$?W in the last ?Y30?W days.
 pop_growth_topbar_3;Our Adult male population is ?Y$curr$?W. Our adult male

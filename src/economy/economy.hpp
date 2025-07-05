@@ -94,7 +94,7 @@ inline constexpr float subsistence_score_life = 30.0f;
 inline constexpr float subsistence_score_total = subsistence_score_life;// +subsistence_score_everyday;
 
 //local merchants take a cut from most local monetary operations
-inline constexpr float local_market_cut_baseline = 0.15f;
+inline constexpr float local_market_cut_baseline = 0.01f;
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
@@ -125,8 +125,6 @@ inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
-inline constexpr float price_speed_mod = 0.001f;
-inline constexpr float price_rigging = 0.001f;
 inline constexpr float production_throughput_multiplier = 2.5f; // for the sake of machine tools
 
 // stockpile related things:
@@ -141,11 +139,11 @@ inline constexpr float trade_transaction_soft_limit = 1'000.f;
 // greed drives incomes of corresponding pops up
 // while making life worse on average
 // profit cuts change distribution of incomes
-inline constexpr float aristocrats_greed = 0.1f;
+inline constexpr float aristocrats_greed = 0.2f;
 inline constexpr float artisans_greed = 0.001f;
 inline constexpr float labor_greed_life = 0.05f;
 inline constexpr float labor_greed_everyday = 0.f;
-// inline constexpr float capitalists_greed = 1.f; // for future use
+inline constexpr float capitalists_greed = 0.3f;
 
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
@@ -187,6 +185,7 @@ float estimate_gold_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_export_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
+float estimate_education_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);

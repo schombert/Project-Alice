@@ -965,7 +965,7 @@ void update_budget(sys::state& state) {
 
 		float land_budget_ratio = 0.15f;
 		float sea_budget_ratio = 0.05f;
-		float education_budget_ratio = 0.30f;
+		float education_budget_ratio = 0.25f;
 		float investments_budget_ratio = 0.05f;
 		float soldiers_budget_ratio = 0.30f;
 		float construction_budget_ratio = 0.45f;
@@ -974,14 +974,14 @@ void update_budget(sys::state& state) {
 		if(n.get_is_at_war()) {
 			land_budget_ratio *= 1.75f;
 			sea_budget_ratio *= 1.75f;
-			education_budget_ratio *= 0.15f;
+			education_budget_ratio *= 0.75f;
 			overseas_maintenance_budget_ratio *= 0.15f;
 			//n.set_land_spending(int8_t(100));
 			//n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
 			land_budget_ratio *= 1.25f;
 			sea_budget_ratio *= 1.25f;
-			education_budget_ratio *= 0.75f;
+			//education_budget_ratio *= 0.75f;
 			overseas_maintenance_budget_ratio *= 0.75f;
 			//n.set_land_spending(int8_t(50));
 			//n.set_naval_spending(int8_t(50));
@@ -991,8 +991,6 @@ void update_budget(sys::state& state) {
 		}
 		float land_budget = land_budget_ratio * base_income;
 		float naval_budget = sea_budget_ratio * base_income;
-		float education_budget = education_budget_ratio * base_income;
-		float construction_budget = construction_budget_ratio * base_income;
 		float soldiers_budget = soldiers_budget_ratio * base_income;
 		float overseas_budget = overseas_maintenance_budget_ratio * base_income;
 
@@ -1009,17 +1007,13 @@ void update_budget(sys::state& state) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 
-		n.set_construction_spending(50);
-		n.set_administrative_spending(25);
+		n.set_administrative_spending(35);
 
-		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);
 
-		// solving x^2 * max = desired
-		float ratio_education = 100.f * math::sqrt(education_budget / max_education_budget);
-		ratio_education = std::clamp(ratio_education, 0.f, 100.f);
-		n.set_education_spending(int8_t(ratio_education));
+		n.set_education_spending(int8_t(education_budget_ratio * 100.f));
+		n.set_construction_spending(int8_t(construction_budget_ratio * 100.f));
 
 		// If State can build factories - why subsidize capitalists
 		auto rules = n.get_combined_issue_rules();
@@ -1049,16 +1043,10 @@ void update_budget(sys::state& state) {
 			int max_rich_tax = int(10.f + 50.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
-			// enough tax?
-			bool enough_tax = true;
-			if(ratio_education < 50.f) {
-				enough_tax = false;
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
-			}
+			// if we are not able to control capital, our taxes are not enough
+			bool enough_tax = n.get_capital().get_control_ratio() > 0.95f;
 
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || ratio_education < 50.f) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || !enough_tax) { // losing money
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
@@ -1088,16 +1076,10 @@ void update_budget(sys::state& state) {
 			int max_social = int(20.f * poor_militancy);
 
 			// enough tax?
-			bool enough_tax = true;
-			if(ratio_education < 50.f) {
-				enough_tax = false;
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
-			}
+			bool enough_tax = n.get_capital().get_control_ratio() > 0.95f;
 
 			// Laissez faire prioritize tax free capitalists
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || ratio_education < 50.f) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || !enough_tax) { // losing money
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}

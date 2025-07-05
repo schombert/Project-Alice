@@ -5,8 +5,10 @@
 #include "economy_stats.hpp"
 #include "demographics.hpp"
 #include "construction.hpp"
+#include "price.hpp"
 
 #include "province_templates.hpp"
+#include "advanced_province_buildings.hpp"
 
 namespace economy {
 
@@ -146,6 +148,12 @@ float max_rgo_efficiency(sys::state& state, dcon::nation_id n, dcon::province_id
 
 	float result = base_amount
 		* main_rgo
+		*
+			(
+				(state.world.province_get_demographics(p, demographics::literacy) + 1.f)
+				/ (state.world.province_get_demographics(p, demographics::total) + 1.f)
+				+ 0.05f
+			)
 		* std::max(0.5f, throughput)
 		* state.defines.alice_rgo_boost // sizable compensation for efficiency being not free
 		* std::max(0.5f, (1.0f + state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output) +
@@ -1212,18 +1220,19 @@ void update_artisan_production(sys::state& state) {
 	}
 }
 
-void update_single_factory_production(
-	sys::state& state,
-	dcon::factory_id f,
-	dcon::market_id m,
-	dcon::nation_id n
+void update_factories_production(
+	sys::state& state
 ) {
-	auto production = state.world.factory_get_output(f);
-	if(production > 0) {
-		auto fac = fatten(state.world, f);
-		auto fac_type = fac.get_building_type();
-		register_domestic_supply(state, m, fac_type.get_output(), production, economy_reason::factory);
-	}
+	// could be done in parallel over markets???
+	state.world.for_each_factory([&](auto factory) {
+		auto province = state.world.factory_get_province_from_factory_location(factory);
+		auto local_state = state.world.province_get_state_membership(province);
+		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
+		auto production = state.world.factory_get_output(factory);
+		auto factory_type = state.world.factory_get_building_type(factory);
+		auto cid = state.world.factory_type_get_output(factory_type);
+		register_domestic_supply(state, local_market, cid, production, economy_reason::factory);
+	});
 }
 
 
@@ -1312,32 +1321,43 @@ void update_rgo_consumption(
 	});
 }
 
-void update_province_rgo_production(
-	sys::state& state,
-	dcon::province_id p,
-	dcon::market_id m,
-	dcon::nation_id n
-) {
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		if(state.world.commodity_get_rgo_amount(c) < 0.f) {
+void update_rgo_production(sys::state& state) {
+	state.world.for_each_province([&](auto province) {
+		auto local_state = state.world.province_get_state_membership(province);
+		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
+		auto controller = state.world.province_get_nation_from_province_control(province);
+		auto owner = state.world.province_get_nation_from_province_ownership(province);
+
+		if(!owner) {
 			return;
 		}
-		auto amount = state.world.province_get_rgo_output(p, c);
-		register_domestic_supply(state, m, c, amount, economy_reason::rgo);
-		if(state.world.commodity_get_money_rgo(c)) {
-			assert(
-				std::isfinite(
-					amount
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			if(state.world.commodity_get_rgo_amount(c) < 0.f) {
+				return;
+			}
+			auto amount = state.world.province_get_rgo_output(province, c);
+			register_domestic_supply(state, local_market, c, amount, economy_reason::rgo);
+
+
+			if(state.world.commodity_get_money_rgo(c)) {
+				assert(
+					std::isfinite(
+						amount
+						* state.defines.gold_to_cash_rate
+						* state.world.commodity_get_cost(c)
+					)
+					&& amount * state.defines.gold_to_cash_rate >= 0.0f
+				);
+
+				// #CAUTION# changes nation values!
+				auto& cur_money = state.world.nation_get_stockpiles(controller, money);
+				state.world.nation_set_stockpiles(controller, money, cur_money + amount
 					* state.defines.gold_to_cash_rate
 					* state.world.commodity_get_cost(c)
-				)
-				&& amount * state.defines.gold_to_cash_rate >= 0.0f
-			);
-			auto& cur_money = state.world.nation_get_stockpiles(n, money);
-			state.world.nation_set_stockpiles(n, money, cur_money + amount
-				* state.defines.gold_to_cash_rate
-				* state.world.commodity_get_cost(c));
-		}
+				);
+			}
+		});
 	});
 }
 
@@ -1420,6 +1440,8 @@ employment_vector<N> get_profit_gradient(
 }
 
 void update_employment(sys::state& state) {
+	advanced_province_buildings::update_size(state);
+
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 
@@ -1429,8 +1451,6 @@ void update_employment(sys::state& state) {
 			if(rgo_output <= 0.f) {
 				return;
 			}
-
-			auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
 
 			state.world.execute_serial_over_province([&](auto pids) {
 				auto state_instance = state.world.province_get_state_membership(pids);
@@ -1446,16 +1466,14 @@ void update_employment(sys::state& state) {
 					* state.world.province_get_labor_demand_satisfaction(pids, labor::no_education);
 				auto output_per_worker = rgo_output * efficiency / state.defines.alice_rgo_per_size_employment;
 				auto current_price = ve_price(state, m, c);
-				auto supply = state.world.market_get_supply(m, c) + price_rigging;
-				auto demand = state.world.market_get_demand(m, c) + price_rigging;
-
-				auto e_inputs_data = get_inputs_data(state, m, e_inputs);
+				auto supply = state.world.market_get_supply(m, c);
+				auto demand = state.world.market_get_demand(m, c);
 
 				auto price_speed_change =
 					state.world.commodity_get_money_rgo(c)
 					? 0.f
-					: price_speed_mod * (demand / supply - supply / demand);
-				auto predicted_price = current_price + ve::min(ve::max(price_speed_change, -0.025f), 0.025f) * current_price * 0.5f;
+					: price_properties::change(current_price, supply, demand);
+				auto predicted_price = current_price + price_speed_change * 0.5f;
 
 				auto gradient = gradient_employment_i(
 					output_per_worker * predicted_price,
@@ -1483,7 +1501,7 @@ void update_employment(sys::state& state) {
 		auto output = state.world.factory_type_get_output(factory_type);
 
 		auto price_output = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
-			return state.world.market_get_price(market, cid) + price_rigging;
+			return state.world.market_get_price(market, cid);
 		}, mid, output);
 
 		auto actually_sold = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
@@ -1491,11 +1509,11 @@ void update_employment(sys::state& state) {
 		}, mid, output);
 
 		auto supply = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
-			return state.world.market_get_supply(market, cid) + price_rigging;
+			return state.world.market_get_supply(market, cid);
 		}, mid, output);
 
 		auto demand = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
-			return state.world.market_get_demand(market, cid) + price_rigging;
+			return state.world.market_get_demand(market, cid);
 		}, mid, output);
 
 		auto output_per_worker = state.world.factory_get_output_per_worker(facids);
@@ -1515,20 +1533,15 @@ void update_employment(sys::state& state) {
 				primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education)
 			},
 			{ unqualified_throughput_multiplier, 1.f },
-			{ wage_no_education * 1.01f, wage_basic_education * 1.01f }
+			{ wage_no_education * (1.f + capitalists_greed), wage_basic_education * (1.f + capitalists_greed) }
 		};
 
-		// this time we are content with very simple first order approximation
-		auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
-		auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
-		auto speed_modifer = (overdemand_factor - oversupply_factor);
-		auto price_speed = ve::min(ve::max(price_speed_mod * speed_modifer, -0.025f), 0.025f);
-		price_speed = price_speed * price_output;
+		auto price_speed = price_properties::change(price_output, supply, demand);
 
 		auto price_prediction = (price_output + price_speed);
 		auto size = state.world.factory_get_size(facids);
 
-		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids);
+		auto profit_per_worker = output_per_worker * price_prediction - state.world.factory_get_input_cost_per_worker(facids) * (1.f + capitalists_greed);
 
 		auto gradient = get_profit_gradient(
 			profit_per_worker,
@@ -1655,10 +1668,9 @@ void update_employment(sys::state& state) {
 				auto mask = ve_valid_artisan_good(state, nations, cid);
 
 				auto price_today = ve_price(state, markets, cid);
-				auto supply = state.world.market_get_supply(markets, cid) + price_rigging;
-				auto demand = state.world.market_get_demand(markets, cid) + price_rigging;
-				auto price_speed_change = price_speed_mod * (demand / supply - supply / demand);
-				auto predicted_price = price_today + price_speed_change * 10.f;
+				auto supply = state.world.market_get_supply(markets, cid);
+				auto demand = state.world.market_get_demand(markets, cid);
+				auto predicted_price = price_today + price_properties::change(price_today, supply, demand) * 10.f;
 
 				auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price);
 				auto base_profit_per_worker = base_profit / artisans_per_employment_unit;
