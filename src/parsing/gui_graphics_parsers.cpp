@@ -470,6 +470,12 @@ void nation_script_button::effect(bool, error_handler& err, int32_t line, buildi
 	}
 	added_effect = int32_t(context.nation_buttons_effect.size()) - 1;
 }
+void nation_script_button::ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_ai_will_do != -1) {
+		err.accumulated_errors += "multiple ai_will_do for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_ai_will_do = int32_t(context.nation_buttons_ai_will_do.size()) - 1;
+}
 void province_script_button::visible(bool, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(added_visible != -1) {
 		err.accumulated_errors += "multiple visible conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
@@ -488,7 +494,12 @@ void province_script_button::effect(bool, error_handler& err, int32_t line, buil
 	}
 	added_effect = int32_t(context.province_buttons_effect.size()) - 1;
 }
-
+void province_script_button::ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_ai_will_do != -1) {
+		err.accumulated_errors += "multiple ai_will_do for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_ai_will_do = int32_t(context.province_buttons_ai_will_do.size()) - 1;
+}
 bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
 	context.province_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
@@ -504,6 +515,11 @@ bool province_button_effect(token_generator& gen, error_handler& err, building_g
 	gen.discard_group();
 	return true;
 }
+bool province_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.province_buttons_ai_will_do.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
 bool nation_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
 	context.nation_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
@@ -516,6 +532,11 @@ bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_
 }
 bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context) {
 	context.nation_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
+bool nation_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_ai_will_do.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
 	return true;
 }
@@ -987,6 +1008,7 @@ void guitypes::nationscriptbuttontype(nation_script_button const& v, error_handl
 	auto gid = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
 	auto sel = context.full_state.world.create_scripted_interaction();
 	context.full_state.world.scripted_interaction_set_gui_element(sel, gid);
+	// US7AC1 US7AC2 US7AC3 US7AC4
 	if(v.added_visible != -1) {
 		context.nation_buttons_visible[v.added_visible].scripted_element = sel;
 	}
@@ -995,6 +1017,9 @@ void guitypes::nationscriptbuttontype(nation_script_button const& v, error_handl
 	}
 	if(v.added_effect != -1) {
 		context.nation_buttons_effect[v.added_effect].scripted_element = sel;
+	}
+	if(v.added_ai_will_do != -1) {
+		context.nation_buttons_effect[v.added_ai_will_do].scripted_element = sel;
 	}
 	if(v.extension) {
 		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });

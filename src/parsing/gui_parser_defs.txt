@@ -76,12 +76,15 @@ province_script_button
 	visible         extern          province_button_visible       member_fn
 	allow         extern          province_button_allow       member_fn
 	effect         extern          province_button_effect       member_fn
+	ai_will_do         extern          province_button_ai_will_do       member_fn
+
 
 nation_script_button
 	#base          button
 	visible         extern          nation_button_visible       member_fn
 	allow         extern          nation_button_allow       member_fn
 	effect         extern          nation_button_effect       member_fn
+	ai_will_do         extern      nation_button_ai_will_do       member_fn
 
 image
 	#base           gui_element_common

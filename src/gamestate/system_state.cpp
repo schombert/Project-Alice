@@ -3156,6 +3156,16 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::nation);
 		}
 	}
+	for(auto& s : context.gfx_context.nation_buttons_ai_will_do) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			auto trigger = make_value_modifier(s.generator_state, err, t_context);
+			context.state.world.scripted_interaction_set_ai_will_do(s.scripted_element, trigger);
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
 	for(auto& s : context.gfx_context.province_buttons_visible) {
 		if(s.scripted_element) {
 			err.file_name = s.original_file;
@@ -3197,6 +3207,21 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				parsers::effect_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
 				auto effect = make_effect(s.generator_state, err, t_context);
 				context.state.world.scripted_interaction_set_effect(s.scripted_element, effect);
+				ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_ai_will_do) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				auto trigger = make_value_modifier(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_ai_will_do(s.scripted_element, trigger);
 				ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::province);
 			}
 		}
@@ -4372,6 +4397,7 @@ void state::single_game_tick() {
 			break;
 		case 10:
 			province::update_crimes(*this);
+			ai::take_ai_scripted_interactions(*this);
 			break;
 		case 11:
 			province::update_nationalism(*this);

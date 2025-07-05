@@ -41,7 +41,9 @@ struct building_gfx_context {
 	std::vector<pending_button_script> province_buttons_allow;
 	std::vector<pending_button_script> nation_buttons_allow;
 	std::vector<pending_button_script> province_buttons_effect;
+	std::vector<pending_button_script> province_buttons_ai_will_do;
 	std::vector<pending_button_script> nation_buttons_effect;
+	std::vector<pending_button_script> nation_buttons_ai_will_do;
 	bool on_second_pair_y = false;
 	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) { }
 };
@@ -148,26 +150,34 @@ struct nation_script_button : public button {
 	int32_t added_visible = -1;
 	int32_t added_allow = -1;
 	int32_t added_effect = -1;
+	int32_t added_ai_will_do = -1;
 	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
 struct province_script_button : public button {
 	int32_t added_visible = -1;
 	int32_t added_allow = -1;
 	int32_t added_effect = -1;
+	int32_t added_ai_will_do = -1;
+
 	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context);
+
 };
 
 bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool province_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool province_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool province_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool nation_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context);
 
 struct image : public gui_element_common {
 	image();
