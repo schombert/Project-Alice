@@ -39,7 +39,7 @@ public:
 		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
 
 		auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
-		bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, target, content) && [&]() {
+		auto can_declare_with_wg = [&]() {
 			if((state.world.cb_type_get_type_bits(content) & military::cb_flag::always) != 0) {
 				return true;
 			}
@@ -49,6 +49,8 @@ public:
 			}
 			return false;
 			}();
+		auto w = military::find_war_between(state, state.local_player_nation, target);
+		bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, target, content) && (can_declare_with_wg || w);
 
 		disabled = !can_use;
 		if(disabled) {
