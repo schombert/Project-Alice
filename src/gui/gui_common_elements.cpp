@@ -192,4 +192,5 @@ std::string get_status_text(sys::state& state, dcon::nation_id nation_id) {
 		return text::produce_simple_string(state, "diplomacy_greatnation_status");
 	}
 }
+
 } // namespace ui

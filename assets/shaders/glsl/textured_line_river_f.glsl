@@ -1,10 +1,13 @@
 in float tex_coord;
 in float o_dist;
 in vec2 map_coord;
+in vec3 space_coords;
+
 out vec4 frag_color;
 
+uniform vec3 light_direction;
 uniform float gamma;
-
+uniform float ignore_light;
 uniform vec2 screen_size;
 
 uniform sampler2D line_texture;
@@ -24,6 +27,10 @@ void main() {
         discard;
     }
     float is_sea = texture(provinces_sea_mask, prov_id).x * 1000.f;
+    if (ignore_light == 0.f) {
+        float light = max(0.f, dot(light_direction, space_coords)) + 0.05f;
+        out_color.xyz *= light;
+    }
 	frag_color = gamma_correct(out_color);
     //frag_color = vec4(0, o_dist, 0.f, 1.f);
 }

@@ -60,7 +60,10 @@ int16_t calculate_desired_army_size(sys::state& state, dcon::nation_id nation) {
 	}
 
 	// How many regiments it has
-	int16_t total = 0;
+	// assume that to win a war against an enemy,
+	// we need at least 10 regiments just to occupy their lands:
+	// you can't conquer the enemy with 1 regiment!
+	int16_t total = 10;
 	for(auto p : state.world.nation_get_army_control(greatest_neighbor)) {
 		auto frange = p.get_army().get_army_membership();
 		total += int16_t(frange.end() - frange.begin());

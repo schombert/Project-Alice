@@ -16,8 +16,8 @@ inline constexpr float artisans_per_employment_unit = 10'000.f;
 inline constexpr float construction_units_to_maintenance_units = 0.0001f;
 inline constexpr float expansion_trigger = 0.8f;
 
-inline constexpr float rgo_profit_to_wage_bound = 0.1f;
-inline constexpr float factory_profit_to_wage_bound = 0.1f;
+inline constexpr float rgo_profit_to_wage_bound = 0.8f;
+inline constexpr float factory_profit_to_wage_bound = 2.f;
 
 struct ve_inputs_data {
 	ve::fp_vector min_available = 0.f;
@@ -110,6 +110,13 @@ float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id 
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float factory_output(sys::state& state, dcon::commodity_id c);
+
+float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
+float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
+float factory_total_employment(sys::state const& state, dcon::factory_id f);
+float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
+float factory_primary_employment(sys::state const& state, dcon::factory_id f);
+float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
 
 // RGO:
 struct rgo_workers_breakdown {

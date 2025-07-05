@@ -20,7 +20,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(10, poor_luxury_needs, false, modifier_display_type::percent, "modifier_poor_luxury_needs")                   \
 	MOD_LIST_ELEMENT(11, middle_luxury_needs, false, modifier_display_type::percent, "modifier_middle_luxury_needs")               \
 	MOD_LIST_ELEMENT(12, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs")                   \
-	MOD_LIST_ELEMENT(13, population_growth, true, modifier_display_type::fp_three_places, "modifier_population_growth")            \
+	MOD_LIST_ELEMENT(13, population_growth, true, modifier_display_type::percent_two_places, "modifier_population_growth")            \
 	MOD_LIST_ELEMENT(14, local_factory_input, false, modifier_display_type::percent, "modifier_factory_input")               \
 	MOD_LIST_ELEMENT(15, local_factory_output, true, modifier_display_type::percent, "modifier_factory_output")              \
 	MOD_LIST_ELEMENT(16, local_factory_throughput, true, modifier_display_type::percent, "modifier_factory_throughput")      \
@@ -71,7 +71,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(6, reinforce_speed, true, modifier_display_type::percent, "modifier_reinforce_speed")                         \
 	MOD_LIST_ELEMENT(7, land_organisation, true, modifier_display_type::percent, "modifier_land_organisation")                     \
 	MOD_LIST_ELEMENT(8, naval_organisation, true, modifier_display_type::percent, "modifier_naval_organisation")                   \
-	MOD_LIST_ELEMENT(9, research_points, true, modifier_display_type::integer, "modifier_research_points")                         \
+	MOD_LIST_ELEMENT(9, research_points, true, modifier_display_type::fp_two_places, "modifier_research_points")                         \
 	MOD_LIST_ELEMENT(10, research_points_modifier, true, modifier_display_type::percent, "modifier_research_points_modifier")      \
 	MOD_LIST_ELEMENT(11, research_points_on_conquer, true, modifier_display_type::percent, "modifier_research_points_on_conquer")  \
 	MOD_LIST_ELEMENT(12, import_cost, false, modifier_display_type::percent, "modifier_import_cost")                               \
@@ -146,7 +146,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(76, non_accepted_pop_consciousness_modifier, true, modifier_display_type::fp_two_places, \
 			"modifier_non_accepted_pop_consciousness_modifier")                                                                        \
 	MOD_LIST_ELEMENT(77, cb_generation_speed_modifier, true, modifier_display_type::percent, "cb_manufacture_tech")                \
-	MOD_LIST_ELEMENT(78, mobilization_impact, true, modifier_display_type::percent, "modifier_mobilization_impact")               \
+	MOD_LIST_ELEMENT(78, mobilization_impact, false, modifier_display_type::percent, "modifier_mobilization_impact")               \
 	MOD_LIST_ELEMENT(79, suppression_points_modifier, true, modifier_display_type::percent, "suppression_tech")                    \
 	MOD_LIST_ELEMENT(80, education_efficiency_modifier, true, modifier_display_type::percent, "modifier_education_efficiency")     \
 	MOD_LIST_ELEMENT(81, civilization_progress_modifier, true, modifier_display_type::percent, "modifier_civilization_progress")   \
@@ -184,7 +184,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(111, soldier_to_pop_loss, false, modifier_display_type::percent, "soldier_to_pop_loss_tech")                   \
 	MOD_LIST_ELEMENT(112, naval_attrition, false, modifier_display_type::percent, "naval_attrition_tech")                           \
 	MOD_LIST_ELEMENT(113, land_attrition, false, modifier_display_type::percent, "land_attrition_tech")                             \
-	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
+	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::percent_two_places, "tech_pop_growth")                                     \
 	MOD_LIST_ELEMENT(115, colonial_life_rating, false, modifier_display_type::integer, "modifier_life_rating")                      \
 	MOD_LIST_ELEMENT(116, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
 	MOD_LIST_ELEMENT(117, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \

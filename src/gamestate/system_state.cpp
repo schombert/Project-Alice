@@ -240,6 +240,15 @@ void create_in_game_windows(sys::state& state) {
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
+		auto new_elem = make_element_by_type<disband_unit_confirmation>(state, "disband_window");
+		// set window to be movable
+		new_elem->base_data.data.window.flags |= new_elem->base_data.data.window.is_moveable_mask;
+		new_elem->set_visible(state, false);
+		state.ui_state.disband_unit_window = new_elem.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elem));
+
+	}
+	{
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
 		new_elm->impl_on_update(state);
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
@@ -1573,6 +1582,7 @@ void state::save_user_settings() const {
 	US_SAVE(UNUSED_UINT32_T);
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
+	US_SAVE(unit_disband_confirmation);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1642,6 +1652,7 @@ void state::load_user_settings() {
 			US_LOAD(UNUSED_UINT32_T);
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
+			US_LOAD(unit_disband_confirmation);
 #undef US_LOAD
 		} while(false);
 
@@ -2970,15 +2981,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
 		if(prov_a.id.index() < province_definitions.first_sea_province.index() && prov_b.id.index() >= province_definitions.first_sea_province.index()) {
-			frel.get_type() |= province::border::coastal_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::coastal_bit));
 		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() && prov_b.id.index() < province_definitions.first_sea_province.index()) {
-			frel.get_type() |= province::border::coastal_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::coastal_bit));
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
-			frel.get_type() |= province::border::state_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::state_bit));
 		}
 		if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
-			frel.get_type() |= province::border::national_bit;
+			frel.set_type(uint8_t(frel.get_type() | province::border::national_bit));
 		}
 	});
 
@@ -3059,7 +3070,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 						other.set_is_coast(false);
 						other.set_port_to(dcon::province_id{});
-						adj.get_type() |= province::border::impassible_bit;
+						adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 					}
 				}
 			}
@@ -3068,7 +3079,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	for(auto ip : context.special_impassible) {
 		for(auto adj : world.province_get_province_adjacency(ip)) {
-			adj.get_type() |= province::border::impassible_bit;
+			adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 		}
 	}
 
@@ -3938,11 +3949,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	ai::update_ai_general_status(*this);
 	ai::refresh_home_ports(*this);
 
-	military_definitions.pending_blackflag_update = true;
-	military::update_blackflag_status(*this);
-
-
-
 #ifndef NDEBUG
 	/*for(auto p : world.in_pop) {
 		float total = 0.0f;
@@ -4300,6 +4306,8 @@ void state::single_game_tick() {
 			ai::update_ships(*this);
 		}
 
+		ai::take_ai_decisions(*this);
+
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
 		case 1:
@@ -4540,7 +4548,7 @@ void state::single_game_tick() {
 	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
 		auto index = economy::most_recent_gdp_record_index(*this);
 		for(auto n : world.in_nation) {
-			n.set_gdp_record(index, economy::gdp(*this, n));
+			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
 		}
 	}
 
@@ -4621,54 +4629,8 @@ sys::checksum_key state::get_scenario_checksum() {
 }
 
 sys::checksum_key state::get_mp_state_checksum() {
-	// TODO later refactor this to use datacontainer directly somehow
-	// seralizes everything except for the "keep_after_state_reload" tagged items
-	dcon::load_record loaded = world.serialize_entire_container_record();
-	loaded.player_nation = false;
-	loaded.player_nation_mp_player = false;
-	loaded.player_nation_nation = false;
 
-
-	loaded.mp_player = false;
-	loaded.mp_player__index = false;
-	loaded.mp_player_nickname = false;
-	loaded.mp_player_password_salt = false;
-	loaded.mp_player_password_hash = false;
-	loaded.mp_player_fully_loaded = false;
-	loaded.mp_player_is_oos = false;
-
-	loaded.locale = false;
-	loaded.locale_native_rtl = false;
-	loaded.locale_prevent_letterspace = false;
-	loaded.locale_display_name = false;
-	loaded.locale_locale_name = false;
-	loaded.locale_fallback = false;
-	loaded.locale_resolved_language = false;
-	loaded.locale_hb_script = false;
-	loaded.locale_resolved_body_font = false;
-	loaded.locale_resolved_header_font = false;
-	loaded.locale_resolved_map_font = false;
-	loaded.locale_body_font = false;
-	loaded.locale_header_font = false;
-	loaded.locale_map_font = false;
-	loaded.locale_body_font_features = false;
-	loaded.locale_header_font_features = false;
-	loaded.locale_map_font_features = false;
-
-
-	loaded.pop_type_migration_target_fn = false;
-	loaded.pop_type_country_migration_target_fn = false;
-	loaded.pop_type_issues_fns = false;
-	loaded.pop_type_ideology_fns = false;
-	loaded.pop_type_promotion_fns = false;
-
-	loaded.national_event_auto_choice = false;
-	loaded.provincial_event_auto_choice = false;
-
-	loaded.free_national_event_auto_choice = false;
-	loaded.free_provincial_event_auto_choice = false;
-
-
+	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
 
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());

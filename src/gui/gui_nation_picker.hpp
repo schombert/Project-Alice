@@ -178,10 +178,10 @@ public:
 		ui::clear_event_windows(state);
 
 		state.network_state.save_slock.lock();
-		std::vector<dcon::nation_id> players;
+		std::vector<dcon::nation_id> no_ai_nations;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
-				players.push_back(n);
+				no_ai_nations.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		/*state.preload();*/
 		/*state.render_semaphore.acquire();*/
@@ -230,7 +230,7 @@ public:
 				//network::place_host_player_after_saveload(state);
 
 				network::write_network_save(state);
-				network::place_players_after_reload(state, players, old_local_player_nation);
+				network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
 				state.fill_unsaved_data();
 				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
@@ -447,12 +447,12 @@ public:
 class pick_nation_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto nation = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::single_player) {
-			disabled = n == state.local_player_nation;
+			disabled = nation == state.local_player_nation;
 		} else {
 			// Prevent (via UI) the player from selecting a nation already selected by someone
-			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, n);
+			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, nation, state.network_state.nickname);
 		}
 	}
 
@@ -463,7 +463,7 @@ public:
 			state.world.nation_set_is_player_controlled(n, true);
 			state.ui_state.nation_picker->impl_on_update(state);
 		} else {
-			command::notify_player_picks_nation(state, state.local_player_nation, n);
+			command::notify_player_picks_nation(state, state.local_player_nation, n, state.network_state.nickname);
 		}
 	}
 };
@@ -609,30 +609,24 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
-			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
-				if(state.map_state.get_zoom() < map::zoom_very_close)
-					state.map_state.zoom = map::zoom_very_close;
-				state.map_state.center_map_on_province(state, cap);
+			if(command::can_notify_start_game(state, state.local_player_nation)) {
+				if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+					if(state.map_state.get_zoom() < map::zoom_very_close)
+						state.map_state.zoom = map::zoom_very_close;
+					state.map_state.center_map_on_province(state, cap);
+				}
+				command::notify_start_game(state, state.local_player_nation);
 			}
-			command::notify_start_game(state, state.local_player_nation);
+			
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = !bool(state.local_player_nation);
-		// disable if there are any players loading
-		if(state.network_state.num_client_loading != 0) {
-			disabled = true;
-			return;
-		}
+		disabled = !command::can_notify_start_game(state, state.local_player_nation);
 
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
-			} else {
-				if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) { //can't start if checksum doesn't match
-					disabled = true;
-				}
 			}
 		}
 	}
@@ -669,9 +663,6 @@ public:
 			if(state.network_state.save_stream) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
 			}
-			else if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) {
-				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
-			}
 			for(auto const& client : state.network_state.clients) {
 				if(client.is_active()) {
 					if(!client.send_buffer.empty()) {
@@ -683,8 +674,11 @@ public:
 			}
 		}
 		else if(state.network_mode == sys::network_mode_type::host) {
-			if(state.network_state.num_client_loading != 0) {
+			if(network::check_any_players_loading(state)) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_player_loading"));
+			}
+			if(network::any_player_on_invalid_nation(state)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_invalid_nations"));
 			}
 		}
 		text::close_layout_box(contents, box);
@@ -698,21 +692,66 @@ public:
 	}
 };
 
+class observer_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			auto previous_nation = state.local_player_nation;
+			state.local_player_nation = observer_nation;
+			state.world.nation_set_is_player_controlled(observer_nation, true);
+			if(previous_nation) {
+				state.world.nation_set_is_player_controlled(previous_nation, false);
+			}
+			state.ui_state.nation_picker->impl_on_update(state);
+		} else {
+			if(command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname)) {
+				command::notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
+			}
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			disabled = state.local_player_nation == observer_nation;
+		}
+		else {
+			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(state.local_player_nation == observer_nation) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_observer_already_observer_tooltip"));
+		}
+		text::close_layout_box(contents, box);
+	}
+
+};
+
 class multiplayer_status_text : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto player = retrieve<dcon::mp_player_id>(state, parent);
 
-
-		auto player = network::find_country_player(state, n);
-		if(state.world.mp_player_get_fully_loaded(player)) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
 			set_text(state, text::produce_simple_string(state, "ready"));
 		}
-		else {
-			color = text::text_color::yellow;
-			set_text(state, text::produce_simple_string(state, "Loading"));
+		else {;
+			if(state.world.mp_player_get_fully_loaded(player)) {
+				color = text::text_color::dark_green;
+				set_text(state, text::produce_simple_string(state, "ready"));
+			} else {
+				color = text::text_color::yellow;
+				set_text(state, text::produce_simple_string(state, "Loading"));
+			}
 		}
+
 
 		//if(state.network_mode == sys::network_mode_type::host) {
 		//	// on render
@@ -746,6 +785,21 @@ public:
 	}
 };
 
+class lobby_player_flag_button : public flag_button {
+	public:
+		dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+			if(state.network_mode == sys::network_mode_type::single_player) {
+				return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+			}
+			else {
+				auto player = retrieve<dcon::mp_player_id>(state, parent);
+				auto nation = state.world.mp_player_get_nation_from_player_nation(player);
+				return state.world.nation_get_identity_from_identity_holder(nation);
+			}
+		}
+
+};
+
 class number_of_players_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -753,9 +807,8 @@ public:
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			count = 1;
 		} else {
-			state.world.for_each_nation([&](dcon::nation_id n) {
-				if(state.world.nation_get_is_player_controlled(n))
-					count++;
+			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+				count++;
 			});
 		}
 
@@ -765,11 +818,11 @@ public:
 	}
 };
 
-class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::nation_id> {
+class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::mp_player_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
+			auto ptr = make_element_by_type<lobby_player_flag_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
@@ -804,7 +857,7 @@ public:
 	}
 };
 
-class nation_picker_multiplayer_listbox : public listbox_element_base<nation_picker_multiplayer_entry, dcon::nation_id> {
+class nation_picker_multiplayer_listbox : public listbox_element_base<nation_picker_multiplayer_entry, dcon::mp_player_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "multiplayer_entry_server";
@@ -813,11 +866,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(state.network_mode == sys::network_mode_type::single_player) {
-			row_contents.push_back(state.local_player_nation);
+			row_contents.push_back(dcon::mp_player_id{ });
 		} else {
-			state.world.for_each_nation([&](dcon::nation_id n) {
-				if(state.world.nation_get_is_player_controlled(n))
-					row_contents.push_back(n);
+			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+				row_contents.push_back(p);
 		});
 		}
 		update(state);
@@ -891,6 +943,9 @@ public:
 			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
 			add_child_to_front(std::move(ptr));
 			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "observer_button") {
+			return make_element_by_type<observer_button>(state, id);
+
 		}
 		return nullptr;
 	}

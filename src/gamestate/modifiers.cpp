@@ -19,7 +19,8 @@ void apply_modifier_values_to_nation(sys::state& state, dcon::nation_id target_n
 
 		auto fixed_offset = nat_values.offsets[i];
 		auto modifier_amount = nat_values.values[i];
-		state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
+		auto& current_val = state.world.nation_get_modifier_values(target_nation, fixed_offset);
+		state.world.nation_set_modifier_values(target_nation, fixed_offset, current_val + modifier_amount);
 	}
 }
 
@@ -32,7 +33,8 @@ void apply_scaled_modifier_values_to_nation(sys::state& state, dcon::nation_id t
 
 		auto fixed_offset = nat_values.offsets[i];
 		auto modifier_amount = nat_values.values[i];
-		state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount * scale;
+		auto& current_val = state.world.nation_get_modifier_values(target_nation, fixed_offset);
+		state.world.nation_set_modifier_values(target_nation, fixed_offset, current_val + modifier_amount * scale);
 	}
 }
 
@@ -45,7 +47,8 @@ void apply_modifier_values_to_province(sys::state& state, dcon::province_id targ
 
 		auto fixed_offset = prov_values.offsets[i];
 		auto modifier_amount = prov_values.values[i];
-		state.world.province_get_modifier_values(target_prov, fixed_offset) += modifier_amount;
+		auto& current_val = state.world.province_get_modifier_values(target_prov, fixed_offset);
+		state.world.province_set_modifier_values(target_prov, fixed_offset, current_val + modifier_amount);
 	}
 	if(owner) {
 		auto& nat_values = state.world.modifier_get_national_values(mod_id);
@@ -55,12 +58,14 @@ void apply_modifier_values_to_province(sys::state& state, dcon::province_id targ
 
 			auto fixed_offset = nat_values.offsets[i];
 			auto modifier_amount = nat_values.values[i];
-			state.world.nation_get_modifier_values(owner, fixed_offset) += modifier_amount;
+			auto& current_val = state.world.nation_get_modifier_values(owner, fixed_offset);
+			state.world.nation_set_modifier_values(owner, fixed_offset, current_val + modifier_amount);
 		}
 	}
 }
 
 void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration) {
+	assert(state.world.nation_is_valid(target_nation) && "Invalid write incoming!");
 	auto lst = state.world.nation_get_current_modifiers(target_nation);
 	for(auto& m : lst) {
 		if(m.mod_id == mod_id) {
@@ -73,6 +78,7 @@ void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dc
 	lst.push_back(sys::dated_modifier{expiration, mod_id});
 }
 void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration) {
+	assert(state.world.province_is_valid(target_prov) && "Invalid write incoming!");
 	auto lst = state.world.province_get_current_modifiers(target_prov);
 	for(auto& m : lst) {
 		if(m.mod_id == mod_id) {
@@ -107,6 +113,7 @@ void remove_modifier_from_province(sys::state& state, dcon::province_id target_p
 }
 
 void toggle_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration) {
+	assert(state.world.province_is_valid(target_prov) && "Invalid write incoming!");
 	auto lst = state.world.province_get_current_modifiers(target_prov);
 	auto modifiers_range = state.world.province_get_current_modifiers(target_prov);
 	auto count = modifiers_range.size();
@@ -323,8 +330,8 @@ void recreate_national_modifiers(sys::state& state) {
 	}
 	if(state.national_definitions.average_literacy) {
 		bulk_apply_scaled_modifier_to_nations(state, state.national_definitions.average_literacy, [&](auto ids) {
-			auto total = state.world.nation_get_demographics(ids, demographics::total);
-			return ve::select(total > 0, state.world.nation_get_demographics(ids, demographics::literacy) / total, 0.0f);
+			auto total = state.world.nation_get_demographics(ids, demographics::non_colonial_total);
+			return ve::select(total > 0, state.world.nation_get_demographics(ids, demographics::non_colonial_literacy) / total, 0.0f);
 		});
 	}
 	if(state.national_definitions.total_blockaded) {
@@ -482,9 +489,8 @@ void update_single_nation_modifiers(sys::state& state, dcon::nation_id n) {
 				state.world.nation_get_war_exhaustion(n));
 	}
 	if(state.national_definitions.average_literacy) {
-		auto total = state.world.nation_get_demographics(n, demographics::total);
-		apply_scaled_modifier_values_to_nation(state, n, state.national_definitions.average_literacy,
-				total > 0 ? state.world.nation_get_demographics(n, demographics::literacy) / total : 0.0f);
+		auto literacy = nations::get_avg_non_colonial_literacy(state, n);
+		apply_scaled_modifier_values_to_nation(state, n, state.national_definitions.average_literacy, literacy);
 	}
 	if(state.national_definitions.total_blockaded) {
 		auto bc = ve::to_float(state.world.nation_get_central_blockaded(n));
@@ -648,6 +654,7 @@ void purge_expired_province_modifiers(sys::state& state) {
 void purge_expired_national_province_modifiers(sys::state& state) {
 	// purge expired triggered modifiers
 	for(auto n : state.world.in_nation) {
+		assert(n);
 		auto timed_modifiers = n.get_current_modifiers();
 		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
 			if(bool(timed_modifiers[i].expiration) && timed_modifiers[i].expiration < state.current_date) {

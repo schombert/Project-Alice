@@ -76,6 +76,11 @@ public:
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
 	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
 
+	// lighting
+	glm::vec3 light_direction {1.f, 0.f, -0.3f};
+	bool light_on = false;
+	bool light_rotate = false;
+
 	float zoom = 1.f;
 	float zoom_change = 1.f;
 	bool has_zoom_changed = false;

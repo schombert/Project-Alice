@@ -57,11 +57,13 @@ struct ship_in_battle {
 	static constexpr uint16_t type_transport = 0x0000;
 
 	dcon::ship_id ship;
-	uint16_t target_slot = 0;
+	int16_t target_slot = -1;
 	uint16_t flags = 0;
+	uint16_t ships_targeting_this = 0;
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
+	+ sizeof(ship_in_battle::ships_targeting_this)
 	+ sizeof(ship_in_battle::target_slot)
 	+ sizeof(ship_in_battle::flags));
 
@@ -375,6 +377,8 @@ float mobilization_size(sys::state const& state, dcon::nation_id n);
 float mobilization_impact(sys::state const& state, dcon::nation_id n);
 ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<dcon::nation_id> nations);
 
+float get_ship_combat_score(sys::state& state, dcon::ship_id ship);
+
 uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
@@ -405,6 +409,7 @@ float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{});
 
 
+int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation_id n);
 int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target,
 		dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
 int32_t cost_of_peace_offer(sys::state& state, dcon::peace_offer_id offer);
@@ -415,6 +420,8 @@ int32_t defender_peace_cost(sys::state& state, dcon::war_id war);
 float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
 float cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{}); // the fabrication cost in infamy
 
+float war_declaration_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from,
+		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of starting a war with a CB -- does NOT check if the CB is valid to add
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from,
 		dcon::nation_id target, dcon::state_definition_id cb_state = dcon::state_definition_id{ }); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
 float crisis_cb_addition_infamy_cost(sys::state& state, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
@@ -456,7 +463,8 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov);
-float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov);
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, float additional_army_weight = 0.0f);
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::vector<dcon::army_id>& extra_armies);
 float local_army_weight(sys::state& state, dcon::province_id prov);
 float local_army_weight_max(sys::state& state, dcon::province_id prov);
 float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
@@ -465,6 +473,9 @@ float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
+void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
+void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
+void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
@@ -476,6 +487,13 @@ float fractional_distance_covered(sys::state& state, dcon::navy_id a);
 enum class crossing_type {
 	none, river, sea
 };
+
+enum class apply_attrition_on_arrival {
+	no, yes
+
+};
+
+template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
@@ -491,7 +509,10 @@ void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
 uint16_t unit_type_to_reserve_regiment_type(unit_type utype);
+float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
+float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
+float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
@@ -500,6 +521,7 @@ float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
 dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
+void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
@@ -537,6 +559,7 @@ dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::le
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
+void delete_regiment_safe_wrapper(sys::state& state, dcon::regiment_id reg); // safely deletes the regiment even if the army is currently in a battle
 bool rebel_army_in_province(sys::state& state, dcon::province_id p);
 dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);

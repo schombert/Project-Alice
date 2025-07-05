@@ -382,7 +382,7 @@ public:
 		auto output = state.world.factory_type_get_output(type);
 		if(state.world.commodity_get_uses_potentials(output)) {
 			auto limit = economy::calculate_province_factory_limit(state, fat.get_factory_location().get_province(), output);
-			
+
 			// Will upgrade put us over the limit?
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_11", fat.get_size() + fat.get_building_type().get_base_workforce() <= limit);
 		}
@@ -805,7 +805,7 @@ class normal_factory_background : public opaque_element_base {
 			text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
 
 			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
-			
+
 			auto sat = state.world.market_get_demand_satisfaction(market, cid);
 			text::add_to_layout_box(state, contents,
 				demand_satisfaction,
@@ -825,7 +825,7 @@ class normal_factory_background : public opaque_element_base {
 				* amount;
 
 			total_expenses += cost;
-			
+
 			text::add_to_layout_box(state, contents, amount_box, text::fp_two_places{ amount });
 			text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ -cost }, text::text_color::red);
 
@@ -1369,7 +1369,7 @@ public:
 				++index;
 			}
 		});
-		
+
 		// Finally, factories "doing nothing" are accounted for
 		dcon::fatten(state.world, province_id).for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
 			dcon::factory_id fid = state.world.factory_location_get_factory(flid);
@@ -1544,19 +1544,21 @@ public:
 
 class production_national_focus_button : public right_click_button_element_base {
 	int32_t get_icon_frame(sys::state& state) noexcept {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		return bool(state.world.state_instance_get_owner_focus(content).id)
-								? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto state_instance = state.world.province_get_state_membership(prov);
+		return bool(state.world.state_instance_get_owner_focus(state_instance).id)
+								? state.world.state_instance_get_owner_focus(state_instance).get_icon() - 1
 								: 0;
 	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto state_instance = state.world.province_get_state_membership(prov);
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		disabled = true;
 		for(auto nfid : state.world.in_national_focus) {
-			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
+			disabled = command::can_set_national_focus(state, state.local_player_nation, state_instance, nfid) ? false : disabled;
 		}
 		frame = get_icon_frame(state);
 	}
@@ -1567,8 +1569,9 @@ public:
 	}
 
 	void button_right_action(sys::state& state) noexcept override {
-		auto sid = retrieve<dcon::state_instance_id>(state, parent);
-		command::set_national_focus(state, state.local_player_nation, sid, dcon::national_focus_id{});
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto state_instance = state.world.province_get_state_membership(prov);
+		command::set_national_focus(state, state.local_player_nation, state_instance, dcon::national_focus_id{});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1577,8 +1580,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-
-		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		auto sid = state.world.province_get_state_membership(prov);
 		auto fat_si = dcon::fatten(state.world, sid);
 		text::add_to_layout_box(state, contents, box, sid);
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -1708,7 +1711,11 @@ public:
 		if(name == "state_focus") {
 			return make_element_by_type<production_national_focus_button>(state, id);
 		} else if(name == "state_name") {
-			return make_element_by_type<province_name_text>(state, id);
+			auto ptr = make_element_by_type<province_name_text>(state, id);
+			ptr->base_data.size.x -= 140; // reduce max size to fit with the state name to the right of it
+			return ptr;
+		} else if(name == "state_location_name") {
+			return make_element_by_type<province_state_name_text>(state, id);
 		} else if(name == "factory_count") {
 			auto temp = make_element_by_type<province_factory_count_text>(state, id);
 			memcpy(&factory_number_def, &(temp->base_data), sizeof(ui::element_data));

@@ -479,20 +479,20 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 		auto rc = state.world.province_get_rebel_faction_from_province_rebel_control(p);
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(rc && owner) {
-			state.world.nation_get_rebel_controlled_count(owner) -= uint16_t(1);
+			state.world.nation_set_rebel_controlled_count(owner, uint16_t(state.world.nation_get_rebel_controlled_count(owner) - uint16_t(1)));
 			if(!is_overseas(state, p)) {
-				state.world.nation_get_central_rebel_controlled(owner) -= uint16_t(1);
+				state.world.nation_set_central_rebel_controlled(owner, uint16_t(state.world.nation_get_central_rebel_controlled(owner) - uint16_t(1)));
 			}
 		}
 		if(owner) {
 			if(old_con == owner) {
-				state.world.nation_get_occupied_count(owner) += uint16_t(1);
+				state.world.nation_set_occupied_count(owner, uint16_t(state.world.nation_get_occupied_count(owner) + uint16_t(1)));
 				if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
-					state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+					state.world.nation_set_central_blockaded(owner, uint16_t(state.world.nation_get_central_blockaded(owner) - uint16_t(1)));
 					assert(state.world.nation_get_central_blockaded(owner) >= 0);
 				}
 			} else if(n == owner) {
-				state.world.nation_get_occupied_count(owner) -= uint16_t(1);
+				state.world.nation_set_occupied_count(owner, uint16_t(state.world.nation_get_occupied_count(owner) - uint16_t(1)));
 			}
 		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, dcon::rebel_faction_id{});
@@ -507,15 +507,15 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 		state.world.province_set_last_control_change(p, state.current_date);
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(!old_con && owner) {
-			state.world.nation_get_rebel_controlled_count(owner) += uint16_t(1);
+			state.world.nation_set_rebel_controlled_count(owner, uint16_t(state.world.nation_get_rebel_controlled_count(owner) + uint16_t(1)));
 			if(!is_overseas(state, p)) {
-				state.world.nation_get_central_rebel_controlled(owner) += uint16_t(1);
+				state.world.nation_set_central_rebel_controlled(owner, uint16_t(state.world.nation_get_central_rebel_controlled(owner) + uint16_t(1)));
 			}
 		}
 		if(owner && state.world.province_get_nation_from_province_control(p) == owner) {
-			state.world.nation_get_occupied_count(owner) += uint16_t(1);
+			state.world.nation_set_occupied_count(owner, uint16_t(state.world.nation_get_occupied_count(owner) + uint16_t(1)));
 			if(state.world.province_get_is_blockaded(p) && !is_overseas(state, p)) {
-				state.world.nation_get_central_blockaded(owner) -= uint16_t(1);
+				state.world.nation_set_central_blockaded(owner, uint16_t(state.world.nation_get_central_blockaded(owner) - uint16_t(1)));
 				assert(state.world.nation_get_central_blockaded(owner) >= 0);
 			}
 		}
@@ -579,39 +579,39 @@ void restore_cached_values(sys::state& state) {
 			bool reb_controlled = bool(state.world.province_get_rebel_faction_from_province_rebel_control(pid));
 
 			if(reb_controlled) {
-				state.world.nation_get_rebel_controlled_count(owner) += uint16_t(1);
+				state.world.nation_set_rebel_controlled_count(owner, uint16_t(state.world.nation_get_rebel_controlled_count(owner) + uint16_t(1)));
 			}
 			if(state.world.province_get_is_coast(pid)) {
-				state.world.nation_get_total_ports(owner) += uint16_t(1);
+				state.world.nation_set_total_ports(owner, uint16_t(state.world.nation_get_total_ports(owner) + uint16_t(1)));
 			}
 			if(auto c = state.world.province_get_nation_from_province_control(pid); bool(c) && c != owner) {
-				state.world.nation_get_occupied_count(owner) += uint16_t(1);
+				state.world.nation_set_occupied_count(owner, uint16_t(state.world.nation_get_occupied_count(owner) + uint16_t(1)));
 			}
 			if(state.world.province_get_is_colonial(pid)) {
 				state.world.nation_set_is_colonial_nation(owner, true);
 			}
 			if(!is_overseas(state, pid)) {
-				state.world.nation_get_central_province_count(owner) += uint16_t(1);
+				state.world.nation_set_central_province_count(owner, uint16_t(state.world.nation_get_central_province_count(owner) + uint16_t(1)));
 
 				if(military::province_is_blockaded(state, pid) && owner == state.world.province_get_nation_from_province_control(pid)) {
-					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
+					state.world.nation_set_central_blockaded(owner, uint16_t(state.world.nation_get_central_blockaded(owner) + uint16_t(1)));
 				}
 				if(state.world.province_get_is_coast(pid)) {
-					state.world.nation_get_central_ports(owner) += uint16_t(1);
+					state.world.nation_set_central_ports(owner, uint16_t(state.world.nation_get_central_ports(owner) + uint16_t(1)));
 				}
 				assert(state.world.nation_get_central_blockaded(owner) <= state.world.nation_get_central_ports(owner));
 				if(reb_controlled) {
-					state.world.nation_get_central_rebel_controlled(owner) += uint16_t(1);
+					state.world.nation_set_central_rebel_controlled(owner, uint16_t(state.world.nation_get_central_rebel_controlled(owner) + uint16_t(1)));
 				}
 				if(state.world.province_get_crime(pid)) {
-					state.world.nation_get_central_crime_count(owner) += uint16_t(1);
+					state.world.nation_set_central_crime_count(owner, uint16_t(state.world.nation_get_central_crime_count(owner) + uint16_t(1)));
 				}
 			}
 		}
 	}
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
-		state.world.nation_get_owned_state_count(owner) += uint16_t(1);
+		state.world.nation_set_owned_state_count(owner, uint16_t(state.world.nation_get_owned_state_count(owner) + uint16_t(1)));
 		dcon::province_id p;
 		for(auto prv : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(s))) {
 			if(state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
@@ -642,7 +642,7 @@ void update_blockaded_cache(sys::state& state) {
 		if(owner && owner == controller) {
 			if(!is_overseas(state, pid)) {
 				if(military::province_is_blockaded(state, pid)) {
-					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
+					state.world.nation_set_central_blockaded(owner, uint16_t(state.world.nation_get_central_blockaded(owner) + uint16_t(1)));
 				}
 			}
 		}
@@ -823,6 +823,12 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
+}
+
+float effective_life_rating_growth(sys::state& state, dcon::province_id prov) {
+	auto base_life_rating = float(state.world.province_get_life_rating(prov));
+	return std::min(
+			base_life_rating * (state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
 }
 
 float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id id) {
@@ -1008,6 +1014,7 @@ void upgrade_colonial_state(sys::state& state, dcon::nation_id source, dcon::sta
 }
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
+	assert(id);
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(id);
 	auto old_si = state.world.province_get_state_membership(id);
 	auto old_market = state.world.state_instance_get_market_from_local_market(old_si);
@@ -1236,7 +1243,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				p.get_pop().set_is_primary_or_accepted_culture(false);
 			}();
 		}
-		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
+		state.world.nation_set_owned_province_count(new_owner, uint16_t(state.world.nation_get_owned_province_count(new_owner) + uint16_t(1)));
 	} else {
 		state.world.province_set_state_membership(id, dcon::state_instance_id{});
 		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
@@ -1255,6 +1262,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 
 	
 	if(new_owner) {
+		std::vector<dcon::regiment_id> to_be_deleted;
 		for(auto p : state.world.province_get_pop_location(id)) {
 			rebel::remove_pop_from_movement(state, p.get_pop());
 			rebel::remove_pop_from_rebel_faction(state, p.get_pop());
@@ -1264,19 +1272,29 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
 				&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
 					auto loc = src.get_regiment().get_army_from_army_membership().get_location_from_army_location();
+					auto old_army = src.get_regiment().get_army_from_army_membership();
 					auto new_u = fatten(state.world, state.world.create_army());
 					new_u.set_controller_from_army_control(new_owner);
 					src.get_regiment().set_army_from_army_membership(new_u);
-					src.get_regiment().set_org(0.01f);
+					// if the previous army is now empty, clean it up early so incoming collitions with enemy armies on the same day can be handled properly
+					if(old_army.get_army_membership().begin() == old_army.get_army_membership().end()) {
+						military::cleanup_army(state, old_army);
+					}
+					//src.get_regiment().set_org(0.01f); // remove this so regiments keeps the same org as previously, otherwise civil wars/seceding nations have no chance as they start on 0 org.
 					military::army_arrives_in_province(state, new_u, loc, military::crossing_type::none);
 				} else {
-					src.get_regiment().set_strength(0.f);
+					// if the army is in a battle, is retreating, is on a transport, or is controlled by rebels,add to the delete list
+					to_be_deleted.push_back(src.get_regiment());
 				}
 			}
 			auto lc = p.get_pop().get_province_land_construction();
 			while(lc.begin() != lc.end()) {
 				state.world.delete_province_land_construction(*(lc.begin()));
 			}
+		}
+		//  safely delete the regiment instead of transferring it to the new owner
+		for(auto reg : to_be_deleted) {
+			military::delete_regiment_safe_wrapper(state, reg);
 		}
 	}
 
@@ -1327,7 +1345,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	}
 
 	if(old_owner) {
-		state.world.nation_get_owned_province_count(old_owner) -= uint16_t(1);
+		state.world.nation_set_owned_province_count(old_owner, uint16_t(state.world.nation_get_owned_province_count(old_owner) - uint16_t(1)));
 		auto lprovs = state.world.nation_get_province_ownership(old_owner);
 		if(lprovs.begin() == lprovs.end()) {
 			state.world.nation_set_marked_for_gc(old_owner, true);
@@ -1451,7 +1469,7 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 		});
 
 		auto amount = total_pop > 0.0f ? (state.defines.research_points_on_conquer_mult * sum_from_pops) * (rp_mod_mod + 1.0f) : 0.0f;
-		state.world.nation_get_research_points(new_owner) += amount;
+		state.world.nation_set_research_points(new_owner, state.world.nation_get_research_points(new_owner) + amount);
 	}
 
 	/*
@@ -1498,7 +1516,7 @@ void update_crimes(sys::state& state) {
 		if((rvalues.high & 0xFF) <= chance) {
 			if(state.world.province_get_crime(p)) {
 				if(!province::is_overseas(state, p))
-					state.world.nation_get_central_crime_count(owner) -= uint16_t(1);
+					state.world.nation_set_central_crime_count(owner, uint16_t(state.world.nation_get_central_crime_count(owner) - uint16_t(1)));
 			}
 			state.world.province_set_crime(p, dcon::crime_id{});
 		} else {
@@ -1522,7 +1540,7 @@ void update_crimes(sys::state& state) {
 					auto selected = possible_crimes[rvalues.low % count];
 					state.world.province_set_crime(p, selected);
 					if(!province::is_overseas(state, p))
-						state.world.nation_get_central_crime_count(owner) += uint16_t(1);
+						state.world.nation_set_central_crime_count(owner, uint16_t(state.world.nation_get_central_crime_count(owner) + uint16_t(1)));
 				}
 			}
 		}
@@ -1862,15 +1880,14 @@ void increase_colonial_investment(sys::state& state, dcon::nation_id source, dco
 		if(rel.get_colonizer() == source) {
 
 			if(state.world.state_definition_get_colonization_stage(state_def) == 1) {
-				rel.get_points_invested() += uint16_t(state.defines.colonization_interest_cost);
+				rel.set_points_invested(uint16_t(rel.get_points_invested() + uint16_t(state.defines.colonization_interest_cost)));
 			} else if(rel.get_level() <= 4) {
-				rel.get_points_invested() += uint16_t(state.defines.colonization_influence_cost);
+				rel.set_points_invested(uint16_t(rel.get_points_invested() + uint16_t(state.defines.colonization_influence_cost)));
 			} else {
-				rel.get_points_invested() += uint16_t(
-						state.defines.colonization_extra_guard_cost * (rel.get_level() - 4) + state.defines.colonization_influence_cost);
+				rel.set_points_invested(uint16_t(rel.get_points_invested() + uint16_t(
+					state.defines.colonization_extra_guard_cost * (rel.get_level() - 4) + state.defines.colonization_influence_cost)));
 			}
-
-			rel.get_level() += uint8_t(1);
+			rel.set_level(uint8_t(rel.get_level() + uint8_t(1)));
 			rel.set_last_investment(state.current_date);
 
 			/*
@@ -2101,7 +2118,7 @@ void remove_core(sys::state& state, dcon::province_id prov, dcon::national_ident
 void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 	auto old_rgo = state.world.province_get_rgo(prov);
 	state.world.province_set_rgo(prov, c);
-	auto next_size = state.world.province_get_rgo_base_size(prov) * 0.4f;
+	auto next_size = state.world.province_get_rgo_base_size(prov);
 	float pop_amount = 0.0f;
 	for(auto pt : state.world.in_pop_type) {
 		if(pt == state.culture_definitions.slaves) {
@@ -2113,10 +2130,10 @@ void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 	if(pop_amount * 5.f < next_size) {
 		next_size = pop_amount * 5.f;
 	}
-	state.world.province_get_rgo_size(prov, c) += next_size;
+	state.world.province_set_rgo_size(prov, c, state.world.province_get_rgo_size(prov, c) + next_size);
 	// immediately employ workers
-	state.world.province_get_rgo_target_employment(prov, c) += next_size;
-	state.world.province_get_rgo_max_size(prov, c) += next_size;
+	state.world.province_set_rgo_target_employment(prov, c, state.world.province_get_rgo_target_employment(prov, c) + next_size);
+	state.world.province_set_rgo_max_size(prov, c, state.world.province_get_rgo_max_size(prov, c) + next_size);
 	state.world.province_set_rgo_efficiency(prov, c, 1.f);
 	if(state.world.commodity_get_is_mine(old_rgo) != state.world.commodity_get_is_mine(c)) {
 		if(state.world.commodity_get_is_mine(c)) {
@@ -2136,7 +2153,8 @@ void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 }
 
 void enable_canal(sys::state& state, int32_t id) {
-	state.world.province_adjacency_get_type(state.province_definitions.canals[id]) &= ~province::border::impassible_bit;
+	auto& current = state.world.province_adjacency_get_type(state.province_definitions.canals[id]);
+	state.world.province_adjacency_set_type(state.province_definitions.canals[id], uint8_t(current & ~province::border::impassible_bit));
 }
 
 // distance between to adjacent provinces

@@ -514,6 +514,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_gamma] = glGetUniformLocation(shaders[i], "gamma");
 		shader_uniforms[i][uniform_subroutines_index] = glGetUniformLocation(shaders[i], "subroutines_index");
 		shader_uniforms[i][uniform_time] = glGetUniformLocation(shaders[i], "time");
+		shader_uniforms[i][uniform_light_direction] = glGetUniformLocation(shaders[i], "light_direction");
+		shader_uniforms[i][uniform_ignore_light] = glGetUniformLocation(shaders[i], "ignore_light");
 		shader_uniforms[i][uniform_terrain_texture_sampler] = glGetUniformLocation(shaders[i], "terrain_texture_sampler");
 		shader_uniforms[i][uniform_terrainsheet_texture_sampler] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler");
 		shader_uniforms[i][uniform_water_normal] = glGetUniformLocation(shaders[i], "water_normal");
@@ -546,6 +548,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	}
 }
 
+// assume the fixed position on the orbit
+constexpr float axial_tilt_angle = 0.409f;
+const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { -1.f, 0.f, 0.f });
+
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 	if(!screen_size.x || !screen_size.y) {
 		return;
@@ -563,7 +569,24 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
 		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
 		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
-		};
+		glUniform3f(shader_uniforms[program][uniform_light_direction],
+			state.map_state.light_direction.x,
+			state.map_state.light_direction.y,
+			state.map_state.light_direction.z
+		);
+		if(state.map_state.light_on) {
+			glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
+		} else {
+			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+		}
+	};
+
+	if(state.map_state.light_rotate) {
+		state.map_state.light_direction.x = cos(-time_counter);
+		state.map_state.light_direction.y = sin(-time_counter);
+		state.map_state.light_direction.z = 0.f;
+		state.map_state.light_direction = state.map_state.light_direction * axial_rotation;
+	}
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
@@ -704,9 +727,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glEnable(GL_BLEND);
 
 	// Draw the railroads and city
-	if(zoom > map::zoom_close && !city_vertices.empty() && state.user_settings.railroads_enabled) {
+	if(//zoom > map::zoom_close &&
+		!city_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 		{
 			load_shader(shader_textured_triangle);
@@ -746,9 +770,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 	}
 
-	if(zoom > map::zoom_close && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
+	if(/*zoom > map::zoom_close && */!railroad_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
@@ -2378,7 +2402,9 @@ void display_data::update_sprawl(sys::state& state) {
 		}
 		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
 		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.clergy));
-
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.artisans)) * 0.9f;
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.soldiers));
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.aristocrat));
 		auto urban_pop = p.get_demographics(demographics::total) - rural_population;
 
 		if(urban_pop < minimal_population_per_visible_settlement) {
@@ -2391,7 +2417,7 @@ void display_data::update_sprawl(sys::state& state) {
 			continue;
 		}
 
-		auto population_level = int(sqrt(urban_pop / 100'000.f) * 10.f) + 1.f;
+		auto population_level = int(sqrt(urban_pop / 100'000.f) * 5.f) + 1.f;
 
 		if(population_level < 3.f) {
 			population_level = 1.f;
@@ -3391,19 +3417,22 @@ void display_data::load_map(sys::state& state) {
 	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_national_border] = load_dds_texture(assets_dir, NATIVE("nat_border.dds"));
-	ogl::set_gltex_parameters(textures[texture_national_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP);
+	ogl::set_gltex_parameters(textures[texture_national_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);
 
 	textures[texture_state_border] = load_dds_texture(assets_dir, NATIVE("state_border.dds"));
-	ogl::set_gltex_parameters(textures[texture_state_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP);
+	ogl::set_gltex_parameters(textures[texture_state_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);
 
 	textures[texture_prov_border] = load_dds_texture(assets_dir, NATIVE("prov_border.dds"));
-	ogl::set_gltex_parameters(textures[texture_prov_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP);
+	ogl::set_gltex_parameters(textures[texture_prov_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);
 
 	textures[texture_imp_border] = load_dds_texture(assets_dir, NATIVE("imp_border.dds"));
-	ogl::set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP);
+	ogl::set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);
 
 	textures[texture_coastal_border] = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
-	ogl::set_gltex_parameters(textures[texture_coastal_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP);
+	ogl::set_gltex_parameters(textures[texture_coastal_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);
+
+	textures[texture_hover_border] = load_dds_texture(assets_dir, NATIVE("hover_border.dds"));
+	ogl::set_gltex_parameters(textures[texture_hover_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);
 
 	textures[texture_railroad] = load_dds_texture(gfx_anims_dir, NATIVE("railroad.dds"));
 	ogl::set_gltex_parameters(textures[texture_railroad], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
@@ -3432,8 +3461,6 @@ void display_data::load_map(sys::state& state) {
 	textures[texture_other_objective_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("otherobjectivearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_other_objective_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 
-	textures[texture_hover_border] = load_dds_texture(assets_dir, NATIVE("hover_border.dds"));
-	ogl::set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes

@@ -111,7 +111,7 @@ static_assert(sizeof(global_economy_state) ==
 enum class worker_effect : uint8_t { none = 0, input, output, throughput };
 
 template<typename T>
-auto desired_needs_spending(sys::state const& state, T pop_indices) {
+auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_unused]] T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc
 	return 0.0f;
 }
@@ -126,55 +126,37 @@ inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
 inline constexpr float price_speed_mod = 0.001f;
-inline constexpr float price_rigging = 0.02f;
+inline constexpr float price_rigging = 0.001f;
 inline constexpr float production_throughput_multiplier = 2.5f; // for the sake of machine tools
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
 inline constexpr float market_savings_target = 1'000'000.f;
-inline constexpr float trade_transaction_soft_limit = 10'000.f;
+inline constexpr float trade_transaction_soft_limit = 1'000.f;
 
-// trade related
-inline constexpr float merchant_cut_foreign = 0.05f;
-inline constexpr float merchant_cut_domestic = 0.001f;
-inline constexpr float effect_of_transportation_scale = 0.0005f;
-inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 100.f;
+
 
 // greed drives incomes of corresponding pops up
 // while making life worse on average
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.1f;
 inline constexpr float artisans_greed = 0.001f;
-inline constexpr float labor_greed_life = 2.1f;
-inline constexpr float labor_greed_everyday = 0.2f;
+inline constexpr float labor_greed_life = 0.05f;
+inline constexpr float labor_greed_everyday = 0.f;
 // inline constexpr float capitalists_greed = 1.f; // for future use
 
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
 
-float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
-float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
-float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
-
-float subsistence_max_pseudoemployment(sys::state& state, dcon::nation_id n, dcon::province_id p);
+float subsistence_max_pseudoemployment(sys::state& state, dcon::province_id p);
 float factory_total_employment_score(sys::state const& state, dcon::factory_id f);
 
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
-//factories
-
-// abstract modifiers
-float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
-float factory_total_employment(sys::state const& state, dcon::factory_id f);
-float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
-float factory_primary_employment(sys::state const& state, dcon::factory_id f);
-float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
-
 // misc
-
 int32_t factory_priority(sys::state const& state, dcon::factory_id f);
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
 bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
@@ -196,60 +178,9 @@ void resolve_constructions(sys::state& state);
 
 std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good);
 
-float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
-float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_total_imports(sys::state& state, dcon::nation_id n);
-
-struct tariff_data {
-	std::array<bool, 2> applies_tariff;
-	std::array<float, 2> export_tariff;
-	std::array<float, 2> import_tariff;
-
-	float distance;
-	float loss;
-	float base_distance_cost;
-	float workers_satisfaction;
-};
-
-struct trade_and_tariff {
-	dcon::market_id origin;
-	dcon::market_id target;
-
-	dcon::nation_id origin_nation;
-	dcon::nation_id target_nation;
-
-	float amount_origin;
-	float amount_target;
-
-	float tariff_origin;
-	float tariff_target;
-
-	float tariff_rate_origin;
-	float tariff_rate_target;
-
-	float price_origin;
-	float price_target;
-
-	float transport_cost;
-	float transportaion_loss;
-	float distance;
-
-	float payment_per_unit;
-	float payment_received_per_unit;
-};
-
-tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route);
-trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, tariff_data& additional_data, dcon::commodity_id cid);
-trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
-struct trade_breakdown_item {
-	dcon::nation_id trade_partner;
-	dcon::commodity_id commodity;
-	float traded_amount;
-	float tariff;
-};
-std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dcon::nation_id n, bool import_flag, bool export_flag);
 
 float estimate_gold_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
@@ -322,6 +253,14 @@ struct upgraded_factory {
 	dcon::factory_type_id target_type;
 };
 
+// Represents one type of employment of a building
+struct employment_record {
+	int32_t employment_type;
+	float target_employment;
+	float satisfaction;
+	float actual_employment;
+};
+
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
@@ -334,6 +273,7 @@ int32_t previous_gdp_record_index(sys::state& state);
 
 float gdp(sys::state& state, dcon::nation_id n);
 float gdp(sys::state& state, dcon::market_id n);
+float gdp_adjusted(sys::state& state, dcon::nation_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);

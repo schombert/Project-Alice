@@ -193,7 +193,7 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto location = state.world.pop_get_province_from_pop_location(p);
-		auto current = state.world.province_get_demographics(location, key);
+		auto& current = state.world.province_get_demographics(location, key);
 		state.world.province_set_demographics(location, key, current + source(state, p));
 	});
 	// clear state
@@ -202,9 +202,10 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
+		auto& current = state.world.state_instance_get_demographics(location, key);
 		// check if province is uncolonized, as uncolonized provinces do not have valid state membership
 		if(location) {
-			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(p, key);
+			state.world.state_instance_set_demographics(location, key, current + state.world.province_get_demographics(p, key));
 		}
 	});
 	// clear nation
@@ -212,9 +213,10 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	// sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto& current = state.world.nation_get_demographics(location, key);
 		// check if state is not owned by a nation
 		if(location) {
-			state.world.nation_get_demographics(location, key) += state.world.state_instance_get_demographics(s, key);
+			state.world.nation_set_demographics(location, key, current + state.world.state_instance_get_demographics(s, key));
 		}
 		
 	});
@@ -227,7 +229,7 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto location = state.world.pop_get_province_from_pop_location(p);
-		auto current = state.world.province_get_demographics_alt(location, key);
+		auto& current = state.world.province_get_demographics_alt(location, key);
 		state.world.province_set_demographics_alt(location, key, current + source(state, p));
 	});
 	// clear state
@@ -236,9 +238,10 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
+		auto& current = state.world.state_instance_get_demographics_alt(location, key);
 		// check if province is uncolonized, as uncolonized provinces do not have valid state membership
 		if(location) {
-			state.world.state_instance_get_demographics_alt(location, key) += state.world.province_get_demographics_alt(p, key);
+			state.world.state_instance_set_demographics_alt(location, key, current + state.world.province_get_demographics_alt(p, key));
 		}
 		
 	});
@@ -247,9 +250,10 @@ void alt_sum_over_demographics(sys::state& state, dcon::demographics_key key, F 
 	// sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+		auto& current = state.world.nation_get_demographics_alt(location, key);
 		// check if state is not owned by a nation
 		if(location) {
-			state.world.nation_get_demographics_alt(location, key) += state.world.state_instance_get_demographics_alt(s, key);
+			state.world.nation_set_demographics_alt(location, key, current + state.world.state_instance_get_demographics_alt(s, key));
 		}
 		
 	});
@@ -274,22 +278,25 @@ void sum_over_single_nation_demographics(sys::state& state, dcon::demographics_k
 	// clear province
 	for(auto pc : state.world.nation_get_province_control_as_nation(n)) {
 		auto location = pc.get_province();
+		auto& current = state.world.province_get_demographics(location, key);
 		state.world.province_set_demographics(location, key, 0.f);
 		for(auto pl : pc.get_province().get_pop_location_as_province()) {
-			state.world.province_get_demographics(location, key) += source(state, pl.get_pop());
+			state.world.province_set_demographics(location, key, current + source(state, pl.get_pop()));
 		}
 	}
 	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
 		auto location = sc.get_state();
+		auto& current = state.world.state_instance_get_demographics(location, key);
 		state.world.state_instance_set_demographics(location, key, 0.f);
 		for(auto sm : sc.get_state().get_definition().get_abstract_state_membership()) {
-			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(sm.get_province(), key);
+			state.world.state_instance_set_demographics(location, key, current + state.world.province_get_demographics(sm.get_province(), key));
 		}
 
 	}
 	state.world.nation_set_demographics(n, key, 0.f);
+	auto& current = state.world.nation_get_demographics(n, key);
 	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
-		state.world.nation_get_demographics(n, key) += state.world.state_instance_get_demographics(sc.get_state(), key);
+		state.world.nation_set_demographics(n, key, current + state.world.state_instance_get_demographics(sc.get_state(), key));
 	}
 }
 
@@ -482,6 +489,24 @@ void regenerate_from_pop_data(sys::state& state) {
 					return state.world.pop_type_get_strata(state.world.pop_get_poptype(p)) == uint8_t(culture::pop_strata::rich)
 										 ? state.world.pop_get_size(p)
 										 : 0.0f;
+				});
+				break;
+			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
 				});
 				break;
 			}
@@ -829,8 +854,8 @@ void regenerate_from_pop_data(sys::state& state) {
 			state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 				if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 					auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-					state.world.nation_get_non_colonial_population(location) +=
-							state.world.state_instance_get_demographics(s, demographics::total);
+					auto& current_pop = state.world.nation_get_non_colonial_population(location);
+					state.world.nation_set_non_colonial_population(location, current_pop + state.world.state_instance_get_demographics(s, demographics::total));
 				}
 			});
 			break;
@@ -844,7 +869,8 @@ void regenerate_from_pop_data(sys::state& state) {
 					[&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
 						if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 							auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-							state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
+							auto& current_pop = state.world.nation_get_non_colonial_bureaucrats(location);
+							state.world.nation_set_non_colonial_bureaucrats(location, current_pop + state.world.state_instance_get_demographics(s, k));
 						}
 					});
 			break;
@@ -1061,6 +1087,24 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 					return state.world.pop_type_get_strata(state.world.pop_get_poptype(p)) == uint8_t(culture::pop_strata::rich)
 						? state.world.pop_get_size(p)
 						: 0.0f;
+				});
+				break;
+			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
 				});
 				break;
 			}
@@ -1905,8 +1949,8 @@ void alt_demographics_update_extras(sys::state& state) {
 			state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 				if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 					auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-					state.world.nation_get_non_colonial_population(location) +=
-						state.world.state_instance_get_demographics(s, demographics::total);
+					auto& current = state.world.nation_get_non_colonial_population(location);
+					state.world.nation_set_non_colonial_population(location, current + state.world.state_instance_get_demographics(s, demographics::total));
 				}
 			});
 			break;
@@ -1921,7 +1965,8 @@ void alt_demographics_update_extras(sys::state& state) {
 					[&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
 						if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
 							auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-							state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
+							auto& current = state.world.nation_get_non_colonial_bureaucrats(location);
+							state.world.nation_set_non_colonial_bureaucrats(location, current + state.world.state_instance_get_demographics(s, k));
 						}
 					});
 			break;
@@ -2589,12 +2634,19 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than
 	define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by
 	define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value
-	and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+	and add it to define:BASE_POPGROWTH and add to all pop growth modifiers. This gives us the growth factor for the province.
 
-	The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs -
-	define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier +
-	national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's
-	size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	If the pop is a slave and the growth rate is positive, divide the growth modifiers by define:SLAVE_GROWTH_DIVISOR.
+
+	Then compute the starvation scale:
+	pop_growth_factor + define:ALICE_MAX_STARVATION_DEGROWTH, with a min possible result of define:ALICE_MAX_STARVATION_DEGROWTH
+
+	then compute the starvation factor:
+	(pop_life_need_fufillment - define:LIFE_NEED_STARVATION_LIMIT) / define:LIFE_NEED_STARVATION_LIMIT, with a max possible result of 0
+
+	Then multiply the starvation scale and starvation factor to get the net pop growth penalty, which is then added to the rest of the modifiers
+
+	Then multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 	*/
 
 	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
@@ -2607,44 +2659,109 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 				40.0f);
 		auto lr_factor =
 				ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-		auto province_factor = lr_factor + state.defines.base_popgrowth;
+		ve::fp_vector modifiers = lr_factor + state.defines.base_popgrowth +
+			state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) +
+			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	
 
-		auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+		modifiers = ve::select(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves && modifiers > 0.0f, modifiers / state.defines.slave_growth_divisor, modifiers);
 
-		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+		
+		ve::fp_vector ln_penalty_scale = ve::max(modifiers + (state.defines.alice_max_starvation_degrowth), state.defines.alice_max_starvation_degrowth);
+
+		ve::fp_vector ln_factor = 0.0f;
+
+		if(state.defines.life_need_starvation_limit != 0) {
+			ln_factor = ve::min( (pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit) / state.defines.life_need_starvation_limit, 0.0f);
+		}
+		
+
+		auto total_factor = ln_factor * ln_penalty_scale + modifiers;
 		auto old_size = state.world.pop_get_size(ids);
 		auto new_size = old_size * total_factor + old_size;
 
-		auto type = state.world.pop_get_poptype(ids);
-
 		state.world.pop_set_size(ids,
-				ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size));
+				ve::select((owner != dcon::nation_id{}), new_size, old_size));
 	});
 }
 
-float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
-	auto type = state.world.pop_get_poptype(ids);
-	if(type == state.culture_definitions.slaves)
-		return 0.0f;
 
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
+float get_pop_starvation_factor(sys::state& state, dcon::pop_id ids) {
+	auto ln_factor = 0.0f;
+	if(state.defines.life_need_starvation_limit != 0) {
+		ln_factor = std::min((pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit) / state.defines.life_need_starvation_limit, 0.0f);
+	}
+	return ln_factor;
+}
+
+float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers) {
+	return std::max(growth_modifiers + (state.defines.alice_max_starvation_degrowth), state.defines.alice_max_starvation_degrowth);
+}
+
+float get_net_pop_starvation_penalty(sys::state& state, dcon::pop_id pop, float growth_modifiers) {
+	float ln_penalty_scale = get_pop_starvation_penalty_scale(state, pop, growth_modifiers);
+	return ln_penalty_scale * get_pop_starvation_factor(state, pop);
+}
+
+float popgrowth_from_life_rating(sys::state& state, float life_rating) {
+	return std::max((life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+}
+
+
+float get_pop_growth_modifiers(sys::state& state, dcon::pop_id pop) {
+	auto type = state.world.pop_get_poptype(pop);
+
+	auto loc = state.world.pop_get_province_from_pop_location(pop);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 
-	auto base_life_rating = float(state.world.province_get_life_rating(loc));
-	auto mod_life_rating = std::min(
-			base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
-	auto lr_factor =
-			std::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
-	auto province_factor = lr_factor + state.defines.base_popgrowth;
+	auto mod_life_rating = province::effective_life_rating_growth(state, loc);
+	auto lr_factor = popgrowth_from_life_rating(state, mod_life_rating);
 
-	auto ln_factor = pop_demographics::get_life_needs(state, ids) - state.defines.life_need_starvation_limit;
-	auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+	float modifiers = lr_factor + state.defines.base_popgrowth + state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth) + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
 
-	auto total_factor = ln_factor * province_factor * 4.0f + mod_sum * 0.1f;
+	if(type == state.culture_definitions.slaves && modifiers > 0.0f)
+		modifiers /= state.defines.slave_growth_divisor;
+
+	return modifiers;
+}
+
+float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
+
+	/*
+	Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the
+	modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the
+	provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than
+	define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by
+	define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value
+	and add it to define:BASE_POPGROWTH and add to all pop growth modifiers. This gives us the growth factor for the province.
+
+	If the pop is a slave and the growth rate is positive, divide the growth modifiers by define:SLAVE_GROWTH_DIVISOR.
+
+	Then compute the starvation scale:
+	pop_growth_factor + define:ALICE_MAX_STARVATION_DEGROWTH, with a min possible result of define:ALICE_MAX_STARVATION_DEGROWTH
+
+	then compute the starvation factor:
+	(pop_life_need_fufillment - define:LIFE_NEED_STARVATION_LIMIT) / define:LIFE_NEED_STARVATION_LIMIT, with a max possible result of 0
+
+	Then multiply the starvation scale and starvation factor to get the net pop growth penalty, which is then added to the rest of the modifiers
+
+	Then multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	*/
+
+
+
+	auto modifiers = get_pop_growth_modifiers(state, ids);
+
+
+	return get_net_pop_starvation_penalty(state, ids, modifiers) + modifiers;
+}
+
+float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
+	
+
 	auto old_size = state.world.pop_get_size(ids);
 
-	return old_size * total_factor;
+	return old_size * get_monthly_pop_growth_factor(state, ids);
 }
 int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n) {
 	float t = 0.0f;
@@ -4082,8 +4199,8 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 					if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
 						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p),
 								state.world.pop_get_culture(p), state.world.pop_get_religion(p), pbuf.types.get(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4102,8 +4219,8 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 					: state.world.province_get_dominant_religion(l);
 				assert(state.world.pop_get_poptype(p));
 				auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+				state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
 			}
 		},
 		ids, locs, state.world.province_get_dominant_accepted_culture(locs));
@@ -4119,11 +4236,15 @@ void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divis
 						assert(state.world.pop_get_poptype(p));
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -=
-								pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+
+						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
+						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - pbuf.amounts.get(p));
+
+						auto dest_pop_location = pbuf.destinations.get(p);
+						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + pbuf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4138,11 +4259,15 @@ void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divis
 						assert(state.world.pop_get_poptype(p));
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -=
-								pbuf.amounts.get(p);
-						state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+
+						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
+						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - pbuf.amounts.get(p));
+
+						auto dest_pop_location = pbuf.destinations.get(p);
+						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + pbuf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4159,11 +4284,16 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
 
-						state.world.pop_get_size(p) -= amount;
-						state.world.pop_get_size(target_pop) += amount;
-						state.world.province_get_daily_net_immigration(state.world.pop_get_province_from_pop_location(p)) -= amount;
-						state.world.province_get_daily_net_immigration(pbuf.destinations.get(p)) += amount;
-						state.world.province_set_last_immigration(pbuf.destinations.get(p), state.current_date);
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - amount);
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + amount);
+
+						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
+						state.world.province_set_daily_net_immigration(cur_pop_location, state.world.province_get_daily_net_immigration(cur_pop_location) - amount);
+
+						auto dest_pop_location = pbuf.destinations.get(p);
+						state.world.province_set_daily_net_immigration(dest_pop_location, state.world.province_get_daily_net_immigration(dest_pop_location) + amount);
+
+						state.world.province_set_last_immigration(dest_pop_location, state.current_date);
 					}
 				},
 				ids);
@@ -4175,6 +4305,12 @@ void remove_size_zero_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{dcon::pop_id::value_base_t(last)};
 		if(state.world.pop_get_size(m) < 1.0f) {
+			//safely delete any regiment which has this pop as its source
+			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
+				auto reg = *(state.world.pop_get_regiment_source(m).begin());
+				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
+			}
 			state.world.delete_pop(m);
 		}
 	}
@@ -4185,6 +4321,12 @@ void remove_small_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
 		if(state.world.pop_get_size(m) < 20.0f) {
+			//safely delete any regiment which has this pop as its source
+			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
+				auto reg = *(state.world.pop_get_regiment_source(m).begin());
+				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
+			}
 			state.world.delete_pop(m);
 		}
 	}
@@ -4219,9 +4361,9 @@ float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id) {
 
 void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount) {
 	if(state.world.pop_get_size(pop_id) >= amount) {
-		state.world.pop_get_size(pop_id) -= amount;
+		state.world.pop_set_size(pop_id, state.world.pop_get_size(pop_id) - amount);
 	} else {
-		state.world.pop_get_size(pop_id) = 0;
+		state.world.pop_set_size(pop_id, 0);
 	}
 }
 

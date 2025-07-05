@@ -53,6 +53,7 @@ struct user_settings_s {
 	projection_mode map_is_globe = projection_mode::globe_ortho;
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
+	bool unit_disband_confirmation = false;
 	bool use_classic_fonts = false;
 	bool left_mouse_click_hold_and_release = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};

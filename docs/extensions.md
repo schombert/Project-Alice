@@ -526,6 +526,7 @@ Alice adds a handful of new defines:
 - `alice_naval_base_to_colonial_distance_factor` (default 0.04): multiplier in the formula for colonial distance unlocked by 1 lvl of naval base.
 - `alice_always_available_cbs_zero_infamy` - if set to 0, then CBs with `always = yes` will have infamy cost calculated as per `badboy_factor`.
 - `alice_economy_market_stockpile_spoilage` controls spoilage in market stockpiles (default: 0.05 = 5%)
+- `alice_max_starvation_degrowth` - the maximum possible popgrowth penalty for a starving pop (below life_need_starvation_limit), reaching this maximum value when fufillment hits 0%. This penalty will not be overidden by other popgrowth techs&modifiers, so a fully starving pop will have this negative popgrowth at minimum.
 
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
@@ -540,6 +541,16 @@ These relate to the added ability for reserve regiments to reinforce while in ba
 - `alice_reg_move_to_reserve_str = 0.0f`: if a regiment's strength is equal to or less than this decimal in battle, it wil be taken out from the front, and moved to reserves. Default 0.0
 - `alice_reg_deploy_from_reserve_org = 0.1f`: if a reserve regiments org is equal to or higher than this decimal, it can be deployed to the front, if alice_reg_deploy_from_reserve_str is also fufilled. Default 0.1
 - `alice_reg_deploy_from_reserve_str = 0.0f`: if a reserve regiments strength is greater than this decimal, it can be deployed to the front, if alice_reg_deploy_from_reserve_org is also fufilled. Default 0.0
+
+
+These relate to naval battles:
+`alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
+`alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
+
+
+These relate to army attrition
+- `alice_army_sea_transport_attrition = 2.5f`: The monthly attrition (in percent) for armies on the sea in transports to take. Can be reduced by national "land_attrition" modifiers
+- `alice_fort_siege_attrition_per_level = 0.35f`: Additional attrition (in percent) per fort level for armies sieging the province, stacking with the base siege attrition.
 
 
 ### Support for reforms based on party issues
