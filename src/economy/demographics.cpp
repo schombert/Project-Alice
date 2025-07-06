@@ -9,7 +9,7 @@
 #include "ve_scalar_extensions.hpp"
 #include "container_types.hpp"
 #include "economy_stats.hpp"
-#include "pops.hpp"
+#include "economy_pops.hpp"
 
 // #define CHECK_LLVM_RESULTS
 

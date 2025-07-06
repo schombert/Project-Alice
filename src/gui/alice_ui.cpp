@@ -4,7 +4,7 @@
 #include "gui_deserialize.hpp"
 #include "alice_ui.hpp"
 #include "demographics.hpp"
-#include "pops.hpp"
+#include "economy_pops.hpp"
 #include "advanced_province_buildings.hpp"
 
 #include "macrobuilder2.cpp"

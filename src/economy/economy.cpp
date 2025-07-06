@@ -14,7 +14,7 @@
 #include "triggers.hpp"
 #include "advanced_province_buildings.hpp"
 #include "price.hpp"
-#include "pops.hpp"
+#include "economy_pops.hpp"
 #include "commodities.hpp"
 
 namespace economy {
