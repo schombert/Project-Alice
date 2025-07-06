@@ -1433,8 +1433,6 @@ employment_vector<N> get_profit_gradient(
 }
 
 void update_employment(sys::state& state) {
-	advanced_province_buildings::update_size(state);
-
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 

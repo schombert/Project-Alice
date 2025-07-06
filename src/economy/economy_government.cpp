@@ -96,10 +96,10 @@ float full_spendings_administration(sys::state& state, dcon::nation_id n) {
 	return admin_budget;
 }
 
-void update_consumption_administration(sys::state& state, dcon::nation_id n) {
+void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget) {
+	// admin budget is not scaled down
 
-	auto total_budget = std::max(0.f, state.world.nation_get_stockpiles(n, economy::money));
-	auto admin_budget = total_budget * state.world.nation_get_spending_level(n) * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	auto admin_budget = total_budget * float(state.world.nation_get_administrative_spending(n)) / 100.f;
 
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {

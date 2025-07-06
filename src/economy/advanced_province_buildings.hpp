@@ -41,7 +41,8 @@ struct advanced_building_definition {
 const extern advanced_building_definition definitions[services::list::total];
 void initialize_size_of_dcon_arrays(sys::state& state);
 void update_consumption(sys::state& state);
-void update_size(sys::state& state);
+void update_private_size(sys::state& state);
+void update_national_size(sys::state& state, float national_budget, float spending_scale);
 void update_production(sys::state& state);
 
 }

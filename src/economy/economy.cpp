@@ -153,6 +153,7 @@ float gdp_adjusted(sys::state& state, dcon::nation_id n) {
 }
 
 struct spending_cost {
+	float administration;
 	float construction;
 	float other;
 	float total;
@@ -1123,6 +1124,7 @@ void populate_navy_consumption(sys::state& state) {
 
 spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
 	spending_cost costs = {
+		.administration = 0.f,
 		.construction = 0.f,
 		.other = 0.f,
 		.total = 0.f,
@@ -1211,6 +1213,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
 
 	// wages to employed:
 	auto const admin_spending = full_spendings_administration(state, n);
+	costs.administration = admin_spending;
 	total += admin_spending;
 
 	assert(std::isfinite(total) && total >= 0.0f);
@@ -1271,7 +1274,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
 	assert(std::isfinite(total) && total >= 0.0f);
 
 	costs.total = total;
-	costs.other = total - costs.construction;
+	costs.other = total - costs.construction - costs.administration;
 
 	return costs;
 }
@@ -1343,7 +1346,27 @@ float full_private_investment_cost(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
-void update_national_consumption(sys::state& state, dcon::nation_id n, float spending_scale, float private_investment_scale) {
+void update_private_consumption(sys::state& state, dcon::nation_id n, float private_investment_scale) {
+	uint32_t total_commodities = state.world.commodity_size();
+	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
+		auto local_state = state.world.state_ownership_get_state(soid);
+		auto market = state.world.state_instance_get_market_from_local_market(local_state);
+
+		for(uint32_t i = 1; i < total_commodities; ++i) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+			register_demand(
+				state,
+				market,
+				cid,
+				state.world.market_get_private_construction_demand(market, cid)
+				* private_investment_scale, economy_reason::construction);
+		}
+	});
+
+	advanced_province_buildings::update_private_size(state);
+}
+
+void update_national_consumption(sys::state& state, dcon::nation_id n, float spending_scale, float base_budget) {
 	uint32_t total_commodities = state.world.commodity_size();
 	float l_spending = float(state.world.nation_get_land_spending(n)) / 100.0f;
 	float n_spending = float(state.world.nation_get_naval_spending(n)) / 100.0f;
@@ -1390,15 +1413,6 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 				* spending_scale,
 				economy_reason::construction
 			);
-		}
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			register_demand(
-				state,
-				market,
-				cid,
-				state.world.market_get_private_construction_demand(market, cid)
-				* private_investment_scale, economy_reason::construction);
 		}
 	});
 
@@ -1447,7 +1461,8 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 		}
 	}
 
-	update_consumption_administration(state, n);
+	update_consumption_administration(state, n, base_budget);
+	advanced_province_buildings::update_national_size(state, base_budget, spending_scale);
 }
 
 // ### Private Investment ###
@@ -2252,9 +2267,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// rgo/factories/artisans consumption
 	update_production_consumption(state);
-	advanced_province_buildings::update_consumption(state);
-
-
+	
 	state.world.for_each_commodity([&](auto cid) {
 		bool is_potential_rgo = state.world.commodity_get_rgo_amount(cid) > 0.f;
 		bool already_known_to_exist = state.world.commodity_get_actually_exists_in_nature(cid);
@@ -2288,104 +2301,163 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
-	static auto spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
+	// national income is handled at the end,
+	// so we have money stockpile from previous day
+	// and can safely use it to calculate spendings and generate demand
 
-	// STEP 4 national budget updates
+	// national spendings ideally should follow the priority:
+	// 1) loans interest (otherwise interest gets diluted and can be abused with high admin spending)
+	// 2) international treaties (currently it is handled somewhere else, requires investigation)
+	// 3) admin spending (can't pay for stuff without taxes)
+	// 4) everything else
+
+	// if nation is unable to pay interest it is considered bankrupt
+	// money stockpiles after interest are considered BASEBUDGET
+	// admin spendings take a ratio of BASEBUDGET to pay for bureaucracy
+	// denote them as ADMIN
+	// the rest of spending is divided into two groups:
+	// 1) LEGACY: these expenses depend on some predefined value
+	// 2) RELATIVE: these spendings are equal to ratio of BASEBUDGET
+	// if LEGACY and RELATIVE - ADMIN expenses are larger than BASEBUDGET - ADMIN
+	// then scale them down
+
+	// AI is considered bankrupt when money stockpiles are lower than 0,
+	// which should happen basically never
+
+	// we have to recalculate loan related variables every new round, because they depend on themselves
+
+	static auto spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
+	
 	for(auto n : state.nations_by_rank) {
 		if(!n) {
 			continue;
 		}
 		spent_on_construction_buffer.set(n, 0.f);
 
+		float spending_scale = 1.0f;
+		bool is_bankrupt = false;
+
+		// handle loans
+
+
 		{
-			// update national spending
-			//
-			// step 1: figure out total
-			auto costs = full_spending_cost(state, n);
-
-			float total = costs.total;
-
-			// step 2: limit to actual budget
-			float budget = 0.0f;
-			float spending_scale = 0.0f;
+			auto MONEY = state.world.nation_get_stockpiles(n, economy::money);
 			if(state.world.nation_get_is_player_controlled(n)) {
-				auto& sp = state.world.nation_get_stockpiles(n, economy::money);
+				auto MAX_LOAN = max_loan(state, n);
+				auto LOAN = state.world.nation_get_local_loan(n);
+				auto INTEREST = interest_payment(state, n);
+				auto REQUIRED_ADDITIONAL_LOAN = 0.f;
+				auto BANK_MONEY = state.world.nation_get_national_bank(n);
 
-				/*
-				BANKRUPTCY
-				*/
-				auto ip = interest_payment(state, n);
-				// To become bankrupt nation should be unable to cover its interest payments with its actual money or more loans
-				if(sp < ip && state.world.nation_get_local_loan(n) >= max_loan(state, n)) {
-					go_bankrupt(state, n);
-					spending_scale = 0.f;
-				}
-				// Interest payments
-				if(ip > 0) {
-					state.world.nation_set_stockpiles(n, economy::money, sp - ip);
-					state.world.nation_set_national_bank(n, state.world.nation_get_national_bank(n) + ip);
+				if(MONEY < INTEREST) {
+					REQUIRED_ADDITIONAL_LOAN = INTEREST - MONEY;
 				}
 
-				// If available loans don't allow run 100% of spending, adjust spending scale
-				if(can_take_loans(state, n) && total - state.world.nation_get_stockpiles(n, economy::money) <= max_loan(state, n) - state.world.nation_get_local_loan(n)) {
-					budget = total;
-					spending_scale = 1.0f;
+				if(MONEY < INTEREST && LOAN + REQUIRED_ADDITIONAL_LOAN > MAX_LOAN) {
+					is_bankrupt = true;
+				} else if(MONEY > INTEREST) {
+					// can pay interest without new loans
+					state.world.nation_set_stockpiles(n, economy::money, MONEY - INTEREST);
+					state.world.nation_set_national_bank(n, BANK_MONEY + INTEREST);
 				} else {
-					budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
-					spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+					// we have to take additional loan to pay interest and we are able to do it
+					state.world.nation_set_local_loan(n, LOAN + REQUIRED_ADDITIONAL_LOAN);
+					state.world.nation_set_stockpiles(n, economy::money, 0);
 				}
 			} else {
-				budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
-				spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
-
-				auto& sp = state.world.nation_get_stockpiles(n, economy::money);
-
-				if(sp < 0 && sp < -max_loan(state, n)) {
-					go_bankrupt(state, n);
-					spending_scale = 0.f;
+				if(MONEY < 0) {
+					is_bankrupt = true;
 				}
 			}
-
-			assert(spending_scale >= 0);
-			assert(std::isfinite(spending_scale));
-			assert(std::isfinite(budget));
+		}
 
 
-			auto& s = state.world.nation_get_stockpiles(n, economy::money);
+		if(is_bankrupt) {
+			go_bankrupt(state, n);
+			spending_scale = 0.f;
+		} else {
+			// interest is paid and we are not bankrupt,
+			// now we can assume that money stockpile is equal to BASE_BUDGET
+			auto BASE_BUDGET = state.world.nation_get_stockpiles(n, economy::money);
+			auto ADDITIONAL_FUNDING = 0.f;
+			auto costs = full_spending_cost(state, n);
+			auto ADMIN = costs.administration;
+			auto REQUIRED_ADDITIONAL_FUNDING = std::max(0.f, costs.total - BASE_BUDGET);
+			auto CURRENT_LOAN = state.world.nation_get_local_loan(n);
 
-			state.world.nation_set_stockpiles(n, economy::money, s - std::min(budget, total * spending_scale));
-			state.world.nation_set_spending_level(n, spending_scale);
+			// if loan is required, then take as much as you can
 
-			auto& l = state.world.nation_get_local_loan(n);
-
-			// Take loan
-			if(s < 0 && l < max_loan(state, n) && std::abs(s) <= max_loan(state, n) - l) {
-				state.world.nation_set_local_loan(n, l + std::abs(s));
-				state.world.nation_set_stockpiles(n, economy::money, 0);
-			} else if(s < 0) {
-				// Nation somehow got into negative bigger than its loans allow
-				go_bankrupt(state, n);
-			// Repay loan
-			} else if(s > 0 && l > 0) {
-				auto change = std::min(s, l);
-				state.world.nation_set_local_loan(n, l - change);
-				state.world.nation_set_stockpiles(n, economy::money, s - change);
+			if(can_take_loans(state, n)) {
+				auto AVAILABLE_LOAN = max_loan(state, n) - CURRENT_LOAN;
+				ADDITIONAL_FUNDING = std::min(REQUIRED_ADDITIONAL_FUNDING, AVAILABLE_LOAN);
 			}
 
+			// by definition, ADMIN must be lower or equal than BASE_BUDGET, so we can always pay for admin budget
+
+			if(BASE_BUDGET + ADDITIONAL_FUNDING >= costs.total) {
+				spending_scale = 1.f;
+			} else {
+				spending_scale =
+					(costs.total - ADMIN < 0.001f)
+					? 1.f
+					: (BASE_BUDGET + ADDITIONAL_FUNDING - ADMIN) / (costs.total - ADMIN);
+			}
+
+			// spend money
+			state.world.nation_set_stockpiles(
+				n, economy::money, BASE_BUDGET - std::min(BASE_BUDGET, costs.total * spending_scale)
+			);
+			state.world.nation_set_spending_level(n, spending_scale);
+
+			if (ADDITIONAL_FUNDING > 0.f) {
+				// take the loan
+				state.world.nation_set_local_loan(n, CURRENT_LOAN + ADDITIONAL_FUNDING);
+				state.world.nation_set_stockpiles(n, economy::money, 0);
+			} else {
+				// repay the loan
+				auto REMAINDER = state.world.nation_get_stockpiles(n, economy::money);
+				auto PAID_LOAN = std::min(REMAINDER, CURRENT_LOAN);
+				auto LOAN_LEFT = std::max(0.f, CURRENT_LOAN - PAID_LOAN);
+				auto MONEY_LEFT = std::max(0.f, REMAINDER - PAID_LOAN);
+				auto BANK = state.world.nation_get_national_bank(n);
+
+				state.world.nation_set_local_loan(n, LOAN_LEFT);
+				state.world.nation_set_stockpiles(n, economy::money, MONEY_LEFT);
+				state.world.nation_set_national_bank(n, BANK + PAID_LOAN);
+			}
+
+			spent_on_construction_buffer.set(n, spending_scale * costs.construction);
+
+			// use calculated values to perform actual consumption
+			update_national_consumption(state, n, spending_scale, BASE_BUDGET);
+		}
+
+		assert(spending_scale >= 0);
+		assert(std::isfinite(spending_scale));
+
+
+		// private budget
+		{
+			float private_spending_scale = 1.0f;
 			float pi_total = full_private_investment_cost(state, n);
 			float perceived_spending = pi_total;
 			float pi_budget = state.world.nation_get_private_investment(n);
-			auto pi_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
-			//cut away low values:
-			//pi_scale = std::max(0.f, pi_scale - 0.1f);
-			state.world.nation_set_private_investment_effective_fraction(n, pi_scale);
-			state.world.nation_set_private_investment(n, std::max(0.0f, pi_budget - pi_total * pi_scale));
+			private_spending_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
+			state.world.nation_set_private_investment_effective_fraction(n, private_spending_scale);
+			state.world.nation_set_private_investment(
+				n,
+				std::max(0.0f, pi_budget - pi_total * private_spending_scale)
+			);
 
-			update_national_consumption(state, n, spending_scale, pi_scale);
-
-			spent_on_construction_buffer.set(n, spending_scale * costs.construction);
+			update_private_consumption(state, n, private_spending_scale);
 		}
 	}
+
+	sanity_check(state);
+
+	// school sizes were updated, we can move to actual consumption
+
+	advanced_province_buildings::update_consumption(state);
 
 	sanity_check(state);
 

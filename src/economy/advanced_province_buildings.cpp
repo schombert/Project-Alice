@@ -117,14 +117,13 @@ void update_consumption(sys::state& state) {
 	}
 }
 
-void update_size(sys::state& state) {
+void update_private_size(sys::state& state) {
 	// schools
 	{
 		auto bid = list::schools_and_universities;
 		auto& def = definitions[bid];
 
-		//state.world.execute_serial_over_province([&](auto pids) {
-		state.world.for_each_province([&](auto pids) {
+		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
@@ -138,11 +137,25 @@ void update_size(sys::state& state) {
 			auto max_size = state.world.province_get_demographics(pids, demographics::total) * state.world.province_get_labor_price(pids, economy::labor::no_education) / cost_of_input;
 			new_private_size = ve::min(max_size, new_private_size);
 			state.world.province_set_advanced_province_building_private_size(pids, bid, ve::max(0.f, new_private_size));
+		});
+	}
+}
 
+void update_national_size(sys::state& state, float national_budget, float spending_scale) {
+	{
+		auto bid = list::schools_and_universities;
+		auto& def = definitions[bid];
 
-			auto national_budget = state.world.nation_get_stockpiles(owner, economy::money);
+		state.world.execute_serial_over_province([&](auto pids) {
+			auto owner = state.world.province_get_nation_from_province_ownership(pids);
+			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
+			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+
+			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * tmod * nmod * def.output_amount;
+
 			auto education_priority = ve::to_float(state.world.nation_get_education_spending(owner)) / 100.f;
-			auto education_budget = national_budget * education_priority;
+			auto education_budget = national_budget * education_priority * spending_scale;
 			auto total_population = state.world.nation_get_demographics(owner, demographics::primary_or_accepted);
 			auto local_population = state.world.province_get_demographics(pids, demographics::primary_or_accepted);
 			auto weight = ve::select(total_population == 0.f, 0.f, local_population / total_population);
