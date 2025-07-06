@@ -18,15 +18,35 @@ Adding new buttons wouldn't mean much if you couldn't make them do things. To al
 			assimilate = "yes please"
 		}
 	}
+
+	nationScriptButtonType = {
+		name = "wololo_button"
+		extends = "province_view_header"
+		position = { x= 146 y = 3 }
+		quadTextureSprite = "GFX_wololo"
+		visible = {
+			tag = USA
+		}
+		allow = {
+			owner = { tag = FROM }
+		}
+		effect = {
+			assimilate = "yes please"
+		}
+		ai_will_do = {
+			always = yes
+		}
+	}
 ```
 
-A province script button has its main and THIS slots filled with the province that the containing window is about, with FROM the player's nation. A nation script button has its main and THIS slots filled with the nation that the containing window is about, if there is one, or the player's nation if there is not, and has FROM populated with the player's nation.
-
-The `visible` trigger condition is optional and is used to determine when the button is rendered. If the allow condition is omitted, the button will always be enabled.
-
-The `allow` trigger condition is optional and is used to determine when the button is enabled. If the allow condition is omitted, the button will always be enabled.
-
-The tooltip for these scriptable buttons will always display the relevant allow condition and the effect. You may also optionally add a custom description to the tooltip by adding a localization key that is the name of the button followed by `_tooltip`. In the case of the button above, for example, the tooltip is defined as `wololo_button_tooltip;Wololo $PROVINCE$`. The following three variables can be used in the tooltip: `$PROVINCE$`, which will resolve to the targeted province, `$NATION$`, which will resolve to the targeted nation or the owner of the targeted province, and `$PLAYER$`, which will always resolve to the player's own nation.
+How does it work:
+- A province script button has its main and THIS slots filled with the province that the containing window is about, with FROM the player's nation.
+- A nation script button has its main and THIS slots filled with the nation that the containing window is about, if there is one, or the player's nation if there is not, and has FROM populated with the player's nation.
+- The `visible` trigger condition is optional and is used to determine when the button is rendered. If the allow condition is omitted, the button will always be enabled.
+- The `allow` trigger condition is optional and is used to determine when the button is enabled. If the allow condition is omitted, the button will always be enabled.
+- The tooltip for these scriptable buttons will always display the relevant allow condition and the effect. You may also optionally add a custom description to the tooltip by adding a localization key that is the name of the button followed by `_tooltip`. In the case of the button above, for example, the tooltip is defined as `wololo_button_tooltip;Wololo $PROVINCE$`. The following three variables can be used in the tooltip: `$PROVINCE$`, which will resolve to the targeted province, `$NATION$`, which will resolve to the targeted nation or the owner of the targeted province, and `$PLAYER$`, which will always resolve to the player's own nation.
+- AI evaluates national scripted interactions once a month in a similar way to decisions.
+- AI doesn't use province scripted interactions.
 
 ## Technical side
 
